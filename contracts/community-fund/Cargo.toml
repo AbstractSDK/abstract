@@ -1,0 +1,41 @@
+[package]
+name = "community-fund"
+version = "0.0.1"
+authors = ["White Whale"]
+edition = "2018"
+description = "Burns whale tokens"
+license = "Apache-2.0"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "community-fund.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cw0 = { version = "0.8" }
+cw2 = { version = "0.8" }
+cw20 = { version = "0.8" }
+terraswap = "2.4.0"
+terra-cosmwasm = "2.2.0"
+cosmwasm-std = "0.16.0"
+cosmwasm-storage = "0.16.0"
+cw-controllers = { version = "0.8" }
+cw-storage-plus = { version = "0.8" }
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.21" }
+white-whale = { version = "1.0.0", path = "../../packages/white_whale" }
+
+
+[dev-dependencies]
+cosmwasm-schema = "0.16.0"
