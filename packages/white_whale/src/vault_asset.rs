@@ -3,6 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use terraswap::asset::AssetInfo;
+use terraswap::querier::query_supply;
 
 
 /// Every VaultAsset provides a way to determine its value relative to either
@@ -44,19 +45,32 @@ impl <'a> VaultAsset <'a>{
         let holdings = self.asset_info.query_pool(&deps.querier, deps.api, owner_addr)?;
 
         // Is there a reference to calculate the value? 
-        if let Some(value_reference) = self.value_reference {
+        if let Some(value_reference) = self.value_reference.as_ref() {
+            
             match value_reference {
                 ValueRef::Pool { address } => {
                     // TODO
                     return Ok(Uint128::zero());
                 },
                 ValueRef::Liquidity { pool_address, proxy } => {
-                    
+                    // Check if we have a Token
+                    if let AssetInfo::Token {contract_addr}  =  self.asset_info {
+                        // Get total supply of LP tokens
+                        let total_lp = query_supply(
+                            &deps.querier,
+                            deps.api.addr_humanize(contract_addr)?,
+                        )?
+                        return lp_value(deps, pool_address, proxy, holdings, total_lp, base_asset);
+                    } else {
+                        return Err(StdError::generic_err("Can't have a native LP token"));
+                    }
                 },
                 ValueRef::Proxy {proxy_asset, multiplier, proxy_pool} => {
-                    
+                    // TODO
                 }
             }
+            }
+            
         } else {
             // No ValueRef so this should be the base token. 
             // TODO: Add error in case this is not true.
@@ -69,6 +83,14 @@ impl <'a> VaultAsset <'a>{
         Ok(Uint128::zero())
     }
 }
+
+pub fn lp_value(deps: Deps, pool_addr: &Addr, proxy: &Proxy, holdings: Uint128, base_asset: AssetInfo) -> StdResult<Uint128> {
+    
+}
+
+
+
+
 /// The proxy struct acts as an Asset overwrite.
 /// By setting this proxy you define the asset to be some 
 /// other asset while also providing the relevant pool 
@@ -95,19 +117,19 @@ impl <'a> Proxy <'a> {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Liquidity <'a> {
-    pool_address: Addr,
-    #[serde(borrow)]
-    proxy: Proxy<'a>,
-}
+// #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+// pub struct Liquidity <'a> {
+//     pool_address: Addr,
+//     #[serde(borrow)]
+//     proxy: Proxy<'a>,
+// }
 
-impl Liquidity <'_> {
-    pub fn value(&self, deps: Deps, holdings: Uint128, base_asset: AssetInfo) -> StdResult<Uint128> {
-        // Get total in pool
-        // Calculate share
-        // Use proxy to get value
+// impl Liquidity <'_> {
+//     pub fn value(&self, deps: Deps, holdings: Uint128, base_asset: AssetInfo) -> StdResult<Uint128> {
+//         // Get total in pool
+//         // Calculate share
+//         // Use proxy to get value
 
-    }
-}
+//     }
+// }
  
