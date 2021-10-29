@@ -20,13 +20,22 @@ pub struct VaultAsset<'a>{
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ValueRef <'a> {
     // A pool address of the asset/base_asset pair
-    Pool(PoolRef),
+    Pool{
+        address: Addr,
+    },
     // Liquidity pool addr to get fraction of owned liquidity
     // proxy to calculate value of both assets held by liquidity
-    Liquidity(LiquidityRef),
+    Liquidity{
+        pool_address: Addr,
+        proxy: Proxy<'a>,
+    },
     // Or a Proxy, the proxy also takes a Decimal (the multiplier)
     // Asset will be valued as if they are Proxy tokens
-    Proxy(ProxyRef),
+    Proxy{
+        proxy_asset: &'a str,
+        multiplier: Decimal,
+        proxy_pool: Option<Addr>,
+    },
 }
 
 impl <'a> VaultAsset <'a>{
@@ -37,22 +46,22 @@ impl <'a> VaultAsset <'a>{
         // Is there a reference to calculate the value? 
         if let Some(value_reference) = self.value_reference {
             match value_reference {
-                ValueRef::Pool(pool_reference) => {
+                ValueRef::Pool { address } => {
                     // TODO
                     return Ok(Uint128::zero());
                 },
-                ValueRef::Liquidity(liquididy_reference) => {
+                ValueRef::Liquidity { pool_address, proxy } => {
                     
                 },
-                ValueRef::Proxy(proxy_reference) => {
-    
+                ValueRef::Proxy {proxy_asset, multiplier, proxy_pool} => {
+                    
                 }
             }
         } else {
             // No ValueRef so this should be the base token. 
             // TODO: Add error in case this is not true.
             if base_asset != self.asset_info {
-                Err(StdError::generic_err("No value conversion provided for this asset."));
+                return Err(StdError::generic_err("No value conversion provided for this asset."));
             }
             return Ok(holdings);
         }
@@ -67,7 +76,7 @@ impl <'a> VaultAsset <'a>{
 /// For example: AssetInfo = bluna, BaseAsset = uusd, Proxy: Luna/ust pool
 /// proxy_pool = bluna/luna, multiplier = proxy_pool bluna price
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ProxyRef <'a> {
+pub struct Proxy <'a> {
     // Proxy asset, str is used for querying in asset_map.
     proxy_asset: &'a str,
     // Can be set to some constant or set to price,
@@ -76,7 +85,7 @@ pub struct ProxyRef <'a> {
     proxy_pool: Option<Addr>,
 }
 
-impl <'a> ProxyRef <'a> {
+impl <'a> Proxy <'a> {
     pub fn new(asset_name: &'a str, multiplier: Decimal, proxy_pool: Option<Addr>) -> Self {
         Self {
             proxy_asset: asset_name,
@@ -87,13 +96,13 @@ impl <'a> ProxyRef <'a> {
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct LiquidityRef <'a> {
+pub struct Liquidity <'a> {
     pool_address: Addr,
     #[serde(borrow)]
-    proxy: ProxyRef<'a>,
+    proxy: Proxy<'a>,
 }
 
-impl LiquidityRef <'_> {
+impl Liquidity <'_> {
     pub fn value(&self, deps: Deps, holdings: Uint128, base_asset: AssetInfo) -> StdResult<Uint128> {
         // Get total in pool
         // Calculate share
