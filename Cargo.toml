@@ -1,15 +1,7 @@
 [workspace]
 members = [
     "packages/*", 
-    "contracts/gov",
-    "contracts/bluna-vault",
-    "contracts/community-fund",
-    "contracts/profit-check",
-    "contracts/stablecoin-peg-arb",
-    "contracts/stablecoin-vault",
-    "contracts/terraswap-wrapper",
-    "contracts/vesting",
-    "contracts/war-chest"
+    "contracts/luna-vault"
 ]
 
 [profile.release]
