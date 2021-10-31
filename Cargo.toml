@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "packages/*", 
+    "contracts/luna-vault"
+]
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

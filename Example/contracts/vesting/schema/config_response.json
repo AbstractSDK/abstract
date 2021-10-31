@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "anchor_token",
+    "genesis_time",
+    "owner"
+  ],
+  "properties": {
+    "anchor_token": {
+      "type": "string"
+    },
+    "genesis_time": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "owner": {
+      "type": "string"
+    }
+  }
+}

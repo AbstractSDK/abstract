@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "last_balance"
+      ],
+      "properties": {
+        "last_balance": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "last_profit"
+      ],
+      "properties": {
+        "last_profit": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "vault"
+      ],
+      "properties": {
+        "vault": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
