@@ -2,7 +2,7 @@ pub mod anchor;
 pub mod community_fund;
 pub mod denom;
 pub mod deposit_info;
-pub mod vault_asset;
+// pub mod vault_asset;
 pub mod deposit_manager;
 pub mod fee;
 pub mod msg;
