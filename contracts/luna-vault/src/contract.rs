@@ -8,14 +8,16 @@ use terraswap::querier::{query_balance, query_token_balance, query_supply};
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 use protobuf::Message;
 
+use crate::vault_asset::VaultAsset;
+use cw_storage_plus::{Map};
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 
 use white_whale::msg::{create_terraswap_msg, VaultQueryMsg as QueryMsg};
 use white_whale::query::terraswap::simulate_swap as simulate_terraswap_swap;
 
 use crate::msg::{HandleMsg, InitMsg, PoolResponse};
-use crate::state::{State, STATE, POOL_INFO, LUNA_DENOM};
-use crate::pool_info::{PoolInfo, PoolInfoRaw};
+use crate::state::{State, STATE, VAULT_ASSETS, LUNA_DENOM};
+
 use crate::response::MsgInstantiateContractResponse;
 
 
@@ -31,48 +33,14 @@ pub fn instantiate(
 ) -> StdResult<Response> {
     let state = State {
         owner: deps.api.addr_canonicalize(info.sender.as_str())?,
-        trader: deps.api.addr_canonicalize(info.sender.as_str())?,
-        pool_address: deps.api.addr_canonicalize(&msg.pool_address)?,
-        bluna_hub_address: deps.api.addr_canonicalize(&msg.bluna_hub_address)?,
-        bluna_address: deps.api.addr_canonicalize(&msg.bluna_address)?,
+        traders: vec![],
     };
 
     STATE.save(deps.storage, &state)?;
 
-    let pool_info: &PoolInfoRaw = &PoolInfoRaw {
-        contract_addr: deps.api.addr_canonicalize(env.contract.address.as_str())?,
-        liquidity_token: CanonicalAddr::from(vec![]),
-        slippage: msg.slippage,
-        asset_infos: [
-            AssetInfo::Token{ contract_addr: msg.bluna_address }.to_raw(deps.api)?,
-            AssetInfo::NativeToken{ denom: LUNA_DENOM.to_string()}.to_raw(deps.api)?
-        ],
-    };
-    POOL_INFO.save(deps.storage, pool_info)?;
+    let vault_assets: &Map<AssetInfo, VaultAsset> = &Map::new("people");
+    VAULT_ASSETS.save(deps.storage, vault_assets)?;
 
-    Ok(Response::new().add_submessage(SubMsg {
-        // Create LP token
-        msg: WasmMsg::Instantiate {
-            admin: None,
-            code_id: msg.token_code_id,
-            msg: to_binary(&TokenInstantiateMsg {
-                name: "test liquidity token".to_string(),
-                symbol: "tLP".to_string(),
-                decimals: 6,
-                initial_balances: vec![],
-                mint: Some(MinterResponse {
-                    minter: env.contract.address.to_string(),
-                    cap: None,
-                }),
-            })?,
-            funds: vec![],
-            label: "".to_string(),
-        }
-        .into(),
-        gas_limit: None,
-        id: INSTANTIATE_REPLY_ID,
-        reply_on: ReplyOn::Success,
-    }))
 }
 
 /// This just stores the result for future query

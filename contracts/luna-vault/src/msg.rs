@@ -6,13 +6,7 @@ use terraswap::asset::Asset;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub pool_address: String,
-    pub bluna_hub_address: String,
-    pub bluna_address: String,
-    pub slippage: Decimal,
-    pub token_code_id: u64,
-    pub vault_lp_token_name: Option<String>,
-    pub vault_lp_token_symbol: Option<String>,
+    pub base_asset;
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
