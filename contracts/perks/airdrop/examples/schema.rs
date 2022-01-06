@@ -3,11 +3,11 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use whale_airdrop::state::{Config, State};
 use dao_os::tokenomics::airdrop::{
     ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
     UserInfoResponse,
 };
+use whale_airdrop::state::{Config, State};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

@@ -11,8 +11,8 @@ use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_
 use terra_multi_test::Executor;
 use terraswap::asset::Asset;
 
-use dao_os::treasury::msg as TreasuryMsg;
 use crate::dapp_base::common::TEST_CREATOR;
+use dao_os::treasury::msg as TreasuryMsg;
 
 use super::update::change_base_to_whale;
 const MILLION: u64 = 1_000_000u64;

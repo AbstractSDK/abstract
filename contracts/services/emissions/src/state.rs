@@ -1,8 +1,8 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
+use dao_os::emissions::msg::{AllocationInfo, Schedule};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use dao_os::emissions::msg::{AllocationInfo, Schedule};
 
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");

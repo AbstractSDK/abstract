@@ -9,9 +9,9 @@ use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use astroport::pair::PoolResponse;
-use terra_multi_test::Executor;
 use dao_os::memory::msg as MemoryMsg;
 use dao_os::treasury::msg as TreasuryMsg;
+use terra_multi_test::Executor;
 
 use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
 

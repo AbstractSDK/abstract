@@ -8,10 +8,10 @@ use crate::msg::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
-use terra_multi_test::Executor;
-use terraswap::pair::PoolResponse;
 use dao_os::memory::msg as MemoryMsg;
 use dao_os::treasury::msg as TreasuryMsg;
+use terra_multi_test::Executor;
+use terraswap::pair::PoolResponse;
 
 use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
 

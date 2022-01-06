@@ -2,13 +2,13 @@ use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut};
 use cosmwasm_std::{Api, Decimal};
 
+use crate::dapp_base::common::MEMORY_CONTRACT;
 use dao_os::memory::item::Memory;
 use dao_os::treasury::dapp_base::state::{BaseState, BASESTATE};
-use crate::dapp_base::common::MEMORY_CONTRACT;
 
 use crate::contract::instantiate;
 use crate::msg::InstantiateMsg;
-use crate::state::{STATE, State};
+use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
 use crate::tests::common::{TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
 
@@ -52,6 +52,8 @@ fn successful_initialization() {
     );
     assert_eq!(
         STATE.load(&deps.storage).unwrap(),
-        State { liquidity_token_addr: Addr::unchecked("")}
+        State {
+            liquidity_token_addr: Addr::unchecked("")
+        }
     );
 }

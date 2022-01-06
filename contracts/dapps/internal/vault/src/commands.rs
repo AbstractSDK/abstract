@@ -13,10 +13,10 @@ use crate::contract::VaultResult;
 use crate::error::VaultError;
 use crate::msg::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
-use terraswap::querier::query_supply;
 use dao_os::fee::Fee;
 use dao_os::query::terraswap::query_asset_balance;
 use dao_os::query::vault::query_total_value;
+use terraswap::querier::query_supply;
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
