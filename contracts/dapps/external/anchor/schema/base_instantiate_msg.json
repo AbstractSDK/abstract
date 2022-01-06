@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BaseInstantiateMsg",
+  "type": "object",
+  "required": [
+    "memory_addr",
+    "trader",
+    "treasury_address"
+  ],
+  "properties": {
+    "memory_addr": {
+      "type": "string"
+    },
+    "trader": {
+      "type": "string"
+    },
+    "treasury_address": {
+      "type": "string"
+    }
+  }
+}

@@ -1,7 +1,13 @@
 [workspace]
 members = [
     "packages/*", 
-    "contracts/luna-vault"
+    "contracts/core/memory",
+    "contracts/core/treasury",
+    "contracts/dapps/external/*",
+    "contracts/dapps/internal/vault",
+    "contracts/core/treasury",
+
+
 ]
 
 [profile.release]
