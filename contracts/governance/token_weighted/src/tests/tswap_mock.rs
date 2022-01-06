@@ -43,6 +43,7 @@ pub enum MockQueryMsg {
     Pool {},
 }
 
+#[allow(unused)]
 pub fn contract_receiver_mock() -> Box<dyn Contract<Empty>> {
     let contract = ContractWrapper::new(
         |_, _, _, msg: MockExecuteMsg| -> StdResult<Response> {
@@ -70,7 +71,7 @@ pub fn contract_receiver_mock() -> Box<dyn Contract<Empty>> {
     Box::new(contract)
 }
 
-#[allow(unused_must_use)]
+#[allow(unused)]
 pub fn mock_pair_info() {
     to_binary(&PairResponse {
         asset_infos: [
@@ -86,7 +87,7 @@ pub fn mock_pair_info() {
     });
 }
 
-#[allow(unused_must_use)]
+#[allow(unused)]
 pub fn mock_pool_info() {
     to_binary(&PoolResponse {
         assets: [

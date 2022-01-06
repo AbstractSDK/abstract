@@ -1,1 +1,1 @@
-pub mod common;
+mod common;

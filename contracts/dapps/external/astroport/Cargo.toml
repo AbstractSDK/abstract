@@ -52,8 +52,8 @@ terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", rev
 terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test"}
 cosmwasm-vm = { version = "0.16.0", default-features = false, features = ["iterator"] }
 
-treasury = { version = "0.1.0", path = "../../treasury" }
-memory = { version = "0.1.0", path = "../../memory" }
+treasury = { version = "0.1.0", path = "../../../core/treasury" }
+memory = { version = "0.1.0", path = "../../../core/memory" }
 cw20-base = { version = "0.8", features = ["library"] }
 astroport-factory = { version = "1.0.0", path = "../../../mocks/mock_astroport/astroport_factory" }
 astroport-pair = { version = "1.0.0", path = "../../../mocks/mock_astroport/astroport_pair" }

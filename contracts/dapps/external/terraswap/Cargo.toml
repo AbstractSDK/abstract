@@ -33,7 +33,7 @@ terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
 dao-os = { version = "1.0.0", path = "../../../../packages/dao_os" }
-dapp-template = { version = "0.1.0", path = "../dapp-template" }
+# dapp-template = { version = "0.1.0", path = "../../template" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 [dev-dependencies]
@@ -42,8 +42,8 @@ cw-multi-test = { version = "0.8"}
 terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks"}
 terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test"}
 
-treasury = { version = "0.1.0", path = "../../treasury" }
-memory = { version = "0.1.0", path = "../../memory" }
+treasury = { version = "0.1.0", path = "../../../core/treasury" }
+memory = { version = "0.1.0", path = "../../../core/memory" }
 cw20-base = { version = "0.8", features = ["library"] }
 terraswap-factory = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
 terraswap-pair = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
