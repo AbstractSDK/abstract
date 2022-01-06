@@ -22,7 +22,7 @@ These DApps handle the construction of messages and relaying of price informatio
 
 ### Internal DApps
 These DApps add extra functionality to the core contracts. Some examples are
-- Treasury Oracle 
+- Oracle 
 - Payroll
 - Vault
 - Custom factories
