@@ -41,3 +41,23 @@ Perks are contracts that are not really part of the DAO infrastructure but are d
 - Airdrop
 - Liquidity Bootstrapping Pool
 - ...
+
+
+# Deployment
+Deploying the basic infrastucture is done though the following steps:
+
+prerequisite: 
+1. Memory contract is deployed and instantiated
+2. All required contracts have been uploaded and have a valid code-id
+
+- Instantiate the version-control contract
+- Instantiate the manager contract and set OS-ID
+- Add OS manager address to version-control
+- Add uploaded contract ids to version-control
+
+Now we'll create a new OS, this is done using the Factory contract
+
+- Instantiate the Treasury contract
+- Add it to the manager contract
+- Instantiate the required governance (if applicable)
+- Add whatever dApps and services you require through the version-control contract
