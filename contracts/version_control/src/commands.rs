@@ -8,12 +8,7 @@ use dao_os::memory::msg::ExecuteMsg;
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {
     match message {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
-        ExecuteMsg::UpdateContractAddresses { to_add, to_remove } => {
-            update_contract_addresses(deps, info, to_add, to_remove)
-        }
-        ExecuteMsg::UpdateAssetAddresses { to_add, to_remove } => {
-            update_asset_addresses(deps, info, to_add, to_remove)
-        }
+        
     }
 }
 

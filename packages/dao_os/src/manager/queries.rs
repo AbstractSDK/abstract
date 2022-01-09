@@ -47,7 +47,7 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names.iter() {
-        let result: Addr = deps
+        let result: StdResult<Addr> = deps
             .querier
             .query::<Addr>(&QueryRequest::Wasm(WasmQuery::Raw {
                 contract_addr: manager_addr.to_string(),
@@ -56,9 +56,12 @@ pub fn query_module_addresses(
                     &to_length_prefixed(b"os_modules"),
                     module.as_bytes(),
                 )),
-            }))?;
-
-        modules.insert(module.clone(), result);
+            }));
+        // Add to map if present, skip otherwise. Allows version control to check what modules are present.
+        match result {
+            Ok(address) => modules.insert(module.clone(), address),
+            Err(_) => None
+        };
     }
     Ok(modules)
 }
