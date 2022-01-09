@@ -15,3 +15,4 @@ pub mod tokenomics;
 pub mod treasury;
 pub mod ust_vault;
 pub mod vesting;
+pub mod version_control;

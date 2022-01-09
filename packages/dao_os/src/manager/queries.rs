@@ -2,16 +2,10 @@ use std::collections::BTreeMap;
 
 use cosmwasm_std::{Addr, Binary};
 
-use crate::denom::is_denom;
 use cosmwasm_storage::to_length_prefixed;
-use terraswap::asset::AssetInfo;
 
-use cosmwasm_std::{
-    to_binary, Decimal, Deps, Env, QueryRequest, StdError, StdResult, Uint128, WasmQuery,
-};
+use cosmwasm_std::{Deps, QueryRequest, StdResult, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 pub fn query_module_version(deps: &Deps, module_addr: Addr) -> StdResult<ContractVersion> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
@@ -47,20 +41,20 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names.iter() {
-        let result: StdResult<Addr> = deps
-            .querier
-            .query::<Addr>(&QueryRequest::Wasm(WasmQuery::Raw {
-                contract_addr: manager_addr.to_string(),
-                key: Binary::from(concat(
-                    // Query modules map
-                    &to_length_prefixed(b"os_modules"),
-                    module.as_bytes(),
-                )),
-            }));
+        let result: StdResult<Addr> =
+            deps.querier
+                .query::<Addr>(&QueryRequest::Wasm(WasmQuery::Raw {
+                    contract_addr: manager_addr.to_string(),
+                    key: Binary::from(concat(
+                        // Query modules map
+                        &to_length_prefixed(b"os_modules"),
+                        module.as_bytes(),
+                    )),
+                }));
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
         match result {
             Ok(address) => modules.insert(module.clone(), address),
-            Err(_) => None
+            Err(_) => None,
         };
     }
     Ok(modules)

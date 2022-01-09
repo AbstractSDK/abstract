@@ -1,5 +1,5 @@
 [package]
-name = "version-control"
+name = "manager"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"

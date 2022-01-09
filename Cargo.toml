@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "packages/*", 
-    "contracts/core/*",
+    "contracts/version_control",
+    "contracts/core/*"
     # "contracts/dapps/external/*",
     # "contracts/dapps/internal/vault",
     # "contracts/dapps/template",

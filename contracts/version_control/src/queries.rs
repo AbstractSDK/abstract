@@ -1,19 +1,21 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
-use dao_os::memory::queries::{query_assets_from_mem, query_contracts_from_mem};
+use cw_storage_plus::Prefix;
+use cw_storage_plus::Bound;
+use cosmwasm_std::Addr;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Order};
+use manager::state::OS_MODULES;
+use dao_os::version_control::msg::{QueryMsg,EnabledModulesResponse};
 
-use dao_os::memory::msg::{AssetQueryResponse, ContractQueryResponse};
-
-pub fn query_assets(deps: Deps, env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets = query_assets_from_mem(deps, &env.contract.address, &asset_names)?;
-    let vector = assets.into_iter().map(|(v, k)| (v, k)).collect();
-    to_binary(&AssetQueryResponse { assets: vector })
-}
-
-pub fn query_contract(deps: Deps, env: Env, names: Vec<String>) -> StdResult<Binary> {
-    let contracts = query_contracts_from_mem(deps, &env.contract.address, &names)?;
-    let vector = contracts
-        .into_iter()
-        .map(|(v, k)| (v, k.to_string()))
-        .collect();
-    to_binary(&ContractQueryResponse { contracts: vector })
+pub fn query_enabled_modules(deps: Deps, env: Env, manager_addr: Addr) -> StdResult<Binary> {
+    let modules: Vec<Vec<u8>> = OS_MODULES.keys(deps.storage, None, None, Order::Ascending).collect();
+    
+    let module_names: Vec<String> = modules.into_iter()
+     .map(|module| String::from_utf8(module).unwrap())
+     .collect();
+ 
+    // for module in modules.into_iter() {
+    //     module_names.push(String::from_utf8(module)?);
+    // };
+    to_binary(&EnabledModulesResponse {
+        modules: module_names
+    })
 }

@@ -1,6 +1,3 @@
-use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QueryRequest, StdError, StdResult, Uint128, WasmQuery,
-};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
