@@ -35,5 +35,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryModules { names } => {
             queries::handle_module_addresses_query(deps, env, names)
         }
+        QueryMsg::QueryEnabledModules {} => 
+            queries::handle_enabled_modules_query(deps)
     }
 }

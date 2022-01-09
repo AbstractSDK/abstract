@@ -30,6 +30,7 @@ pub enum QueryMsg {
     QueryModules {
         names: Vec<String>,
     },
+    QueryEnabledModules {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -40,4 +41,9 @@ pub struct VersionsQueryResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ModuleQueryResponse {
     pub modules: Vec<(String, String)>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct EnabledModulesResponse {
+    pub modules: Vec<String>,
 }

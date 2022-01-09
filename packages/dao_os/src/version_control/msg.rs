@@ -1,4 +1,4 @@
-use cw2::ContractVersion;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +9,15 @@ pub struct InstantiateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    
+    AddCodeId {
+        module: String,
+        version: String,
+        code_id: u64,
+    },
+    RemoveCodeId {
+        module: String,
+        version: String,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -21,7 +29,3 @@ pub enum QueryMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct EnabledModulesResponse {
-    pub modules: Vec<String>,
-}

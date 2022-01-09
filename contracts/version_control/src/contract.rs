@@ -1,12 +1,12 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use crate::error::VersionError;
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, Api, MessageInfo, Response, StdResult};
 
 use crate::commands::*;
-use crate::error::MemoryError;
 use crate::queries;
 use crate::state::ADMIN;
-use dao_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use dao_os::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
-pub type MemoryResult = Result<Response, MemoryError>;
+pub type VCResult = Result<Response, VersionError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -14,7 +14,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     _msg: InstantiateMsg,
-) -> MemoryResult {
+) -> VCResult {
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;
 
@@ -22,14 +22,13 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> MemoryResult {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     handle_message(deps, info, msg)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::EnabledModules { names } => queries::query_enabled_modules(deps, env, names),
-        QueryMsg::QueryContracts { names } => queries::query_contract(deps, env, names),
+        QueryMsg::QueryEnabledModules { os_address } => queries::query_enabled_modules(deps, deps.api.addr_validate(&os_address)?),
     }
 }

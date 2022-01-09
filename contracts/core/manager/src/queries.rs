@@ -1,6 +1,6 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
-use dao_os::manager::queries::{query_module_addresses, query_module_versions};
-
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Order};
+use dao_os::manager::{queries::{query_module_addresses, query_module_versions}, msg::EnabledModulesResponse};
+use crate::state::OS_MODULES;
 use dao_os::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
 
 pub fn handle_module_addresses_query(
@@ -24,4 +24,22 @@ pub fn handle_contract_versions_query(
     let response = query_module_versions(deps, &env.contract.address, &names)?;
     let versions = response.into_values().collect();
     to_binary(&VersionsQueryResponse { versions })
+}
+
+pub fn handle_enabled_modules_query(
+    deps: Deps,
+) -> StdResult<Binary> {
+    let modules: Vec<Vec<u8>> = OS_MODULES.keys(deps.storage, None, None, Order::Ascending).collect();
+    
+    let module_names: Vec<String> = modules.into_iter()
+     .map(|module| String::from_utf8(module).unwrap())
+     .collect();
+ 
+    // for module in modules.into_iter() {
+    //     module_names.push(String::from_utf8(module)?);
+    // };
+    
+    to_binary(&EnabledModulesResponse {
+        modules: module_names
+    })
 }

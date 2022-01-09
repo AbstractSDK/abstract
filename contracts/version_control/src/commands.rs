@@ -1,13 +1,15 @@
 use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult};
 
-use crate::contract::MemoryResult;
+use crate::contract::VCResult;
+use crate::error::VersionError;
 use crate::state::*;
-use dao_os::memory::msg::ExecuteMsg;
+use dao_os::version_control::msg::ExecuteMsg;
 
 /// Handles the common base execute messages
-pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {
+pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> VCResult {
     match message {
-        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
+        ExecuteMsg::AddCodeId { module, version, code_id } => add_code_id(deps, info, module, version, code_id),
+        ExecuteMsg::RemoveCodeId { module, version } => remove_code_id(deps, info, module, version),
         
     }
 }
@@ -16,55 +18,54 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
 //  GOVERNANCE CONTROLLED SETTERS
 //----------------------------------------------------------------------------------------
 
-/// Adds, updates or removes provided addresses.
-pub fn update_contract_addresses(
+/// Add a new code_id for a module
+pub fn add_code_id(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<(String, String)>,
-    to_remove: Vec<String>,
-) -> MemoryResult {
-    // Only Admin can call this method
+    module: String,
+    version: String,
+    code_id: u64,
+) -> VCResult {
+    // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    for (name, new_address) in to_add.into_iter() {
-        // validate addr
-        let addr = deps.as_ref().api.addr_validate(&new_address)?;
-        // Update function for new or existing keys
-        let insert = |_| -> StdResult<Addr> { Ok(addr) };
-        CONTRACT_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
-    }
+    MODULE_CODE_IDS.save(deps.storage, (&module, &version), &code_id)?;
 
-    for name in to_remove {
-        CONTRACT_ADDRESSES.remove(deps.storage, name.as_str());
-    }
-
-    Ok(Response::new().add_attribute("action", "updated contract addressses"))
+    Ok(Response::new().add_attributes(vec![
+        ("Action", "Add Code_ID"),
+        ("Module:", &module),
+        ("Version:", &version),
+        ("Code ID:", &code_id.to_string()),
+    ]))
 }
 
-/// Adds, updates or removes provided addresses.
-pub fn update_asset_addresses(
+/// Add a new code_id for a module
+pub fn remove_code_id(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<(String, String)>,
-    to_remove: Vec<String>,
-) -> MemoryResult {
-    // Only Admin can call this method
+    module: String,
+    version: String,
+) -> VCResult {
+    // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    for (name, new_address) in to_add.into_iter() {
-        // Update function for new or existing keys
-        let insert = |_| -> StdResult<String> { Ok(new_address) };
-        ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
+    if MODULE_CODE_IDS.has(deps.storage, (&module, &version)) {
+        MODULE_CODE_IDS.remove(deps.storage, (&module, &version));
+    } else {
+        return Err(VersionError::MissingCodeId {
+            module,
+            version,
+        })
     }
 
-    for name in to_remove {
-        ASSET_ADDRESSES.remove(deps.storage, name.as_str());
-    }
-
-    Ok(Response::new().add_attribute("action", "updated asset addresses"))
+    Ok(Response::new().add_attributes(vec![
+        ("Action", "Remove Code_ID"),
+        ("Module:", &module),
+        ("Version:", &version),
+    ]))
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResult {
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let admin_addr = deps.api.addr_validate(&admin)?;

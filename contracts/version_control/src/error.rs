@@ -3,16 +3,13 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum MemoryError {
+pub enum VersionError {
     #[error("{0}")]
     Std(#[from] StdError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("You must provide exactly two assets when adding liquidity")]
-    NotTwoAssets {},
-
-    #[error("{} is not part of the provided pool", id)]
-    NotInPool { id: String },
+    #[error("Version {} of module {} does not have a stored code id", version, module)]
+    MissingCodeId { version: String, module: String},
 }
