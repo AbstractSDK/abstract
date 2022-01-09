@@ -1,7 +1,6 @@
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::WasmQuery;
 
-
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 

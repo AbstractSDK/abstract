@@ -11,8 +11,7 @@ pub fn query_code_id(
     module_name: String,
     version: String,
 ) -> StdResult<u64> {
-    deps
-        .querier
+    deps.querier
         .query::<u64>(&QueryRequest::Wasm(WasmQuery::Raw {
             contract_addr: version_control_addr.to_string(),
             // query assets map

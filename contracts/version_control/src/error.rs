@@ -10,6 +10,10 @@ pub enum VersionError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("Version {} of module {} does not have a stored code id", version, module)]
-    MissingCodeId { version: String, module: String},
+    #[error(
+        "Version {} of module {} does not have a stored code id",
+        version,
+        module
+    )]
+    MissingCodeId { version: String, module: String },
 }

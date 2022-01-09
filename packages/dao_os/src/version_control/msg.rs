@@ -1,4 +1,3 @@
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -17,15 +16,12 @@ pub enum ExecuteMsg {
     RemoveCodeId {
         module: String,
         version: String,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries assets based on name
-    QueryEnabledModules{
-        os_address: String,
-    },
+    QueryEnabledModules { os_address: String },
 }
-
