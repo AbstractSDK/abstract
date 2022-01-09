@@ -27,5 +27,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryEnabledModules { os_address } => {
             queries::query_enabled_modules(deps, deps.api.addr_validate(&os_address)?)
         }
+        QueryMsg::QueryOsAddress { os_id } => {
+            queries::query_os_address(deps, os_id)
+        }
     }
 }

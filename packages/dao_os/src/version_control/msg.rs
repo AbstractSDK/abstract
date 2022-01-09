@@ -24,4 +24,6 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     /// Queries assets based on name
     QueryEnabledModules { os_address: String },
+    /// Queries address of OS manager module
+    QueryOsAddress { os_id: u32 }
 }

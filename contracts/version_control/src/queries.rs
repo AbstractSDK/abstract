@@ -3,6 +3,8 @@ use cosmwasm_std::WasmQuery;
 
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
+use cw_storage_plus::U32Key;
+use crate::state::OS_ADDRESSES;
 
 use dao_os::manager::msg::{EnabledModulesResponse, QueryMsg};
 
@@ -13,4 +15,9 @@ pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary
             msg: to_binary(&QueryMsg::QueryEnabledModules {})?,
         }))?;
     to_binary(&response)
+}
+
+pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
+    let address: String = OS_ADDRESSES.load(deps.storage, U32Key::new(os_id))?;
+    to_binary(&address)
 }
