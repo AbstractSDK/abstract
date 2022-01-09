@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult};
+use cosmwasm_std::{DepsMut, MessageInfo, Response};
 
 use crate::contract::VCResult;
 use crate::error::VersionError;
