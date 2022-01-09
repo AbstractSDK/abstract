@@ -1,0 +1,1 @@
+The manager contract holds a Map of all the contracts that belong to the OS, and provides a query to get their Contract Version.

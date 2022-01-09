@@ -5,6 +5,8 @@ pub mod denom;
 pub mod deposit_info;
 pub mod emissions;
 pub mod fee;
+pub mod governance;
+pub mod manager;
 pub mod memory;
 pub mod profit_check;
 pub mod query;
