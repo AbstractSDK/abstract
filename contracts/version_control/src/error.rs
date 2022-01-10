@@ -16,4 +16,7 @@ pub enum VersionError {
         module
     )]
     MissingCodeId { version: String, module: String },
+
+    #[error("OS ID {} is not in version control register", id)]
+    MissingOsId { id: u32 },
 }

@@ -17,6 +17,13 @@ pub enum ExecuteMsg {
         module: String,
         version: String,
     },
+    AddOs {
+        os_id: u32,
+        os_manager_address: String,
+    },
+    RemoveOs {
+        os_id: u32,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -25,5 +32,5 @@ pub enum QueryMsg {
     /// Queries assets based on name
     QueryEnabledModules { os_address: String },
     /// Queries address of OS manager module
-    QueryOsAddress { os_id: u32 }
+    QueryOsAddress { os_id: u32 },
 }

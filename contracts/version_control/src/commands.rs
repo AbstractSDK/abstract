@@ -1,4 +1,5 @@
 use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
 use crate::error::VersionError;
@@ -14,12 +15,43 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
             code_id,
         } => add_code_id(deps, info, module, version, code_id),
         ExecuteMsg::RemoveCodeId { module, version } => remove_code_id(deps, info, module, version),
+        ExecuteMsg::AddOs {
+            os_id,
+            os_manager_address,
+        } => add_os(deps, info, os_id, os_manager_address),
+        ExecuteMsg::RemoveOs { os_id } => remove_os(deps, info, os_id),
     }
 }
 
-//----------------------------------------------------------------------------------------
-//  GOVERNANCE CONTROLLED SETTERS
-//----------------------------------------------------------------------------------------
+/// Add new OS to version control contract
+/// TODO: only allow factory contract to call this
+pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, os_manager: String) -> VCResult {
+    // Only Admin can update code-ids
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    deps.api.addr_validate(&os_manager)?;
+    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &os_manager)?;
+
+    Ok(Response::new().add_attributes(vec![
+        ("Action", "Add OS"),
+        ("ID:", &os_id.to_string()),
+        ("OS Address:", &os_manager),
+    ]))
+}
+
+/// Remove OS from version control contract
+pub fn remove_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32) -> VCResult {
+    // Only Admin can update code-ids
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    if OS_ADDRESSES.has(deps.storage, U32Key::from(os_id)) {
+        OS_ADDRESSES.remove(deps.storage, U32Key::from(os_id));
+    } else {
+        return Err(VersionError::MissingOsId { id: os_id });
+    }
+
+    Ok(Response::new().add_attributes(vec![("Action", "Remove OS"), ("ID:", &os_id.to_string())]))
+}
 
 /// Add a new code_id for a module
 pub fn add_code_id(

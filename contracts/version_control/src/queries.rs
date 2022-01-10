@@ -1,10 +1,10 @@
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::WasmQuery;
 
+use crate::state::OS_ADDRESSES;
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
-use crate::state::OS_ADDRESSES;
 
 use dao_os::manager::msg::{EnabledModulesResponse, QueryMsg};
 
