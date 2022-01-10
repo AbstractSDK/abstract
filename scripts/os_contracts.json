@@ -1,9 +1,14 @@
 {
     "bombay-12": {
+        "os_id": 2,
         "code_id": {
-            "version_control": 32809
+            "version_control": "32859",
+            "manager": "32860",
+            "treasury": "32861"
         },
-        "version_control": "terra13468cdf6rztj9mvf9vrezjh357znl9ardzl0zw"
+        "version_control": "terra12ne7qr34cewdrq6z6h8jn7hz2kwz3rws2uljmd",
+        "manager": "terra169r5y0ccah3rr483upp3ncwte5p4g00u8ylxr4",
+        "treasury": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7"
     },
     "columbus-5": {
         "code_id": {}

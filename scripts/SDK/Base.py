@@ -8,6 +8,8 @@ import pathlib
 import sys
 from typing import List
 
+from cw_os.contracts.manager import *
+from cw_os.contracts.treasury import *
 from cw_os.contracts.version_control import *
 from terra_sdk.core.coins import Coin
 from cw_os.deploy import get_deployer
@@ -18,8 +20,24 @@ mnemonic = "man goddess right advance aim into sentence crime style salad enforc
 deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
 
 version_control = VersionControlContract(deployer)
+manager = OSManager(deployer)
+treasury = TreasuryContract(deployer)
 
-create = True
+create_base = False
+create_os = False
 
-if create:
-    version_control.create()
+if create_base:
+    version_control.upload()
+    version_control.instantiate()
+
+if create_os:
+    manager.upload()
+    treasury.upload()
+    manager.instantiate()
+    version_control.add_os(manager.query_os_id())
+    treasury.instantiate()
+    manager.add_module("treasury",manager.get("treasury"))
+
+
+# TODO: add contract_ids to version_control
+
