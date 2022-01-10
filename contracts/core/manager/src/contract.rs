@@ -1,4 +1,4 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, to_binary};
 
 use crate::commands::*;
 use crate::error::ManagerError;
@@ -36,5 +36,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             queries::handle_module_addresses_query(deps, env, names)
         }
         QueryMsg::QueryEnabledModules {} => queries::handle_enabled_modules_query(deps),
+        QueryMsg::QueryOsId {} => to_binary(&OS_ID.load(deps.storage)?),
     }
 }

@@ -31,6 +31,8 @@ pub enum QueryMsg {
         names: Vec<String>,
     },
     QueryEnabledModules {},
+    /// Query OS_ID
+    QueryOsId {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
