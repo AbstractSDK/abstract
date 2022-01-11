@@ -1,5 +1,5 @@
 pub mod contract;
-mod msg;
+pub mod msg;
 mod querier;
 mod response;
 pub mod state;

@@ -1,16 +1,15 @@
 use cosmwasm_std::{ContractResult, SubMsgExecutionResponse, CosmosMsg};
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn, Response, StdError,
-    StdResult, SubMsg, WasmMsg, Uint64,
+    to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, StdError, SubMsg, WasmMsg,
 };
 use dao_os::governance::gov_type::GovernanceDetails;
 use dao_os::manager::helper::register_module_on_manager;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
-use crate::error::OsFactoryError;
+
 use crate::response::MsgInstantiateContractResponse;
-use crate::msg::*;
+
 use crate::state::*;
 use dao_os::version_control::queries::query_code_id;
 use dao_os::version_control::msg::ExecuteMsg as VCExecuteMsg;

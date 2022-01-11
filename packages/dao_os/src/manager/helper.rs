@@ -1,6 +1,5 @@
 use cosmwasm_std::{
-    to_binary, Addr, Coin, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg,
-    Uint128, WasmMsg, Env, Empty,
+    to_binary, CosmosMsg, StdResult, WasmMsg, Env, Empty,
 };
 
 use crate::manager::msg::ExecuteMsg::UpdateModuleAddresses;
