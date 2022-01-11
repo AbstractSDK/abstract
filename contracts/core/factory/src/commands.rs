@@ -110,7 +110,9 @@ pub fn after_manager_create_treasury(
         String::from(TREASURY_VERSION),
     )?;
 
-    Ok(response.add_submessage(SubMsg {
+    Ok(response
+        .add_attribute("Manager Address:", &manager_address.to_string())
+        .add_submessage(SubMsg {
         id: TREASURY_CREATE_ID,
         gas_limit: None,
         msg: WasmMsg::Instantiate {
@@ -134,7 +136,9 @@ pub fn after_treasury_add_to_manager(
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    Ok(Response::new().add_message(register_module_on_manager(
+    Ok(Response::new()
+    .add_attribute("Treasury Address: ", res.get_contract_address())
+    .add_message(register_module_on_manager(
         res.get_contract_address().to_string(),
         TREASURY_NAME.to_string(),
         env,
