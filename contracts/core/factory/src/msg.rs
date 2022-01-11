@@ -1,14 +1,12 @@
-use cosmwasm_std::Addr;
 use dao_os::governance::gov_type::GovernanceDetails;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    /// Pair contract code ID, which is used to
-    pub treasury_code_id: u64,
-    pub token_weighted_gov_code_id: u64,
-    pub memory_contract: Addr,
+    pub version_control_contract: String,
+    pub memory_contract: String,
+    pub creation_fee: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -16,15 +14,15 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     /// UpdateConfig update relevant code IDs
     UpdateConfig {
-        owner: Option<String>,
-        memory_contract: Option<Addr>,
-        treasury_code_id: Option<u64>,
-        token_weighted_gov_code_id: Option<u64>,
+        admin: Option<String>,
+        memory_contract: Option<String>,
+        version_control_contract: Option<String>,
+        creation_fee: Option<u32>
     },
     /// Creates the core contracts for the OS
-    CreateOS {
+    CreateOs {
         /// Asset infos
-        goverance: GovernanceDetails,
+        governance: GovernanceDetails,
     },
 }
 
@@ -39,8 +37,9 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub owner: String,
     pub memory_contract: String,
-    pub treasury_code_id: u64,
-    pub token_weighted_gov_code_id: u64,
+    pub version_control_contract: String,
+    pub creation_fee: u32,
+    pub os_id_sequence: u32,
 }
 
 /// We currently take no arguments for migrations
