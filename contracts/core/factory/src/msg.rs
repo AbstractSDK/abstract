@@ -17,7 +17,7 @@ pub enum ExecuteMsg {
         admin: Option<String>,
         memory_contract: Option<String>,
         version_control_contract: Option<String>,
-        creation_fee: Option<u32>
+        creation_fee: Option<u32>,
     },
     /// Creates the core contracts for the OS
     CreateOs {

@@ -1,7 +1,7 @@
-use cosmwasm_std::{ContractResult, SubMsgExecutionResponse, CosmosMsg};
 use cosmwasm_std::{
     to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, StdError, SubMsg, WasmMsg,
 };
+use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use dao_os::governance::gov_type::GovernanceDetails;
 use dao_os::manager::helper::register_module_on_manager;
 use protobuf::Message;
@@ -11,10 +11,10 @@ use crate::contract::OsFactoryResult;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use dao_os::version_control::queries::query_code_id;
-use dao_os::version_control::msg::ExecuteMsg as VCExecuteMsg;
 use dao_os::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
 use dao_os::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
+use dao_os::version_control::msg::ExecuteMsg as VCExecuteMsg;
+use dao_os::version_control::queries::query_code_id;
 
 const TREASURY_VERSION: &str = "v0.1.0";
 const MANAGER_VERSION: &str = "v0.1.0";
@@ -30,13 +30,13 @@ pub fn execute_create_os(
     env: Env,
     governance: GovernanceDetails,
 ) -> OsFactoryResult {
-    // TODO: Add check if fee was paid 
+    // TODO: Add check if fee was paid
 
     // Get address of OS root account
-    
+
     let root_user: Addr = match governance {
-        GovernanceDetails::Monarchy { owner} => deps.api.addr_validate(&owner)?,
-        _ => Err(StdError::generic_err("Not Implemented"))?
+        GovernanceDetails::Monarchy { owner } => deps.api.addr_validate(&owner)?,
+        _ => Err(StdError::generic_err("Not Implemented"))?,
     };
 
     let config = CONFIG.load(deps.storage)?;
@@ -47,13 +47,14 @@ pub fn execute_create_os(
         deps.as_ref(),
         &config.version_control_contract,
         String::from("Manager"),
-        String::from(MANAGER_VERSION))?;
-    
+        String::from(MANAGER_VERSION),
+    )?;
+
     // Create manager
     Ok(response
         .add_attributes(vec![
             ("action", "create os"),
-            ("os_id:", &config.os_id_sequence.to_string())
+            ("os_id:", &config.os_id_sequence.to_string()),
         ])
         .add_submessage(SubMsg {
             id: MANAGER_CREATE_ID,
@@ -62,12 +63,12 @@ pub fn execute_create_os(
                 code_id: manager_code_id,
                 funds: vec![],
                 // TODO: Review
-                // This contract is able to upgrade the manager contract 
+                // This contract is able to upgrade the manager contract
                 admin: Some(env.contract.address.to_string()),
                 label: format!("CosmWasm OS: {}", config.os_id_sequence),
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.os_id_sequence,
-                    root_user: root_user.to_string()
+                    root_user: root_user.to_string(),
                 })?,
             }
             .into(),
@@ -85,23 +86,19 @@ pub fn after_manager_create_treasury(
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-        
+
     let manager_address = res.get_contract_address();
 
     // Add OS to version_control
-    let response = Response::new().add_message(
-        CosmosMsg::Wasm(
-            WasmMsg::Execute {
-                contract_addr: config.version_control_contract.to_string(),
-                funds: vec![],
-                msg: to_binary(&VCExecuteMsg::AddOs {
-                    os_id: config.os_id_sequence,
-                    os_manager_address: manager_address.to_string(),
-                })?,
-            }
-        )
-    );
-        
+    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: config.version_control_contract.to_string(),
+        funds: vec![],
+        msg: to_binary(&VCExecuteMsg::AddOs {
+            os_id: config.os_id_sequence,
+            os_manager_address: manager_address.to_string(),
+        })?,
+    }));
+
     // Update id sequence
     config.os_id_sequence += 1;
     CONFIG.save(deps.storage, &config)?;
@@ -110,7 +107,8 @@ pub fn after_manager_create_treasury(
         deps.as_ref(),
         &config.version_control_contract,
         String::from(TREASURY_NAME),
-        String::from(TREASURY_VERSION))?;
+        String::from(TREASURY_VERSION),
+    )?;
 
     Ok(response.add_submessage(SubMsg {
         id: TREASURY_CREATE_ID,
@@ -131,17 +129,17 @@ pub fn after_treasury_add_to_manager(
     env: Env,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
-
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    Ok(Response::new().add_message(
-        register_module_on_manager(res.get_contract_address().to_string(), TREASURY_NAME.to_string(), env)?
-    ))
+    Ok(Response::new().add_message(register_module_on_manager(
+        res.get_contract_address().to_string(),
+        TREASURY_NAME.to_string(),
+        env,
+    )?))
 }
-
 
 // Only owner can execute it
 pub fn execute_update_config(
@@ -151,7 +149,7 @@ pub fn execute_update_config(
     admin: Option<String>,
     memory_contract: Option<String>,
     version_control_contract: Option<String>,
-    creation_fee: Option<u32>
+    creation_fee: Option<u32>,
 ) -> OsFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -177,7 +175,6 @@ pub fn execute_update_config(
         let addr = deps.api.addr_validate(&admin)?;
         ADMIN.set(deps, Some(addr))?;
     }
-
 
     Ok(Response::new().add_attribute("action", "update_config"))
 }

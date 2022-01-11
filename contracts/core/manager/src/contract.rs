@@ -1,4 +1,6 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, to_binary};
+use cosmwasm_std::{
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
+};
 
 use crate::commands::*;
 use crate::error::ManagerError;

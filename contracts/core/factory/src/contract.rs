@@ -1,18 +1,17 @@
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response,
-    StdResult,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use crate::error::OsFactoryError;
 
-use crate::{msg::*, commands};
 use crate::state::*;
+use crate::{commands, msg::*};
 
-pub type OsFactoryResult = Result<Response,OsFactoryError>;
+pub type OsFactoryResult = Result<Response, OsFactoryError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-/// Set config, sender is Admin 
+/// Set config, sender is Admin
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
@@ -39,27 +38,32 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             memory_contract,
             version_control_contract,
             creation_fee,
-        } => commands::execute_update_config(deps, env, info, admin, memory_contract, version_control_contract, creation_fee),
-        ExecuteMsg::CreateOs {
-            governance
-        } => commands::execute_create_os(deps, env, governance),
+        } => commands::execute_update_config(
+            deps,
+            env,
+            info,
+            admin,
+            memory_contract,
+            version_control_contract,
+            creation_fee,
+        ),
+        ExecuteMsg::CreateOs { governance } => commands::execute_create_os(deps, env, governance),
     }
 }
-
-
 
 /// This just stores the result for future query
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> OsFactoryResult {
-
     match msg {
-        Reply { id: commands::MANAGER_CREATE_ID, result } => { 
-            return commands::after_manager_create_treasury(deps, result)
-         },
-        Reply { id: commands::TREASURY_CREATE_ID, result } => {
-            return commands::after_treasury_add_to_manager(env,result)
-        },
-        _ => Err(OsFactoryError::UnexpectedReply{})
+        Reply {
+            id: commands::MANAGER_CREATE_ID,
+            result,
+        } => return commands::after_manager_create_treasury(deps, result),
+        Reply {
+            id: commands::TREASURY_CREATE_ID,
+            result,
+        } => return commands::after_treasury_add_to_manager(env, result),
+        _ => Err(OsFactoryError::UnexpectedReply {}),
     }
 }
 
