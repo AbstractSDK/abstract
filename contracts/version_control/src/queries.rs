@@ -2,7 +2,7 @@ use cosmwasm_std::QueryRequest;
 use cosmwasm_std::Uint64;
 use cosmwasm_std::WasmQuery;
 
-use crate::state::{OS_ADDRESSES, MODULE_CODE_IDS};
+use crate::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
@@ -25,10 +25,8 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
 }
 
 pub fn query_code_id(deps: Deps, module: String, version: String) -> StdResult<Binary> {
-    let code_id = MODULE_CODE_IDS.load(deps.storage, (&module,&version))?;
-    to_binary(
-        &CodeIdResponse {
-            code_id: Uint64::from(code_id)
-        }
-    )
-}  
+    let code_id = MODULE_CODE_IDS.load(deps.storage, (&module, &version))?;
+    to_binary(&CodeIdResponse {
+        code_id: Uint64::from(code_id),
+    })
+}

@@ -1,5 +1,6 @@
 use cosmwasm_std::{
-    to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, StdError, SubMsg, WasmMsg, QueryRequest, WasmQuery,
+    to_binary, Addr, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn, Response, StdError, SubMsg,
+    WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use dao_os::governance::gov_type::GovernanceDetails;
@@ -13,7 +14,9 @@ use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 use dao_os::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
 use dao_os::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
-use dao_os::version_control::msg::{ExecuteMsg as VCExecuteMsg, CodeIdResponse, QueryMsg as VCQuery};
+use dao_os::version_control::msg::{
+    CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
+};
 
 const TREASURY_VERSION: &str = "v0.1.0";
 const MANAGER_VERSION: &str = "v0.1.0";
@@ -51,12 +54,11 @@ pub fn execute_create_os(
             })?,
         }))?;
 
-
-        Ok(response
-            .add_attributes(vec![
-                ("action", "create os"),
-                ("os_id:", &config.os_id_sequence.to_string()),
-                ])
+    Ok(response
+        .add_attributes(vec![
+            ("action", "create os"),
+            ("os_id:", &config.os_id_sequence.to_string()),
+        ])
         // Create manager
         .add_submessage(SubMsg {
             id: MANAGER_CREATE_ID,
@@ -79,7 +81,7 @@ pub fn execute_create_os(
 }
 
 /// Registers the DAO on the version_control contract and
-/// instantiates the Treasury contract of the newly created DAO 
+/// instantiates the Treasury contract of the newly created DAO
 pub fn after_manager_create_treasury(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
@@ -118,57 +120,53 @@ pub fn after_manager_create_treasury(
         .add_attribute("Manager Address:", &manager_address.to_string())
         // Instantiate Treasury contract
         .add_submessage(SubMsg {
-        id: TREASURY_CREATE_ID,
-        gas_limit: None,
-        msg: WasmMsg::Instantiate {
-            code_id: treasury_code_id_response.code_id.u64(),
-            funds: vec![],
-            admin: Some(manager_address.to_string()),
-            label: format!("Treasury of OS: {}", config.os_id_sequence),
-            msg: to_binary(&TreasuryInstantiateMsg {})?,
-        }
-        .into(),
-        reply_on: ReplyOn::Success,
-    }))
+            id: TREASURY_CREATE_ID,
+            gas_limit: None,
+            msg: WasmMsg::Instantiate {
+                code_id: treasury_code_id_response.code_id.u64(),
+                funds: vec![],
+                admin: Some(manager_address.to_string()),
+                label: format!("Treasury of OS: {}", config.os_id_sequence),
+                msg: to_binary(&TreasuryInstantiateMsg {})?,
+            }
+            .into(),
+            reply_on: ReplyOn::Success,
+        }))
 }
 
-
-/// Adds treasury contract address and name to Manager 
-/// contract of OS 
+/// Adds treasury contract address and name to Manager
+/// contract of OS
 pub fn after_treasury_add_to_manager(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
-    
+
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    // TODO: Should we store the manager address in the local state between the previous step and this? 
+    // TODO: Should we store the manager address in the local state between the previous step and this?
     // Get address of manager
-    let manager_address: String =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::QueryOsAddress {
-                os_id: config.os_id_sequence
-            })?,
-        }))?;
+    let manager_address: String = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: config.version_control_contract.to_string(),
+        msg: to_binary(&VCQuery::QueryOsAddress {
+            os_id: config.os_id_sequence,
+        })?,
+    }))?;
 
-        
     // Update id sequence
     config.os_id_sequence += 1;
     CONFIG.save(deps.storage, &config)?;
-    
-        
+
     Ok(Response::new()
-    .add_attribute("Treasury Address: ", res.get_contract_address())
-    .add_message(register_module_on_manager(
-        manager_address,
-        TREASURY_NAME.to_string(),
-        res.get_contract_address().to_string(),
-    )?))
+        .add_attribute("Treasury Address: ", res.get_contract_address())
+        .add_message(register_module_on_manager(
+            manager_address,
+            TREASURY_NAME.to_string(),
+            res.get_contract_address().to_string(),
+        )?))
 }
 
 // Only owner can execute it

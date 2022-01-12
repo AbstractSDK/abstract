@@ -47,7 +47,7 @@ pub enum QueryMsg {
     /// Queries address of OS manager module
     QueryOsAddress { os_id: u32 },
     /// Queries contract code_id
-    QueryCodeId { module: String, version: String}
+    QueryCodeId { module: String, version: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

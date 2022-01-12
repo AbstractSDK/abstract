@@ -20,8 +20,8 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
             os_manager_address,
         } => add_os(deps, info, os_id, os_manager_address),
         ExecuteMsg::RemoveOs { os_id } => remove_os(deps, info, os_id),
-        ExecuteMsg::SetAdmin {new_admin} => set_admin(deps, info, new_admin),
-        ExecuteMsg::SetFactory { new_factory} => set_factory(deps, info, new_factory),
+        ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
+        ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
     }
 }
 
@@ -114,6 +114,5 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, factory: String) -> VCResul
 
     let factory_addr = deps.api.addr_validate(&factory)?;
     FACTORY.set(deps, Some(factory_addr))?;
-    Ok(Response::default()
-        .add_attribute("new factory", factory))
+    Ok(Response::default().add_attribute("new factory", factory))
 }

@@ -10,7 +10,12 @@ use dao_os::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 pub type VCResult = Result<Response, VersionError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(mut deps: DepsMut, _env: Env, info: MessageInfo, _msg: InstantiateMsg) -> VCResult {
+pub fn instantiate(
+    mut deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    _msg: InstantiateMsg,
+) -> VCResult {
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
 
@@ -33,6 +38,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             queries::query_enabled_modules(deps, deps.api.addr_validate(&os_address)?)
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
-        QueryMsg::QueryCodeId { module, version } => queries::query_code_id(deps, module, version)
+        QueryMsg::QueryCodeId { module, version } => queries::query_code_id(deps, module, version),
     }
 }

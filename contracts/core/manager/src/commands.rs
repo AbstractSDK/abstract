@@ -15,8 +15,8 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
-/// Factory is admin on init 
-/// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts. 
+/// Factory is admin on init
+/// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts.
 pub fn update_module_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,

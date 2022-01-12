@@ -34,7 +34,6 @@ fn concat(namespace: &[u8], key1: &[u8], key2: &[u8]) -> Vec<u8> {
     k
 }
 
-
 // Query the module versions of the modules part of the OS
 // pub fn query_code_id(
 //     deps: Deps,
