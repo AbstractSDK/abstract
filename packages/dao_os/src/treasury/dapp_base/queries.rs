@@ -15,7 +15,7 @@ pub fn try_query_config(deps: Deps) -> StdResult<BaseStateResponse> {
 
     Ok(BaseStateResponse {
         treasury_address: state.treasury_address.into_string(),
-        trader: state.trader.into_string(),
+        traders: state.traders.into_iter().map(|t| t.into_string()).collect(),
         memory_address: state.memory.address.into_string(),
     })
 }

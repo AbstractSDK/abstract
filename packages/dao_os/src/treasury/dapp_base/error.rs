@@ -18,4 +18,7 @@ pub enum BaseDAppError {
 
     #[error("Not enough funds to perform arb-trade")]
     Broke {},
+
+    #[error("At least one trader must be configured")]
+    TraderRequired {},
 }
