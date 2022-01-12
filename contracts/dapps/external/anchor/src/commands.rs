@@ -24,9 +24,7 @@ pub fn handle_deposit_stable(
 ) -> AnchorResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {});
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     let treasury_address = &state.treasury_address;
 
@@ -60,9 +58,7 @@ pub fn handle_redeem_stable(
 ) -> AnchorResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {});
-    }
+    state.assert_authorized_trader(&info.sender)?;
 
     let treasury_address = &state.treasury_address;
 

@@ -23,7 +23,7 @@ impl BaseState {
     }
 
     /// Returns an Unauthorized Err if the provided trader is not authorized
-    pub fn assert_authorized_trader(&self, trader: &Addr) -> Result<(), BaseDAppError>{
+    pub fn assert_authorized_trader(&self, trader: &Addr) -> Result<(), BaseDAppError> {
         if !self.is_authorized_trader(trader) {
             Err(BaseDAppError::Unauthorized {})
         } else {
