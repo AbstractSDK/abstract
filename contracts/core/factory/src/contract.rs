@@ -58,11 +58,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
         Reply {
             id: commands::MANAGER_CREATE_ID,
             result,
-        } => return commands::after_manager_create_treasury(deps, result),
+        } => commands::after_manager_create_treasury(deps, result),
         Reply {
             id: commands::TREASURY_CREATE_ID,
             result,
-        } => return commands::after_treasury_add_to_manager(deps, result),
+        } => commands::after_treasury_add_to_manager(deps, result),
         _ => Err(OsFactoryError::UnexpectedReply {}),
     }
 }
