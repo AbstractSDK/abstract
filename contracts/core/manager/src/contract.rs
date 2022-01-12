@@ -38,6 +38,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             queries::handle_module_addresses_query(deps, env, names)
         }
         QueryMsg::QueryEnabledModules {} => queries::handle_enabled_modules_query(deps),
+        
         QueryMsg::QueryOsId {} => to_binary(&OS_ID.load(deps.storage)?),
     }
 }

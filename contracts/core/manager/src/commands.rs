@@ -4,7 +4,6 @@ use crate::contract::ManagerResult;
 use crate::state::*;
 use dao_os::manager::msg::ExecuteMsg;
 
-/// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> ManagerResult {
     match message {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
@@ -14,11 +13,10 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
     }
 }
 
-//----------------------------------------------------------------------------------------
-//  GOVERNANCE CONTROLLED SETTERS
-//----------------------------------------------------------------------------------------
-
 /// Adds, updates or removes provided addresses.
+/// Should only be called by contract that adds/removes modules.
+/// Factory is admin on init 
+/// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts. 
 pub fn update_module_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,

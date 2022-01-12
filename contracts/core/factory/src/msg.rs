@@ -4,15 +4,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
+    /// Version control contract used to get code-ids and register OS
     pub version_control_contract: String,
+    /// Memory contract
     pub memory_contract: String,
+    // Creation fee in some denom (TBD)
     pub creation_fee: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    /// UpdateConfig update relevant code IDs
+    /// Update config
     UpdateConfig {
         admin: Option<String>,
         memory_contract: Option<String>,
@@ -21,7 +24,8 @@ pub enum ExecuteMsg {
     },
     /// Creates the core contracts for the OS
     CreateOs {
-        /// Asset infos
+        /// Governance details
+        /// TODO: add support for other types of gov.
         governance: GovernanceDetails,
     },
 }

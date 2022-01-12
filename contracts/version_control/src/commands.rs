@@ -20,14 +20,16 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
             os_manager_address,
         } => add_os(deps, info, os_id, os_manager_address),
         ExecuteMsg::RemoveOs { os_id } => remove_os(deps, info, os_id),
+        ExecuteMsg::SetAdmin {new_admin} => set_admin(deps, info, new_admin),
+        ExecuteMsg::SetFactory { new_factory} => set_factory(deps, info, new_factory),
     }
 }
 
 /// Add new OS to version control contract
-/// TODO: only allow factory contract to call this
+/// Only Factory can add OS
 pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, os_manager: String) -> VCResult {
-    // Only Admin can update code-ids
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    // Only Factory can add new OS
+    FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     deps.api.addr_validate(&os_manager)?;
     OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &os_manager)?;
@@ -98,12 +100,20 @@ pub fn remove_code_id(
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    // Admin is asserted here
     ADMIN.execute_update_admin(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))
+}
+
+pub fn set_factory(deps: DepsMut, info: MessageInfo, factory: String) -> VCResult {
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let factory_addr = deps.api.addr_validate(&factory)?;
+    FACTORY.set(deps, Some(factory_addr))?;
+    Ok(Response::default()
+        .add_attribute("new factory", factory))
 }

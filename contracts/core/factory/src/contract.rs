@@ -11,7 +11,7 @@ use crate::{commands, msg::*};
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-/// Set config, sender is Admin
+
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
@@ -53,7 +53,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
 
 /// This just stores the result for future query
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> OsFactoryResult {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
     match msg {
         Reply {
             id: commands::MANAGER_CREATE_ID,
@@ -62,7 +62,7 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> OsFactoryResult {
         Reply {
             id: commands::TREASURY_CREATE_ID,
             result,
-        } => return commands::after_treasury_add_to_manager(env, result),
+        } => return commands::after_treasury_add_to_manager(deps, result),
         _ => Err(OsFactoryError::UnexpectedReply {}),
     }
 }
