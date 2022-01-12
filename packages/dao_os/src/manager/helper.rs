@@ -1,4 +1,4 @@
-use cosmwasm_std::{to_binary, CosmosMsg, Empty, Env, StdResult, WasmMsg};
+use cosmwasm_std::{to_binary, CosmosMsg, Empty, StdResult, WasmMsg};
 
 use crate::manager::msg::ExecuteMsg::UpdateModuleAddresses;
 
