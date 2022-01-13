@@ -24,7 +24,7 @@ fn successful_initialization() {
         BASESTATE.load(&deps.storage).unwrap(),
         BaseState {
             treasury_address: deps.api.addr_validate(&TREASURY_CONTRACT).unwrap(),
-            trader: deps.api.addr_validate(&TRADER_CONTRACT).unwrap(),
+            traders: vec![deps.api.addr_validate(&TRADER_CONTRACT).unwrap()],
             memory: Memory {
                 address: deps.api.addr_validate(&MEMORY_CONTRACT).unwrap()
             }

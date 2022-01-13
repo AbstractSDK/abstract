@@ -4,7 +4,6 @@ use dao_os::anchor::{anchor_deposit_msg, anchor_withdraw_msg};
 use dao_os::denom::UST_DENOM;
 use dao_os::query::anchor::query_aust_exchange_rate;
 use dao_os::treasury::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
-use dao_os::treasury::dapp_base::error::BaseDAppError;
 use dao_os::treasury::dapp_base::state::BASESTATE;
 use dao_os::treasury::msg::send_to_treasury;
 
@@ -24,9 +23,7 @@ pub fn handle_deposit_stable(
 ) -> AnchorResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {});
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     let treasury_address = &state.treasury_address;
 
@@ -60,9 +57,7 @@ pub fn handle_redeem_stable(
 ) -> AnchorResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {});
-    }
+    state.assert_authorized_trader(&info.sender)?;
 
     let treasury_address = &state.treasury_address;
 
