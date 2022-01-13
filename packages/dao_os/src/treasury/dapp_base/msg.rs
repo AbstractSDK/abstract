@@ -15,7 +15,6 @@ pub enum BaseExecuteMsg {
     /// Sets new values for the provided options
     UpdateConfig {
         treasury_address: Option<String>,
-        traders: Option<Vec<String>>,
         memory: Option<String>,
     },
     /// Adds/removes traders

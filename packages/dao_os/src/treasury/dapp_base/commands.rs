@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Deps, DepsMut, MessageInfo, Response, StdResult};
 
 use crate::memory::item::Memory;
 use crate::treasury::dapp_base::common::BaseDAppResult;
@@ -17,9 +17,8 @@ pub fn handle_base_message(
     match message {
         BaseExecuteMsg::UpdateConfig {
             treasury_address,
-            traders,
             memory,
-        } => update_config(deps, info, treasury_address, traders, memory),
+        } => update_config(deps, info, treasury_address, memory),
         BaseExecuteMsg::UpdateTraders { to_add, to_remove } => {
             update_traders(deps, info, to_add, to_remove)
         }
@@ -52,7 +51,6 @@ pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
     treasury_address: Option<String>,
-    traders: Option<Vec<String>>,
     memory: Option<String>,
 ) -> BaseDAppResult {
     // Only the admin should be able to call this
@@ -62,16 +60,6 @@ pub fn update_config(
 
     if let Some(treasury_address) = treasury_address {
         state.treasury_address = deps.api.addr_validate(treasury_address.as_str())?;
-    }
-
-    if let Some(traders) = traders {
-        // there must be at least one trader
-        if traders.is_empty() {
-            return Err(BaseDAppError::TraderRequired {});
-        }
-        state.traders = traders.into_iter()
-            .map(|trader| deps.api.addr_validate(trader.as_str()).unwrap())
-            .collect();
     }
 
     if let Some(memory) = memory {
@@ -96,24 +84,28 @@ fn update_traders(
 
     let mut state = BASESTATE.load(deps.storage)?;
 
-    // Handle the adding of traders
+    // Handle the addition of traders
     if let Some(to_add) = to_add {
         for trader in to_add {
             let trader_addr = deps.api.addr_validate(trader.as_str())?;
             if !state.traders.contains(&trader_addr) {
                 state.traders.push(trader_addr);
+            } else {
+                return Err(BaseDAppError::TraderAlreadyPresent { trader });
             }
-            // note that no error is returned when a trader was already present
         }
     }
 
-    // Handling the removing of traders
+    // Handling the removal of traders
     if let Some(to_remove) = to_remove {
-        let to_remove_addrs = to_remove.into_iter()
-            .map(|trader| deps.api.addr_validate(trader.as_str()).unwrap())
-            .collect::<Vec<Addr>>();
-
-        state.traders.retain(|trader| !to_remove_addrs.contains(trader));
+        for trader in to_remove {
+            let trader_addr = deps.api.addr_validate(trader.as_str())?;
+            if let Some(trader_pos) = state.traders.iter().position(|a| a == &trader_addr) {
+                state.traders.remove(trader_pos);
+            } else {
+                return Err(BaseDAppError::TraderNotPresent { trader });
+            }
+        }
     }
 
     // at least one trader is always required
