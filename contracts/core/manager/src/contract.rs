@@ -8,10 +8,10 @@ use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{ADMIN, OS_ID};
 use pandora::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
-const CONTRACT_NAME: &str = "pandora:manager";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -21,7 +21,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ManagerResult {
-    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
 
     OS_ID.save(deps.storage, &msg.os_id)?;
     // Setup the admin as the creator of the contract

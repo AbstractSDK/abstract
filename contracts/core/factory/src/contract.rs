@@ -4,8 +4,8 @@ use cosmwasm_std::{
 };
 
 use crate::error::OsFactoryError;
-use pandora::registery::FACTORY;
 use cw2::set_contract_version;
+use pandora::registery::FACTORY;
 
 use crate::state::*;
 use crate::{commands, msg::*};

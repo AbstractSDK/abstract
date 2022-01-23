@@ -8,6 +8,7 @@ use cosmwasm_std::{
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
 use pandora::query::terraswap::query_asset_balance;
+use pandora::registery::TREASURY;
 use pandora::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
@@ -23,8 +24,6 @@ type TreasuryResult = Result<Response, TreasuryError>;
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
 */
 
-// version info for migration info
-const CONTRACT_NAME: &str = "pandora:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -35,7 +34,7 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> TreasuryResult {
     // Use CW2 to set the contract version, this is needed for migrations
-    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, TREASURY, CONTRACT_VERSION)?;
     STATE.save(deps.storage, &State { dapps: vec![] })?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
@@ -84,7 +83,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> TreasuryResult {
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
 
     if storage_version < version {
-        set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, TREASURY, CONTRACT_VERSION)?;
 
         // If state structure changed in any contract version in the way migration is needed, it
         // should occur here
