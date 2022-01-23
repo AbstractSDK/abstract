@@ -3,8 +3,8 @@ use astroport::asset::{AssetInfo, PairInfo};
 use astroport::factory::{PairConfig, PairType};
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
-use dao_os::memory::msg as MemoryMsg;
-use dao_os::treasury::msg as TreasuryMsg;
+use pandora::memory::msg as MemoryMsg;
+use pandora::treasury::msg as TreasuryMsg;
 use terra_mocks::TerraMockQuerier;
 use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 

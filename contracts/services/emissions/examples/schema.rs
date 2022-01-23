@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use dao_os::vesting::msg::{
+use pandora::vesting::msg::{
     AllocationInfo, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg, Schedule,
     SimulateWithdrawResponse, StateResponse,
 };

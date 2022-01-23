@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
 use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use dao_os::tokenomics::airdrop::{
+use pandora::tokenomics::airdrop::{
     ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
     UserInfoResponse,
 };

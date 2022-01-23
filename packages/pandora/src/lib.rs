@@ -16,3 +16,4 @@ pub mod treasury;
 pub mod ust_vault;
 pub mod version_control;
 pub mod vesting;
+pub mod registery;

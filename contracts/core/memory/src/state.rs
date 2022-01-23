@@ -3,7 +3,7 @@ use cw_controllers::Admin;
 use cw_storage_plus::Map;
 use terraswap::asset::AssetInfo;
 
-use dao_os::denom::is_denom;
+use pandora::denom::is_denom;
 
 pub const ADMIN: Admin = Admin::new("admin");
 // stores name and address of tokens and pairs

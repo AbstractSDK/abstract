@@ -6,12 +6,12 @@ use cw20::Cw20ExecuteMsg;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
-use dao_os::query::terraswap::{query_asset_balance, query_pool};
-use dao_os::treasury::dapp_base::common::PAIR_POSTFIX;
-use dao_os::treasury::dapp_base::error::BaseDAppError;
-use dao_os::treasury::dapp_base::state::BASESTATE;
-use dao_os::treasury::msg::send_to_treasury;
-use dao_os::treasury::vault_assets::get_identifier;
+use pandora::query::terraswap::{query_asset_balance, query_pool};
+use pandora::treasury::dapp_base::common::PAIR_POSTFIX;
+use pandora::treasury::dapp_base::error::BaseDAppError;
+use pandora::treasury::dapp_base::state::BASESTATE;
+use pandora::treasury::msg::send_to_treasury;
+use pandora::treasury::vault_assets::get_identifier;
 
 use crate::contract::TerraswapResult;
 use crate::error::TerraswapError;

@@ -3,9 +3,9 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use dao_os::treasury::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
-use dao_os::treasury::state::State;
-use dao_os::treasury::vault_assets::VaultAsset;
+use pandora::treasury::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora::treasury::state::State;
+use pandora::treasury::vault_assets::VaultAsset;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

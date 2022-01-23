@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
-use dao_os::memory::queries::{query_assets_from_mem, query_contracts_from_mem};
+use pandora::memory::queries::{query_assets_from_mem, query_contracts_from_mem};
 
-use dao_os::memory::msg::{AssetQueryResponse, ContractQueryResponse};
+use pandora::memory::msg::{AssetQueryResponse, ContractQueryResponse};
 
 pub fn query_assets(deps: Deps, env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
     let assets = query_assets_from_mem(deps, &env.contract.address, &asset_names)?;

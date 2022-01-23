@@ -1,6 +1,6 @@
 use cosmwasm_std::{OverflowError, StdError};
 use cw_controllers::AdminError;
-use dao_os::treasury::dapp_base::error::BaseDAppError;
+use pandora::treasury::dapp_base::error::BaseDAppError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

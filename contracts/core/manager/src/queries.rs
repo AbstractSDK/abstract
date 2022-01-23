@@ -1,7 +1,7 @@
 use crate::state::OS_MODULES;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
-use dao_os::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
-use dao_os::manager::{
+use pandora::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
+use pandora::manager::{
     msg::EnabledModulesResponse,
     queries::{query_module_addresses, query_module_versions},
 };

@@ -2,7 +2,7 @@
 
 # set -e
 
-# cd packages/dao_os
+# cd packages/pandora
 # cargo update
 # cargo clippy -- -D warnings
 # cargo unit-test

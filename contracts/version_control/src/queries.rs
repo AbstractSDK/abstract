@@ -9,8 +9,8 @@ use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
 
-use dao_os::manager::msg::{EnabledModulesResponse, QueryMsg};
-use dao_os::version_control::msg::CodeIdResponse;
+use pandora::manager::msg::{EnabledModulesResponse, QueryMsg};
+use pandora::version_control::msg::CodeIdResponse;
 
 pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary> {
     let response: EnabledModulesResponse =

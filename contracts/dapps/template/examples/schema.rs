@@ -3,8 +3,8 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg;
-use dao_os::treasury::dapp_base::state::BaseState;
+use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora::treasury::dapp_base::state::BaseState;
 use dapp_template::msg::{ExecuteMsg, QueryMsg};
 
 fn main() {

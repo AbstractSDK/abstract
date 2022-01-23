@@ -1,8 +1,8 @@
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, Empty, StdResult, WasmMsg};
 
 use cw20::Cw20ExecuteMsg;
-use dao_os::astroport_helper::ExecuteMsg as PairExecuteMsg;
-use dao_os::tax::compute_tax;
+use pandora::astroport_helper::ExecuteMsg as PairExecuteMsg;
+use pandora::tax::compute_tax;
 use terraswap::asset::{Asset, AssetInfo};
 
 /// Constructs the deposit msg

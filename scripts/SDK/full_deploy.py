@@ -8,11 +8,11 @@ sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
 from terra_sdk.core.auth import StdFee
-from dao_os.deploy import get_deployer
+from pandora.deploy import get_deployer
 from terra_sdk.core.coins import Coin
-from dao_os.contracts.stable_vault import *
-from dao_os.contracts.stable_arb import *
-from dao_os.contracts.community import *
+from pandora.contracts.stable_vault import *
+from pandora.contracts.stable_arb import *
+from pandora.contracts.community import *
 
 #------------------------
 #   Run with: $ cd /workspaces/devcontainer/contracts ; /usr/bin/env /bin/python3 -- /workspaces/devcontainer/contracts/scripts/full_deploy.py 

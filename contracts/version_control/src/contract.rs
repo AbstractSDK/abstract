@@ -5,7 +5,7 @@ use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Respons
 use crate::commands::*;
 use crate::queries;
 use crate::state::ADMIN;
-use dao_os::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type VCResult = Result<Response, VersionError>;
 

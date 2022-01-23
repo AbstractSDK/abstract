@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{attr, to_binary, Addr, Timestamp, Uint128};
 use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use dao_os::vesting::msg::{
+use pandora::vesting::msg::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
@@ -599,7 +599,7 @@ fn test_withdraw() {
         .unwrap_err();
     assert_eq!(
         err.to_string(),
-        "dao_os::vesting::msg::AllocationInfo not found"
+        "pandora::vesting::msg::AllocationInfo not found"
     );
 
     // ######    ERROR :: Withdrawals not allowed yet   ######

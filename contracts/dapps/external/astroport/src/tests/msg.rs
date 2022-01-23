@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
-use dao_os::treasury::dapp_base::error::BaseDAppError;
+use pandora::treasury::dapp_base::error::BaseDAppError;
 
 use crate::contract::execute;
 use crate::error::AstroportError;
