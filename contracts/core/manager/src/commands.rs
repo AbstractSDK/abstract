@@ -39,7 +39,7 @@ pub fn update_module_addresses(
             OS_MODULES.remove(deps.storage, name.as_str());
         }
     }
-    
+
     Ok(Response::new().add_attribute("action", "update OS module addresses"))
 }
 
