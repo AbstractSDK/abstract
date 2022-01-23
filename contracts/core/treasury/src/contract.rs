@@ -24,7 +24,7 @@ type TreasuryResult = Result<Response, TreasuryError>;
 */
 
 // version info for migration info
-const CONTRACT_NAME: &str = "crates.io:treasury";
+const CONTRACT_NAME: &str = "pandora:treasury";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]

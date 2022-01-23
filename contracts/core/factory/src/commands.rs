@@ -37,7 +37,7 @@ pub fn execute_create_os(
 
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
-        GovernanceDetails::Monarchy { owner } => deps.api.addr_validate(&owner)?,
+        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(&monarch)?,
         _ => return Err(StdError::generic_err("Not Implemented").into()),
     };
 

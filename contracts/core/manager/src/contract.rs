@@ -1,6 +1,7 @@
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
+use cw2::set_contract_version;
 
 use crate::commands::*;
 use crate::error::ManagerError;
@@ -10,6 +11,9 @@ use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
+const CONTRACT_NAME: &str = "pandora:manager";
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
@@ -17,6 +21,8 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ManagerResult {
+    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+
     OS_ID.save(deps.storage, &msg.os_id)?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;

@@ -35,6 +35,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 thiserror = { version = "1.0.21" }
+cw2 = "0.8.1"
 cw-controllers = { version = "0.8" }
 cosmwasm-std = { version = "0.16.0" }
 cw-storage-plus = { version = "0.8.0" } 
