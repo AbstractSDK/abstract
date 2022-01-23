@@ -21,8 +21,8 @@ use pandora::version_control::msg::{
 const TREASURY_VERSION: &str = "v0.1.0";
 const MANAGER_VERSION: &str = "v0.1.0";
 
-pub const MANAGER_CREATE_ID: u64 = 1u64;
-pub const TREASURY_CREATE_ID: u64 = 2u64;
+pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
+pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
 
 pub const TREASURY_NAME: &str = "Treasury";
 pub const MANAGER_NAME: &str = "Manager";
@@ -61,7 +61,7 @@ pub fn execute_create_os(
         ])
         // Create manager
         .add_submessage(SubMsg {
-            id: MANAGER_CREATE_ID,
+            id: CREATE_OS_MANAGER_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: manager_code_id_response.code_id.u64(),
@@ -120,7 +120,7 @@ pub fn after_manager_create_treasury(
         .add_attribute("Manager Address:", &manager_address.to_string())
         // Instantiate Treasury contract
         .add_submessage(SubMsg {
-            id: TREASURY_CREATE_ID,
+            id: CREATE_OS_TREASURY_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: treasury_code_id_response.code_id.u64(),

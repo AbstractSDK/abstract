@@ -13,8 +13,8 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     /// Updates the Modules
     UpdateModuleAddresses {
-        to_add: Vec<(String, String)>,
-        to_remove: Vec<String>,
+        to_add: Option<Vec<(String, String)>>,
+        to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },

@@ -20,22 +20,26 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
 pub fn update_module_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<(String, String)>,
-    to_remove: Vec<String>,
+    to_add: Option<Vec<(String, String)>>,
+    to_remove: Option<Vec<String>>,
 ) -> ManagerResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    for (name, new_address) in to_add.into_iter() {
-        // validate addr
-        deps.as_ref().api.addr_validate(&new_address)?;
-        OS_MODULES.save(deps.storage, name.as_str(), &new_address)?;
+    if let Some(modules_to_add) = to_add {
+        for (name, new_address) in modules_to_add.into_iter() {
+            // validate addr
+            deps.as_ref().api.addr_validate(&new_address)?;
+            OS_MODULES.save(deps.storage, name.as_str(), &new_address)?;
+        }
     }
 
-    for name in to_remove {
-        OS_MODULES.remove(deps.storage, name.as_str());
+    if let Some(modules_to_remove) = to_remove {
+        for name in modules_to_remove.into_iter() {
+            OS_MODULES.remove(deps.storage, name.as_str());
+        }
     }
-
+    
     Ok(Response::new().add_attribute("action", "update OS module addresses"))
 }
 

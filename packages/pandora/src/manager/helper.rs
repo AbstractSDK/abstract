@@ -13,8 +13,8 @@ pub fn register_module_on_manager(
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: manager_address,
         msg: to_binary(&UpdateModuleAddresses {
-            to_add: vec![(module_name, module_address)],
-            to_remove: vec![],
+            to_add: Some(vec![(module_name, module_address)]),
+            to_remove: None,
         })?,
         funds: vec![],
     }))
