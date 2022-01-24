@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, MessageInfo, Response};
 
 use crate::contract::ManagerResult;
 use crate::state::*;
-use pandora::manager::msg::ExecuteMsg;
+use dao_os::manager::msg::ExecuteMsg;
 
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> ManagerResult {
     match message {

@@ -3,8 +3,8 @@ use cosmwasm_std::{
     WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
-use pandora::governance::gov_type::GovernanceDetails;
-use pandora::manager::helper::register_module_on_manager;
+use dao_os::governance::gov_type::GovernanceDetails;
+use dao_os::manager::helper::register_module_on_manager;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -12,9 +12,9 @@ use crate::contract::OsFactoryResult;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use pandora::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use pandora::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
-use pandora::version_control::msg::{
+use dao_os::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
+use dao_os::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
+use dao_os::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
 

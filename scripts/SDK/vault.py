@@ -11,11 +11,11 @@ from typing import List
 sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
-from pandora.contracts.memory import *
-from pandora.contracts.treasury import *
-from pandora.contracts.vault import *
+from dao_os.contracts.memory import *
+from dao_os.contracts.treasury import *
+from dao_os.contracts.vault import *
 from terra_sdk.core.coins import Coin
-from pandora.deploy import get_deployer
+from dao_os.deploy import get_deployer
 
 # mnemonic = "napkin guess language merit split slice source happy field search because volcano staff section depth clay inherit result assist rubber list tilt chef start"
 mnemonic = "coin reunion grab unlock jump reason year estate device elevator clean orbit pencil spawn very hope floor actual very clay stereo federal correct beef"

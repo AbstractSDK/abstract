@@ -6,7 +6,7 @@ use crate::tests::common::TEST_CREATOR;
 
 use crate::tests::instantiate::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
-use pandora::memory::msg::*;
+use dao_os::memory::msg::*;
 
 /**
  * Test unallowed address update

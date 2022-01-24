@@ -1,11 +1,11 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use pandora::memory::item::Memory;
-use pandora::treasury::dapp_base::commands as dapp_base_commands;
-use pandora::treasury::dapp_base::common::BaseDAppResult;
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
-use pandora::treasury::dapp_base::queries as dapp_base_queries;
-use pandora::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use dao_os::memory::item::Memory;
+use dao_os::treasury::dapp_base::commands as dapp_base_commands;
+use dao_os::treasury::dapp_base::common::BaseDAppResult;
+use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg;
+use dao_os::treasury::dapp_base::queries as dapp_base_queries;
+use dao_os::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::commands;
 use crate::error::TerraswapError;

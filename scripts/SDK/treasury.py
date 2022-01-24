@@ -11,10 +11,10 @@ from typing import List
 sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
-from pandora.contracts.terraswap_dapp import *
-from pandora.contracts.treasury import *
+from dao_os.contracts.terraswap_dapp import *
+from dao_os.contracts.treasury import *
 from terra_sdk.core.coins import Coin
-from pandora.deploy import get_deployer
+from dao_os.deploy import get_deployer
 
 def execute_on_treasury_msg(msgs: any, coins: List[Coin]):
     msg = MsgExecuteContract(

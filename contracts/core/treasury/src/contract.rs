@@ -7,14 +7,13 @@ use cosmwasm_std::{
 
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
-use pandora::query::terraswap::query_asset_balance;
-use pandora::registery::TREASURY;
-use pandora::treasury::msg::{
+use dao_os::query::terraswap::query_asset_balance;
+use dao_os::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
-use pandora::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
-use pandora::treasury::vault_assets::{get_identifier, VaultAsset};
+use dao_os::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
+use dao_os::treasury::vault_assets::{get_identifier, VaultAsset};
 use semver::Version;
 use terraswap::asset::AssetInfo;
 type TreasuryResult = Result<Response, TreasuryError>;

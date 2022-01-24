@@ -7,7 +7,7 @@ use cosmwasm_std::{
     StdResult, Uint128, WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use pandora::emissions::msg::{
+use dao_os::emissions::msg::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };

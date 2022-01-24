@@ -1,10 +1,10 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::Addr;
 
-use pandora::memory::item::Memory;
-use pandora::treasury::dapp_base::error::BaseDAppError;
-use pandora::treasury::dapp_base::msg::BaseExecuteMsg;
-use pandora::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use dao_os::memory::item::Memory;
+use dao_os::treasury::dapp_base::error::BaseDAppError;
+use dao_os::treasury::dapp_base::msg::BaseExecuteMsg;
+use dao_os::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::contract::execute;
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};

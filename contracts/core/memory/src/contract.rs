@@ -5,7 +5,7 @@ use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
 use crate::state::ADMIN;
-use pandora::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use dao_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

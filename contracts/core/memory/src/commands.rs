@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult};
 
 use crate::contract::MemoryResult;
 use crate::state::*;
-use pandora::memory::msg::ExecuteMsg;
+use dao_os::memory::msg::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {
