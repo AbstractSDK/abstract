@@ -5,14 +5,13 @@ use cosmwasm_std::{
 
 use crate::error::OsFactoryError;
 use cw2::set_contract_version;
-use pandora::registery::FACTORY;
+use dao_os::registery::FACTORY;
 
 use crate::state::*;
 use crate::{commands, msg::*};
 
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
 
-const CONTRACT_NAME: &str = "pandora:factory";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -30,7 +29,7 @@ pub fn instantiate(
         os_id_sequence: 0u32,
     };
 
-    set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;

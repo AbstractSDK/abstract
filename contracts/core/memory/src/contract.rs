@@ -9,7 +9,7 @@ use dao_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use pandora::registery::MEMORY;
+use dao_os::registery::MEMORY;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

@@ -8,6 +8,7 @@ use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{ADMIN, OS_ID};
 use dao_os::manager::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use dao_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 

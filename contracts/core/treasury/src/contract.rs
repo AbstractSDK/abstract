@@ -12,6 +12,7 @@ use dao_os::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
+use dao_os::registery::TREASURY;
 use dao_os::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
 use dao_os::treasury::vault_assets::{get_identifier, VaultAsset};
 use semver::Version;
