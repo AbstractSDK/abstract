@@ -122,7 +122,7 @@ pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: MockDeps
         &state,
         TREASURY_CONTRACT,
         vec![TRADER_CONTRACT],
-        MEMORY_CONTRACT
+        MEMORY_CONTRACT,
     )
 }
 
@@ -171,8 +171,11 @@ pub fn test_successfully_set_admin_msg(mut deps: MockDeps) {
 pub fn test_successfully_update_traders_add(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
-        to_add: Some(vec!["new_trader_address1".to_string(), "new_trader_address2".to_string()]),
-        to_remove: None
+        to_add: Some(vec![
+            "new_trader_address1".to_string(),
+            "new_trader_address2".to_string(),
+        ]),
+        to_remove: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -183,7 +186,11 @@ pub fn test_successfully_update_traders_add(mut deps: MockDeps) {
     assert_equal_base_state(
         &state,
         TREASURY_CONTRACT,
-        vec![TRADER_CONTRACT, "new_trader_address1", "new_trader_address2"],
+        vec![
+            TRADER_CONTRACT,
+            "new_trader_address1",
+            "new_trader_address2",
+        ],
         MEMORY_CONTRACT,
     );
 }
@@ -199,7 +206,7 @@ pub fn test_successfully_update_traders_add_many(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(new_traders.clone()),
-        to_remove: None
+        to_remove: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -214,7 +221,10 @@ pub fn test_successfully_update_traders_add_many(mut deps: MockDeps) {
         &state,
         &BaseState {
             treasury_address: Addr::unchecked(TREASURY_CONTRACT.to_string()),
-            traders: expected_traders.into_iter().map(|t| Addr::unchecked(t)).collect(),
+            traders: expected_traders
+                .into_iter()
+                .map(|t| Addr::unchecked(t))
+                .collect(),
             memory: Memory {
                 address: Addr::unchecked(MEMORY_CONTRACT.to_string())
             },
@@ -227,7 +237,7 @@ pub fn test_unsuccessfully_update_traders_add_already_present(mut deps: MockDeps
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec![TRADER_CONTRACT.to_string()]),
-        to_remove: None
+        to_remove: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -253,8 +263,11 @@ pub fn test_successfully_update_traders_remove(mut deps: MockDeps) {
     // lets add some traders to start
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
-        to_add: Some(vec!["new_trader_address1".to_string(), "new_trader_address2".to_string()]),
-        to_remove: None
+        to_add: Some(vec![
+            "new_trader_address1".to_string(),
+            "new_trader_address2".to_string(),
+        ]),
+        to_remove: None,
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -265,14 +278,21 @@ pub fn test_successfully_update_traders_remove(mut deps: MockDeps) {
     assert_equal_base_state(
         &state,
         TREASURY_CONTRACT,
-        vec![TRADER_CONTRACT, "new_trader_address1", "new_trader_address2"],
+        vec![
+            TRADER_CONTRACT,
+            "new_trader_address1",
+            "new_trader_address2",
+        ],
         MEMORY_CONTRACT,
     );
 
     // now try and remove the traders
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,
-        to_remove: Some(vec!["new_trader_address1".to_string(), TRADER_CONTRACT.to_string()])
+        to_remove: Some(vec![
+            "new_trader_address1".to_string(),
+            TRADER_CONTRACT.to_string(),
+        ]),
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -293,7 +313,7 @@ pub fn test_unsuccessfully_update_traders_remove_not_present(mut deps: MockDeps)
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,
-        to_remove: Some(vec!["nonexistent".to_string(), "nonexistent2".to_string()])
+        to_remove: Some(vec!["nonexistent".to_string(), "nonexistent2".to_string()]),
     });
 
     // no error
@@ -321,7 +341,7 @@ pub fn test_successfully_update_traders_replace_existing(mut deps: MockDeps) {
     // now try and remove some traders that were not there
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: Some(vec!["new_trader".to_string()]),
-        to_remove: Some(vec![TRADER_CONTRACT.to_string()])
+        to_remove: Some(vec![TRADER_CONTRACT.to_string()]),
     });
 
     // no error
@@ -342,7 +362,7 @@ pub fn test_unsuccessfully_update_traders_no_traders_left(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
         to_add: None,
-        to_remove: Some(vec![TRADER_CONTRACT.to_string()])
+        to_remove: Some(vec![TRADER_CONTRACT.to_string()]),
     });
 
     let info = mock_info(TEST_CREATOR, &[]);
@@ -353,7 +373,6 @@ pub fn test_unsuccessfully_update_traders_no_traders_left(mut deps: MockDeps) {
         _ => panic!("Should return trader required Error, TraderRequired"),
     }
 }
-
 
 /// Helper function to assert that the provided state is equal to the provided state values
 fn assert_equal_base_state(
@@ -367,7 +386,10 @@ fn assert_equal_base_state(
         actual_state,
         &BaseState {
             treasury_address: Addr::unchecked(expected_treasury.to_string()),
-            traders: expected_traders.into_iter().map(|t| Addr::unchecked(t)).collect(),
+            traders: expected_traders
+                .into_iter()
+                .map(|t| Addr::unchecked(t))
+                .collect(),
             memory: Memory {
                 address: Addr::unchecked(expected_memory_addr.to_string())
             },

@@ -2,6 +2,7 @@ use cw_controllers::Admin;
 use cw_storage_plus::{Map, U32Key};
 
 pub const ADMIN: Admin = Admin::new("admin");
+pub const FACTORY: Admin = Admin::new("factory");
 
 // Map with composite keys
 // module name + version = code_id

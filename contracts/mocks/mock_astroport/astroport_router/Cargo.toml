@@ -1,6 +1,6 @@
 [package]
 name = "astroport-router"
-version = "1.0.0"
+version = "0.1.0"
 authors = ["Astroport"]
 edition = "2018"
 description = "An Astroport router contract - provides multi-step operations to facilitate single sign operation"

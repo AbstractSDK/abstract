@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum GovernanceDetails {
     Monarchy {
-        owner: String,
+        monarch: String,
     },
     MultiSignature {
         total_members: u8,

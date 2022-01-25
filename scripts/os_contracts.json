@@ -2,15 +2,30 @@
     "bombay-12": {
         "os_id": 2,
         "code_id": {
-            "version_control": "32859",
-            "manager": "32860",
-            "treasury": "32861"
+            "version_control": "33384",
+            "manager": "33203",
+            "treasury": "32861",
+            "cw_os_factory": "33373"
         },
-        "version_control": "terra12ne7qr34cewdrq6z6h8jn7hz2kwz3rws2uljmd",
+        "version_control": "terra13cr3w7ueh2rpfvykemw99pjjaj4vy8p3q08pgm",
         "manager": "terra169r5y0ccah3rr483upp3ncwte5p4g00u8ylxr4",
-        "treasury": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7"
+        "memory": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7",
+        "treasury": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7",
+        "cw_os_factory": "terra1xecu4efz0h6yqywshdg58vxj6da7h2e5wmnqyk"
     },
     "columbus-5": {
         "code_id": {}
+    },
+    "localterra": {
+        "code_id": {
+            "version_control": "3",
+            "manager": "4",
+            "treasury": "5",
+            "cw_os_factory": "8",
+            "memory": "7"
+        },
+        "version_control": "terra18eezxhys9jwku67cm4w84xhnzt4xjj77w2qt62",
+        "memory": "terra10d6vwc2ckdszk6z6u6hafy9mrhssmvfhe0s330",
+        "cw_os_factory": "terra175zt7t2jafkfszlfwdk28d4evt6smkmjuanpsr"
     }
 }

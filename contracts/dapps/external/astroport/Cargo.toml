@@ -43,7 +43,7 @@ cw2 = { version = "0.10" }
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
-dao-os = { version = "1.0.0", path = "../../../../packages/dao_os" }
+dao-os = { version = "0.1.0", path = "../../../../packages/dao_os" }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
@@ -55,7 +55,7 @@ cosmwasm-vm = { version = "0.16.0", default-features = false, features = ["itera
 treasury = { version = "0.1.0", path = "../../../core/treasury" }
 memory = { version = "0.1.0", path = "../../../core/memory" }
 cw20-base = { version = "0.8", features = ["library"] }
-astroport-factory = { version = "1.0.0", path = "../../../mocks/mock_astroport/astroport_factory" }
-astroport-pair = { version = "1.0.0", path = "../../../mocks/mock_astroport/astroport_pair" }
-astroport-token = { version = "1.0.0", path = "../../../mocks/mock_astroport/astroport_token" }
+astroport-factory = { version = "0.1.0", path = "../../../mocks/mock_astroport/astroport_factory" }
+astroport-pair = { version = "0.1.0", path = "../../../mocks/mock_astroport/astroport_pair" }
+astroport-token = { version = "0.1.0", path = "../../../mocks/mock_astroport/astroport_token" }
 astroport = {git = "https://github.com/astroport-fi/astroport-core.git", branch = "master"}

@@ -1,4 +1,5 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw2::set_contract_version;
 
 use crate::commands::*;
 use crate::error::MemoryError;
@@ -7,6 +8,8 @@ use crate::state::ADMIN;
 use dao_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+use dao_os::registery::MEMORY;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -15,6 +18,8 @@ pub fn instantiate(
     info: MessageInfo,
     _msg: InstantiateMsg,
 ) -> MemoryResult {
+    set_contract_version(deps.storage, MEMORY, CONTRACT_VERSION)?;
+
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;
 

@@ -10,6 +10,7 @@ pub mod manager;
 pub mod memory;
 pub mod profit_check;
 pub mod query;
+pub mod registery;
 pub mod tax;
 pub mod tokenomics;
 pub mod treasury;
