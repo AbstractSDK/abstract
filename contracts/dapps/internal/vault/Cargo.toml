@@ -47,6 +47,6 @@ cw20-base = { version = "0.8", features = ["library"] }
 cw20 = { version = "0.8" }
 treasury = { version = "0.1.0", path = "../../../core/treasury" }
 memory = { version = "0.1.0", path = "../../../core/memory" }
-terraswap-factory = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
-terraswap-pair = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
-terraswap-token = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
+terraswap-factory = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
+terraswap-pair = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
+terraswap-token = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_token" }

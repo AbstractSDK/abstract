@@ -45,6 +45,6 @@ terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991
 treasury = { version = "0.1.0", path = "../../../core/treasury" }
 memory = { version = "0.1.0", path = "../../../core/memory" }
 cw20-base = { version = "0.8", features = ["library"] }
-terraswap-factory = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
-terraswap-pair = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
-terraswap-token = { version = "0.0.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
+terraswap-factory = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
+terraswap-pair = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
+terraswap-token = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
