@@ -9,4 +9,7 @@ pub enum ManagerError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("The name of the proposed module can not have length 0.")]
+    InvalidModuleName {},
 }

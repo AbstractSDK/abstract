@@ -1,6 +1,7 @@
 use cosmwasm_std::{DepsMut, MessageInfo, Response};
 
 use crate::contract::ManagerResult;
+use crate::error::ManagerError;
 use crate::state::*;
 use dao_os::manager::msg::ExecuteMsg;
 
@@ -28,6 +29,9 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_add) = to_add {
         for (name, new_address) in modules_to_add.into_iter() {
+            if name.len() == 0 {
+                return Err(ManagerError::InvalidModuleName {});
+            };
             // validate addr
             deps.as_ref().api.addr_validate(&new_address)?;
             OS_MODULES.save(deps.storage, name.as_str(), &new_address)?;
