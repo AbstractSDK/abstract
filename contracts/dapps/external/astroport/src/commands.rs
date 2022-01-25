@@ -28,9 +28,7 @@ pub fn provide_liquidity(
 ) -> AstroportResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     let treasury_address = &state.treasury_address;
 
@@ -91,9 +89,7 @@ pub fn detailed_provide_liquidity(
 ) -> AstroportResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     if assets.len() > 2 {
         return Err(AstroportError::NotTwoAssets {});
@@ -147,9 +143,7 @@ pub fn withdraw_liquidity(
 ) -> AstroportResult {
     let state = BASESTATE.load(deps.storage)?;
     // Sender must be trader
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
     let treasury_address = &state.treasury_address;
 
     // Get lp token address
@@ -198,12 +192,10 @@ pub fn astroport_swap(
     belief_price: Option<Decimal>,
 ) -> AstroportResult {
     let state = BASESTATE.load(deps.storage)?;
-    let treasury_address = state.treasury_address;
+    let treasury_address = &state.treasury_address;
 
     // Check if caller is trader
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     // Check if treasury has enough to swap
     has_sufficient_balance(deps, &state.memory, &offer_id, &treasury_address, amount)?;

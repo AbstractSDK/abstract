@@ -1,11 +1,10 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use dao_os::memory::item::Memory;
-use dao_os::treasury::dapp_base::commands as dapp_base_commands;
+use dao_os::treasury::dapp_base::commands::{self as dapp_base_commands, handle_base_init};
 use dao_os::treasury::dapp_base::common::BaseDAppResult;
 use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg;
 use dao_os::treasury::dapp_base::queries as dapp_base_queries;
-use dao_os::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use dao_os::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::commands;
 use crate::error::TerraswapError;
@@ -20,16 +19,10 @@ pub fn instantiate(
     info: MessageInfo,
     msg: BaseInstantiateMsg,
 ) -> BaseDAppResult {
-    let state = BaseState {
-        treasury_address: deps.api.addr_validate(&msg.treasury_address)?,
-        trader: deps.api.addr_validate(&msg.trader)?,
-        memory: Memory {
-            address: deps.api.addr_validate(&msg.memory_addr)?,
-        },
-    };
+    let base_state = handle_base_init(deps.as_ref(), msg)?;
 
     // Store the initial config
-    BASESTATE.save(deps.storage, &state)?;
+    BASESTATE.save(deps.storage, &base_state)?;
 
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;

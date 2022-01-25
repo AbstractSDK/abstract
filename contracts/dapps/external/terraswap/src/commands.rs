@@ -28,9 +28,7 @@ pub fn provide_liquidity(
 ) -> TerraswapResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     let treasury_address = &state.treasury_address;
 
@@ -91,9 +89,7 @@ pub fn detailed_provide_liquidity(
 ) -> TerraswapResult {
     let state = BASESTATE.load(deps.storage)?;
     // Check if caller is trader.
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     if assets.len() != 2 {
         return Err(TerraswapError::NotTwoAssets {});
@@ -147,9 +143,7 @@ pub fn withdraw_liquidity(
 ) -> TerraswapResult {
     let state = BASESTATE.load(deps.storage)?;
     // Sender must be trader
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
     let treasury_address = &state.treasury_address;
 
     // Get lp token address
@@ -196,15 +190,13 @@ pub fn terraswap_swap(
     belief_price: Option<Decimal>,
 ) -> TerraswapResult {
     let state = BASESTATE.load(deps.storage)?;
-    let treasury_address = state.treasury_address;
+    let treasury_address = &state.treasury_address;
 
     // Check if caller is trader
-    if msg_info.sender != state.trader {
-        return Err(BaseDAppError::Unauthorized {}.into());
-    }
+    state.assert_authorized_trader(&msg_info.sender)?;
 
     // Check if treasury has enough to swap
-    has_sufficient_balance(deps, &state.memory, &offer_id, &treasury_address, amount)?;
+    has_sufficient_balance(deps, &state.memory, &offer_id, treasury_address, amount)?;
 
     let pair_address = state.memory.query_contract(deps, &pool_id)?;
 
@@ -223,5 +215,5 @@ pub fn terraswap_swap(
         None,
     )?];
 
-    Ok(Response::new().add_message(send_to_treasury(swap_msg, &treasury_address)?))
+    Ok(Response::new().add_message(send_to_treasury(swap_msg, treasury_address)?))
 }

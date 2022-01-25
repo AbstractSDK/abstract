@@ -1,5 +1,5 @@
-use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::Addr;
+use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, MockQuerier};
+use cosmwasm_std::{Addr, MemoryStorage, OwnedDeps};
 
 use dao_os::memory::item::Memory;
 use dao_os::treasury::dapp_base::error::BaseDAppError;
@@ -10,18 +10,25 @@ use crate::contract::execute;
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
 use crate::msg::ExecuteMsg;
 use crate::tests::base_mocks::mocks::mock_instantiate;
+use rstest::*;
+
+type MockDeps = OwnedDeps<MemoryStorage, MockApi, MockQuerier>;
+
+#[fixture]
+fn deps() -> MockDeps {
+    let mut deps = mock_dependencies(&[]);
+    mock_instantiate(deps.as_mut());
+    deps
+}
 
 /**
  * BaseExecuteMsg::UpdateConfig
  */
-#[test]
-pub fn test_unsuccessfully_update_config_msg() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_unsuccessfully_update_config_msg(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        trader: None,
         memory: None,
     });
 
@@ -35,14 +42,11 @@ pub fn test_unsuccessfully_update_config_msg() {
     }
 }
 
-#[test]
-pub fn test_successfully_update_config_msg_with_treasury_address() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_successfully_update_config_msg_with_treasury_address(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
-        trader: None,
         memory: None,
     });
 
@@ -51,54 +55,19 @@ pub fn test_successfully_update_config_msg_with_treasury_address() {
 
     let state = BASESTATE.load(deps.as_mut().storage).unwrap();
 
-    assert_eq!(
-        state,
-        BaseState {
-            treasury_address: Addr::unchecked("new_treasury_address".to_string()),
-            trader: Addr::unchecked(TRADER_CONTRACT.to_string()),
-            memory: Memory {
-                address: Addr::unchecked(&MEMORY_CONTRACT.to_string())
-            },
-        }
-    )
+    assert_equal_base_state(
+        &state,
+        "new_treasury_address",
+        vec![TRADER_CONTRACT],
+        MEMORY_CONTRACT,
+    );
 }
 
-#[test]
-pub fn test_successfully_update_config_msg_with_trader() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_successfully_update_config_msg_with_memory(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        trader: Some("new_trader_address".to_string()),
-        memory: None,
-    });
-
-    let info = mock_info(TEST_CREATOR, &[]);
-    execute(deps.as_mut(), env.clone(), info, msg).unwrap();
-
-    let state = BASESTATE.load(deps.as_mut().storage).unwrap();
-
-    assert_eq!(
-        state,
-        BaseState {
-            treasury_address: Addr::unchecked(TREASURY_CONTRACT.to_string()),
-            trader: Addr::unchecked("new_trader_address".to_string()),
-            memory: Memory {
-                address: Addr::unchecked(&MEMORY_CONTRACT.to_string())
-            },
-        }
-    )
-}
-
-#[test]
-pub fn test_successfully_update_config_msg_with_memory() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
-    let env = mock_env();
-    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-        treasury_address: None,
-        trader: None,
         memory: Some("new_memory_address".to_string()),
     });
 
@@ -107,26 +76,19 @@ pub fn test_successfully_update_config_msg_with_memory() {
 
     let state = BASESTATE.load(deps.as_mut().storage).unwrap();
 
-    assert_eq!(
-        state,
-        BaseState {
-            treasury_address: Addr::unchecked(TREASURY_CONTRACT.to_string()),
-            trader: Addr::unchecked(TRADER_CONTRACT.to_string()),
-            memory: Memory {
-                address: Addr::unchecked("new_memory_address".to_string())
-            },
-        }
-    )
+    assert_equal_base_state(
+        &state,
+        TREASURY_CONTRACT,
+        vec![TRADER_CONTRACT],
+        "new_memory_address",
+    );
 }
 
-#[test]
-pub fn test_successfully_update_config_msg_with_all_parameters() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_successfully_update_config_msg_with_all_parameters(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: Some("new_treasury_address".to_string()),
-        trader: Some("new_trader_address".to_string()),
         memory: Some("new_memory_address".to_string()),
     });
 
@@ -135,26 +97,19 @@ pub fn test_successfully_update_config_msg_with_all_parameters() {
 
     let state = BASESTATE.load(deps.as_mut().storage).unwrap();
 
-    assert_eq!(
-        state,
-        BaseState {
-            treasury_address: Addr::unchecked("new_treasury_address".to_string()),
-            trader: Addr::unchecked("new_trader_address".to_string()),
-            memory: Memory {
-                address: Addr::unchecked("new_memory_address".to_string())
-            },
-        }
-    )
+    assert_equal_base_state(
+        &state,
+        "new_treasury_address",
+        vec![TRADER_CONTRACT],
+        "new_memory_address",
+    );
 }
 
-#[test]
-pub fn test_successfully_update_config_msg_with_no_parameters() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_successfully_update_config_msg_with_no_parameters(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
         treasury_address: None,
-        trader: None,
         memory: None,
     });
 
@@ -174,10 +129,8 @@ pub fn test_successfully_update_config_msg_with_no_parameters() {
 /**
  * BaseExecuteMsg::SetAdmin
  */
-#[test]
-pub fn test_unsuccessfully_set_admin_msg() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_unsuccessfully_set_admin_msg(mut deps: MockDeps) {
     let env = mock_env();
     let msg = ExecuteMsg::Base(BaseExecuteMsg::SetAdmin {
         admin: "new_admin".to_string(),
@@ -193,10 +146,8 @@ pub fn test_unsuccessfully_set_admin_msg() {
     }
 }
 
-#[test]
-pub fn test_successfully_set_admin_msg() {
-    let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+#[rstest]
+pub fn test_successfully_set_admin_msg(mut deps: MockDeps) {
     let env = mock_env();
 
     // check original admin

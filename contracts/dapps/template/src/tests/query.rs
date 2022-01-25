@@ -22,7 +22,7 @@ pub fn test_config_query() {
         q_res,
         BaseStateResponse {
             treasury_address: TREASURY_CONTRACT.to_string(),
-            trader: TRADER_CONTRACT.to_string(),
+            traders: vec![TRADER_CONTRACT.to_string()],
             memory_address: MEMORY_CONTRACT.to_string(),
         }
     )

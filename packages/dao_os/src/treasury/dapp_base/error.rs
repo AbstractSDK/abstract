@@ -18,4 +18,13 @@ pub enum BaseDAppError {
 
     #[error("Not enough funds to perform arb-trade")]
     Broke {},
+
+    #[error("At least one trader must be configured")]
+    TraderRequired {},
+
+    #[error("The asset you wished to remove: {} was not present.", trader)]
+    TraderNotPresent { trader: String },
+
+    #[error("The trader you wished to add: {} is already present", trader)]
+    TraderAlreadyPresent { trader: String },
 }
