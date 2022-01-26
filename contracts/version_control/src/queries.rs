@@ -24,11 +24,9 @@ pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary
 pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
     let os_address = OS_ADDRESSES.load(deps.storage, U32Key::new(os_id));
     match os_address {
-        Err(_) => {
-            return Err(StdError::generic_err(
-                VersionError::MissingOsId { id: os_id }.to_string(),
-            ))
-        }
+        Err(_) => Err(StdError::generic_err(
+            VersionError::MissingOsId { id: os_id }.to_string(),
+        )),
         Ok(address) => to_binary(&address),
     }
 }
@@ -37,11 +35,9 @@ pub fn query_code_id(deps: Deps, module: String, version: String) -> StdResult<B
     let code_id = MODULE_CODE_IDS.load(deps.storage, (&module, &version));
 
     match code_id {
-        Err(_) => {
-            return Err(StdError::generic_err(
-                VersionError::MissingCodeId { module, version }.to_string(),
-            ))
-        }
+        Err(_) => Err(StdError::generic_err(
+            VersionError::MissingCodeId { module, version }.to_string(),
+        )),
         Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
         }),

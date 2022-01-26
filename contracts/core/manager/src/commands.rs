@@ -29,7 +29,7 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_add) = to_add {
         for (name, new_address) in modules_to_add.into_iter() {
-            if name.len() == 0 {
+            if name.is_empty() {
                 return Err(ManagerError::InvalidModuleName {});
             };
             // validate addr
