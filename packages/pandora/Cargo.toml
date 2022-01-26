@@ -1,9 +1,9 @@
 [package]
-name = "dao-os"
+name = "pandora"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
-description = "Helpers for dao-os contracts"
+description = "Helpers for pandora contracts"
 license = "Apache-2.0"
 repository = ""
 homepage = ""

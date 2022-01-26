@@ -32,7 +32,7 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
-dao-os = { version = "0.1.0", path = "../../../packages/dao_os" }
+pandora = { version = "0.1.0", path = "../../../packages/pandora" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 [dev-dependencies]

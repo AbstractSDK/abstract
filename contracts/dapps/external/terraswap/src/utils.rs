@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Deps, Uint128};
-use dao_os::memory::item::Memory;
-use dao_os::query::terraswap::query_asset_balance;
-use dao_os::treasury::dapp_base::error::BaseDAppError;
+use pandora::memory::item::Memory;
+use pandora::query::terraswap::query_asset_balance;
+use pandora::treasury::dapp_base::error::BaseDAppError;
 
 /// Checks if the given address has enough tokens with a given offer_id
 pub fn has_sufficient_balance(

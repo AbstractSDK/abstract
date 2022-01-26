@@ -5,11 +5,11 @@ use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
 use crate::state::ADMIN;
-use dao_os::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use dao_os::registery::MEMORY;
+use pandora::registery::MEMORY;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use terraswap::querier::query_token_balance;
 
-use dao_os::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
+use pandora::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
 
 use crate::error::CommunityFundError;
 use crate::msg::InstantiateMsg;

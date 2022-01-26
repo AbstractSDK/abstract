@@ -8,12 +8,12 @@ use crate::msg::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
-use dao_os::memory::msg as MemoryMsg;
-use dao_os::treasury::msg as TreasuryMsg;
+use pandora::memory::msg as MemoryMsg;
+use pandora::treasury::msg as TreasuryMsg;
 use terra_multi_test::Executor;
 use terraswap::pair::PoolResponse;
 
-use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
+use pandora::treasury::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

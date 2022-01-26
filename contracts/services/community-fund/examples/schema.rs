@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use community_fund::msg::InstantiateMsg;
 use community_fund::state::State;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use dao_os::community_fund::msg::{ConfigResponse, ExecuteMsg};
+use pandora::community_fund::msg::{ConfigResponse, ExecuteMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

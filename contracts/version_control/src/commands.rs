@@ -4,7 +4,7 @@ use cw_storage_plus::U32Key;
 use crate::contract::VCResult;
 use crate::error::VersionError;
 use crate::state::*;
-use dao_os::version_control::msg::ExecuteMsg;
+use pandora::version_control::msg::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> VCResult {

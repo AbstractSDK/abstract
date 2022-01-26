@@ -6,7 +6,7 @@ use crate::contract::{execute, instantiate};
 use crate::tests::common::TEST_CREATOR;
 
 use crate::tests::mock_querier::mock_dependencies;
-use dao_os::memory::msg::*;
+use pandora::memory::msg::*;
 
 pub(crate) fn instantiate_msg() -> InstantiateMsg {
     InstantiateMsg {}

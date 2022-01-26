@@ -3,8 +3,8 @@ use cosmwasm_std::{Addr, DepsMut};
 use cosmwasm_std::{Api, Decimal};
 
 use crate::dapp_base::common::MEMORY_CONTRACT;
-use dao_os::memory::item::Memory;
-use dao_os::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora::memory::item::Memory;
+use pandora::treasury::dapp_base::state::{BaseState, BASESTATE};
 
 use crate::contract::instantiate;
 use crate::msg::InstantiateMsg;

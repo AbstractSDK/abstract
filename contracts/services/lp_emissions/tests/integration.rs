@@ -3,7 +3,7 @@ use cosmwasm_std::{attr, to_binary, Addr, Decimal, Timestamp, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 
-use dao_os::tokenomics::lp_emissions::{
+use pandora::tokenomics::lp_emissions::{
     ConfigResponse, Cw20HookMsg as LpCw20HookMsg, ExecuteMsg, InstantiateMsg, QueryMsg,
     StakerInfoResponse, StateResponse,
 };
@@ -173,7 +173,7 @@ fn test_update_config() {
         .execute_contract(
             Addr::unchecked("wrong_owner"),
             lp_emissions_instance.clone(),
-            &dao_os::tokenomics::lp_emissions::ExecuteMsg::UpdateConfig {
+            &pandora::tokenomics::lp_emissions::ExecuteMsg::UpdateConfig {
                 new_owner: "new_owner".to_string(),
             },
             &[],
@@ -191,7 +191,7 @@ fn test_update_config() {
     app.execute_contract(
         Addr::unchecked(init_msg.owner),
         lp_emissions_instance.clone(),
-        &dao_os::tokenomics::lp_emissions::ExecuteMsg::UpdateConfig {
+        &pandora::tokenomics::lp_emissions::ExecuteMsg::UpdateConfig {
             new_owner: "new_owner".to_string(),
         },
         &[],

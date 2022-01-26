@@ -1,6 +1,6 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
-use dao_os::emissions::msg::{AllocationInfo, Schedule};
+use pandora::emissions::msg::{AllocationInfo, Schedule};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -13,7 +13,7 @@ fn unsuccessful_set_fee_unauthorized() {
     mock_instantiate(deps.as_mut());
 
     let msg = ExecuteMsg::SetFee {
-        fee: dao_os::fee::Fee {
+        fee: pandora::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };
@@ -40,7 +40,7 @@ fn successful_update_fee() {
     mock_instantiate(deps.as_mut());
 
     let msg = ExecuteMsg::SetFee {
-        fee: dao_os::fee::Fee {
+        fee: pandora::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };

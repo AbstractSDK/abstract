@@ -1,5 +1,5 @@
 use crate::dapp_base::common::{MEMORY_CONTRACT, TRADER_CONTRACT, TREASURY_CONTRACT};
-use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
 
 #[allow(dead_code)]
 pub(crate) fn instantiate_msg() -> BaseInstantiateMsg {

@@ -4,9 +4,9 @@ use cosmwasm_std::{Api, Uint128};
 
 use crate::contract::{execute, instantiate};
 
-use dao_os::treasury::msg::*;
-use dao_os::treasury::state::*;
-use dao_os::treasury::vault_assets::*;
+use pandora::treasury::msg::*;
+use pandora::treasury::state::*;
+use pandora::treasury::vault_assets::*;
 use terraswap::asset::{Asset, AssetInfo};
 
 use crate::tests::common::{DAPP, TEST_CREATOR};

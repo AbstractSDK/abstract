@@ -24,7 +24,7 @@ Go to the folder in which you want to place it and run:
 **Latest: 0.1.0**
 
 ```sh
-cargo generate --git https://github.com/dao-os-Defi-Platform/dapp-template.git --name DAPP_NAME
+cargo generate --git https://github.com/pandora-Defi-Platform/dapp-template.git --name DAPP_NAME
 ````
 
 or

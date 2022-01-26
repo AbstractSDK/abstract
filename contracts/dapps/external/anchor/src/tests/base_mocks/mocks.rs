@@ -2,7 +2,7 @@ use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::DepsMut;
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
-use dao_os::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
 
 use crate::contract::instantiate;
 

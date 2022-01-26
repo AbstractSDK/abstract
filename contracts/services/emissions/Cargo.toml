@@ -13,7 +13,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-dao-os = { version = "0.1.0", path = "../../../packages/dao_os" }
+pandora = { version = "0.1.0", path = "../../../packages/pandora" }
 
 cosmwasm-std = { version = "0.16", features = ["iterator"] }
 cw-storage-plus = "0.8.0"

@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, Empty, StdResult, WasmMsg};
 
 use cw20::Cw20ExecuteMsg;
-use dao_os::tax::compute_tax;
+use pandora::tax::compute_tax;
 use terraswap::asset::{Asset, AssetInfo};
 use terraswap::pair::ExecuteMsg as PairExecuteMsg;
 
