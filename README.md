@@ -1,5 +1,7 @@
-# DAO-OS
+# Pandora Architecture
 
+
+![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true)
 ## Core
 Every OS start off with the core contracts. These contracts handle the most important business logic of the DAO, including fund management. 
 
