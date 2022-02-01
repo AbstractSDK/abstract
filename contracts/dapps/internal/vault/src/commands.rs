@@ -66,7 +66,7 @@ pub fn try_provide_liquidity(
 
     // Get the liquidity provider address
     let liq_provider = match sender {
-        Some(addr) => Addr::unchecked(addr),
+        Some(addr) => deps.api.addr_validate(&addr)?,
         None => {
             // Check if deposit matches claimed deposit.
             if asset.is_native_token() {

@@ -1,4 +1,4 @@
-use cosmwasm_std::{Deps, DepsMut, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Response, StdResult};
 
 use crate::memory::item::Memory;
 use crate::treasury::dapp_base::common::BaseDAppResult;
@@ -15,10 +15,9 @@ pub fn handle_base_message(
     message: BaseExecuteMsg,
 ) -> BaseDAppResult {
     match message {
-        BaseExecuteMsg::UpdateConfig {
-            treasury_address,
-            memory,
-        } => update_config(deps, info, treasury_address, memory),
+        BaseExecuteMsg::UpdateConfig { treasury_address } => {
+            update_config(deps, info, treasury_address)
+        }
         BaseExecuteMsg::UpdateTraders { to_add, to_remove } => {
             update_traders(deps, info, to_add, to_remove)
         }
@@ -34,8 +33,9 @@ pub fn handle_base_init(deps: Deps, msg: BaseInstantiateMsg) -> StdResult<BaseSt
     };
     // Base state
     let state = BaseState {
-        treasury_address: deps.api.addr_validate(&msg.treasury_address)?,
-        traders: vec![deps.api.addr_validate(&msg.trader)?],
+        // Treasury gets set by manager after Init
+        treasury_address: Addr::unchecked(""),
+        traders: vec![],
         memory,
     };
 
@@ -51,7 +51,6 @@ pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
     treasury_address: Option<String>,
-    memory: Option<String>,
 ) -> BaseDAppResult {
     // Only the admin should be able to call this
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -60,10 +59,6 @@ pub fn update_config(
 
     if let Some(treasury_address) = treasury_address {
         state.treasury_address = deps.api.addr_validate(treasury_address.as_str())?;
-    }
-
-    if let Some(memory) = memory {
-        state.memory.address = deps.api.addr_validate(memory.as_str())?;
     }
 
     BASESTATE.save(deps.storage, &state)?;

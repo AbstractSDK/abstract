@@ -10,7 +10,8 @@ use crate::tests::instantiate::mock_instantiate;
 #[test]
 fn unsuccessful_set_fee_unauthorized() {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
         fee: pandora::fee::Fee {
@@ -22,7 +23,7 @@ fn unsuccessful_set_fee_unauthorized() {
         funds: vec![],
     };
 
-    let res = execute(deps.as_mut(), mock_env(), info, msg);
+    let res = execute(deps.as_mut(), env, info, msg);
     match res {
         Err(VaultError::Admin(_)) => (),
         _ => panic!("Must return StableVaultError::Admin"),
@@ -37,7 +38,8 @@ fn successful_update_fee() {
     // update fees
     let info = mock_info(TEST_CREATOR, &[]);
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
         fee: pandora::fee::Fee {
@@ -45,7 +47,7 @@ fn successful_update_fee() {
         },
     };
 
-    let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+    let res = execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(0, res.messages.len());
 }
 
@@ -57,14 +59,15 @@ fn successful_update_pool() {
     // update fees
     let info = mock_info(TEST_CREATOR, &[]);
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
     let msg = ExecuteMsg::UpdatePool {
         deposit_asset: Some("whale".to_string()),
         assets_to_add: vec!["whale".to_string()],
         assets_to_remove: vec![],
     };
 
-    let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+    let res = execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(0, res.messages.len());
 }
 
@@ -75,14 +78,15 @@ fn successful_update_pool() {
 fn unsuccessful_update_pool() {
     let info = mock_info("someone", &[]);
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
+    let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
     let msg = ExecuteMsg::UpdatePool {
         deposit_asset: Some("whale".to_string()),
         assets_to_add: vec!["whale".to_string()],
         assets_to_remove: vec![],
     };
 
-    let res = execute(deps.as_mut(), mock_env(), info, msg);
+    let res = execute(deps.as_mut(), env, info, msg);
     match res {
         Err(VaultError::Admin(_)) => (),
         _ => panic!("Must return StableVaultError::Admin"),

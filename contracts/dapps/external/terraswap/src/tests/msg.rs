@@ -15,8 +15,8 @@ use crate::tests::mock_querier::mock_dependencies;
 #[test]
 pub fn test_provide_liquidity_unauthorized_msg() {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
     let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
     let msg = ExecuteMsg::ProvideLiquidity {
         pool_id: "".to_string(),
         main_asset_id: "".to_string(),
@@ -36,9 +36,9 @@ pub fn test_provide_liquidity_unauthorized_msg() {
 #[test]
 pub fn test_unsuccessfully_provide_liquidity_nonexisting_asset_msg() {
     let mut deps = mock_dependencies(&[]);
-    mock_instantiate(deps.as_mut());
-
     let env = mock_env();
+    mock_instantiate(deps.as_mut(), env.clone());
+
     let msg = ExecuteMsg::ProvideLiquidity {
         pool_id: "asset".to_string(),
         main_asset_id: "".to_string(),

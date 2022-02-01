@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::Api;
+use cosmwasm_std::{Addr, Api};
 
-use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
+use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR};
 use pandora::memory::item::Memory;
 use pandora::treasury::dapp_base::state::{BaseState, BASESTATE};
 
@@ -23,8 +23,8 @@ fn successful_initialization() {
     assert_eq!(
         BASESTATE.load(&deps.storage).unwrap(),
         BaseState {
-            treasury_address: deps.api.addr_validate(&TREASURY_CONTRACT).unwrap(),
-            traders: vec![deps.api.addr_validate(&TRADER_CONTRACT).unwrap()],
+            treasury_address: Addr::unchecked(""),
+            traders: vec![],
             memory: Memory {
                 address: deps.api.addr_validate(&MEMORY_CONTRACT).unwrap()
             }

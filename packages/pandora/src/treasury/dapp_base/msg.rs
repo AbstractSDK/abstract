@@ -1,10 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// Used by Module Factory to instantiate dApp
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct BaseInstantiateMsg {
-    pub treasury_address: String,
-    pub trader: String,
     pub memory_addr: String,
 }
 
@@ -13,10 +12,7 @@ pub struct BaseInstantiateMsg {
 pub enum BaseExecuteMsg {
     /// Updates the base config
     /// Sets new values for the provided options
-    UpdateConfig {
-        treasury_address: Option<String>,
-        memory: Option<String>,
-    },
+    UpdateConfig { treasury_address: Option<String> },
     /// Adds/removes traders
     /// If a trader is both in to_add and to_remove, it will be removed.
     UpdateTraders {
