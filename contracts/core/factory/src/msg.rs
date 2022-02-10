@@ -43,7 +43,7 @@ pub struct ConfigResponse {
     pub memory_contract: String,
     pub version_control_contract: String,
     pub creation_fee: u32,
-    pub os_id_sequence: u32,
+    pub next_os_id: u32,
 }
 
 /// We currently take no arguments for migrations

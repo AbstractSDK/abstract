@@ -9,7 +9,7 @@ pub struct Config {
     pub version_control_contract: Addr,
     pub memory_contract: Addr,
     pub creation_fee: u32,
-    pub os_id_sequence: u32,
+    pub next_os_id: u32,
 }
 
 pub const ADMIN: Admin = Admin::new("admin");

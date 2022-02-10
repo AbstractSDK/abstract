@@ -55,7 +55,7 @@ pub fn execute_create_os(
     Ok(response
         .add_attributes(vec![
             ("action", "create os"),
-            ("os_id:", &config.os_id_sequence.to_string()),
+            ("os_id:", &config.next_os_id.to_string()),
         ])
         // Create manager
         .add_submessage(SubMsg {
@@ -67,9 +67,9 @@ pub fn execute_create_os(
                 // TODO: Review
                 // This contract is able to upgrade the manager contract
                 admin: Some(env.contract.address.to_string()),
-                label: format!("CosmWasm OS: {}", config.os_id_sequence),
+                label: format!("CosmWasm OS: {}", config.next_os_id),
                 msg: to_binary(&ManagerInstantiateMsg {
-                    os_id: config.os_id_sequence,
+                    os_id: config.next_os_id,
                     root_user: root_user.to_string(),
                 })?,
             }
@@ -98,7 +98,7 @@ pub fn after_manager_create_treasury(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddOs {
-            os_id: config.os_id_sequence,
+            os_id: config.next_os_id,
             os_manager_address: manager_address.to_string(),
         })?,
     }));
@@ -124,7 +124,7 @@ pub fn after_manager_create_treasury(
                 code_id: treasury_code_id_response.code_id.u64(),
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Treasury of OS: {}", config.os_id_sequence),
+                label: format!("Treasury of OS: {}", config.next_os_id),
                 msg: to_binary(&TreasuryInstantiateMsg {})?,
             }
             .into(),
@@ -150,12 +150,12 @@ pub fn after_treasury_add_to_manager(
     let manager_address: String = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: config.version_control_contract.to_string(),
         msg: to_binary(&VCQuery::QueryOsAddress {
-            os_id: config.os_id_sequence,
+            os_id: config.next_os_id,
         })?,
     }))?;
 
     // Update id sequence
-    config.os_id_sequence += 1;
+    config.next_os_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new()
