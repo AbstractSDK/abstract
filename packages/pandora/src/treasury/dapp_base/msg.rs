@@ -37,3 +37,10 @@ pub struct BaseStateResponse {
     pub traders: Vec<String>,
     pub memory_address: String,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+// Template executemsg of dapp
+pub enum ExecuteMsg {
+    Base(BaseExecuteMsg),
+}

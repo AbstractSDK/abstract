@@ -31,6 +31,15 @@ pub fn query_module_versions(
     Ok(module_versions)
 }
 
+/// Query the module versions of the modules part of the OS
+pub fn query_os_id(deps: Deps, manager_addr: &Addr) -> StdResult<u32> {
+    let req = QueryRequest::Wasm(WasmQuery::Raw {
+        contract_addr: manager_addr.into(),
+        key: "\u{0}{5}os_id".as_bytes().into(),
+    });
+    deps.querier.query::<u32>(&req)
+}
+
 /// Query module addresses from manager
 pub fn query_module_addresses(
     deps: Deps,

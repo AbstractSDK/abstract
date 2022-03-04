@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub version_control_contract: Addr,
     pub memory_contract: Addr,
+    pub module_factory_address: Addr,
     pub creation_fee: u32,
     pub next_os_id: u32,
 }

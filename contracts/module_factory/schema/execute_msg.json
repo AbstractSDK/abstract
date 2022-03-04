@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "oneOf": [
+    {
+      "description": "Update config",
+      "type": "object",
+      "required": [
+        "update_config"
+      ],
+      "properties": {
+        "update_config": {
+          "type": "object",
+          "properties": {
+            "admin": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "memory_contract": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "version_control_contract": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Creates the core contracts for the OS",
+      "type": "object",
+      "required": [
+        "create_module"
+      ],
+      "properties": {
+        "create_module": {
+          "type": "object",
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "init_msg": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Binary"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "module": {
+              "description": "Module details",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Module"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "update_factory_binary_msgs"
+      ],
+      "properties": {
+        "update_factory_binary_msgs": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  },
+                  {
+                    "$ref": "#/definitions/Binary"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    },
+    "Module": {
+      "type": "object",
+      "required": [
+        "info",
+        "kind"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/ModuleInfo"
+        },
+        "kind": {
+          "$ref": "#/definitions/ModuleKind"
+        }
+      }
+    },
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleKind": {
+      "type": "string",
+      "enum": [
+        "internal",
+        "external",
+        "service",
+        "perk"
+      ]
+    }
+  }
+}

@@ -1,6 +1,9 @@
 use cosmwasm_std::Uint64;
+use cw2::ContractVersion;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::modules::ModuleInfo;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -47,10 +50,11 @@ pub enum QueryMsg {
     /// Queries address of OS manager module
     QueryOsAddress { os_id: u32 },
     /// Queries contract code_id
-    QueryCodeId { module: String, version: String },
+    QueryCodeId { module: ModuleInfo },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct CodeIdResponse {
     pub code_id: Uint64,
+    pub info: ContractVersion,
 }

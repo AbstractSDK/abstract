@@ -1,11 +1,16 @@
+use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::modules::Module;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub root_user: String,
+    pub version_control_address: String,
+    pub module_factory_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -17,7 +22,25 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin { admin: String },
+    SetAdmin {
+        admin: String,
+    },
+    CreateModule {
+        module: Module,
+        init_msg: Option<Binary>,
+    },
+    RegisterModule {
+        module_addr: String,
+        module: Module,
+    },
+    ConfigureModule {
+        module_name: String,
+        config_msg: Binary,
+    },
+    UpdateConfig {
+        vc_addr: Option<String>,
+        root: Option<String>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -32,7 +55,7 @@ pub enum QueryMsg {
     },
     QueryEnabledModules {},
     /// Query OS_ID
-    QueryOsId {},
+    QueryOsConfig {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -48,4 +71,12 @@ pub struct ModuleQueryResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct EnabledModulesResponse {
     pub modules: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigQueryResponse {
+    pub root: String,
+    pub version_control_address: String,
+    pub module_factory_address: String,
+    pub os_id: Uint64,
 }

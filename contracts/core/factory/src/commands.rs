@@ -5,6 +5,7 @@ use cosmwasm_std::{
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora::governance::gov_type::GovernanceDetails;
 use pandora::manager::helper::register_module_on_manager;
+use pandora::modules::ModuleInfo;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -17,9 +18,6 @@ use pandora::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
 use pandora::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
-
-const TREASURY_VERSION: &str = "v0.1.0";
-const MANAGER_VERSION: &str = "v0.1.0";
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
@@ -47,8 +45,10 @@ pub fn execute_create_os(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(MANAGER),
-                version: String::from(MANAGER_VERSION),
+                module: ModuleInfo {
+                    name: String::from(MANAGER),
+                    version: None,
+                },
             })?,
         }))?;
 
@@ -71,6 +71,8 @@ pub fn execute_create_os(
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.next_os_id,
                     root_user: root_user.to_string(),
+                    version_control_address: config.version_control_contract.to_string(),
+                    module_factory_address: config.module_factory_address.to_string(),
                 })?,
             }
             .into(),
@@ -109,8 +111,10 @@ pub fn after_manager_create_treasury(
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
-                module: String::from(TREASURY),
-                version: String::from(TREASURY_VERSION),
+                module: ModuleInfo {
+                    name: String::from(TREASURY),
+                    version: None,
+                },
             })?,
         }))?;
 
@@ -168,6 +172,7 @@ pub fn after_treasury_add_to_manager(
 }
 
 // Only owner can execute it
+#[allow(clippy::too_many_arguments)]
 pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
@@ -175,6 +180,7 @@ pub fn execute_update_config(
     admin: Option<String>,
     memory_contract: Option<String>,
     version_control_contract: Option<String>,
+    module_factory_address: Option<String>,
     creation_fee: Option<u32>,
 ) -> OsFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -189,6 +195,11 @@ pub fn execute_update_config(
     if let Some(version_control_contract) = version_control_contract {
         // validate address format
         config.version_control_contract = deps.api.addr_validate(&version_control_contract)?;
+    }
+
+    if let Some(module_factory_address) = module_factory_address {
+        // validate address format
+        config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     }
 
     if let Some(creation_fee) = creation_fee {

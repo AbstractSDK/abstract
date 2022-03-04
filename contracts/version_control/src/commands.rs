@@ -31,8 +31,8 @@ pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, os_manager: Stri
     // Only Factory can add new OS
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    deps.api.addr_validate(&os_manager)?;
-    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &os_manager)?;
+    let addr = deps.api.addr_validate(&os_manager)?;
+    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &addr)?;
 
     Ok(Response::new().add_attributes(vec![
         ("Action", "Add OS"),

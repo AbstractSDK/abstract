@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "memory_contract",
+    "owner",
+    "version_control_contract"
+  ],
+  "properties": {
+    "memory_contract": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "version_control_contract": {
+      "type": "string"
+    }
+  }
+}

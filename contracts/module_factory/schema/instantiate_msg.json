@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "memory_contract",
+    "version_control_contract"
+  ],
+  "properties": {
+    "memory_contract": {
+      "description": "Memory contract",
+      "type": "string"
+    },
+    "version_control_contract": {
+      "description": "Version control contract used to get code-ids and register OS",
+      "type": "string"
+    }
+  }
+}

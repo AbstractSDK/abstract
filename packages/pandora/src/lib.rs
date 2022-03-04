@@ -8,6 +8,8 @@ pub mod fee;
 pub mod governance;
 pub mod manager;
 pub mod memory;
+pub mod module_factory;
+pub mod modules;
 pub mod profit_check;
 pub mod query;
 pub mod registery;

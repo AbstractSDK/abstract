@@ -11,10 +11,10 @@ from typing import List
 sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
-from dao_os.contracts.terraswap_dapp import *
-from dao_os.contracts.treasury import *
+from cw_os.contracts.terraswap_dapp import *
+from cw_os.contracts.treasury import *
 from terra_sdk.core.coins import Coin
-from dao_os.deploy import get_deployer
+from cw_os.deploy import get_deployer
 
 def execute_on_treasury_msg(msgs: any, coins: List[Coin]):
     msg = MsgExecuteContract(
@@ -31,21 +31,23 @@ def execute_on_treasury_msg(msgs: any, coins: List[Coin]):
 
 
 # mnemonic = "napkin guess language merit split slice source happy field search because volcano staff section depth clay inherit result assist rubber list tilt chef start"
-# mnemonic = "coin reunion grab unlock jump reason year estate device elevator clean orbit pencil spawn very hope floor actual very clay stereo federal correct beef"
+mnemonic = "coin reunion grab unlock jump reason year estate device elevator clean orbit pencil spawn very hope floor actual very clay stereo federal correct beef"
 
 # deployer = get_deployer(mnemonic=mnemonic, chain_id="columbus-5", fee=None)
-deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
+# deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
+deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
 treasury = TreasuryContract(deployer)
 terraswap_dapp = TerraswapDAppContract(deployer)
 
-create = False
+create = True
 
 if create:
     # treasury.create()
-    terraswap_dapp.create()
-    treasury.add_dapp(terraswap_dapp.address)
-    treasury.add_dapp(deployer.wallet.key.acc_address)
+    terraswap_dapp.upload()
+    terraswap_dapp.instantiate()
+    # treasury.add_dapp(terraswap_dapp.address)
+    # treasury.add_dapp(deployer.wallet.key.acc_address)
 
 # exit()
 # print(deployer.wallet.key.acc_address)
@@ -63,6 +65,6 @@ if create:
 # treasury.query_holding_value("uluna")
 
 # LBP token id
-terraswap_dapp.withdraw_liquidity("lbp", 315511529)
+# terraswap_dapp.withdraw_liquidity("lbp", 315511529)
 
 exit()

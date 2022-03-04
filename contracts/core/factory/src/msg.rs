@@ -8,6 +8,7 @@ pub struct InstantiateMsg {
     pub version_control_contract: String,
     /// Memory contract
     pub memory_contract: String,
+    pub module_factory_address: String,
     // Creation fee in some denom (TBD)
     pub creation_fee: u32,
 }
@@ -20,6 +21,7 @@ pub enum ExecuteMsg {
         admin: Option<String>,
         memory_contract: Option<String>,
         version_control_contract: Option<String>,
+        module_factory_address: Option<String>,
         creation_fee: Option<u32>,
     },
     /// Creates the core contracts for the OS
@@ -42,6 +44,7 @@ pub struct ConfigResponse {
     pub owner: String,
     pub memory_contract: String,
     pub version_control_contract: String,
+    pub module_factory_address: String,
     pub creation_fee: u32,
     pub next_os_id: u32,
 }

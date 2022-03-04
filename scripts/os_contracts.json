@@ -2,30 +2,36 @@
     "bombay-12": {
         "os_id": 2,
         "code_id": {
-            "version_control": "33384",
-            "manager": "33203",
+            "version_control": "33903",
+            "manager": "33904",
             "treasury": "32861",
-            "cw_os_factory": "33373"
+            "cw_os_factory": "33905",
+            "terraswap_dapp": "24841"
         },
-        "version_control": "terra13cr3w7ueh2rpfvykemw99pjjaj4vy8p3q08pgm",
-        "manager": "terra169r5y0ccah3rr483upp3ncwte5p4g00u8ylxr4",
+        "version_control": "terra1y2zqf2w4h9sv38nldevu6njzuk7vg264p522tm",
+        "manager": "terra1pt2max70n7m4d8ethknswye3cn7ph265ntfgt7",
         "memory": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7",
         "treasury": "terra16dvuqsymcwnsmrd0lx90k5rvczgctfuv2kkyx7",
-        "cw_os_factory": "terra1xecu4efz0h6yqywshdg58vxj6da7h2e5wmnqyk"
+        "cw_os_factory": "terra147s5gkl5lkj0eqdnh6hrr7n27tr7mmunrpvk26"
     },
     "columbus-5": {
         "code_id": {}
     },
     "localterra": {
         "code_id": {
-            "version_control": "3",
-            "manager": "4",
-            "treasury": "5",
-            "cw_os_factory": "8",
-            "memory": "7"
+            "version_control": "22",
+            "manager": "30",
+            "treasury": "12",
+            "cw_os_factory": "25",
+            "memory": "7",
+            "terraswap_dapp": "33",
+            "module_factory": "31"
         },
-        "version_control": "terra18eezxhys9jwku67cm4w84xhnzt4xjj77w2qt62",
+        "version_control": "terra1ekxg93h24ns0w8yml6hedlpf7zhrq3400ylact",
         "memory": "terra10d6vwc2ckdszk6z6u6hafy9mrhssmvfhe0s330",
-        "cw_os_factory": "terra175zt7t2jafkfszlfwdk28d4evt6smkmjuanpsr"
+        "cw_os_factory": "terra1v2gvknuagqeveq40zl3l6dyrwl9nexwnyfhu39",
+        "manager": "terra1umqgq0jcr6xz06nwewl0q8gg9ugns42ak3d9d3",
+        "module_factory": "terra1j8katptyjtm53hwcygxd594sxjqspxschqmmv2",
+        "terraswap_dapp": "terra1sle603afvv89a8vyf3h92dfvl0c82sxn9edhka"
     }
 }
