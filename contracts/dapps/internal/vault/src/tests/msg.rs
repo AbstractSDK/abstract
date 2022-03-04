@@ -14,7 +14,7 @@ fn unsuccessful_set_fee_unauthorized() {
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
-        fee: pandora::fee::Fee {
+        fee: pandora_os::util::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };
@@ -42,7 +42,7 @@ fn successful_update_fee() {
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
-        fee: pandora::fee::Fee {
+        fee: pandora_os::util::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };

@@ -12,13 +12,13 @@ use protobuf::Message;
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
-use pandora::fee::Fee;
-use pandora::treasury::dapp_base::commands as dapp_base_commands;
+use pandora_os::core::treasury::dapp_base::commands as dapp_base_commands;
+use pandora_os::util::fee::Fee;
 
-use pandora::treasury::dapp_base::common::BaseDAppResult;
-use pandora::treasury::dapp_base::msg::BaseInstantiateMsg;
-use pandora::treasury::dapp_base::queries as dapp_base_queries;
-use pandora::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use pandora_os::core::treasury::dapp_base::common::BaseDAppResult;
+use pandora_os::core::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora_os::core::treasury::dapp_base::queries as dapp_base_queries;
+use pandora_os::core::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::response::MsgInstantiateContractResponse;
 

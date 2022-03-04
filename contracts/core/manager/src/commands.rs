@@ -2,15 +2,15 @@ use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
     WasmMsg,
 };
-use pandora::modules::{Module, ModuleKind};
-use pandora::treasury::dapp_base::msg::BaseExecuteMsg;
-use pandora::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::core::modules::{Module, ModuleKind};
+use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use pandora::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora::registery::TREASURY;
+use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
+use pandora_os::registery::TREASURY;
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 

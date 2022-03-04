@@ -4,9 +4,9 @@ use cosmwasm_std::{Api, Uint128};
 
 use crate::contract::{execute, instantiate};
 
-use pandora::treasury::msg::*;
-use pandora::treasury::state::*;
-use pandora::treasury::vault_assets::*;
+use pandora_os::core::treasury::msg::*;
+use pandora_os::core::treasury::state::*;
+use pandora_os::core::treasury::vault_assets::*;
 use terraswap::asset::{Asset, AssetInfo};
 
 use crate::tests::common::{DAPP, TEST_CREATOR};

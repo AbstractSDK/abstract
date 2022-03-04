@@ -3,15 +3,15 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
-use pandora::treasury::vault_assets::get_identifier;
+use pandora_os::core::treasury::vault_assets::get_identifier;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
-use pandora::query::terraswap::{query_asset_balance, query_pool};
-use pandora::treasury::dapp_base::common::PAIR_POSTFIX;
-use pandora::treasury::dapp_base::error::BaseDAppError;
-use pandora::treasury::dapp_base::state::BASESTATE;
-use pandora::treasury::msg::send_to_treasury;
+use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
+use pandora_os::core::treasury::dapp_base::common::PAIR_POSTFIX;
+use pandora_os::core::treasury::dapp_base::error::BaseDAppError;
+use pandora_os::core::treasury::dapp_base::state::BASESTATE;
+use pandora_os::core::treasury::msg::send_to_treasury;
 
 use crate::astroport_msg::{asset_into_swap_msg, deposit_lp_msg};
 use crate::contract::AstroportResult;

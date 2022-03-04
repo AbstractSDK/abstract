@@ -1,0 +1,40 @@
+[package]
+name = "version-control"
+version = "0.1.0"
+authors = ["White Whale"]
+edition = "2018"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cw2 = { version = "0.8" }
+cw20 = { version = "0.8" }
+cosmwasm-bignumber = "2.2"
+cosmwasm-std = { version = "0.16" }
+cosmwasm-storage = { version = "0.16" }
+cw-storage-plus = { version = "0.8" }
+cw-controllers = { version = "0.8" }
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+terra-cosmwasm = "2.2"
+terraswap = "2.4.0"
+thiserror = { version = "1.0.21" }
+pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
+manager = {version = "0.1", path = "../../core/manager"}
+protobuf = { version = "2", features = ["with-bytes"] }
+
+[dev-dependencies]
+cosmwasm-schema = { version = "0.16" }

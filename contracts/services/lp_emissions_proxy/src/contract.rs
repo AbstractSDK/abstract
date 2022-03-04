@@ -7,10 +7,10 @@ use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, Cw20ReceiveMsg};
 use crate::error::ContractError;
 use crate::state::{Config, CONFIG};
 use cw2::set_contract_version;
-use pandora::tokenomics::astro_generator_proxy::{
+use pandora_os::tokenomics::astro_generator_proxy::{
     Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use pandora::tokenomics::lp_emissions::{
+use pandora_os::tokenomics::lp_emissions::{
     Cw20HookMsg as WhaleCw20HookMsg, ExecuteMsg as WhaleExecuteMsg, QueryMsg as WhaleQueryMsg,
     StakerInfoResponse,
 };

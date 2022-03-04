@@ -3,9 +3,9 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use pandora::{
-    fee::Fee,
-    treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
+use pandora_os::{
+    core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
+    util::fee::Fee,
 };
 use terraswap::asset::Asset;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -32,10 +32,10 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
-pandora = { version = "0.1.0", path = "../../../../packages/pandora" }
+pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
 dapp-template = { version = "0.1.0", path = "../../template" }
 protobuf = { version = "2", features = ["with-bytes"] }
-memory = { version = "0.1.0", path = "../../../core/memory" }
+memory = { version = "0.1.0", path = "../../../native/memory" }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
@@ -46,7 +46,6 @@ terraswap = "2.4.0"
 cw20-base = { version = "0.8", features = ["library"] }
 cw20 = { version = "0.8" }
 treasury = { version = "0.1.0", path = "../../../core/treasury" }
-memory = { version = "0.1.0", path = "../../../core/memory" }
 terraswap-factory = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
 terraswap-pair = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
 terraswap-token = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_token" }

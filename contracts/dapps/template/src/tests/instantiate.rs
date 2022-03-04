@@ -2,8 +2,8 @@ use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, Api};
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR};
-use pandora::memory::item::Memory;
-use pandora::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora_os::core::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora_os::native::memory::item::Memory;
 
 use crate::contract::instantiate;
 use crate::tests::base_mocks::mocks::instantiate_msg;

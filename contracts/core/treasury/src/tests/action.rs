@@ -6,7 +6,7 @@ use crate::tests::common::TEST_CREATOR;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{to_binary, Addr, QuerierWrapper, ReplyOn, SubMsg, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
-use pandora::treasury::msg::{ExecuteMsg, InstantiateMsg};
+use pandora_os::core::treasury::msg::{ExecuteMsg, InstantiateMsg};
 use terraswap::asset::{Asset, AssetInfo};
 
 const NOT_ALLOWED: &str = "some_other_contract";

@@ -7,8 +7,8 @@ use crate::msg::ExecuteMsg;
 use terra_multi_test::Executor;
 use terraswap::asset::Asset;
 
-use pandora::treasury::msg as TreasuryMsg;
-use pandora::treasury::vault_assets::{ValueRef, VaultAsset};
+use pandora_os::core::treasury::msg as TreasuryMsg;
+use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
 
 use super::common_integration::BaseContracts;
 

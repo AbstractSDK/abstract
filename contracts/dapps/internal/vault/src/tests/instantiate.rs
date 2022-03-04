@@ -1,11 +1,11 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, Env};
 use cosmwasm_std::{Api, Decimal};
-use pandora::treasury::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
 
 use crate::dapp_base::common::MEMORY_CONTRACT;
-use pandora::memory::item::Memory;
-use pandora::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora_os::core::treasury::dapp_base::state::{BaseState, BASESTATE};
+use pandora_os::native::memory::item::Memory;
 
 use crate::contract::{execute, instantiate};
 use crate::msg::{ExecuteMsg, InstantiateMsg};

@@ -1,9 +1,8 @@
 [workspace]
 members = [
     "packages/*",
-    "contracts/version_control",
+    "contracts/native/*",
     "contracts/core/*",
-    "contracts/module_factory",
     # "contracts/dapps/external/*",
     "contracts/dapps/external/anchor",
     "contracts/dapps/external/terraswap",

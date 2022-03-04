@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use pandora::treasury::dapp_base::state::BaseState;
+use pandora_os::core::treasury::dapp_base::state::BaseState;
 use vault_dapp::msg::InstantiateMsg;
 use vault_dapp::msg::{ExecuteMsg, QueryMsg};
 

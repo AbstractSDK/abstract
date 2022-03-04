@@ -1,11 +1,11 @@
 use cosmwasm_std::{Coin, CosmosMsg, Deps, Env, Fraction, MessageInfo, Response, Uint128};
 
-use pandora::anchor::{anchor_deposit_msg, anchor_withdraw_msg};
-use pandora::denom::UST_DENOM;
-use pandora::query::anchor::query_aust_exchange_rate;
-use pandora::treasury::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
-use pandora::treasury::dapp_base::state::BASESTATE;
-use pandora::treasury::msg::send_to_treasury;
+use pandora_os::core::treasury::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
+use pandora_os::core::treasury::dapp_base::state::BASESTATE;
+use pandora_os::core::treasury::msg::send_to_treasury;
+use pandora_os::queries::anchor::query_aust_exchange_rate;
+use pandora_os::util::anchor::{anchor_deposit_msg, anchor_withdraw_msg};
+use pandora_os::util::denom::UST_DENOM;
 
 use crate::contract::AnchorResult;
 

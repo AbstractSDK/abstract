@@ -3,7 +3,7 @@ use crate::error::TreasuryError;
 use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cw_controllers::AdminError;
-use pandora::treasury::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use pandora_os::core::treasury::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
 use super::common::TEST_CREATOR;
 

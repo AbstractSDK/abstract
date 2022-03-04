@@ -13,7 +13,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-pandora = { version = "0.1.0", path = "../../../packages/pandora" }
+pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
 
 cosmwasm-std = { version = "0.16", features = ["iterator"] }
 cw-storage-plus = "0.8.0"

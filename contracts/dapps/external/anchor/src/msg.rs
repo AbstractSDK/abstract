@@ -1,5 +1,5 @@
 use cosmwasm_std::Uint128;
-use pandora::treasury::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg};
+use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Deps, Uint128};
-use pandora::memory::item::Memory;
-use pandora::query::terraswap::query_asset_balance;
-use pandora::treasury::dapp_base::error::BaseDAppError;
+use pandora_os::core::treasury::dapp_base::error::BaseDAppError;
+use pandora_os::native::memory::item::Memory;
+use pandora_os::queries::terraswap::query_asset_balance;
 
 /// Checks if the given address has enough tokens with a given offer_id
 pub fn has_sufficient_balance(

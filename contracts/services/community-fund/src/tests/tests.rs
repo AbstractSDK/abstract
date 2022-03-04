@@ -3,7 +3,7 @@ use cosmwasm_std::{coin, from_binary, Api, DepsMut, MessageInfo, Uint128};
 
 use cw_controllers::AdminResponse;
 
-use pandora::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
+use pandora_os::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
 
 use crate::contract::{burn_whale, execute, instantiate, query, spend_whale};
 use crate::error::CommunityFundError;
