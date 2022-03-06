@@ -1,5 +1,5 @@
 [package]
-name = "cw-os-factory"
+name = "pandora-os-factory"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
