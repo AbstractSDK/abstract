@@ -101,7 +101,7 @@ fn upgrade_module(
         // todo: handle upgrading external modules -> change associated addr
         pandora_os::core::modules::ModuleKind::External => Ok(Response::new()),
         _ => match migrate_msg {
-            Some(msg) => migrate_module(deps, env, info, module.info, msg),
+            Some(msg) => migrate_module(deps, env, module.info, msg),
             None => Err(ManagerError::MsgRequired {}),
         },
     }

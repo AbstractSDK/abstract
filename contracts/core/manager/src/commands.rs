@@ -15,7 +15,7 @@ use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
 use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora_os::registery::TREASURY;
+use pandora_os::registery::{TREASURY, MANAGER};
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -187,12 +187,16 @@ pub fn execute_update_config(
 // migrates the module to a new version
 pub fn migrate_module(
     deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
+    env: Env,
     module_info: ModuleInfo,
     migrate_msg: Binary,
 ) -> ManagerResult {
-    let module_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
+    let module_addr = if module_info.name == MANAGER {
+        env.contract.address
+    } else {
+        OS_MODULES.load(deps.storage, &module_info.name)?
+    };
+
     let config = CONFIG.load(deps.storage)?;
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
