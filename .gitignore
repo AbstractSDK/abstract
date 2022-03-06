@@ -2,8 +2,8 @@
 # will have compiled files and executables
 contracts/**/target/**
 target
-/scripts/*
-terra-rust-script*
+scripts
+
 .env
 
 # Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
@@ -19,5 +19,3 @@ Cargo.lock
 
 **/*bot_col_4.py
 *_bak
-scripts/terra-rust-script-derive/Cargo.toml
-scripts/terra-rust-script-derive/src/lib.rs

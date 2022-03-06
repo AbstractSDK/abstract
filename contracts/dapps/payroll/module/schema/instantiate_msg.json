@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "base",
+    "deposit_asset",
+    "fee",
+    "token_code_id"
+  ],
+  "properties": {
+    "base": {
+      "$ref": "#/definitions/BaseInstantiateMsg"
+    },
+    "deposit_asset": {
+      "type": "string"
+    },
+    "fee": {
+      "$ref": "#/definitions/Decimal"
+    },
+    "token_code_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "vault_lp_token_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vault_lp_token_symbol": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "definitions": {
+    "BaseInstantiateMsg": {
+      "type": "object",
+      "required": [
+        "memory_addr",
+        "trader",
+        "treasury_address"
+      ],
+      "properties": {
+        "memory_addr": {
+          "type": "string"
+        },
+        "trader": {
+          "type": "string"
+        },
+        "treasury_address": {
+          "type": "string"
+        }
+      }
+    },
+    "Decimal": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    }
+  }
+}

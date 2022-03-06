@@ -16,7 +16,7 @@ from cw_os.contracts.version_control import *
 from cw_os.contracts.os_factory import *
 from cw_os.contracts.module_factory import *
 from terra_sdk.core.coins import Coin
-from cw_os.deploy import get_deployer
+from pandora_sdk.deploy import get_deployer
 
 mnemonic = "man goddess right advance aim into sentence crime style salad enforce kind matrix inherit omit entry brush never flat strategy entire outside hedgehog umbrella"
 # localterra

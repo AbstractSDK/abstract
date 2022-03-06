@@ -6,7 +6,8 @@ members = [
     # "contracts/dapps/external/*",
     "contracts/dapps/external/anchor",
     "contracts/dapps/external/terraswap",
-    "contracts/dapps/internal/vault"
+    "contracts/dapps/internal/vault",
+    "contracts/dapps/payroll/*",
     # "contracts/dapps/template",
     # "contracts/governance/token_weighted",
     # "contracts/perks/airdrop",
