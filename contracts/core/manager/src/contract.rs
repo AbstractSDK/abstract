@@ -2,18 +2,36 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
-use cw2::set_contract_version;
+use pandora_os::core::modules::{Module};
+use semver::Version;
 
 use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{Config, ADMIN, CONFIG, OS_ID, ROOT};
-use pandora_os::core::manager::msg::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use cw2::{get_contract_version, set_contract_version};
+use pandora_os::core::manager::msg::{
+    ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+};
 use pandora_os::registery::MANAGER;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
+    let version: Version = CONTRACT_VERSION.parse()?;
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+
+    if storage_version < version {
+        set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+
+        // If state structure changed in any contract version in the way migration is needed, it
+        // should occur here
+    }
+    Ok(Response::default())
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -64,6 +82,28 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             module_name,
             config_msg,
         } => configure_module(deps, info, module_name, config_msg),
+        ExecuteMsg::Upgrade {
+            module,
+            migrate_msg,
+        } => upgrade_module(deps, env, info, module, migrate_msg),
+    }
+}
+
+fn upgrade_module(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    module: Module,
+    migrate_msg: Option<Binary>,
+) -> ManagerResult {
+    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    match module.kind {
+        // todo: handle upgrading external modules -> change associated addr
+        pandora_os::core::modules::ModuleKind::External => Ok(Response::new()),
+        _ => match migrate_msg {
+            Some(msg) => migrate_module(deps, env, info, module.info, msg),
+            None => Err(ManagerError::MsgRequired {}),
+        },
     }
 }
 

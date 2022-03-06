@@ -10,6 +10,9 @@ pub enum ManagerError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
+    #[error("Semver parsing error: {0}")]
+    SemVer(String),
+
     #[error("Cannot add two internal dapps of the same kind")]
     InternalDappAlreadyAdded {},
 
@@ -21,4 +24,15 @@ pub enum ManagerError {
 
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
+
+    #[error("A migratemsg is required when when migrating this module")]
+    MsgRequired {},
+
+    #[error("The provided contract version {0} is lower than the current version {1}")]
+    OlderVersion(String, String),
+}
+impl From<semver::Error> for ManagerError {
+    fn from(err: semver::Error) -> Self {
+        Self::SemVer(err.to_string())
+    }
 }

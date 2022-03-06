@@ -6,6 +6,9 @@ use serde::{Deserialize, Serialize};
 use crate::core::modules::Module;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub root_user: String,
@@ -41,6 +44,10 @@ pub enum ExecuteMsg {
         vc_addr: Option<String>,
         root: Option<String>,
     },
+    Upgrade {
+        module: Module,
+        migrate_msg: Option<Binary>
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
