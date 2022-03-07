@@ -5,7 +5,7 @@ use terra_multi_test::{App, ContractWrapper};
 use terraswap::asset::AssetInfo;
 
 use crate::dapp_base::common::TEST_CREATOR;
-use crate::msg::ExecuteMsg;
+use pandora_os::dapps::terraswap::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
