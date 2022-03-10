@@ -3,20 +3,20 @@ use std::collections::BTreeMap;
 use cosmwasm_std::{Addr, Binary, Deps, QueryRequest, StdResult, WasmQuery};
 
 use cosmwasm_storage::to_length_prefixed;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfoBase;
 
 /// Query asset infos from Memory Module asset addresses map.
 pub fn query_assets_from_mem(
     deps: Deps,
     memory_addr: &Addr,
     asset_names: &[String],
-) -> StdResult<BTreeMap<String, AssetInfo>> {
-    let mut assets: BTreeMap<String, AssetInfo> = BTreeMap::new();
+) -> StdResult<BTreeMap<String, AssetInfoBase<Addr>>> {
+    let mut assets: BTreeMap<String, AssetInfoBase<Addr>> = BTreeMap::new();
 
     for asset in asset_names.iter() {
         let result = deps
             .querier
-            .query::<AssetInfo>(&QueryRequest::Wasm(WasmQuery::Raw {
+            .query::<AssetInfoBase<Addr>>(&QueryRequest::Wasm(WasmQuery::Raw {
                 contract_addr: memory_addr.to_string(),
                 // query assets map
                 key: Binary::from(concat(&to_length_prefixed(b"assets"), asset.as_bytes())),
@@ -31,10 +31,10 @@ pub fn query_asset_from_mem(
     deps: Deps,
     memory_addr: &Addr,
     asset_name: &str,
-) -> StdResult<AssetInfo> {
+) -> StdResult<AssetInfoBase<Addr>> {
     let result = deps
         .querier
-        .query::<AssetInfo>(&QueryRequest::Wasm(WasmQuery::Raw {
+        .query::<AssetInfoBase<Addr>>(&QueryRequest::Wasm(WasmQuery::Raw {
             contract_addr: memory_addr.to_string(),
             // query assets map
             key: Binary::from(concat(

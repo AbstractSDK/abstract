@@ -29,3 +29,4 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terraswap = "2.4.0"
 thiserror = { version = "1.0.26" }
 terra-rust-script-derive = {git = "https://github.com/CyberHoward/terra-rust-script-derive.git"}
+cw-asset = "1.0.2"
