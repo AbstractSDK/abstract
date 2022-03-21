@@ -8,7 +8,7 @@ use crate::core::treasury::msg::{ExternalValueResponse, ValueQueryMsg};
 use crate::core::treasury::state::*;
 use crate::queries::terraswap::{query_asset_balance, query_pool};
 use crate::util::tax::reverse_decimal;
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 use terraswap::pair::PoolResponse;
 
 /// Every VaultAsset provides a way to determine its value recursivly relative to
@@ -73,7 +73,7 @@ impl VaultAsset {
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
                 ValueRef::Liquidity { pool_address } => {
                     // Check if we have a Token
-                    if let AssetInfo::Token { .. } = &self.asset.info {
+                    if let AssetInfo::cw20( .. ) = &self.asset.info {
                         return lp_value(deps, env, pool_address, &holding);
                     } else {
                         return Err(StdError::generic_err("Can't have a native LP token"));
@@ -151,7 +151,7 @@ impl Proxy {
 /// Gets the identifier of the asset (either its denom or contract address)
 pub fn get_identifier(asset_info: &AssetInfo) -> &String {
     match asset_info {
-        AssetInfo::NativeToken { denom } => denom,
-        AssetInfo::Token { contract_addr } => contract_addr,
+        AssetInfo::Native( denom ) => denom,
+        AssetInfo::cw20( contract_addr ) => contract_addr,
     }
 }

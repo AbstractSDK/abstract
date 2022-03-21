@@ -1,6 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
- use terra_rust_script_derive::CosmWasmContract;
+use terra_rust_script_derive::CosmWasmContract;
 
 /// Used by Module Factory to instantiate dApp
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]

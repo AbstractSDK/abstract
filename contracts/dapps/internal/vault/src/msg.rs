@@ -7,7 +7,7 @@ use pandora_os::{
     core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
     util::fee::Fee,
 };
-use terraswap::asset::Asset;
+use cw_asset::Asset;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,

@@ -49,3 +49,4 @@ treasury = { version = "0.1.0", path = "../../../core/treasury" }
 terraswap-factory = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
 terraswap-pair = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
 terraswap-token = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
+cw-asset = "1.0.2"

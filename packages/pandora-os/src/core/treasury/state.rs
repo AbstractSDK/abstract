@@ -7,7 +7,7 @@ use cw_storage_plus::{Item, Map};
 
 use crate::core::treasury::vault_assets::{get_identifier, VaultAsset};
 use crate::queries::terraswap::query_pool;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 use terraswap::pair::PoolResponse;
 
 pub static LUNA_DENOM: &str = "uluna";

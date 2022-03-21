@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use cosmwasm_std::{Addr, Deps, StdResult};
 
-use cw_asset::AssetInfoBase;
+use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -36,12 +36,12 @@ impl Memory {
         &self,
         deps: Deps,
         asset_names: &[String],
-    ) -> StdResult<BTreeMap<String, AssetInfoBase<Addr>>> {
+    ) -> StdResult<BTreeMap<String, AssetInfo>> {
         query_assets_from_mem(deps, &self.address, asset_names)
     }
 
-    // Raw query of a single AssetInfoBase<Addr>
-    pub fn query_asset(&self, deps: Deps, asset_name: &str) -> StdResult<AssetInfoBase<Addr>> {
+    // Raw query of a single AssetInfo
+    pub fn query_asset(&self, deps: Deps, asset_name: &str) -> StdResult<AssetInfo> {
         query_asset_from_mem(deps, &self.address, asset_name)
     }
 }

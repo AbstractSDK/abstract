@@ -7,7 +7,7 @@ use crate::contract::{execute, instantiate};
 use pandora_os::core::treasury::msg::*;
 use pandora_os::core::treasury::state::*;
 use pandora_os::core::treasury::vault_assets::*;
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 
 use crate::tests::common::{DAPP, TEST_CREATOR};
 
@@ -76,9 +76,7 @@ fn successful_asset_update() {
 
     let test_native_asset = VaultAsset {
         asset: Asset {
-            info: AssetInfo::NativeToken {
-                denom: "base_asset".to_string(),
-            },
+            info: AssetInfo::Native("base_asset".to_string()),
             amount: Uint128::zero(),
         },
         value_reference: None,
@@ -86,9 +84,7 @@ fn successful_asset_update() {
 
     let test_token_asset = VaultAsset {
         asset: Asset {
-            info: AssetInfo::Token {
-                contract_addr: "test_token".to_string(),
-            },
+            info: AssetInfo::cw20( "test_token".to_string()),
             amount: Uint128::zero(),
         },
         value_reference: None,

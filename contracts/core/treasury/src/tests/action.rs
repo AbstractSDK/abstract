@@ -7,7 +7,7 @@ use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{to_binary, Addr, QuerierWrapper, ReplyOn, SubMsg, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use pandora_os::core::treasury::msg::{ExecuteMsg, InstantiateMsg};
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 
 const NOT_ALLOWED: &str = "some_other_contract";
 
@@ -32,9 +32,7 @@ fn test_non_whitelisted() {
     }
 
     let test_token = Asset {
-        info: AssetInfo::Token {
-            contract_addr: "test_token".to_string(),
-        },
+        info: AssetInfo::cw20("test_token".to_string()),
         amount: Uint128::zero(),
     };
 
@@ -75,9 +73,7 @@ fn test_whitelisted() {
     }
 
     let test_token = Asset {
-        info: AssetInfo::Token {
-            contract_addr: "test_token".to_string(),
-        },
+        info: AssetInfo::cw20("test_token".to_string()),
         amount: Uint128::from(10_000u64),
     };
 

@@ -5,7 +5,7 @@ use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, Uint128, WasmMs
  use terra_rust_script_derive::CosmWasmContract;
 
 use crate::core::treasury::vault_assets::VaultAsset;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {}
 

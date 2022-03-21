@@ -3,7 +3,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use pandora_os::core::treasury::msg::send_to_treasury;
@@ -40,9 +40,7 @@ pub fn receive_cw20(
         DepositHookMsg::ProvideLiquidity {} => {
             // Construct deposit asset
             let asset = Asset {
-                info: AssetInfo::Token {
-                    contract_addr: msg_info.sender.to_string(),
-                },
+                info: AssetInfo::cw20( msg_info.sender.to_string()),
                 amount: cw20_msg.amount,
             };
             try_provide_liquidity(deps, msg_info, asset, Some(cw20_msg.sender))
@@ -176,9 +174,7 @@ pub fn try_withdraw_liquidity(
 
     // LP token fee
     let lp_token_treasury_fee = Asset {
-        info: AssetInfo::Token {
-            contract_addr: state.liquidity_token_addr.to_string(),
-        },
+        info: AssetInfo::cw20(state.liquidity_token_addr.to_string()),
         amount: treasury_fee,
     };
 

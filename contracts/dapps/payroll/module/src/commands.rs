@@ -7,7 +7,7 @@ use cosmwasm_std::{
 use cw20::{Cw20ReceiveMsg};
 use pandora_os::core::treasury::msg::send_to_treasury;
 use pandora_os::util::deposit_manager::Deposit;
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
@@ -31,8 +31,7 @@ pub fn receive_cw20(
         DepositHookMsg::Pay { os_id } => {
             // Construct deposit asset
             let asset = Asset {
-                info: AssetInfo::Token {
-                    contract_addr: msg_info.sender.to_string(),
+                info: AssetInfo::cw20( msg_info.sender.to_string(),
                 },
                 amount: cw20_msg.amount,
             };
@@ -221,8 +220,7 @@ pub fn try_claim(
         // Send tokens
         let token_msg = send_to_treasury(
             vec![Asset {
-                info: AssetInfo::Token {
-                    contract_addr: config.project_token.into(),
+                info: AssetInfo::cw20( config.project_token.into(),
                 },
                 amount,
             }

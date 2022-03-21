@@ -3,7 +3,7 @@ use cosmwasm_std::{CosmosMsg, Deps, StdResult};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use terraswap::asset::Asset;
+use cw_asset::Asset;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Fee {

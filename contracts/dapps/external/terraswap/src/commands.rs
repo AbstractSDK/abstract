@@ -3,6 +3,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
+use cw_asset::AssetInfo;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
@@ -108,7 +109,8 @@ pub fn detailed_provide_liquidity(
 
     // Iterate over provided assets
     for asset in assets {
-        let asset_info = state.memory.query_asset(deps, &asset.0)?;
+        let asset_info= state.memory.query_asset(deps, &asset.0)?;
+        
         // Check if pool contains the asset
         if pool_info.assets.iter().any(|a| a.info == asset_info) {
             let asset_balance = query_asset_balance(deps, &asset_info, treasury_address.clone())?;
@@ -216,4 +218,16 @@ pub fn terraswap_swap(
     )?];
 
     Ok(Response::new().add_message(send_to_treasury(swap_msg, treasury_address)?))
+}
+
+
+fn cw_to_terraswap(cw: cw_asset::AssetInfo) -> terraswap::asset::AssetInfo {
+    match cw {
+        AssetInfo::Cw20(contract_addr) => terraswap::asset::AssetInfo::Token {
+            contract_addr: contract_addr.to_string(),
+        },
+        AssetInfo::Native(denom) => terraswap::asset::AssetInfo::NativeToken {
+            denom,
+        },
+    }
 }

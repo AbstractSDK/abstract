@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::treasury::dapp_base::msg::{
     BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg,
 };
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {

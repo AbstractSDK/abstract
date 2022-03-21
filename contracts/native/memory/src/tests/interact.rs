@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 
 use crate::contract::execute;
 use crate::error::MemoryError;
@@ -19,7 +19,7 @@ fn unauthorized_memory_update() {
 
     // Try adding an asset to the memory
     let env = mock_env();
-    let asset_info = AssetInfo::NativeToken {
+    let asset_info = AssetInfo::Native(
         denom: "asset_1".to_string(),
     };
     let msg = ExecuteMsg::UpdateAssetAddresses {
@@ -61,7 +61,7 @@ fn authorized_memory_update() {
 
     // Try adding an asset to the memory
     let env = mock_env();
-    let asset_info = AssetInfo::NativeToken {
+    let asset_info = AssetInfo::Native(
         denom: "asset_1".to_string(),
     };
     let msg = ExecuteMsg::UpdateAssetAddresses {

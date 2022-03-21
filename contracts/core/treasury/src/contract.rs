@@ -16,7 +16,7 @@ use pandora_os::core::treasury::vault_assets::{get_identifier, VaultAsset};
 use pandora_os::queries::terraswap::query_asset_balance;
 use pandora_os::registery::TREASURY;
 use semver::Version;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 type TreasuryResult = Result<Response, TreasuryError>;
 /*
     The treasury is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
