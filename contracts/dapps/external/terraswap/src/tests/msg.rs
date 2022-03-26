@@ -5,9 +5,9 @@ use pandora_os::core::treasury::dapp_base::error::BaseDAppError;
 
 use crate::contract::execute;
 use crate::error::TerraswapError;
-use pandora_os::dapps::terraswap::ExecuteMsg;
 use crate::tests::base_mocks::mocks::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
+use pandora_os::dapps::terraswap::ExecuteMsg;
 
 /**
  * ExecuteMsg::ProvideLiquidity

@@ -24,8 +24,8 @@ impl DepositInfo {
 
     pub fn get_denom(self) -> StdResult<String> {
         match self.asset_info {
-            AssetInfo::Native( denom ) => Ok(denom),
-            AssetInfo::cw20( .. ) => Err(StdError::generic_err(
+            AssetInfo::Native(denom) => Ok(denom),
+            AssetInfo::Cw20(..) => Err(StdError::generic_err(
                 "'denom' only exists for native tokens.",
             )),
         }
@@ -34,6 +34,8 @@ impl DepositInfo {
 
 #[cfg(test)]
 mod tests {
+    use cosmwasm_std::Addr;
+
     use super::*;
 
     pub const TEST_DENOM1: &str = "uusd";
@@ -62,18 +64,18 @@ mod tests {
     #[test]
     fn test_failing_assert_for_nonnative_tokens() {
         let deposit_info = DepositInfo {
-            asset_info: AssetInfo::cw20( TEST_ADDR1.to_string()),
+            asset_info: AssetInfo::Cw20(Addr::unchecked(TEST_ADDR1.to_string())),
         };
-        let other_native_token = AssetInfo::cw20(TEST_ADDR2.to_string());
+        let other_native_token = AssetInfo::Cw20(Addr::unchecked(TEST_ADDR2.to_string()));
         assert!(deposit_info.assert(&other_native_token).is_err());
     }
 
     #[test]
     fn test_passing_assert_for_nonnative_tokens() {
         let deposit_info = DepositInfo {
-            asset_info: AssetInfo::cw20( TEST_ADDR1.to_string()),
+            asset_info: AssetInfo::Cw20(Addr::unchecked(TEST_ADDR1.to_string())),
         };
-        let other_native_token = AssetInfo::cw20(TEST_ADDR1.to_string());
+        let other_native_token = AssetInfo::Cw20(Addr::unchecked(TEST_ADDR1.to_string()));
         assert!(deposit_info.assert(&other_native_token).is_ok());
     }
 
@@ -82,7 +84,7 @@ mod tests {
         let deposit_info = DepositInfo {
             asset_info: AssetInfo::Native(TEST_DENOM1.to_string()),
         };
-        let other_native_token = AssetInfo::cw20(TEST_DENOM1.to_string());
+        let other_native_token = AssetInfo::Cw20(Addr::unchecked(TEST_DENOM1.to_string()));
         assert!(deposit_info.assert(&other_native_token).is_err());
     }
 }

@@ -5,7 +5,7 @@ use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::native::memory::msg as MemoryMsg;
 use terra_mocks::TerraMockQuerier;
 use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use cw_asset::{AssetInfo, PairInfo};
+use terraswap::asset::{AssetInfo, PairInfo};
 
 #[allow(dead_code)]
 pub struct BaseContracts {
@@ -142,9 +142,11 @@ fn instantiate_pair(
 
     let msg = terraswap::pair::InstantiateMsg {
         asset_infos: [
-            AssetInfo::Native("uusd".to_string(),
+            AssetInfo::NativeToken {
+                denom: "uusd".to_string(),
             },
-            AssetInfo::cw20( whale_token_instance.to_string(),
+            AssetInfo::Token {
+                contract_addr: whale_token_instance.to_string(),
             },
         ],
         token_code_id: token_contract_code_id,

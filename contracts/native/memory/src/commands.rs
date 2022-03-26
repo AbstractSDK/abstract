@@ -59,7 +59,8 @@ pub fn update_asset_addresses(
 
     for (name, new_address) in to_add.into_iter() {
         // Update function for new or existing keys
-        let insert = |_| -> StdResult<AssetInfo> { new_address.check(deps.api, None) };
+        let api = deps.api;
+        let insert = |_| -> StdResult<AssetInfo> { new_address.check(api, None) };
         ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
     }
 

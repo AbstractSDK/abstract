@@ -2,9 +2,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{Addr, Decimal, Uint128, Uint64};
-use cw_storage_plus::{Item, Map};
-use pandora_os::{util::{deposit_manager::Deposit, paged_map::PagedMap}, dapps::payout::Compensation};
 use cw_asset::AssetInfo;
+use cw_storage_plus::{Item, Map};
+use pandora_os::{
+    dapps::payout::Compensation,
+    util::{deposit_manager::Deposit, paged_map::PagedMap},
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
@@ -33,8 +36,6 @@ pub struct State {
     /// ratio of income/target
     pub expense_ratio: Decimal,
 }
-
-
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
 pub struct IncomeAccumulator {

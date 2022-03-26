@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, Uint128, WasmMsg};
- use terra_rust_script_derive::CosmWasmContract;
+use terra_rust_script_derive::CosmWasmContract;
 
 use crate::core::treasury::vault_assets::VaultAsset;
 use cw_asset::AssetInfo;

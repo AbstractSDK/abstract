@@ -2,7 +2,7 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
-use pandora_os::core::modules::{Module};
+use pandora_os::core::modules::Module;
 use semver::Version;
 
 use crate::commands::*;

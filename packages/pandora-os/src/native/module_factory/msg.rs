@@ -2,7 +2,7 @@ use crate::core::modules::Module;
 use cosmwasm_std::Binary;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
- use terra_rust_script_derive::CosmWasmContract;
+use terra_rust_script_derive::CosmWasmContract;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 pub struct InstantiateMsg {

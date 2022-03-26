@@ -46,8 +46,8 @@ pub enum ExecuteMsg {
     },
     Upgrade {
         module: Module,
-        migrate_msg: Option<Binary>
-    }
+        migrate_msg: Option<Binary>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

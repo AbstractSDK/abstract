@@ -1,15 +1,16 @@
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw20::Cw20Contract;
 
+use cw_asset::AssetInfoUnchecked;
 use terra_multi_test::{App, ContractWrapper};
 use terraswap::asset::AssetInfo;
 
 use crate::dapp_base::common::TEST_CREATOR;
-use pandora_os::dapps::terraswap::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use pandora_os::core::treasury::msg as TreasuryMsg;
+use pandora_os::dapps::terraswap::ExecuteMsg;
 use pandora_os::native::memory::msg as MemoryMsg;
 use terra_multi_test::Executor;
 use terraswap::pair::PoolResponse;
@@ -73,21 +74,15 @@ fn proper_initialization() {
             to_add: vec![
                 (
                     "whale".to_string(),
-                    AssetInfo::Token {
-                        contract_addr: base_contracts.whale.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
                 ),
                 (
                     "whale_ust".to_string(),
-                    AssetInfo::Token {
-                        contract_addr: base_contracts.whale_ust.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
                 (
                     "ust".to_string(),
-                    AssetInfo::NativeToken {
-                        denom: "uusd".to_string(),
-                    },
+                    AssetInfoUnchecked::Native("uusd".to_string()),
                 ),
             ],
             to_remove: vec![],

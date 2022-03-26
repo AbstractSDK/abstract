@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::core::modules::ModuleInfo;
- use terra_rust_script_derive::CosmWasmContract;
+use terra_rust_script_derive::CosmWasmContract;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]

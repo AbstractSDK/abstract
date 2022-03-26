@@ -1,7 +1,7 @@
 use cosmwasm_std::Addr;
+use cw_asset::AssetInfo;
 use cw_controllers::Admin;
 use cw_storage_plus::Map;
-use cw_asset::AssetInfo;
 
 pub const ADMIN: Admin = Admin::new("admin");
 // stores name and address of tokens and pairs

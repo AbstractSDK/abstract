@@ -35,6 +35,9 @@ pub enum PaymentError {
     #[error("The contributor you wanted to remove is not registered.")]
     ContributorNotRegistered,
 
+    #[error("The provided native coin is not the same as the claimed deposit")]
+    WrongNative {},
+
     #[error("You cant claim before your next payday on {0}")]
     WaitForNextPayday(u64),
 

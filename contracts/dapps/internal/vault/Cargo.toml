@@ -36,6 +36,7 @@ pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
 dapp-template = { version = "0.1.0", path = "../../template" }
 protobuf = { version = "2", features = ["with-bytes"] }
 memory = { version = "0.1.0", path = "../../../native/memory" }
+cw-asset = "1.0.2"
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
@@ -49,4 +50,3 @@ treasury = { version = "0.1.0", path = "../../../core/treasury" }
 terraswap-factory = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
 terraswap-pair = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
 terraswap-token = { version = "0.1.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
-cw-asset = "1.0.2"

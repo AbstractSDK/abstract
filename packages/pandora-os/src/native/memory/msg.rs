@@ -1,8 +1,7 @@
-use cosmwasm_std::Addr;
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
- use terra_rust_script_derive::CosmWasmContract;
-use cw_asset::{AssetInfoUnchecked, AssetInfo};
+use terra_rust_script_derive::CosmWasmContract;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]

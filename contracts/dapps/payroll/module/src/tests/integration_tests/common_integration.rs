@@ -141,7 +141,7 @@ fn instantiate_pair(
         asset_infos: [
             AssetInfo::Native("uusd".to_string(),
             },
-            AssetInfo::cw20( whale_token_instance.to_string(),
+            AssetInfo::Cw20( whale_token_instance.to_string(),
             },
         ],
         token_code_id: token_contract_code_id,

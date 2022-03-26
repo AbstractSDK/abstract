@@ -238,7 +238,7 @@ fn deposit_and_withdraw_with_cw20() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: cw_asset::AssetInfo::cw20( base_contracts.whale.to_string(),
+                info: cw_asset::AssetInfo::Cw20( base_contracts.whale.to_string(),
                 },
                 amount: Uint128::from(10u64 * MILLION),
             },

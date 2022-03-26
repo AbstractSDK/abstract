@@ -86,7 +86,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
                 VaultAsset {
                     asset: Asset {
-                        info: cw_asset::AssetInfo::cw20(
+                        info: cw_asset::AssetInfo::Cw20(
                             contract_addr: base_contracts.whale.to_string(),
                         },
                         amount: Uint128::zero(),
@@ -144,12 +144,15 @@ pub fn configure_memory(app: &mut App, sender: Addr, base_contracts: &BaseContra
         base_contracts.memory.clone(),
         &MemoryMsg::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![
-                ("whale".to_string(), base_contracts.whale.to_string()),
+                (
+                    "whale".to_string(),
+                    AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
+                ),
                 (
                     "whale_ust".to_string(),
-                    base_contracts.whale_ust.to_string(),
+                    AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
-                ("ust".to_string(), "uusd".to_string()),
+                ("ust".to_string(), AssetInfoUnchecked::Native("uusd".to_string())),
             ],
             to_remove: vec![],
         },

@@ -4,8 +4,8 @@ use terra_multi_test::{App, ContractWrapper};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
+use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 use terra_multi_test::Executor;
-use cw_asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
@@ -74,9 +74,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                 // uusd is base asset of this vault, so no value_ref
                 VaultAsset {
                     asset: Asset {
-                        info: cw_asset::AssetInfo::Native(
-                            denom: "uusd".to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Native("uusd".to_string()),
                         amount: Uint128::zero(),
                     },
                     value_reference: None,
@@ -84,9 +82,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
                 VaultAsset {
                     asset: Asset {
-                        info: cw_asset::AssetInfo::cw20(
-                            contract_addr: base_contracts.whale.to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                         amount: Uint128::zero(),
                     },
                     value_reference: Some(ValueRef::Pool {
@@ -144,21 +140,15 @@ pub fn configure_memory(app: &mut App, sender: Addr, base_contracts: &BaseContra
             to_add: vec![
                 (
                     "whale".to_string(),
-                    AssetInfo::cw20(
-                        contract_addr: base_contracts.whale.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
                 ),
                 (
                     "whale_ust".to_string(),
-                    AssetInfo::cw20(
-                        contract_addr: base_contracts.whale_ust.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
                 (
                     "ust".to_string(),
-                    AssetInfo::Native(
-                        denom: "uusd".to_string(),
-                    },
+                    AssetInfoUnchecked::Native("uusd".to_string()),
                 ),
             ],
             to_remove: vec![],

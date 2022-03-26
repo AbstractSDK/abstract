@@ -3,7 +3,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
-use cw_asset::AssetInfo;
+use pandora_os::dapps::terraswap::cw_to_terraswap;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
@@ -11,7 +11,7 @@ use pandora_os::core::treasury::dapp_base::common::PAIR_POSTFIX;
 use pandora_os::core::treasury::dapp_base::error::BaseDAppError;
 use pandora_os::core::treasury::dapp_base::state::BASESTATE;
 use pandora_os::core::treasury::msg::send_to_treasury;
-use pandora_os::core::treasury::vault_assets::get_identifier;
+use pandora_os::core::treasury::vault_assets::get_asset_identifier;
 use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
 
 use crate::contract::TerraswapResult;
@@ -45,7 +45,7 @@ pub fn provide_liquidity(
 
     let main_asset_info = state.memory.query_asset(deps, &main_asset_id)?;
     let main_asset = Asset {
-        info: main_asset_info,
+        info: cw_to_terraswap(&main_asset_info),
         amount,
     };
     let mut first_asset: Asset;
@@ -109,8 +109,8 @@ pub fn detailed_provide_liquidity(
 
     // Iterate over provided assets
     for asset in assets {
-        let asset_info= state.memory.query_asset(deps, &asset.0)?;
-        
+        let asset_info = cw_to_terraswap(&state.memory.query_asset(deps, &asset.0)?);
+
         // Check if pool contains the asset
         if pool_info.assets.iter().any(|a| a.info == asset_info) {
             let asset_balance = query_asset_balance(deps, &asset_info, treasury_address.clone())?;
@@ -150,7 +150,7 @@ pub fn withdraw_liquidity(
 
     // Get lp token address
     let lp_token = &state.memory.query_asset(deps, &lp_token_id)?;
-    let lp_token_address = get_identifier(lp_token);
+    let lp_token_address = get_asset_identifier(lp_token);
     // Get pair address
     let pair_address = state
         .memory
@@ -208,7 +208,7 @@ pub fn terraswap_swap(
         deps,
         pair_address,
         Asset {
-            info: offer_asset_info,
+            info: cw_to_terraswap(&offer_asset_info),
             amount,
         },
         max_spread,
@@ -218,16 +218,4 @@ pub fn terraswap_swap(
     )?];
 
     Ok(Response::new().add_message(send_to_treasury(swap_msg, treasury_address)?))
-}
-
-
-fn cw_to_terraswap(cw: cw_asset::AssetInfo) -> terraswap::asset::AssetInfo {
-    match cw {
-        AssetInfo::Cw20(contract_addr) => terraswap::asset::AssetInfo::Token {
-            contract_addr: contract_addr.to_string(),
-        },
-        AssetInfo::Native(denom) => terraswap::asset::AssetInfo::NativeToken {
-            denom,
-        },
-    }
 }

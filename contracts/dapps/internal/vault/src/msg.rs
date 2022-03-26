@@ -3,11 +3,11 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use cw_asset::Asset;
 use pandora_os::{
     core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
     util::fee::Fee,
 };
-use cw_asset::Asset;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,

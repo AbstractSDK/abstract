@@ -13,7 +13,6 @@ use crate::contract::VaultResult;
 use crate::error::VaultError;
 use crate::msg::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
-use pandora_os::queries::terraswap::query_asset_balance;
 use pandora_os::queries::vault::query_total_value;
 use pandora_os::util::fee::Fee;
 use terraswap::querier::query_supply;
@@ -40,7 +39,7 @@ pub fn receive_cw20(
         DepositHookMsg::ProvideLiquidity {} => {
             // Construct deposit asset
             let asset = Asset {
-                info: AssetInfo::cw20( msg_info.sender.to_string()),
+                info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
             try_provide_liquidity(deps, msg_info, asset, Some(cw20_msg.sender))
@@ -67,13 +66,16 @@ pub fn try_provide_liquidity(
         Some(addr) => deps.api.addr_validate(&addr)?,
         None => {
             // Check if deposit matches claimed deposit.
-            if asset.is_native_token() {
-                // If native token, assert claimed amount is correct
-                asset.assert_sent_native_token_balance(&msg_info)?;
-                msg_info.sender
-            } else {
-                // Can't add liquidity with cw20 if not using the hook
-                return Err(VaultError::NotUsingCW20Hook {});
+            match asset.info {
+                AssetInfo::Native(..) => {
+                    // If native token, assert claimed amount is correct
+                    let coin = msg_info.funds.last().unwrap().clone();
+                    if Asset::native(coin.denom, coin.amount) != asset {
+                        return Err(VaultError::WrongNative {});
+                    }
+                    msg_info.sender
+                }
+                AssetInfo::Cw20(_) => return Err(VaultError::NotUsingCW20Hook {}),
             }
         }
     };
@@ -126,7 +128,7 @@ pub fn try_provide_liquidity(
     });
 
     // Send received asset to the vault.
-    let send_to_vault = asset.into_msg(&deps.querier, base_state.treasury_address)?;
+    let send_to_vault = asset.transfer_msg(base_state.treasury_address)?;
 
     let response = Response::new()
         .add_attributes(attrs)
@@ -174,16 +176,12 @@ pub fn try_withdraw_liquidity(
 
     // LP token fee
     let lp_token_treasury_fee = Asset {
-        info: AssetInfo::cw20(state.liquidity_token_addr.to_string()),
+        info: AssetInfo::Cw20(state.liquidity_token_addr.clone()),
         amount: treasury_fee,
     };
 
     // Construct treasury fee msg
-    let treasury_fee_msg = fee.msg(
-        deps.as_ref(),
-        lp_token_treasury_fee,
-        base_state.treasury_address.clone(),
-    )?;
+    let treasury_fee_msg = fee.msg(lp_token_treasury_fee, base_state.treasury_address.clone())?;
     attrs.push(("Treasury fee:", treasury_fee.to_string()));
 
     // Get asset holdings of vault and calculate amount to return
@@ -194,12 +192,10 @@ pub fn try_withdraw_liquidity(
             info: info.clone(),
             amount: share_ratio
                 // query asset held in treasury
-                * query_asset_balance(
-                    deps.as_ref(),
-                    &info.clone(),
+                * info.query_balance(&deps.querier,
                     base_state.treasury_address.clone(),
                 )
-                .unwrap(),
+                ?,
         });
     }
 
@@ -211,7 +207,7 @@ pub fn try_withdraw_liquidity(
             refund_msgs.push(
                 asset
                     .clone()
-                    .into_msg(&deps.querier, Addr::unchecked(sender.clone()))?,
+                    .transfer_msg(Addr::unchecked(sender.clone()))?,
             );
             attrs.push(("Repaying:", asset.to_string()));
         }

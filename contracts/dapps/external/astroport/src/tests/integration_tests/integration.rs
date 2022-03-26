@@ -72,12 +72,15 @@ fn proper_initialization() {
         base_contracts.memory.clone(),
         &MemoryMsg::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![
-                ("whale".to_string(), base_contracts.whale.to_string()),
+                (
+                    "whale".to_string(),
+                    AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
+                ),
                 (
                     "whale_ust".to_string(),
-                    base_contracts.whale_ust.to_string(),
+                    AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
-                ("ust".to_string(), "uusd".to_string()),
+                ("ust".to_string(), AssetInfoUnchecked::Native("uusd".to_string())),
             ],
             to_remove: vec![],
         },

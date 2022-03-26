@@ -1,8 +1,9 @@
-use cosmwasm_std::{Decimal, Uint128};
- use terra_rust_script_derive::CosmWasmContract;
 use crate::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg};
+use cosmwasm_std::{Decimal, Uint128};
+use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use terra_rust_script_derive::CosmWasmContract;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
@@ -42,4 +43,15 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     /// Handles all the base query msgs
     Base(BaseQueryMsg),
+}
+
+pub fn cw_to_terraswap(cw: &cw_asset::AssetInfo) -> terraswap::asset::AssetInfo {
+    match cw {
+        AssetInfo::Cw20(contract_addr) => terraswap::asset::AssetInfo::Token {
+            contract_addr: contract_addr.to_string(),
+        },
+        AssetInfo::Native(denom) => terraswap::asset::AssetInfo::NativeToken {
+            denom: denom.to_owned(),
+        },
+    }
 }

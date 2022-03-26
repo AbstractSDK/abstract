@@ -1,22 +1,20 @@
 use std::convert::TryInto;
 
 use cosmwasm_std::{
-    from_binary, Addr, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo,
-    Response, StdResult, Uint128, Uint64,
+    from_binary, Addr, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo, Response, StdResult,
+    Uint128, Uint64,
 };
-use cw20::{Cw20ReceiveMsg};
+use cw20::Cw20ReceiveMsg;
+use cw_asset::{Asset, AssetInfo};
 use pandora_os::core::treasury::msg::send_to_treasury;
 use pandora_os::util::deposit_manager::Deposit;
-use cw_asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
-use pandora_os::dapps::payout::{DepositHookMsg, Compensation};
-use crate::state::{
-    IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE,
-};
+use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE};
+use pandora_os::dapps::payout::{Compensation, DepositHookMsg};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -31,8 +29,7 @@ pub fn receive_cw20(
         DepositHookMsg::Pay { os_id } => {
             // Construct deposit asset
             let asset = Asset {
-                info: AssetInfo::cw20( msg_info.sender.to_string(),
-                },
+                info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
             try_pay(deps, msg_info, asset, Some(cw20_msg.sender), os_id)
@@ -56,14 +53,16 @@ pub fn try_pay(
     match sender {
         Some(addr) => Addr::unchecked(addr),
         None => {
-            // Check if deposit matches claimed deposit.
-            if asset.is_native_token() {
-                // If native token, assert claimed amount is correct
-                asset.assert_sent_native_token_balance(&msg_info)?;
-                msg_info.sender
-            } else {
-                // Can't add liquidity with cw20 if not using the hook
-                return Err(PaymentError::NotUsingCW20Hook {});
+            match asset.info {
+                AssetInfo::Native(..) => {
+                    // If native token, assert claimed amount is correct
+                    let coin = msg_info.funds.last().unwrap().clone();
+                    if Asset::native(coin.denom, coin.amount) != asset {
+                        return Err(PaymentError::WrongNative {});
+                    }
+                    msg_info.sender
+                }
+                AssetInfo::Cw20(_) => return Err(PaymentError::NotUsingCW20Hook {}),
             }
         }
     };
@@ -91,7 +90,7 @@ pub fn try_pay(
 
     Ok(Response::new().add_attributes(attrs).add_message(
         // Send the received asset to the treasury
-        asset.into_msg(&deps.querier, base_state.treasury_address)?,
+        asset.transfer_msg(base_state.treasury_address)?,
     ))
 }
 
@@ -202,7 +201,7 @@ pub fn try_claim(
                 info: config.payment_asset,
                 amount,
             }
-            .into_msg(&deps.querier, info.sender.clone())?],
+            .transfer_msg(info.sender.clone())?],
             &base_state.treasury_address,
         )?;
         response = response.add_message(compensation_msg);
@@ -220,11 +219,10 @@ pub fn try_claim(
         // Send tokens
         let token_msg = send_to_treasury(
             vec![Asset {
-                info: AssetInfo::cw20( config.project_token.into(),
-                },
+                info: AssetInfo::Cw20(config.project_token.into()),
                 amount,
             }
-            .into_msg(&deps.querier, info.sender.clone())?],
+            .transfer_msg(info.sender.clone())?],
             &base_state.treasury_address,
         )?;
         response = response.add_message(token_msg);

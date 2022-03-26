@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::treasury::msg::{ExternalValueResponse, ValueQueryMsg};
 use crate::core::treasury::state::*;
-use crate::queries::terraswap::{query_asset_balance, query_pool};
+use crate::dapps::terraswap::cw_to_terraswap;
+use crate::queries::terraswap::query_pool;
 use crate::util::tax::reverse_decimal;
 use cw_asset::{Asset, AssetInfo};
 use terraswap::pair::PoolResponse;
@@ -59,7 +60,10 @@ impl VaultAsset {
 
         let holding: Uint128 = match set_holding {
             Some(setter) => setter,
-            None => query_asset_balance(deps, &self.asset.info, env.contract.address.clone())?,
+            None => self
+                .asset
+                .info
+                .query_balance(&deps.querier, env.contract.address.clone())?,
         };
         self.asset.amount = holding;
 
@@ -73,7 +77,7 @@ impl VaultAsset {
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
                 ValueRef::Liquidity { pool_address } => {
                     // Check if we have a Token
-                    if let AssetInfo::cw20( .. ) = &self.asset.info {
+                    if let AssetInfo::Cw20(..) = &self.asset.info {
                         return lp_value(deps, env, pool_address, &holding);
                     } else {
                         return Err(StdError::generic_err("Can't have a native LP token"));
@@ -111,13 +115,17 @@ impl VaultAsset {
         let mut recursive_vault_asset: VaultAsset;
         let amount_in_other_denom: Uint128;
         // Get the value of the current asset in the denom of the other asset
-        if self.asset.info == pool_info.assets[0].info {
-            recursive_vault_asset =
-                VAULT_ASSETS.load(deps.storage, get_identifier(&pool_info.assets[1].info))?;
+        if cw_to_terraswap(&self.asset.info) == pool_info.assets[0].info {
+            recursive_vault_asset = VAULT_ASSETS.load(
+                deps.storage,
+                get_tswap_asset_identifier(&pool_info.assets[1].info),
+            )?;
             amount_in_other_denom = self.asset.amount * reverse_decimal(ratio);
         } else {
-            recursive_vault_asset =
-                VAULT_ASSETS.load(deps.storage, get_identifier(&pool_info.assets[0].info))?;
+            recursive_vault_asset = VAULT_ASSETS.load(
+                deps.storage,
+                get_tswap_asset_identifier(&pool_info.assets[0].info),
+            )?;
             amount_in_other_denom = self.asset.amount * ratio;
         }
         // Call value on this other asset.
@@ -149,9 +157,17 @@ impl Proxy {
 }
 
 /// Gets the identifier of the asset (either its denom or contract address)
-pub fn get_identifier(asset_info: &AssetInfo) -> &String {
+pub fn get_tswap_asset_identifier(asset_info: &terraswap::asset::AssetInfo) -> &String {
     match asset_info {
-        AssetInfo::Native( denom ) => denom,
-        AssetInfo::cw20( contract_addr ) => contract_addr,
+        terraswap::asset::AssetInfo::NativeToken { denom } => denom,
+        terraswap::asset::AssetInfo::Token { contract_addr } => contract_addr,
+    }
+}
+
+/// Gets the identifier of the asset (either its denom or contract address)
+pub fn get_asset_identifier(asset_info: &AssetInfo) -> String {
+    match asset_info {
+        AssetInfo::Native(denom) => denom.to_owned(),
+        AssetInfo::Cw20(contract_addr) => contract_addr.into(),
     }
 }

@@ -1,13 +1,13 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::DepsMut;
+use cosmwasm_std::{Addr, DepsMut};
 use cosmwasm_std::{Api, Uint128};
 
 use crate::contract::{execute, instantiate};
 
+use cw_asset::{Asset, AssetInfo};
 use pandora_os::core::treasury::msg::*;
 use pandora_os::core::treasury::state::*;
 use pandora_os::core::treasury::vault_assets::*;
-use cw_asset::{Asset, AssetInfo};
 
 use crate::tests::common::{DAPP, TEST_CREATOR};
 
@@ -84,7 +84,7 @@ fn successful_asset_update() {
 
     let test_token_asset = VaultAsset {
         asset: Asset {
-            info: AssetInfo::cw20( "test_token".to_string()),
+            info: AssetInfo::Cw20(Addr::unchecked("test_token".to_string())),
             amount: Uint128::zero(),
         },
         value_reference: None,
@@ -99,12 +99,18 @@ fn successful_asset_update() {
 
     // Get an asset
     let asset_1: VaultAsset = VAULT_ASSETS
-        .load(&deps.storage, get_identifier(&test_native_asset.asset.info))
+        .load(
+            &deps.storage,
+            &get_asset_identifier(&test_native_asset.asset.info),
+        )
         .unwrap();
     assert_eq!(test_native_asset, asset_1,);
     // Get the other asset
     let asset_2: VaultAsset = VAULT_ASSETS
-        .load(&deps.storage, get_identifier(&test_token_asset.asset.info))
+        .load(
+            &deps.storage,
+            &get_asset_identifier(&test_token_asset.asset.info),
+        )
         .unwrap();
     assert_eq!(test_token_asset, asset_2,);
 
@@ -117,6 +123,9 @@ fn successful_asset_update() {
     let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
     let _failed_load = VAULT_ASSETS
-        .load(&deps.storage, get_identifier(&test_token_asset.asset.info))
+        .load(
+            &deps.storage,
+            &get_asset_identifier(&test_token_asset.asset.info),
+        )
         .unwrap_err();
 }

@@ -39,7 +39,7 @@ pub fn change_base_to_whale(
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
                 VaultAsset {
                     asset: Asset {
-                        info: cw_asset::AssetInfo::cw20(
+                        info: cw_asset::AssetInfo::Cw20(
                             contract_addr: base_contracts.whale.to_string(),
                         },
                         amount: Uint128::zero(),
