@@ -60,7 +60,15 @@ pub fn update_asset_addresses(
     for (name, new_address) in to_add.into_iter() {
         // Update function for new or existing keys
         let api = deps.api;
-        let insert = |_| -> StdResult<AssetInfo> { new_address.check(api, None) };
+        let insert = |_| -> StdResult<AssetInfo> { 
+            // use own check, cw_asset otherwise changes cases to lowercase
+            match new_address {
+                AssetInfoUnchecked::Cw20(addr) => Ok(AssetInfo::Cw20(api.addr_validate(&addr)?)),
+                AssetInfoUnchecked::Native(denom) => {
+                    Ok(AssetInfo::Native(denom.clone()))
+                }
+            }
+        };
         ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
     }
 
