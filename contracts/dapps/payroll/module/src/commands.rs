@@ -219,10 +219,10 @@ pub fn try_claim(
         // Send tokens
         let token_msg = send_to_treasury(
             vec![Asset {
-                info: AssetInfo::Cw20(config.project_token.into()),
+                info: AssetInfo::Cw20(config.project_token),
                 amount,
             }
-            .transfer_msg(info.sender.clone())?],
+            .transfer_msg(info.sender)?],
             &base_state.treasury_address,
         )?;
         response = response.add_message(token_msg);
@@ -259,7 +259,7 @@ fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResu
     Ok(())
 }
 
-fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulator) -> () {
+fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulator) {
     let (key, mut deposit, deps) = variables;
     let os_id = u32::from_be_bytes(key.try_into().unwrap());
     let subscription_cost = CONFIG.load(deps.storage).unwrap().subscription_cost;

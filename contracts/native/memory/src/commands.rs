@@ -64,7 +64,7 @@ pub fn update_asset_addresses(
             // use own check, cw_asset otherwise changes cases to lowercase
             match new_address {
                 AssetInfoUnchecked::Cw20(addr) => Ok(AssetInfo::Cw20(api.addr_validate(&addr)?)),
-                AssetInfoUnchecked::Native(denom) => Ok(AssetInfo::Native(denom.clone())),
+                AssetInfoUnchecked::Native(denom) => Ok(AssetInfo::Native(denom)),
             }
         };
         ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
