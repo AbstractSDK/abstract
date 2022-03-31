@@ -4,14 +4,14 @@ use terra_multi_test::{App, ContractWrapper};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
-use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
+use cw_asset::{Asset, AssetInfoUnchecked};
 use terra_multi_test::Executor;
 
 use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
 use pandora_os::native::memory::msg as MemoryMsg;
 
-use pandora_os::core::treasury::dapp_base::msg::{BaseInstantiateMsg, BaseExecuteMsg};
+use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
@@ -127,11 +127,13 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         base_contracts.whale_ust_pair.to_string(),
     );
 
-     // set treasury
-     app.execute_contract(
+    // set treasury
+    app.execute_contract(
         owner.clone(),
         vault_dapp_instance.clone(),
-        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig { treasury_address: Some(base_contracts.treasury.to_string()) } ),
+        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+            treasury_address: Some(base_contracts.treasury.to_string()),
+        }),
         &[],
     )
     .unwrap();

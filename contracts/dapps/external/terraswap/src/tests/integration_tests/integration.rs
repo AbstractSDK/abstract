@@ -3,7 +3,6 @@ use cw20::Cw20Contract;
 
 use cw_asset::AssetInfoUnchecked;
 use terra_multi_test::{App, ContractWrapper};
-use terraswap::asset::AssetInfo;
 
 use crate::dapp_base::common::TEST_CREATOR;
 use crate::tests::integration_tests::common_integration::{
@@ -66,7 +65,9 @@ fn init_terraswap_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
     app.execute_contract(
         owner.clone(),
         tswap_dapp_instance.clone(),
-        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig { treasury_address: Some(base_contracts.treasury.to_string()) } ),
+        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+            treasury_address: Some(base_contracts.treasury.to_string()),
+        }),
         &[],
     )
     .unwrap();

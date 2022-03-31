@@ -125,7 +125,9 @@ pub fn detailed_provide_liquidity(
             })
         } else {
             // Error if asset info not found in pool
-            return Err(TerraswapError::NotInPool { id: asset_info.to_string() }); //pool_info.assets[1].info
+            return Err(TerraswapError::NotInPool {
+                id: asset_info.to_string(),
+            }); //pool_info.assets[1].info
         }
     }
     let asset_array: [Asset; 2] = [assets_to_send[0].clone(), assets_to_send[1].clone()];
