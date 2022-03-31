@@ -69,7 +69,12 @@ pub fn try_provide_liquidity(
             match asset.info {
                 AssetInfo::Native(..) => {
                     // If native token, assert claimed amount is correct
-                    let coin = msg_info.funds.last().unwrap().clone();
+                    let coin = msg_info.funds.last();
+                    if coin.is_none() {
+                        return Err(VaultError::WrongNative {});
+                    }
+
+                    let coin = coin.unwrap().clone();
                     if Asset::native(coin.denom, coin.amount) != asset {
                         return Err(VaultError::WrongNative {});
                     }
