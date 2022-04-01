@@ -59,3 +59,6 @@ pub struct CodeIdResponse {
     pub code_id: Uint64,
     pub info: ContractVersion,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}

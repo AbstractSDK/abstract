@@ -35,6 +35,8 @@ thiserror = { version = "1.0.21" }
 pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
 manager = {version = "0.1", path = "../../core/manager"}
 protobuf = { version = "2", features = ["with-bytes"] }
+semver = "1"
+
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
