@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::error::OsFactoryError;
 use cw2::set_contract_version;
-use pandora_os::registery::FACTORY;
+use pandora_os::registery::OS_FACTORY;
 
 use crate::commands;
 use crate::state::*;
@@ -24,14 +24,14 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> OsFactoryResult {
     let config = Config {
-        version_control_contract: deps.api.addr_validate(&msg.version_control_contract)?,
+        version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-        memory_contract: deps.api.addr_validate(&msg.memory_contract)?,
+        memory_contract: deps.api.addr_validate(&msg.memory_address)?,
         creation_fee: msg.creation_fee,
         next_os_id: 0u32,
     };
 
-    set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;
