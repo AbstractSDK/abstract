@@ -5,6 +5,7 @@ use cosmwasm_std::{
 use pandora_os::core::manager::queries::query_module_version;
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
 use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::core::treasury::msg::ExecuteMsg as TreasuryMsg;
 use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 use pandora_os::native::version_control::{
     msg::QueryMsg as VersionQuery, queries::try_raw_code_id_query,
@@ -110,6 +111,10 @@ pub fn register_module(
         } => {
             response = response.add_message(set_treasury_on_dapp(
                 deps.as_ref(),
+                treasury_addr.to_string(),
+                module_address.clone(),
+            )?).add_message(whitelist_dapp_on_proxy(
+                deps.as_ref(),
                 treasury_addr.into_string(),
                 module_address,
             )?)
@@ -119,6 +124,10 @@ pub fn register_module(
             ..
         } => {
             response = response.add_message(set_treasury_on_dapp(
+                deps.as_ref(),
+                treasury_addr.to_string(),
+                module_address.clone(),
+            )?).add_message(whitelist_dapp_on_proxy(
                 deps.as_ref(),
                 treasury_addr.into_string(),
                 module_address,
@@ -246,6 +255,18 @@ pub fn set_treasury_on_dapp(
         msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
             treasury_address: Some(treasury_address),
         }))?,
+        funds: vec![],
+    }))
+}
+
+pub fn whitelist_dapp_on_proxy(
+    _deps: Deps,
+    proxy_address: String,
+    dapp_address: String,
+) -> StdResult<CosmosMsg<Empty>> {
+    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: proxy_address,
+        msg: to_binary(&TreasuryMsg::AddDApp { dapp: dapp_address })?,
         funds: vec![],
     }))
 }
