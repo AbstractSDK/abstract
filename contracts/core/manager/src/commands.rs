@@ -107,6 +107,12 @@ pub fn register_module(
         _dapp @ Module {
             kind: ModuleKind::External,
             ..
+        } => {
+            response = response.add_message(set_treasury_on_dapp(
+                deps.as_ref(),
+                treasury_addr.into_string(),
+                module_address,
+            )?)
         }
         | _dapp @ Module {
             kind: ModuleKind::Internal,

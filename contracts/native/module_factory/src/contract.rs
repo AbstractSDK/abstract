@@ -35,7 +35,8 @@ pub fn instantiate(
     CONTEXT.save(
         deps.storage,
         &Context {
-            manager: Addr::unchecked(""),
+            manager: None,
+            module: None,
         },
     )?;
     ADMIN.set(deps, Some(info.sender))?;
