@@ -2,14 +2,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, Uint128, WasmMsg};
-use terra_rust_script_derive::contract;
+use terra_rust_script_derive::CosmWasmContract;
 
 use crate::core::treasury::vault_assets::VaultAsset;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Sets the admin

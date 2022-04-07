@@ -1,9 +1,9 @@
 use cosmwasm_std::{Addr, CanonicalAddr, Decimal, Uint128};
-use cosmwasm_std::{CosmosMsg, Deps, StdResult};
+use cosmwasm_std::{CosmosMsg, StdResult};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use terraswap::asset::Asset;
+use cw_asset::Asset;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Fee {
@@ -15,8 +15,8 @@ impl Fee {
         amount * self.share
     }
 
-    pub fn msg(&self, deps: Deps, asset: Asset, recipient: Addr) -> StdResult<CosmosMsg> {
-        asset.into_msg(&deps.querier, recipient)
+    pub fn msg(&self, asset: Asset, recipient: Addr) -> StdResult<CosmosMsg> {
+        asset.transfer_msg(recipient)
     }
 }
 

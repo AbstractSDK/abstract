@@ -10,7 +10,7 @@ use pandora_os::core::treasury::dapp_base::state::{ADMIN, BASESTATE};
 
 use crate::commands;
 use crate::error::TerraswapError;
-use crate::msg::{ExecuteMsg, QueryMsg};
+use pandora_os::dapps::terraswap::{ExecuteMsg, QueryMsg};
 
 pub type TerraswapResult = Result<Response, TerraswapError>;
 

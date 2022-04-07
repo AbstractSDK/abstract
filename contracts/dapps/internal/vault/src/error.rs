@@ -32,6 +32,9 @@ pub enum VaultError {
     #[error("The provided token is not the base token")]
     WrongToken {},
 
+    #[error("The provided native coin is not the same as the claimed deposit")]
+    WrongNative {},
+
     #[error("It's required to use cw20 send message to add liquidity with cw20 tokens")]
     NotUsingCW20Hook {},
 

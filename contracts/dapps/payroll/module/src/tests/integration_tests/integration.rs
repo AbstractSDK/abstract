@@ -9,7 +9,7 @@ use crate::tests::integration_tests::common_integration::{
 };
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
 use terra_multi_test::Executor;
-use terraswap::asset::Asset;
+use cw_asset::Asset;
 
 use crate::dapp_base::common::TEST_CREATOR;
 use pandora_os::treasury::msg as TreasuryMsg;
@@ -57,7 +57,7 @@ fn deposit_and_withdraw_with_native_token() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
+                info: cw_asset::AssetInfo::Native(
                     denom: "uusd".to_string(),
                 },
                 amount: Uint128::from(10u64 * MILLION),
@@ -73,7 +73,7 @@ fn deposit_and_withdraw_with_native_token() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
+                info: cw_asset::AssetInfo::Native(
                     denom: "uusd".to_string(),
                 },
                 amount: Uint128::from(10u64 * MILLION),
@@ -219,7 +219,7 @@ fn deposit_and_withdraw_with_cw20() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
+                info: cw_asset::AssetInfo::Native(
                     denom: "uusd".to_string(),
                 },
                 amount: Uint128::from(10u64 * MILLION),
@@ -238,8 +238,7 @@ fn deposit_and_withdraw_with_cw20() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::Token {
-                    contract_addr: base_contracts.whale.to_string(),
+                info: cw_asset::AssetInfo::Cw20( base_contracts.whale.to_string(),
                 },
                 amount: Uint128::from(10u64 * MILLION),
             },

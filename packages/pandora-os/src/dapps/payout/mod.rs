@@ -3,10 +3,8 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::core::treasury::dapp_base::msg::{
-    BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg,
-};
-use terraswap::asset::{Asset, AssetInfo};
+use crate::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
+use cw_asset::{Asset, AssetInfo};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {

@@ -1,16 +1,22 @@
 use cosmwasm_std::{
-    to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
-    WasmMsg,
+    to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
+    StdResult, WasmMsg, WasmQuery,
 };
-use pandora_os::core::modules::{Module, ModuleKind};
+use cw2::{ContractVersion, get_contract_version};
+use pandora_os::core::manager::queries::query_module_version;
+use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
 use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
 use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::native::version_control::{
+    msg::QueryMsg as VersionQuery, queries::try_raw_code_id_query,
+};
+use semver::Version;
 
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
 use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora_os::registery::TREASURY;
+use pandora_os::registery::{MANAGER, TREASURY};
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -177,6 +183,75 @@ pub fn execute_update_config(
     }
 
     Ok(Response::new().add_attribute("action", "update_config"))
+}
+
+// migrates the module to a new version
+pub fn migrate_module(
+    deps: DepsMut,
+    env: Env,
+    module_info: ModuleInfo,
+    migrate_msg: Binary,
+) -> ManagerResult {
+    // Check if trying to upgrade this contract.
+    if module_info.name == MANAGER {
+        return upgrade_self(deps, env, module_info, migrate_msg)
+    }
+
+    let module_addr = if module_info.name == MANAGER {
+        env.contract.address
+    } else {
+        OS_MODULES.load(deps.storage, &module_info.name)?
+    };
+
+    let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
+    
+    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
+
+    let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
+        contract_addr: module_addr.into_string(),
+        new_code_id,
+        msg: migrate_msg,
+    });
+    Ok(Response::new().add_message(migration_msg))
+}
+
+fn get_code_id(deps: Deps, module_info: ModuleInfo, contract: ContractVersion) -> Result<u64, ManagerError> {
+    let new_code_id: u64;
+    let config = CONFIG.load(deps.storage)?;
+    match module_info.version {
+        Some(new_version) => {
+            if new_version.parse::<Version>()? < contract.version.parse::<Version>()? {
+                new_code_id = try_raw_code_id_query(
+                    deps,
+                    &config.version_control_address,
+                    (module_info.name, new_version),
+                )?;
+            } else {
+                return Err(ManagerError::OlderVersion(new_version, contract.version));
+            };
+        }
+        None => {
+            new_code_id = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: config.version_control_address.to_string(),
+                msg: to_binary(&VersionQuery::QueryCodeId {
+                    module: module_info,
+                })?,
+            }))?;
+        }
+    }
+    Ok(new_code_id)
+}
+
+fn upgrade_self(deps: DepsMut, env: Env, module_info: ModuleInfo, migrate_msg: Binary) -> ManagerResult {
+    let contract = get_contract_version(deps.storage)?;
+    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
+
+    let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
+        contract_addr: env.contract.address.into_string(),
+        new_code_id,
+        msg: migrate_msg,
+    });
+    Ok(Response::new().add_message(migration_msg))
 }
 
 pub fn set_treasury_on_dapp(

@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 
 use cosmwasm_std::{Addr, Deps, StdResult};
 
+use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use terraswap::asset::AssetInfo;
 
 use super::queries::{
     query_asset_from_mem, query_assets_from_mem, query_contract_from_mem, query_contracts_from_mem,

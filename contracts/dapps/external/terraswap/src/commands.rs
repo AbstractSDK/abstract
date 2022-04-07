@@ -3,6 +3,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
+use pandora_os::dapps::terraswap::cw_to_terraswap;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
@@ -10,7 +11,7 @@ use pandora_os::core::treasury::dapp_base::common::PAIR_POSTFIX;
 use pandora_os::core::treasury::dapp_base::error::BaseDAppError;
 use pandora_os::core::treasury::dapp_base::state::BASESTATE;
 use pandora_os::core::treasury::msg::send_to_treasury;
-use pandora_os::core::treasury::vault_assets::get_identifier;
+use pandora_os::core::treasury::vault_assets::get_asset_identifier;
 use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
 
 use crate::contract::TerraswapResult;
@@ -44,7 +45,7 @@ pub fn provide_liquidity(
 
     let main_asset_info = state.memory.query_asset(deps, &main_asset_id)?;
     let main_asset = Asset {
-        info: main_asset_info,
+        info: cw_to_terraswap(&main_asset_info),
         amount,
     };
     let mut first_asset: Asset;
@@ -108,7 +109,8 @@ pub fn detailed_provide_liquidity(
 
     // Iterate over provided assets
     for asset in assets {
-        let asset_info = state.memory.query_asset(deps, &asset.0)?;
+        let asset_info = cw_to_terraswap(&state.memory.query_asset(deps, &asset.0)?);
+
         // Check if pool contains the asset
         if pool_info.assets.iter().any(|a| a.info == asset_info) {
             let asset_balance = query_asset_balance(deps, &asset_info, treasury_address.clone())?;
@@ -123,7 +125,9 @@ pub fn detailed_provide_liquidity(
             })
         } else {
             // Error if asset info not found in pool
-            return Err(TerraswapError::NotInPool { id: asset.0 });
+            return Err(TerraswapError::NotInPool {
+                id: asset_info.to_string(),
+            }); //pool_info.assets[1].info
         }
     }
     let asset_array: [Asset; 2] = [assets_to_send[0].clone(), assets_to_send[1].clone()];
@@ -148,7 +152,7 @@ pub fn withdraw_liquidity(
 
     // Get lp token address
     let lp_token = &state.memory.query_asset(deps, &lp_token_id)?;
-    let lp_token_address = get_identifier(lp_token);
+    let lp_token_address = get_asset_identifier(lp_token);
     // Get pair address
     let pair_address = state
         .memory
@@ -169,7 +173,7 @@ pub fn withdraw_liquidity(
 
     // Call on LP token.
     let lp_call = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: lp_token_address.to_string(),
+        contract_addr: lp_token_address,
         msg: to_binary(&cw20_msg)?,
         funds: vec![],
     });
@@ -206,7 +210,7 @@ pub fn terraswap_swap(
         deps,
         pair_address,
         Asset {
-            info: offer_asset_info,
+            info: cw_to_terraswap(&offer_asset_info),
             amount,
         },
         max_spread,

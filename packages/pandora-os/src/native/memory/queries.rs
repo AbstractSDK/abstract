@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use cosmwasm_std::{Addr, Binary, Deps, QueryRequest, StdResult, WasmQuery};
 
 use cosmwasm_storage::to_length_prefixed;
-use terraswap::asset::AssetInfo;
+use cw_asset::AssetInfo;
 
 /// Query asset infos from Memory Module asset addresses map.
 pub fn query_assets_from_mem(

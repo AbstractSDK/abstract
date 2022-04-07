@@ -8,8 +8,8 @@ use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
+use cw_asset::Asset;
 use terra_multi_test::Executor;
-use terraswap::asset::Asset;
 
 use crate::dapp_base::common::TEST_CREATOR;
 use pandora_os::core::treasury::msg as TreasuryMsg;
@@ -57,9 +57,7 @@ fn deposit_and_withdraw_with_native_token() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
-                    denom: "uusd".to_string(),
-                },
+                info: cw_asset::AssetInfo::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -73,9 +71,7 @@ fn deposit_and_withdraw_with_native_token() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
-                    denom: "uusd".to_string(),
-                },
+                info: cw_asset::AssetInfo::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -219,9 +215,7 @@ fn deposit_and_withdraw_with_cw20() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::NativeToken {
-                    denom: "uusd".to_string(),
-                },
+                info: cw_asset::AssetInfo::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -238,9 +232,7 @@ fn deposit_and_withdraw_with_cw20() {
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
             asset: Asset {
-                info: terraswap::asset::AssetInfo::Token {
-                    contract_addr: base_contracts.whale.to_string(),
-                },
+                info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },

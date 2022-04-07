@@ -4,10 +4,10 @@ use crate::contract::{execute, instantiate};
 use crate::error::*;
 use crate::tests::common::TEST_CREATOR;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{to_binary, Addr, QuerierWrapper, ReplyOn, SubMsg, Uint128, WasmMsg};
+use cosmwasm_std::{to_binary, Addr, ReplyOn, SubMsg, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
+use cw_asset::{Asset, AssetInfo};
 use pandora_os::core::treasury::msg::{ExecuteMsg, InstantiateMsg};
-use terraswap::asset::{Asset, AssetInfo};
 
 const NOT_ALLOWED: &str = "some_other_contract";
 
@@ -32,9 +32,7 @@ fn test_non_whitelisted() {
     }
 
     let test_token = Asset {
-        info: AssetInfo::Token {
-            contract_addr: "test_token".to_string(),
-        },
+        info: AssetInfo::Cw20(Addr::unchecked("test_token".to_string())),
         amount: Uint128::zero(),
     };
 
@@ -42,10 +40,7 @@ fn test_non_whitelisted() {
 
     let msg = ExecuteMsg::DAppAction {
         msgs: vec![test_token
-            .into_msg(
-                &QuerierWrapper::new(&deps.querier),
-                Addr::unchecked(NOT_ALLOWED),
-            )
+            .transfer_msg(Addr::unchecked(NOT_ALLOWED))
             .unwrap()],
     };
 
@@ -75,9 +70,7 @@ fn test_whitelisted() {
     }
 
     let test_token = Asset {
-        info: AssetInfo::Token {
-            contract_addr: "test_token".to_string(),
-        },
+        info: AssetInfo::Cw20(Addr::unchecked("test_token".to_string())),
         amount: Uint128::from(10_000u64),
     };
 
@@ -85,10 +78,7 @@ fn test_whitelisted() {
 
     let msg = ExecuteMsg::DAppAction {
         msgs: vec![test_token
-            .into_msg(
-                &QuerierWrapper::new(&deps.querier),
-                Addr::unchecked(TEST_CREATOR),
-            )
+            .transfer_msg(Addr::unchecked(TEST_CREATOR))
             .unwrap()],
     };
 

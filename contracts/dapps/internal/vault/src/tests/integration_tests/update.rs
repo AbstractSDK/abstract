@@ -4,8 +4,8 @@ use terra_multi_test::App;
 
 use crate::msg::ExecuteMsg;
 
+use cw_asset::Asset;
 use terra_multi_test::Executor;
-use terraswap::asset::Asset;
 
 use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
@@ -27,9 +27,7 @@ pub fn change_base_to_whale(
                 // uusd is base asset of this vault, so no value_ref
                 VaultAsset {
                     asset: Asset {
-                        info: terraswap::asset::AssetInfo::NativeToken {
-                            denom: "uusd".to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Native("uusd".to_string()),
                         amount: Uint128::zero(),
                     },
                     value_reference: Some(ValueRef::Pool {
@@ -39,9 +37,7 @@ pub fn change_base_to_whale(
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
                 VaultAsset {
                     asset: Asset {
-                        info: terraswap::asset::AssetInfo::Token {
-                            contract_addr: base_contracts.whale.to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                         amount: Uint128::zero(),
                     },
                     value_reference: None,

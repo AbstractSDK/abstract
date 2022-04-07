@@ -1,13 +1,13 @@
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use terra_rust_script_derive::contract;
-use terraswap::asset::AssetInfo;
+use terra_rust_script_derive::CosmWasmContract;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Updates the addressbook
@@ -16,14 +16,14 @@ pub enum ExecuteMsg {
         to_remove: Vec<String>,
     },
     UpdateAssetAddresses {
-        to_add: Vec<(String, AssetInfo)>,
+        to_add: Vec<(String, AssetInfoUnchecked)>,
         to_remove: Vec<String>,
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, contract)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries assets based on name

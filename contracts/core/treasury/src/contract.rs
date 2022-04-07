@@ -7,16 +7,15 @@ use cosmwasm_std::{
 
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
+use cw_asset::AssetInfo;
 use pandora_os::core::treasury::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
 use pandora_os::core::treasury::state::{State, ADMIN, STATE, VAULT_ASSETS};
-use pandora_os::core::treasury::vault_assets::{get_identifier, VaultAsset};
-use pandora_os::queries::terraswap::query_asset_balance;
+use pandora_os::core::treasury::vault_assets::{get_asset_identifier, VaultAsset};
 use pandora_os::registery::TREASURY;
 use semver::Version;
-use terraswap::asset::AssetInfo;
 type TreasuryResult = Result<Response, TreasuryError>;
 /*
     The treasury is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
@@ -104,15 +103,15 @@ pub fn update_assets(
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     for new_asset in to_add.into_iter() {
-        let id = get_identifier(&new_asset.asset.info).as_str();
+        let id = get_asset_identifier(&new_asset.asset.info);
         // update function for new or existing keys
         let insert =
             |_vault_asset: Option<VaultAsset>| -> StdResult<VaultAsset> { Ok(new_asset.clone()) };
-        VAULT_ASSETS.update(deps.storage, id, insert)?;
+        VAULT_ASSETS.update(deps.storage, &id, insert)?;
     }
 
     for asset_id in to_remove {
-        VAULT_ASSETS.remove(deps.storage, get_identifier(&asset_id).as_str());
+        VAULT_ASSETS.remove(deps.storage, get_asset_identifier(&asset_id).as_str());
     }
 
     Ok(Response::new().add_attribute("action", "update_cw20_token_list"))
@@ -162,11 +161,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }),
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: VaultAsset = VAULT_ASSETS.load(deps.storage, identifier.as_str())?;
-            to_binary(&query_asset_balance(
-                deps,
-                &vault_asset.asset.info,
-                env.contract.address,
-            )?)
+            to_binary(
+                &vault_asset
+                    .asset
+                    .info
+                    .query_balance(&deps.querier, env.contract.address)?,
+            )
         }
         QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,

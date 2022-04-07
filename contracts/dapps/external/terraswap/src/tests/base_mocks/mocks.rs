@@ -2,8 +2,8 @@ use cosmwasm_std::testing::mock_info;
 use cosmwasm_std::{DepsMut, Env};
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT};
-use crate::msg::ExecuteMsg;
 use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
+use pandora_os::dapps::terraswap::ExecuteMsg;
 
 use crate::contract::{execute, instantiate};
 

@@ -1,5 +1,5 @@
 use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult};
-use terraswap::asset::AssetInfo;
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::MemoryResult;
 use crate::state::*;
@@ -51,7 +51,7 @@ pub fn update_contract_addresses(
 pub fn update_asset_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<(String, AssetInfo)>,
+    to_add: Vec<(String, AssetInfoUnchecked)>,
     to_remove: Vec<String>,
 ) -> MemoryResult {
     // Only Admin can call this method
@@ -59,7 +59,14 @@ pub fn update_asset_addresses(
 
     for (name, new_address) in to_add.into_iter() {
         // Update function for new or existing keys
-        let insert = |_| -> StdResult<AssetInfo> { Ok(new_address) };
+        let api = deps.api;
+        let insert = |_| -> StdResult<AssetInfo> {
+            // use own check, cw_asset otherwise changes cases to lowercase
+            match new_address {
+                AssetInfoUnchecked::Cw20(addr) => Ok(AssetInfo::Cw20(api.addr_validate(&addr)?)),
+                AssetInfoUnchecked::Native(denom) => Ok(AssetInfo::Native(denom)),
+            }
+        };
         ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
     }
 

@@ -4,14 +4,14 @@ use terra_multi_test::{App, ContractWrapper};
 
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
+use cw_asset::{Asset, AssetInfoUnchecked};
 use terra_multi_test::Executor;
-use terraswap::asset::{Asset, AssetInfo};
 
 use pandora_os::core::treasury::msg as TreasuryMsg;
 use pandora_os::core::treasury::vault_assets::{ValueRef, VaultAsset};
 use pandora_os::native::memory::msg as MemoryMsg;
 
-use pandora_os::core::treasury::dapp_base::msg::BaseInstantiateMsg;
+use pandora_os::core::treasury::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
@@ -74,9 +74,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                 // uusd is base asset of this vault, so no value_ref
                 VaultAsset {
                     asset: Asset {
-                        info: terraswap::asset::AssetInfo::NativeToken {
-                            denom: "uusd".to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Native("uusd".to_string()),
                         amount: Uint128::zero(),
                     },
                     value_reference: None,
@@ -84,9 +82,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
                 VaultAsset {
                     asset: Asset {
-                        info: terraswap::asset::AssetInfo::Token {
-                            contract_addr: base_contracts.whale.to_string(),
-                        },
+                        info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                         amount: Uint128::zero(),
                     },
                     value_reference: Some(ValueRef::Pool {
@@ -131,6 +127,17 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         base_contracts.whale_ust_pair.to_string(),
     );
 
+    // set treasury
+    app.execute_contract(
+        owner.clone(),
+        vault_dapp_instance.clone(),
+        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+            treasury_address: Some(base_contracts.treasury.to_string()),
+        }),
+        &[],
+    )
+    .unwrap();
+
     (vault_dapp_instance, Addr::unchecked(liquidity_token))
 }
 
@@ -144,21 +151,15 @@ pub fn configure_memory(app: &mut App, sender: Addr, base_contracts: &BaseContra
             to_add: vec![
                 (
                     "whale".to_string(),
-                    AssetInfo::Token {
-                        contract_addr: base_contracts.whale.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
                 ),
                 (
                     "whale_ust".to_string(),
-                    AssetInfo::Token {
-                        contract_addr: base_contracts.whale_ust.to_string(),
-                    },
+                    AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
                 (
                     "ust".to_string(),
-                    AssetInfo::NativeToken {
-                        denom: "uusd".to_string(),
-                    },
+                    AssetInfoUnchecked::Native("uusd".to_string()),
                 ),
             ],
             to_remove: vec![],
