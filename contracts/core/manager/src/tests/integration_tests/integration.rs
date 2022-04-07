@@ -1,7 +1,6 @@
 use std::borrow::BorrowMut;
 use std::collections::HashMap;
 
-
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw20::Cw20Contract;
 
@@ -9,34 +8,35 @@ use pandora_os::registery::TREASURY;
 use terra_multi_test::{App, ContractWrapper};
 
 use crate::tests::common::TEST_CREATOR;
-use crate::tests::integration_tests::common_integration::{
-    mock_app,
-};
+use crate::tests::integration_tests::common_integration::mock_app;
 use crate::tests::integration_tests::instantiate::init_native_contracts;
 use crate::tests::integration_tests::upload::upload_contracts;
-use pandora_os::core::treasury::msg as TreasuryMsg;
-use pandora_os::dapps::terraswap::ExecuteMsg;
+use pandora_os::core::proxy::msg as TreasuryMsg;
+use pandora_os::core::*;
+use pandora_os::modules::apis::terraswap::ExecuteMsg;
 use pandora_os::native::memory::msg as MemoryMsg;
+use pandora_os::native::*;
 use terra_multi_test::Executor;
 use terraswap::pair::PoolResponse;
-use pandora_os::native::*;
-use pandora_os::core::*;
 
-use pandora_os::core::treasury::dapp_base::msg::{
-    BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg,
-};
+use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};
 
-use super::common_integration::{ NativeContracts, OsInstance};
+use super::common_integration::{NativeContracts, OsInstance};
 const MILLION: u64 = 1_000_000u64;
 
 fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> OsInstance {
-    let resp = app.execute_contract(
-        sender.clone(),
-        native_contracts.os_factory.clone(),
-        &pandora_os::native::os_factory::msg::ExecuteMsg::CreateOs { governance: pandora_os::governance::gov_type::GovernanceDetails::Monarchy { monarch: sender.into_string() } },
-        &[],
-    )
-    .unwrap();
+    let resp = app
+        .execute_contract(
+            sender.clone(),
+            native_contracts.os_factory.clone(),
+            &pandora_os::native::os_factory::msg::ExecuteMsg::CreateOs {
+                governance: pandora_os::governance::gov_type::GovernanceDetails::Monarchy {
+                    monarch: sender.into_string(),
+                },
+            },
+            &[],
+        )
+        .unwrap();
 
     // Check OS
     let resp: String = app
@@ -48,18 +48,20 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
         .unwrap();
 
     let manager_addr = Addr::unchecked(resp);
-    
+
     let resp: manager::msg::ModuleQueryResponse = app
         .wrap()
         .query_wasm_smart(
             &manager_addr,
-            &manager::msg::QueryMsg::QueryModules { names: vec![TREASURY.to_string()] },
+            &manager::msg::QueryMsg::QueryModules {
+                names: vec![TREASURY.to_string()],
+            },
         )
         .unwrap();
-    let treasury_addr = Addr::unchecked(resp.modules.last().unwrap().clone().1);
+    let proxy_addr = Addr::unchecked(resp.modules.last().unwrap().clone().1);
     OsInstance {
         manager: manager_addr,
-        treasury: treasury_addr,
+        proxy: proxy_addr,
         modules: HashMap::new(),
     }
 }
@@ -68,8 +70,7 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
 fn proper_initialization() {
     let mut app = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
-    let (code_ids,native_contracts) = upload_contracts(&mut app);
-
+    let (code_ids, native_contracts) = upload_contracts(&mut app);
 
     init_os(&mut app, sender, &native_contracts);
 
@@ -149,205 +150,205 @@ fn proper_initialization() {
     // // Detailed check handled in unit-tests
     // assert_eq!("whale_ust_pair".to_string(), resp.contracts[0].0);
 
-    // give treasury some uusd
-//     app.init_bank_balance(
-//         &base_contracts.treasury,
-//         vec![Coin {
-//             denom: "uusd".to_string(),
-//             amount: Uint128::from(100u64 * MILLION),
-//         }],
-//     )
-//     .unwrap();
+    // give proxy some uusd
+    //     app.init_bank_balance(
+    //         &base_contracts.proxy,
+    //         vec![Coin {
+    //             denom: "uusd".to_string(),
+    //             amount: Uint128::from(100u64 * MILLION),
+    //         }],
+    //     )
+    //     .unwrap();
 
-//     // give treasury some whale
-//     mint_some_whale(
-//         &mut app,
-//         sender.clone(),
-//         base_contracts.whale,
-//         Uint128::from(100u64 * MILLION),
-//         base_contracts.treasury.to_string(),
-//     );
+    //     // give proxy some whale
+    //     mint_some_whale(
+    //         &mut app,
+    //         sender.clone(),
+    //         base_contracts.whale,
+    //         Uint128::from(100u64 * MILLION),
+    //         base_contracts.proxy.to_string(),
+    //     );
 
-//     // Add liquidity to pair from treasury, through terraswap-dapp
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::DetailedProvideLiquidity {
-//             pool_id: "whale_ust_pair".to_string(),
-//             assets: vec![
-//                 ("ust".into(), Uint128::from(1u64 * MILLION)),
-//                 (("whale".into(), Uint128::from(1u64 * MILLION))),
-//             ],
-//             slippage_tolerance: None,
-//         },
-//         &[],
-//     )
-//     .unwrap();
+    //     // Add liquidity to pair from proxy, through terraswap-dapp
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::DetailedProvideLiquidity {
+    //             pool_id: "whale_ust_pair".to_string(),
+    //             assets: vec![
+    //                 ("ust".into(), Uint128::from(1u64 * MILLION)),
+    //                 (("whale".into(), Uint128::from(1u64 * MILLION))),
+    //             ],
+    //             slippage_tolerance: None,
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap();
 
-//     //
-//     let pool_res: PoolResponse = app
-//         .wrap()
-//         .query_wasm_smart(
-//             base_contracts.whale_ust_pair.clone(),
-//             &terraswap::pair::QueryMsg::Pool {},
-//         )
-//         .unwrap();
+    //     //
+    //     let pool_res: PoolResponse = app
+    //         .wrap()
+    //         .query_wasm_smart(
+    //             base_contracts.whale_ust_pair.clone(),
+    //             &terraswap::pair::QueryMsg::Pool {},
+    //         )
+    //         .unwrap();
 
-//     let lp = Cw20Contract(base_contracts.whale_ust.clone());
+    //     let lp = Cw20Contract(base_contracts.whale_ust.clone());
 
-//     // Get treasury lp token balance
-//     let treasury_bal = lp.balance(&app, base_contracts.treasury.clone()).unwrap();
+    //     // Get proxy lp token balance
+    //     let proxy_bal = lp.balance(&app, base_contracts.proxy.clone()).unwrap();
 
-//     // 1 WHALE and UST in pool
-//     assert_eq!(Uint128::from(1u64 * MILLION), pool_res.assets[0].amount);
-//     assert_eq!(Uint128::from(1u64 * MILLION), pool_res.assets[1].amount);
-//     // All LP tokens owned by treasury
-//     assert_eq!(treasury_bal, pool_res.total_share);
+    //     // 1 WHALE and UST in pool
+    //     assert_eq!(Uint128::from(1u64 * MILLION), pool_res.assets[0].amount);
+    //     assert_eq!(Uint128::from(1u64 * MILLION), pool_res.assets[1].amount);
+    //     // All LP tokens owned by proxy
+    //     assert_eq!(proxy_bal, pool_res.total_share);
 
-//     // Failed swap UST for WHALE due to max spread
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::SwapAsset {
-//             pool_id: "whale_ust_pair".to_string(),
-//             offer_id: "ust".into(),
-//             amount: Uint128::from(100u64),
-//             max_spread: Some(Decimal::zero()),
-//             belief_price: Some(Decimal::one()),
-//         },
-//         &[],
-//     )
-//     .unwrap_err();
+    //     // Failed swap UST for WHALE due to max spread
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::SwapAsset {
+    //             pool_id: "whale_ust_pair".to_string(),
+    //             offer_id: "ust".into(),
+    //             amount: Uint128::from(100u64),
+    //             max_spread: Some(Decimal::zero()),
+    //             belief_price: Some(Decimal::one()),
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap_err();
 
-//     // Successful swap UST for WHALE
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::SwapAsset {
-//             pool_id: "whale_ust_pair".to_string(),
-//             offer_id: "ust".into(),
-//             amount: Uint128::from(100u64),
-//             max_spread: None,
-//             belief_price: None,
-//         },
-//         &[],
-//     )
-//     .unwrap();
-//     //
-//     let pool_res: PoolResponse = app
-//         .wrap()
-//         .query_wasm_smart(
-//             base_contracts.whale_ust_pair.clone(),
-//             &terraswap::pair::QueryMsg::Pool {},
-//         )
-//         .unwrap();
+    //     // Successful swap UST for WHALE
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::SwapAsset {
+    //             pool_id: "whale_ust_pair".to_string(),
+    //             offer_id: "ust".into(),
+    //             amount: Uint128::from(100u64),
+    //             max_spread: None,
+    //             belief_price: None,
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap();
+    //     //
+    //     let pool_res: PoolResponse = app
+    //         .wrap()
+    //         .query_wasm_smart(
+    //             base_contracts.whale_ust_pair.clone(),
+    //             &terraswap::pair::QueryMsg::Pool {},
+    //         )
+    //         .unwrap();
 
-//     // 1 WHALE and UST in pool
-//     assert_eq!(
-//         Uint128::from(1u64 * MILLION + 100u64),
-//         pool_res.assets[0].amount
-//     );
-//     assert_eq!(
-//         Uint128::from(1u64 * MILLION - 99u64),
-//         pool_res.assets[1].amount
-//     );
+    //     // 1 WHALE and UST in pool
+    //     assert_eq!(
+    //         Uint128::from(1u64 * MILLION + 100u64),
+    //         pool_res.assets[0].amount
+    //     );
+    //     assert_eq!(
+    //         Uint128::from(1u64 * MILLION - 99u64),
+    //         pool_res.assets[1].amount
+    //     );
 
-//     // try withdrawing zero, this will fail with an error
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::WithdrawLiquidity {
-//             lp_token_id: "whale_ust".to_string(),
-//             amount: Uint128::zero(),
-//         },
-//         &[],
-//     )
-//     .unwrap_err();
+    //     // try withdrawing zero, this will fail with an error
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::WithdrawLiquidity {
+    //             lp_token_id: "whale_ust".to_string(),
+    //             amount: Uint128::zero(),
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap_err();
 
-//     // Withdraw half of the liquidity from the pool
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::WithdrawLiquidity {
-//             lp_token_id: "whale_ust".to_string(),
-//             amount: Uint128::from(MILLION / 2u64),
-//         },
-//         &[],
-//     )
-//     .unwrap();
+    //     // Withdraw half of the liquidity from the pool
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::WithdrawLiquidity {
+    //             lp_token_id: "whale_ust".to_string(),
+    //             amount: Uint128::from(MILLION / 2u64),
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap();
 
-//     //
-//     let pool_res: PoolResponse = app
-//         .wrap()
-//         .query_wasm_smart(
-//             base_contracts.whale_ust_pair.clone(),
-//             &terraswap::pair::QueryMsg::Pool {},
-//         )
-//         .unwrap();
+    //     //
+    //     let pool_res: PoolResponse = app
+    //         .wrap()
+    //         .query_wasm_smart(
+    //             base_contracts.whale_ust_pair.clone(),
+    //             &terraswap::pair::QueryMsg::Pool {},
+    //         )
+    //         .unwrap();
 
-//     // Get treasury lp token balance
-//     let treasury_bal = lp.balance(&app, base_contracts.treasury.clone()).unwrap();
+    //     // Get proxy lp token balance
+    //     let proxy_bal = lp.balance(&app, base_contracts.proxy.clone()).unwrap();
 
-//     // 1 WHALE and UST in pool
-//     assert_eq!(
-//         Uint128::from((1u64 * MILLION + 100u64) / 2u64),
-//         pool_res.assets[0].amount
-//     );
-//     // small rounding error
-//     assert_eq!(
-//         Uint128::from((1u64 * MILLION - 98u64) / 2u64),
-//         pool_res.assets[1].amount
-//     );
-//     // Half of the LP tokens left
-//     assert_eq!(treasury_bal, Uint128::from(MILLION / 2u64));
+    //     // 1 WHALE and UST in pool
+    //     assert_eq!(
+    //         Uint128::from((1u64 * MILLION + 100u64) / 2u64),
+    //         pool_res.assets[0].amount
+    //     );
+    //     // small rounding error
+    //     assert_eq!(
+    //         Uint128::from((1u64 * MILLION - 98u64) / 2u64),
+    //         pool_res.assets[1].amount
+    //     );
+    //     // Half of the LP tokens left
+    //     assert_eq!(proxy_bal, Uint128::from(MILLION / 2u64));
 
-//     let price = Decimal::from_ratio(pool_res.assets[0].amount, pool_res.assets[1].amount);
+    //     let price = Decimal::from_ratio(pool_res.assets[0].amount, pool_res.assets[1].amount);
 
-//     // Provide undetailed liquidity
-//     // Should add token at same price as pool
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::ProvideLiquidity {
-//             pool_id: "whale_ust_pair".to_string(),
-//             main_asset_id: "whale".to_string(),
-//             amount: Uint128::from(MILLION),
-//         },
-//         &[],
-//     )
-//     .unwrap();
+    //     // Provide undetailed liquidity
+    //     // Should add token at same price as pool
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::ProvideLiquidity {
+    //             pool_id: "whale_ust_pair".to_string(),
+    //             main_asset_id: "whale".to_string(),
+    //             amount: Uint128::from(MILLION),
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap();
 
-//     // Provide zero liquidity
-//     // this should fail with an error
-//     app.execute_contract(
-//         sender.clone(),
-//         tswap_dapp.clone(),
-//         &ExecuteMsg::ProvideLiquidity {
-//             pool_id: "whale_ust_pair".to_string(),
-//             main_asset_id: "whale".to_string(),
-//             amount: Uint128::zero(),
-//         },
-//         &[],
-//     )
-//     .unwrap_err();
+    //     // Provide zero liquidity
+    //     // this should fail with an error
+    //     app.execute_contract(
+    //         sender.clone(),
+    //         tswap_dapp.clone(),
+    //         &ExecuteMsg::ProvideLiquidity {
+    //             pool_id: "whale_ust_pair".to_string(),
+    //             main_asset_id: "whale".to_string(),
+    //             amount: Uint128::zero(),
+    //         },
+    //         &[],
+    //     )
+    //     .unwrap_err();
 
-//     //
-//     let pool_res_after: PoolResponse = app
-//         .wrap()
-//         .query_wasm_smart(
-//             base_contracts.whale_ust_pair.clone(),
-//             &terraswap::pair::QueryMsg::Pool {},
-//         )
-//         .unwrap();
+    //     //
+    //     let pool_res_after: PoolResponse = app
+    //         .wrap()
+    //         .query_wasm_smart(
+    //             base_contracts.whale_ust_pair.clone(),
+    //             &terraswap::pair::QueryMsg::Pool {},
+    //         )
+    //         .unwrap();
 
-//     // 1 WHALE added to pool
-//     assert_eq!(
-//         Uint128::from(MILLION) * price,
-//         pool_res_after.assets[0].amount - pool_res.assets[0].amount
-//     );
-//     // 1.00.. UST added to pool, equating to same price as before
-//     assert_eq!(
-//         Uint128::from(MILLION),
-//         pool_res_after.assets[1].amount - pool_res.assets[1].amount
-//     );
+    //     // 1 WHALE added to pool
+    //     assert_eq!(
+    //         Uint128::from(MILLION) * price,
+    //         pool_res_after.assets[0].amount - pool_res.assets[0].amount
+    //     );
+    //     // 1.00.. UST added to pool, equating to same price as before
+    //     assert_eq!(
+    //         Uint128::from(MILLION),
+    //         pool_res_after.assets[1].amount - pool_res.assets[1].amount
+    //     );
 }

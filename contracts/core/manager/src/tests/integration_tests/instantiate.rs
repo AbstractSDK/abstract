@@ -3,12 +3,12 @@ use std::collections::HashMap;
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
-use pandora_os::core::{manager::msg as ManagerMsg, treasury::msg as TreasuryMsg};
+use pandora_os::core::{manager::msg as ManagerMsg, proxy::msg as TreasuryMsg};
 use pandora_os::native::{
     memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,
     os_factory::msg as OSFactoryMsg, version_control::msg as VCMsg,
 };
-use pandora_os::registery::{VERSION_CONTROL, MEMORY, MODULE_FACTORY, OS_FACTORY};
+use pandora_os::registery::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use terra_mocks::TerraMockQuerier;
 use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use terraswap::asset::{AssetInfo, PairInfo};
@@ -110,7 +110,13 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<&str, u64>) -> Na
         b.time = Timestamp::from_seconds(1571797419);
     });
 
-    add_contracts_to_version_control_and_set_factory(app, &owner, code_ids, &version_control_instance, &os_factory_instance);
+    add_contracts_to_version_control_and_set_factory(
+        app,
+        &owner,
+        code_ids,
+        &version_control_instance,
+        &os_factory_instance,
+    );
 
     app.update_block(|b| {
         b.height += 1;
@@ -153,12 +159,12 @@ fn add_contracts_to_version_control_and_set_factory(
             version: DEFAULT_VERSION.to_string(),
             code_id: contract.1.clone(),
         };
-        app
-            .execute_contract(owner.clone(), version_control.clone(), &msg, &[])
+        app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
             .unwrap();
     }
-    let msg = VCMsg::ExecuteMsg::SetFactory { new_factory: os_factory.to_string() } ;
-    app
-        .execute_contract(owner.clone(), version_control.clone(), &msg, &[])
+    let msg = VCMsg::ExecuteMsg::SetFactory {
+        new_factory: os_factory.to_string(),
+    };
+    app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
         .unwrap();
 }

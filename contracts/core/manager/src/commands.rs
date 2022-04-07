@@ -4,9 +4,9 @@ use cosmwasm_std::{
 };
 use pandora_os::core::manager::queries::query_module_version;
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
-use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::core::treasury::msg::ExecuteMsg as TreasuryMsg;
-use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
+use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 use pandora_os::native::version_control::{
     msg::QueryMsg as VersionQuery, queries::try_raw_code_id_query,
 };
@@ -91,7 +91,7 @@ pub fn register_module(
     module_address: String,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
-    let treasury_addr = OS_MODULES.load(deps.storage, TREASURY)?;
+    let proxy_addr = OS_MODULES.load(deps.storage, TREASURY)?;
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
@@ -109,29 +109,33 @@ pub fn register_module(
             kind: ModuleKind::External,
             ..
         } => {
-            response = response.add_message(set_treasury_on_dapp(
-                deps.as_ref(),
-                treasury_addr.to_string(),
-                module_address.clone(),
-            )?).add_message(whitelist_dapp_on_proxy(
-                deps.as_ref(),
-                treasury_addr.into_string(),
-                module_address,
-            )?)
+            response = response
+                .add_message(set_proxy_on_dapp(
+                    deps.as_ref(),
+                    proxy_addr.to_string(),
+                    module_address.clone(),
+                )?)
+                .add_message(whitelist_dapp_on_proxy(
+                    deps.as_ref(),
+                    proxy_addr.into_string(),
+                    module_address,
+                )?)
         }
-        | _dapp @ Module {
+        _dapp @ Module {
             kind: ModuleKind::Internal,
             ..
         } => {
-            response = response.add_message(set_treasury_on_dapp(
-                deps.as_ref(),
-                treasury_addr.to_string(),
-                module_address.clone(),
-            )?).add_message(whitelist_dapp_on_proxy(
-                deps.as_ref(),
-                treasury_addr.into_string(),
-                module_address,
-            )?)
+            response = response
+                .add_message(set_proxy_on_dapp(
+                    deps.as_ref(),
+                    proxy_addr.to_string(),
+                    module_address.clone(),
+                )?)
+                .add_message(whitelist_dapp_on_proxy(
+                    deps.as_ref(),
+                    proxy_addr.into_string(),
+                    module_address,
+                )?)
         }
         Module {
             kind: ModuleKind::Service,
@@ -245,15 +249,15 @@ pub fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
-pub fn set_treasury_on_dapp(
+pub fn set_proxy_on_dapp(
     _deps: Deps,
-    treasury_address: String,
+    proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: dapp_address,
         msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-            treasury_address: Some(treasury_address),
+            proxy_address: Some(proxy_address),
         }))?,
         funds: vec![],
     }))

@@ -68,11 +68,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
         Reply {
             id: commands::CREATE_OS_MANAGER_MSG_ID,
             result,
-        } => commands::after_manager_create_treasury(deps, result),
+        } => commands::after_manager_create_proxy(deps, result),
         Reply {
             id: commands::CREATE_OS_TREASURY_MSG_ID,
             result,
-        } => commands::after_treasury_add_to_manager_and_set_admin(deps, result),
+        } => commands::after_proxy_add_to_manager_and_set_admin(deps, result),
         _ => Err(OsFactoryError::UnexpectedReply {}),
     }
 }

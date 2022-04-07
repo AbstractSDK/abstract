@@ -4,7 +4,7 @@ use crate::tests::common::TEST_CREATOR;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
 use pandora_os::core::modules::ModuleInfo;
-use pandora_os::core::treasury::msg as TreasuryMsg;
+use pandora_os::core::proxy::msg as TreasuryMsg;
 use pandora_os::native::memory::msg as MemoryMsg;
 use terra_mocks::TerraMockQuerier;
 use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
@@ -22,7 +22,7 @@ pub struct NativeContracts {
 
 pub struct OsInstance {
     pub manager: Addr,
-    pub treasury: Addr,
+    pub proxy: Addr,
     pub modules: HashMap<String, ModuleInfo>,
 }
 

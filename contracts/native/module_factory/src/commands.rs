@@ -1,13 +1,13 @@
 use cosmwasm_std::{
-    to_binary, Binary, ContractResult, CosmosMsg, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn,
-    Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg, WasmQuery, Empty,
+    to_binary, Binary, ContractResult, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest,
+    ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg, WasmQuery,
 };
 
 use cw2::ContractVersion;
 
-use pandora_os::core::manager::{queries::query_os_id, msg::ExecuteMsg as ManagerMsg};
+use pandora_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
-use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
 use pandora_os::native::version_control::queries::try_raw_os_manager_query;
 use protobuf::Message;
 
@@ -18,7 +18,7 @@ use crate::error::ModuleFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 
-use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 
 use pandora_os::native::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
 
@@ -278,13 +278,18 @@ pub fn handle_internal_dapp_init_result(
     let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: context.manager.unwrap().into_string(),
         funds: vec![],
-        msg: to_binary(&ManagerMsg::RegisterModule { module_addr: dapp_address.to_string(), module: context.module.unwrap() })?,
+        msg: to_binary(&ManagerMsg::RegisterModule {
+            module_addr: dapp_address.to_string(),
+            module: context.module.unwrap(),
+        })?,
     });
 
     clear_context(deps)?;
 
     Ok(
-        response.add_attribute("new module:", &dapp_address.to_string()).add_message(register_msg), // Instantiate Treasury contract
+        response
+            .add_attribute("new module:", &dapp_address.to_string())
+            .add_message(register_msg), // Instantiate Treasury contract
     )
 }
 
@@ -312,14 +317,17 @@ pub fn handle_external_dapp_init_result(
     let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: context.manager.unwrap().into_string(),
         funds: vec![],
-        msg: to_binary(&ManagerMsg::RegisterModule { module_addr: dapp_address.to_string(), module: context.module.unwrap() })?,
+        msg: to_binary(&ManagerMsg::RegisterModule {
+            module_addr: dapp_address.to_string(),
+            module: context.module.unwrap(),
+        })?,
     });
 
     clear_context(deps)?;
 
-    Ok(
-        response.add_attribute("new module:", &dapp_address.to_string()).add_message(register_msg),
-    )
+    Ok(response
+        .add_attribute("new module:", &dapp_address.to_string())
+        .add_message(register_msg))
 }
 
 // Only owner can execute it
@@ -376,7 +384,6 @@ pub fn update_factory_binaries(
     }
     Ok(Response::new().add_attribute("Action: ", "update binaries"))
 }
-
 
 fn clear_context(deps: DepsMut) -> Result<(), StdError> {
     // Set context for after init

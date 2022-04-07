@@ -12,7 +12,7 @@ sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
 from dao_os.contracts.memory import *
-from dao_os.contracts.treasury import *
+from dao_os.contracts.proxy import *
 from dao_os.contracts.vault import *
 from terra_sdk.core.coins import Coin
 from dao_os.deploy import get_deployer
@@ -42,7 +42,7 @@ if create:
 # liq_contract.provide_liquidity()
 liq_contract.withdraw_all()
 # liq_contract.query_config()
-# liq_contract.set_treasury_addr()
+# liq_contract.set_proxy_addr()
 # memory.query_assets(["bluna"]) # , "ust", "whale", "luna_ust"
 
 exit()

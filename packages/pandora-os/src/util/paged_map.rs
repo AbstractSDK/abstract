@@ -60,7 +60,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
                 let (key, element) = item.unwrap();
                 f(
                     (key.clone(), element, deps.as_ref()),
-                    &mut status
+                    status
                         .accumulator
                         .as_mut()
                         .expect("accumulator contains some value"),

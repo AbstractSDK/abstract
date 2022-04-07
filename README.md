@@ -45,7 +45,7 @@ Perks are contracts that are not really part of the DAO infrastructure but are d
 - ...
 
 # Permissions
-Permissions are handled on a per-dapp basis for interactions with the treasury. Changing configurations on the individual dapps is handled by the manager contract. This allows for flexible configuration of the dapps while still preserving the security guarantees. 
+Permissions are handled on a per-dapp basis for interactions with the proxy. Changing configurations on the individual dapps is handled by the manager contract. This allows for flexible configuration of the dapps while still preserving the security guarantees. 
 
 Contract migration is handled by the manager contract which has special Admin right to do so. Other configuration rights are configured on a per-dapp basis. 
 

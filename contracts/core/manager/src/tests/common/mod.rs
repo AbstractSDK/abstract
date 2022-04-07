@@ -1,4 +1,4 @@
-pub const TREASURY_CONTRACT: &str = "treasury_contract_address";
+pub const TREASURY_CONTRACT: &str = "proxy_contract_address";
 pub const ROOT_USER: &str = "trader_contract_address";
 pub const MEMORY_CONTRACT: &str = "memory_contract_address";
 pub const TEST_CREATOR: &str = "creator";

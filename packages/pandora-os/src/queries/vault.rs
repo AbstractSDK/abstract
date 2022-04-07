@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Addr, Deps, QueryRequest, StdResult, Uint128, WasmQuery};
 
-use crate::core::treasury::msg::{QueryMsg, TotalValueResponse};
+use crate::core::proxy::msg::{QueryMsg, TotalValueResponse};
 
 /// Query the total value denominated in the vault base asset
 /// The provided address must implement the TotalValue Query

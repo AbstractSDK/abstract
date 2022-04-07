@@ -23,9 +23,9 @@ impl Fee {
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct VaultFee {
     pub flash_loan_fee: Fee,
-    pub treasury_fee: Fee,
+    pub proxy_fee: Fee,
     pub commission_fee: Fee,
-    pub treasury_addr: CanonicalAddr,
+    pub proxy_addr: CanonicalAddr,
 }
 
 #[cfg(test)]
