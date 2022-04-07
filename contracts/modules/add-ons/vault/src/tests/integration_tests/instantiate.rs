@@ -8,7 +8,7 @@ use cw_asset::{Asset, AssetInfoUnchecked};
 use terra_multi_test::Executor;
 
 use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ValueRef, ProxyAsset};
+use pandora_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
 use pandora_os::native::memory::msg as MemoryMsg;
 
 use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
