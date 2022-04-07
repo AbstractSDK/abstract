@@ -11,7 +11,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use crate::commands::*;
 use crate::queries;
 use crate::state::ADMIN;
-use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg};
+use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type VCResult = Result<Response, VersionError>;
 

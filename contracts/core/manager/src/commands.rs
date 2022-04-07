@@ -2,12 +2,12 @@ use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
     StdResult, WasmMsg, WasmQuery,
 };
-use cw2::{ContractVersion, get_contract_version};
+use cw2::{get_contract_version, ContractVersion};
 use pandora_os::core::manager::queries::query_module_version;
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
-use pandora_os::core::treasury::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::core::treasury::msg::ExecuteMsg as TreasuryMsg;
-use pandora_os::core::treasury::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
+use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
+use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 use pandora_os::native::version_control::{
     msg::QueryMsg as VersionQuery, queries::try_raw_code_id_query,
 };
@@ -92,7 +92,7 @@ pub fn register_module(
     module_address: String,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
-    let treasury_addr = OS_MODULES.load(deps.storage, TREASURY)?;
+    let proxy_addr = OS_MODULES.load(deps.storage, TREASURY)?;
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
@@ -110,29 +110,33 @@ pub fn register_module(
             kind: ModuleKind::External,
             ..
         } => {
-            response = response.add_message(set_treasury_on_dapp(
-                deps.as_ref(),
-                treasury_addr.to_string(),
-                module_address.clone(),
-            )?).add_message(whitelist_dapp_on_proxy(
-                deps.as_ref(),
-                treasury_addr.into_string(),
-                module_address,
-            )?)
+            response = response
+                .add_message(set_proxy_on_dapp(
+                    deps.as_ref(),
+                    proxy_addr.to_string(),
+                    module_address.clone(),
+                )?)
+                .add_message(whitelist_dapp_on_proxy(
+                    deps.as_ref(),
+                    proxy_addr.into_string(),
+                    module_address,
+                )?)
         }
-        | _dapp @ Module {
+        _dapp @ Module {
             kind: ModuleKind::Internal,
             ..
         } => {
-            response = response.add_message(set_treasury_on_dapp(
-                deps.as_ref(),
-                treasury_addr.to_string(),
-                module_address.clone(),
-            )?).add_message(whitelist_dapp_on_proxy(
-                deps.as_ref(),
-                treasury_addr.into_string(),
-                module_address,
-            )?)
+            response = response
+                .add_message(set_proxy_on_dapp(
+                    deps.as_ref(),
+                    proxy_addr.to_string(),
+                    module_address.clone(),
+                )?)
+                .add_message(whitelist_dapp_on_proxy(
+                    deps.as_ref(),
+                    proxy_addr.into_string(),
+                    module_address,
+                )?)
         }
         Module {
             kind: ModuleKind::Service,
@@ -209,7 +213,7 @@ pub fn migrate_module(
 ) -> ManagerResult {
     // Check if trying to upgrade this contract.
     if module_info.name == MANAGER {
-        return upgrade_self(deps, env, module_info, migrate_msg)
+        return upgrade_self(deps, env, module_info, migrate_msg);
     }
 
     let module_addr = if module_info.name == MANAGER {
@@ -219,7 +223,6 @@ pub fn migrate_module(
     };
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
-    
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
 
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
@@ -230,7 +233,11 @@ pub fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
-fn get_code_id(deps: Deps, module_info: ModuleInfo, contract: ContractVersion) -> Result<u64, ManagerError> {
+fn get_code_id(
+    deps: Deps,
+    module_info: ModuleInfo,
+    contract: ContractVersion,
+) -> Result<u64, ManagerError> {
     let new_code_id: u64;
     let config = CONFIG.load(deps.storage)?;
     match module_info.version {
@@ -257,7 +264,12 @@ fn get_code_id(deps: Deps, module_info: ModuleInfo, contract: ContractVersion) -
     Ok(new_code_id)
 }
 
-fn upgrade_self(deps: DepsMut, env: Env, module_info: ModuleInfo, migrate_msg: Binary) -> ManagerResult {
+fn upgrade_self(
+    deps: DepsMut,
+    env: Env,
+    module_info: ModuleInfo,
+    migrate_msg: Binary,
+) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
 
@@ -269,15 +281,15 @@ fn upgrade_self(deps: DepsMut, env: Env, module_info: ModuleInfo, migrate_msg: B
     Ok(Response::new().add_message(migration_msg))
 }
 
-pub fn set_treasury_on_dapp(
+pub fn set_proxy_on_dapp(
     _deps: Deps,
-    treasury_address: String,
+    proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: dapp_address,
         msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-            treasury_address: Some(treasury_address),
+            proxy_address: Some(proxy_address),
         }))?,
         funds: vec![],
     }))

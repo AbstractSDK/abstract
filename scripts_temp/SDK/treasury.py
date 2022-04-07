@@ -12,14 +12,14 @@ sys.path.append('/workspaces/devcontainer/dao-os-SDK/src')
 sys.path.append(pathlib.Path(__file__).parent.resolve())
 
 from cw_os.contracts.terraswap_dapp import *
-from cw_os.contracts.treasury import *
+from cw_os.contracts.proxy import *
 from terra_sdk.core.coins import Coin
 from cw_os.deploy import get_deployer
 
-def execute_on_treasury_msg(msgs: any, coins: List[Coin]):
+def execute_on_proxy_msg(msgs: any, coins: List[Coin]):
     msg = MsgExecuteContract(
         deployer.wallet.key.acc_address,
-        treasury.address,
+        proxy.address,
         {
             "trader_action": {
                 "msgs": msgs
@@ -37,32 +37,32 @@ mnemonic = "coin reunion grab unlock jump reason year estate device elevator cle
 # deployer = get_deployer(mnemonic=mnemonic, chain_id="bombay-12", fee=None)
 deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
-treasury = TreasuryContract(deployer)
+proxy = TreasuryContract(deployer)
 terraswap_dapp = TerraswapDAppContract(deployer)
 
 create = True
 
 if create:
-    # treasury.create()
+    # proxy.create()
     terraswap_dapp.upload()
     terraswap_dapp.instantiate()
-    # treasury.add_dapp(terraswap_dapp.address)
-    # treasury.add_dapp(deployer.wallet.key.acc_address)
+    # proxy.add_dapp(terraswap_dapp.address)
+    # proxy.add_dapp(deployer.wallet.key.acc_address)
 
 # exit()
 # print(deployer.wallet.key.acc_address)
-# treasury.update_vault_assets()
+# proxy.update_vault_assets()
 # terraswap_dapp.query_config()
 # terraswap_dapp.auto_update_address_book()
 
 # terraswap_dapp.detailed_provide_liquidity("lbp_pair", [("whale", str(int(1000000000))), ("ust", str(int(100000000)))], None)
 # exit()
-# treasury.query_holding_amount("uluna")
-# treasury.send_asset("uluna", 10000, "terra1khmttxmtsmt0983ggwcufalxkn07l4yj5thu3h")
-# treasury.query_vault_asset("uluna")
+# proxy.query_holding_amount("uluna")
+# proxy.send_asset("uluna", 10000, "terra1khmttxmtsmt0983ggwcufalxkn07l4yj5thu3h")
+# proxy.query_vault_asset("uluna")
 # terraswap_dapp.swap("ust", "lbp_pair", int(100000))
 # terraswap_dapp.provide_liquidity("lbp_pair", "whale", int(9000000))
-# treasury.query_holding_value("uluna")
+# proxy.query_holding_value("uluna")
 
 # LBP token id
 # terraswap_dapp.withdraw_liquidity("lbp", 315511529)

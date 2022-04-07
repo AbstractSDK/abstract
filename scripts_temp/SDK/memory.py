@@ -35,18 +35,18 @@ if create:
 memory.query_assets(["luna"]) # , "ust", "whale", "luna_ust"
 # exit()
 # print(deployer.wallet.key.acc_address)
-# treasury.update_vault_assets()
+# proxy.update_vault_assets()
 # terraswap_dapp.query_config()
 # terraswap_dapp.auto_update_address_book()
 
 # terraswap_dapp.detailed_provide_liquidity("lbp_pair", [("whale", str(int(1000000000))), ("ust", str(int(100000000)))], None)
 # exit()
-# treasury.query_holding_amount("uluna")
-# treasury.send_asset("uluna", 10000, "terra1khmttxmtsmt0983ggwcufalxkn07l4yj5thu3h")
-# treasury.query_vault_asset("uluna")
+# proxy.query_holding_amount("uluna")
+# proxy.send_asset("uluna", 10000, "terra1khmttxmtsmt0983ggwcufalxkn07l4yj5thu3h")
+# proxy.query_vault_asset("uluna")
 # terraswap_dapp.swap("ust", "lbp_pair", int(100000))
 # terraswap_dapp.provide_liquidity("lbp_pair", "whale", int(9000000))
-# treasury.query_holding_value("uluna")
+# proxy.query_holding_value("uluna")
 
 # LBP token id
 

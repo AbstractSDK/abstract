@@ -1,16 +1,11 @@
 use std::collections::HashMap;
 
-use crate::tests::common::TEST_CREATOR;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
+use cosmwasm_std::{Addr, Empty};
 use pandora_os::core::modules::ModuleInfo;
-use pandora_os::core::treasury::msg as TreasuryMsg;
-use pandora_os::native::memory::msg as MemoryMsg;
-use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use terraswap::asset::{AssetInfo, PairInfo};
 
-use super::upload::upload_contracts;
+use terra_mocks::TerraMockQuerier;
+use terra_multi_test::{App, BankKeeper};
 
 pub struct NativeContracts {
     pub token: Addr,
@@ -22,7 +17,7 @@ pub struct NativeContracts {
 
 pub struct OsInstance {
     pub manager: Addr,
-    pub treasury: Addr,
+    pub proxy: Addr,
     pub modules: HashMap<String, ModuleInfo>,
 }
 

@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_binary, Addr, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn, Response, StdError, SubMsg,
-    WasmMsg, WasmQuery, Empty,
+    to_binary, Addr, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn, Response, StdError,
+    SubMsg, WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora_os::core::manager::helper::register_module_on_manager;
@@ -14,7 +14,9 @@ use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
 use pandora_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use pandora_os::core::treasury::msg::{InstantiateMsg as TreasuryInstantiateMsg, ExecuteMsg as TreasuryExecMsg};
+use pandora_os::core::proxy::msg::{
+    ExecuteMsg as TreasuryExecMsg, InstantiateMsg as TreasuryInstantiateMsg,
+};
 use pandora_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
@@ -82,7 +84,7 @@ pub fn execute_create_os(
 
 /// Registers the DAO on the version_control contract and
 /// instantiates the Treasury contract of the newly created DAO
-pub fn after_manager_create_treasury(
+pub fn after_manager_create_proxy(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
@@ -107,7 +109,7 @@ pub fn after_manager_create_treasury(
 
     // Query version_control for code_id of Treasury
     // TODO: replace with raw-query from package.
-    let treasury_code_id_response: CodeIdResponse =
+    let proxy_code_id_response: CodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
@@ -125,7 +127,7 @@ pub fn after_manager_create_treasury(
             id: CREATE_OS_TREASURY_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
-                code_id: treasury_code_id_response.code_id.u64(),
+                code_id: proxy_code_id_response.code_id.u64(),
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
                 label: format!("Treasury of OS: {}", config.next_os_id),
@@ -136,9 +138,9 @@ pub fn after_manager_create_treasury(
         }))
 }
 
-/// Adds treasury contract address and name to Manager
+/// Adds proxy contract address and name to Manager
 /// contract of OS
-pub fn after_treasury_add_to_manager_and_set_admin(
+pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
@@ -149,7 +151,7 @@ pub fn after_treasury_add_to_manager_and_set_admin(
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    let treasury_address = res.get_contract_address().to_string();
+    let proxy_address = res.get_contract_address().to_string();
 
     // TODO: Should we store the manager address in the local state between the previous step and this?
     // Get address of manager
@@ -161,9 +163,11 @@ pub fn after_treasury_add_to_manager_and_set_admin(
     }))?;
 
     let set_manager_as_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: treasury_address.clone(),
+        contract_addr: proxy_address.clone(),
         funds: vec![],
-        msg: to_binary(&TreasuryExecMsg::SetAdmin { admin: manager_address.clone() })?,
+        msg: to_binary(&TreasuryExecMsg::SetAdmin {
+            admin: manager_address.clone(),
+        })?,
     });
 
     // Update id sequence
@@ -175,10 +179,9 @@ pub fn after_treasury_add_to_manager_and_set_admin(
         .add_message(register_module_on_manager(
             manager_address,
             TREASURY.to_string(),
-            treasury_address,
+            proxy_address,
         )?)
-    .add_message(set_manager_as_admin_msg)
-    )
+        .add_message(set_manager_as_admin_msg))
 }
 
 // Only owner can execute it

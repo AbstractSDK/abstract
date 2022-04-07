@@ -11,7 +11,7 @@ import sys
 from typing import List
 
 from cw_os.contracts.manager import *
-from cw_os.contracts.treasury import *
+from cw_os.contracts.proxy import *
 from cw_os.contracts.version_control import *
 from cw_os.contracts.os_factory import *
 from cw_os.contracts.module_factory import *
@@ -26,7 +26,7 @@ deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
 version_control = VersionControlContract(deployer)
 manager = OSManager(deployer)
-treasury = TreasuryContract(deployer)
+proxy = TreasuryContract(deployer)
 factory = OsFactoryContract(deployer)
 module_factory = ModuleFactoryContract(deployer)
 
@@ -40,11 +40,11 @@ if create_vc:
     version_control.instantiate()
     
     version_control.add_module_code_id(name="pandora:terraswap", version= "v0.1.0",code_id= version_control.get("terraswap_dapp", True))
-    version_control.add_module_code_id(name="pandora:treasury", version= "v0.1.0",code_id= version_control.get("treasury", True))
+    version_control.add_module_code_id(name="pandora:proxy", version= "v0.1.0",code_id= version_control.get("proxy", True))
 
 if create_manager:
     manager.upload()
-    # treasury.upload()
+    # proxy.upload()
     version_control.add_module_code_id(name="pandora:manager", version= "v0.1.41",code_id= version_control.get("manager", True))
 
 if create_module_factory:

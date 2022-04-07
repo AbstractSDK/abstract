@@ -1,4 +1,4 @@
-use cosmwasm_std::{entry_point, Addr};
+use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };

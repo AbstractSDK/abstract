@@ -3,7 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Returns the treasury Config",
+      "description": "Returns the proxy Config",
       "type": "object",
       "required": [
         "config"

@@ -10,7 +10,7 @@ import sys
 from typing import List
 
 from cw_os.contracts.manager import *
-from cw_os.contracts.treasury import *
+from cw_os.contracts.proxy import *
 from cw_os.contracts.version_control import *
 from cw_os.contracts.module_factory import *
 from cw_os.contracts.os_factory import *
@@ -25,7 +25,7 @@ deployer = get_deployer(mnemonic=mnemonic, chain_id="localterra", fee=None)
 
 version_control = VersionControlContract(deployer)
 manager = OSManager(deployer)
-treasury = TreasuryContract(deployer)
+proxy = TreasuryContract(deployer)
 factory = OsFactoryContract(deployer)
 module_factory = ModuleFactoryContract(deployer)
 
@@ -51,11 +51,11 @@ version_control.query_code_id("pandora:manager", None)
 
 version_control.query_enabled_modules(latest_os)
 
-# treasury_addr = manager.query_modules(modules=["Treasury"])["modules"][0][1]
-manager.query_modules(modules=["pandora:treasury"])
+# proxy_addr = manager.query_modules(modules=["Treasury"])["modules"][0][1]
+manager.query_modules(modules=["pandora:proxy"])
 
 # terraswap_init_msg =  {
-#             "treasury_address": str(treasury_addr),
+#             "proxy_address": str(proxy_addr),
 #             "trader": deployer.wallet.key.acc_address,
 #             "memory_addr": deployer.wallet.key.acc_address
 #         }
