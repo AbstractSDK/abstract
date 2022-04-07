@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cw_asset::Asset;
-use pandora_os::{
+use crate::{
     modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg},
     util::fee::Fee,
 };

@@ -3,7 +3,7 @@ use cosmwasm_std::{Api, Decimal, MessageInfo};
 
 use crate::contract::execute;
 use crate::error::VaultError;
-use crate::msg::ExecuteMsg;
+use pandora_os::modules::add_ons::vault::ExecuteMsg;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::instantiate::mock_instantiate;
 

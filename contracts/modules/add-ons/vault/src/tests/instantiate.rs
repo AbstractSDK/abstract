@@ -8,7 +8,7 @@ use pandora_os::modules::dapp_base::state::{BaseState, BASESTATE};
 use pandora_os::native::memory::item::Memory;
 
 use crate::contract::{execute, instantiate};
-use crate::msg::{ExecuteMsg, InstantiateMsg};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
 use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
 use crate::tests::common::{TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
