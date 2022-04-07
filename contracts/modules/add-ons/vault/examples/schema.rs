@@ -4,8 +4,8 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use pandora_os::modules::dapp_base::state::BaseState;
-use vault_dapp::msg::InstantiateMsg;
-use vault_dapp::msg::{ExecuteMsg, QueryMsg};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, QueryMsg, InstantiateMsg};
+
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

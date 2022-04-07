@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Uint128};
 
 use terra_multi_test::App;
 
-use crate::msg::ExecuteMsg;
+use pandora_os::modules::add_ons::vault::ExecuteMsg;
 
 use cw_asset::Asset;
 use terra_multi_test::Executor;

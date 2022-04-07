@@ -11,7 +11,7 @@ use pandora_os::util::deposit_info::DepositInfo;
 
 use crate::contract::VaultResult;
 use crate::error::VaultError;
-use crate::msg::DepositHookMsg;
+use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
 use pandora_os::queries::vault::query_total_value;
 use pandora_os::util::fee::Fee;
