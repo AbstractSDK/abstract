@@ -223,7 +223,6 @@ pub fn migrate_module(
     };
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
-
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
 
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {

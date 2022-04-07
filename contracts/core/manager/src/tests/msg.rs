@@ -7,6 +7,7 @@ use crate::contract::execute;
 use crate::error::TerraswapError;
 use crate::tests::base_mocks::mocks::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
+use pandora_os::dapps::terraswap::ExecuteMsg;
 
 use pandora_os::modules::apis::terraswap::ExecuteMsg;
 
