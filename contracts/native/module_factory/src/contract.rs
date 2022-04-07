@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::error::ModuleFactoryError;
 use cw2::set_contract_version;
-use pandora_os::registery::FACTORY;
+use pandora_os::registery::OS_FACTORY;
 
 use crate::commands;
 use crate::state::*;
@@ -28,14 +28,15 @@ pub fn instantiate(
         memory_address: deps.api.addr_validate(&msg.memory_address)?,
     };
 
-    set_contract_version(deps.storage, FACTORY, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
     // Set context for after init
     CONTEXT.save(
         deps.storage,
         &Context {
-            manager: Addr::unchecked(""),
+            manager: None,
+            module: None,
         },
     )?;
     ADMIN.set(deps, Some(info.sender))?;

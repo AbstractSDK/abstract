@@ -1,0 +1,101 @@
+use std::collections::HashMap;
+
+use crate::tests::common::TEST_CREATOR;
+use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
+use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
+use pandora_os::core::treasury::msg as TreasuryMsg;
+use pandora_os::native::memory::msg as MemoryMsg;
+use pandora_os::registery::*;
+use terra_mocks::TerraMockQuerier;
+use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
+use terraswap::asset::{AssetInfo, PairInfo};
+
+use super::common_integration::NativeContracts;
+use super::instantiate::init_native_contracts;
+
+/// Uploads:
+/// - CW Token
+///
+/// -- Core --
+/// - Treasury
+/// - Manager
+///
+/// -- Native --
+/// - Memory
+/// - Module Factory
+/// - Version Control
+/// - Os Factory
+pub fn upload_contracts(app: &mut App) -> (HashMap<&str, u64>, NativeContracts) {
+    let mut code_ids: HashMap<&str, u64> = HashMap::new();
+
+    // Instantiate Token Contract
+    let cw20_token_contract = Box::new(ContractWrapper::new(
+        cw20_base::contract::execute,
+        cw20_base::contract::instantiate,
+        cw20_base::contract::query,
+    ));
+    let cw20_token_code_id = app.store_code(cw20_token_contract);
+    code_ids.insert("cw20", cw20_token_code_id);
+
+    // Upload Treasury Contract
+    let treasury_contract = Box::new(ContractWrapper::new(
+        treasury::contract::execute,
+        treasury::contract::instantiate,
+        treasury::contract::query,
+    ).with_migrate(treasury::contract::migrate));
+    let treasury_code_id = app.store_code(treasury_contract);
+    code_ids.insert(TREASURY, treasury_code_id);
+
+    // Upload Memory Contract
+    let memory_contract = Box::new(ContractWrapper::new(
+        memory::contract::execute,
+        memory::contract::instantiate,
+        memory::contract::query,
+    ));
+
+    let memory_code_id = app.store_code(memory_contract);
+    code_ids.insert(MEMORY, memory_code_id);
+
+    // Upload vc Contract
+    let version_control_contract = Box::new(ContractWrapper::new(
+        version_control::contract::execute,
+        version_control::contract::instantiate,
+        version_control::contract::query,
+    ).with_migrate(version_control::contract::migrate));
+
+    let version_control_code_id = app.store_code(version_control_contract);
+    code_ids.insert(VERSION_CONTROL, version_control_code_id);
+
+    // Upload os_factory Contract
+    let os_factory_contract = Box::new(ContractWrapper::new(
+        os_factory::contract::execute,
+        os_factory::contract::instantiate,
+        os_factory::contract::query,
+    ).with_reply(os_factory::contract::reply));
+
+    let os_factory_code_id = app.store_code(os_factory_contract);
+    code_ids.insert(OS_FACTORY, os_factory_code_id);
+
+    // Upload module_factory Contract
+    let module_factory_contract = Box::new(ContractWrapper::new(
+        module_factory::contract::execute,
+        module_factory::contract::instantiate,
+        module_factory::contract::query,
+    ).with_reply(module_factory::contract::reply));
+
+    let module_factory_code_id = app.store_code(module_factory_contract);
+    code_ids.insert(MODULE_FACTORY, module_factory_code_id);
+
+    // Upload manager Contract
+    let manager_contract = Box::new(ContractWrapper::new(
+        crate::contract::execute,
+        crate::contract::instantiate,
+        crate::contract::query,
+    ).with_migrate(crate::contract::migrate));
+
+    let manager_code_id = app.store_code(manager_contract);
+    code_ids.insert(MANAGER, manager_code_id);
+    let native_contracts = init_native_contracts(app, &code_ids);
+    
+    (code_ids, native_contracts)
+}

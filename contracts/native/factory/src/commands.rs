@@ -1,6 +1,6 @@
 use cosmwasm_std::{
     to_binary, Addr, DepsMut, Env, MessageInfo, QueryRequest, ReplyOn, Response, StdError, SubMsg,
-    WasmMsg, WasmQuery,
+    WasmMsg, WasmQuery, Empty,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora_os::core::manager::helper::register_module_on_manager;
@@ -14,7 +14,7 @@ use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
 use pandora_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use pandora_os::core::treasury::msg::InstantiateMsg as TreasuryInstantiateMsg;
+use pandora_os::core::treasury::msg::{InstantiateMsg as TreasuryInstantiateMsg, ExecuteMsg as TreasuryExecMsg};
 use pandora_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
@@ -138,7 +138,7 @@ pub fn after_manager_create_treasury(
 
 /// Adds treasury contract address and name to Manager
 /// contract of OS
-pub fn after_treasury_add_to_manager(
+pub fn after_treasury_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
@@ -149,6 +149,8 @@ pub fn after_treasury_add_to_manager(
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
+    let treasury_address = res.get_contract_address().to_string();
+
     // TODO: Should we store the manager address in the local state between the previous step and this?
     // Get address of manager
     let manager_address: String = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -157,6 +159,12 @@ pub fn after_treasury_add_to_manager(
             os_id: config.next_os_id,
         })?,
     }))?;
+
+    let set_manager_as_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: treasury_address.clone(),
+        funds: vec![],
+        msg: to_binary(&TreasuryExecMsg::SetAdmin { admin: manager_address.clone() })?,
+    });
 
     // Update id sequence
     config.next_os_id += 1;
@@ -167,8 +175,10 @@ pub fn after_treasury_add_to_manager(
         .add_message(register_module_on_manager(
             manager_address,
             TREASURY.to_string(),
-            res.get_contract_address().to_string(),
-        )?))
+            treasury_address,
+        )?)
+    .add_message(set_manager_as_admin_msg)
+    )
 }
 
 // Only owner can execute it

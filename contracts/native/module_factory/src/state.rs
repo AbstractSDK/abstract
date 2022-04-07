@@ -1,6 +1,7 @@
 use cosmwasm_std::{Addr, Binary};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
+use pandora_os::core::modules::Module;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +13,8 @@ pub struct Config {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Context {
-    pub manager: Addr,
+    pub manager: Option<Addr>,
+    pub module: Option<Module>,
 }
 
 pub const ADMIN: Admin = Admin::new("admin");

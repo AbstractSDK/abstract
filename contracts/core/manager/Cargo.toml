@@ -37,6 +37,17 @@ protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0.4"
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
+cw-multi-test = { version = "0.8"}
+terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks"}
+terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test"}
+cw20-base = { version = "0.8", features = ["library"] }
+
+treasury = { version = "0.1.0", path = "../treasury" }
+memory = { version = "0.1.0", path = "../../native/memory" }
+os-factory = { version = "0.1.0", path = "../../native/factory" }
+module-factory = { version = "0.1.0", path = "../../native/module_factory" }
+version-control = { version = "0.1.0", path = "../../native/version_control" }
+
 
 [package.metadata.scripts]
 optimize = """docker run --rm -v "$(pwd)":/code \

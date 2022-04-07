@@ -6,9 +6,9 @@ use terra_rust_script_derive::CosmWasmContract;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 pub struct InstantiateMsg {
     /// Version control contract used to get code-ids and register OS
-    pub version_control_contract: String,
+    pub version_control_address: String,
     /// Memory contract
-    pub memory_contract: String,
+    pub memory_address: String,
     pub module_factory_address: String,
     // Creation fee in some denom (TBD)
     pub creation_fee: u32,

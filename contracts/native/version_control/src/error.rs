@@ -10,6 +10,9 @@ pub enum VersionError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
+    #[error("Semver parsing error: {0}")]
+    SemVer(String),
+
     #[error(
         "Version {} of module {} does not have a stored code id",
         version,
@@ -19,4 +22,9 @@ pub enum VersionError {
 
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },
+}
+impl From<semver::Error> for VersionError {
+    fn from(err: semver::Error) -> Self {
+        Self::SemVer(err.to_string())
+    }
 }
