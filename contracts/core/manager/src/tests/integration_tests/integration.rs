@@ -1,31 +1,25 @@
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
 
-use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
-use cw20::Cw20Contract;
+use cosmwasm_std::Addr;
 
 use pandora_os::registery::TREASURY;
-use terra_multi_test::{App, ContractWrapper};
+use terra_multi_test::App;
 
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::integration_tests::common_integration::mock_app;
-use crate::tests::integration_tests::instantiate::init_native_contracts;
+
 use crate::tests::integration_tests::upload::upload_contracts;
-use pandora_os::core::proxy::msg as TreasuryMsg;
+
 use pandora_os::core::*;
-use pandora_os::modules::apis::terraswap::ExecuteMsg;
-use pandora_os::native::memory::msg as MemoryMsg;
+
 use pandora_os::native::*;
 use terra_multi_test::Executor;
-use terraswap::pair::PoolResponse;
-
-use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};
 
 use super::common_integration::{NativeContracts, OsInstance};
 const MILLION: u64 = 1_000_000u64;
 
 fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> OsInstance {
-    let resp = app
+    let _resp = app
         .execute_contract(
             sender.clone(),
             native_contracts.os_factory.clone(),
@@ -69,7 +63,7 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
 fn proper_initialization() {
     let mut app = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
-    let (code_ids, native_contracts) = upload_contracts(&mut app);
+    let (_code_ids, native_contracts) = upload_contracts(&mut app);
 
     init_os(&mut app, sender, &native_contracts);
 

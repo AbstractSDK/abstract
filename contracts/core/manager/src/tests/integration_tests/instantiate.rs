@@ -1,17 +1,16 @@
 use std::collections::HashMap;
 
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
-use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
-use pandora_os::core::{manager::msg as ManagerMsg, proxy::msg as TreasuryMsg};
+
+use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
+
 use pandora_os::native::{
     memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,
     os_factory::msg as OSFactoryMsg, version_control::msg as VCMsg,
 };
 use pandora_os::registery::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
-use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use terraswap::asset::{AssetInfo, PairInfo};
+
+use terra_multi_test::{App, Executor};
 
 use super::common_integration::NativeContracts;
 
