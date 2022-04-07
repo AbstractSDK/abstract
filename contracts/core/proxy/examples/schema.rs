@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use pandora_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
-use pandora_os::core::proxy::proxy_assets::VaultAsset;
+use pandora_os::core::proxy::proxy_assets::ProxyAsset;
 use pandora_os::core::proxy::state::State;
 
 fn main() {
@@ -18,5 +18,5 @@ fn main() {
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(State), &out_dir);
     export_schema(&schema_for!(ConfigResponse), &out_dir);
-    export_schema(&schema_for!(VaultAsset), &out_dir)
+    export_schema(&schema_for!(ProxyAsset), &out_dir)
 }

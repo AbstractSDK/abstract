@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use cosmwasm_std::{to_binary, Addr, CosmosMsg, Empty, StdResult, Uint128, WasmMsg};
 use terra_rust_script_derive::CosmWasmContract;
 
-use crate::core::proxy::proxy_assets::VaultAsset;
+use crate::core::proxy::proxy_assets::ProxyAsset;
 use cw_asset::AssetInfo;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {}
@@ -22,7 +22,7 @@ pub enum ExecuteMsg {
     RemoveDApp { dapp: String },
     /// Updates the VAULT_ASSETS map
     UpdateAssets {
-        to_add: Vec<VaultAsset>,
+        to_add: Vec<ProxyAsset>,
         to_remove: Vec<AssetInfo>,
     },
 }

@@ -12,7 +12,7 @@ use pandora_os::core::proxy::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
-use pandora_os::core::proxy::proxy_assets::{get_asset_identifier, VaultAsset};
+use pandora_os::core::proxy::proxy_assets::{get_asset_identifier, ProxyAsset};
 use pandora_os::core::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
 use pandora_os::registery::TREASURY;
 use semver::Version;
@@ -96,7 +96,7 @@ pub fn execute_action(
 pub fn update_assets(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<VaultAsset>,
+    to_add: Vec<ProxyAsset>,
     to_remove: Vec<AssetInfo>,
 ) -> TreasuryResult {
     // Only Admin can call this method
@@ -106,7 +106,7 @@ pub fn update_assets(
         let id = get_asset_identifier(&new_asset.asset.info);
         // update function for new or existing keys
         let insert =
-            |_vault_asset: Option<VaultAsset>| -> StdResult<VaultAsset> { Ok(new_asset.clone()) };
+            |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> { Ok(new_asset.clone()) };
         VAULT_ASSETS.update(deps.storage, &id, insert)?;
     }
 
@@ -160,7 +160,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             value: compute_total_value(deps, env)?,
         }),
         QueryMsg::HoldingAmount { identifier } => {
-            let vault_asset: VaultAsset = VAULT_ASSETS.load(deps.storage, identifier.as_str())?;
+            let vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, identifier.as_str())?;
             to_binary(
                 &vault_asset
                     .asset
@@ -192,7 +192,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 /// Returns the value of a specified asset.
 pub fn compute_holding_value(deps: Deps, env: &Env, holding: String) -> StdResult<Uint128> {
-    let mut vault_asset: VaultAsset = VAULT_ASSETS.load(deps.storage, holding.as_str())?;
+    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, holding.as_str())?;
     let value = vault_asset.value(deps, env, None)?;
     Ok(value)
 }
@@ -202,7 +202,7 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
     // Get all assets from storage
     let mut all_assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(Vec<u8>, VaultAsset)>>>()?;
+        .collect::<StdResult<Vec<(Vec<u8>, ProxyAsset)>>>()?;
 
     let mut total_value = Uint128::zero();
     // Calculate their value iteratively

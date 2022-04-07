@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use cosmwasm_std::{Addr, CanonicalAddr, Decimal, Deps, Env, StdResult, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::core::proxy::proxy_assets::VaultAsset;
+use crate::core::proxy::proxy_assets::ProxyAsset;
 use crate::queries::terraswap::query_pool;
 use cw_asset::AssetInfo;
 use terraswap::pair::PoolResponse;
@@ -21,7 +21,7 @@ pub struct State {
 
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 pub const ADMIN: Admin = Admin::new("admin");
-pub const VAULT_ASSETS: Map<&str, VaultAsset> = Map::new("proxy_assets");
+pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
 
 pub fn lp_value(deps: Deps, env: &Env, pool_addr: &Addr, holdings: &Uint128) -> StdResult<Uint128> {
     // Get LP pool info
@@ -35,11 +35,11 @@ pub fn lp_value(deps: Deps, env: &Env, pool_addr: &Addr, holdings: &Uint128) -> 
     let asset_2 = &pool_info.assets[1];
 
     // load the assets
-    let mut vault_asset_1: VaultAsset = VAULT_ASSETS.load(
+    let mut vault_asset_1: ProxyAsset = VAULT_ASSETS.load(
         deps.storage,
         get_tswap_asset_identifier(&asset_1.info).as_str(),
     )?;
-    let mut vault_asset_2: VaultAsset = VAULT_ASSETS.load(
+    let mut vault_asset_2: ProxyAsset = VAULT_ASSETS.load(
         deps.storage,
         get_tswap_asset_identifier(&asset_2.info).as_str(),
     )?;
@@ -60,7 +60,7 @@ pub fn proxy_value(
     holding: Uint128,
 ) -> StdResult<Uint128> {
     // Get the proxy asset
-    let mut proxy_vault_asset: VaultAsset = VAULT_ASSETS.load(
+    let mut proxy_vault_asset: ProxyAsset = VAULT_ASSETS.load(
         deps.storage,
         get_asset_identifier(proxy_asset_info).as_str(),
     )?;

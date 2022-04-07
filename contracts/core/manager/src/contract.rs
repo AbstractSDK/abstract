@@ -23,12 +23,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
-
     if storage_version < version {
         set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-
-        // If state structure changed in any contract version in the way migration is needed, it
-        // should occur here
     }
     Ok(Response::default())
 }
@@ -85,11 +81,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
         ExecuteMsg::Upgrade {
             module,
             migrate_msg,
-        } => upgrade_module(deps, env, info, module, migrate_msg),
+        } => _upgrade_module(deps, env, info, module, migrate_msg),
     }
 }
 
-fn upgrade_module(
+fn _upgrade_module(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,

@@ -12,12 +12,12 @@ use crate::util::tax::reverse_decimal;
 use cw_asset::{Asset, AssetInfo};
 use terraswap::pair::PoolResponse;
 
-/// Every VaultAsset provides a way to determine its value recursivly relative to
+/// Every ProxyAsset provides a way to determine its value recursivly relative to
 /// a base asset.
 /// This is subject to change as Chainlink an/or TWAP implementations roll out on terra.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct VaultAsset {
+pub struct ProxyAsset {
     pub asset: Asset,
     // The value reference provides the tooling to get the value of the holding
     // relative to the base asset.
@@ -48,7 +48,7 @@ pub enum ValueRef {
     },
 }
 
-impl VaultAsset {
+impl ProxyAsset {
     /// Calculates the value of the asset through the optionally provided ValueReference
     pub fn value(
         &mut self,
@@ -112,7 +112,7 @@ impl VaultAsset {
         // Get price
         let ratio = Decimal::from_ratio(pool_info.assets[0].amount, pool_info.assets[1].amount);
 
-        let mut recursive_vault_asset: VaultAsset;
+        let mut recursive_vault_asset: ProxyAsset;
         let amount_in_other_denom: Uint128;
         // Get the value of the current asset in the denom of the other asset
         if cw_to_terraswap(&self.asset.info) == pool_info.assets[0].info {

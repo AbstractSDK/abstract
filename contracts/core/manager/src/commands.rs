@@ -2,6 +2,7 @@ use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
     StdResult, WasmMsg, WasmQuery,
 };
+use cw2::{ContractVersion, get_contract_version};
 use pandora_os::core::manager::queries::query_module_version;
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
 use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
@@ -210,21 +211,37 @@ pub fn migrate_module(
     module_info: ModuleInfo,
     migrate_msg: Binary,
 ) -> ManagerResult {
+    // Check if trying to upgrade this contract.
+    if module_info.name == MANAGER {
+        return upgrade_self(deps, env, module_info, migrate_msg)
+    }
+
     let module_addr = if module_info.name == MANAGER {
         env.contract.address
     } else {
         OS_MODULES.load(deps.storage, &module_info.name)?
     };
 
-    let config = CONFIG.load(deps.storage)?;
-
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
+    
+    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
+
+    let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
+        contract_addr: module_addr.into_string(),
+        new_code_id,
+        msg: migrate_msg,
+    });
+    Ok(Response::new().add_message(migration_msg))
+}
+
+fn get_code_id(deps: Deps, module_info: ModuleInfo, contract: ContractVersion) -> Result<u64, ManagerError> {
     let new_code_id: u64;
+    let config = CONFIG.load(deps.storage)?;
     match module_info.version {
         Some(new_version) => {
             if new_version.parse::<Version>()? < contract.version.parse::<Version>()? {
                 new_code_id = try_raw_code_id_query(
-                    deps.as_ref(),
+                    deps,
                     &config.version_control_address,
                     (module_info.name, new_version),
                 )?;
@@ -241,8 +258,15 @@ pub fn migrate_module(
             }))?;
         }
     }
+    Ok(new_code_id)
+}
+
+fn upgrade_self(deps: DepsMut, env: Env, module_info: ModuleInfo, migrate_msg: Binary) -> ManagerResult {
+    let contract = get_contract_version(deps.storage)?;
+    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
+
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
-        contract_addr: module_addr.into_string(),
+        contract_addr: env.contract.address.into_string(),
         new_code_id,
         msg: migrate_msg,
     });

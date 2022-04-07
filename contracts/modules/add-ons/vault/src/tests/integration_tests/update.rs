@@ -8,7 +8,7 @@ use cw_asset::Asset;
 use terra_multi_test::Executor;
 
 use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ValueRef, VaultAsset};
+use pandora_os::core::proxy::proxy_assets::{ValueRef, ProxyAsset};
 
 use super::common_integration::BaseContracts;
 
@@ -25,7 +25,7 @@ pub fn change_base_to_whale(
         &TreasuryMsg::ExecuteMsg::UpdateAssets {
             to_add: vec![
                 // uusd is base asset of this vault, so no value_ref
-                VaultAsset {
+                ProxyAsset {
                     asset: Asset {
                         info: cw_asset::AssetInfo::Native("uusd".to_string()),
                         amount: Uint128::zero(),
@@ -35,7 +35,7 @@ pub fn change_base_to_whale(
                     }),
                 },
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
-                VaultAsset {
+                ProxyAsset {
                     asset: Asset {
                         info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                         amount: Uint128::zero(),

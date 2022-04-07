@@ -8,7 +8,7 @@ use cw_asset::{Asset, AssetInfoUnchecked};
 use terra_multi_test::Executor;
 
 use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ValueRef, VaultAsset};
+use pandora_os::core::proxy::proxy_assets::{ValueRef, ProxyAsset};
 use pandora_os::native::memory::msg as MemoryMsg;
 
 use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
@@ -72,7 +72,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         &TreasuryMsg::ExecuteMsg::UpdateAssets {
             to_add: vec![
                 // uusd is base asset of this vault, so no value_ref
-                VaultAsset {
+                ProxyAsset {
                     asset: Asset {
                         info: cw_asset::AssetInfo::Native("uusd".to_string()),
                         amount: Uint128::zero(),
@@ -80,7 +80,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
                     value_reference: None,
                 },
                 // Other asset is WHALE. It's value in uusd is calculated with the provided pool valueref
-                VaultAsset {
+                ProxyAsset {
                     asset: Asset {
                         info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
                         amount: Uint128::zero(),

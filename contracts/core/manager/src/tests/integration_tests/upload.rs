@@ -111,6 +111,5 @@ pub fn upload_contracts(app: &mut App) -> (HashMap<&str, u64>, NativeContracts) 
     let manager_code_id = app.store_code(manager_contract);
     code_ids.insert(MANAGER, manager_code_id);
     let native_contracts = init_native_contracts(app, &code_ids);
-
     (code_ids, native_contracts)
 }

@@ -74,7 +74,7 @@ fn successful_asset_update() {
     let state: State = STATE.load(&deps.storage).unwrap();
     assert_eq!(state, State { dapps: vec![] });
 
-    let test_native_asset = VaultAsset {
+    let test_native_asset = ProxyAsset {
         asset: Asset {
             info: AssetInfo::Native("base_asset".to_string()),
             amount: Uint128::zero(),
@@ -82,7 +82,7 @@ fn successful_asset_update() {
         value_reference: None,
     };
 
-    let test_token_asset = VaultAsset {
+    let test_token_asset = ProxyAsset {
         asset: Asset {
             info: AssetInfo::Cw20(Addr::unchecked("test_token".to_string())),
             amount: Uint128::zero(),
@@ -98,7 +98,7 @@ fn successful_asset_update() {
     let _res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     // Get an asset
-    let asset_1: VaultAsset = VAULT_ASSETS
+    let asset_1: ProxyAsset = VAULT_ASSETS
         .load(
             &deps.storage,
             &get_asset_identifier(&test_native_asset.asset.info),
@@ -106,7 +106,7 @@ fn successful_asset_update() {
         .unwrap();
     assert_eq!(test_native_asset, asset_1,);
     // Get the other asset
-    let asset_2: VaultAsset = VAULT_ASSETS
+    let asset_2: ProxyAsset = VAULT_ASSETS
         .load(
             &deps.storage,
             &get_asset_identifier(&test_token_asset.asset.info),

@@ -14,7 +14,7 @@ pub fn has_sufficient_balance(
     // Load asset
     let info = memory.query_asset(deps, offer_id)?;
     // Get balance and check
-    if query_asset_balance(deps, &info, address.clone())? < required {
+    if info.query_balance(&deps.querier, address)? < required {
         return Err(BaseDAppError::Broke {});
     }
     Ok(())

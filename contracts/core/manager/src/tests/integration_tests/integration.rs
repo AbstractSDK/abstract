@@ -48,7 +48,6 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
         .unwrap();
 
     let manager_addr = Addr::unchecked(resp);
-
     let resp: manager::msg::ModuleQueryResponse = app
         .wrap()
         .query_wasm_smart(

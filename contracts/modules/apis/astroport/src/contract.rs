@@ -8,7 +8,7 @@ use pandora_os::modules::dapp_base::common::BaseDAppResult;
 use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
 use pandora_os::modules::dapp_base::queries as dapp_base_queries;
 use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use pandora_os::core::proxy::proxy_assets::{get_identifier, VaultAsset};
+use pandora_os::core::proxy::proxy_assets::{get_identifier, ProxyAsset};
 
 use crate::commands;
 use crate::error::AstroportError;
