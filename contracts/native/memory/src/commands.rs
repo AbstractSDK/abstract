@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult, Empty};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::MemoryResult;
@@ -82,7 +82,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResul
 
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-    ADMIN.execute_update_admin(deps, info, Some(admin_addr))?;
+    ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))

@@ -13,7 +13,6 @@ use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use semver::Version;
-use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
 use pandora_os::modules::dapp_base::commands as dapp_base_commands;
 use pandora_os::util::fee::Fee;
@@ -22,6 +21,7 @@ use pandora_os::modules::dapp_base::common::BaseDAppResult;
 use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
 use pandora_os::modules::dapp_base::queries as dapp_base_queries;
 use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
+use pandora_os::util::token::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::response::MsgInstantiateContractResponse;
 

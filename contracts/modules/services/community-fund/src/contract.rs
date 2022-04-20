@@ -50,7 +50,7 @@ pub fn execute(
         ExecuteMsg::SetAdmin { admin } => {
             let new_admin_addr = deps.api.addr_validate(&admin)?;
             let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-            ADMIN.execute_update_admin(deps, info, Some(new_admin_addr))?;
+            ADMIN.execute_update_admin::<Empty>(deps, info, Some(new_admin_addr))?;
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)
                 .add_attribute("admin", admin))

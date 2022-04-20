@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, MessageInfo, Response, Empty};
 use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
@@ -103,7 +103,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     // Admin is asserted here
-    ADMIN.execute_update_admin(deps, info, Some(admin_addr))?;
+    ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))

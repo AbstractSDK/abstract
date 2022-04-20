@@ -1,4 +1,5 @@
-use cosmwasm_std::{to_binary, Addr, Deps, QueryRequest, StdResult, Uint128, WasmQuery};
+use cosmwasm_std::{to_binary, Addr, Deps, QueryRequest, StdResult, Uint128, WasmQuery, QuerierWrapper};
+use cw20::{TokenInfoResponse, Cw20QueryMsg};
 
 use crate::core::proxy::msg::{QueryMsg, TotalValueResponse};
 
@@ -12,4 +13,13 @@ pub fn query_total_value(deps: Deps, vault_address: &Addr) -> StdResult<Uint128>
         }))?;
 
     Ok(response.value)
+}
+
+pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
+    let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: String::from(contract_addr),
+        msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,
+    }))?;
+
+    Ok(res.total_supply)
 }
