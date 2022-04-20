@@ -14,7 +14,7 @@ use pandora_os::core::proxy::msg::{
 };
 use pandora_os::core::proxy::proxy_assets::{get_asset_identifier, ProxyAsset};
 use pandora_os::core::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
-use pandora_os::registery::TREASURY;
+use pandora_os::registery::PROXY;
 use semver::Version;
 type TreasuryResult = Result<Response, TreasuryError>;
 /*
@@ -32,7 +32,7 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> TreasuryResult {
     // Use CW2 to set the contract version, this is needed for migrations
-    set_contract_version(deps.storage, TREASURY, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     STATE.save(deps.storage, &State { dapps: vec![] })?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
@@ -66,7 +66,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> TreasuryResult {
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
 
     if storage_version < version {
-        set_contract_version(deps.storage, TREASURY, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
 
         // If state structure changed in any contract version in the way migration is needed, it
         // should occur here

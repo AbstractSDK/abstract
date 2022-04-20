@@ -50,8 +50,8 @@ impl fmt::Display for Module {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ModuleKind {
-    Internal,
-    External,
+    AddOn,
+    API,
     Service,
     Perk,
 }

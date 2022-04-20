@@ -2,9 +2,9 @@ use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 
 use terra_multi_test::{App, ContractWrapper};
 
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
 use cw_asset::{Asset, AssetInfoUnchecked};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use terra_multi_test::Executor;
 
 use pandora_os::core::proxy::msg as TreasuryMsg;
@@ -34,6 +34,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
         base: BaseInstantiateMsg {
             memory_addr: base_contracts.memory.to_string(),
         },
+        provider_addr: "".to_string(),
         token_code_id: lp_contract_code_id,
         fee: Decimal::percent(10u64),
         deposit_asset: "ust".to_string(),

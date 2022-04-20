@@ -7,6 +7,9 @@ use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQue
 use cw_asset::{Asset, AssetInfo};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,
     pub ratio: Decimal,

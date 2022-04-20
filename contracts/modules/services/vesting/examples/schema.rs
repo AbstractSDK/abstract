@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use pandora_os::vesting::msg::{
+use white_whale::vesting::msg::{
     AllocationInfo, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg, Schedule,
     SimulateWithdrawResponse, StateResponse,
 };

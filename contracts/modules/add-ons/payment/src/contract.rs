@@ -6,10 +6,13 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
 };
+use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
+use pandora_os::registery::PAYMENT;
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
+use semver::Version;
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
 use pandora_os::modules::dapp_base::commands as dapp_base_commands;
@@ -25,10 +28,23 @@ use crate::response::MsgInstantiateContractResponse;
 use crate::error::PaymentError;
 use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
 use crate::{commands, queries};
-use pandora_os::modules::add_ons::payout::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use pandora_os::modules::add_ons::payout::{
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+};
 pub type PaymentResult = Result<Response, PaymentError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> PaymentResult {
+    let version: Version = CONTRACT_VERSION.parse()?;
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+    if storage_version < version {
+        set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
+    }
+    Ok(Response::default())
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -37,6 +53,7 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> PaymentResult {
+    set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {

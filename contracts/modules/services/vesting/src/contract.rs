@@ -7,11 +7,11 @@ use cosmwasm_std::{
     StdResult, Uint128, WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
-use pandora_os::vesting::msg::{
+use std::cmp;
+use white_whale::vesting::msg::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
-use std::cmp;
 
 //----------------------------------------------------------------------------------------
 // Entry Points
@@ -28,7 +28,7 @@ pub fn instantiate(
         deps.storage,
         &Config {
             owner: deps.api.addr_validate(&msg.owner)?,
-            refund_recepient: deps.api.addr_validate(&msg.refund_recepient)?,
+            refund_recipient: deps.api.addr_validate(&msg.refund_recipient)?,
             whale_token: deps.api.addr_validate(&msg.whale_token)?,
             default_unlock_schedule: msg.default_unlock_schedule,
         },
@@ -190,15 +190,21 @@ fn handle_withdraw(deps: DepsMut, env: Env, info: MessageInfo) -> StdResult<Resp
         return Err(StdError::generic_err("Withdrawals not allowed yet"));
     }
 
-    let unlock_schedule = match &allocation.unlock_schedule {
+    let unlock_schedule = match allocation.unlock_schedule.clone() {
         Some(schedule) => schedule,
-        None => &config.default_unlock_schedule,
+        None => {
+            if allocation.canceled {
+                Schedule::zero()
+            } else {
+                config.default_unlock_schedule
+            }
+        }
     };
 
     let whale_unlocked = compute_vested_or_unlocked_amount(
         env.block.time.seconds(),
         allocation.total_amount,
-        unlock_schedule,
+        &unlock_schedule,
     );
     let whale_vested = compute_vested_or_unlocked_amount(
         env.block.time.seconds(),
@@ -260,6 +266,11 @@ fn handle_terminate(
     let mut state = STATE.may_load(deps.storage)?.unwrap_or_default();
     let mut allocation = ALLOCATIONS.load(deps.storage, &deps.api.addr_validate(&user_address)?)?;
 
+    // Check if canceled
+    if allocation.canceled {
+        return Err(StdError::generic_err("Allocation is already canceled"));
+    }
+
     let unlock_schedule = match &allocation.unlock_schedule {
         Some(schedule) => schedule,
         None => &config.default_unlock_schedule,
@@ -281,6 +292,7 @@ fn handle_terminate(
     // unlocked tokens will vest based on the vesting schedule
     allocation.total_amount = whale_unlocked;
     allocation.unlock_schedule = None;
+    allocation.canceled = true;
 
     // Update state
     state.total_whale_deposited -= whale_to_refund;
@@ -297,7 +309,7 @@ fn handle_terminate(
     let msgs: Vec<WasmMsg> = vec![WasmMsg::Execute {
         contract_addr: config.whale_token.to_string(),
         msg: to_binary(&Cw20ExecuteMsg::Transfer {
-            recipient: config.refund_recepient.to_string(),
+            recipient: config.refund_recipient.to_string(),
             amount: whale_to_refund,
         })?,
         funds: vec![],
@@ -319,7 +331,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let config = CONFIG.load(deps.storage)?;
     Ok(ConfigResponse {
         owner: config.owner.to_string(),
-        refund_recepient: config.refund_recepient.to_string(),
+        refund_recipient: config.refund_recipient.to_string(),
         whale_token: config.whale_token.to_string(),
         default_unlock_schedule: config.default_unlock_schedule,
     })
@@ -344,6 +356,7 @@ fn query_allocation(deps: Deps, _env: Env, account: String) -> StdResult<Allocat
         withdrawn_amount: allocation_info.withdrawn_amount,
         vest_schedule: allocation_info.vest_schedule,
         unlock_schedule: allocation_info.unlock_schedule,
+        canceled: allocation_info.canceled,
     })
 }
 

@@ -8,6 +8,7 @@ use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
 use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
 use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
 use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
+use pandora_os::native::version_control::msg::CodeIdResponse;
 use pandora_os::native::version_control::{
     msg::QueryMsg as VersionQuery, queries::try_raw_code_id_query,
 };
@@ -17,7 +18,7 @@ use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
 use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora_os::registery::{MANAGER, TREASURY};
+use pandora_os::registery::{MANAGER, PROXY};
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -92,7 +93,7 @@ pub fn register_module(
     module_address: String,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
-    let proxy_addr = OS_MODULES.load(deps.storage, TREASURY)?;
+    let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
 
     // check if sender is module factory
     if msg_info.sender != config.module_factory_address {
@@ -107,7 +108,7 @@ pub fn register_module(
 
     match module {
         _dapp @ Module {
-            kind: ModuleKind::External,
+            kind: ModuleKind::API,
             ..
         } => {
             response = response
@@ -123,7 +124,7 @@ pub fn register_module(
                 )?)
         }
         _dapp @ Module {
-            kind: ModuleKind::Internal,
+            kind: ModuleKind::AddOn,
             ..
         } => {
             response = response
@@ -169,6 +170,15 @@ pub fn configure_module(
     }));
 
     Ok(response)
+}
+
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) -> ManagerResult {
+    // Only root can remove modules
+    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    OS_MODULES.remove(deps.storage, &module_name);
+
+    Ok(Response::new().add_attribute("Removed module", &module_name))
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> ManagerResult {
@@ -242,7 +252,7 @@ fn get_code_id(
     let config = CONFIG.load(deps.storage)?;
     match module_info.version {
         Some(new_version) => {
-            if new_version.parse::<Version>()? < contract.version.parse::<Version>()? {
+            if new_version.parse::<Version>()? > contract.version.parse::<Version>()? {
                 new_code_id = try_raw_code_id_query(
                     deps,
                     &config.version_control_address,
@@ -253,12 +263,15 @@ fn get_code_id(
             };
         }
         None => {
-            new_code_id = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: config.version_control_address.to_string(),
-                msg: to_binary(&VersionQuery::QueryCodeId {
-                    module: module_info,
-                })?,
-            }))?;
+            // Query latest version of contract
+            let resp: CodeIdResponse =
+                deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                    contract_addr: config.version_control_address.to_string(),
+                    msg: to_binary(&VersionQuery::QueryCodeId {
+                        module: module_info,
+                    })?,
+                }))?;
+            new_code_id = resp.code_id.u64();
         }
     }
     Ok(new_code_id)

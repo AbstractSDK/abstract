@@ -10,6 +10,7 @@ use pandora_os::util::fee::Fee;
 /// BaseState is initialized in contract
 pub struct State {
     pub liquidity_token_addr: Addr,
+    pub provider_addr: Addr,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -1,8 +1,8 @@
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
-use pandora_os::vesting::msg::{AllocationInfo, Schedule};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use white_whale::vesting::msg::{AllocationInfo, Schedule};
 
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
@@ -13,7 +13,7 @@ pub struct Config {
     /// Account which can create new allocations
     pub owner: Addr,
     /// Account which will receive refunds upon allocation terminations
-    pub refund_recepient: Addr,
+    pub refund_recipient: Addr,
     /// Address of WHALE token
     pub whale_token: Addr,
     /// By default, unlocking starts at WhiteWhale launch, with a cliff of 12 months and a duration of 12 months.

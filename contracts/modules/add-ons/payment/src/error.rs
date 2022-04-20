@@ -11,6 +11,9 @@ pub enum PaymentError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
+    #[error("Semver parsing error: {0}")]
+    SemVer(String),
+
     #[error("{0}")]
     BaseDAppError(#[from] BaseDAppError),
 
@@ -43,4 +46,9 @@ pub enum PaymentError {
 
     #[error("Your contribution compensation expired")]
     ContributionExpired,
+}
+impl From<semver::Error> for PaymentError {
+    fn from(err: semver::Error) -> Self {
+        Self::SemVer(err.to_string())
+    }
 }

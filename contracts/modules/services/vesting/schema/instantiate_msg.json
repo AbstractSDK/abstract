@@ -5,7 +5,7 @@
   "required": [
     "default_unlock_schedule",
     "owner",
-    "refund_recepient",
+    "refund_recipient",
     "whale_token"
   ],
   "properties": {
@@ -21,7 +21,7 @@
       "description": "Account which can create new allocations",
       "type": "string"
     },
-    "refund_recepient": {
+    "refund_recipient": {
       "description": "Account which will receive refunds upon allocation terminations",
       "type": "string"
     },

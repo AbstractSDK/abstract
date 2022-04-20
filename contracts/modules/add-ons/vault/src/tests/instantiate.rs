@@ -8,13 +8,14 @@ use pandora_os::modules::dapp_base::state::{BaseState, BASESTATE};
 use pandora_os::native::memory::item::Memory;
 
 use crate::contract::{execute, instantiate};
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
 use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
 use crate::tests::common::{TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
 
 pub(crate) fn vault_instantiate_msg() -> InstantiateMsg {
     InstantiateMsg {
+        provider_addr: "provider".to_string(),
         base: base_init_msg(),
         token_code_id: 3u64,
         fee: Decimal::zero(),
@@ -74,6 +75,7 @@ fn successful_initialization() {
     assert_eq!(
         STATE.load(&deps.storage).unwrap(),
         State {
+            provider_addr: Addr::unchecked(""),
             liquidity_token_addr: Addr::unchecked("")
         }
     );

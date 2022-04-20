@@ -41,7 +41,7 @@ pub fn upload_contracts(app: &mut App) -> (HashMap<&str, u64>, NativeContracts) 
         .with_migrate(proxy::contract::migrate),
     );
     let proxy_code_id = app.store_code(proxy_contract);
-    code_ids.insert(TREASURY, proxy_code_id);
+    code_ids.insert(PROXY, proxy_code_id);
 
     // Upload Memory Contract
     let memory_contract = Box::new(ContractWrapper::new(

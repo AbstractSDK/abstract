@@ -86,7 +86,7 @@ pub fn execute_create_module(
     // Match Module type
     match module {
         Module {
-            kind: ModuleKind::External,
+            kind: ModuleKind::API,
             ..
         } => create_external_dapp(
             deps,
@@ -96,7 +96,7 @@ pub fn execute_create_module(
             module,
         ),
         Module {
-            kind: ModuleKind::Internal,
+            kind: ModuleKind::AddOn,
             ..
         } => create_internal_dapp(
             deps,

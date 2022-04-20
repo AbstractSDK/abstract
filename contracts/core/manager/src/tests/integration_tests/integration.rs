@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use cosmwasm_std::Addr;
 
-use pandora_os::registery::TREASURY;
+use pandora_os::registery::PROXY;
 use terra_multi_test::App;
 
 use crate::tests::common::TEST_CREATOR;
@@ -47,7 +47,7 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
         .query_wasm_smart(
             &manager_addr,
             &manager::msg::QueryMsg::QueryModules {
-                names: vec![TREASURY.to_string()],
+                names: vec![PROXY.to_string()],
             },
         )
         .unwrap();

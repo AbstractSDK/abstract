@@ -3,9 +3,9 @@ use cosmwasm_std::{Api, Decimal, MessageInfo};
 
 use crate::contract::execute;
 use crate::error::VaultError;
-use pandora_os::modules::add_ons::vault::ExecuteMsg;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::instantiate::mock_instantiate;
+use pandora_os::modules::add_ons::vault::ExecuteMsg;
 
 #[test]
 fn unsuccessful_set_fee_unauthorized() {

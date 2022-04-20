@@ -41,11 +41,16 @@
     "AllocationInfo": {
       "type": "object",
       "required": [
+        "canceled",
         "total_amount",
         "vest_schedule",
         "withdrawn_amount"
       ],
       "properties": {
+        "canceled": {
+          "description": "Indicates if this vesting allo has been canceled",
+          "type": "boolean"
+        },
         "total_amount": {
           "description": "Total number of WHALE tokens allocated to this account",
           "allOf": [

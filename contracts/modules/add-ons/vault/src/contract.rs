@@ -6,10 +6,13 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
 };
+use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
+use pandora_os::registery::VAULT;
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
+use semver::Version;
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
 use pandora_os::modules::dapp_base::commands as dapp_base_commands;
@@ -23,9 +26,11 @@ use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::VaultError;
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::state::{Pool, State, FEE, POOL, STATE};
 use crate::{commands, queries};
+use pandora_os::modules::add_ons::vault::{
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+};
 pub type VaultResult = Result<Response, VaultError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
@@ -33,12 +38,27 @@ const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
+    let version: Version = CONTRACT_VERSION.parse()?;
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+    if storage_version < version {
+        set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
+    }
+    Ok(Response::default())
+}
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> VaultResult {
+    set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
+
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
+        provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
     };
 
     let lp_token_name: String = msg
@@ -94,6 +114,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         }
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
+            // Check asset
+            let asset = asset.check(deps.api, None)?;
+
             commands::try_provide_liquidity(deps, info, asset, None)
         }
         ExecuteMsg::UpdatePool {

@@ -11,8 +11,8 @@ use pandora_os::util::deposit_info::DepositInfo;
 
 use crate::contract::VaultResult;
 use crate::error::VaultError;
-use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use crate::state::{Pool, State, FEE, POOL, STATE};
+use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use pandora_os::queries::vault::query_total_value;
 use pandora_os::util::fee::Fee;
 use terraswap::querier::query_supply;
@@ -170,24 +170,29 @@ pub fn try_withdraw_liquidity(
     // Calculate share of pool and requested pool value
     let total_share: Uint128 = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
 
-    // Get proxy fee in LP tokens
-    let proxy_fee = fee.compute(amount);
+    // Get provider fee in LP tokens
+    let provider_fee = fee.compute(amount);
 
     // Share with fee deducted.
-    let share_ratio: Decimal = Decimal::from_ratio(amount - proxy_fee, total_share);
+    let share_ratio: Decimal = Decimal::from_ratio(amount - provider_fee, total_share);
 
     // Init response
-    let response = Response::new();
+    let mut response = Response::new();
 
-    // LP token fee
-    let lp_token_proxy_fee = Asset {
-        info: AssetInfo::Cw20(state.liquidity_token_addr.clone()),
-        amount: proxy_fee,
-    };
+    if !provider_fee.is_zero() {
+        // LP token fee
+        let lp_token_provider_fee = Asset {
+            info: AssetInfo::Cw20(state.liquidity_token_addr.clone()),
+            amount: provider_fee,
+        };
 
-    // Construct proxy fee msg
-    let proxy_fee_msg = fee.msg(lp_token_proxy_fee, base_state.proxy_address.clone())?;
-    attrs.push(("Treasury fee:", proxy_fee.to_string()));
+        // Construct provider fee msg
+        let provider_fee_msg = fee.msg(lp_token_provider_fee, state.provider_addr.clone())?;
+
+        // Transfer fee
+        response = response.add_message(provider_fee_msg);
+    }
+    attrs.push(("Treasury fee:", provider_fee.to_string()));
 
     // Get asset holdings of vault and calculate amount to return
     let mut pay_back_assets: Vec<Asset> = vec![];
@@ -226,15 +231,13 @@ pub fn try_withdraw_liquidity(
         contract_addr: state.liquidity_token_addr.into(),
         // Burn exludes fee
         msg: to_binary(&Cw20ExecuteMsg::Burn {
-            amount: (amount - proxy_fee),
+            amount: (amount - provider_fee),
         })?,
         funds: vec![],
     });
 
     Ok(response
         .add_attribute("Action:", "Withdraw Liquidity")
-        // Transfer fee
-        .add_message(proxy_fee_msg)
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner

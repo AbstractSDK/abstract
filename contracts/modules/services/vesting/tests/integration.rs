@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{attr, to_binary, Addr, Timestamp, Uint128};
 use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use pandora_os::vesting::msg::{
+use white_whale::vesting::msg::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
@@ -51,16 +51,16 @@ fn init_contracts(app: &mut App) -> (Addr, Addr, InstantiateMsg) {
 
     // Instantiate Vesting Contract
     let vesting_contract = Box::new(ContractWrapper::new(
-        dao_os_vesting::contract::execute,
-        dao_os_vesting::contract::instantiate,
-        dao_os_vesting::contract::query,
+        white_whale_vesting::contract::execute,
+        white_whale_vesting::contract::instantiate,
+        white_whale_vesting::contract::query,
     ));
 
     let vesting_code_id = app.store_code(vesting_contract);
 
     let vesting_instantiate_msg = InstantiateMsg {
         owner: OWNER.clone().to_string(),
-        refund_recepient: "refund_recepient".to_string(),
+        refund_recipient: "refund_recipient".to_string(),
         whale_token: whale_token_instance.to_string(),
         default_unlock_schedule: Schedule {
             start_time: 0u64,
@@ -119,7 +119,7 @@ fn proper_initialization() {
 
     // Check config
     assert_eq!(init_msg.owner, resp.owner);
-    assert_eq!(init_msg.refund_recepient, resp.refund_recepient);
+    assert_eq!(init_msg.refund_recipient, resp.refund_recipient);
     assert_eq!(init_msg.whale_token, resp.whale_token);
     assert_eq!(
         init_msg.default_unlock_schedule,
@@ -174,7 +174,7 @@ fn test_transfer_ownership() {
 
     // Check config
     assert_eq!("new_owner".to_string(), resp.owner);
-    assert_eq!(init_msg.refund_recepient, resp.refund_recepient);
+    assert_eq!(init_msg.refund_recipient, resp.refund_recipient);
     assert_eq!(init_msg.whale_token, resp.whale_token);
     assert_eq!(
         init_msg.default_unlock_schedule,
@@ -207,6 +207,7 @@ fn test_create_allocations() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -220,6 +221,7 @@ fn test_create_allocations() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -233,6 +235,7 @@ fn test_create_allocations() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
 
@@ -502,6 +505,7 @@ fn test_create_allocations() {
                                 cliff: 7776000u64,
                                 duration: 31536000u64,
                             }),
+                            canceled: false,
                         },
                     )],
                 })
@@ -538,6 +542,7 @@ fn test_withdraw() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -551,6 +556,7 @@ fn test_withdraw() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -568,6 +574,7 @@ fn test_withdraw() {
                 cliff: 7770000u64,
                 duration: 31536000u64,
             }),
+            canceled: false,
         },
     ));
 
@@ -599,7 +606,7 @@ fn test_withdraw() {
         .unwrap_err();
     assert_eq!(
         err.to_string(),
-        "pandora_os::vesting::msg::AllocationInfo not found"
+        "white_whale::vesting::msg::AllocationInfo not found"
     );
 
     // ######    ERROR :: Withdrawals not allowed yet   ######
@@ -814,6 +821,7 @@ fn test_terminate() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -827,6 +835,7 @@ fn test_terminate() {
                 duration: 31536000u64,
             },
             unlock_schedule: None,
+            canceled: false,
         },
     ));
     allocations.push((
@@ -844,6 +853,7 @@ fn test_terminate() {
                 cliff: 7770000u64,
                 duration: 31536000u64,
             }),
+            canceled: false,
         },
     ));
 
@@ -910,6 +920,17 @@ fn test_terminate() {
         &[],
     )
     .unwrap();
+
+    // Try to terminate again, should err
+    app.execute_contract(
+        Addr::unchecked(OWNER.clone()),
+        vesting_instance.clone(),
+        &ExecuteMsg::Terminate {
+            user_address: "team_1".to_string(),
+        },
+        &[],
+    )
+    .unwrap_err();
 
     let resp: SimulateWithdrawResponse = app
         .wrap()

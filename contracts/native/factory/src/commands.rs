@@ -15,7 +15,7 @@ use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 use pandora_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
 use pandora_os::core::proxy::msg::{
-    ExecuteMsg as TreasuryExecMsg, InstantiateMsg as TreasuryInstantiateMsg,
+    ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg,
 };
 use pandora_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
@@ -23,7 +23,7 @@ use pandora_os::native::version_control::msg::{
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
-use pandora_os::registery::{MANAGER, TREASURY};
+use pandora_os::registery::{MANAGER, PROXY};
 
 /// Function that starts the creation of the OS
 pub fn execute_create_os(
@@ -114,7 +114,7 @@ pub fn after_manager_create_proxy(
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
                 module: ModuleInfo {
-                    name: String::from(TREASURY),
+                    name: String::from(PROXY),
                     version: None,
                 },
             })?,
@@ -130,8 +130,8 @@ pub fn after_manager_create_proxy(
                 code_id: proxy_code_id_response.code_id.u64(),
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Treasury of OS: {}", config.next_os_id),
-                msg: to_binary(&TreasuryInstantiateMsg {})?,
+                label: format!("Proxy of OS: {}", config.next_os_id),
+                msg: to_binary(&ProxyInstantiateMsg {})?,
             }
             .into(),
             reply_on: ReplyOn::Success,
@@ -165,7 +165,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let set_manager_as_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.clone(),
         funds: vec![],
-        msg: to_binary(&TreasuryExecMsg::SetAdmin {
+        msg: to_binary(&ProxyExecMsg::SetAdmin {
             admin: manager_address.clone(),
         })?,
     });
@@ -175,10 +175,10 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new()
-        .add_attribute("Treasury Address: ", res.get_contract_address())
+        .add_attribute("Proxy Address: ", res.get_contract_address())
         .add_message(register_module_on_manager(
             manager_address,
-            TREASURY.to_string(),
+            PROXY.to_string(),
             proxy_address,
         )?)
         .add_message(set_manager_as_admin_msg))

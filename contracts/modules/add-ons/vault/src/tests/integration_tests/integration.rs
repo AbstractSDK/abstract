@@ -3,12 +3,12 @@ use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 
 use terra_multi_test::App;
 
-use pandora_os::modules::add_ons::vault::{DepositHookMsg, ExecuteMsg};
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
-use cw_asset::Asset;
+use cw_asset::AssetUnchecked;
+use pandora_os::modules::add_ons::vault::{DepositHookMsg, ExecuteMsg};
 use terra_multi_test::Executor;
 
 use crate::dapp_base::common::TEST_CREATOR;
@@ -56,8 +56,8 @@ fn deposit_and_withdraw_with_native_token() {
         sender.clone(),
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
-            asset: Asset {
-                info: cw_asset::AssetInfo::Native("uusd".to_string()),
+            asset: AssetUnchecked {
+                info: cw_asset::AssetInfoUnchecked::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -70,8 +70,8 @@ fn deposit_and_withdraw_with_native_token() {
         sender.clone(),
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
-            asset: Asset {
-                info: cw_asset::AssetInfo::Native("uusd".to_string()),
+            asset: AssetUnchecked {
+                info: cw_asset::AssetInfoUnchecked::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -214,8 +214,8 @@ fn deposit_and_withdraw_with_cw20() {
         sender.clone(),
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
-            asset: Asset {
-                info: cw_asset::AssetInfo::Native("uusd".to_string()),
+            asset: AssetUnchecked {
+                info: cw_asset::AssetInfoUnchecked::Native("uusd".to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
@@ -231,8 +231,8 @@ fn deposit_and_withdraw_with_cw20() {
         sender.clone(),
         vault_dapp.clone(),
         &ExecuteMsg::ProvideLiquidity {
-            asset: Asset {
-                info: cw_asset::AssetInfo::Cw20(base_contracts.whale.clone()),
+            asset: AssetUnchecked {
+                info: cw_asset::AssetInfoUnchecked::Cw20(base_contracts.whale.to_string()),
                 amount: Uint128::from(10u64 * MILLION),
             },
         },
