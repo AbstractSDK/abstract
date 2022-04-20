@@ -30,6 +30,7 @@ overflow-checks = true
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
+# Keep as is until Astroport updates. 
 [dependencies]
 cosmwasm-std = { version = "0.16" }
 cw20 = { version = "0.8" }
