@@ -3,7 +3,7 @@ use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
 use crate::error::VersionError;
-use crate::state::*;
+use pandora_os::native::version_control::state::*;
 use pandora_os::native::version_control::msg::ExecuteMsg;
 
 /// Handles the common base execute messages

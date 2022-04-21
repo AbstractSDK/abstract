@@ -131,7 +131,9 @@ pub fn after_manager_create_proxy(
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
                 label: format!("Proxy of OS: {}", config.next_os_id),
-                msg: to_binary(&ProxyInstantiateMsg {})?,
+                msg: to_binary(&ProxyInstantiateMsg {
+                    os_id: config.next_os_id
+                })?,
             }
             .into(),
             reply_on: ReplyOn::Success,

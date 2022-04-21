@@ -1,5 +1,4 @@
 use crate::error::VersionError;
-use crate::state::FACTORY;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
 use cw2::set_contract_version;
@@ -10,7 +9,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use crate::state::ADMIN;
+use pandora_os::native::version_control::state::{ADMIN, FACTORY};
 use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type VCResult = Result<Response, VersionError>;

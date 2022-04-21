@@ -2,12 +2,13 @@ use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
+use pandora_os::core::common::OS_ID;
 use pandora_os::core::modules::Module;
 
 use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
-use crate::state::{Config, ADMIN, CONFIG, OS_ID, ROOT};
+use crate::state::{Config, ADMIN, CONFIG, ROOT};
 use cw2::set_contract_version;
 use pandora_os::core::manager::msg::{
     ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,

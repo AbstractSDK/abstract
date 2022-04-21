@@ -4,6 +4,7 @@ use cosmwasm_std::{
     to_binary, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order,
     Response, StdResult, Uint128,
 };
+use pandora_os::core::common::OS_ID;
 
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
@@ -29,10 +30,11 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> TreasuryResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { dapps: vec![] })?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;

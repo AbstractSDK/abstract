@@ -1,5 +1,5 @@
 [package]
-name = "payroll-dapp"
+name = "contribution"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
