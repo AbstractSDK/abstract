@@ -29,7 +29,8 @@ pub enum ExecuteMsg {
     /// Only Factory can call this
     AddOs {
         os_id: u32,
-        os_manager_address: String,
+        manager_address: String,
+        proxy_address: String,
     },
     /// Remove an OS from the deployed OSs
     RemoveOs {

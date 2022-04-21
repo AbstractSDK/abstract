@@ -17,8 +17,9 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
         ExecuteMsg::RemoveCodeId { module, version } => remove_code_id(deps, info, module, version),
         ExecuteMsg::AddOs {
             os_id,
-            os_manager_address,
-        } => add_os(deps, info, os_id, os_manager_address),
+            manager_address,
+            proxy_address,
+        } => add_os(deps, info, os_id, manager_address, proxy_address),
         ExecuteMsg::RemoveOs { os_id } => remove_os(deps, info, os_id),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
@@ -27,17 +28,19 @@ pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> 
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
-pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, os_manager: String) -> VCResult {
+pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, os_manager: String, os_proxy: String) -> VCResult {
     // Only Factory can add new OS
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    let addr = deps.api.addr_validate(&os_manager)?;
-    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &addr)?;
+    let manager = deps.api.addr_validate(&os_manager)?;
+    let proxy = deps.api.addr_validate(&os_proxy)?;
+    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &Core { manager, proxy })?;
 
     Ok(Response::new().add_attributes(vec![
         ("Action", "Add OS"),
         ("ID:", &os_id.to_string()),
-        ("OS Address:", &os_manager),
+        ("Manager:", &os_manager),
+        ("Proxy", &os_proxy),
     ]))
 }
 

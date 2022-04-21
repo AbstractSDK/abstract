@@ -61,7 +61,9 @@ pub fn init_contracts(app: &mut App) -> BaseContracts {
 
     let proxy_code_id = app.store_code(proxy_contract);
 
-    let proxy_instantiate_msg = TreasuryMsg::InstantiateMsg {};
+    let proxy_instantiate_msg = TreasuryMsg::InstantiateMsg {
+        os_id: 0u32
+    };
 
     // Instantiate Treasury Contract
     let proxy_instance = app

@@ -1,6 +1,13 @@
 use cosmwasm_std::Addr;
 use cw_controllers::Admin;
 use cw_storage_plus::{Map, U32Key};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+pub struct Core {
+    pub manager: Addr,
+    pub proxy: Addr,
+}
 
 pub const ADMIN: Admin = Admin::new("admin");
 pub const FACTORY: Admin = Admin::new("factory");
@@ -10,5 +17,5 @@ pub const FACTORY: Admin = Admin::new("factory");
 // We can interate over the map giving just the prefix to get all the versions
 pub const MODULE_CODE_IDS: Map<(&str, &str), u64> = Map::new("module_code_ids");
 
-// Maps OS ID to the address of its manager contract
-pub const OS_ADDRESSES: Map<U32Key, Addr> = Map::new("os_addresses");
+// Maps OS ID to the address of its core contracts
+pub const OS_ADDRESSES: Map<U32Key, Core> = Map::new("os_core");

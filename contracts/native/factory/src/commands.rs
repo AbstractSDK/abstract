@@ -97,15 +97,9 @@ pub fn after_manager_create_proxy(
         })?;
     let manager_address = res.get_contract_address();
 
-    // Add OS to version_control
-    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: config.version_control_contract.to_string(),
-        funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddOs {
-            os_id: config.next_os_id,
-            os_manager_address: manager_address.to_string(),
-        })?,
-    }));
+    CONTEXT.save(deps.storage, &Context{
+        os_manager_address: deps.api.addr_validate(manager_address)?
+    })?;
 
     // Query version_control for code_id of Treasury
     // TODO: replace with raw-query from package.
@@ -120,7 +114,7 @@ pub fn after_manager_create_proxy(
             })?,
         }))?;
 
-    Ok(response
+    Ok(Response::new()
         .add_attribute("Manager Address:", &manager_address.to_string())
         // Instantiate Treasury contract
         .add_submessage(SubMsg {
@@ -147,28 +141,31 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> OsFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
+    let context = CONTEXT.load(deps.storage)?;
 
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
 
-    let proxy_address = res.get_contract_address().to_string();
+    let proxy_address = res.get_contract_address();
 
-    // TODO: Should we store the manager address in the local state between the previous step and this?
-    // Get address of manager
-    let manager_address: String = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+    // Add OS core to version_control
+    let add_os_core_to_version_control_msg :CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
-        msg: to_binary(&VCQuery::QueryOsAddress {
+        funds: vec![],
+        msg: to_binary(&VCExecuteMsg::AddOs {
             os_id: config.next_os_id,
+            manager_address: context.os_manager_address.to_string(),
+            proxy_address: deps.api.addr_validate(proxy_address)?.into_string(),
         })?,
-    }))?;
+    });
 
     let set_manager_as_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: proxy_address.clone(),
+        contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::SetAdmin {
-            admin: manager_address.clone(),
+            admin: context.os_manager_address.to_string(),
         })?,
     });
 
@@ -177,11 +174,12 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     CONFIG.save(deps.storage, &config)?;
 
     Ok(Response::new()
+        .add_message(add_os_core_to_version_control_msg)
         .add_attribute("Proxy Address: ", res.get_contract_address())
         .add_message(register_module_on_manager(
-            manager_address,
+            context.os_manager_address.to_string(),
             PROXY.to_string(),
-            proxy_address,
+            proxy_address.to_string(),
         )?)
         .add_message(set_manager_as_admin_msg))
 }
