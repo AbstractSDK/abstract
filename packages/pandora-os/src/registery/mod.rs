@@ -6,4 +6,5 @@ pub const PROXY: &str = "pandora:proxy";
 pub const MEMORY: &str = "pandora:memory";
 pub const TERRASWAP: &str = "pandora:terraswap";
 pub const VAULT: &str = "pandora:vault";
-pub const PAYMENT: &str = "pandora:payment";
+pub const SUBSCRIPTION: &str = "pandora:subscription";
+pub const CONTRIBUTION: &str = "pandora:contribution";

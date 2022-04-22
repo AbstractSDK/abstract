@@ -1,20 +1,20 @@
 use std::convert::TryInto;
 
 use cosmwasm_std::{
-    from_binary, Addr, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo, Response, StdResult,
-    Uint128, Uint64,
+    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, Fraction, MessageInfo,
+    Response, StdResult, Uint128, Uint64, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
 use pandora_os::core::proxy::msg::send_to_proxy;
+use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
+use pandora_os::native::version_control::msg::ExecuteMsg as VersionControlMsg;
 use pandora_os::util::deposit_manager::Deposit;
 
-use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
-
-use crate::contract::PaymentResult;
-use crate::error::PaymentError;
-use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE};
-use pandora_os::modules::add_ons::payout::{Compensation, DepositHookMsg};
+use crate::contract::SubscriptionResult;
+use crate::error::SubscriptionError;
+use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, MONTH, STATE};
+use pandora_os::modules::add_ons::subscription::DepositHookMsg;
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -24,7 +24,7 @@ pub fn receive_cw20(
     _env: Env,
     msg_info: MessageInfo,
     cw20_msg: Cw20ReceiveMsg,
-) -> PaymentResult {
+) -> SubscriptionResult {
     match from_binary(&cw20_msg.msg)? {
         DepositHookMsg::Pay { os_id } => {
             // Construct deposit asset
@@ -45,7 +45,7 @@ pub fn try_pay(
     asset: Asset,
     sender: Option<String>,
     os_id: u32,
-) -> PaymentResult {
+) -> SubscriptionResult {
     // Load all needed states
     let config = CONFIG.load(deps.storage)?;
     let base_state = BASESTATE.load(deps.storage)?;
@@ -58,11 +58,11 @@ pub fn try_pay(
                     // If native token, assert claimed amount is correct
                     let coin = msg_info.funds.last().unwrap().clone();
                     if Asset::native(coin.denom, coin.amount) != asset {
-                        return Err(PaymentError::WrongNative {});
+                        return Err(SubscriptionError::WrongNative {});
                     }
                     msg_info.sender
                 }
-                AssetInfo::Cw20(_) => return Err(PaymentError::NotUsingCW20Hook {}),
+                AssetInfo::Cw20(_) => return Err(SubscriptionError::NotUsingCW20Hook {}),
             }
         }
     };
@@ -72,7 +72,7 @@ pub fn try_pay(
 
     // Assert payment asset and claimed asset infos are the same
     if deposit_info != asset.info {
-        return Err(PaymentError::WrongToken {});
+        return Err(SubscriptionError::WrongToken {});
     }
 
     let mut customer_balance = CLIENTS.data.load(deps.storage, &os_id.to_be_bytes())?;
@@ -94,164 +94,15 @@ pub fn try_pay(
     ))
 }
 
-/// Function that adds/updates the contributor config of a given address
-pub fn update_contributor(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    contributor_addr: String,
-    mut compensation: Compensation,
-) -> PaymentResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-    // Load all needed states
-    let mut state = STATE.load(deps.storage)?;
-
-    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-
-    match maybe_compensation {
-        Some(current_compensation) => {
-            let weight_diff: i32 = current_compensation.weight as i32 - compensation.weight as i32;
-            let base_diff: i32 = current_compensation.base as i32 - compensation.base as i32;
-            state.total_weight =
-                Uint128::from((state.total_weight.u128() as i128 + weight_diff as i128) as u128);
-            state.target = Uint64::from((state.target.u64() as i64 + base_diff as i64) as u64);
-        }
-        None => {
-            state.total_weight += Uint128::from(compensation.weight);
-            state.target += Uint64::from(compensation.base);
-            // Can only get paid on pay day after next pay day
-            compensation.next_pay_day = state.next_pay_day + Uint64::from(MONTH);
-        }
-    };
-
-    CONTRIBUTORS.save(deps.storage, &contributor_addr, &compensation)?;
-    STATE.save(deps.storage, &state)?;
-
-    // Init vector for logging
-    let attrs = vec![
-        ("Action:", String::from("Update Compensation")),
-        ("For:", contributor_addr.to_string()),
-    ];
-
-    Ok(Response::new().add_attributes(attrs))
-}
-
-/// Removes the specified contributor
-pub fn remove_contributor(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    contributor_addr: String,
-) -> PaymentResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-    remove_contributor_from_storage(deps, contributor_addr.clone())?;
-    // Init vector for logging
-    let attrs = vec![
-        ("Action:", String::from("Remove Contributor")),
-        ("Address:", contributor_addr),
-    ];
-
-    Ok(Response::new().add_attributes(attrs))
-}
-
-pub fn try_claim(
-    mut deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    page_limit: Option<u32>,
-) -> PaymentResult {
-    let mut state: State = STATE.load(deps.storage)?;
-
-    let mut response = Response::new();
-
-    // Are we beyond the next pay time?
-    if state.next_pay_day.u64() < env.block.time.seconds() {
-        // First tally income, then set next block time
-        tally_income(deps.branch(), env, page_limit)?;
-        let info = CLIENTS.status.load(deps.storage)?;
-        return Ok(Response::new().add_attributes(vec![
-            ("Action:", String::from("Tally income")),
-            ("Progress:", info.progress()),
-        ]));
-    }
-
-    let mut compensation = CONTRIBUTORS.load(deps.storage, &info.sender.to_string())?;
-
-    if compensation.next_pay_day.u64() > env.block.time.seconds() {
-        return Err(PaymentError::WaitForNextPayday(
-            compensation.next_pay_day.u64(),
-        ));
-    } else if compensation.expiration.u64() < env.block.time.seconds() {
-        // remove contributor
-        return remove_contributor_from_storage(deps, info.sender.to_string())
-            .map(|_| Response::new());
-    }
-    // update compensation details
-    compensation.next_pay_day = state.next_pay_day;
-    CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
-
-    let config = CONFIG.load(deps.storage)?;
-    let base_state = BASESTATE.load(deps.storage)?;
-
-    // base amount payment
-    let amount = Uint128::from(compensation.base) * state.expense_ratio;
-    if !amount.is_zero() {
-        let compensation_msg = send_to_proxy(
-            vec![Asset {
-                info: config.payment_asset,
-                amount,
-            }
-            .transfer_msg(info.sender.clone())?],
-            &base_state.proxy_address,
-        )?;
-        response = response.add_message(compensation_msg);
-    }
-
-    let mint_income = Uint128::from(state.income.checked_sub(state.expense)?);
-    let mint_price = Decimal::from_ratio(config.ratio * mint_income, Uint128::from(state.expense));
-    let total_mints = mint_income * mint_price.inv().unwrap();
-
-    // token emissions payment
-    let amount = total_mints * Decimal::from_ratio(compensation.weight, state.total_weight);
-    if !amount.is_zero() && state.token_cap > amount {
-        state.token_cap -= amount;
-
-        // Send tokens
-        let token_msg = send_to_proxy(
-            vec![Asset {
-                info: AssetInfo::Cw20(config.project_token),
-                amount,
-            }
-            .transfer_msg(info.sender)?],
-            &base_state.proxy_address,
-        )?;
-        response = response.add_message(token_msg);
-    }
-
-    Ok(response.add_attribute("Action:", "Claim compensation"))
-}
-
+/// Uses accumulator page mapping to process all active clients
 fn tally_income(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> StdResult<()> {
     if let Some(res) = CLIENTS.page_with_accumulator(deps.branch(), page_limit, process_client)? {
-        let state: State = STATE.load(deps.storage)?;
-        let config = CONFIG.load(deps.storage)?;
-        let effective_spendable_amount = Uint128::from(res.income)
-            - (Decimal::percent(100) - config.ratio) * Uint128::from(res.income);
-        let max_expense: Uint128 = if effective_spendable_amount < state.target.into() {
-            effective_spendable_amount
-        } else {
-            state.target.into()
-        };
-
         STATE.save(
             deps.storage,
             &State {
                 income: Uint64::from(res.income),
-                expense_ratio: Decimal::from_ratio(max_expense, state.target),
-                expense: Uint64::from(max_expense.u128() as u64),
                 next_pay_day: (env.block.time.seconds() + MONTH).into(),
                 debtors: res.debtors,
-                ..state
             },
         )?;
     }
@@ -273,26 +124,35 @@ fn process_client(variables: (Vec<u8>, Deposit, Deps), acc: &mut IncomeAccumulat
     }
 }
 
-fn remove_contributor_from_storage(
-    deps: DepsMut,
-    contributor_addr: String,
-) -> Result<(), PaymentError> {
-    // Load all needed states
-    let mut state = STATE.load(deps.storage)?;
+pub fn purge_debtors(mut deps: DepsMut, env: Env, page_limit: Option<u32>) -> SubscriptionResult {
+    let mut state: State = STATE.load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
 
-    let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-
-    match maybe_compensation {
-        Some(current_compensation) => {
-            state.total_weight -= Uint128::from(current_compensation.weight);
-            state.target = state
-                .target
-                .checked_sub(Uint64::from(current_compensation.base))?;
-            // Can only get paid on pay day after next pay day
-            CONTRIBUTORS.remove(deps.storage, &contributor_addr);
-            STATE.save(deps.storage, &state)?;
-        }
-        None => return Err(PaymentError::ContributorNotRegistered {}),
+    // First tally total income
+    if state.next_pay_day.u64() < env.block.time.seconds() {
+        tally_income(deps.branch(), env, page_limit)?;
+        let info = CLIENTS.status.load(deps.storage)?;
+        return Ok(Response::new().add_attributes(vec![
+            ("Action:", String::from("Tally income")),
+            ("Progress:", info.progress()),
+        ]));
     };
-    Ok(())
+
+    let final_length = state
+        .debtors
+        .len()
+        .saturating_sub(page_limit.unwrap_or_else(|| 10u32) as usize);
+    let remove_from_active_set: Vec<u32> = state.debtors.drain(final_length..).collect();
+
+    // TODO: Remove contributors from this list
+
+    Ok(
+        Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: config.version_control_address.into(),
+            msg: to_binary(&VersionControlMsg::RemoveDebtors {
+                os_ids: remove_from_active_set,
+            })?,
+            funds: vec![],
+        })),
+    )
 }

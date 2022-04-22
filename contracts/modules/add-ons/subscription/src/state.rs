@@ -4,21 +4,13 @@ use serde::{Deserialize, Serialize};
 use cosmwasm_std::{Addr, Decimal, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map};
-use pandora_os::{
-    util::{deposit_manager::Deposit, paged_map::PagedMap},
-};
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AcceptedToken{
-    asset: AssetInfo,
-    multiplier: Decimal,
-}
+use pandora_os::util::{deposit_manager::Deposit, paged_map::PagedMap};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub payment_assets: Vec<AcceptedToken>,
+    pub version_control_address: Addr,
+    pub payment_asset: AssetInfo,
     pub subscription_cost: Uint64,
-    pub project_token: Addr,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -44,4 +36,3 @@ pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 // List clients
 pub const CLIENTS: PagedMap<Deposit, IncomeAccumulator> =
     PagedMap::new("clients", "clients_status");
-

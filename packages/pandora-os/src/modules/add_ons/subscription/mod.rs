@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
-use cw_asset::{Asset, AssetInfo};
+use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
@@ -12,12 +12,9 @@ pub struct MigrateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub base: BaseInstantiateMsg,
-    pub ratio: Decimal,
-    pub token_cap: Uint128,
-    pub payment_asset: AssetInfo,
+    pub payment_asset: AssetInfoUnchecked,
     pub subscription_cost: Uint64,
-    pub mint_price_factor: Decimal,
-    pub project_token: String,
+    pub version_control_addr: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -30,15 +27,8 @@ pub enum ExecuteMsg {
         asset: Asset,
         os_id: u32,
     },
-    Claim {
-        page_limit: Option<u32>,
-    },
-    UpdateContributor {
-        contributor_addr: String,
-        compensation: Compensation,
-    },
-    RemoveContributor {
-        contributor_addr: String,
+    PurgeDebtors{
+        page_limit: Option<u32>
     },
 }
 
@@ -58,15 +48,6 @@ pub enum DepositHookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
     pub income: Uint64,
-    pub total_weight: Uint128,
     pub next_pay_day: Uint64,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Compensation {
-    pub base: u32,
-    pub weight: u32,
-    pub next_pay_day: Uint64,
-    pub expiration: Uint64,
-    pub mint_price_factor: Decimal,
+    pub debtors: Vec<u32>,
 }

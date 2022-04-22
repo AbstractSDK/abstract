@@ -6,7 +6,7 @@ use cosmwasm_std::WasmQuery;
 use cw2::ContractVersion;
 use pandora_os::core::modules::ModuleInfo;
 
-use crate::error::VersionError;
+use crate::error::VCError;
 use pandora_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
@@ -28,7 +28,7 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
     let os_address = OS_ADDRESSES.load(deps.storage, U32Key::new(os_id));
     match os_address {
         Err(_) => Err(StdError::generic_err(
-            VersionError::MissingOsId { id: os_id }.to_string(),
+            VCError::MissingOsId { id: os_id }.to_string(),
         )),
         Ok(address) => to_binary(&address),
     }
@@ -55,7 +55,7 @@ pub fn query_code_id(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
 
     match code_id {
         Err(_) => Err(StdError::generic_err(
-            VersionError::MissingCodeId {
+            VCError::MissingCodeId {
                 module: module.name,
                 version: module.version.unwrap_or_else(|| "".to_string()),
             }

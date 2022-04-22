@@ -33,8 +33,8 @@ pub enum ExecuteMsg {
         proxy_address: String,
     },
     /// Remove an OS from the deployed OSs
-    RemoveOs {
-        os_id: u32,
+    RemoveDebtors {
+        os_ids: Vec<u32>,
     },
     SetAdmin {
         new_admin: String,
@@ -42,6 +42,9 @@ pub enum ExecuteMsg {
     SetFactory {
         new_factory: String,
     },
+    SetSubscription {
+        new_sub_contract: String,
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

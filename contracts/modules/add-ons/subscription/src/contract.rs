@@ -8,12 +8,12 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
-use pandora_os::registery::PAYMENT;
+use pandora_os::modules::add_ons::subscription::{ExecuteMsg, InstantiateMsg};
+use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
-use semver::Version;
-use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
+use semver::{Version};
 
 use pandora_os::modules::dapp_base::commands as dapp_base_commands;
 use pandora_os::util::fee::Fee;
@@ -23,25 +23,23 @@ use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
 use pandora_os::modules::dapp_base::queries as dapp_base_queries;
 use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
-use crate::response::MsgInstantiateContractResponse;
-
-use crate::error::PaymentError;
+use crate::error::SubscriptionError;
 use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
 use crate::{commands, queries};
-use pandora_os::modules::add_ons::payout::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+use pandora_os::modules::add_ons::subscription::{
+    MigrateMsg, QueryMsg, StateResponse,
 };
-pub type PaymentResult = Result<Response, PaymentError>;
+pub type SubscriptionResult = Result<Response, SubscriptionError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> PaymentResult {
-    let version: Version = CONTRACT_VERSION.parse()?;
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult {
+    let version = CONTRACT_VERSION.parse::<Version>()?;
+    let storage_version = get_contract_version(deps.storage)?.version.parse::<Version>()?;
     if storage_version < version {
-        set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
     }
     Ok(Response::default())
 }
@@ -52,26 +50,20 @@ pub fn instantiate(
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> PaymentResult {
-    set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
+) -> SubscriptionResult {
+    set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
-        payment_asset: msg.payment_asset,
-        ratio: msg.ratio,
+        payment_asset: msg.payment_asset.check(deps.api, None)?,
         subscription_cost: msg.subscription_cost,
-        project_token: deps.api.addr_validate(&msg.project_token)?,
+        version_control_address: deps.api.addr_validate(&msg.version_control_addr)?,
     };
 
     let state: State = State {
-        token_cap: msg.token_cap,
-        target: Uint64::zero(),
         income: Uint64::zero(),
-        expense: Uint64::zero(),
-        total_weight: Uint128::zero(),
         next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
         debtors: vec![],
-        expense_ratio: Decimal::zero(),
     };
 
     CONFIG.save(deps.storage, &config)?;
@@ -83,13 +75,14 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> PaymentResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> SubscriptionResult {
     match msg {
         ExecuteMsg::Base(message) => {
-            from_base_dapp_result(dapp_base_commands::handle_base_message(deps, info, message))
+            dapp_base_commands::handle_base_message(deps, info, message).map_err(|e| e.into())
         }
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
+        ExecuteMsg::PurgeDebtors {page_limit} => commands::purge_debtors(deps, env, page_limit),
     }
 }
 
@@ -102,18 +95,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let state = STATE.load(deps.storage)?;
             to_binary(&StateResponse {
                 income: state.income,
-                total_weight: state.total_weight,
                 next_pay_day: state.next_pay_day,
+                debtors: state.debtors,
             })
         }
-    }
-}
-
-/// Required to convert BaseDAppResult into TerraswapResult
-/// Can't implement the From trait directly
-fn from_base_dapp_result(result: BaseDAppResult) -> PaymentResult {
-    match result {
-        Err(e) => Err(e.into()),
-        Ok(r) => Ok(r),
     }
 }

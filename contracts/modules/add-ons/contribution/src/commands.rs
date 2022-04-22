@@ -14,7 +14,7 @@ use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
 use crate::contract::PaymentResult;
 use crate::error::PaymentError;
 use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE};
-use pandora_os::modules::add_ons::payout::{Compensation, DepositHookMsg};
+use pandora_os::modules::add_ons::contribution::{Compensation};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received

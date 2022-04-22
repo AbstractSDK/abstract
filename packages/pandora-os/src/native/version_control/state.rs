@@ -11,6 +11,7 @@ pub struct Core {
 
 pub const ADMIN: Admin = Admin::new("admin");
 pub const FACTORY: Admin = Admin::new("factory");
+pub const SUBSCRIPTION: Admin = Admin::new("subscription");
 
 // Map with composite keys
 // module name + version = code_id

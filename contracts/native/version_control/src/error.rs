@@ -3,7 +3,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum VersionError {
+pub enum VCError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -23,7 +23,7 @@ pub enum VersionError {
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },
 }
-impl From<semver::Error> for VersionError {
+impl From<semver::Error> for VCError {
     fn from(err: semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }
