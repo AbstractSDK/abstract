@@ -12,11 +12,11 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
         with:
-            toolchain: stable
-            components: rustfmt
-            override: true
+          rust-version: 1.58.1
+          components: rustfmt
       - uses: mbrobbel/rustfmt-check@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -59,6 +59,4 @@ jobs:
         with:
           rust-version: 1.58.1
       - name: Unit Test | Test
-        run: cargo unit-test
-      - name: Schema | Test
-        run: cargo schema
+        run: cargo test

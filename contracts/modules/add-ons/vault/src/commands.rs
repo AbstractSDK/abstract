@@ -13,9 +13,8 @@ use crate::contract::VaultResult;
 use crate::error::VaultError;
 use crate::state::{Pool, State, FEE, POOL, STATE};
 use pandora_os::modules::add_ons::vault::DepositHookMsg;
-use pandora_os::queries::vault::query_total_value;
+use pandora_os::queries::vault::{query_supply, query_total_value};
 use pandora_os::util::fee::Fee;
-use terraswap::querier::query_supply;
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received

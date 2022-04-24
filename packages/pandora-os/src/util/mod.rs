@@ -6,3 +6,4 @@ pub mod deposit_manager;
 pub mod fee;
 pub mod paged_map;
 pub mod tax;
+pub mod token;

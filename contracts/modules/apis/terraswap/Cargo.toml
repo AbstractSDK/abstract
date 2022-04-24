@@ -19,6 +19,7 @@ crate-type = ["cdylib", "rlib"]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
+# Keep as is until Terraswap updates. 
 [dependencies]
 cw2 = { version = "0.8" }
 cw20 = { version = "0.8" }

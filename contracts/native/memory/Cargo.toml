@@ -20,20 +20,17 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-cw2 = { version = "0.8" }
-cw20 = { version = "0.8" }
-cosmwasm-bignumber = "2.2"
-cosmwasm-std = { version = "0.16" }
-cosmwasm-storage = { version = "0.16" }
-cw-storage-plus = { version = "0.8" }
-cw-controllers = { version = "0.8" }
+cosmwasm-std = { version = "0.16.7" }
+cw-controllers = { version ="0.9.1" }
+cw-storage-plus = "0.9.1"
+cw2 = "0.9.1"
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
 pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
-protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = {version = "1.0.2"}
 [dev-dependencies]
+cw20 = { version = "0.9.1" }
 cosmwasm-schema = { version = "0.16" }

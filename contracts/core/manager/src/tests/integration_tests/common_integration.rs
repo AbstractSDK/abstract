@@ -5,7 +5,7 @@ use cosmwasm_std::{Addr, Empty};
 use pandora_os::core::modules::ModuleInfo;
 
 use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper};
+use terra_multi_test::{App, AppBuilder, BankKeeper, TerraApp, TerraMock};
 
 pub struct NativeContracts {
     pub token: Addr,
@@ -21,14 +21,18 @@ pub struct OsInstance {
     pub modules: HashMap<String, ModuleInfo>,
 }
 
-pub fn mock_app() -> App<Empty> {
-    let env = mock_env();
+pub fn mock_app() -> TerraApp {
+    let mut env = mock_env();
     let api = MockApi::default();
     let bank = BankKeeper::new();
-    let custom_querier: TerraMockQuerier =
-        TerraMockQuerier::new(MockQuerier::new(&[(MOCK_CONTRACT_ADDR, &[])]));
+    let storage = MockStorage::new();
+    let custom = TerraMock::luna_ust_case();
 
-    App::new(api, env.block, bank, MockStorage::new(), custom_querier)
-    // let custom_handler = CachingCustomHandler::<CustomMsg, Empty>::new();
-    // AppBuilder::new().with_custom(custom_handler).build()
+    AppBuilder::new()
+        .with_api(api)
+        .with_block(env.block)
+        .with_bank(bank)
+        .with_storage(storage)
+        .with_custom(custom)
+        .build()
 }

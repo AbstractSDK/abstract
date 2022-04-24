@@ -10,14 +10,14 @@ use pandora_os::native::{
 };
 use pandora_os::registery::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 
-use terra_multi_test::{App, Executor};
+use terra_multi_test::{App, Executor, TerraApp};
 
 use super::common_integration::NativeContracts;
 
 /// Creates the basic contract instances needed to test the os.
 ///
 
-pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<&str, u64>) -> NativeContracts {
+pub fn init_native_contracts(app: &mut TerraApp, code_ids: &HashMap<&str, u64>) -> NativeContracts {
     let owner = Addr::unchecked(TEST_CREATOR);
     // Instantiate Token Contract
     let msg = cw20_base::msg::InstantiateMsg {
@@ -146,7 +146,7 @@ pub fn mint_tokens(app: &mut App, owner: Addr, token_instance: Addr, amount: Uin
 }
 
 fn add_contracts_to_version_control_and_set_factory(
-    app: &mut App,
+    app: &mut TerraApp,
     owner: &Addr,
     code_ids: &HashMap<&str, u64>,
     version_control: &Addr,

@@ -15,31 +15,19 @@ exclude = [
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-opt-level = 3
-debug = false
-rpath = false
-lto = true
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
-overflow-checks = true
-
 [features]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cosmwasm-std = { version = "0.16" }
-cw20 = { version = "0.8" }
-cosmwasm-bignumber = "2.2"
+cw20 = { version = "0.9.1" }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
-cosmwasm-storage = { version = "0.16" }
-cw-storage-plus = { version = "0.10" }
-cw-controllers = { version = "0.8" }
-cw2 = { version = "0.10" }
+# cosmwasm-storage = { version = "0.16" }
+cw-storage-plus = { version = "0.9.1" }
+cw-controllers = { version = "0.9.1" }
+cw2 = { version = "0.9.1" }
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }

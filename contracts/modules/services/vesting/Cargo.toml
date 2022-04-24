@@ -16,7 +16,7 @@ library = []
 [dependencies]
 white-whale = { version = "1.0.0", path = "../../packages/pandora_os" }
 
-cosmwasm-std = { version = "0.16", features = ["iterator"] }
+cosmwasm-std = { version = "0.16.7", features = ["iterator"] }
 cw-storage-plus = "0.8.0"
 cw20 = { version = "0.8" }
 

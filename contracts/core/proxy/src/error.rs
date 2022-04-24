@@ -1,5 +1,4 @@
 use cosmwasm_std::{StdError, Uint128};
-use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -7,8 +6,8 @@ pub enum TreasuryError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    #[error("{0}")]
-    Admin(#[from] AdminError),
+    #[error(transparent)]
+    Admin(#[from] ::cw_controllers::AdminError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
