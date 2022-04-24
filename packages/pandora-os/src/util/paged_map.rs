@@ -1,4 +1,4 @@
-use cosmwasm_std::{Deps, DepsMut, Order, StdResult};
+use cosmwasm_std::{Deps, DepsMut, Order, StdResult, StdError, Storage};
 use cw_storage_plus::{Bound, Item, Map};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -6,7 +6,7 @@ const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 
 pub struct PagedMap<'a, T, R> {
-    pub data: Map<'a, &'a [u8], T>,
+    data: Map<'a, &'a [u8], T>,
     pub status: Item<'a, PaginationInfo<R>>,
 }
 
@@ -31,6 +31,34 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             data: Map::new(namespace),
             status: Item::new(status_namespace),
         }
+    }
+
+    pub fn save(&self, store: &mut dyn Storage , key: &[u8], data: &T) -> StdResult<()> where
+        T: Serialize + DeserializeOwned,
+        R: Serialize + DeserializeOwned,
+        {
+            if self.status.load(store)?.is_locked {
+                return Err(StdError::GenericErr { msg: "Can not save to map while locked. Proceed with operation first.".into() })
+            }
+            self.data.save(store, key, data)
+        }
+
+    pub fn load(&self, store: &mut dyn Storage , key: &[u8]) -> StdResult<T> where
+    T: Serialize + DeserializeOwned,
+    {
+        self.data.load(store, key)
+    }
+
+    pub fn may_load(&self, store: &mut dyn Storage , key: &[u8]) -> StdResult<Option<T>> where
+    T: Serialize + DeserializeOwned,
+    {
+        self.data.may_load(store, key)
+    }
+
+    pub fn load_status(&self, store: &mut dyn Storage) -> StdResult<PaginationInfo<R>> where
+    R: Serialize + DeserializeOwned,
+    {
+        self.status.load(store)
     }
 
     pub fn page_with_accumulator(

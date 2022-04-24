@@ -1,10 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{Addr, Decimal, Uint128, Uint64};
+use cosmwasm_std::{Addr, Uint64};
 use cw_asset::AssetInfo;
-use cw_storage_plus::{Item, Map};
-use pandora_os::util::{deposit_manager::Deposit, paged_map::PagedMap};
+use cw_storage_plus::{Item};
+use crate::util::{deposit_manager::Deposit, paged_map::PagedMap};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {

@@ -8,7 +8,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
-use pandora_os::registery::PAYMENT;
+use pandora_os::registery::CONTRIBUTION;
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
@@ -23,12 +23,11 @@ use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
 use pandora_os::modules::dapp_base::queries as dapp_base_queries;
 use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
-use crate::response::MsgInstantiateContractResponse;
 
 use crate::error::PaymentError;
-use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
+use crate::state::{Config, State,  CONFIG,  STATE};
 use crate::{commands, queries};
-use pandora_os::modules::add_ons::payout::{
+use pandora_os::modules::add_ons::contribution::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
 };
 pub type PaymentResult = Result<Response, PaymentError>;
@@ -41,7 +40,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> PaymentResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
     if storage_version < version {
-        set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, CONTRIBUTION, CONTRACT_VERSION)?;
     }
     Ok(Response::default())
 }
@@ -53,24 +52,19 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> PaymentResult {
-    set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
+    set_contract_version(deps.storage, CONTRIBUTION, CONTRACT_VERSION)?;
     let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
-        payment_asset: msg.payment_asset,
         ratio: msg.ratio,
-        subscription_cost: msg.subscription_cost,
         project_token: deps.api.addr_validate(&msg.project_token)?,
     };
 
     let state: State = State {
-        token_cap: msg.token_cap,
+        emissions_cap: msg.emissions_cap, 
         target: Uint64::zero(),
-        income: Uint64::zero(),
         expense: Uint64::zero(),
         total_weight: Uint128::zero(),
-        next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
-        debtors: vec![],
         expense_ratio: Decimal::zero(),
     };
 
@@ -90,7 +84,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> P
         }
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
-        ExecuteMsg::Claim { page_limit } => commands::try_claim(deps, env, info, page_limit),
+        ExecuteMsg::Claim { contributor, page_limit } => commands::try_claim(deps, env, info, contributor,page_limit),
         ExecuteMsg::UpdateContributor {
             contributor_addr,
             compensation,

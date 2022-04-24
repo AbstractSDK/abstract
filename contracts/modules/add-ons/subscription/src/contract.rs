@@ -8,7 +8,6 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_storage_plus::Map;
-use pandora_os::modules::add_ons::subscription::{ExecuteMsg, InstantiateMsg};
 use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
@@ -24,10 +23,10 @@ use pandora_os::modules::dapp_base::queries as dapp_base_queries;
 use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 
 use crate::error::SubscriptionError;
-use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
+use pandora_os::modules::add_ons::subscription::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
 use crate::{commands, queries};
-use pandora_os::modules::add_ons::subscription::{
-    MigrateMsg, QueryMsg, StateResponse,
+use pandora_os::modules::add_ons::subscription::msg::{
+    MigrateMsg, QueryMsg, StateResponse,ExecuteMsg, InstantiateMsg,
 };
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
 

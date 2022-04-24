@@ -13,8 +13,8 @@ use pandora_os::util::deposit_manager::Deposit;
 
 use crate::contract::SubscriptionResult;
 use crate::error::SubscriptionError;
-use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, MONTH, STATE};
-use pandora_os::modules::add_ons::subscription::DepositHookMsg;
+use pandora_os::modules::add_ons::subscription::state::{IncomeAccumulator, State, CLIENTS, CONFIG, MONTH, STATE};
+use pandora_os::modules::add_ons::subscription::msg::DepositHookMsg;
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -75,11 +75,10 @@ pub fn try_pay(
         return Err(SubscriptionError::WrongToken {});
     }
 
-    let mut customer_balance = CLIENTS.data.load(deps.storage, &os_id.to_be_bytes())?;
+    let mut customer_balance = CLIENTS.load(deps.storage, &os_id.to_be_bytes())?;
     customer_balance.increase((asset.amount.u128() as u64).into());
 
     CLIENTS
-        .data
         .save(deps.storage, &os_id.to_be_bytes(), &customer_balance)?;
 
     // Init vector for logging
