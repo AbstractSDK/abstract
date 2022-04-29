@@ -4,7 +4,7 @@ use cosmwasm_std::{Deps, QueryRequest, StdResult, WasmQuery};
 use cosmwasm_storage::to_length_prefixed;
 use cw_storage_plus::{PrimaryKey, U32Key};
 
-use super::state::{OS_ADDRESSES, Core};
+use super::state::{Core, OS_ADDRESSES};
 
 pub fn verify_os_manager(
     querier: &QuerierWrapper,
@@ -12,19 +12,23 @@ pub fn verify_os_manager(
     version_control_addr: &Addr,
     os_id: u32,
 ) -> StdResult<Core> {
-    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
+    let maybe_os =
+        OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
     match maybe_os {
-        None => {
-            Err(StdError::generic_err(format!("OS with id {} is not active.",os_id)))
-        }
+        None => Err(StdError::generic_err(format!(
+            "OS with id {} is not active.",
+            os_id
+        ))),
         Some(core) => {
             if &core.manager != maybe_manager {
-            Err(StdError::generic_err("Proposed manager is not the manager of this instance."))
+                Err(StdError::generic_err(
+                    "Proposed manager is not the manager of this instance.",
+                ))
             } else {
                 Ok(core)
             }
         }
-    } 
+    }
 }
 
 pub fn verify_os_proxy(
@@ -33,19 +37,23 @@ pub fn verify_os_proxy(
     version_control_addr: &Addr,
     os_id: u32,
 ) -> StdResult<Core> {
-    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
+    let maybe_os =
+        OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
     match maybe_os {
-        None => {
-            Err(StdError::generic_err(format!("OS with id {} is not active.",os_id)))
-        }
+        None => Err(StdError::generic_err(format!(
+            "OS with id {} is not active.",
+            os_id
+        ))),
         Some(core) => {
             if &core.proxy != maybe_proxy {
-            Err(StdError::generic_err("Proposed proxy is not the proxy of this instance."))
+                Err(StdError::generic_err(
+                    "Proposed proxy is not the proxy of this instance.",
+                ))
             } else {
                 Ok(core)
             }
         }
-    } 
+    }
 }
 
 // /// Query the module versions of the modules part of the OS

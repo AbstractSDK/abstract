@@ -1,7 +1,7 @@
 use cosmwasm_std::Addr;
 use cw_controllers::Admin;
 use cw_storage_plus::{Map, U32Key};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Core {

@@ -1,15 +1,17 @@
 use cosmwasm_std::{
     to_binary, Addr, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn, Response, StdError,
-    SubMsg, WasmMsg, WasmQuery,
+    SubMsg, WasmMsg, WasmQuery, StdResult, QuerierWrapper, Coin,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use pandora_os::core::manager::helper::register_module_on_manager;
 use pandora_os::core::modules::ModuleInfo;
 use pandora_os::governance::gov_type::GovernanceDetails;
+use pandora_os::modules::add_ons::subscription::msg::{SubscriptionFeeResponse, QueryMsg as SubscriptionQuery, ExecuteMsg as SubscriptionExecMsg};
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
 
+use crate::error::OsFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
@@ -17,6 +19,8 @@ use pandora_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
 use pandora_os::core::proxy::msg::{
     ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg,
 };
+
+use cw_asset::{ Asset};
 use pandora_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
@@ -28,10 +32,35 @@ use pandora_os::registery::{MANAGER, PROXY};
 /// Function that starts the creation of the OS
 pub fn execute_create_os(
     deps: DepsMut,
+    info: MessageInfo,
     env: Env,
     governance: GovernanceDetails,
 ) -> OsFactoryResult {
-    // TODO: Add check if fee was paid
+    let config = CONFIG.load(deps.storage)?;
+
+    let subscription_fee: SubscriptionFeeResponse = query_subscription_fee(&deps.querier, &config.subscription_address)?;
+    let received_payment_coin = info.funds.clone().pop().unwrap_or_default();
+    let received_payment = Asset::from(received_payment_coin.clone());
+
+    let mut msgs = vec![];
+
+    if !subscription_fee.fee.amount.is_zero(){
+        if subscription_fee.fee.amount != received_payment.amount {
+            return Err(OsFactoryError::WrongAmount(subscription_fee.fee.to_string()));
+        } else if subscription_fee.fee.amount != received_payment.amount {
+            return Err(OsFactoryError::UnsupportedAsset());
+        } else if config.next_os_id != 0{
+            // Forward payment to subscription module, also registers the OS
+            // Don't do this for the first OS we create
+            let forward_payment_to_module :CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: config.subscription_address.to_string(),
+                funds: vec![received_payment_coin],
+                msg: to_binary(&SubscriptionExecMsg::Pay { asset: received_payment, os_id: config.next_os_id })?,
+            });
+            msgs.push(forward_payment_to_module)
+        }
+    }
+
 
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
@@ -39,8 +68,6 @@ pub fn execute_create_os(
         _ => return Err(StdError::generic_err("Not Implemented").into()),
     };
 
-    let config = CONFIG.load(deps.storage)?;
-    let response = Response::new();
 
     // Query version_control for code_id of Manager contract
     let manager_code_id_response: CodeIdResponse =
@@ -54,7 +81,7 @@ pub fn execute_create_os(
             })?,
         }))?;
 
-    Ok(response
+    Ok(Response::new()
         .add_attributes(vec![
             ("action", "create os"),
             ("os_id:", &config.next_os_id.to_string()),
@@ -74,15 +101,19 @@ pub fn execute_create_os(
                     os_id: config.next_os_id,
                     root_user: root_user.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
+                    subscription_address: config.subscription_address.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
                 })?,
             }
             .into(),
             reply_on: ReplyOn::Success,
-        }))
+        })
+        // Add as subscription registration as last. Gets called after the reply sequence is done.
+        .add_messages(msgs)
+    )
 }
 
-/// Registers the DAO on the version_control contract and
+
 /// instantiates the Treasury contract of the newly created DAO
 pub fn after_manager_create_proxy(
     deps: DepsMut,
@@ -92,17 +123,16 @@ pub fn after_manager_create_proxy(
 
     // Get address of Manager contract
     let res: MsgInstantiateContractResponse =
-        Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
-            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-        })?;
+    Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
+        StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
+    })?;
     let manager_address = res.get_contract_address();
-
+    
     CONTEXT.save(deps.storage, &Context{
         os_manager_address: deps.api.addr_validate(manager_address)?
     })?;
-
+    
     // Query version_control for code_id of Treasury
-    // TODO: replace with raw-query from package.
     let proxy_code_id_response: CodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
@@ -113,7 +143,6 @@ pub fn after_manager_create_proxy(
                 },
             })?,
         }))?;
-
     Ok(Response::new()
         .add_attribute("Manager Address:", &manager_address.to_string())
         // Instantiate Treasury contract
@@ -132,34 +161,34 @@ pub fn after_manager_create_proxy(
             .into(),
             reply_on: ReplyOn::Success,
         }))
+        
 }
-
-/// Adds proxy contract address and name to Manager
-/// contract of OS
-pub fn after_proxy_add_to_manager_and_set_admin(
-    deps: DepsMut,
-    result: ContractResult<SubMsgExecutionResponse>,
-) -> OsFactoryResult {
-    let mut config = CONFIG.load(deps.storage)?;
-    let context = CONTEXT.load(deps.storage)?;
-
-    let res: MsgInstantiateContractResponse =
+    /// Registers the DAO on the version_control contract and
+    /// adds proxy contract address to Manager
+    pub fn after_proxy_add_to_manager_and_set_admin(
+        deps: DepsMut,
+        result: ContractResult<SubMsgExecutionResponse>,
+    ) -> OsFactoryResult {
+        let mut config = CONFIG.load(deps.storage)?;
+        let context = CONTEXT.load(deps.storage)?;
+        
+        let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-
-    let proxy_address = res.get_contract_address();
-
-    // Add OS core to version_control
-    let add_os_core_to_version_control_msg :CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: config.version_control_contract.to_string(),
-        funds: vec![],
-        msg: to_binary(&VCExecuteMsg::AddOs {
-            os_id: config.next_os_id,
-            manager_address: context.os_manager_address.to_string(),
-            proxy_address: deps.api.addr_validate(proxy_address)?.into_string(),
-        })?,
-    });
+        
+        let proxy_address = res.get_contract_address();
+        
+        // Add OS core to version_control
+        let add_os_core_to_version_control_msg :CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: config.version_control_contract.to_string(),
+            funds: vec![],
+            msg: to_binary(&VCExecuteMsg::AddOs {
+                os_id: config.next_os_id,
+                manager_address: context.os_manager_address.to_string(),
+                proxy_address: deps.api.addr_validate(proxy_address)?.into_string(),
+            })?,
+        });
 
     let set_manager_as_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
@@ -168,20 +197,20 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             admin: context.os_manager_address.to_string(),
         })?,
     });
-
+    
     // Update id sequence
     config.next_os_id += 1;
     CONFIG.save(deps.storage, &config)?;
-
+    
     Ok(Response::new()
-        .add_message(add_os_core_to_version_control_msg)
-        .add_attribute("Proxy Address: ", res.get_contract_address())
-        .add_message(register_module_on_manager(
-            context.os_manager_address.to_string(),
-            PROXY.to_string(),
-            proxy_address.to_string(),
-        )?)
-        .add_message(set_manager_as_admin_msg))
+    .add_message(add_os_core_to_version_control_msg)
+    .add_attribute("Proxy Address: ", res.get_contract_address())
+    .add_message(register_module_on_manager(
+        context.os_manager_address.to_string(),
+        PROXY.to_string(),
+        proxy_address.to_string(),
+    )?)
+    .add_message(set_manager_as_admin_msg))
 }
 
 // Only owner can execute it
@@ -194,7 +223,7 @@ pub fn execute_update_config(
     memory_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
-    creation_fee: Option<u32>,
+    subscription_address: Option<String>,
 ) -> OsFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -209,22 +238,30 @@ pub fn execute_update_config(
         // validate address format
         config.version_control_contract = deps.api.addr_validate(&version_control_contract)?;
     }
-
+    
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     }
-
-    if let Some(creation_fee) = creation_fee {
-        config.creation_fee = creation_fee;
+    
+    if let Some(subscription_address) = subscription_address {
+        config.subscription_address = deps.api.addr_validate(&subscription_address)?;
     }
-
+    
     CONFIG.save(deps.storage, &config)?;
-
+    
     if let Some(admin) = admin {
         let addr = deps.api.addr_validate(&admin)?;
         ADMIN.set(deps, Some(addr))?;
     }
-
+    
     Ok(Response::new().add_attribute("action", "update_config"))
+}
+
+fn query_subscription_fee(querier: &QuerierWrapper, subscription_address: &Addr) -> StdResult<SubscriptionFeeResponse> {
+    let subscription_fee_response: SubscriptionFeeResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: subscription_address.to_string(),
+        msg: to_binary(&SubscriptionQuery::Fee {})?,
+    }))?;
+    Ok(subscription_fee_response)
 }

@@ -11,8 +11,10 @@ use pandora_os::core::proxy::msg::{ExecuteMsg, InstantiateMsg};
 
 const NOT_ALLOWED: &str = "some_other_contract";
 
-fn init_msg() -> InstantiateMsg {
-    InstantiateMsg {}
+fn init_msg(os_id: u32) -> InstantiateMsg {
+    InstantiateMsg {
+        os_id
+    }
 }
 
 #[test]
@@ -56,7 +58,7 @@ fn test_non_whitelisted() {
 #[test]
 fn test_whitelisted() {
     let mut deps = mock_dependencies(&[]);
-    let msg = init_msg();
+    let msg = init_msg(0);
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 

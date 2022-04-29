@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Deps, DepsMut, MessageInfo, Response, StdResult, Empty};
+use cosmwasm_std::{Addr, Deps, DepsMut, Empty, MessageInfo, Response, StdResult};
 
 use crate::modules::dapp_base::common::BaseDAppResult;
 use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};

@@ -14,6 +14,7 @@ pub struct InstantiateMsg {
     pub root_user: String,
     pub version_control_address: String,
     pub module_factory_address: String,
+    pub subscription_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -26,7 +27,7 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Admin
     SetAdmin { admin: String },
-    /// Create module using modulefactory
+    /// Create module using module factory
     CreateModule {
         module: Module,
         init_msg: Option<Binary>,
@@ -48,6 +49,10 @@ pub enum ExecuteMsg {
     Upgrade {
         module: Module,
         migrate_msg: Option<Binary>,
+    },
+    /// Suspend manager contract
+    SuspendOs {
+        new_status: bool,
     },
 }
 

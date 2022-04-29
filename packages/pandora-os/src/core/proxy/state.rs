@@ -22,4 +22,3 @@ pub struct State {
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");
 pub const ADMIN: Admin = Admin::new("admin");
 pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
-

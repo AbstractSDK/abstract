@@ -1,5 +1,7 @@
-use cosmwasm_std::{to_binary, Addr, Deps, QueryRequest, StdResult, Uint128, WasmQuery, QuerierWrapper};
-use cw20::{TokenInfoResponse, Cw20QueryMsg};
+use cosmwasm_std::{
+    to_binary, Addr, Deps, QuerierWrapper, QueryRequest, StdResult, Uint128, WasmQuery,
+};
+use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
 use crate::core::proxy::msg::{QueryMsg, TotalValueResponse};
 

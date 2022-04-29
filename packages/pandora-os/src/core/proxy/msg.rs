@@ -8,7 +8,7 @@ use crate::core::proxy::proxy_assets::ProxyAsset;
 use cw_asset::AssetInfo;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub os_id: u32
+    pub os_id: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]

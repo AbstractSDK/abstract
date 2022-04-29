@@ -1,3 +1,4 @@
+pub mod admin;
 pub mod anchor;
 pub mod astroport_helper;
 pub mod denom;
@@ -7,4 +8,3 @@ pub mod fee;
 pub mod paged_map;
 pub mod tax;
 pub mod token;
-pub mod admin;

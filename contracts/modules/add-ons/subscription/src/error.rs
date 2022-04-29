@@ -38,6 +38,23 @@ pub enum SubscriptionError {
     #[error("The provided native coin is not the same as the claimed deposit")]
     WrongNative {},
 
+    #[error("The contributor you wanted to remove is not registered.")]
+    ContributorNotRegistered,
+
+    #[error("You cant claim before your next payday on {0}")]
+    WaitForNextPayday(u64),
+
+    #[error("Your contribution compensation expired")]
+    ContributionExpired,
+
+    #[error("emissions for this OS are already claimed")]
+    EmissionsAlreadyClaimed,
+
+    #[error("only the factory can register new subscribers")]
+    CallerNotFactory,
+
+    #[error("you need to deposit at least {0} to reactivate this OS")]
+    InsufficientPayment(u64),
 }
 
 impl From<semver::Error> for SubscriptionError {

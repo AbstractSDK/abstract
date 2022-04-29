@@ -56,7 +56,6 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             manager_address,
             proxy_address,
         } => add_os(deps, info, os_id, manager_address, proxy_address),
-        ExecuteMsg::RemoveDebtors { os_ids } => remove_debtors(deps, info, os_ids),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => authorized_set_admin(deps, info, &ADMIN,&FACTORY,new_factory).map_err(|e| e.into()),
         ExecuteMsg::SetSubscription { new_sub_contract } => authorized_set_admin(deps, info, &ADMIN,&SUBSCRIPTION,new_sub_contract).map_err(|e| e.into()),

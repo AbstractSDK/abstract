@@ -244,6 +244,17 @@ pub fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
+pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult{
+    let config = CONFIG.load(deps.storage)?;
+
+    if info.sender != config.subscription_address {
+        Err(ManagerError::CallerNotSubscriptionContract {})
+    } else {
+        STATUS.save(deps.storage, &new_status)?;
+        Ok(Response::new().add_attribute("new_status", new_status.to_string()))
+    }
+}
+
 fn get_code_id(
     deps: Deps,
     module_info: ModuleInfo,
