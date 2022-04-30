@@ -57,7 +57,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             module_factory_address,
             subscription_address,
         ),
-        ExecuteMsg::CreateOs { governance } => commands::execute_create_os(deps, info, env, governance),
+        ExecuteMsg::CreateOs { governance } => {
+            commands::execute_create_os(deps, info, env, governance)
+        }
     }
 }
 

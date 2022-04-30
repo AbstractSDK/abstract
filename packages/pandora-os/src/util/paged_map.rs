@@ -8,7 +8,7 @@ const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 const MAX_MSG_LIMIT: u32 = 15;
 
-pub type PaginationResult<A, PageResult> = StdResult<(Option<A>,PageResult)>;
+pub type PaginationResult<A, PageResult> = StdResult<(Option<A>, PageResult)>;
 /// Allows for multi-transaction computation on a dataset. Required for large datasets due to gas constraints.
 pub struct PagedMap<'a, T, R> {
     /// Actual data store
@@ -80,7 +80,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         Ok(old_item)
     }
 
-    pub fn load(&self, store: & dyn Storage, key: &[u8]) -> StdResult<T>
+    pub fn load(&self, store: &dyn Storage, key: &[u8]) -> StdResult<T>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -88,7 +88,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.load(store, key)
     }
 
-    pub fn has(&self, store: & dyn Storage, key: &[u8]) -> bool
+    pub fn has(&self, store: &dyn Storage, key: &[u8]) -> bool
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -96,7 +96,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.has(store, key)
     }
 
-    pub fn may_load(&self, store: & dyn Storage, key: &[u8]) -> StdResult<Option<T>>
+    pub fn may_load(&self, store: &dyn Storage, key: &[u8]) -> StdResult<Option<T>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -104,7 +104,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.may_load(store, key)
     }
 
-    pub fn load_status(&self, store: & dyn Storage) -> StdResult<PaginationInfo<R>>
+    pub fn load_status(&self, store: &dyn Storage) -> StdResult<PaginationInfo<R>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -112,7 +112,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.status.load(store)
     }
 
-    /// Perform some operation on a page of the map. 
+    /// Perform some operation on a page of the map.
     /// Returns an optional result of that computation.
     /// Repeat until state unlocks to page over the whole map
     /// Omits errors from f()
@@ -121,8 +121,8 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         deps: DepsMut,
         limit: Option<u32>,
         context: &C,
-        f: fn(&[u8],&mut dyn Storage, T, &mut R, &C) -> StdResult<Option<FuncResult>>,
-    ) -> PaginationResult<R,Vec<FuncResult>>
+        f: fn(&[u8], &mut dyn Storage, T, &mut R, &C) -> StdResult<Option<FuncResult>>,
+    ) -> PaginationResult<R, Vec<FuncResult>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -143,7 +143,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             .take(limit)
             .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
 
-            // If not all items processed, update last item
+        // If not all items processed, update last item
         let accumulator = if !result.is_empty() {
             let last_key = result.last().unwrap().0.clone();
             status.last_processed_item = Some(last_key);
@@ -155,33 +155,41 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             status.accumulator = None;
             accumulator
         };
-        
-        
-        let function_results = result.into_iter().filter_map(|(key, element)| {
-            f(
-                &key,
+
+        let function_results = result
+            .into_iter()
+            .filter_map(|(key, element)| {
+                f(
+                    &key,
                     deps.storage,
                     element,
                     status
                         .accumulator
                         .as_mut()
                         .expect("accumulator contains some value"),
-                    context
-                ).ok().unwrap_or(None)
-            }).collect::<Vec<FuncResult>>();
-            
+                    context,
+                )
+                .ok()
+                .unwrap_or(None)
+            })
+            .collect::<Vec<FuncResult>>();
+
         self.status.save(deps.storage, &status)?;
 
-        Ok((accumulator,function_results))
+        Ok((accumulator, function_results))
     }
 
-    /// Will apply function on each element (key, value) of the map. Errors on function f() are neglected. 
+    /// Will apply function on each element (key, value) of the map. Errors on function f() are neglected.
     pub fn page_for_msgs<C>(
         &self,
         deps: DepsMut,
         limit: Option<u32>,
         context: &C,
-        f: fn((Vec<u8>, &mut T), &mut dyn Storage, context: &C) -> StdResult<Option<CosmosMsg<Empty>>>,
+        f: fn(
+            (Vec<u8>, &mut T),
+            &mut dyn Storage,
+            context: &C,
+        ) -> StdResult<Option<CosmosMsg<Empty>>>,
     ) -> StdResult<Option<Vec<CosmosMsg<Empty>>>>
     where
         T: Serialize + DeserializeOwned,
@@ -204,13 +212,12 @@ impl<'a, T, R> PagedMap<'a, T, R> {
 
         // Not all items processed, update last item
         let maybe_msgs = if result.len() != 0 {
-            status.last_processed_item = result
-                .last()
-                .map(|(key, _)| key.clone());
+            status.last_processed_item = result.last().map(|(key, _)| key.clone());
             Some(
                 result
                     .into_iter()
-                    .flat_map(|(key, mut item)| f((key,&mut item), deps.storage, context).ok()).flatten()
+                    .flat_map(|(key, mut item)| f((key, &mut item), deps.storage, context).ok())
+                    .flatten()
                     .collect(),
             )
         } else {

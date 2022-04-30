@@ -13,7 +13,7 @@ use crate::contract::VaultResult;
 use crate::error::VaultError;
 use crate::state::{Pool, State, FEE, POOL, STATE};
 use pandora_os::modules::add_ons::vault::DepositHookMsg;
-use pandora_os::queries::vault::{query_total_value, query_supply};
+use pandora_os::queries::vault::{query_supply, query_total_value};
 use pandora_os::util::fee::Fee;
 
 /// handler function invoked when the vault dapp contract receives

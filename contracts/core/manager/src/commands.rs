@@ -9,10 +9,8 @@ use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
 use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
 use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
 use pandora_os::native::version_control::msg::CodeIdResponse;
+use pandora_os::native::version_control::msg::QueryMsg as VersionQuery;
 use pandora_os::native::version_control::state::MODULE_CODE_IDS;
-use pandora_os::native::version_control::{
-    msg::QueryMsg as VersionQuery
-};
 use semver::Version;
 
 use crate::contract::ManagerResult;
@@ -244,7 +242,7 @@ pub fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
-pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult{
+pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
     if info.sender != config.subscription_address {
@@ -265,11 +263,13 @@ fn get_code_id(
     match module_info.version {
         Some(new_version) => {
             if new_version.parse::<Version>()? > contract.version.parse::<Version>()? {
-                new_code_id = MODULE_CODE_IDS.query(
-                    &deps.querier,
-                    config.version_control_address,
-                    (&module_info.name, &new_version),
-                )?.unwrap();
+                new_code_id = MODULE_CODE_IDS
+                    .query(
+                        &deps.querier,
+                        config.version_control_address,
+                        (&module_info.name, &new_version),
+                    )?
+                    .unwrap();
             } else {
                 return Err(ManagerError::OlderVersion(new_version, contract.version));
             };

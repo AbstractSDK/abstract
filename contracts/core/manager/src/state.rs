@@ -18,4 +18,3 @@ pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
 pub const ADMIN: Admin = Admin::new("admin");
 pub const ROOT: Admin = Admin::new("root");
 pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
-

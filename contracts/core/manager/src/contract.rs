@@ -64,39 +64,39 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             // Block actions if user is not subscribed
             let is_subscribed = STATUS.load(deps.storage)?;
             if !is_subscribed {
-                return Err(ManagerError::NotSubscribed{})
+                return Err(ManagerError::NotSubscribed {});
             }
-            
+
             match msg {
-            ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
-            ExecuteMsg::UpdateConfig { vc_addr, root } => {
-                execute_update_config(deps, info, vc_addr, root)
+                ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
+                ExecuteMsg::UpdateConfig { vc_addr, root } => {
+                    execute_update_config(deps, info, vc_addr, root)
+                }
+                ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
+                    // Only Admin can call this method
+                    // TODO: do we want Root here too?
+                    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+                    update_module_addresses(deps, to_add, to_remove)
+                }
+                ExecuteMsg::CreateModule { module, init_msg } => {
+                    create_module(deps, info, env, module, init_msg)
+                }
+                ExecuteMsg::RegisterModule {
+                    module,
+                    module_addr,
+                } => register_module(deps, info, env, module, module_addr),
+                ExecuteMsg::ConfigureModule {
+                    module_name,
+                    config_msg,
+                } => configure_module(deps, info, module_name, config_msg),
+                ExecuteMsg::Upgrade {
+                    module,
+                    migrate_msg,
+                } => _upgrade_module(deps, env, info, module, migrate_msg),
+                ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
+                _ => panic!(),
             }
-            ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                // Only Admin can call this method
-                // TODO: do we want Root here too?
-                ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-                update_module_addresses(deps, to_add, to_remove)
-            }
-            ExecuteMsg::CreateModule { module, init_msg } => {
-                create_module(deps, info, env, module, init_msg)
-            }
-            ExecuteMsg::RegisterModule {
-                module,
-                module_addr,
-            } => register_module(deps, info, env, module, module_addr),
-            ExecuteMsg::ConfigureModule {
-                module_name,
-                config_msg,
-            } => configure_module(deps, info, module_name, config_msg),
-            ExecuteMsg::Upgrade {
-                module,
-                migrate_msg,
-            } => _upgrade_module(deps, env, info, module, migrate_msg),
-            ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
-            _ => panic!()
         }
-    }
     }
 }
 

@@ -16,11 +16,11 @@ use pandora_os::util::deposit_manager::Deposit;
 
 use crate::contract::SubscriptionResult;
 use crate::error::SubscriptionError;
-use pandora_os::modules::add_ons::subscription::msg::{DepositHookMsg};
+use pandora_os::modules::add_ons::subscription::msg::DepositHookMsg;
 use pandora_os::modules::add_ons::subscription::state::{
-    ContributionState, ContributorContext, IncomeAccumulator, Subscriber, SubscriberContext,
-    SubscriptionConfig, SubscriptionState, CLIENTS, CONTRIBUTORS, CON_CONFIG, CON_STATE,
-    DORMANT_CLIENTS, MONTH, SUB_CONFIG, SUB_STATE, Compensation,
+    Compensation, ContributionState, ContributorContext, IncomeAccumulator, Subscriber,
+    SubscriberContext, SubscriptionConfig, SubscriptionState, CLIENTS, CONTRIBUTORS, CON_CONFIG,
+    CON_STATE, DORMANT_CLIENTS, MONTH, SUB_CONFIG, SUB_STATE,
 };
 
 /// handler function invoked when the vault dapp contract receives

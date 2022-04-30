@@ -8,7 +8,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
-use cw_storage_plus::{Map, Endian, U32Key};
+use cw_storage_plus::{Endian, Map, U32Key};
 use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
@@ -26,7 +26,8 @@ use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
 use pandora_os::modules::add_ons::subscription::msg::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse, SubscriptionFeeResponse, ConfigResponse, SubscriberStateResponse, ContributorStateResponse,
+    ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };
 use pandora_os::modules::add_ons::subscription::state::*;
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
@@ -79,7 +80,8 @@ pub fn instantiate(
         protocol_income_share: msg.contribution.protocol_income_share,
         base_denom: msg.contribution.base_denom,
         max_emissions_multiple: msg.contribution.max_emissions_multiple,
-    }.verify()?;
+    }
+    .verify()?;
 
     let con_state: ContributionState = ContributionState {
         emissions_cap: Uint128::zero(),
@@ -171,7 +173,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::State {} => {
             let sub_state = SUB_STATE.load(deps.storage)?;
             let con_state = CON_STATE.load(deps.storage)?;
-            to_binary(&StateResponse{
+            to_binary(&StateResponse {
                 contribution: con_state,
                 subscription: sub_state,
             })
@@ -193,32 +195,33 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 subscription: sub_config,
             })
         }
-        QueryMsg::SubscriberState { os_id} => {
+        QueryMsg::SubscriberState { os_id } => {
             let maybe_sub = CLIENTS.may_load(deps.storage, &os_id.to_be_bytes())?;
             let maybe_dormant_sub = DORMANT_CLIENTS.may_load(deps.storage, U32Key::new(os_id))?;
             let sub_state = if let Some(sub) = maybe_sub {
-                to_binary(&SubscriberStateResponse{
+                to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,
-                    subscriber_details: sub
+                    subscriber_details: sub,
                 })?
-            } else if let Some(sub) = maybe_dormant_sub{
-                to_binary(&SubscriberStateResponse{
+            } else if let Some(sub) = maybe_dormant_sub {
+                to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,
-                    subscriber_details: sub
+                    subscriber_details: sub,
                 })?
             } else {
                 return Err(StdError::generic_err("os is instance 0 or does not exist"));
             };
             Ok(sub_state)
-        },
-        QueryMsg::ContributorState { contributor_addr} => {
-            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr.as_bytes())?;
+        }
+        QueryMsg::ContributorState { contributor_addr } => {
+            let maybe_contributor =
+                CONTRIBUTORS.may_load(deps.storage, &contributor_addr.as_bytes())?;
             let sub_state = if let Some(compensation) = maybe_contributor {
-                to_binary(&ContributorStateResponse{
-                   compensation
-                })?
+                to_binary(&ContributorStateResponse { compensation })?
             } else {
-                return Err(StdError::generic_err("provided address is not a contributor"));
+                return Err(StdError::generic_err(
+                    "provided address is not a contributor",
+                ));
             };
             Ok(sub_state)
         }

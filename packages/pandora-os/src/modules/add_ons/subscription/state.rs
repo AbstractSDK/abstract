@@ -3,10 +3,8 @@ use std::ops::Sub;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    util::{deposit_manager::Deposit, paged_map::PagedMap},
-};
-use cosmwasm_std::{Addr, Decimal, Uint128, Uint64, StdResult, StdError};
+use crate::util::{deposit_manager::Deposit, paged_map::PagedMap};
+use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map, U32Key};
 
@@ -52,7 +50,7 @@ pub const DORMANT_CLIENTS: Map<U32Key, Subscriber> = Map::new("dormant_clients")
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ContributionConfig {
-    /// Percentage of income that is redirected to the protocol 
+    /// Percentage of income that is redirected to the protocol
     pub protocol_income_share: Decimal,
     /// Percentage of emissions allocated to users
     pub emission_user_share: Decimal,
@@ -70,10 +68,12 @@ pub struct ContributionConfig {
 
 impl ContributionConfig {
     pub fn verify(self) -> StdResult<Self> {
-        if !(
-        decimal_is_percentage(&self.protocol_income_share) ||
-        decimal_is_percentage(&self.emission_user_share) ) {
-            Err(StdError::generic_err("Some config fields should not be >1."))
+        if !(decimal_is_percentage(&self.protocol_income_share)
+            || decimal_is_percentage(&self.emission_user_share))
+        {
+            Err(StdError::generic_err(
+                "Some config fields should not be >1.",
+            ))
         } else {
             Ok(self)
         }
@@ -129,7 +129,7 @@ pub struct ContributorContext {
 }
 
 pub struct SubscriberContext {
-    pub subscription_cost: Uint64 
+    pub subscription_cost: Uint64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

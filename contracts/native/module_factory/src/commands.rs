@@ -42,7 +42,12 @@ pub fn execute_create_module(
     let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
     // Verify sender is active OS manager
-    verify_os_manager(&deps.querier, &info.sender, &config.version_control_address, os_id)?;
+    verify_os_manager(
+        &deps.querier,
+        &info.sender,
+        &config.version_control_address,
+        os_id,
+    )?;
 
     // Query version_control for code_id Module
     let module_code_id_response: CodeIdResponse =

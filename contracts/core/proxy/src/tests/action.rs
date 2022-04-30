@@ -12,9 +12,7 @@ use pandora_os::core::proxy::msg::{ExecuteMsg, InstantiateMsg};
 const NOT_ALLOWED: &str = "some_other_contract";
 
 fn init_msg(os_id: u32) -> InstantiateMsg {
-    InstantiateMsg {
-        os_id
-    }
+    InstantiateMsg { os_id }
 }
 
 #[test]

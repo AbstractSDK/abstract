@@ -7,10 +7,10 @@ use cw2::ContractVersion;
 use pandora_os::core::modules::ModuleInfo;
 
 use crate::error::VCError;
-use pandora_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
+use pandora_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 
 use pandora_os::core::manager::msg::{EnabledModulesResponse, QueryMsg};
 use pandora_os::native::version_control::msg::CodeIdResponse;

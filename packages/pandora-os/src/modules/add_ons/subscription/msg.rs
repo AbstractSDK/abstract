@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
-use super::state::{ContributionConfig, SubscriptionConfig, Subscriber, ContributionState, SubscriptionState, Compensation};
+use super::state::{
+    Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
+    SubscriptionState,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
@@ -66,13 +69,13 @@ pub enum ExecuteMsg {
     RemoveContributor {
         contributor_addr: String,
     },
-    UpdateSubscriptionConfig{
+    UpdateSubscriptionConfig {
         payment_asset: Option<AssetInfo>,
         version_control_address: Option<String>,
         factory_address: Option<String>,
         subscription_cost: Option<Uint64>,
     },
-    UpdateContributionConfig{
+    UpdateContributionConfig {
         protocol_income_share: Option<Decimal>,
         emission_user_share: Option<Decimal>,
         max_emissions_multiple: Option<Decimal>,
@@ -80,7 +83,7 @@ pub enum ExecuteMsg {
         emissions_amp_factor: Option<Uint128>,
         emissions_offset: Option<Uint128>,
         base_denom: Option<String>,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -91,8 +94,8 @@ pub enum QueryMsg {
     State {},
     Config {},
     Fee {},
-    SubscriberState { os_id: u32},
-    ContributorState { contributor_addr: String}
+    SubscriberState { os_id: u32 },
+    ContributorState { contributor_addr: String },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

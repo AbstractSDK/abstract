@@ -51,9 +51,7 @@ pub enum ExecuteMsg {
         migrate_msg: Option<Binary>,
     },
     /// Suspend manager contract
-    SuspendOs {
-        new_status: bool,
-    },
+    SuspendOs { new_status: bool },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

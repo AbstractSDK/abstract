@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, DepsMut, MessageInfo, Response, StdResult, Empty};
+use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::MemoryResult;
