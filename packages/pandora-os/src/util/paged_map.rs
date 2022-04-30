@@ -80,7 +80,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         Ok(old_item)
     }
 
-    pub fn load(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<T>
+    pub fn load(&self, store: & dyn Storage, key: &[u8]) -> StdResult<T>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -88,7 +88,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.load(store, key)
     }
 
-    pub fn has(&self, store: &mut dyn Storage, key: &[u8]) -> bool
+    pub fn has(&self, store: & dyn Storage, key: &[u8]) -> bool
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -96,7 +96,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.has(store, key)
     }
 
-    pub fn may_load(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<Option<T>>
+    pub fn may_load(&self, store: & dyn Storage, key: &[u8]) -> StdResult<Option<T>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -104,7 +104,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.may_load(store, key)
     }
 
-    pub fn load_status(&self, store: &mut dyn Storage) -> StdResult<PaginationInfo<R>>
+    pub fn load_status(&self, store: & dyn Storage) -> StdResult<PaginationInfo<R>>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
