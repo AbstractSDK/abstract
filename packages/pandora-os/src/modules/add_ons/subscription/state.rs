@@ -1,3 +1,5 @@
+use std::ops::Sub;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -7,8 +9,6 @@ use crate::{
 use cosmwasm_std::{Addr, Decimal, Uint128, Uint64, StdResult, StdError};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map, U32Key};
-
-use super::msg::Compensation;
 
 pub const MONTH: u64 = 60 * 60 * 24 * 30;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -130,4 +130,23 @@ pub struct ContributorContext {
 
 pub struct SubscriberContext {
     pub subscription_cost: Uint64 
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Compensation {
+    pub base: u32,
+    pub weight: u32,
+    pub next_pay_day: Uint64,
+    pub expiration: Uint64,
+}
+
+impl Sub for Compensation {
+    type Output = (i32, i32);
+
+    fn sub(self, other: Self) -> (i32, i32) {
+        (
+            self.base as i32 - other.base as i32,
+            self.weight as i32 - other.weight as i32,
+        )
+    }
 }

@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
+use super::state::{ContributionConfig, SubscriptionConfig, Subscriber, ContributionState, SubscriptionState, Compensation};
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
@@ -89,6 +91,8 @@ pub enum QueryMsg {
     State {},
     Config {},
     Fee {},
+    SubscriberState { os_id: u32},
+    ContributorState { contributor_addr: String}
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -96,22 +100,17 @@ pub enum QueryMsg {
 pub enum DepositHookMsg {
     Pay { os_id: u32 },
 }
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct SubscriptionStateResponse {
-    pub income: Uint64,
-    pub next_pay_day: Uint64,
-    pub debtors: Vec<u32>,
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ContributionStateResponse {
-    pub total_weight: Uint128,
+pub struct ConfigResponse {
+    pub contribution: ContributionConfig,
+    pub subscription: SubscriptionConfig,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
-    pub contribution: ContributionStateResponse,
-    pub subscription: SubscriptionStateResponse,
+    pub contribution: ContributionState,
+    pub subscription: SubscriptionState,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -120,20 +119,12 @@ pub struct SubscriptionFeeResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Compensation {
-    pub base: u32,
-    pub weight: u32,
-    pub next_pay_day: Uint64,
-    pub expiration: Uint64,
+pub struct SubscriberStateResponse {
+    pub currently_subscribed: bool,
+    pub subscriber_details: Subscriber,
 }
 
-impl Sub for Compensation {
-    type Output = (i32, i32);
-
-    fn sub(self, other: Self) -> (i32, i32) {
-        (
-            self.base as i32 - other.base as i32,
-            self.weight as i32 - other.weight as i32,
-        )
-    }
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ContributorStateResponse {
+    pub compensation: Compensation,
 }

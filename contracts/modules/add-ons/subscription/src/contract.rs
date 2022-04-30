@@ -8,7 +8,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
-use cw_storage_plus::Map;
+use cw_storage_plus::{Map, Endian, U32Key};
 use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
@@ -26,7 +26,7 @@ use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
 use pandora_os::modules::add_ons::subscription::msg::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse, SubscriptionFeeResponse,
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse, SubscriptionFeeResponse, ConfigResponse, SubscriberStateResponse, ContributorStateResponse,
 };
 use pandora_os::modules::add_ons::subscription::state::*;
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
@@ -169,8 +169,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
-            let state = SUB_STATE.load(deps.storage)?;
-            to_binary(&Empty {})
+            let sub_state = SUB_STATE.load(deps.storage)?;
+            let con_state = CON_STATE.load(deps.storage)?;
+            to_binary(&StateResponse{
+                contribution: con_state,
+                subscription: sub_state,
+            })
         }
         QueryMsg::Fee {} => {
             let config = SUB_CONFIG.load(deps.storage)?;
@@ -182,13 +186,41 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             })
         }
         QueryMsg::Config {} => {
-            let config = SUB_CONFIG.load(deps.storage)?;
-            to_binary(&SubscriptionFeeResponse {
-                fee: Asset {
-                    info: config.payment_asset,
-                    amount: config.subscription_cost.into(),
-                },
+            let sub_config = SUB_CONFIG.load(deps.storage)?;
+            let con_config = CON_CONFIG.load(deps.storage)?;
+            to_binary(&ConfigResponse {
+                contribution: con_config,
+                subscription: sub_config,
             })
+        }
+        QueryMsg::SubscriberState { os_id} => {
+            let maybe_sub = CLIENTS.may_load(deps.storage, &os_id.to_be_bytes())?;
+            let maybe_dormant_sub = DORMANT_CLIENTS.may_load(deps.storage, U32Key::new(os_id))?;
+            let sub_state = if let Some(sub) = maybe_sub {
+                to_binary(&SubscriberStateResponse{
+                    currently_subscribed: true,
+                    subscriber_details: sub
+                })?
+            } else if let Some(sub) = maybe_dormant_sub{
+                to_binary(&SubscriberStateResponse{
+                    currently_subscribed: true,
+                    subscriber_details: sub
+                })?
+            } else {
+                return Err(StdError::generic_err("os is instance 0 or does not exist"));
+            };
+            Ok(sub_state)
+        },
+        QueryMsg::ContributorState { contributor_addr} => {
+            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr.as_bytes())?;
+            let sub_state = if let Some(compensation) = maybe_contributor {
+                to_binary(&ContributorStateResponse{
+                   compensation
+                })?
+            } else {
+                return Err(StdError::generic_err("provided address is not a contributor"));
+            };
+            Ok(sub_state)
         }
     }
 }
