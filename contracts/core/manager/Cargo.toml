@@ -37,8 +37,8 @@ semver = "1.0.4"
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
 cw-multi-test = { version = "0.9.1"}
-terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks"}
-terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test"}
+terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", package = "terra-mocks"}
+terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", tag = "v0.9.1-terra"}
 cw20-base = { version = "0.9.1", features = ["library"] }
 
 proxy = { version = "0.1.0", path = "../proxy" }

@@ -2,7 +2,7 @@
 export PATH=$PATH:/usr/local/bin
 
 #
-# White Whale contracts pre-commit hook, used to perform static analysis checks on changed files.
+# contracts pre-commit hook, used to perform static analysis checks on changed files.
 #
 # Install the hook with the --install option.
 #

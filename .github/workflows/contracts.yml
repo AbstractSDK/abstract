@@ -1,0 +1,62 @@
+on:
+  push:
+    branches:
+  pull_request:
+    branches:
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  format:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: 1.58.1
+          components: rustfmt
+      - uses: mbrobbel/rustfmt-check@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+  lint:
+    name: Clippy Linter
+    runs-on: self-hosted
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: 1.58.1
+          components: clippy
+      - name: Build | Lint
+        run: cargo clippy -- -D warnings
+  compile:
+    name: Compile
+    runs-on: self-hosted
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+      - name: Dependencies | Compile
+        run: cargo update
+      - name: Build | Compile
+        run: cargo check
+  test:
+    name: Test
+    runs-on:  self-hosted
+    needs: [compile]
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v2
+      - name: Setup | Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: 1.58.1
+      - name: Unit Test | Test
+        run: cargo test

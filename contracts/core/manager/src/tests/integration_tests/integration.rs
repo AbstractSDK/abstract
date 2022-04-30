@@ -4,6 +4,7 @@ use cosmwasm_std::Addr;
 
 use pandora_os::registery::PROXY;
 use terra_multi_test::App;
+use terra_multi_test::TerraApp;
 
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::integration_tests::common_integration::mock_app;
@@ -18,7 +19,7 @@ use terra_multi_test::Executor;
 use super::common_integration::{NativeContracts, OsInstance};
 const MILLION: u64 = 1_000_000u64;
 
-fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> OsInstance {
+fn init_os(app: &mut TerraApp, sender: Addr, native_contracts: &NativeContracts) -> OsInstance {
     let _resp = app
         .execute_contract(
             sender.clone(),
