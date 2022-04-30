@@ -1,5 +1,5 @@
 use cosmwasm_std::{CosmosMsg, Deps, DepsMut, Empty, Order, StdError, StdResult, Storage};
-use cw_storage_plus::{Bound, Item, Map};
+use cw_storage_plus::{Bound, Item, Map, PrimaryKey, Path};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -63,6 +63,15 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.save(store, key, data)
     }
 
+    /// *Warning*: This function circumvents the storage lock. You should only use this in a pagination function.
+    pub fn save_in_fn(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> StdResult<()>
+    where
+        T: Serialize + DeserializeOwned,
+        R: Serialize + DeserializeOwned + Default + Clone,
+    {
+        self.data.save(store, key, data)
+    }
+
     // Returns the removed item after deleting it
     pub fn remove(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<T>
     where
@@ -112,6 +121,13 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.status.load(store)
     }
 
+    pub fn key(&self, key: &[u8]) -> Path<T>
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        self.data.key(key)
+    }
+
     /// Perform some operation on a page of the map.
     /// Returns an optional result of that computation.
     /// Repeat until state unlocks to page over the whole map
@@ -144,7 +160,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
             .collect::<StdResult<Vec<(Vec<u8>, T)>>>()?;
 
         // If not all items processed, update last item
-        let accumulator = if !result.is_empty() {
+        let return_accumulator = if !result.is_empty() {
             let last_key = result.last().unwrap().0.clone();
             status.last_processed_item = Some(last_key);
             None
@@ -176,7 +192,7 @@ impl<'a, T, R> PagedMap<'a, T, R> {
 
         self.status.save(deps.storage, &status)?;
 
-        Ok((accumulator, function_results))
+        Ok((return_accumulator, function_results))
     }
 
     /// Will apply function on each element (key, value) of the map. Errors on function f() are neglected.
@@ -229,5 +245,124 @@ impl<'a, T, R> PagedMap<'a, T, R> {
 
         self.status.save(deps.storage, &status)?;
         Ok(maybe_msgs)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::{Deserialize, Serialize};
+    use std::ops::Deref;
+
+    #[cfg(feature = "iterator")]
+    use cosmwasm_storage::iter_helpers::to_length_prefixed;
+    use cw_storage_plus::U8Key;
+    use cosmwasm_std::testing::{MockStorage, mock_dependencies};
+    #[cfg(feature = "iterator")]
+    use cosmwasm_std::{Order, StdResult};
+
+    #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+    struct Data {
+        pub name: String,
+        pub balance: u32,
+    }
+
+    #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+    struct IncomeAcc {
+        pub total: u32,
+    }
+
+    const USERS: PagedMap<Data,IncomeAcc> = PagedMap::new("people","status");
+
+    #[test]
+    fn save_and_load() {
+        let mut store = MockStorage::new();
+
+        // save and load on one key
+        let john = USERS.key(b"john");
+        let data = Data {
+            name: "John".to_string(),
+            balance: 32,
+        };
+        assert_eq!(None, john.may_load(&store).unwrap());
+        john.save(&mut store, &data).unwrap();
+        assert_eq!(data, john.load(&store).unwrap());
+
+        // nothing on another key
+        assert_eq!(None, USERS.may_load(&store, b"jack").unwrap());
+
+        // same named path gets the data
+        assert_eq!(data, USERS.load(&store, b"john").unwrap());
+
+        // removing leaves us empty
+        john.remove(&mut store);
+        assert_eq!(None, john.may_load(&store).unwrap());
+    }
+
+    #[test]
+    fn page_with_accumulator() {
+
+        // Change balance to 0, add balance to total and return value if even
+        fn accumulate_and_subtract_balances(key: &[u8], store: &mut dyn Storage, value: Data, acc: &mut IncomeAcc, context: &String) -> StdResult<Option<u32>> {
+            let balance = value.balance;
+            acc.total += balance;
+            USERS.save_in_fn(store, key, &Data{
+                balance: 0,
+                ..value
+            })?;
+
+            if balance%2 == 0 {
+                Ok(Some(balance))
+            } else {
+                Ok(None)
+            }
+        }
+
+        let mut deps = mock_dependencies(&[]);
+        USERS.instantiate(&mut deps.storage).unwrap();
+        let mut total = 0;
+        let mut even_numbers = vec![];
+        
+        for i in 0..100 {
+            let data = Data {
+                name: "IrrelevantName".to_string(),
+                balance: i,
+            };
+            total += data.balance;
+            USERS.save(&mut deps.storage, &i.to_be_bytes(), &data).unwrap();
+            let stored_data = USERS.load(&deps.storage, &i.to_be_bytes()).unwrap();
+            if i%2 == 0 {
+                even_numbers.push(i);
+            };
+            assert_eq!(stored_data, data);
+        }
+        let mut result_even_numbers = vec![];
+        
+        // first call, external factor (like a time stamp) should determine when you can start the accumulator.
+        let (_, mut maybe_even_numbers) =USERS.page_with_accumulator(deps.as_mut(), None, &String::new(), accumulate_and_subtract_balances).unwrap();
+        
+        assert!(USERS.status.load(&deps.storage).unwrap().accumulator.is_some());
+        assert!(USERS.status.load(&deps.storage).unwrap().is_locked);
+        // Keep track of the output
+        result_even_numbers.append(&mut maybe_even_numbers);
+        
+        while USERS.status.load(&deps.storage).unwrap().is_locked {
+            let (maybe_accumulator, mut maybe_even_numbers) = USERS.page_with_accumulator(deps.as_mut(), None, &String::new(), accumulate_and_subtract_balances).unwrap();
+            
+            result_even_numbers.append(&mut maybe_even_numbers);
+            
+            if let Some(acc) = maybe_accumulator{
+                // Accumulator should be done
+                assert_eq!(acc.total, total);
+                assert_eq!(result_even_numbers, even_numbers);
+            }
+        }
+        for i in 0..100u32 {
+            let stored_data = USERS.load(&deps.storage, &i.to_be_bytes()).unwrap();
+            assert_eq!(stored_data, Data {
+                name: "IrrelevantName".to_string(),
+                balance: 0,
+            });
+        }
     }
 }
