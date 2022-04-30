@@ -8,18 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: 1.58.1
-          components: rustfmt
-      - uses: mbrobbel/rustfmt-check@master
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
   lint:
     name: Clippy Linter
     runs-on: self-hosted
