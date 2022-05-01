@@ -63,8 +63,8 @@ impl<'a, T, R> PagedMap<'a, T, R> {
         self.data.save(store, key, data)
     }
 
-    /// *Warning*: This function circumvents the storage lock. You should only use this in a pagination function.
-    pub fn save_in_fn(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> StdResult<()>
+    /// **Warning**: This function circumvents the storage lock. You should only use this in a pagination function.
+    pub fn unsafe_save(&self, store: &mut dyn Storage, key: &[u8], data: &T) -> StdResult<()>
     where
         T: Serialize + DeserializeOwned,
         R: Serialize + DeserializeOwned + Default + Clone,
@@ -83,6 +83,19 @@ impl<'a, T, R> PagedMap<'a, T, R> {
                 msg: "Can not save to map while locked. Proceed with operation first.".into(),
             });
         }
+        let old_item = self.data.load(store, key)?;
+        self.data.remove(store, key);
+
+        Ok(old_item)
+    }
+
+    /// **Warning**: This function circumvents the storage lock. You should only use this in a pagination function.
+    /// Returns the removed item after deleting it
+    pub fn unsafe_remove(&self, store: &mut dyn Storage, key: &[u8]) -> StdResult<T>
+    where
+        T: Serialize + DeserializeOwned,
+        R: Serialize + DeserializeOwned + Default + Clone,
+    {
         let old_item = self.data.load(store, key)?;
         self.data.remove(store, key);
 
@@ -306,7 +319,7 @@ mod tests {
         fn accumulate_and_subtract_balances(key: &[u8], store: &mut dyn Storage, value: Data, acc: &mut IncomeAcc, context: &String) -> StdResult<Option<u32>> {
             let balance = value.balance;
             acc.total += balance;
-            USERS.save_in_fn(store, key, &Data{
+            USERS.unsafe_save(store, key, &Data{
                 balance: 0,
                 ..value
             })?;

@@ -253,7 +253,8 @@ fn collect_income(
     }
 }
 
-// Check client payment
+/// Check client payment
+/// Allowed to make use of unsafe functions as this is the pagination function
 fn process_client(
     key: &[u8],
     store: &mut dyn Storage,
@@ -268,7 +269,7 @@ fn process_client(
             acc.income += subscription_cost.u64() as u32;
             acc.active_subs += 1;
             subscriber.claimed_emissions = false;
-            CLIENTS.save(store, key, &subscriber)?;
+            CLIENTS.unsafe_save(store, key, &subscriber)?;
             Ok(None)
         }
         None => {
@@ -278,7 +279,7 @@ fn process_client(
             }
             let os_id = u32::from_be_bytes(key.to_owned().try_into().unwrap());
             acc.debtors.push(os_id);
-            let removed_sub = CLIENTS.remove(store, key)?;
+            let removed_sub = CLIENTS.unsafe_remove(store, key)?;
             DORMANT_CLIENTS.save(store, os_id.into(), &removed_sub)?;
             Ok(Some(suspend_os(subscriber.manager_addr, true)?))
         }
@@ -471,7 +472,7 @@ fn process_contributor(
     }
     // update compensation details
     compensation.next_pay_day = context.next_pay_day.into();
-    CONTRIBUTORS.save(store, &contributor_key, compensation)?;
+    CONTRIBUTORS.unsafe_save(store, &contributor_key, compensation)?;
 
     let base_pay: Uint128 = Uint128::new(compensation.base as u128) * context.payout_ratio;
 
