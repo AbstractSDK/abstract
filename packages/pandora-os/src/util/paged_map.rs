@@ -1,5 +1,5 @@
 use cosmwasm_std::{CosmosMsg, Deps, DepsMut, Empty, Order, StdError, StdResult, Storage};
-use cw_storage_plus::{Bound, Item, Map, PrimaryKey, Path};
+use cw_storage_plus::{Bound, Item, Map, Path, PrimaryKey};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -267,12 +267,12 @@ mod tests {
     use serde::{Deserialize, Serialize};
     use std::ops::Deref;
 
+    use cosmwasm_std::testing::{mock_dependencies, MockStorage};
+    #[cfg(feature = "iterator")]
+    use cosmwasm_std::{Order, StdResult};
     #[cfg(feature = "iterator")]
     use cosmwasm_storage::iter_helpers::to_length_prefixed;
     use cw_storage_plus::U8Key;
-    use cosmwasm_std::testing::{MockStorage, mock_dependencies};
-    #[cfg(feature = "iterator")]
-    use cosmwasm_std::{Order, StdResult};
 
     #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
     struct Data {
@@ -285,7 +285,7 @@ mod tests {
         pub total: u32,
     }
 
-    const USERS: PagedMap<Data,IncomeAcc> = PagedMap::new("people","status");
+    const USERS: PagedMap<Data, IncomeAcc> = PagedMap::new("people", "status");
 
     #[test]
     fn save_and_load() {
@@ -314,17 +314,26 @@ mod tests {
 
     #[test]
     fn page_with_accumulator() {
-
         // Change balance to 0, add balance to total and return value if even
-        fn accumulate_and_subtract_balances(key: &[u8], store: &mut dyn Storage, value: Data, acc: &mut IncomeAcc, context: &String) -> StdResult<Option<u32>> {
+        fn accumulate_and_subtract_balances(
+            key: &[u8],
+            store: &mut dyn Storage,
+            value: Data,
+            acc: &mut IncomeAcc,
+            context: &String,
+        ) -> StdResult<Option<u32>> {
             let balance = value.balance;
             acc.total += balance;
-            USERS.unsafe_save(store, key, &Data{
-                balance: 0,
-                ..value
-            })?;
+            USERS.unsafe_save(
+                store,
+                key,
+                &Data {
+                    balance: 0,
+                    ..value
+                },
+            )?;
 
-            if balance%2 == 0 {
+            if balance % 2 == 0 {
                 Ok(Some(balance))
             } else {
                 Ok(None)
@@ -335,36 +344,57 @@ mod tests {
         USERS.instantiate(&mut deps.storage).unwrap();
         let mut total = 0;
         let mut even_numbers = vec![];
-        
+
         for i in 0..100 {
             let data = Data {
                 name: "IrrelevantName".to_string(),
                 balance: i,
             };
             total += data.balance;
-            USERS.save(&mut deps.storage, &i.to_be_bytes(), &data).unwrap();
+            USERS
+                .save(&mut deps.storage, &i.to_be_bytes(), &data)
+                .unwrap();
             let stored_data = USERS.load(&deps.storage, &i.to_be_bytes()).unwrap();
-            if i%2 == 0 {
+            if i % 2 == 0 {
                 even_numbers.push(i);
             };
             assert_eq!(stored_data, data);
         }
         let mut result_even_numbers = vec![];
-        
+
         // first call, external factor (like a time stamp) should determine when you can start the accumulator.
-        let (_, mut maybe_even_numbers) =USERS.page_with_accumulator(deps.as_mut(), None, &String::new(), accumulate_and_subtract_balances).unwrap();
-        
-        assert!(USERS.status.load(&deps.storage).unwrap().accumulator.is_some());
+        let (_, mut maybe_even_numbers) = USERS
+            .page_with_accumulator(
+                deps.as_mut(),
+                None,
+                &String::new(),
+                accumulate_and_subtract_balances,
+            )
+            .unwrap();
+
+        assert!(USERS
+            .status
+            .load(&deps.storage)
+            .unwrap()
+            .accumulator
+            .is_some());
         assert!(USERS.status.load(&deps.storage).unwrap().is_locked);
         // Keep track of the output
         result_even_numbers.append(&mut maybe_even_numbers);
-        
+
         while USERS.status.load(&deps.storage).unwrap().is_locked {
-            let (maybe_accumulator, mut maybe_even_numbers) = USERS.page_with_accumulator(deps.as_mut(), None, &String::new(), accumulate_and_subtract_balances).unwrap();
-            
+            let (maybe_accumulator, mut maybe_even_numbers) = USERS
+                .page_with_accumulator(
+                    deps.as_mut(),
+                    None,
+                    &String::new(),
+                    accumulate_and_subtract_balances,
+                )
+                .unwrap();
+
             result_even_numbers.append(&mut maybe_even_numbers);
-            
-            if let Some(acc) = maybe_accumulator{
+
+            if let Some(acc) = maybe_accumulator {
                 // Accumulator should be done
                 assert_eq!(acc.total, total);
                 assert_eq!(result_even_numbers, even_numbers);
@@ -372,10 +402,13 @@ mod tests {
         }
         for i in 0..100u32 {
             let stored_data = USERS.load(&deps.storage, &i.to_be_bytes()).unwrap();
-            assert_eq!(stored_data, Data {
-                name: "IrrelevantName".to_string(),
-                balance: 0,
-            });
+            assert_eq!(
+                stored_data,
+                Data {
+                    name: "IrrelevantName".to_string(),
+                    balance: 0,
+                }
+            );
         }
     }
 }
