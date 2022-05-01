@@ -44,7 +44,9 @@ pub fn instantiate(
         &Config {
             version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
             module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-            subscription_address: deps.api.addr_validate(&msg.subscription_address)?,
+            // Unchecked because caller should be Factory (which does the check)
+            // Also allows for first OS to be instantiated without subscription addr
+            subscription_address: Addr::unchecked(msg.subscription_address),
         },
     )?;
     // Set root
