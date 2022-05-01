@@ -52,7 +52,7 @@ pub fn execute_create_os(
             return Err(OsFactoryError::WrongAmount(
                 subscription_fee.fee.to_string(),
             ));
-        } else if subscription_fee.fee.amount != received_payment.amount {
+        } else if subscription_fee.fee.info != received_payment.info {
             return Err(OsFactoryError::UnsupportedAsset());
         } else if config.next_os_id != 0 {
             // Forward payment to subscription module, also registers the OS
