@@ -1,8 +1,8 @@
-use cosmwasm_std::{Addr, Binary, QuerierWrapper, StdError};
+use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
-use cosmwasm_std::{Deps, QueryRequest, StdResult, WasmQuery};
-use cosmwasm_storage::to_length_prefixed;
-use cw_storage_plus::{PrimaryKey, U32Key};
+use cosmwasm_std::StdResult;
+
+use cw_storage_plus::U32Key;
 
 use super::state::{Core, OS_ADDRESSES};
 

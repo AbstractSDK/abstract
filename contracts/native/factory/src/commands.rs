@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper, QueryRequest, ReplyOn,
+    to_binary, Addr, DepsMut, Empty, Env, MessageInfo, QuerierWrapper, QueryRequest, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};

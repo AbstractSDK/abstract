@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pandora_os::registery::*;
 
-use terra_multi_test::{App, ContractWrapper, TerraApp};
+use terra_multi_test::{ContractWrapper, TerraApp};
 
 use super::common_integration::NativeContracts;
 use super::instantiate::init_native_contracts;

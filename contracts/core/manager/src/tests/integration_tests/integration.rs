@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cosmwasm_std::Addr;
 
 use pandora_os::registery::PROXY;
-use terra_multi_test::App;
+
 use terra_multi_test::TerraApp;
 
 use crate::tests::common::TEST_CREATOR;

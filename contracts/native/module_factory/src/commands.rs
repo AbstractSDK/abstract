@@ -5,17 +5,14 @@ use cosmwasm_std::{
 
 use cw2::ContractVersion;
 
-use cw_storage_plus::U32Key;
 use pandora_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
 use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
 use pandora_os::native::version_control::queries::verify_os_manager;
-use pandora_os::native::version_control::state::OS_ADDRESSES;
+
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
-
-use crate::error::ModuleFactoryError;
 
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;

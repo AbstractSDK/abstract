@@ -2,7 +2,7 @@ use std::convert::TryInto;
 
 use cosmwasm_std::{
     from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env,
-    MessageInfo, QuerierWrapper, Response, StdError, StdResult, Storage, Uint128, Uint64, WasmMsg,
+    MessageInfo, Response, StdError, StdResult, Storage, Uint128, Uint64, WasmMsg,
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
@@ -11,7 +11,7 @@ use pandora_os::core::manager::msg::ExecuteMsg as ManagerMsg;
 use pandora_os::core::proxy::msg::send_to_proxy;
 
 use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
-use pandora_os::native::version_control::state::{Core, OS_ADDRESSES};
+use pandora_os::native::version_control::state::OS_ADDRESSES;
 use pandora_os::util::deposit_manager::Deposit;
 
 use crate::contract::SubscriptionResult;

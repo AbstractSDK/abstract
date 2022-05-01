@@ -1,9 +1,8 @@
-use cosmwasm_std::{CosmosMsg, Deps, DepsMut, Empty, Order, StdError, StdResult, Storage};
+use cosmwasm_std::{CosmosMsg, DepsMut, Empty, Order, StdError, StdResult, Storage};
 use cw_storage_plus::{Bound, Item, Map, Path, PrimaryKey};
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use super::deposit_manager::Deposit;
 const DEFAULT_LIMIT: u32 = 10;
 const MAX_LIMIT: u32 = 30;
 const MAX_MSG_LIMIT: u32 = 15;
@@ -265,14 +264,12 @@ impl<'a, T, R> PagedMap<'a, T, R> {
 mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
-    use std::ops::Deref;
 
     use cosmwasm_std::testing::{mock_dependencies, MockStorage};
     #[cfg(feature = "iterator")]
     use cosmwasm_std::{Order, StdResult};
     #[cfg(feature = "iterator")]
     use cosmwasm_storage::iter_helpers::to_length_prefixed;
-    use cw_storage_plus::U8Key;
 
     #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
     struct Data {
@@ -320,7 +317,7 @@ mod tests {
             store: &mut dyn Storage,
             value: Data,
             acc: &mut IncomeAcc,
-            context: &String,
+            _context: &String,
         ) -> StdResult<Option<u32>> {
             let balance = value.balance;
             acc.total += balance;

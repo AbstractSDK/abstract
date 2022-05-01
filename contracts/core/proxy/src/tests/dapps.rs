@@ -8,7 +8,7 @@ use pandora_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, Q
 use super::common::TEST_CREATOR;
 
 fn init_msg() -> InstantiateMsg {
-    InstantiateMsg {}
+    InstantiateMsg { os_id: 0 }
 }
 
 #[test]
