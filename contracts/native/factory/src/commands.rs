@@ -40,14 +40,14 @@ pub fn execute_create_os(
 ) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let subscription_fee: SubscriptionFeeResponse =
-        query_subscription_fee(&deps.querier, &config.subscription_address)?;
-    let received_payment_coin = info.funds.last().unwrap().to_owned();
-    let received_payment = Asset::from(received_payment_coin.clone());
-
     let mut msgs = vec![];
-
-    if !subscription_fee.fee.amount.is_zero() {
+    
+    if config.next_os_id != 0 {
+        let subscription_fee: SubscriptionFeeResponse =
+            query_subscription_fee(&deps.querier, &config.subscription_address)?;
+        let received_payment_coin = info.funds.last().unwrap().to_owned();
+        let received_payment = Asset::from(received_payment_coin.clone());
+        if !subscription_fee.fee.amount.is_zero() {
         if subscription_fee.fee.amount != received_payment.amount {
             return Err(OsFactoryError::WrongAmount(
                 subscription_fee.fee.to_string(),
@@ -67,6 +67,7 @@ pub fn execute_create_os(
             });
             msgs.push(forward_payment_to_module)
         }
+    }
     }
 
     // Get address of OS root user, depends on gov-type
