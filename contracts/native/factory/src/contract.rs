@@ -1,4 +1,4 @@
-use cosmwasm_std::entry_point;
+use cosmwasm_std::{entry_point, Addr};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -27,7 +27,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_address)?,
-        subscription_address: deps.api.addr_validate(&msg.subscription_address)?,
+        subscription_address: Addr::unchecked(""),
         next_os_id: 0u32,
     };
 

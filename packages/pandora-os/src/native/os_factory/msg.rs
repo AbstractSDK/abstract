@@ -10,7 +10,6 @@ pub struct InstantiateMsg {
     /// Memory contract
     pub memory_address: String,
     pub module_factory_address: String,
-    pub subscription_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
