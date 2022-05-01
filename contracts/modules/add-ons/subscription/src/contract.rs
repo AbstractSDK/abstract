@@ -215,7 +215,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::ContributorState { contributor_addr } => {
             let maybe_contributor =
-                CONTRIBUTORS.may_load(deps.storage, &contributor_addr.as_bytes())?;
+                CONTRIBUTORS.may_load(deps.storage, contributor_addr.as_bytes())?;
             let sub_state = if let Some(compensation) = maybe_contributor {
                 to_binary(&ContributorStateResponse { compensation })?
             } else {

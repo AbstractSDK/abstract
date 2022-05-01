@@ -119,31 +119,29 @@ pub fn try_pay(
                         asset.transfer_msg(base_state.proxy_address)?,
                     ));
             }
+        } else if (asset.amount.u128() as u64) < config.subscription_cost.u64() {
+            return Err(SubscriptionError::InsufficientPayment(
+                config.subscription_cost.u64(),
+            ));
         } else {
-            if (asset.amount.u128() as u64) < config.subscription_cost.u64() {
-                return Err(SubscriptionError::InsufficientPayment(
-                    config.subscription_cost.u64(),
-                ));
-            } else {
-                // New OS
-                if msg_info.sender != config.factory_address {
-                    return Err(SubscriptionError::CallerNotFactory {});
-                }
-                let manager_addr = OS_ADDRESSES
-                    .query(
-                        &deps.querier,
-                        config.version_control_address,
-                        U32Key::new(os_id),
-                    )?
-                    .unwrap()
-                    .manager;
-                let new_sub = Subscriber {
-                    balance: Deposit::new().increase((asset.amount.u128() as u64).into()),
-                    claimed_emissions: true,
-                    manager_addr,
-                };
-                CLIENTS.save(deps.storage, &os_id.to_be_bytes(), &new_sub)?;
+            // New OS
+            if msg_info.sender != config.factory_address {
+                return Err(SubscriptionError::CallerNotFactory {});
             }
+            let manager_addr = OS_ADDRESSES
+                .query(
+                    &deps.querier,
+                    config.version_control_address,
+                    U32Key::new(os_id),
+                )?
+                .unwrap()
+                .manager;
+            let new_sub = Subscriber {
+                balance: Deposit::new().increase((asset.amount.u128() as u64).into()),
+                claimed_emissions: true,
+                manager_addr,
+            };
+            CLIENTS.save(deps.storage, &os_id.to_be_bytes(), &new_sub)?;
         }
     }
 
@@ -239,12 +237,11 @@ fn collect_income(
         CLIENTS.page_with_accumulator(deps.branch(), page_limit, context, process_client)?;
 
     if let Some(result) = acc {
-        let new_state = SUB_STATE.update::<_, StdError>(deps.storage, |state| {
+        let new_state = SUB_STATE.update::<_, StdError>(deps.storage, |_| {
             Ok(SubscriptionState {
                 income: Uint64::from(result.income),
                 active_subs: result.active_subs,
                 collected: true,
-                ..state
             })
         })?;
         Ok((Some(new_state.income.u64()), suspend_msgs))
@@ -274,7 +271,7 @@ fn process_client(
         }
         None => {
             // Contributors have free OS usage
-            if CONTRIBUTORS.has(store, &key) {
+            if CONTRIBUTORS.has(store, key) {
                 return Ok(None);
             }
             let os_id = u32::from_be_bytes(key.to_owned().try_into().unwrap());

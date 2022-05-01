@@ -42,7 +42,7 @@ pub fn execute_create_os(
 
     let subscription_fee: SubscriptionFeeResponse =
         query_subscription_fee(&deps.querier, &config.subscription_address)?;
-    let received_payment_coin = info.funds.clone().pop().unwrap_or_default();
+    let received_payment_coin = info.funds.last().unwrap().to_owned();
     let received_payment = Asset::from(received_payment_coin.clone());
 
     let mut msgs = vec![];
