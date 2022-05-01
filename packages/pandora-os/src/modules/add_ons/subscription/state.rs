@@ -81,11 +81,7 @@ impl ContributionConfig {
 }
 
 fn decimal_is_percentage(decimal: &Decimal) -> bool {
-    if decimal > &Decimal::one() {
-        false
-    } else {
-        true
-    }
+    decimal <= &Decimal::one()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

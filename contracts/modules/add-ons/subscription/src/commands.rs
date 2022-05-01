@@ -6,7 +6,7 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
-use cw_storage_plus::{Endian, U32Key};
+use cw_storage_plus::U32Key;
 use pandora_os::core::manager::msg::ExecuteMsg as ManagerMsg;
 use pandora_os::core::proxy::msg::send_to_proxy;
 
@@ -394,27 +394,23 @@ pub fn try_claim(
 
     let msgs = match contributor_addr {
         Some(contributor_addr) => {
+            let compensation = CONTRIBUTORS.load(deps.storage, contributor_addr.as_bytes())?;
             // If no msgs just error
             let msg = process_contributor(
-                (
-                    contributor_addr.clone().into(),
-                    &mut CONTRIBUTORS.load(deps.storage, contributor_addr.as_bytes())?,
-                ),
+                contributor_addr.as_bytes(),
                 deps.storage,
+                compensation,
                 &context,
             )?
             .unwrap();
             vec![msg]
         }
-        None => {
-            if let Some(msgs) =
-                CONTRIBUTORS.page_for_msgs(deps, page_limit, &context, process_contributor)?
-            {
-                msgs
-            } else {
-                vec![]
-            }
-        }
+        None => CONTRIBUTORS.page_without_accumulator(
+            deps,
+            page_limit,
+            &context,
+            process_contributor,
+        )?,
     };
 
     Ok(response
@@ -452,24 +448,23 @@ fn remove_contributor_from_storage(
 
 /// Checks if contributor has already claimed his share or if he's no longer eligible to claim a compensation.
 fn process_contributor(
-    contributor_details: (Vec<u8>, &mut Compensation),
+    contributor_key: &[u8],
     store: &mut dyn Storage,
+    mut compensation: Compensation,
     context: &ContributorContext,
 ) -> StdResult<Option<CosmosMsg<Empty>>> {
-    let (contributor_key, compensation) = contributor_details;
-
     if compensation.next_pay_day.u64() > context.block_time {
         return Err(StdError::GenericErr {
             msg: "You cant claim before your next pay day.".to_string(),
         });
     } else if compensation.expiration.u64() < context.block_time {
         // remove contributor
-        remove_contributor_from_storage(store, &contributor_key)?;
+        remove_contributor_from_storage(store, contributor_key)?;
         return Ok(None);
     }
     // update compensation details
     compensation.next_pay_day = context.next_pay_day.into();
-    CONTRIBUTORS.unsafe_save(store, &contributor_key, compensation)?;
+    CONTRIBUTORS.unsafe_save(store, contributor_key, &compensation)?;
 
     let base_pay: Uint128 = Uint128::new(compensation.base as u128) * context.payout_ratio;
 
@@ -486,7 +481,7 @@ fn process_contributor(
         context.base_denom.clone(),
         tokens,
         context.token_address.clone(),
-        String::from_utf8_lossy(&contributor_key).to_string(),
+        String::from_utf8_lossy(contributor_key).to_string(),
         context.proxy_address.clone(),
     )
 }

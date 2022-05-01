@@ -41,33 +41,34 @@ pub fn execute_create_os(
     let config = CONFIG.load(deps.storage)?;
 
     let mut msgs = vec![];
-    
+
     if config.next_os_id != 0 {
         let subscription_fee: SubscriptionFeeResponse =
             query_subscription_fee(&deps.querier, &config.subscription_address)?;
         let received_payment_coin = info.funds.last().unwrap().to_owned();
         let received_payment = Asset::from(received_payment_coin.clone());
         if !subscription_fee.fee.amount.is_zero() {
-        if subscription_fee.fee.amount != received_payment.amount {
-            return Err(OsFactoryError::WrongAmount(
-                subscription_fee.fee.to_string(),
-            ));
-        } else if subscription_fee.fee.info != received_payment.info {
-            return Err(OsFactoryError::UnsupportedAsset());
-        } else if config.next_os_id != 0 {
-            // Forward payment to subscription module, also registers the OS
-            // Don't do this for the first OS we create
-            let forward_payment_to_module: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: config.subscription_address.to_string(),
-                funds: vec![received_payment_coin],
-                msg: to_binary(&SubscriptionExecMsg::Pay {
-                    asset: received_payment,
-                    os_id: config.next_os_id,
-                })?,
-            });
-            msgs.push(forward_payment_to_module)
+            if subscription_fee.fee.amount != received_payment.amount {
+                return Err(OsFactoryError::WrongAmount(
+                    subscription_fee.fee.to_string(),
+                ));
+            } else if subscription_fee.fee.info != received_payment.info {
+                return Err(OsFactoryError::UnsupportedAsset());
+            } else if config.next_os_id != 0 {
+                // Forward payment to subscription module, also registers the OS
+                // Don't do this for the first OS we create
+                let forward_payment_to_module: CosmosMsg<Empty> =
+                    CosmosMsg::Wasm(WasmMsg::Execute {
+                        contract_addr: config.subscription_address.to_string(),
+                        funds: vec![received_payment_coin],
+                        msg: to_binary(&SubscriptionExecMsg::Pay {
+                            asset: received_payment,
+                            os_id: config.next_os_id,
+                        })?,
+                    });
+                msgs.push(forward_payment_to_module)
+            }
         }
-    }
     }
 
     // Get address of OS root user, depends on gov-type
