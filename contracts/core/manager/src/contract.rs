@@ -38,15 +38,21 @@ pub fn instantiate(
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
 
+    let subscription_address = if let Some(addr) = msg.subscription_address {
+        deps.api.addr_validate(&addr)?
+    } else if msg.os_id == 0 {
+        Addr::unchecked("".to_string())
+    } else {
+        return Err(ManagerError::NoSubscriptionAddrProvided{})
+    };
+
     OS_ID.save(deps.storage, &msg.os_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
             version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
             module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-            // Unchecked because caller should be Factory (which does the check)
-            // Also allows for first OS to be instantiated without subscription addr
-            subscription_address: Addr::unchecked(msg.subscription_address),
+            subscription_address,
         },
     )?;
     // Set root

@@ -14,7 +14,7 @@ pub struct InstantiateMsg {
     pub root_user: String,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub subscription_address: String,
+    pub subscription_address: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -9,7 +9,7 @@ pub struct Config {
     pub version_control_contract: Addr,
     pub memory_contract: Addr,
     pub module_factory_address: Addr,
-    pub subscription_address: Addr,
+    pub subscription_address: Option<Addr>,
     pub next_os_id: u32,
 }
 

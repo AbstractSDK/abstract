@@ -42,9 +42,9 @@ pub fn execute_create_os(
 
     let mut msgs = vec![];
 
-    if config.next_os_id != 0 {
+    if config.next_os_id != 0 && config.subscription_address.is_some() {
         let subscription_fee: SubscriptionFeeResponse =
-            query_subscription_fee(&deps.querier, &config.subscription_address)?;
+            query_subscription_fee(&deps.querier, &config.subscription_address.unwrap())?;
         let received_payment_coin = info.funds.last().unwrap().to_owned();
         let received_payment = Asset::from(received_payment_coin.clone());
         if !subscription_fee.fee.amount.is_zero() {
@@ -59,7 +59,7 @@ pub fn execute_create_os(
                 // Don't do this for the first OS we create
                 let forward_payment_to_module: CosmosMsg<Empty> =
                     CosmosMsg::Wasm(WasmMsg::Execute {
-                        contract_addr: config.subscription_address.to_string(),
+                        contract_addr: config.subscription_address.unwrap().to_string(),
                         funds: vec![received_payment_coin],
                         msg: to_binary(&SubscriptionExecMsg::Pay {
                             asset: received_payment,
@@ -109,7 +109,7 @@ pub fn execute_create_os(
                     os_id: config.next_os_id,
                     root_user: root_user.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
-                    subscription_address: config.subscription_address.to_string(),
+                    subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
                 })?,
             }
@@ -253,7 +253,7 @@ pub fn execute_update_config(
     }
 
     if let Some(subscription_address) = subscription_address {
-        config.subscription_address = deps.api.addr_validate(&subscription_address)?;
+        config.subscription_address = Some(deps.api.addr_validate(&subscription_address)?);
     }
 
     CONFIG.save(deps.storage, &config)?;
