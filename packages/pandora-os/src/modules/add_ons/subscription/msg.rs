@@ -3,7 +3,10 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::pandora_dapp::{msg::{DappExecuteMsg, DappInstantiateMsg}, DappQueryMsg};
+use crate::pandora_dapp::{
+    msg::{DappExecuteMsg, DappInstantiateMsg},
+    DappQueryMsg,
+};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
 use super::state::{

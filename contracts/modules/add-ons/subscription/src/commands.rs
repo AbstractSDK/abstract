@@ -23,9 +23,6 @@ use pandora_os::modules::add_ons::subscription::state::{
     CON_STATE, DORMANT_CLIENTS, MONTH, SUB_CONFIG, SUB_STATE,
 };
 
-/// handler function invoked when the vault dapp contract receives
-/// a transaction. In this case it is triggered when either a LP tokens received
-/// by the contract or when the deposit asset is a cw20 asset.
 pub fn receive_cw20(
     deps: DepsMut,
     _env: Env,
