@@ -38,9 +38,6 @@ pub enum ExecuteMsg {
     SetFactory {
         new_factory: String,
     },
-    SetSubscription {
-        new_sub_contract: String,
-    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -52,6 +49,7 @@ pub enum QueryMsg {
     QueryOsAddress { os_id: u32 },
     /// Queries contract code_id
     QueryCodeId { module: ModuleInfo },
+    Config{},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -61,4 +59,12 @@ pub struct CodeIdResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigResponse {
+    pub admin: String,
+    pub factory: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
+
+

@@ -8,7 +8,9 @@ use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map, U32Key};
 
-pub const MONTH: u64 = 60 * 60 * 24 * 30;
+// pub const MONTH: u64 = 60 * 60 * 24 * 30;
+// FOR TESTING
+pub const MONTH: u64 = 60 * 20;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SubscriptionConfig {
     pub version_control_address: Addr,

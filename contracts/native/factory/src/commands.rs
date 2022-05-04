@@ -153,7 +153,7 @@ pub fn after_manager_create_proxy(
             })?,
         }))?;
     Ok(Response::new()
-        .add_attribute("Manager Address:", &manager_address.to_string())
+        .add_attribute("manager_address", &manager_address.to_string())
         // Instantiate Treasury contract
         .add_submessage(SubMsg {
             id: CREATE_OS_TREASURY_MSG_ID,
@@ -212,7 +212,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     Ok(Response::new()
         .add_message(add_os_core_to_version_control_msg)
-        .add_attribute("Proxy Address: ", res.get_contract_address())
+        .add_attribute("proxy_address", res.get_contract_address())
         .add_message(register_module_on_manager(
             context.os_manager_address.to_string(),
             PROXY.to_string(),

@@ -1,8 +1,8 @@
 use crate::error::VCError;
+use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
 use cw2::set_contract_version;
-use pandora_os::native::version_control::state::SUBSCRIPTION;
 use pandora_os::registery::VERSION_CONTROL;
 use pandora_os::util::admin::authorized_set_admin;
 use semver::Version;
@@ -11,7 +11,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, ConfigResponse};
 use pandora_os::native::version_control::state::{ADMIN, FACTORY};
 
 pub type VCResult = Result<Response, VCError>;
@@ -60,10 +60,6 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
         }
-        ExecuteMsg::SetSubscription { new_sub_contract } => {
-            authorized_set_admin(deps, info, &ADMIN, &SUBSCRIPTION, new_sub_contract)
-                .map_err(|e| e.into())
-        }
     }
 }
 
@@ -77,5 +73,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
+        QueryMsg::Config {  } => {
+            let admin = ADMIN.get(deps)?.unwrap().into_string();
+            let factory = FACTORY.get(deps)?.unwrap().into_string();
+            to_binary(&ConfigResponse{
+                admin,
+                factory
+            })
+        }
     }
 }
