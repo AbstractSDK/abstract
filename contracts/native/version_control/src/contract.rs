@@ -11,7 +11,9 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use pandora_os::native::version_control::msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, ConfigResponse};
+use pandora_os::native::version_control::msg::{
+    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+};
 use pandora_os::native::version_control::state::{ADMIN, FACTORY};
 
 pub type VCResult = Result<Response, VCError>;
@@ -73,13 +75,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
-        QueryMsg::Config {  } => {
+        QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
-            to_binary(&ConfigResponse{
-                admin,
-                factory
-            })
+            to_binary(&ConfigResponse { admin, factory })
         }
     }
 }

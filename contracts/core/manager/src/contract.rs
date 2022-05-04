@@ -43,7 +43,7 @@ pub fn instantiate(
     } else if msg.os_id == 0 {
         Addr::unchecked("".to_string())
     } else {
-        return Err(ManagerError::NoSubscriptionAddrProvided{})
+        return Err(ManagerError::NoSubscriptionAddrProvided {});
     };
 
     OS_ID.save(deps.storage, &msg.os_id)?;

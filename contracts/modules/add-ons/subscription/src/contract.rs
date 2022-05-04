@@ -9,6 +9,7 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 use cw_storage_plus::{Endian, Map, U32Key};
+use pandora_dapp_base::DappContract;
 use pandora_os::registery::SUBSCRIPTION;
 use protobuf::Message;
 
@@ -31,6 +32,8 @@ use pandora_os::modules::add_ons::subscription::msg::{
 };
 use pandora_os::modules::add_ons::subscription::state::*;
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
+type SubscriptionExtension = Option<Empty>;
+pub type SubscriptionDapp<'a> = DappContract<'a, SubscriptionExtension, Empty>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -49,13 +52,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> SubscriptionResult {
     set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
-    let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let sub_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
@@ -92,25 +94,25 @@ pub fn instantiate(
         next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
     };
 
+    SubscriptionDapp::default().instantiate(deps.branch(), env, info, msg.base)?;
+
     SUB_CONFIG.save(deps.storage, &sub_config)?;
     SUB_STATE.save(deps.storage, &sub_state)?;
     CON_CONFIG.save(deps.storage, &con_config)?;
     CON_STATE.save(deps.storage, &con_state)?;
-    BASESTATE.save(deps.storage, &base_state)?;
 
     CLIENTS.instantiate(deps.storage)?;
     CONTRIBUTORS.instantiate(deps.storage)?;
-    ADMIN.set(deps, Some(info.sender))?;
 
     Ok(Response::new())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> SubscriptionResult {
+    let dapp = SubscriptionDapp::default();
+
     match msg {
-        ExecuteMsg::Base(message) => {
-            dapp_base_commands::handle_base_message(deps, info, message).map_err(|e| e.into())
-        }
+        ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message).map_err(|e| e.into()),
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
         ExecuteMsg::CollectSubs { page_limit } => {
@@ -166,9 +168,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
+        QueryMsg::Base(message) => SubscriptionDapp::default().query(deps, env, message),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
             let sub_state = SUB_STATE.load(deps.storage)?;

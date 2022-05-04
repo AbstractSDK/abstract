@@ -10,7 +10,7 @@ pub enum SubscriptionError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    Admin(#[from] AdminError),
+    AdminError(#[from] AdminError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),

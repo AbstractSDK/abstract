@@ -43,8 +43,10 @@ pub fn execute_create_os(
     let mut msgs = vec![];
 
     if config.next_os_id != 0 && config.subscription_address.is_some() {
-        let subscription_fee: SubscriptionFeeResponse =
-            query_subscription_fee(&deps.querier, &config.subscription_address.as_ref().unwrap())?;
+        let subscription_fee: SubscriptionFeeResponse = query_subscription_fee(
+            &deps.querier,
+            &config.subscription_address.as_ref().unwrap(),
+        )?;
         let received_payment_coin = info.funds.last().unwrap().to_owned();
         let received_payment = Asset::from(received_payment_coin.clone());
         if !subscription_fee.fee.amount.is_zero() {

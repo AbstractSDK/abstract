@@ -3,7 +3,7 @@ use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
+use crate::pandora_dapp::{msg::{DappExecuteMsg, DappInstantiateMsg}, DappQueryMsg};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
 use super::state::{
@@ -16,7 +16,7 @@ pub struct MigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub base: BaseInstantiateMsg,
+    pub base: DappInstantiateMsg,
     pub subscription: SubscriptionInstantiateMsg,
     pub contribution: ContributionInstantiateMsg,
 }
@@ -42,7 +42,7 @@ pub struct ContributionInstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Base(BaseExecuteMsg),
+    Base(DappExecuteMsg),
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     Pay {
@@ -87,7 +87,7 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Base(BaseQueryMsg),
+    Base(DappQueryMsg),
     // Add dapp-specific queries here
     State {},
     Config {},
