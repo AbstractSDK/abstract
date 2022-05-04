@@ -25,6 +25,7 @@ cw-controllers = { version = "0.9.1" }
 cw-storage-plus = "0.9.1"
 cw2 = "0.9.1"
 cw20 = { version = "0.9.1" }
+cw20-base = { version = "0.9.1", features = ["library"] }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"

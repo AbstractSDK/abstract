@@ -13,6 +13,7 @@ use cw_storage_plus::Map;
 use protobuf::Message;
 use semver::Version;
 
+use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 use pandora_dapp_base::{DappContract, DappResult};
 use pandora_os::modules::add_ons::vault::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
@@ -20,7 +21,6 @@ use pandora_os::modules::add_ons::vault::{
 use pandora_os::pandora_dapp::CustomMsg;
 use pandora_os::registery::VAULT;
 use pandora_os::util::fee::Fee;
-use pandora_os::util::token::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
@@ -90,6 +90,7 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
                     minter: env.contract.address.to_string(),
                     cap: None,
                 }),
+                marketing: None,
             })?,
             funds: vec![],
             label: "White Whale Vault LP".to_string(),
