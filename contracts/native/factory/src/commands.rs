@@ -44,7 +44,7 @@ pub fn execute_create_os(
 
     if config.next_os_id != 0 && config.subscription_address.is_some() {
         let subscription_fee: SubscriptionFeeResponse =
-            query_subscription_fee(&deps.querier, &config.subscription_address.unwrap())?;
+            query_subscription_fee(&deps.querier, &config.subscription_address.as_ref().unwrap())?;
         let received_payment_coin = info.funds.last().unwrap().to_owned();
         let received_payment = Asset::from(received_payment_coin.clone());
         if !subscription_fee.fee.amount.is_zero() {
@@ -59,7 +59,7 @@ pub fn execute_create_os(
                 // Don't do this for the first OS we create
                 let forward_payment_to_module: CosmosMsg<Empty> =
                     CosmosMsg::Wasm(WasmMsg::Execute {
-                        contract_addr: config.subscription_address.unwrap().to_string(),
+                        contract_addr: config.subscription_address.as_ref().unwrap().to_string(),
                         funds: vec![received_payment_coin],
                         msg: to_binary(&SubscriptionExecMsg::Pay {
                             asset: received_payment,

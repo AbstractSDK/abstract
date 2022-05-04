@@ -27,7 +27,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_address)?,
-        subscription_address: Addr::unchecked(""),
+        subscription_address: None,
         next_os_id: 0u32,
     };
 
@@ -93,7 +93,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         owner: admin.into(),
         version_control_contract: state.version_control_contract.into(),
         memory_contract: state.memory_contract.into(),
-        subscription_address: state.subscription_address.into(),
+        subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
         next_os_id: state.next_os_id,
     };
