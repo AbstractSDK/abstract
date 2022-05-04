@@ -3,34 +3,30 @@
 #![allow(dead_code)]
 
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
-    Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
+    entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Empty, Env, MessageInfo, Reply,
+    ReplyOn, Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw_storage_plus::Map;
-use pandora_os::registery::PAYMENT;
-use protobuf::Message;
-
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
+use cw_storage_plus::Map;
+use protobuf::Message;
 use semver::Version;
 use terraswap::token::InstantiateMsg as TokenInstantiateMsg;
 
-use pandora_os::modules::dapp_base::commands as dapp_base_commands;
-use pandora_os::util::fee::Fee;
-
-use pandora_os::modules::dapp_base::common::BaseDAppResult;
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use pandora_os::modules::dapp_base::queries as dapp_base_queries;
-use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-
-use crate::response::MsgInstantiateContractResponse;
-
-use crate::error::PaymentError;
-use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
-use crate::{commands, queries};
+use pandora_dapp_base::{DappContract, DappResult};
 use pandora_os::modules::add_ons::payout::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
 };
+use pandora_os::registery::PAYMENT;
+use pandora_os::util::fee::Fee;
+
+use crate::error::PaymentError;
+use crate::response::MsgInstantiateContractResponse;
+use crate::state::{Config, State, CLIENTS, CONFIG, MONTH, STATE};
+use crate::{commands, queries};
+
+type PaymentExtension = Option<Empty>;
+pub type PaymentDapp<'a> = DappContract<'a, PaymentExtension, Empty>;
 pub type PaymentResult = Result<Response, PaymentError>;
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
@@ -54,7 +50,6 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> PaymentResult {
     set_contract_version(deps.storage, PAYMENT, CONTRACT_VERSION)?;
-    let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
 
     let config: Config = Config {
         payment_asset: msg.payment_asset,
@@ -76,35 +71,35 @@ pub fn instantiate(
 
     CONFIG.save(deps.storage, &config)?;
     STATE.save(deps.storage, &state)?;
-    BASESTATE.save(deps.storage, &base_state)?;
-    ADMIN.set(deps, Some(info.sender))?;
+
+    PaymentDapp::default().instantiate(deps, env, info, msg.base)?;
 
     Ok(Response::new())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> PaymentResult {
+    let dapp = PaymentDapp::default();
     match msg {
-        ExecuteMsg::Base(message) => {
-            from_base_dapp_result(dapp_base_commands::handle_base_message(deps, info, message))
-        }
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
-        ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
-        ExecuteMsg::Claim { page_limit } => commands::try_claim(deps, env, info, page_limit),
+        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, dapp, msg),
+        ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, dapp, asset, None, os_id),
+        ExecuteMsg::Claim { page_limit } => commands::try_claim(deps, env, info, dapp, page_limit),
         ExecuteMsg::UpdateContributor {
             contributor_addr,
             compensation,
-        } => commands::update_contributor(deps, info, contributor_addr, compensation),
+        } => commands::update_contributor(deps, info, dapp, contributor_addr, compensation),
         ExecuteMsg::RemoveContributor { contributor_addr } => {
-            commands::remove_contributor(deps, info, contributor_addr)
+            commands::remove_contributor(deps, info, dapp, contributor_addr)
+        }
+        ExecuteMsg::Base(dapp_msg) => {
+            from_base_dapp_result(dapp.execute(deps, env, info, dapp_msg))
         }
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
             let state = STATE.load(deps.storage)?;
@@ -114,12 +109,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 next_pay_day: state.next_pay_day,
             })
         }
+        QueryMsg::Base(message) => PaymentDapp::default().query(deps, env, message),
     }
 }
 
-/// Required to convert BaseDAppResult into TerraswapResult
+/// Required to convert DappResult into PaymentResult
 /// Can't implement the From trait directly
-fn from_base_dapp_result(result: BaseDAppResult) -> PaymentResult {
+fn from_base_dapp_result(result: DappResult) -> PaymentResult {
     match result {
         Err(e) => Err(e.into()),
         Ok(r) => Ok(r),

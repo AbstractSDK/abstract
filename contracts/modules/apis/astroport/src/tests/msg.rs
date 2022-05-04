@@ -1,4 +1,5 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
+
 use pandora_os::modules::dapp_base::error::BaseDAppError;
 
 use crate::contract::execute;
@@ -26,7 +27,7 @@ pub fn test_provide_liquidity_unauthorized_msg() {
     let res = execute(deps.as_mut(), env.clone(), info, msg);
 
     match res {
-        Err(AstroportError::BaseDAppError(BaseDAppError::Unauthorized {})) => (),
+        Err(AstroportError::DappError(BaseDAppError::Unauthorized {})) => (),
         Ok(_) => panic!("Should return unauthorized Error, DAppError::Unauthorized"),
         _ => panic!("Should return unauthorized Error, DAppError::Unauthorized"),
     }

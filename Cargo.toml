@@ -13,6 +13,7 @@ members = [
     # "contracts/governance/token_weighted",
     # "contracts/perks/airdrop",
     # "contracts/services/*"
+    "contracts/pandora_dapp_base"
 ]
 
 [profile.release]

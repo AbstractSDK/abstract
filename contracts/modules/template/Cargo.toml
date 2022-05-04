@@ -39,12 +39,14 @@ schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
 pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
+pandora-dapp-base = { version = "0.1.0", path = "../../pandora_dapp_base", features = ["library"] }
+
 
 [dev-dependencies]
 cosmwasm-schema = { version = "0.16" }
-cw-multi-test = { version = "0.9.1"}
-terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks"}
-terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", rev="b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test"}
+cw-multi-test = { version = "0.9.1" }
+terra-mocks = { git = "https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks" }
+terra-multi-test = { git = "https://github.com/astroport-fi/terra-plus", rev = "b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test" }
 terraswap = "2.4.0"
 cw20-base = { version = "0.9.1", features = ["library"] }
 cw20 = { version = "0.9.1" }

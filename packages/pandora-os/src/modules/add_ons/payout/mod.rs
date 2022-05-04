@@ -1,17 +1,18 @@
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw20::Cw20ReceiveMsg;
+use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
-use cw_asset::{Asset, AssetInfo};
+use crate::pandora_dapp::msg::DappQueryMsg;
+use crate::pandora_dapp::msg::{DappExecuteMsg, DappInstantiateMsg};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub base: BaseInstantiateMsg,
+    pub base: DappInstantiateMsg,
     pub ratio: Decimal,
     pub token_cap: Uint128,
     pub payment_asset: AssetInfo,
@@ -23,7 +24,7 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Base(BaseExecuteMsg),
+    Base(DappExecuteMsg),
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     Pay {
@@ -45,7 +46,7 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Base(BaseQueryMsg),
+    Base(DappQueryMsg),
     // Add dapp-specific queries here
     State {},
 }
@@ -55,6 +56,7 @@ pub enum QueryMsg {
 pub enum DepositHookMsg {
     Pay { os_id: u32 },
 }
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
     pub income: Uint64,

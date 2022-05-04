@@ -1,13 +1,14 @@
+use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::modules::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg};
-use cosmwasm_std::{Decimal, Uint128};
+use crate::pandora_dapp::msg::DappExecuteMsg;
+use crate::pandora_dapp::msg::DappQueryMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    Base(BaseExecuteMsg),
+    Base(DappExecuteMsg),
     // Add dapp-specific messages here
     /// Constructs a provide liquidity msg and forwards it to the proxy
     /// Calculates the required asset amount for the second asset in the pool.
@@ -40,6 +41,6 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    Base(BaseQueryMsg),
+    Base(DappQueryMsg),
     // Add dapp-specific queries here
 }

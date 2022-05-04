@@ -1,32 +1,33 @@
+use astroport::asset::Asset;
+use astroport::pair::{Cw20HookMsg, PoolResponse};
 use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Decimal, Deps, Env, Fraction, MessageInfo, Response, Uint128,
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
-use pandora_os::core::proxy::proxy_assets::get_identifier;
-use terraswap::asset::Asset;
-use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
-use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
-use pandora_os::modules::dapp_base::common::PAIR_POSTFIX;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
-use pandora_os::modules::dapp_base::state::BASESTATE;
+use pandora_dapp_base::DappError;
 use pandora_os::core::proxy::msg::send_to_proxy;
+use pandora_os::core::proxy::proxy_assets::get_identifier;
+use pandora_os::modules::dapp_base::common::PAIR_POSTFIX;
+// TODO: should be astroport
+use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
 
 use crate::astroport_msg::{asset_into_swap_msg, deposit_lp_msg};
-use crate::contract::AstroportResult;
+use crate::contract::{AstroportDapp, AstroportResult};
 use crate::error::AstroportError;
 use crate::utils::has_sufficient_balance;
 
-/// Constructs and forwards the terraswap provide_liquidity message
+/// Constructs and forwards the astroport provide_liquidity message
 pub fn provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: AstroportDapp,
     main_asset_id: String,
     pool_id: String,
     amount: Uint128,
 ) -> AstroportResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Check if caller is trader.
     state.assert_authorized_trader(&msg_info.sender)?;
 
@@ -62,12 +63,11 @@ pub fn provide_liquidity(
     }
 
     // Does the proxy have enough of these assets?
-    let first_asset_balance =
-        query_asset_balance(deps, &first_asset.info, proxy_address.clone())?;
+    let first_asset_balance = query_asset_balance(deps, &first_asset.info, proxy_address.clone())?;
     let second_asset_balance =
         query_asset_balance(deps, &second_asset.info, proxy_address.clone())?;
     if second_asset_balance < second_asset.amount || first_asset_balance < first_asset.amount {
-        return Err(BaseDAppError::Broke {}.into());
+        return Err(DappError::Broke {}.into());
     }
 
     // Deposit lp msg either returns a bank send msg or an
@@ -83,11 +83,12 @@ pub fn provide_liquidity(
 pub fn detailed_provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: AstroportDapp,
     assets: Vec<(String, Uint128)>,
     pool_id: String,
     slippage_tolerance: Option<Decimal>,
 ) -> AstroportResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Check if caller is trader.
     state.assert_authorized_trader(&msg_info.sender)?;
 
@@ -114,7 +115,7 @@ pub fn detailed_provide_liquidity(
             let asset_balance = query_asset_balance(deps, &asset_info, proxy_address.clone())?;
             // Check if proxy has enough of this asset
             if asset_balance < asset.1 {
-                return Err(BaseDAppError::Broke {}.into());
+                return Err(DappError::Broke {}.into());
             }
             // Append asset to list
             assets_to_send.push(Asset {
@@ -138,10 +139,11 @@ pub fn detailed_provide_liquidity(
 pub fn withdraw_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: AstroportDapp,
     lp_token_id: String,
     amount: Uint128,
 ) -> AstroportResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Sender must be trader
     state.assert_authorized_trader(&msg_info.sender)?;
     let proxy_address = &state.proxy_address;
@@ -185,13 +187,14 @@ pub fn astroport_swap(
     deps: Deps,
     _env: Env,
     msg_info: MessageInfo,
+    dapp: AstroportDapp,
     offer_id: String,
     pool_id: String,
     amount: Uint128,
     max_spread: Option<Decimal>,
     belief_price: Option<Decimal>,
 ) -> AstroportResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     let proxy_address = &state.proxy_address;
 
     // Check if caller is trader

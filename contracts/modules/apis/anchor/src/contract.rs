@@ -1,56 +1,61 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
+};
+
+use pandora_dapp_base::{DappContract, DappError, DappResult};
+use pandora_os::native::memory::item::Memory;
+use pandora_os::pandora_dapp::msg::DappInstantiateMsg;
 
 use crate::commands;
-use crate::error::AnchorError;
 use crate::msg::{ExecuteMsg, QueryMsg};
-use pandora_os::modules::dapp_base::commands::{self as dapp_base_commands, handle_base_init};
-use pandora_os::modules::dapp_base::common::BaseDAppResult;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use pandora_os::modules::dapp_base::queries as dapp_base_queries;
-use pandora_os::modules::dapp_base::state::BASESTATE;
-use pandora_os::modules::dapp_base::state::{BaseState, ADMIN};
-use pandora_os::native::memory::item::Memory;
 
-pub type AnchorResult = Result<Response, BaseDAppError>;
+// no extra attrs
+type AnchorExtension = Option<Empty>;
+pub type AnchorDapp<'a> = DappContract<'a, AnchorExtension, Empty>;
+pub type AnchorResult = Result<Response, DappError>;
+
+// use pandora_os::pandora_dapp::msg::DappInstantiateMsg;
+//
+// use crate::commands;
+// use crate::error::AnchorError;
+// use crate::msg::{ExecuteMsg, QueryMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
-    msg: BaseInstantiateMsg,
-) -> BaseDAppResult {
-    let base_state = handle_base_init(deps.as_ref(), msg)?;
-
-    BASESTATE.save(deps.storage, &base_state)?;
-    ADMIN.set(deps, Some(info.sender))?;
+    msg: DappInstantiateMsg,
+) -> DappResult {
+    AnchorDapp::default().instantiate(deps, env, info, msg)?;
 
     Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> BaseDAppResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> DappResult {
+    let dapp = AnchorDapp::default();
+
     match msg {
-        ExecuteMsg::Base(message) => dapp_base_commands::handle_base_message(deps, info, message),
+        ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message),
         // handle dapp-specific messages here
         // ExecuteMsg::Custom{} => commands::custom_command(),
         ExecuteMsg::DepositStable { deposit_amount } => {
-            commands::handle_deposit_stable(deps.as_ref(), env, info, deposit_amount)
+            commands::handle_deposit_stable(deps.as_ref(), env, info, dapp, deposit_amount)
         }
         ExecuteMsg::RedeemStable { withdraw_amount } => {
-            commands::handle_redeem_stable(deps.as_ref(), env, info, withdraw_amount)
+            commands::handle_redeem_stable(deps.as_ref(), env, info, dapp, withdraw_amount)
         }
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
+        QueryMsg::Base(message) => AnchorDapp::default().query(deps, env, message),
         // handle dapp-specific queries here
         // QueryMsg::Custom{} => queries::custom_query(),
     }

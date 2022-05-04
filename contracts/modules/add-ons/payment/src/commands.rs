@@ -6,15 +6,14 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo};
+
 use pandora_os::core::proxy::msg::send_to_proxy;
+use pandora_os::modules::add_ons::payout::{Compensation, DepositHookMsg};
 use pandora_os::util::deposit_manager::Deposit;
 
-use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
-
-use crate::contract::PaymentResult;
+use crate::contract::{PaymentDapp, PaymentResult};
 use crate::error::PaymentError;
 use crate::state::{IncomeAccumulator, State, CLIENTS, CONFIG, CONTRIBUTORS, MONTH, STATE};
-use pandora_os::modules::add_ons::payout::{Compensation, DepositHookMsg};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -23,6 +22,7 @@ pub fn receive_cw20(
     deps: DepsMut,
     _env: Env,
     msg_info: MessageInfo,
+    dapp: PaymentDapp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> PaymentResult {
     match from_binary(&cw20_msg.msg)? {
@@ -32,7 +32,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            try_pay(deps, msg_info, asset, Some(cw20_msg.sender), os_id)
+            try_pay(deps, msg_info, dapp, asset, Some(cw20_msg.sender), os_id)
         }
     }
 }
@@ -42,13 +42,14 @@ pub fn receive_cw20(
 pub fn try_pay(
     deps: DepsMut,
     msg_info: MessageInfo,
+    dapp: PaymentDapp,
     asset: Asset,
     sender: Option<String>,
     os_id: u32,
 ) -> PaymentResult {
     // Load all needed states
     let config = CONFIG.load(deps.storage)?;
-    let base_state = BASESTATE.load(deps.storage)?;
+    let base_state = dapp.base_state.load(deps.storage)?;
     // Get the liquidity provider address
     match sender {
         Some(addr) => Addr::unchecked(addr),
@@ -98,10 +99,11 @@ pub fn try_pay(
 pub fn update_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
+    dapp: PaymentDapp,
     contributor_addr: String,
     mut compensation: Compensation,
 ) -> PaymentResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Load all needed states
     let mut state = STATE.load(deps.storage)?;
@@ -140,9 +142,10 @@ pub fn update_contributor(
 pub fn remove_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
+    dapp: PaymentDapp,
     contributor_addr: String,
 ) -> PaymentResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     remove_contributor_from_storage(deps, contributor_addr.clone())?;
     // Init vector for logging
@@ -158,6 +161,7 @@ pub fn try_claim(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
+    dapp: PaymentDapp,
     page_limit: Option<u32>,
 ) -> PaymentResult {
     let mut state: State = STATE.load(deps.storage)?;
@@ -191,7 +195,7 @@ pub fn try_claim(
     CONTRIBUTORS.save(deps.storage, &info.sender.to_string(), &compensation)?;
 
     let config = CONFIG.load(deps.storage)?;
-    let base_state = BASESTATE.load(deps.storage)?;
+    let base_state = dapp.base_state.load(deps.storage)?;
 
     // base amount payment
     let amount = Uint128::from(compensation.base) * state.expense_ratio;

@@ -3,18 +3,17 @@ use cosmwasm_std::{
     WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
-use pandora_os::modules::apis::terraswap::cw_to_terraswap;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
+use pandora_dapp_base::DappError;
 use pandora_os::core::proxy::msg::send_to_proxy;
 use pandora_os::core::proxy::proxy_assets::get_asset_identifier;
+use pandora_os::modules::apis::terraswap::cw_to_terraswap;
 use pandora_os::modules::dapp_base::common::PAIR_POSTFIX;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
-use pandora_os::modules::dapp_base::state::BASESTATE;
 use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
 
-use crate::contract::TerraswapResult;
+use crate::contract::{TerraswapDapp, TerraswapResult};
 use crate::error::TerraswapError;
 use crate::terraswap_msg::{asset_into_swap_msg, deposit_lp_msg};
 use crate::utils::has_sufficient_balance;
@@ -23,11 +22,12 @@ use crate::utils::has_sufficient_balance;
 pub fn provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: TerraswapDapp,
     main_asset_id: String,
     pool_id: String,
     amount: Uint128,
 ) -> TerraswapResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Check if caller is trader.
     state.assert_authorized_trader(&msg_info.sender)?;
 
@@ -67,7 +67,7 @@ pub fn provide_liquidity(
     let second_asset_balance =
         query_asset_balance(deps, &second_asset.info, proxy_address.clone())?;
     if second_asset_balance < second_asset.amount || first_asset_balance < first_asset.amount {
-        return Err(BaseDAppError::Broke {}.into());
+        return Err(DappError::Broke {}.into());
     }
 
     // Deposit lp msg either returns a bank send msg or an
@@ -83,11 +83,12 @@ pub fn provide_liquidity(
 pub fn detailed_provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: TerraswapDapp,
     assets: Vec<(String, Uint128)>,
     pool_id: String,
     slippage_tolerance: Option<Decimal>,
 ) -> TerraswapResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Check if caller is trader.
     state.assert_authorized_trader(&msg_info.sender)?;
 
@@ -115,7 +116,7 @@ pub fn detailed_provide_liquidity(
             let asset_balance = query_asset_balance(deps, &asset_info, proxy_address.clone())?;
             // Check if proxy has enough of this asset
             if asset_balance < asset.1 {
-                return Err(BaseDAppError::Broke {}.into());
+                return Err(DappError::Broke {}.into());
             }
             // Append asset to list
             assets_to_send.push(Asset {
@@ -141,10 +142,11 @@ pub fn detailed_provide_liquidity(
 pub fn withdraw_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
+    dapp: TerraswapDapp,
     lp_token_id: String,
     amount: Uint128,
 ) -> TerraswapResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     // Sender must be trader
     state.assert_authorized_trader(&msg_info.sender)?;
     let proxy_address = &state.proxy_address;
@@ -186,13 +188,14 @@ pub fn terraswap_swap(
     deps: Deps,
     _env: Env,
     msg_info: MessageInfo,
+    dapp: TerraswapDapp,
     offer_id: String,
     pool_id: String,
     amount: Uint128,
     max_spread: Option<Decimal>,
     belief_price: Option<Decimal>,
 ) -> TerraswapResult {
-    let state = BASESTATE.load(deps.storage)?;
+    let state = dapp.base_state.load(deps.storage)?;
     let proxy_address = &state.proxy_address;
 
     // Check if caller is trader

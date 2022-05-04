@@ -1,43 +1,39 @@
-use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{
+    entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
+};
 
-use pandora_os::modules::dapp_base::commands::{self as dapp_base_commands, handle_base_init};
-use pandora_os::modules::dapp_base::common::BaseDAppResult;
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use pandora_os::modules::dapp_base::queries as dapp_base_queries;
-use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
+use pandora_dapp_base::{DappContract, DappResult};
+use pandora_os::modules::apis::terraswap::{ExecuteMsg, QueryMsg};
+use pandora_os::pandora_dapp::msg::DappInstantiateMsg;
 
 use crate::commands;
 use crate::error::TerraswapError;
-use pandora_os::modules::apis::terraswap::{ExecuteMsg, QueryMsg};
 
+type TerraswapExtension = Option<Empty>;
+pub type TerraswapDapp<'a> = DappContract<'a, TerraswapExtension, Empty>;
 pub type TerraswapResult = Result<Response, TerraswapError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
-    msg: BaseInstantiateMsg,
-) -> BaseDAppResult {
-    let base_state = handle_base_init(deps.as_ref(), msg)?;
-
-    // Store the initial config
-    BASESTATE.save(deps.storage, &base_state)?;
-
-    // Setup the admin as the creator of the contract
-    ADMIN.set(deps, Some(info.sender))?;
+    msg: DappInstantiateMsg,
+) -> DappResult {
+    TerraswapDapp::default().instantiate(deps, env, info, msg)?;
 
     Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> TerraswapResult {
+    let dapp = TerraswapDapp::default();
     match msg {
         ExecuteMsg::ProvideLiquidity {
             pool_id,
             main_asset_id,
             amount,
-        } => commands::provide_liquidity(deps.as_ref(), info, main_asset_id, pool_id, amount),
+        } => commands::provide_liquidity(deps.as_ref(), info, dapp, main_asset_id, pool_id, amount),
         ExecuteMsg::DetailedProvideLiquidity {
             pool_id,
             assets,
@@ -45,6 +41,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> T
         } => commands::detailed_provide_liquidity(
             deps.as_ref(),
             info,
+            dapp,
             assets,
             pool_id,
             slippage_tolerance,
@@ -52,7 +49,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> T
         ExecuteMsg::WithdrawLiquidity {
             lp_token_id,
             amount,
-        } => commands::withdraw_liquidity(deps.as_ref(), info, lp_token_id, amount),
+        } => commands::withdraw_liquidity(deps.as_ref(), info, dapp, lp_token_id, amount),
         ExecuteMsg::SwapAsset {
             offer_id,
             pool_id,
@@ -63,28 +60,29 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> T
             deps.as_ref(),
             env,
             info,
+            dapp,
             offer_id,
             pool_id,
             amount,
             max_spread,
             belief_price,
         ),
-        ExecuteMsg::Base(message) => {
-            from_base_dapp_result(dapp_base_commands::handle_base_message(deps, info, message))
+        ExecuteMsg::Base(dapp_msg) => {
+            from_base_dapp_result(dapp.execute(deps, env, info, dapp_msg))
         }
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
+        QueryMsg::Base(dapp_msg) => TerraswapDapp::default().query(deps, env, dapp_msg),
     }
 }
 
 /// Required to convert BaseDAppResult into TerraswapResult
 /// Can't implement the From trait directly
-fn from_base_dapp_result(result: BaseDAppResult) -> TerraswapResult {
+fn from_base_dapp_result(result: DappResult) -> TerraswapResult {
     match result {
         Err(e) => Err(e.into()),
         Ok(r) => Ok(r),

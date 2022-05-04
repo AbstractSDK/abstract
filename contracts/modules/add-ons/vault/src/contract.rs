@@ -1,37 +1,31 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
+
 use std::vec;
 
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
+    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw_storage_plus::Map;
-use pandora_os::registery::VAULT;
-use protobuf::Message;
-
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
+use cw_storage_plus::Map;
+use protobuf::Message;
 use semver::Version;
 
-use pandora_os::modules::dapp_base::commands as dapp_base_commands;
-use pandora_os::util::fee::Fee;
-
-use pandora_os::modules::dapp_base::common::BaseDAppResult;
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg;
-use pandora_os::modules::dapp_base::queries as dapp_base_queries;
-use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use pandora_os::util::token::InstantiateMsg as TokenInstantiateMsg;
-
-use crate::response::MsgInstantiateContractResponse;
-
-use crate::error::VaultError;
-use crate::state::{Pool, State, FEE, POOL, STATE};
-use crate::{commands, queries};
+use pandora_dapp_base::{DappContract, DappResult};
 use pandora_os::modules::add_ons::vault::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
 };
-pub type VaultResult = Result<Response, VaultError>;
+use pandora_os::pandora_dapp::CustomMsg;
+use pandora_os::registery::VAULT;
+use pandora_os::util::fee::Fee;
+use pandora_os::util::token::InstantiateMsg as TokenInstantiateMsg;
+
+use crate::error::VaultError;
+use crate::response::MsgInstantiateContractResponse;
+use crate::state::{Pool, State, FEE, POOL, STATE};
+use crate::{commands, queries};
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
@@ -39,6 +33,10 @@ const DEFAULT_LP_TOKEN_NAME: &str = "Vault LP token";
 const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+type VaultExtension = Option<Empty>;
+pub type VaultDapp<'a> = DappContract<'a, VaultExtension, Empty>;
+pub type VaultResult = Result<Response, VaultError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
@@ -54,8 +52,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> VaultResult {
     set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
 
-    let base_state: BaseState = dapp_base_commands::handle_base_init(deps.as_ref(), msg.base)?;
-
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
         provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
@@ -70,7 +66,6 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
         .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
     STATE.save(deps.storage, &state)?;
-    BASESTATE.save(deps.storage, &base_state)?;
     POOL.save(
         deps.storage,
         &Pool {
@@ -79,7 +74,7 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
         },
     )?;
     FEE.save(deps.storage, &Fee { share: msg.fee })?;
-    ADMIN.set(deps, Some(info.sender))?;
+    VaultDapp::default().instantiate(deps, env.clone(), info, msg.base)?;
 
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token
@@ -108,30 +103,38 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VaultResult {
+    let dapp = VaultDapp::default();
     match msg {
-        ExecuteMsg::Base(message) => {
-            from_base_dapp_result(dapp_base_commands::handle_base_message(deps, info, message))
+        ExecuteMsg::Base(dapp_msg) => {
+            from_base_dapp_result(dapp.execute(deps, env, info, dapp_msg))
         }
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
+        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, dapp, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
 
-            commands::try_provide_liquidity(deps, info, asset, None)
+            commands::try_provide_liquidity(deps, info, dapp, asset, None)
         }
         ExecuteMsg::UpdatePool {
             deposit_asset,
             assets_to_add,
             assets_to_remove,
-        } => commands::update_pool(deps, info, deposit_asset, assets_to_add, assets_to_remove),
-        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, fee),
+        } => commands::update_pool(
+            deps,
+            info,
+            dapp,
+            deposit_asset,
+            assets_to_add,
+            assets_to_remove,
+        ),
+        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, fee),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => dapp_base_queries::handle_base_query(deps, message),
+        QueryMsg::Base(dapp_msg) => VaultDapp::default().query(deps, env, dapp_msg),
         // handle dapp-specific queries here
         QueryMsg::State {} => to_binary(&StateResponse {
             liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),
@@ -163,7 +166,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
 
 /// Required to convert BaseDAppResult into TerraswapResult
 /// Can't implement the From trait directly
-fn from_base_dapp_result(result: BaseDAppResult) -> VaultResult {
+fn from_base_dapp_result(result: DappResult) -> VaultResult {
     match result {
         Err(e) => Err(e.into()),
         Ok(r) => Ok(r),
