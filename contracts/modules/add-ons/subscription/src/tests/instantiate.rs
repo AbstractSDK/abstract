@@ -1,12 +1,11 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut};
 use cosmwasm_std::{Api, Decimal};
-
-use crate::dapp_base::common::MEMORY_CONTRACT;
-use pandora_os::memory::item::Memory;
+use pandora_os::native::memory::item::Memory;
 use pandora_os::proxy::dapp_base::state::{BaseState, BASESTATE};
 
 use crate::contract::instantiate;
+use crate::dapp_base::common::MEMORY_CONTRACT;
 use crate::msg::InstantiateMsg;
 use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
@@ -47,7 +46,7 @@ fn successful_initialization() {
             traders: vec![deps.api.addr_validate(&TRADER_CONTRACT).unwrap()],
             memory: Memory {
                 address: deps.api.addr_validate(&MEMORY_CONTRACT).unwrap()
-            }
+            },
         }
     );
     assert_eq!(

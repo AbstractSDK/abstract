@@ -1,7 +1,8 @@
 use cosmwasm_std::{OverflowError, StdError};
 use cw_controllers::AdminError;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
 use thiserror::Error;
+
+use pandora_dapp_base::DappError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum SubscriptionError {
@@ -15,7 +16,7 @@ pub enum SubscriptionError {
     SemVer(String),
 
     #[error("{0}")]
-    BaseDAppError(#[from] BaseDAppError),
+    DappError(#[from] DappError),
 
     #[error("{0}")]
     Overflow(#[from] OverflowError),

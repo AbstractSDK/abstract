@@ -1,17 +1,16 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, Env};
 use cosmwasm_std::{Api, Decimal};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
 use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-
-use crate::dapp_base::common::MEMORY_CONTRACT;
 use pandora_os::modules::dapp_base::state::{BaseState, BASESTATE};
 use pandora_os::native::memory::item::Memory;
 
 use crate::contract::{execute, instantiate};
+use crate::dapp_base::common::MEMORY_CONTRACT;
 use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
 use crate::tests::common::{TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
 
 pub(crate) fn vault_instantiate_msg() -> InstantiateMsg {
     InstantiateMsg {
@@ -39,7 +38,7 @@ pub fn mock_instantiate(mut deps: DepsMut, env: Env) {
     .expect("contract successfully handles InstantiateMsg");
 
     // Add one trader
-    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateTraders {
+    let msg = ExecuteMsg::Base(DappExecuteMsg::UpdateTraders {
         to_add: Some(vec![TRADER_CONTRACT.to_string()]),
         to_remove: None,
     });
@@ -47,7 +46,7 @@ pub fn mock_instantiate(mut deps: DepsMut, env: Env) {
     execute(deps.branch(), env.clone(), info.clone(), msg).unwrap();
 
     // Set proxy addr
-    let msg = ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+    let msg = ExecuteMsg::Base(DappExecuteMsg::UpdateConfig {
         proxy_address: Some("proxy_contract_address".to_string()),
     });
 
@@ -69,14 +68,14 @@ fn successful_initialization() {
             traders: vec![deps.api.addr_validate(&TRADER_CONTRACT).unwrap()],
             memory: Memory {
                 address: deps.api.addr_validate(&MEMORY_CONTRACT).unwrap()
-            }
+            },
         }
     );
     assert_eq!(
         STATE.load(&deps.storage).unwrap(),
         State {
             provider_addr: Addr::unchecked(""),
-            liquidity_token_addr: Addr::unchecked("")
+            liquidity_token_addr: Addr::unchecked(""),
         }
     );
 }

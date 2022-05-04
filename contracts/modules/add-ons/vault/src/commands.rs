@@ -5,16 +5,16 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
+use pandora_dapp_base::state::DappState;
 use pandora_os::core::proxy::msg::send_to_proxy;
-use pandora_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use pandora_os::util::deposit_info::DepositInfo;
-
-use crate::contract::VaultResult;
-use crate::error::VaultError;
-use crate::state::{Pool, State, FEE, POOL, STATE};
 use pandora_os::modules::add_ons::vault::DepositHookMsg;
 use pandora_os::queries::vault::{query_supply, query_total_value};
+use pandora_os::util::deposit_info::DepositInfo;
 use pandora_os::util::fee::Fee;
+
+use crate::contract::{VaultDapp, VaultResult};
+use crate::error::VaultError;
+use crate::state::{Pool, State, FEE, POOL, STATE};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -23,6 +23,7 @@ pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
+    dapp: VaultDapp,
     cw20_msg: Cw20ReceiveMsg,
 ) -> VaultResult {
     match from_binary(&cw20_msg.msg)? {
@@ -33,7 +34,7 @@ pub fn receive_cw20(
                     token: msg_info.sender.to_string(),
                 });
             }
-            try_withdraw_liquidity(deps, env, cw20_msg.sender, cw20_msg.amount)
+            try_withdraw_liquidity(deps, env, dapp, cw20_msg.sender, cw20_msg.amount)
         }
         DepositHookMsg::ProvideLiquidity {} => {
             // Construct deposit asset
@@ -41,7 +42,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            try_provide_liquidity(deps, msg_info, asset, Some(cw20_msg.sender))
+            try_provide_liquidity(deps, msg_info, dapp, asset, Some(cw20_msg.sender))
         }
     }
 }
@@ -51,13 +52,14 @@ pub fn receive_cw20(
 pub fn try_provide_liquidity(
     deps: DepsMut,
     msg_info: MessageInfo,
+    dapp: VaultDapp,
     asset: Asset,
     sender: Option<String>,
 ) -> VaultResult {
     // Load all needed states
     let pool: Pool = POOL.load(deps.storage)?;
     let state = STATE.load(deps.storage)?;
-    let base_state: BaseState = BASESTATE.load(deps.storage)?;
+    let base_state: DappState = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
 
     // Get the liquidity provider address
@@ -143,18 +145,19 @@ pub fn try_provide_liquidity(
 }
 
 /// Attempt to withdraw deposits. Fees are calculated and deducted in liquidity tokens.
-/// This allowes the war-chest to accumulate a stake in the vault.
+/// This allows the war-chest to accumulate a stake in the vault.
 /// The refund is taken out of Anchor if possible.
 /// Luna holdings are not eligible for withdrawal.
 pub fn try_withdraw_liquidity(
     deps: DepsMut,
     _env: Env,
+    dapp: VaultDapp,
     sender: String,
     amount: Uint128,
 ) -> VaultResult {
     let pool: Pool = POOL.load(deps.storage)?;
     let state: State = STATE.load(deps.storage)?;
-    let base_state: BaseState = BASESTATE.load(deps.storage)?;
+    let base_state: DappState = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
@@ -202,8 +205,8 @@ pub fn try_withdraw_liquidity(
             amount: share_ratio
                 // query asset held in proxy
                 * info.query_balance(&deps.querier,
-                    base_state.proxy_address.clone(),
-                )
+                                     base_state.proxy_address.clone(),
+            )
                 ?,
         });
     }
@@ -248,12 +251,13 @@ pub fn try_withdraw_liquidity(
 pub fn update_pool(
     deps: DepsMut,
     msg_info: MessageInfo,
+    dapp: VaultDapp,
     deposit_asset: Option<String>,
     assets_to_add: Vec<String>,
     assets_to_remove: Vec<String>,
 ) -> VaultResult {
     // Only the admin should be able to call this
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut pool = POOL.load(deps.storage)?;
 
@@ -285,9 +289,9 @@ pub fn update_pool(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, new_fee: Fee) -> VaultResult {
+pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: VaultDapp, new_fee: Fee) -> VaultResult {
     // Only the admin should be able to call this
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     if new_fee.share > Decimal::one() {
         return Err(VaultError::InvalidFee {});

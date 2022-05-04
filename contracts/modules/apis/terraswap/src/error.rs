@@ -1,7 +1,8 @@
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
 use thiserror::Error;
+
+use pandora_dapp_base::DappError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum TerraswapError {
@@ -12,7 +13,7 @@ pub enum TerraswapError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    BaseDAppError(#[from] BaseDAppError),
+    DappError(#[from] DappError),
 
     #[error("You must provide exactly two assets when adding liquidity")]
     NotTwoAssets {},

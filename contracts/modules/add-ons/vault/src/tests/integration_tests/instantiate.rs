@@ -1,19 +1,17 @@
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
-
+use cw_asset::{Asset, AssetInfoUnchecked};
+use pandora_os::core::proxy::msg as TreasuryMsg;
+use pandora_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
+use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
+use pandora_os::native::memory::msg as MemoryMsg;
+use terra_multi_test::Executor;
 use terra_multi_test::{App, ContractWrapper};
 
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
-use cw_asset::{Asset, AssetInfoUnchecked};
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use terra_multi_test::Executor;
-
-use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
-use pandora_os::native::memory::msg as MemoryMsg;
-
-use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
+
 const MILLION: u64 = 1_000_000u64;
 
 pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContracts) -> (Addr, Addr) {
@@ -132,7 +130,7 @@ pub fn init_vault_dapp(app: &mut App, owner: Addr, base_contracts: &BaseContract
     app.execute_contract(
         owner.clone(),
         vault_dapp_instance.clone(),
-        &ExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+        &ExecuteMsg::Base(DappExecuteMsg::UpdateConfig {
             proxy_address: Some(base_contracts.proxy.to_string()),
         }),
         &[],

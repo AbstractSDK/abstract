@@ -3,7 +3,6 @@ members = [
     "packages/*",
     "contracts/native/*",
     "contracts/core/*",
-    "contracts/token",
     # "contracts/dapps/external/*",
     "contracts/modules/apis/anchor",
     "contracts/modules/apis/terraswap",
@@ -13,6 +12,7 @@ members = [
     # "contracts/governance/token_weighted",
     # "contracts/perks/airdrop",
     # "contracts/services/*"
+    "contracts/pandora_dapp_base"
 ]
 
 [profile.release]
