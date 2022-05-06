@@ -1,0 +1,59 @@
+[package]
+name = "integration_testing"
+version = "0.1.0"
+authors = ["CyberHoward"]
+edition = "2018"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+# cosmwasm-storage = { version = "0.16.7" }
+# cw-controllers = { version ="0.9.1" }
+# schemars = "0.8.1"
+# serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+# terra-cosmwasm = "2.2"
+# terraswap = "2.4.0"
+# thiserror = { version = "1.0.21" }
+# protobuf = { version = "2", features = ["with-bytes"] }
+# semver = "1.0.4"
+[dev-dependencies]
+cw-storage-plus = "0.9.1"
+cw2 = "0.9.1"
+cw20 = { version = "0.9.1" }
+cosmwasm-std = { version = "0.16.7" }
+pandora-os = { version = "0.1.0", path = "../../packages/pandora-os" }
+cosmwasm-schema = { version = "0.16" }
+cw-multi-test = { version = "0.9.1"}
+terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", package = "terra-mocks"}
+terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", tag = "v0.9.1-terra"}
+cw20-base = { version = "0.9.1", features = ["library"] }
+
+proxy = { version = "0.1.0", path = "../core/proxy" }
+manager = { version = "0.1.0", path = "../core/manager" }
+memory = { version = "0.1.0", path = "../native/memory" }
+os-factory = { version = "0.1.0", path = "../native/factory" }
+module-factory = { version = "0.1.0", path = "../native/module_factory" }
+version-control = { version = "0.1.0", path = "../native/version_control" }
+
+
+[package.metadata.scripts]
+optimize = """docker run --rm -v "$(pwd)":/code \
+          --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+            --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+              cosmwasm/rust-optimizer:0.12.5"""
+store = """terra-rust code store test-owner ..\\..\\artifacts\\xxx.wasm"""
+instantiate = """terra-rust code instantiate test-owner ..\\..\\artifacts\\xxx.wasm .\\pool_init.json --admin same"""
+migrate = """terra-rust code migrate test-owner ..\\..\\artifacts\\xxx.wasm """
