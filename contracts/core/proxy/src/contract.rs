@@ -49,7 +49,17 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetAdmin { admin } => {
             let admin_addr = deps.api.addr_validate(&admin)?;
             let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+            let mut state = STATE.load(deps.storage)?;
+            let canonical_addr = deps.api.addr_canonicalize(previous_admin.as_str())?;
+            // Rm old admin
+            state.dapps.retain(|addr| *addr != canonical_addr);
+            // Add new admin
+            state.dapps.push(deps.api.addr_canonicalize(admin_addr.as_str())?);
+
+            STATE.save(deps.storage, &state)?;
             ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
+
+
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)
                 .add_attribute("admin", admin))
