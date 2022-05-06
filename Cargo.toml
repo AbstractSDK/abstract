@@ -3,6 +3,7 @@ members = [
     "packages/*",
     "contracts/native/*",
     "contracts/core/*",
+    "contracts/testing",
     # "contracts/dapps/external/*",
     "contracts/modules/apis/anchor",
     "contracts/modules/apis/terraswap",
