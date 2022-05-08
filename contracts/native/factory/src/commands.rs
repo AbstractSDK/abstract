@@ -41,10 +41,8 @@ pub fn execute_create_os(
     let config = CONFIG.load(deps.storage)?;
 
     let mut msgs = vec![];
-
-    let maybe_msg = maybe_forward_payment(deps.as_ref(), info, &config)?;
-    if let Some(msg) = maybe_msg {
-        msgs.push(msg);
+    if let Some(sub_addr) = &config.subscription_address {
+        maybe_forward_payment(deps.as_ref(), info, &config, &mut msgs, sub_addr)?;
     }
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
@@ -263,33 +261,33 @@ fn maybe_forward_payment(
     deps: Deps,
     info: MessageInfo,
     config: &Config,
-) -> Result<Option<CosmosMsg>, OsFactoryError> {
-    if let Some(sub_addr) = &config.subscription_address {
-        let received_payment_coin = info.funds.last().unwrap().to_owned();
-        let received_payment = Asset::from(received_payment_coin);
-        let subscription_fee: SubscriptionFeeResponse =
-            query_subscription_fee(&deps.querier, sub_addr)?;
+    msgs: &mut Vec<CosmosMsg>,
+    sub_addr: &Addr,
+) -> Result<(), OsFactoryError> {
+    let received_payment_coin = info.funds.last().unwrap().to_owned();
+    let received_payment = Asset::from(received_payment_coin);
+    let subscription_fee: SubscriptionFeeResponse =
+        query_subscription_fee(&deps.querier, sub_addr)?;
 
-        if !subscription_fee.fee.amount.is_zero() {
-            if subscription_fee.fee.amount != received_payment.amount {
-                return Err(OsFactoryError::WrongAmount(
-                    subscription_fee.fee.to_string(),
-                ));
-            } else if subscription_fee.fee.info != received_payment.info {
-                return Err(OsFactoryError::UnsupportedAsset());
-            } else {
-                // Forward payment to subscription module, also registers the OS
-                let forward_payment_to_module: CosmosMsg<Empty> = received_payment.send_msg(
-                    sub_addr,
-                    to_binary(&SubscriptionExecMsg::Pay {
-                        asset: received_payment.clone(),
-                        os_id: config.next_os_id,
-                    })?,
-                )?;
+    if !subscription_fee.fee.amount.is_zero() {
+        if subscription_fee.fee.amount != received_payment.amount {
+            return Err(OsFactoryError::WrongAmount(
+                subscription_fee.fee.to_string(),
+            ));
+        } else if subscription_fee.fee.info != received_payment.info {
+            return Err(OsFactoryError::UnsupportedAsset());
+        } else {
+            // Forward payment to subscription module and registers the OS
+            let forward_payment_to_module: CosmosMsg<Empty> = received_payment.send_msg(
+                sub_addr,
+                to_binary(&SubscriptionExecMsg::Pay {
+                    asset: received_payment.clone(),
+                    os_id: config.next_os_id,
+                })?,
+            )?;
 
-                return Ok(Some(forward_payment_to_module));
-            }
+            msgs.push(forward_payment_to_module);
         }
     }
-    Ok(None)
+    Ok(())
 }
