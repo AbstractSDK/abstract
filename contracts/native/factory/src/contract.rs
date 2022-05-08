@@ -60,12 +60,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             subscription_address,
         ),
         ExecuteMsg::CreateOs { governance } => {
-            let maybe_recieved_coin = info.funds.last();
-            if let Some(coin) = maybe_recieved_coin.cloned() {
-                commands::execute_create_os(deps, env, governance, Asset::from(coin))
-            } else {
-                Err(OsFactoryError::NotUsingCW20Hook {})
-            }
+            let maybe_recieved_coin = info.funds.last().map(Asset::from);
+            commands::execute_create_os(deps, env, governance, maybe_recieved_coin)
         }
     }
 }

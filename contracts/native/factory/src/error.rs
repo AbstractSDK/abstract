@@ -19,6 +19,6 @@ pub enum OsFactoryError {
     #[error("Your payment does not match the required payment {0}")]
     WrongAmount(String),
 
-    #[error("It's required to use cw20 send message to add pay with cw20 tokens")]
+    #[error("It's required to use cw20 send message to create an os with cw20 tokens")]
     NotUsingCW20Hook {},
 }

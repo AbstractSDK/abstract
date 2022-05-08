@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, Deps, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
+    from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
@@ -47,7 +47,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
-            execute_create_os(deps, env, governance, asset)
+            execute_create_os(deps, env, governance, Some(asset))
         }
         _ => Err(OsFactoryError::Std(StdError::generic_err(
             "unknown send msg hook",
@@ -60,13 +60,17 @@ pub fn execute_create_os(
     deps: DepsMut,
     env: Env,
     governance: GovernanceDetails,
-    asset: Asset,
+    asset: Option<Asset>,
 ) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     let mut msgs = vec![];
     if let Some(sub_addr) = &config.subscription_address {
-        maybe_forward_payment(deps.as_ref(), asset, &config, &mut msgs, sub_addr)?;
+        let subscription_fee: SubscriptionFeeResponse =
+            query_subscription_fee(&deps.querier, sub_addr)?;
+        if !subscription_fee.fee.amount.is_zero() {
+            forward_payment(asset, &config, &mut msgs, sub_addr)?;
+        }
     }
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
@@ -283,17 +287,13 @@ fn query_subscription_fee(
 
 // Does not do any payment verifications.
 // This provides more flexibility on the subscription contract to handle different payment options
-fn maybe_forward_payment(
-    deps: Deps,
-    received_payment: Asset,
+fn forward_payment(
+    maybe_received_payment: Option<Asset>,
     config: &Config,
     msgs: &mut Vec<CosmosMsg>,
     sub_addr: &Addr,
 ) -> Result<(), OsFactoryError> {
-    let subscription_fee: SubscriptionFeeResponse =
-        query_subscription_fee(&deps.querier, sub_addr)?;
-
-    if !subscription_fee.fee.amount.is_zero() {
+    if let Some(received_payment) = maybe_received_payment {
         // Forward payment to subscription module and registers the OS
         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
             AssetInfoBase::Cw20(_) => received_payment.send_msg(
@@ -312,6 +312,8 @@ fn maybe_forward_payment(
         };
 
         msgs.push(forward_payment_to_module);
+        Ok(())
+    } else {
+        Err(OsFactoryError::NotUsingCW20Hook {})
     }
-    Ok(())
 }
