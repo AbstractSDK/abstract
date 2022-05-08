@@ -54,11 +54,12 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             // Rm old admin
             state.dapps.retain(|addr| *addr != canonical_addr);
             // Add new admin
-            state.dapps.push(deps.api.addr_canonicalize(admin_addr.as_str())?);
+            state
+                .dapps
+                .push(deps.api.addr_canonicalize(admin_addr.as_str())?);
 
             STATE.save(deps.storage, &state)?;
             ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
-
 
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)

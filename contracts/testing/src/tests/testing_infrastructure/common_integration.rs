@@ -1,11 +1,7 @@
-use std::collections::HashMap;
+use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
+use cosmwasm_std::Addr;
 
-use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{Addr, Empty};
-use pandora_os::core::modules::ModuleInfo;
-
-use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, AppBuilder, BankKeeper, TerraApp, TerraMock};
+use terra_multi_test::{AppBuilder, BankKeeper, TerraApp, TerraMock};
 
 pub struct NativeContracts {
     pub token: Addr,
@@ -15,14 +11,8 @@ pub struct NativeContracts {
     pub module_factory: Addr,
 }
 
-pub struct OsInstance {
-    pub manager: Addr,
-    pub proxy: Addr,
-    pub modules: HashMap<String, ModuleInfo>,
-}
-
 pub fn mock_app() -> TerraApp {
-    let mut env = mock_env();
+    let env = mock_env();
     let api = MockApi::default();
     let bank = BankKeeper::new();
     let storage = MockStorage::new();

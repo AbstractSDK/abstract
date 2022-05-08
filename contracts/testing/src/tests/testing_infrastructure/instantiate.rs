@@ -87,7 +87,6 @@ pub fn init_native_contracts(app: &mut TerraApp, code_ids: &HashMap<&str, u64>) 
         .unwrap();
 
     let os_factory_msg = OSFactoryMsg::InstantiateMsg {
-        creation_fee: 10u32,
         memory_address: memory_instance.to_string(),
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),

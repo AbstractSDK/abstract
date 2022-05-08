@@ -22,31 +22,33 @@ backtraces = ["cosmwasm-std/backtraces"]
 [dependencies]
 # cosmwasm-storage = { version = "0.16.7" }
 # cw-controllers = { version ="0.9.1" }
-# schemars = "0.8.1"
-# serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-# terra-cosmwasm = "2.2"
 # terraswap = "2.4.0"
 # thiserror = { version = "1.0.21" }
 # protobuf = { version = "2", features = ["with-bytes"] }
 # semver = "1.0.4"
 [dev-dependencies]
+terra-cosmwasm = "2.2"
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 cw-storage-plus = "0.9.1"
 cw2 = "0.9.1"
 cw20 = { version = "0.9.1" }
+cw-asset = {version = "1.0.2"}
 cosmwasm-std = { version = "0.16.7" }
 pandora-os = { version = "0.1.0", path = "../../packages/pandora-os" }
 cosmwasm-schema = { version = "0.16" }
 cw-multi-test = { version = "0.9.1"}
 terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", package = "terra-mocks"}
-terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", tag = "v0.9.1-terra"}
+terra-multi-test = {path = "../../../../tools/terra-plus/packages/multi-test"}
 cw20-base = { version = "0.9.1", features = ["library"] }
-
+anyhow = "1.0.57"
 proxy = { version = "0.1.0", path = "../core/proxy" }
 manager = { version = "0.1.0", path = "../core/manager" }
 memory = { version = "0.1.0", path = "../native/memory" }
 os-factory = { version = "0.1.0", path = "../native/factory" }
 module-factory = { version = "0.1.0", path = "../native/module_factory" }
 version-control = { version = "0.1.0", path = "../native/version_control" }
+subscription = { version = "0.1.0", path = "../modules/add-ons/subscription" }
 
 
 [package.metadata.scripts]
