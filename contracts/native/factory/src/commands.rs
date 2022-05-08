@@ -1,14 +1,17 @@
 use cosmwasm_std::{
-    to_binary, Addr, Deps, DepsMut, Empty, Env, MessageInfo, QuerierWrapper, QueryRequest, ReplyOn,
-    Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
+    from_binary, to_binary, Addr, Coin, Deps, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
+    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
+use cw20::Cw20ReceiveMsg;
 use pandora_os::core::manager::helper::register_module_on_manager;
 use pandora_os::core::modules::ModuleInfo;
 use pandora_os::governance::gov_type::GovernanceDetails;
 use pandora_os::modules::add_ons::subscription::msg::{
-    ExecuteMsg as SubscriptionExecMsg, QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+    DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
+    QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
 };
+use pandora_os::native::os_factory::msg::ExecuteMsg;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -22,7 +25,7 @@ use pandora_os::core::proxy::msg::{
     ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg,
 };
 
-use cw_asset::Asset;
+use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use pandora_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
@@ -31,18 +34,39 @@ pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
 use pandora_os::registery::{MANAGER, PROXY};
 
+pub fn receive_cw20(
+    deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    cw20_msg: Cw20ReceiveMsg,
+) -> OsFactoryResult {
+    match from_binary(&cw20_msg.msg)? {
+        ExecuteMsg::CreateOs { governance } => {
+            // Construct deposit asset
+            let asset = Asset {
+                info: AssetInfo::Cw20(msg_info.sender.clone()),
+                amount: cw20_msg.amount,
+            };
+            execute_create_os(deps, env, governance, asset)
+        }
+        _ => Err(OsFactoryError::Std(StdError::generic_err(
+            "unknown send msg hook",
+        ))),
+    }
+}
+
 /// Function that starts the creation of the OS
 pub fn execute_create_os(
     deps: DepsMut,
-    info: MessageInfo,
     env: Env,
     governance: GovernanceDetails,
+    asset: Asset,
 ) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     let mut msgs = vec![];
     if let Some(sub_addr) = &config.subscription_address {
-        maybe_forward_payment(deps.as_ref(), info, &config, &mut msgs, sub_addr)?;
+        maybe_forward_payment(deps.as_ref(), asset, &config, &mut msgs, sub_addr)?;
     }
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match governance {
@@ -257,37 +281,37 @@ fn query_subscription_fee(
     Ok(subscription_fee_response)
 }
 
+// Does not do any payment verifications.
+// This provides more flexibility on the subscription contract to handle different payment options
 fn maybe_forward_payment(
     deps: Deps,
-    info: MessageInfo,
+    received_payment: Asset,
     config: &Config,
     msgs: &mut Vec<CosmosMsg>,
     sub_addr: &Addr,
 ) -> Result<(), OsFactoryError> {
-    let received_payment_coin = info.funds.last().unwrap().to_owned();
-    let received_payment = Asset::from(received_payment_coin);
     let subscription_fee: SubscriptionFeeResponse =
         query_subscription_fee(&deps.querier, sub_addr)?;
 
     if !subscription_fee.fee.amount.is_zero() {
-        if subscription_fee.fee.amount != received_payment.amount {
-            return Err(OsFactoryError::WrongAmount(
-                subscription_fee.fee.to_string(),
-            ));
-        } else if subscription_fee.fee.info != received_payment.info {
-            return Err(OsFactoryError::UnsupportedAsset());
-        } else {
-            // Forward payment to subscription module and registers the OS
-            let forward_payment_to_module: CosmosMsg<Empty> = received_payment.send_msg(
+        // Forward payment to subscription module and registers the OS
+        let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
+            AssetInfoBase::Cw20(_) => received_payment.send_msg(
                 sub_addr,
-                to_binary(&SubscriptionExecMsg::Pay {
-                    asset: received_payment.clone(),
+                to_binary(&SubDepositHook::Pay {
                     os_id: config.next_os_id,
                 })?,
-            )?;
+            )?,
+            AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: sub_addr.into(),
+                msg: to_binary(&SubscriptionExecMsg::Pay {
+                    os_id: config.next_os_id,
+                })?,
+                funds: vec![Coin::new(received_payment.amount.u128(), denom)],
+            }),
+        };
 
-            msgs.push(forward_payment_to_module);
-        }
+        msgs.push(forward_payment_to_module);
     }
     Ok(())
 }

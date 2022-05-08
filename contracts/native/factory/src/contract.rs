@@ -2,6 +2,7 @@ use cosmwasm_std::{entry_point, Addr};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
+use cw_asset::Asset;
 
 use crate::error::OsFactoryError;
 use cw2::set_contract_version;
@@ -41,6 +42,7 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> OsFactoryResult {
     match msg {
+        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
             admin,
             memory_contract,
@@ -58,7 +60,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             subscription_address,
         ),
         ExecuteMsg::CreateOs { governance } => {
-            commands::execute_create_os(deps, info, env, governance)
+            let maybe_recieved_coin = info.funds.last();
+            if let Some(coin) = maybe_recieved_coin.cloned() {
+                commands::execute_create_os(deps, env, governance, Asset::from(coin))
+            } else {
+                Err(OsFactoryError::NotUsingCW20Hook {})
+            }
         }
     }
 }

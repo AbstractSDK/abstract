@@ -1,4 +1,5 @@
 use crate::governance::gov_type::GovernanceDetails;
+use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use terra_rust_script_derive::CosmWasmContract;
@@ -15,6 +16,7 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    Receive(Cw20ReceiveMsg),
     /// Update config
     UpdateConfig {
         admin: Option<String>,
