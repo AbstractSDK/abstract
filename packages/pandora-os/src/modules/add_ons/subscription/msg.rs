@@ -49,7 +49,6 @@ pub enum ExecuteMsg {
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     Pay {
-        asset: Asset,
         os_id: u32,
     },
     CollectSubs {

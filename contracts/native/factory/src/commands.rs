@@ -44,7 +44,7 @@ pub fn receive_cw20(
         ExecuteMsg::CreateOs { governance } => {
             // Construct deposit asset
             let asset = Asset {
-                info: AssetInfo::Cw20(msg_info.sender.clone()),
+                info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
             execute_create_os(deps, env, governance, asset)

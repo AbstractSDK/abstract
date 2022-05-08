@@ -1,4 +1,5 @@
 use cosmwasm_std::{OverflowError, StdError};
+use cw_asset::AssetInfo;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -24,8 +25,8 @@ pub enum SubscriptionError {
     #[error("This contract does not implement the cw20 swap function")]
     NoSwapAvailable {},
 
-    #[error("The provided token is not a payment token")]
-    WrongToken {},
+    #[error("The provided token is not the payment token {0}")]
+    WrongToken(AssetInfo),
 
     #[error("It's required to use cw20 send message to add pay with cw20 tokens")]
     NotUsingCW20Hook {},
@@ -36,7 +37,7 @@ pub enum SubscriptionError {
     #[error("The actual amount of tokens transferred is different from the claimed amount.")]
     InvalidAmount {},
 
-    #[error("The provided native coin is not the same as the claimed deposit")]
+    #[error("The provided native coin is not the same as the required native coin")]
     WrongNative {},
 
     #[error("The contributor you wanted to remove is not registered.")]

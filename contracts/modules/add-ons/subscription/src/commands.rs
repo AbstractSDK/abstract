@@ -36,7 +36,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            try_pay(deps, msg_info, asset, Some(cw20_msg.sender), os_id)
+            try_pay(deps, msg_info, asset, os_id)
         }
     }
 }
@@ -47,35 +47,18 @@ pub fn try_pay(
     deps: DepsMut,
     msg_info: MessageInfo,
     asset: Asset,
-    sender: Option<String>,
     os_id: u32,
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUB_CONFIG.load(deps.storage)?;
     let base_state = BASESTATE.load(deps.storage)?;
-    match sender {
-        // TODO: enable payments with cw20
-        Some(_) => return Err(SubscriptionError::WrongToken {}),
-        None => {
-            match asset.info {
-                AssetInfo::Native(..) => {
-                    // If native token, assert claimed amount is correct
-                    let coin = msg_info.funds.last().unwrap().clone();
-                    if Asset::native(coin.denom, coin.amount) != asset {
-                        return Err(SubscriptionError::WrongNative {});
-                    };
-                }
-                AssetInfo::Cw20(_) => return Err(SubscriptionError::NotUsingCW20Hook {}),
-            }
-        }
-    };
 
     // Construct deposit info
     let deposit_info = config.payment_asset;
 
     // Assert payment asset and claimed asset infos are the same
     if deposit_info != asset.info {
-        return Err(SubscriptionError::WrongToken {});
+        return Err(SubscriptionError::WrongToken(deposit_info));
     }
     // Init vector for logging
     let attrs = vec![

@@ -114,7 +114,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
     match msg {
         ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message).map_err(|e| e.into()),
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
-        ExecuteMsg::Pay { asset, os_id } => commands::try_pay(deps, info, asset, None, os_id),
+        ExecuteMsg::Pay { os_id } => {
+            let maybe_recieved_coin = info.funds.last();
+            if let Some(coin) = maybe_recieved_coin.cloned() {
+                commands::try_pay(deps, info, Asset::from(coin), os_id)
+            } else {
+                Err(SubscriptionError::NotUsingCW20Hook {})
+            }
+        }
         ExecuteMsg::CollectSubs { page_limit } => {
             commands::collect_subscriptions(deps, env, page_limit)
         }
