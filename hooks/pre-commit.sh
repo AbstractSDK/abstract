@@ -12,7 +12,7 @@ git_directory=$(git rev-parse --git-dir)
 
 install_hook() {
   mkdir -p "$git_directory/hooks"
-  ln -sfv "$project_toplevel/scripts/git_hooks/pre-commit.sh" "$git_directory/hooks/pre-commit"
+  ln -sfv "$project_toplevel/hooks/pre-commit.sh" "$git_directory/hooks/pre-commit"
 }
 
 if [ "$1" = "--install" ]; then
