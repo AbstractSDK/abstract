@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pandora_os::registery::*;
 
-use terra_multi_test::{App, ContractWrapper, TerraApp};
+use terra_multi_test::{ContractWrapper, TerraApp};
 
 use super::common_integration::NativeContracts;
 use super::instantiate::init_native_contracts;
@@ -19,7 +19,7 @@ use super::instantiate::init_native_contracts;
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
-pub fn upload_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeContracts) {
+pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeContracts) {
     let mut code_ids: HashMap<&str, u64> = HashMap::new();
 
     // Instantiate Token Contract
@@ -104,6 +104,7 @@ pub fn upload_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeContra
 
     let manager_code_id = app.store_code(manager_contract);
     code_ids.insert(MANAGER, manager_code_id);
+
     let native_contracts = init_native_contracts(app, &code_ids);
     (code_ids, native_contracts)
 }

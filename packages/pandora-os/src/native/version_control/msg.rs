@@ -47,7 +47,7 @@ pub enum QueryMsg {
     QueryEnabledModules {
         os_address: String,
     },
-    /// Queries address of OS manager module
+    /// Returns Core of OS
     QueryOsAddress {
         os_id: u32,
     },

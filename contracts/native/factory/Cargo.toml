@@ -36,5 +36,5 @@ protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = {version = "1.0.2"}
 
 [dev-dependencies]
-cosmwasm-schema = "0.16.0"
-cosmwasm-storage = { version = "0.16.0" }
+cosmwasm-schema = "0.16.7"
+cosmwasm-storage = { version = "0.16.7" }

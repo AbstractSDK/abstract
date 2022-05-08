@@ -1,3 +1,5 @@
+# Create a ModuleMock for custom modules
+
 # Tests covered
 
 ## Unit tests
