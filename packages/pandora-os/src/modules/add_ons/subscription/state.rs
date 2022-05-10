@@ -8,9 +8,7 @@ use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map, U32Key};
 
-// pub const MONTH: u64 = 60 * 60 * 24 * 30;
-// FOR TESTING
-pub const MONTH: u64 = 60 * 20;
+pub const MONTH: u64 = 60 * 60 * 24 * 30;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SubscriptionConfig {
     pub version_control_address: Addr,
@@ -88,8 +86,6 @@ fn decimal_is_percentage(decimal: &Decimal) -> bool {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ContributionState {
-    /// max allowed tokens to be distributed
-    pub emissions_cap: Uint128,
     /// Target income to pay base salaries
     pub target: Uint64,
     /// expense the org is able to make based on the income, target and splitS

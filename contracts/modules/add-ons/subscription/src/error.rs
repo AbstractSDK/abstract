@@ -55,6 +55,12 @@ pub enum SubscriptionError {
     #[error("only the factory can register new subscribers")]
     CallerNotFactory,
 
+    #[error("cannot claim emissions before income is collected")]
+    CollectIncomeFirst,
+
+    #[error("income target is zero, no contributions can be paid out.")]
+    TargetIsZero,
+
     #[error("you need to deposit at least {0} to reactivate this OS")]
     InsufficientPayment(u64),
 }

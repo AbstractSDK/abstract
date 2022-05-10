@@ -86,12 +86,11 @@ pub fn instantiate(
     .verify()?;
 
     let con_state: ContributionState = ContributionState {
-        emissions_cap: Uint128::zero(),
         target: Uint64::zero(),
         expense: Uint64::zero(),
         total_weight: Uint128::zero(),
         emissions: Uint128::zero(),
-        next_pay_day: Uint64::from(env.block.time.seconds() + MONTH),
+        next_pay_day: Uint64::from(env.block.time.seconds()),
     };
 
     SubscriptionDapp::default().instantiate(deps.branch(), env, info, msg.base)?;
@@ -128,8 +127,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
         ExecuteMsg::ClaimCompensation {
             contributor,
             page_limit,
-        } => commands::try_claim(deps, env, contributor, page_limit),
-        ExecuteMsg::ClaimEmissions { os_id } => commands::claim_subscriber_emissions(deps, os_id),
+        } => commands::try_claim_contribution(deps, env, contributor, page_limit),
+        ExecuteMsg::ClaimEmissions { os_id } => {
+            commands::claim_subscriber_emissions(deps, env, os_id)
+        }
         ExecuteMsg::UpdateContributor {
             contributor_addr,
             compensation,

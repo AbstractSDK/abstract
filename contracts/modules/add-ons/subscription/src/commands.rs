@@ -41,6 +41,10 @@ pub fn receive_cw20(
     }
 }
 
+// ############
+//  SUBSCRIPTION
+// ############
+
 /// Called when either paying with a native token or through the receive_cw20 endpoint when paying
 /// with a CW20.
 pub fn try_pay(
@@ -145,7 +149,7 @@ pub fn collect_subscriptions(
     let con_config = CON_CONFIG.load(deps.storage)?;
     let sub_config = SUB_CONFIG.load(deps.storage)?;
 
-    if con_state.next_pay_day.u64() < env.block.time.seconds() {
+    if con_state.next_pay_day.u64() <= env.block.time.seconds() {
         let response = Response::new();
         // First collect income
         if !sub_state.collected {
@@ -157,8 +161,9 @@ pub fn collect_subscriptions(
                 update_contribution_state(
                     deps.as_ref(),
                     Uint64::new(
-                        (Uint128::new(income as u128) * con_config.protocol_income_share).u128()
-                            as u64,
+                        (Uint128::new(income as u128)
+                            * (Decimal::one() - con_config.protocol_income_share))
+                            .u128() as u64,
                     ),
                     &mut con_state,
                 )?;
@@ -194,16 +199,6 @@ pub fn collect_subscriptions(
             con_state.next_pay_day.u64(),
         ))
     }
-}
-
-fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: manager_address.to_string(),
-        msg: to_binary(&ManagerMsg::SuspendOs {
-            new_status: new_suspend_status,
-        })?,
-        funds: vec![],
-    }))
 }
 
 /// Uses accumulator page mapping to process all active subscribers
@@ -262,6 +257,15 @@ fn process_client(
         }
     }
 }
+fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
+    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: manager_address.to_string(),
+        msg: to_binary(&ManagerMsg::SuspendOs {
+            new_status: new_suspend_status,
+        })?,
+        funds: vec![],
+    }))
+}
 
 fn update_contribution_state(
     deps: Deps,
@@ -276,9 +280,9 @@ fn update_contribution_state(
     let max_emissions =
         floor_emissions * (contribution_config.max_emissions_multiple * Uint128::new(1));
     if income < con_state.target {
-        con_state.emissions = (max_emissions - floor_emissions * Uint128::new(1))
-            * Uint128::new((income / con_state.target).u64() as u128)
-            + max_emissions;
+        con_state.emissions = max_emissions
+            - (max_emissions - floor_emissions * Uint128::new(1))
+                * Uint128::new((income / con_state.target).u64() as u128);
         con_state.expense = income;
     } else {
         con_state.expense = con_state.target;
@@ -287,12 +291,66 @@ fn update_contribution_state(
     Ok(())
 }
 
+/// Checks if subscriber is allowed to claim his emissions
+pub fn claim_subscriber_emissions(deps: DepsMut, env: Env, os_id: u32) -> SubscriptionResult {
+    let sub_state = SUB_STATE.load(deps.storage)?;
+    let con_state = CON_STATE.load(deps.storage)?;
+    let con_config = CON_CONFIG.load(deps.storage)?;
+    let sub_config = SUB_CONFIG.load(deps.storage)?;
+    let mut subscriber = CLIENTS.load(deps.storage, &os_id.to_be_bytes())?;
+
+    // Can only claim if current time is before pay day
+    if env.block.time.seconds() > con_state.next_pay_day.u64()
+        || CLIENTS.status.load(deps.storage)?.is_locked
+    {
+        return Err(SubscriptionError::CollectIncomeFirst);
+    }
+
+    let subscriber_proxy_address = OS_ADDRESSES
+        .query(
+            &deps.querier,
+            sub_config.version_control_address,
+            U32Key::new(os_id),
+        )?
+        .unwrap()
+        .proxy;
+
+    if subscriber.claimed_emissions {
+        return Err(SubscriptionError::EmissionsAlreadyClaimed {});
+    }
+    subscriber.claimed_emissions = true;
+
+    let token_amount = (con_state.emissions * con_config.emission_user_share).u128()
+        / sub_state.active_subs as u128;
+    let proxy_msg = send_to_proxy(
+        vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: con_config.project_token.into_string(),
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                recipient: subscriber_proxy_address.into_string(),
+                amount: token_amount.into(),
+            })?,
+            funds: vec![],
+        })],
+        &BASESTATE.load(deps.storage)?.proxy_address,
+    )?;
+
+    if token_amount != 0 {
+        Ok(Response::new().add_message(proxy_msg))
+    } else {
+        Ok(Response::new())
+    }
+}
+
+// ############
+//  CONTRIBUTION
+// ############
+
 /// Function that adds/updates the contributor config of a given address
 pub fn update_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
     contributor_addr: String,
-    mut compensation: Compensation,
+    compensation: Compensation,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -300,25 +358,35 @@ pub fn update_contributor(
     let mut state = CON_STATE.load(deps.storage)?;
     let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, contributor_addr.as_bytes())?;
 
-    match maybe_compensation {
+    let new_compensation = match maybe_compensation {
         Some(current_compensation) => {
-            let (base_diff, weight_diff) = current_compensation - compensation.clone();
+            let (base_diff, weight_diff) = current_compensation.clone() - compensation.clone();
             // let base_diff: i32 = current_compensation.base as i32 - compensation.base as i32;
             // let weight_diff: i32 = current_compensation.weight as i32 - compensation.weight as i32;
             state.total_weight =
                 Uint128::from((state.total_weight.u128() as i128 + weight_diff as i128) as u128);
             state.target = Uint64::from((state.target.u64() as i64 + base_diff as i64) as u64);
+            Compensation {
+                base: compensation.base,
+                weight: compensation.weight,
+                expiration: compensation.expiration,
+                ..current_compensation
+            }
         }
         None => {
             state.total_weight += Uint128::from(compensation.weight);
             state.target += Uint64::from(compensation.base);
             // Can only get paid on pay day after next pay day
-
-            compensation.next_pay_day = state.next_pay_day + Uint64::from(MONTH);
+            Compensation {
+                base: compensation.base,
+                weight: compensation.weight,
+                expiration: compensation.expiration,
+                next_pay_day: state.next_pay_day + Uint64::from(MONTH),
+            }
         }
     };
 
-    CONTRIBUTORS.save(deps.storage, contributor_addr.as_bytes(), &compensation)?;
+    CONTRIBUTORS.save(deps.storage, contributor_addr.as_bytes(), &new_compensation)?;
     CON_STATE.save(deps.storage, &state)?;
 
     // Init vector for logging
@@ -348,8 +416,8 @@ pub fn remove_contributor(
     Ok(Response::new().add_attributes(attrs))
 }
 
-pub fn try_claim(
-    deps: DepsMut,
+pub fn try_claim_contribution(
+    mut deps: DepsMut,
     env: Env,
     contributor_addr: Option<String>,
     page_limit: Option<u32>,
@@ -360,6 +428,9 @@ pub fn try_claim(
     let base_state = BASESTATE.load(deps.storage)?;
     let response = Response::new();
 
+    if state.target.is_zero() {
+        return Err(SubscriptionError::TargetIsZero);
+    };
     let context = ContributorContext {
         next_pay_day: state.next_pay_day.u64(),
         block_time: env.block.time.seconds(),
@@ -386,7 +457,7 @@ pub fn try_claim(
             vec![msg]
         }
         None => CONTRIBUTORS.page_without_accumulator(
-            deps,
+            deps.branch(),
             page_limit,
             &context,
             process_contributor,
@@ -394,7 +465,17 @@ pub fn try_claim(
     };
 
     Ok(response
-        .add_attribute("Action:", "Claim compensation")
+        .add_attribute("action:", "claim compensation")
+        .add_attribute(
+            "paging_complete",
+            format!(
+                "{}",
+                CONTRIBUTORS
+                    .load_status(deps.storage)?
+                    .accumulator
+                    .is_none()
+            ),
+        )
         .add_messages(msgs))
 }
 
@@ -466,48 +547,6 @@ fn process_contributor(
     )
 }
 
-/// Checks if contributor has already claimed his share or if he's no longer eligible to claim a compensation.
-pub fn claim_subscriber_emissions(deps: DepsMut, os_id: u32) -> SubscriptionResult {
-    let sub_state = SUB_STATE.load(deps.storage)?;
-    let con_state = CON_STATE.load(deps.storage)?;
-    let con_config = CON_CONFIG.load(deps.storage)?;
-    let sub_config = SUB_CONFIG.load(deps.storage)?;
-    let mut subscriber = CLIENTS.load(deps.storage, &os_id.to_be_bytes())?;
-
-    let subscriber_proxy_address = OS_ADDRESSES
-        .query(
-            &deps.querier,
-            sub_config.version_control_address,
-            U32Key::new(os_id),
-        )?
-        .unwrap()
-        .proxy;
-
-    if subscriber.claimed_emissions {
-        return Err(SubscriptionError::EmissionsAlreadyClaimed {});
-    }
-    subscriber.claimed_emissions = true;
-
-    let token_amount = con_state.emissions.u128() / sub_state.active_subs as u128;
-    let proxy_msg = send_to_proxy(
-        vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: con_config.project_token.into_string(),
-            msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: subscriber_proxy_address.into_string(),
-                amount: token_amount.into(),
-            })?,
-            funds: vec![],
-        })],
-        &BASESTATE.load(deps.storage)?.proxy_address,
-    )?;
-
-    if token_amount != 0 {
-        Ok(Response::new().add_message(proxy_msg))
-    } else {
-        Ok(Response::new())
-    }
-}
-
 /// Constructs the proxy execute msgs for transferring funds
 fn pay_msg(
     base_amount: u128,
@@ -538,12 +577,16 @@ fn pay_msg(
             funds: vec![],
         }))
     }
-    if !msgs.is_empty() {
+    if msgs.is_empty() {
         Ok(None)
     } else {
         Ok(Some(send_to_proxy(msgs, &Addr::unchecked(proxy_addr))?))
     }
 }
+
+// ############
+//  CONFIGS
+// ############
 
 // Only Admin can execute it
 #[allow(clippy::too_many_arguments)]
