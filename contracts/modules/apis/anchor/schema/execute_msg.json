@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/BaseExecuteMsg"
+          "$ref": "#/definitions/DappExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -56,10 +56,10 @@
     }
   ],
   "definitions": {
-    "BaseExecuteMsg": {
+    "DappExecuteMsg": {
       "oneOf": [
         {
-          "description": "Updates the base config",
+          "description": "Updates the base config Sets new values for the provided options",
           "type": "object",
           "required": [
             "update_config"
@@ -68,23 +68,44 @@
             "update_config": {
               "type": "object",
               "properties": {
-                "memory": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "trader": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
                 "proxy_address": {
                   "type": [
                     "string",
                     "null"
                   ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Adds/removes traders If a trader is both in to_add and to_remove, it will be removed.",
+          "type": "object",
+          "required": [
+            "update_traders"
+          ],
+          "properties": {
+            "update_traders": {
+              "type": "object",
+              "properties": {
+                "to_add": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "to_remove": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }

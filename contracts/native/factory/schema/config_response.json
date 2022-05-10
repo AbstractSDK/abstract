@@ -3,23 +3,35 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
+    "creation_fee",
+    "memory_contract",
+    "module_factory_address",
+    "next_os_id",
     "owner",
-    "pair_code_id",
-    "token_code_id"
+    "version_control_contract"
   ],
   "properties": {
+    "creation_fee": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "memory_contract": {
+      "type": "string"
+    },
+    "module_factory_address": {
+      "type": "string"
+    },
+    "next_os_id": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
     "owner": {
       "type": "string"
     },
-    "pair_code_id": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
-    },
-    "token_code_id": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
+    "version_control_contract": {
+      "type": "string"
     }
   }
 }

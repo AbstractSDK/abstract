@@ -1,27 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "InstantiateMsg",
-  "type": "object",
-  "required": [
-    "module_factory_address",
-    "os_id",
-    "root_user",
-    "version_control_address"
-  ],
-  "properties": {
-    "module_factory_address": {
-      "type": "string"
-    },
-    "os_id": {
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0.0
-    },
-    "root_user": {
-      "type": "string"
-    },
-    "version_control_address": {
-      "type": "string"
-    }
-  }
+  "type": "object"
 }

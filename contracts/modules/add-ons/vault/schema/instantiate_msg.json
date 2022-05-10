@@ -6,17 +6,21 @@
     "base",
     "deposit_asset",
     "fee",
+    "provider_addr",
     "token_code_id"
   ],
   "properties": {
     "base": {
-      "$ref": "#/definitions/BaseInstantiateMsg"
+      "$ref": "#/definitions/DappInstantiateMsg"
     },
     "deposit_asset": {
       "type": "string"
     },
     "fee": {
       "$ref": "#/definitions/Decimal"
+    },
+    "provider_addr": {
+      "type": "string"
     },
     "token_code_id": {
       "type": "integer",
@@ -37,21 +41,14 @@
     }
   },
   "definitions": {
-    "BaseInstantiateMsg": {
+    "DappInstantiateMsg": {
       "type": "object",
       "required": [
-        "memory_addr",
-        "trader",
-        "proxy_address"
+        "memory_address"
       ],
       "properties": {
-        "memory_addr": {
-          "type": "string"
-        },
-        "trader": {
-          "type": "string"
-        },
-        "proxy_address": {
+        "memory_address": {
+          "description": "Used by Module Factory to instantiate dApp",
           "type": "string"
         }
       }

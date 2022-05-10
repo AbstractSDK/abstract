@@ -5,18 +5,21 @@
   "type": "object",
   "required": [
     "memory",
-    "trader",
-    "proxy_address"
+    "proxy_address",
+    "traders"
   ],
   "properties": {
     "memory": {
       "$ref": "#/definitions/Memory"
     },
-    "trader": {
-      "$ref": "#/definitions/Addr"
-    },
     "proxy_address": {
       "$ref": "#/definitions/Addr"
+    },
+    "traders": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Addr"
+      }
     }
   },
   "definitions": {

@@ -3,16 +3,16 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "memory_contract",
-    "version_control_contract"
+    "memory_address",
+    "version_control_address"
   ],
   "properties": {
-    "memory_contract": {
-      "description": "Memory contract",
+    "memory_address": {
+      "description": "Memory address",
       "type": "string"
     },
-    "version_control_contract": {
-      "description": "Version control contract used to get code-ids and register OS",
+    "version_control_address": {
+      "description": "Version control address used to get code-ids and register OS",
       "type": "string"
     }
   }

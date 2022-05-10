@@ -3,45 +3,19 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Returns the proxy Config",
+      "description": "Queries enabled modules of some OS",
       "type": "object",
       "required": [
-        "config"
+        "query_enabled_modules"
       ],
       "properties": {
-        "config": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the total value of all held assets",
-      "type": "object",
-      "required": [
-        "total_value"
-      ],
-      "properties": {
-        "total_value": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the value of one specific asset",
-      "type": "object",
-      "required": [
-        "holding_value"
-      ],
-      "properties": {
-        "holding_value": {
+        "query_enabled_modules": {
           "type": "object",
           "required": [
-            "identifier"
+            "os_address"
           ],
           "properties": {
-            "identifier": {
+            "os_address": {
               "type": "string"
             }
           }
@@ -50,20 +24,22 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the amount of specified tokens this contract holds",
+      "description": "Queries address of OS manager module",
       "type": "object",
       "required": [
-        "holding_amount"
+        "query_os_address"
       ],
       "properties": {
-        "holding_amount": {
+        "query_os_address": {
           "type": "object",
           "required": [
-            "identifier"
+            "os_id"
           ],
           "properties": {
-            "identifier": {
-              "type": "string"
+            "os_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
             }
           }
         }
@@ -71,25 +47,44 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the VAULT_ASSETS value for the specified key",
+      "description": "Queries contract code_id",
       "type": "object",
       "required": [
-        "vault_asset_config"
+        "query_code_id"
       ],
       "properties": {
-        "vault_asset_config": {
+        "query_code_id": {
           "type": "object",
           "required": [
-            "identifier"
+            "module"
           ],
           "properties": {
-            "identifier": {
-              "type": "string"
+            "module": {
+              "$ref": "#/definitions/ModuleInfo"
             }
           }
         }
       },
       "additionalProperties": false
     }
-  ]
+  ],
+  "definitions": {
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
 }
