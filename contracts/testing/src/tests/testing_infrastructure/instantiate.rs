@@ -17,7 +17,10 @@ use super::common_integration::NativeContracts;
 /// Creates the basic contract instances needed to test the os.
 ///
 
-pub fn init_native_contracts(app: &mut TerraApp, code_ids: &HashMap<&str, u64>) -> NativeContracts {
+pub fn init_native_contracts(
+    app: &mut TerraApp,
+    code_ids: &HashMap<String, u64>,
+) -> NativeContracts {
     let owner = Addr::unchecked(TEST_CREATOR);
     // Instantiate Token Contract
     let msg = cw20_base::msg::InstantiateMsg {
@@ -130,30 +133,16 @@ pub fn init_native_contracts(app: &mut TerraApp, code_ids: &HashMap<&str, u64>) 
     }
 }
 
-/// Mint Whale tokens
-pub fn mint_tokens(app: &mut App, owner: Addr, token_instance: Addr, amount: Uint128, to: String) {
-    let msg = cw20::Cw20ExecuteMsg::Mint {
-        recipient: to.clone(),
-        amount,
-    };
-    let res = app
-        .execute_contract(owner.clone(), token_instance.clone(), &msg, &[])
-        .unwrap();
-    assert_eq!(res.events[1].attributes[1], attr("action", "mint"));
-    assert_eq!(res.events[1].attributes[2], attr("to", to));
-    assert_eq!(res.events[1].attributes[3], attr("amount", amount));
-}
-
 fn add_contracts_to_version_control_and_set_factory(
     app: &mut TerraApp,
     owner: &Addr,
-    code_ids: &HashMap<&str, u64>,
+    code_ids: &HashMap<String, u64>,
     version_control: &Addr,
     os_factory: &Addr,
 ) {
     for contract in code_ids {
         let msg = VCMsg::ExecuteMsg::AddCodeId {
-            module: contract.0.to_string(),
+            module: contract.0.clone(),
             version: DEFAULT_VERSION.to_string(),
             code_id: contract.1.clone(),
         };

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use cosmwasm_std::Addr;
 
 use cosmwasm_std::to_binary;
+use cosmwasm_std::Coin;
 use cosmwasm_std::Decimal;
 use cosmwasm_std::Uint128;
 use cosmwasm_std::Uint64;
@@ -30,12 +31,18 @@ use super::common_integration::NativeContracts;
 use super::upload::upload_base_contracts;
 use super::verify::os_store_as_expected;
 
-fn init_os(
+pub fn init_os(
     app: &mut TerraApp,
     sender: &Addr,
     native_contracts: &NativeContracts,
     os_store: &mut HashMap<u32, Core>,
 ) -> AnyResult<()> {
+    let funds = if os_store.is_empty() {
+        vec![]
+    } else {
+        vec![Coin::new(100, "uusd")]
+    };
+
     let _resp = app.execute_contract(
         sender.clone(),
         native_contracts.os_factory.clone(),
@@ -44,7 +51,7 @@ fn init_os(
                 monarch: sender.to_string(),
             },
         },
-        &[],
+        &funds,
     )?;
 
     let resp: os_factory::msg::ConfigResponse = app.wrap().query_wasm_smart(
@@ -64,22 +71,9 @@ fn init_os(
     Ok(())
 }
 
-#[test]
-fn proper_initialization() {
-    let mut app = mock_app();
-    let sender = Addr::unchecked(TEST_CREATOR);
-    let (_code_ids, native_contracts) = upload_base_contracts(&mut app);
-    let mut os_store: HashMap<u32, Core> = HashMap::new();
-
-    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first os");
-
-    init_os(&mut app, &sender, &native_contracts, &mut os_store)
-        .expect_err("first OS needs to have subscriptions");
-
-    init_primary_os(&mut app, &sender, &native_contracts, &mut os_store).unwrap();
-}
-
-fn init_primary_os(
+/// Instantiate the first OS which has the subscriber module.
+/// Update the factory using this new address
+pub fn init_primary_os(
     app: &mut TerraApp,
     sender: &Addr,
     native_contracts: &NativeContracts,
@@ -95,7 +89,7 @@ fn init_primary_os(
         },
         contribution: pandora_os::modules::add_ons::subscription::msg::ContributionInstantiateMsg {
             protocol_income_share: Decimal::percent(10),
-            emission_user_share: Decimal::percent(50),
+            emission_user_share: Decimal::percent(25),
             max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
             project_token: native_contracts.token.to_string(),
             emissions_amp_factor: Uint128::new(680000000),
@@ -121,8 +115,40 @@ fn init_primary_os(
         init_msg: Some(init_msg),
     };
 
-    app.execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
+    let resp = app
+        .execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
         .unwrap();
 
+    let msg = pandora_os::native::os_factory::msg::ExecuteMsg::UpdateConfig {
+        admin: None,
+        memory_contract: None,
+        version_control_contract: None,
+        module_factory_address: None,
+        subscription_address: Some(resp.events[5].attributes[1].value.clone()),
+    };
+
+    app.execute_contract(
+        sender.clone(),
+        native_contracts.os_factory.clone(),
+        &msg,
+        &[],
+    )
+    .unwrap();
+
     Ok(())
+}
+
+#[test]
+fn proper_initialization() {
+    let mut app = mock_app();
+    let sender = Addr::unchecked(TEST_CREATOR);
+    let (_code_ids, native_contracts) = upload_base_contracts(&mut app);
+    let mut os_store: HashMap<u32, Core> = HashMap::new();
+
+    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first os");
+
+    init_os(&mut app, &sender, &native_contracts, &mut os_store)
+        .expect_err("first OS needs to have subscriptions");
+
+    init_primary_os(&mut app, &sender, &native_contracts, &mut os_store).unwrap();
 }

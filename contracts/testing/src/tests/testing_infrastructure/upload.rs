@@ -19,8 +19,8 @@ use super::instantiate::init_native_contracts;
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
-pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeContracts) {
-    let mut code_ids: HashMap<&str, u64> = HashMap::new();
+pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<String, u64>, NativeContracts) {
+    let mut code_ids: HashMap<String, u64> = HashMap::new();
 
     // Instantiate Token Contract
     let cw20_token_contract = Box::new(ContractWrapper::new_with_empty(
@@ -29,7 +29,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
         cw20_base::contract::query,
     ));
     let cw20_token_code_id = app.store_code(cw20_token_contract);
-    code_ids.insert("cw20", cw20_token_code_id);
+    code_ids.insert("cw20".into(), cw20_token_code_id);
 
     // Upload Treasury Contract
     let proxy_contract = Box::new(
@@ -41,7 +41,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
         .with_migrate_empty(proxy::contract::migrate),
     );
     let proxy_code_id = app.store_code(proxy_contract);
-    code_ids.insert(PROXY, proxy_code_id);
+    code_ids.insert(PROXY.into(), proxy_code_id);
 
     // Upload Memory Contract
     let memory_contract = Box::new(ContractWrapper::new_with_empty(
@@ -51,7 +51,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
     ));
 
     let memory_code_id = app.store_code(memory_contract);
-    code_ids.insert(MEMORY, memory_code_id);
+    code_ids.insert(MEMORY.into(), memory_code_id);
 
     // Upload vc Contract
     let version_control_contract = Box::new(
@@ -64,7 +64,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
     );
 
     let version_control_code_id = app.store_code(version_control_contract);
-    code_ids.insert(VERSION_CONTROL, version_control_code_id);
+    code_ids.insert(VERSION_CONTROL.into(), version_control_code_id);
 
     // Upload os_factory Contract
     let os_factory_contract = Box::new(
@@ -77,7 +77,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
     );
 
     let os_factory_code_id = app.store_code(os_factory_contract);
-    code_ids.insert(OS_FACTORY, os_factory_code_id);
+    code_ids.insert(OS_FACTORY.into(), os_factory_code_id);
 
     // Upload module_factory Contract
     let module_factory_contract = Box::new(
@@ -90,7 +90,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
     );
 
     let module_factory_code_id = app.store_code(module_factory_contract);
-    code_ids.insert(MODULE_FACTORY, module_factory_code_id);
+    code_ids.insert(MODULE_FACTORY.into(), module_factory_code_id);
 
     // Upload manager Contract
     let manager_contract = Box::new(
@@ -103,7 +103,7 @@ pub fn upload_base_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeC
     );
 
     let manager_code_id = app.store_code(manager_contract);
-    code_ids.insert(MANAGER, manager_code_id);
+    code_ids.insert(MANAGER.into(), manager_code_id);
 
     let native_contracts = init_native_contracts(app, &code_ids);
     (code_ids, native_contracts)
