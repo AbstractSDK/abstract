@@ -212,6 +212,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
     }
 
     /// Will apply function on each element (key, value) of the map. Errors on function f() are neglected.
+    /// Will not lock the set as no accumulator is used so map state changes are allowed.
     pub fn page_without_accumulator<C, FuncResult>(
         &self,
         deps: DepsMut,
@@ -225,10 +226,6 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
     {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_MSG_LIMIT) as usize;
         let mut status = self.status.load(deps.storage)?;
-        if !status.is_locked {
-            status.is_locked = true;
-            status.last_processed_item = None;
-        }
 
         let start = status.last_processed_item.clone().map(Bound::exclusive);
         let result: Vec<(Vec<u8>, T)> = self
@@ -243,7 +240,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             status.last_processed_item = Some(last_key);
         } else {
             // Everything processed, unlock map
-            status.is_locked = false;
+            status.last_processed_item = None;
         };
 
         let function_results = result
