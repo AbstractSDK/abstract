@@ -444,11 +444,17 @@ mod tests {
             .page_without_accumulator(deps.as_mut(), None, &String::new(), subtract_balances)
             .unwrap();
 
-        assert!(USERS.status.load(&deps.storage).unwrap().is_locked);
+        assert!(!USERS.status.load(&deps.storage).unwrap().is_locked);
         // Keep track of the output
         result_even_numbers.append(&mut maybe_even_numbers);
 
-        while USERS.status.load(&deps.storage).unwrap().is_locked {
+        while USERS
+            .status
+            .load(&deps.storage)
+            .unwrap()
+            .last_processed_item
+            .is_some()
+        {
             let mut maybe_even_numbers = USERS
                 .page_without_accumulator(deps.as_mut(), None, &String::new(), subtract_balances)
                 .unwrap();

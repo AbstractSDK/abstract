@@ -9,23 +9,50 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/BaseQueryMsg"
+          "$ref": "#/definitions/DappQueryMsg"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "BaseQueryMsg": {
+    "DappQueryMsg": {
+      "description": "Rename to DappQueryMsg",
       "oneOf": [
         {
-          "description": "Returns the state of the DApp",
+          "description": "Returns the base configuration for the DApp",
           "type": "object",
           "required": [
             "config"
           ],
           "properties": {
             "config": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Return type: TradersResponse. TODO: enable pagination of some sort",
+          "type": "object",
+          "required": [
+            "traders"
+          ],
+          "properties": {
+            "traders": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the admin",
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
               "type": "object"
             }
           },

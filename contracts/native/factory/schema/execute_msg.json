@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "anyOf": [
+  "oneOf": [
     {
-      "description": "UpdateConfig update relevant code IDs",
+      "description": "Update config",
       "type": "object",
       "required": [
         "update_config"
@@ -12,27 +12,37 @@
         "update_config": {
           "type": "object",
           "properties": {
-            "owner": {
+            "admin": {
               "type": [
                 "string",
                 "null"
               ]
             },
-            "pair_code_id": {
+            "creation_fee": {
               "type": [
                 "integer",
                 "null"
               ],
-              "format": "uint64",
+              "format": "uint32",
               "minimum": 0.0
             },
-            "token_code_id": {
+            "memory_contract": {
               "type": [
-                "integer",
+                "string",
                 "null"
-              ],
-              "format": "uint64",
-              "minimum": 0.0
+              ]
+            },
+            "module_factory_address": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "version_control_contract": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }
@@ -40,26 +50,25 @@
       "additionalProperties": false
     },
     {
-      "description": "CreatePair instantiates pair contract",
+      "description": "Creates the core contracts for the OS",
       "type": "object",
       "required": [
-        "create_pair"
+        "create_os"
       ],
       "properties": {
-        "create_pair": {
+        "create_os": {
           "type": "object",
           "required": [
-            "asset_infos"
+            "governance"
           ],
           "properties": {
-            "asset_infos": {
-              "description": "Asset infos",
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/AssetInfo"
-              },
-              "maxItems": 2,
-              "minItems": 2
+            "governance": {
+              "description": "Governance details TODO: add support for other types of gov.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/GovernanceDetails"
+                }
+              ]
             }
           }
         }
@@ -68,22 +77,21 @@
     }
   ],
   "definitions": {
-    "AssetInfo": {
-      "description": "AssetInfo contract_addr is usually passed from the cw20 hook so we can trust the contract_addr is properly validated.",
-      "anyOf": [
+    "GovernanceDetails": {
+      "oneOf": [
         {
           "type": "object",
           "required": [
-            "token"
+            "monarchy"
           ],
           "properties": {
-            "token": {
+            "monarchy": {
               "type": "object",
               "required": [
-                "contract_addr"
+                "monarch"
               ],
               "properties": {
-                "contract_addr": {
+                "monarch": {
                   "type": "string"
                 }
               }
@@ -94,16 +102,51 @@
         {
           "type": "object",
           "required": [
-            "native_token"
+            "multi_signature"
           ],
           "properties": {
-            "native_token": {
+            "multi_signature": {
               "type": "object",
               "required": [
-                "denom"
+                "members",
+                "threshold_votes",
+                "total_members"
               ],
               "properties": {
-                "denom": {
+                "members": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "threshold_votes": {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0.0
+                },
+                "total_members": {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0.0
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "token_weighted"
+          ],
+          "properties": {
+            "token_weighted": {
+              "type": "object",
+              "required": [
+                "token_addr"
+              ],
+              "properties": {
+                "token_addr": {
                   "type": "string"
                 }
               }

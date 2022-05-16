@@ -3,18 +3,18 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "memory_contract",
+    "memory_address",
     "owner",
-    "version_control_contract"
+    "version_control_address"
   ],
   "properties": {
-    "memory_contract": {
+    "memory_address": {
       "type": "string"
     },
     "owner": {
       "type": "string"
     },
-    "version_control_contract": {
+    "version_control_address": {
       "type": "string"
     }
   }

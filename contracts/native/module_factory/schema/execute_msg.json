@@ -18,13 +18,13 @@
                 "null"
               ]
             },
-            "memory_contract": {
+            "memory_address": {
               "type": [
                 "string",
                 "null"
               ]
             },
-            "version_control_contract": {
+            "version_control_address": {
               "type": [
                 "string",
                 "null"
@@ -172,8 +172,8 @@
     "ModuleKind": {
       "type": "string",
       "enum": [
-        "internal",
-        "external",
+        "add_on",
+        "a_p_i",
         "service",
         "perk"
       ]

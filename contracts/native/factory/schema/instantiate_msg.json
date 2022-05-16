@@ -3,20 +3,27 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "pair_code_id",
-    "token_code_id"
+    "creation_fee",
+    "memory_address",
+    "module_factory_address",
+    "version_control_address"
   ],
   "properties": {
-    "pair_code_id": {
-      "description": "Pair contract code ID, which is used to",
+    "creation_fee": {
       "type": "integer",
-      "format": "uint64",
+      "format": "uint32",
       "minimum": 0.0
     },
-    "token_code_id": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
+    "memory_address": {
+      "description": "Memory contract",
+      "type": "string"
+    },
+    "module_factory_address": {
+      "type": "string"
+    },
+    "version_control_address": {
+      "description": "Version control contract used to get code-ids and register OS",
+      "type": "string"
     }
   }
 }
