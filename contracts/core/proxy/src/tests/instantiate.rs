@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{Addr, DepsMut};
+use cosmwasm_std::Addr;
 use cosmwasm_std::{Api, Uint128};
 
 use crate::contract::{execute, instantiate};
@@ -11,18 +11,8 @@ use pandora_os::core::proxy::state::*;
 
 use crate::tests::common::{DAPP, TEST_CREATOR};
 
-pub fn instantiate_msg() -> InstantiateMsg {
-    InstantiateMsg {}
-}
-
-/**
- * Mocks instantiation.
- */
-pub fn _mock_instantiate(deps: DepsMut) {
-    let msg = InstantiateMsg {};
-
-    let info = mock_info(TEST_CREATOR, &[]);
-    let _res = instantiate(deps, mock_env(), info, msg).expect("Contract failed init");
+pub fn instantiate_msg(os_id: u32) -> InstantiateMsg {
+    InstantiateMsg { os_id }
 }
 
 /**
@@ -34,7 +24,7 @@ pub fn _mock_instantiate(deps: DepsMut) {
 fn successful_initialization() {
     let mut deps = mock_dependencies(&[]);
 
-    let msg = instantiate_msg();
+    let msg = instantiate_msg(0);
     let info = mock_info(TEST_CREATOR, &[]);
     let res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
     // Response should have 0 msgs
@@ -65,7 +55,7 @@ fn successful_initialization() {
 fn successful_asset_update() {
     let mut deps = mock_dependencies(&[]);
 
-    let msg = instantiate_msg();
+    let msg = instantiate_msg(0);
     let info = mock_info(TEST_CREATOR, &[]);
     let res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
     // Response should have 0 msgs

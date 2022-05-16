@@ -4,6 +4,7 @@ use cosmwasm_std::{
     to_binary, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order,
     Response, StdResult, Uint128,
 };
+use pandora_os::core::common::OS_ID;
 
 use crate::error::TreasuryError;
 use cw2::{get_contract_version, set_contract_version};
@@ -29,10 +30,11 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> TreasuryResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { dapps: vec![] })?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
@@ -47,7 +49,18 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::SetAdmin { admin } => {
             let admin_addr = deps.api.addr_validate(&admin)?;
             let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+            let mut state = STATE.load(deps.storage)?;
+            let canonical_addr = deps.api.addr_canonicalize(previous_admin.as_str())?;
+            // Rm old admin
+            state.dapps.retain(|addr| *addr != canonical_addr);
+            // Add new admin
+            state
+                .dapps
+                .push(deps.api.addr_canonicalize(admin_addr.as_str())?);
+
+            STATE.save(deps.storage, &state)?;
             ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
+
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)
                 .add_attribute("admin", admin))

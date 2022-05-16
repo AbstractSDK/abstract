@@ -12,4 +12,13 @@ pub enum OsFactoryError {
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
+
+    #[error("Bad subscription module configuration. Factory does not support CW20 payments.")]
+    UnsupportedAsset(),
+
+    #[error("Your payment does not match the required payment {0}")]
+    WrongAmount(String),
+
+    #[error("It's required to use cw20 send message to create an os with cw20 tokens")]
+    NotUsingCW20Hook {},
 }

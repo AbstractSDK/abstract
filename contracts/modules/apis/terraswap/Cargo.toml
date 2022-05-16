@@ -37,7 +37,7 @@ pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
 pandora-dapp-base = { version = "0.1.0", path = "../../../pandora_dapp_base", features = ["library"] }
 # dapp-template = { version = "0.1.0", path = "../../template" }
 protobuf = { version = "2", features = ["with-bytes"] }
-cw-asset = { version = "1.0.2", feature = "legacy" }
+cw-asset = {version = "1.0.2"}
 astroport = "1.0.1"
 
 [dev-dependencies]

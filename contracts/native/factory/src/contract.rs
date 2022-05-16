@@ -1,7 +1,8 @@
-use cosmwasm_std::entry_point;
+use cosmwasm_std::{entry_point, Addr};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
+use cw_asset::Asset;
 
 use crate::error::OsFactoryError;
 use cw2::set_contract_version;
@@ -27,7 +28,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_address)?,
-        creation_fee: msg.creation_fee,
+        subscription_address: None,
         next_os_id: 0u32,
     };
 
@@ -41,11 +42,12 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> OsFactoryResult {
     match msg {
+        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
             admin,
             memory_contract,
             version_control_contract,
-            creation_fee,
+            subscription_address,
             module_factory_address,
         } => commands::execute_update_config(
             deps,
@@ -55,9 +57,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             memory_contract,
             version_control_contract,
             module_factory_address,
-            creation_fee,
+            subscription_address,
         ),
-        ExecuteMsg::CreateOs { governance } => commands::execute_create_os(deps, env, governance),
+        ExecuteMsg::CreateOs { governance } => {
+            let maybe_recieved_coin = info.funds.last().map(Asset::from);
+            commands::execute_create_os(deps, env, governance, maybe_recieved_coin)
+        }
     }
 }
 
@@ -91,7 +96,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         owner: admin.into(),
         version_control_contract: state.version_control_contract.into(),
         memory_contract: state.memory_contract.into(),
-        creation_fee: state.creation_fee,
+        subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
         next_os_id: state.next_os_id,
     };

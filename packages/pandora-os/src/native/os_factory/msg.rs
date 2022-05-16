@@ -1,4 +1,5 @@
 use crate::governance::gov_type::GovernanceDetails;
+use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use terra_rust_script_derive::CosmWasmContract;
@@ -10,20 +11,19 @@ pub struct InstantiateMsg {
     /// Memory contract
     pub memory_address: String,
     pub module_factory_address: String,
-    // Creation fee in some denom (TBD)
-    pub creation_fee: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    Receive(Cw20ReceiveMsg),
     /// Update config
     UpdateConfig {
         admin: Option<String>,
         memory_contract: Option<String>,
         version_control_contract: Option<String>,
         module_factory_address: Option<String>,
-        creation_fee: Option<u32>,
+        subscription_address: Option<String>,
     },
     /// Creates the core contracts for the OS
     CreateOs {
@@ -46,7 +46,7 @@ pub struct ConfigResponse {
     pub memory_contract: String,
     pub version_control_contract: String,
     pub module_factory_address: String,
-    pub creation_fee: u32,
+    pub subscription_address: Option<String>,
     pub next_os_id: u32,
 }
 

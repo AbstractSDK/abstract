@@ -1,5 +1,5 @@
 [package]
-name = "payroll-dapp"
+name = "subscription"
 version = "0.1.0"
 authors = ["CyberHoward"]
 edition = "2018"
@@ -28,7 +28,6 @@ cw20 = { version = "0.9.1" }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
-terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
 pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
 pandora-dapp-base = { version = "0.1.0", path = "../../../pandora_dapp_base", features = ["library"] }

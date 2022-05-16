@@ -1,2 +1,2 @@
-pub mod payout;
+pub mod subscription;
 pub mod vault;

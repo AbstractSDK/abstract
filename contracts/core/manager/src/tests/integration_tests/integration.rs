@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use cosmwasm_std::Addr;
 
+use pandora_os::native::version_control::state::Core;
 use pandora_os::registery::PROXY;
-use terra_multi_test::App;
+
 use terra_multi_test::TerraApp;
 
 use crate::tests::common::TEST_CREATOR;
@@ -34,7 +35,7 @@ fn init_os(app: &mut TerraApp, sender: Addr, native_contracts: &NativeContracts)
         .unwrap();
 
     // Check OS
-    let resp: String = app
+    let resp: Core = app
         .wrap()
         .query_wasm_smart(
             &native_contracts.version_control,
@@ -42,7 +43,7 @@ fn init_os(app: &mut TerraApp, sender: Addr, native_contracts: &NativeContracts)
         )
         .unwrap();
 
-    let manager_addr = Addr::unchecked(resp);
+    let manager_addr = Addr::unchecked(resp.manager);
     let resp: manager::msg::ModuleQueryResponse = app
         .wrap()
         .query_wasm_smart(

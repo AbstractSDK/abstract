@@ -8,12 +8,11 @@ use cw2::ContractVersion;
 use pandora_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
 use pandora_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
 use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::native::version_control::queries::try_raw_os_manager_query;
+use pandora_os::native::version_control::queries::verify_os_manager;
+
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
-
-use crate::error::ModuleFactoryError;
 
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
@@ -39,17 +38,13 @@ pub fn execute_create_module(
     // Check if caller is manager of registered OS
     let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
-    let maybe_os_manager_addr =
-        try_raw_os_manager_query(deps.as_ref(), &config.version_control_address, os_id);
-    match maybe_os_manager_addr {
-        Ok(addr) => {
-            if !info.sender.eq(&addr) {
-                return Err(ModuleFactoryError::UnknownCaller());
-            }
-            addr
-        }
-        Err(_) => return Err(ModuleFactoryError::UnknownCaller()),
-    };
+    // Verify sender is active OS manager
+    verify_os_manager(
+        &deps.querier,
+        &info.sender,
+        &config.version_control_address,
+        os_id,
+    )?;
 
     // Query version_control for code_id Module
     let module_code_id_response: CodeIdResponse =
@@ -67,9 +62,9 @@ pub fn execute_create_module(
 
     // Todo: check if this can be generalised for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    let fixed_binairy = MODULE_INIT_BINARIES.may_load(deps.storage, (contract, version))?;
+    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, (contract, version))?;
     let init_msg = ModuleInitMsg {
-        fixed_init: fixed_binairy,
+        fixed_init: fixed_binary,
         root_init: root_init_msg,
     }
     .format()?;

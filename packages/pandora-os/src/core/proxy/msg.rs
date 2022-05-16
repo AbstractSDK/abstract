@@ -7,7 +7,9 @@ use terra_rust_script_derive::CosmWasmContract;
 use crate::core::proxy::proxy_assets::ProxyAsset;
 use cw_asset::AssetInfo;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InstantiateMsg {}
+pub struct InstantiateMsg {
+    pub os_id: u32,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]

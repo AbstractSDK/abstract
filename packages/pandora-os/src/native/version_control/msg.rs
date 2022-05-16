@@ -29,11 +29,8 @@ pub enum ExecuteMsg {
     /// Only Factory can call this
     AddOs {
         os_id: u32,
-        os_manager_address: String,
-    },
-    /// Remove an OS from the deployed OSs
-    RemoveOs {
-        os_id: u32,
+        manager_address: String,
+        proxy_address: String,
     },
     SetAdmin {
         new_admin: String,
@@ -47,17 +44,30 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries enabled modules of some OS
-    QueryEnabledModules { os_address: String },
+    QueryEnabledModules {
+        os_address: String,
+    },
     /// Queries address of OS manager module
-    QueryOsAddress { os_id: u32 },
+    QueryOsAddress {
+        os_id: u32,
+    },
     /// Queries contract code_id
-    QueryCodeId { module: ModuleInfo },
+    QueryCodeId {
+        module: ModuleInfo,
+    },
+    Config {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct CodeIdResponse {
     pub code_id: Uint64,
     pub info: ContractVersion,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigResponse {
+    pub admin: String,
+    pub factory: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

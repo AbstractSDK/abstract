@@ -25,8 +25,17 @@ pub enum ManagerError {
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
 
+    #[error("only the subscription contract can change the OS status")]
+    CallerNotSubscriptionContract {},
+
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
+
+    #[error("you need a subscription to use this contract")]
+    NotSubscribed {},
+
+    #[error("A valid subscriber addr is required")]
+    NoSubscriptionAddrProvided {},
 
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
