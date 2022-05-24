@@ -1,13 +1,13 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
 
 use crate::dapp_base::common::TRADER_CONTRACT;
-use pandora_os::modules::dapp_base::error::BaseDAppError;
+use abstract_os::modules::dapp_base::error::BaseDAppError;
 
 use crate::contract::execute;
 use crate::error::TerraswapError;
 use crate::tests::base_mocks::mocks::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
-use pandora_os::modules::apis::terraswap::ExecuteMsg;
+use abstract_os::modules::apis::terraswap::ExecuteMsg;
 
 /**
  * ExecuteMsg::ProvideLiquidity

@@ -5,7 +5,7 @@ use crate::contract::execute;
 use crate::error::VaultError;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::instantiate::mock_instantiate;
-use pandora_os::modules::add_ons::vault::ExecuteMsg;
+use abstract_os::modules::add_ons::vault::ExecuteMsg;
 
 #[test]
 fn unsuccessful_set_fee_unauthorized() {
@@ -14,7 +14,7 @@ fn unsuccessful_set_fee_unauthorized() {
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
-        fee: pandora_os::util::fee::Fee {
+        fee: abstract_os::util::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };
@@ -42,7 +42,7 @@ fn successful_update_fee() {
     mock_instantiate(deps.as_mut(), env.clone());
 
     let msg = ExecuteMsg::SetFee {
-        fee: pandora_os::util::fee::Fee {
+        fee: abstract_os::util::fee::Fee {
             share: Decimal::percent(10u64),
         },
     };

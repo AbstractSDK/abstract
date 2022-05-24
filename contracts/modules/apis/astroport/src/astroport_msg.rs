@@ -2,9 +2,9 @@ use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, Empty, StdRe
 use cw20::Cw20ExecuteMsg;
 use terraswap::asset::{Asset, AssetInfo};
 
-use pandora_os::astroport_helper::ExecuteMsg as PairExecuteMsg;
-use pandora_os::tax::compute_tax;
-use pandora_os::util::tax::compute_tax;
+use abstract_os::astroport_helper::ExecuteMsg as PairExecuteMsg;
+use abstract_os::tax::compute_tax;
+use abstract_os::util::tax::compute_tax;
 
 /// Constructs the deposit msg
 pub fn deposit_lp_msg(

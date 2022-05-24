@@ -1,14 +1,14 @@
 use cosmwasm_std::{
-    to_binary, Binary, ContractResult, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest,
-    ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg, WasmQuery,
+    to_binary, Addr, Binary, ContractResult, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg,
+    WasmQuery,
 };
 
 use cw2::ContractVersion;
 
-use pandora_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
-use pandora_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
-use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::native::version_control::queries::verify_os_manager;
+use abstract_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
+use abstract_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
+use abstract_os::native::version_control::queries::verify_os_manager;
 
 use protobuf::Message;
 
@@ -17,9 +17,7 @@ use crate::contract::ModuleFactoryResult;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 
-use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
-
-use pandora_os::native::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
+use abstract_os::native::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
 
 pub const CREATE_INTERNAL_DAPP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_EXTERNAL_DAPP_RESPONSE_ID: u64 = 2u64;
@@ -39,7 +37,7 @@ pub fn execute_create_module(
     let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
     // Verify sender is active OS manager
-    verify_os_manager(
+    let core = verify_os_manager(
         &deps.querier,
         &info.sender,
         &config.version_control_address,
@@ -73,7 +71,7 @@ pub fn execute_create_module(
     CONTEXT.save(
         deps.storage,
         &Context {
-            manager: Some(info.sender),
+            core: Some(core.clone()),
             module: Some(module.clone()),
         },
     )?;
@@ -83,7 +81,7 @@ pub fn execute_create_module(
         Module {
             kind: ModuleKind::API,
             ..
-        } => create_external_dapp(
+        } => create_api(
             deps,
             env,
             module_code_id_response.code_id.u64(),
@@ -93,12 +91,13 @@ pub fn execute_create_module(
         Module {
             kind: ModuleKind::AddOn,
             ..
-        } => create_internal_dapp(
+        } => create_add_on(
             deps,
             env,
             module_code_id_response.code_id.u64(),
             init_msg,
             module,
+            core.manager,
         ),
         Module {
             kind: ModuleKind::Service,
@@ -123,12 +122,13 @@ pub fn execute_create_module(
     }
 }
 
-pub fn create_internal_dapp(
+pub fn create_add_on(
     _deps: DepsMut,
-    env: Env,
+    _env: Env,
     code_id: u64,
     init_msg: Binary,
     module: Module,
+    manager: Addr,
 ) -> ModuleFactoryResult {
     let response = Response::new();
 
@@ -145,7 +145,7 @@ pub fn create_internal_dapp(
                 code_id,
                 funds: vec![],
                 // This contract should be able to migrate the contract
-                admin: Some(env.contract.address.to_string()),
+                admin: Some(manager.to_string()),
                 label: format!("Module: --{}--", module),
                 msg: init_msg,
             }
@@ -155,7 +155,7 @@ pub fn create_internal_dapp(
 }
 
 // Todo: review if we want external dapps to remain per-os instantiated
-pub fn create_external_dapp(
+pub fn create_api(
     _deps: DepsMut,
     env: Env,
     code_id: u64,
@@ -248,7 +248,7 @@ pub fn create_service(
         }))
 }
 
-pub fn handle_internal_dapp_init_result(
+pub fn handle_add_on_init_result(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> ModuleFactoryResult {
@@ -260,18 +260,8 @@ pub fn handle_internal_dapp_init_result(
         })?;
     let dapp_address = res.get_contract_address();
 
-    // Set Manager as Admin
-    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: dapp_address.to_string(),
-        funds: vec![],
-        msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::SetAdmin {
-            // Panic ok here
-            admin: context.manager.clone().unwrap().into_string(),
-        }))?,
-    }));
-
     let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: context.manager.unwrap().into_string(),
+        contract_addr: context.core.unwrap().manager.into_string(),
         funds: vec![],
         msg: to_binary(&ManagerMsg::RegisterModule {
             module_addr: dapp_address.to_string(),
@@ -282,13 +272,13 @@ pub fn handle_internal_dapp_init_result(
     clear_context(deps)?;
 
     Ok(
-        response
+        Response::new()
             .add_attribute("new module:", &dapp_address.to_string())
             .add_message(register_msg), // Instantiate Treasury contract
     )
 }
 
-pub fn handle_external_dapp_init_result(
+pub fn handle_api_init_result(
     deps: DepsMut,
     result: ContractResult<SubMsgExecutionResponse>,
 ) -> ModuleFactoryResult {
@@ -300,17 +290,8 @@ pub fn handle_external_dapp_init_result(
         })?;
     let dapp_address = res.get_contract_address();
 
-    // Set Manager as Admin
-    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: dapp_address.to_string(),
-        funds: vec![],
-        msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::SetAdmin {
-            admin: context.manager.clone().unwrap().into_string(),
-        }))?,
-    }));
-
     let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: context.manager.unwrap().into_string(),
+        contract_addr: context.core.unwrap().manager.into_string(),
         funds: vec![],
         msg: to_binary(&ManagerMsg::RegisterModule {
             module_addr: dapp_address.to_string(),
@@ -320,7 +301,7 @@ pub fn handle_external_dapp_init_result(
 
     clear_context(deps)?;
 
-    Ok(response
+    Ok(Response::new()
         .add_attribute("new module:", &dapp_address.to_string())
         .add_message(register_msg))
 }
@@ -385,7 +366,7 @@ fn clear_context(deps: DepsMut) -> Result<(), StdError> {
     CONTEXT.save(
         deps.storage,
         &Context {
-            manager: None,
+            core: None,
             module: None,
         },
     )

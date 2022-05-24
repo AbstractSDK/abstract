@@ -4,10 +4,10 @@ use cosmwasm_std::{Api, Uint128};
 
 use crate::contract::{execute, instantiate};
 
+use abstract_os::core::proxy::msg::*;
+use abstract_os::core::proxy::proxy_assets::*;
+use abstract_os::core::proxy::state::*;
 use cw_asset::{Asset, AssetInfo};
-use pandora_os::core::proxy::msg::*;
-use pandora_os::core::proxy::proxy_assets::*;
-use pandora_os::core::proxy::state::*;
 
 use crate::tests::common::{DAPP, TEST_CREATOR};
 

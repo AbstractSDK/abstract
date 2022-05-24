@@ -1,10 +1,10 @@
-use anyhow::Result as AnyResult;
-use cosmwasm_std::{Addr, BlockInfo, Coin, Decimal, Uint128, Uint64};
-use pandora_os::modules::add_ons::subscription::state::{
+use abstract_os::modules::add_ons::subscription::state::{
     Compensation, ContributionState, SubscriptionState, MONTH,
 };
-use pandora_os::modules::add_ons::subscription::{msg as msgs, state};
-use pandora_os::{core::modules::ModuleInfo, registery::SUBSCRIPTION};
+use abstract_os::modules::add_ons::subscription::{msg as msgs, state};
+use abstract_os::{core::modules::ModuleInfo, registery::SUBSCRIPTION};
+use anyhow::Result as AnyResult;
+use cosmwasm_std::{Addr, BlockInfo, Coin, Decimal, Uint128, Uint64};
 use terra_multi_test::{ContractWrapper, Executor, TerraApp};
 
 use crate::tests::common::RANDOM_USER;

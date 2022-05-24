@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::Addr;
 
-use pandora_os::native::version_control::state::Core;
+use abstract_os::native::version_control::state::Core;
 use terra_multi_test::{AppBuilder, BankKeeper, TerraApp, TerraMock};
 
 use super::os_creation::{init_os, init_primary_os};

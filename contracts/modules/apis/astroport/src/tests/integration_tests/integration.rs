@@ -8,12 +8,12 @@ use crate::msg::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
+use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::native::memory::msg as MemoryMsg;
 use astroport::pair::PoolResponse;
-use pandora_os::native::memory::msg as MemoryMsg;
-use pandora_os::core::proxy::msg as TreasuryMsg;
 use terra_multi_test::Executor;
 
-use pandora_os::modules::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
+use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;
@@ -80,7 +80,10 @@ fn proper_initialization() {
                     "whale_ust".to_string(),
                     AssetInfoUnchecked::Cw20(base_contracts.whale_ust.to_string()),
                 ),
-                ("ust".to_string(), AssetInfoUnchecked::Native("uusd".to_string())),
+                (
+                    "ust".to_string(),
+                    AssetInfoUnchecked::Native("uusd".to_string()),
+                ),
             ],
             to_remove: vec![],
         },

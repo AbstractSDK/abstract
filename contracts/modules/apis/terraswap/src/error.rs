@@ -1,8 +1,7 @@
+use abstract_api::ApiError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
-
-use pandora_dapp_base::DappError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum TerraswapError {
@@ -13,7 +12,10 @@ pub enum TerraswapError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    DappError(#[from] DappError),
+    ApiError(#[from] ApiError),
+
+    #[error("Proxy does not have enough funds")]
+    Broke {},
 
     #[error("You must provide exactly two assets when adding liquidity")]
     NotTwoAssets {},

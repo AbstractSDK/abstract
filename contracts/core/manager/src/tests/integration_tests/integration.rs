@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use cosmwasm_std::Addr;
 
-use pandora_os::native::version_control::state::Core;
-use pandora_os::registery::PROXY;
+use abstract_os::native::version_control::state::Core;
+use abstract_os::registery::PROXY;
 
 use terra_multi_test::TerraApp;
 
@@ -12,9 +12,9 @@ use crate::tests::integration_tests::common_integration::mock_app;
 
 use crate::tests::integration_tests::upload::upload_contracts;
 
-use pandora_os::core::*;
+use abstract_os::core::*;
 
-use pandora_os::native::*;
+use abstract_os::native::*;
 use terra_multi_test::Executor;
 
 use super::common_integration::{NativeContracts, OsInstance};
@@ -25,8 +25,8 @@ fn init_os(app: &mut TerraApp, sender: Addr, native_contracts: &NativeContracts)
         .execute_contract(
             sender.clone(),
             native_contracts.os_factory.clone(),
-            &pandora_os::native::os_factory::msg::ExecuteMsg::CreateOs {
-                governance: pandora_os::governance::gov_type::GovernanceDetails::Monarchy {
+            &abstract_os::native::os_factory::msg::ExecuteMsg::CreateOs {
+                governance: abstract_os::governance::gov_type::GovernanceDetails::Monarchy {
                     monarch: sender.into_string(),
                 },
             },

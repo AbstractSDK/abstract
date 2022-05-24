@@ -7,8 +7,8 @@ use crate::msg::ExecuteMsg;
 use terra_multi_test::Executor;
 use cw_asset::Asset;
 
-use pandora_os::proxy::msg as TreasuryMsg;
-use pandora_os::proxy::proxy_assets::{ValueRef, ProxyAsset};
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::proxy::proxy_assets::{ValueRef, ProxyAsset};
 
 use super::common_integration::BaseContracts;
 

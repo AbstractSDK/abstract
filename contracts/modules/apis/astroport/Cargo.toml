@@ -44,8 +44,8 @@ cw2 = { version = "0.10" }
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
-pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
-pandora-dapp-base = { version = "0.1.0", path = "../../../pandora_dapp_base", features = ["library"] }
+abstract-os = { version = "0.1.0", path = "../../../../packages/abstract" }
+abstract-api = { version = "0.1.0", path = "../../../../packages/abstract_api", features = ["library"] }
 
 
 [dev-dependencies]

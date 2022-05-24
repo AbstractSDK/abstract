@@ -1,23 +1,21 @@
+use abstract_os::core::manager::queries::query_module_version;
+use abstract_os::core::modules::{Module, ModuleInfo, ModuleKind};
+use abstract_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
+use abstract_os::native::version_control::msg::CodeIdResponse;
+use abstract_os::native::version_control::msg::QueryMsg as VersionQuery;
+use abstract_os::native::version_control::state::MODULE_CODE_IDS;
 use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response,
     StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
-use pandora_os::core::manager::queries::query_module_version;
-use pandora_os::core::modules::{Module, ModuleInfo, ModuleKind};
-use pandora_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
-use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::modules::dapp_base::msg::ExecuteMsg as TemplateExecuteMsg;
-use pandora_os::native::version_control::msg::CodeIdResponse;
-use pandora_os::native::version_control::msg::QueryMsg as VersionQuery;
-use pandora_os::native::version_control::state::MODULE_CODE_IDS;
 use semver::Version;
 
 use crate::contract::ManagerResult;
 use crate::error::ManagerError;
 use crate::state::*;
-use pandora_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
-use pandora_os::registery::{MANAGER, PROXY};
+use abstract_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
+use abstract_os::registery::{MANAGER, PROXY};
 
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -110,33 +108,21 @@ pub fn register_module(
             kind: ModuleKind::API,
             ..
         } => {
-            response = response
-                .add_message(set_proxy_on_dapp(
-                    deps.as_ref(),
-                    proxy_addr.to_string(),
-                    module_address.clone(),
-                )?)
-                .add_message(whitelist_dapp_on_proxy(
-                    deps.as_ref(),
-                    proxy_addr.into_string(),
-                    module_address,
-                )?)
+            response = response.add_message(whitelist_dapp_on_proxy(
+                deps.as_ref(),
+                proxy_addr.into_string(),
+                module_address,
+            )?)
         }
         _dapp @ Module {
             kind: ModuleKind::AddOn,
             ..
         } => {
-            response = response
-                .add_message(set_proxy_on_dapp(
-                    deps.as_ref(),
-                    proxy_addr.to_string(),
-                    module_address.clone(),
-                )?)
-                .add_message(whitelist_dapp_on_proxy(
-                    deps.as_ref(),
-                    proxy_addr.into_string(),
-                    module_address,
-                )?)
+            response = response.add_message(whitelist_dapp_on_proxy(
+                deps.as_ref(),
+                proxy_addr.into_string(),
+                module_address,
+            )?)
         }
         Module {
             kind: ModuleKind::Service,
@@ -304,20 +290,6 @@ fn upgrade_self(
         msg: migrate_msg,
     });
     Ok(Response::new().add_message(migration_msg))
-}
-
-pub fn set_proxy_on_dapp(
-    _deps: Deps,
-    proxy_address: String,
-    dapp_address: String,
-) -> StdResult<CosmosMsg<Empty>> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: dapp_address,
-        msg: to_binary(&TemplateExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
-            proxy_address: Some(proxy_address),
-        }))?,
-        funds: vec![],
-    }))
 }
 
 pub fn whitelist_dapp_on_proxy(

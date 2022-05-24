@@ -1,19 +1,19 @@
+use abstract_os::core::modules::ModuleInfo;
 use cosmwasm_std::Order;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;
 use cosmwasm_std::WasmQuery;
 use cw2::ContractVersion;
-use pandora_os::core::modules::ModuleInfo;
 
 use crate::error::VCError;
+use abstract_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 use cw_storage_plus::U32Key;
-use pandora_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 
-use pandora_os::core::manager::msg::{EnabledModulesResponse, QueryMsg};
-use pandora_os::native::version_control::msg::CodeIdResponse;
+use abstract_os::core::manager::msg::{EnabledModulesResponse, QueryMsg};
+use abstract_os::native::version_control::msg::CodeIdResponse;
 
 pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary> {
     let response: EnabledModulesResponse =

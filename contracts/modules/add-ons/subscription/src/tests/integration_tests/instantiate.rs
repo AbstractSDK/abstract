@@ -7,11 +7,11 @@ use crate::tests::integration_tests::common_integration::{mint_some_whale, store
 use terra_multi_test::Executor;
 use cw_asset::Asset;
 
-use pandora_os::memory::msg as MemoryMsg;
-use pandora_os::proxy::msg as TreasuryMsg;
-use pandora_os::proxy::proxy_assets::{ValueRef, ProxyAsset};
+use abstract_os::memory::msg as MemoryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::proxy::proxy_assets::{ValueRef, ProxyAsset};
 
-use pandora_os::proxy::dapp_base::msg::BaseInstantiateMsg;
+use abstract_os::proxy::dapp_base::msg::BaseInstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

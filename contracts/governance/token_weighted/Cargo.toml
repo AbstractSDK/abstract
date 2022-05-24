@@ -41,7 +41,7 @@ schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 terraswap = { version = "2.4.0" }
 thiserror = { version = "1.0.26" }
-pandora-os = { version = "0.1.0" }
+abstract-os = { version = "0.1.0" }
 terra-cosmwasm = { version = "2.2.0"}
 
 [dev-dependencies]

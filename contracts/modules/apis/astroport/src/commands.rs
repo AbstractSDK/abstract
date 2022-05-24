@@ -6,15 +6,15 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ExecuteMsg;
 
-use pandora_dapp_base::DappError;
-use pandora_os::core::proxy::msg::send_to_proxy;
-use pandora_os::core::proxy::proxy_assets::get_identifier;
-use pandora_os::modules::dapp_base::common::PAIR_POSTFIX;
+use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::core::proxy::proxy_assets::get_identifier;
+use abstract_os::modules::dapp_base::common::PAIR_POSTFIX;
+use pandora_dapp_base::ApiError;
 // TODO: should be astroport
-use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
+use abstract_os::queries::terraswap::{query_asset_balance, query_pool};
 
 use crate::astroport_msg::{asset_into_swap_msg, deposit_lp_msg};
-use crate::contract::{AstroportDapp, AstroportResult};
+use crate::contract::{AstroportApi, AstroportResult};
 use crate::error::AstroportError;
 use crate::utils::has_sufficient_balance;
 
@@ -22,7 +22,7 @@ use crate::utils::has_sufficient_balance;
 pub fn provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
-    dapp: AstroportDapp,
+    dapp: AstroportApi,
     main_asset_id: String,
     pool_id: String,
     amount: Uint128,
@@ -67,7 +67,7 @@ pub fn provide_liquidity(
     let second_asset_balance =
         query_asset_balance(deps, &second_asset.info, proxy_address.clone())?;
     if second_asset_balance < second_asset.amount || first_asset_balance < first_asset.amount {
-        return Err(DappError::Broke {}.into());
+        return Err(ApiError::Broke {}.into());
     }
 
     // Deposit lp msg either returns a bank send msg or an
@@ -83,7 +83,7 @@ pub fn provide_liquidity(
 pub fn detailed_provide_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
-    dapp: AstroportDapp,
+    dapp: AstroportApi,
     assets: Vec<(String, Uint128)>,
     pool_id: String,
     slippage_tolerance: Option<Decimal>,
@@ -115,7 +115,7 @@ pub fn detailed_provide_liquidity(
             let asset_balance = query_asset_balance(deps, &asset_info, proxy_address.clone())?;
             // Check if proxy has enough of this asset
             if asset_balance < asset.1 {
-                return Err(DappError::Broke {}.into());
+                return Err(ApiError::Broke {}.into());
             }
             // Append asset to list
             assets_to_send.push(Asset {
@@ -139,7 +139,7 @@ pub fn detailed_provide_liquidity(
 pub fn withdraw_liquidity(
     deps: Deps,
     msg_info: MessageInfo,
-    dapp: AstroportDapp,
+    dapp: AstroportApi,
     lp_token_id: String,
     amount: Uint128,
 ) -> AstroportResult {
@@ -187,7 +187,7 @@ pub fn astroport_swap(
     deps: Deps,
     _env: Env,
     msg_info: MessageInfo,
-    dapp: AstroportDapp,
+    dapp: AstroportApi,
     offer_id: String,
     pool_id: String,
     amount: Uint128,

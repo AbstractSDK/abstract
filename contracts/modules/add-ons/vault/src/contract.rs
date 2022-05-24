@@ -3,6 +3,7 @@
 
 use std::vec;
 
+use abstract_add_on::{AddOnContract, AddOnResult};
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
@@ -13,14 +14,12 @@ use cw_storage_plus::Map;
 use protobuf::Message;
 use semver::Version;
 
-use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
-use pandora_dapp_base::{DappContract, DappResult};
-use pandora_os::modules::add_ons::vault::{
+use abstract_os::modules::add_ons::vault::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
 };
-use pandora_os::pandora_dapp::CustomMsg;
-use pandora_os::registery::VAULT;
-use pandora_os::util::fee::Fee;
+use abstract_os::registery::VAULT;
+use abstract_os::util::fee::Fee;
+use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
@@ -34,8 +33,7 @@ const DEFAULT_LP_TOKEN_SYMBOL: &str = "uvLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-type VaultExtension = Option<Empty>;
-pub type VaultDapp<'a> = DappContract<'a, VaultExtension, Empty>;
+pub type VaultDapp<'a> = AddOnContract<'a>;
 pub type VaultResult = Result<Response, VaultError>;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -50,8 +48,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> VaultResult {
-    set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
-
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
         provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
@@ -74,7 +70,8 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
         },
     )?;
     FEE.save(deps.storage, &Fee { share: msg.fee })?;
-    VaultDapp::default().instantiate(deps, env.clone(), info, msg.base)?;
+
+    VaultDapp::default().instantiate(deps, env.clone(), info, msg.base, VAULT, CONTRACT_VERSION)?;
 
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token
@@ -106,9 +103,9 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VaultResult {
     let dapp = VaultDapp::default();
     match msg {
-        ExecuteMsg::Base(dapp_msg) => {
-            from_base_dapp_result(dapp.execute(deps, env, info, dapp_msg))
-        }
+        ExecuteMsg::Base(dapp_msg) => dapp
+            .execute(deps, env, info, dapp_msg)
+            .map_err(VaultError::from),
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, dapp, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
@@ -163,13 +160,4 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> StdResult<Response> {
         return Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token));
     }
     Ok(Response::default())
-}
-
-/// Required to convert BaseDAppResult into TerraswapResult
-/// Can't implement the From trait directly
-fn from_base_dapp_result(result: DappResult) -> VaultResult {
-    match result {
-        Err(e) => Err(e.into()),
-        Ok(r) => Ok(r),
-    }
 }

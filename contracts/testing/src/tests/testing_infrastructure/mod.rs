@@ -13,10 +13,10 @@ pub mod env {
     pub use super::os_creation::init_os;
     use super::os_creation::init_primary_os;
     use super::upload::upload_base_contracts;
+    use abstract_os::core::manager::msg as ManagerMsgs;
+    use abstract_os::native::version_control::state::Core;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
-    use pandora_os::core::manager::msg as ManagerMsgs;
-    use pandora_os::native::version_control::state::Core;
     use serde::Serialize;
     use terra_multi_test::{AppResponse, Executor, TerraApp};
     pub struct AbstractEnv {
@@ -79,7 +79,7 @@ pub mod env {
         module_name: &str,
         encapsuled_msg: &T,
     ) -> AnyResult<AppResponse> {
-        let msg = pandora_os::core::manager::msg::ExecuteMsg::ConfigureModule {
+        let msg = abstract_os::core::manager::msg::ExecuteMsg::ConfigureModule {
             module_name: module_name.into(),
             config_msg: to_binary(encapsuled_msg)?,
         };

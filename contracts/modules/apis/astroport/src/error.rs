@@ -2,7 +2,7 @@ use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
-use pandora_dapp_base::DappError;
+use pandora_dapp_base::ApiError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AstroportError {
@@ -13,7 +13,7 @@ pub enum AstroportError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    DappError(#[from] DappError),
+    ApiError(#[from] ApiError),
 
     #[error("You must provide exactly two assets when adding liquidity")]
     NotTwoAssets {},

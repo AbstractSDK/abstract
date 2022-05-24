@@ -1,12 +1,12 @@
+use abstract_os::tokenomics::airdrop::{
+    ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
+    UserInfoResponse,
+};
+use abstract_os::tokenomics::helpers::build_transfer_cw20_token_msg;
 use cosmwasm_std::{
     attr, entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response,
     StdError, StdResult, Uint128,
 };
-use pandora_os::tokenomics::airdrop::{
-    ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
-    UserInfoResponse,
-};
-use pandora_os::tokenomics::helpers::build_transfer_cw20_token_msg;
 
 use crate::state::{Config, State, CONFIG, STATE, USERS};
 use sha3::{Digest, Keccak256};

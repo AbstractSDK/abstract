@@ -1,10 +1,10 @@
+use abstract_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
+use abstract_os::modules::dapp_base::msg::BaseExecuteMsg;
+use abstract_os::modules::dapp_base::state::{BaseState, BASESTATE};
+use abstract_os::native::memory::item::Memory;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, Env};
 use cosmwasm_std::{Api, Decimal};
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
-use pandora_os::modules::dapp_base::msg::BaseExecuteMsg;
-use pandora_os::modules::dapp_base::state::{BaseState, BASESTATE};
-use pandora_os::native::memory::item::Memory;
 
 use crate::contract::{execute, instantiate};
 use crate::dapp_base::common::MEMORY_CONTRACT;

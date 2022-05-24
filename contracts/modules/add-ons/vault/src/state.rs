@@ -1,9 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use abstract_os::util::fee::Fee;
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
-use pandora_os::util::fee::Fee;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 /// State stores LP token address

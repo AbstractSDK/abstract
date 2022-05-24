@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{from_binary, StdResult};
 
-use pandora_os::proxy::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg, BaseStateResponse};
+use abstract_os::proxy::dapp_base::msg::{BaseExecuteMsg, BaseQueryMsg, BaseStateResponse};
 
 use crate::contract::{execute, query};
 use crate::msg::{ExecuteMsg, QueryMsg};

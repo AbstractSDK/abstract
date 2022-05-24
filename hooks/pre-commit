@@ -2,7 +2,7 @@
 
 # set -e
 
-# cd packages/pandora-os
+# cd packages/abstract
 # cargo update
 # cargo clippy -- -D warnings
 # cargo unit-test

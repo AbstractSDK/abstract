@@ -1,21 +1,21 @@
+use abstract_os::core::common::OS_ID;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order,
     Response, StdResult, Uint128,
 };
-use pandora_os::core::common::OS_ID;
 
 use crate::error::TreasuryError;
-use cw2::{get_contract_version, set_contract_version};
-use cw_asset::AssetInfo;
-use pandora_os::core::proxy::msg::{
+use abstract_os::core::proxy::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
 };
-use pandora_os::core::proxy::proxy_assets::{get_asset_identifier, ProxyAsset};
-use pandora_os::core::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
-use pandora_os::registery::PROXY;
+use abstract_os::core::proxy::proxy_assets::{get_asset_identifier, ProxyAsset};
+use abstract_os::core::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
+use abstract_os::registery::PROXY;
+use cw2::{get_contract_version, set_contract_version};
+use cw_asset::AssetInfo;
 use semver::Version;
 type TreasuryResult = Result<Response, TreasuryError>;
 /*

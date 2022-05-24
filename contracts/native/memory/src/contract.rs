@@ -4,12 +4,12 @@ use cw2::set_contract_version;
 use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
-use crate::state::ADMIN;
-use pandora_os::native::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_os::native::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_os::native::memory::state::ADMIN;
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use pandora_os::registery::MEMORY;
+use abstract_os::registery::MEMORY;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

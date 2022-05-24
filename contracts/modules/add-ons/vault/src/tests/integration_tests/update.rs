@@ -2,13 +2,13 @@ use cosmwasm_std::{Addr, Uint128};
 
 use terra_multi_test::App;
 
-use pandora_os::modules::add_ons::vault::ExecuteMsg;
+use abstract_os::modules::add_ons::vault::ExecuteMsg;
 
 use cw_asset::Asset;
 use terra_multi_test::Executor;
 
-use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
+use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
 
 use super::common_integration::BaseContracts;
 

@@ -3,9 +3,9 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use pandora_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
-use pandora_os::core::proxy::proxy_assets::ProxyAsset;
-use pandora_os::core::proxy::state::State;
+use abstract_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_os::core::proxy::proxy_assets::ProxyAsset;
+use abstract_os::core::proxy::state::State;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

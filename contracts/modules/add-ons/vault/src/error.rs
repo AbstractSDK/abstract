@@ -1,8 +1,7 @@
+use abstract_add_on::AddOnError;
 use cosmwasm_std::{OverflowError, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
-
-use pandora_dapp_base::DappError;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VaultError {
@@ -16,7 +15,7 @@ pub enum VaultError {
     SemVer(String),
 
     #[error("{0}")]
-    DappError(#[from] DappError),
+    DappError(#[from] AddOnError),
 
     #[error("{0}")]
     Overflow(#[from] OverflowError),

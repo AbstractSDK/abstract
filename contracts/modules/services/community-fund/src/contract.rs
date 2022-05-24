@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use terraswap::querier::query_token_balance;
 
-use pandora_os::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
+use abstract_os::community_fund::msg::{ConfigResponse, ExecuteMsg, QueryMsg};
 
 use crate::error::CommunityFundError;
 use crate::msg::InstantiateMsg;

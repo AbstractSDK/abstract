@@ -1,10 +1,10 @@
+use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
+use abstract_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
+use abstract_os::native::memory::msg as MemoryMsg;
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
-use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
-use pandora_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use pandora_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
-use pandora_os::native::memory::msg as MemoryMsg;
 use terra_multi_test::Executor;
 use terra_multi_test::{App, ContractWrapper};
 

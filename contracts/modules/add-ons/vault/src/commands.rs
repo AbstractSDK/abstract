@@ -1,3 +1,4 @@
+use abstract_add_on::state::AddOnState;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
     WasmMsg,
@@ -5,12 +6,11 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
-use pandora_dapp_base::state::DappState;
-use pandora_os::core::proxy::msg::send_to_proxy;
-use pandora_os::modules::add_ons::vault::DepositHookMsg;
-use pandora_os::queries::vault::{query_supply, query_total_value};
-use pandora_os::util::deposit_info::DepositInfo;
-use pandora_os::util::fee::Fee;
+use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::modules::add_ons::vault::DepositHookMsg;
+use abstract_os::queries::vault::{query_supply, query_total_value};
+use abstract_os::util::deposit_info::DepositInfo;
+use abstract_os::util::fee::Fee;
 
 use crate::contract::{VaultDapp, VaultResult};
 use crate::error::VaultError;
@@ -59,7 +59,7 @@ pub fn try_provide_liquidity(
     // Load all needed states
     let pool: Pool = POOL.load(deps.storage)?;
     let state = STATE.load(deps.storage)?;
-    let base_state: DappState = dapp.base_state.load(deps.storage)?;
+    let base_state = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
 
     // Get the liquidity provider address
@@ -157,7 +157,7 @@ pub fn try_withdraw_liquidity(
 ) -> VaultResult {
     let pool: Pool = POOL.load(deps.storage)?;
     let state: State = STATE.load(deps.storage)?;
-    let base_state: DappState = dapp.base_state.load(deps.storage)?;
+    let base_state: AddOnState = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets

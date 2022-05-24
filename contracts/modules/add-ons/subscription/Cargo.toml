@@ -29,8 +29,8 @@ schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 thiserror = { version = "1.0.21" }
-pandora-os = { version = "0.1.0", path = "../../../../packages/pandora-os" }
-pandora-dapp-base = { version = "0.1.0", path = "../../../pandora_dapp_base", features = ["library"] }
+abstract-os = { version = "0.1.0", path = "../../../../packages/abstract" }
+abstract-add-on = { version = "0.1.0", path = "../../../../packages/abstract_add_on", features = ["library"] }
 protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = "1.0.3"
 semver = "1.0.0"

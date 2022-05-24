@@ -1,19 +1,19 @@
+use abstract_os::core::common::OS_ID;
+use abstract_os::core::modules::Module;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
-use pandora_os::core::common::OS_ID;
-use pandora_os::core::modules::Module;
 
 use crate::commands::*;
 use crate::error::ManagerError;
 use crate::queries;
 use crate::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
-use cw2::set_contract_version;
-use pandora_os::core::manager::msg::{
+use abstract_os::core::manager::msg::{
     ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use pandora_os::registery::MANAGER;
+use abstract_os::registery::MANAGER;
+use cw2::set_contract_version;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
@@ -118,7 +118,7 @@ fn _upgrade_module(
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     match module.kind {
         // todo: handle upgrading external modules -> change associated addr
-        pandora_os::core::modules::ModuleKind::API => Ok(Response::new()),
+        abstract_os::core::modules::ModuleKind::API => Ok(Response::new()),
         _ => match migrate_msg {
             Some(msg) => migrate_module(deps, env, module.info, msg),
             None => Err(ManagerError::MsgRequired {}),

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use pandora_os::registery::*;
+use abstract_os::registery::*;
 
 use terra_multi_test::{ContractWrapper, TerraApp};
 

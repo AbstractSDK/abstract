@@ -3,11 +3,11 @@ use std::panic;
 use crate::contract::{execute, instantiate};
 use crate::error::*;
 use crate::tests::common::TEST_CREATOR;
+use abstract_os::core::proxy::msg::{ExecuteMsg, InstantiateMsg};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{to_binary, Addr, ReplyOn, SubMsg, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo};
-use pandora_os::core::proxy::msg::{ExecuteMsg, InstantiateMsg};
 
 const NOT_ALLOWED: &str = "some_other_contract";
 

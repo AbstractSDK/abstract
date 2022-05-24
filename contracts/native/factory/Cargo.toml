@@ -28,7 +28,7 @@ cw-controllers = { version ="0.9.1" }
 cw-storage-plus = "0.9.1"
 cw2 = "0.9.1"
 cw20 = "0.9.1"
-pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
+abstract-os = { version = "0.1.0", path = "../../../packages/abstract" }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }

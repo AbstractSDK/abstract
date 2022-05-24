@@ -5,12 +5,12 @@ use cosmwasm_std::{
 use cw_asset::Asset;
 
 use crate::error::OsFactoryError;
+use abstract_os::registery::OS_FACTORY;
 use cw2::set_contract_version;
-use pandora_os::registery::OS_FACTORY;
 
 use crate::commands;
 use crate::state::*;
-use pandora_os::native::os_factory::msg::*;
+use abstract_os::native::os_factory::msg::*;
 
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
 

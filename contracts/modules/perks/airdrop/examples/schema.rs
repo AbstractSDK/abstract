@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use pandora_os::tokenomics::airdrop::{
+use abstract_os::tokenomics::airdrop::{
     ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
     UserInfoResponse,
 };

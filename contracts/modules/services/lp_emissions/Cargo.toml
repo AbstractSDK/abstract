@@ -21,7 +21,7 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
+abstract-os = { version = "0.1.0", path = "../../../packages/abstract" }
 
 cosmwasm-std = { version = "0.16.7", features = ["iterator"] }
 cw20 = { version = "0.8.0" } 

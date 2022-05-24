@@ -1,10 +1,10 @@
-use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
-use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
-use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
-use pandora_os::tokenomics::airdrop::{
+use abstract_os::tokenomics::airdrop::{
     ClaimResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
     UserInfoResponse,
 };
+use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
+use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
+use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 
 fn mock_app() -> App {
     let api = MockApi::default();

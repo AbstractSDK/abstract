@@ -1,20 +1,20 @@
 use crate::error::VCError;
+use abstract_os::registery::VERSION_CONTROL;
+use abstract_os::util::admin::authorized_set_admin;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
 use cw2::set_contract_version;
-use pandora_os::registery::VERSION_CONTROL;
-use pandora_os::util::admin::authorized_set_admin;
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use pandora_os::native::version_control::msg::{
+use abstract_os::native::version_control::msg::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use pandora_os::native::version_control::state::{ADMIN, FACTORY};
+use abstract_os::native::version_control::state::{ADMIN, FACTORY};
 
 pub type VCResult = Result<Response, VCError>;
 

@@ -24,7 +24,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-pandora-os = { version = "0.1.0" }
+abstract-os = { version = "0.1.0" }
 
 cosmwasm-std = { version = "0.16.0" }
 cw-storage-plus = { version = "0.8.0" }

@@ -5,7 +5,7 @@ members = [
     "contracts/core/*",
     "contracts/testing",
     # "contracts/dapps/external/*",
-    "contracts/modules/apis/anchor",
+    # "contracts/modules/apis/anchor",
     "contracts/modules/apis/terraswap",
     "contracts/modules/add-ons/vault",
     "contracts/modules/add-ons/subscription",
@@ -13,7 +13,6 @@ members = [
     # "contracts/governance/token_weighted",
     # "contracts/perks/airdrop",
     # "contracts/services/*"
-    "contracts/pandora_dapp_base"
 ]
 
 [profile.release]

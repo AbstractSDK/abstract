@@ -4,12 +4,12 @@ use cosmwasm_std::{
 };
 
 use crate::error::ModuleFactoryError;
+use abstract_os::registery::OS_FACTORY;
 use cw2::set_contract_version;
-use pandora_os::registery::OS_FACTORY;
 
 use crate::commands;
 use crate::state::*;
-use pandora_os::native::module_factory::msg::*;
+use abstract_os::native::module_factory::msg::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 
@@ -35,7 +35,7 @@ pub fn instantiate(
     CONTEXT.save(
         deps.storage,
         &Context {
-            manager: None,
+            core: None,
             module: None,
         },
     )?;
@@ -74,11 +74,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
         Reply {
             id: commands::CREATE_INTERNAL_DAPP_RESPONSE_ID,
             result,
-        } => commands::handle_internal_dapp_init_result(deps, result),
+        } => commands::handle_add_on_init_result(deps, result),
         Reply {
             id: commands::CREATE_EXTERNAL_DAPP_RESPONSE_ID,
             result,
-        } => commands::handle_external_dapp_init_result(deps, result),
+        } => commands::handle_api_init_result(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
         // TODO: add admin setters for services and perks
     }
@@ -88,6 +88,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Context {} => to_binary(&query_context(deps)?),
     }
 }
 
@@ -98,6 +99,16 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         owner: admin.into(),
         version_control_address: state.version_control_address.into(),
         memory_address: state.memory_address.into(),
+    };
+
+    Ok(resp)
+}
+
+pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
+    let context: Context = CONTEXT.load(deps.storage)?;
+    let resp = ContextResponse {
+        core: context.core,
+        module: context.module,
     };
 
     Ok(resp)

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use pandora_os::native::version_control::state::Core;
+use abstract_os::native::version_control::state::Core;
 use terra_multi_test::TerraApp;
 
 use super::common_integration::NativeContracts;
-use pandora_os::native::*;
+use abstract_os::native::*;
 
 pub fn os_store_as_expected(
     app: &TerraApp,

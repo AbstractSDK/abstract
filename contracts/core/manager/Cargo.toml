@@ -31,7 +31,7 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 terra-cosmwasm = "2.2"
 terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
-pandora-os = { version = "0.1.0", path = "../../../packages/pandora-os" }
+abstract-os = { version = "0.1.0", path = "../../../packages/abstract" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0.4"
 [dev-dependencies]

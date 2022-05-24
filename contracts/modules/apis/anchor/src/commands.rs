@@ -1,12 +1,12 @@
 use cosmwasm_std::{Coin, CosmosMsg, Deps, Env, Fraction, MessageInfo, Response, Uint128};
 
-use pandora_os::core::proxy::msg::send_to_proxy;
-use pandora_os::modules::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
-use pandora_os::queries::anchor::query_aust_exchange_rate;
-use pandora_os::util::anchor::{anchor_deposit_msg, anchor_withdraw_msg};
-use pandora_os::util::denom::UST_DENOM;
+use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::modules::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
+use abstract_os::queries::anchor::query_aust_exchange_rate;
+use abstract_os::util::anchor::{anchor_deposit_msg, anchor_withdraw_msg};
+use abstract_os::util::denom::UST_DENOM;
 
-use crate::contract::{AnchorDapp, AnchorResult};
+use crate::contract::{AnchorApi, AnchorResult};
 
 // Add the custom dapp-specific message commands here
 
@@ -18,7 +18,7 @@ pub fn handle_deposit_stable(
     deps: Deps,
     _env: Env,
     msg_info: MessageInfo,
-    dapp: AnchorDapp,
+    dapp: AnchorApi,
     ust_deposit_amount: Uint128,
 ) -> AnchorResult {
     let state = dapp.base_state.load(deps.storage)?;
@@ -53,7 +53,7 @@ pub fn handle_redeem_stable(
     deps: Deps,
     _env: Env,
     info: MessageInfo,
-    dapp: AnchorDapp,
+    dapp: AnchorApi,
     ust_to_withdraw: Uint128,
 ) -> AnchorResult {
     let state = dapp.base_state.load(deps.storage)?;

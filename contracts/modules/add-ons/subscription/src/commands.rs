@@ -1,5 +1,8 @@
 use std::convert::TryInto;
 
+use abstract_os::common_module::constants::ADMIN;
+use abstract_os::core::manager::msg::ExecuteMsg as ManagerMsg;
+use abstract_os::core::proxy::msg::send_to_proxy;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env,
     MessageInfo, Response, StdError, StdResult, Storage, Uint128, Uint64, WasmMsg,
@@ -7,23 +10,21 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 use cw_storage_plus::U32Key;
-use pandora_os::core::manager::msg::ExecuteMsg as ManagerMsg;
-use pandora_os::core::proxy::msg::send_to_proxy;
 
-use pandora_os::modules::dapp_base::state::{ADMIN, BASESTATE};
-use pandora_os::native::version_control::state::OS_ADDRESSES;
-use pandora_os::util::deposit_manager::Deposit;
+use abstract_os::native::version_control::state::OS_ADDRESSES;
+use abstract_os::util::deposit_manager::Deposit;
 
-use crate::contract::SubscriptionResult;
+use crate::contract::{SubscriptionAddOn, SubscriptionResult};
 use crate::error::SubscriptionError;
-use pandora_os::modules::add_ons::subscription::msg::DepositHookMsg;
-use pandora_os::modules::add_ons::subscription::state::{
+use abstract_os::modules::add_ons::subscription::msg::DepositHookMsg;
+use abstract_os::modules::add_ons::subscription::state::{
     Compensation, ContributionState, ContributorContext, IncomeAccumulator, Subscriber,
     SubscriberContext, SubscriptionConfig, SubscriptionState, CLIENTS, CONTRIBUTORS, CON_CONFIG,
     CON_STATE, DORMANT_CLIENTS, MONTH, SUB_CONFIG, SUB_STATE,
 };
 
 pub fn receive_cw20(
+    add_on: SubscriptionAddOn,
     deps: DepsMut,
     _env: Env,
     msg_info: MessageInfo,
@@ -36,7 +37,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            try_pay(deps, msg_info, asset, os_id)
+            try_pay(add_on, deps, msg_info, asset, os_id)
         }
     }
 }
@@ -48,6 +49,7 @@ pub fn receive_cw20(
 /// Called when either paying with a native token or through the receive_cw20 endpoint when paying
 /// with a CW20.
 pub fn try_pay(
+    add_on: SubscriptionAddOn,
     deps: DepsMut,
     msg_info: MessageInfo,
     asset: Asset,
@@ -55,7 +57,7 @@ pub fn try_pay(
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUB_CONFIG.load(deps.storage)?;
-    let base_state = BASESTATE.load(deps.storage)?;
+    let base_state = add_on.base_state.load(deps.storage)?;
 
     // Construct deposit info
     let deposit_info = config.payment_asset;
@@ -292,7 +294,12 @@ fn update_contribution_state(
 }
 
 /// Checks if subscriber is allowed to claim his emissions
-pub fn claim_subscriber_emissions(deps: DepsMut, env: Env, os_id: u32) -> SubscriptionResult {
+pub fn claim_subscriber_emissions(
+    add_on: SubscriptionAddOn,
+    deps: DepsMut,
+    env: Env,
+    os_id: u32,
+) -> SubscriptionResult {
     let sub_state = SUB_STATE.load(deps.storage)?;
     let con_state = CON_STATE.load(deps.storage)?;
     let con_config = CON_CONFIG.load(deps.storage)?;
@@ -331,7 +338,7 @@ pub fn claim_subscriber_emissions(deps: DepsMut, env: Env, os_id: u32) -> Subscr
             })?,
             funds: vec![],
         })],
-        &BASESTATE.load(deps.storage)?.proxy_address,
+        &add_on.state(deps.storage)?.proxy_address,
     )?;
 
     if token_amount != 0 {
@@ -417,6 +424,7 @@ pub fn remove_contributor(
 }
 
 pub fn try_claim_contribution(
+    add_on: SubscriptionAddOn,
     mut deps: DepsMut,
     env: Env,
     contributor_addr: Option<String>,
@@ -425,7 +433,7 @@ pub fn try_claim_contribution(
     let state = CON_STATE.load(deps.storage)?;
     let config = CON_CONFIG.load(deps.storage)?;
     // let subscription_state = SUB_STATE.load(deps.storage)?;
-    let base_state = BASESTATE.load(deps.storage)?;
+    let base_state = add_on.state(deps.storage)?;
     let response = Response::new();
 
     if state.target.is_zero() {

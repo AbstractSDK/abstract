@@ -1,9 +1,9 @@
 use crate::contract::{execute, instantiate, query};
 use crate::error::TreasuryError;
+use abstract_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cw_controllers::AdminError;
-use pandora_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
 use super::common::TEST_CREATOR;
 

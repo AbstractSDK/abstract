@@ -1,17 +1,17 @@
+use abstract_os::core::manager::helper::register_module_on_manager;
+use abstract_os::core::modules::ModuleInfo;
+use abstract_os::governance::gov_type::GovernanceDetails;
+use abstract_os::modules::add_ons::subscription::msg::{
+    DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
+    QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+};
+use abstract_os::native::os_factory::msg::ExecuteMsg;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
 };
 use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use cw20::Cw20ReceiveMsg;
-use pandora_os::core::manager::helper::register_module_on_manager;
-use pandora_os::core::modules::ModuleInfo;
-use pandora_os::governance::gov_type::GovernanceDetails;
-use pandora_os::modules::add_ons::subscription::msg::{
-    DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
-    QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
-};
-use pandora_os::native::os_factory::msg::ExecuteMsg;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
@@ -20,19 +20,19 @@ use crate::error::OsFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use pandora_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use pandora_os::core::proxy::msg::{
+use abstract_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
+use abstract_os::core::proxy::msg::{
     ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg,
 };
 
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use pandora_os::native::version_control::msg::{
+use abstract_os::native::version_control::msg::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
+use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
-use pandora_os::registery::{MANAGER, PROXY};
+use abstract_os::registery::{MANAGER, PROXY};
 
 pub fn receive_cw20(
     deps: DepsMut,

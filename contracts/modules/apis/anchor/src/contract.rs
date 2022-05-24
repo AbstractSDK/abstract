@@ -1,23 +1,22 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
+use abstract_api::{ApiContract, ApiError};
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 };
 
-use pandora_dapp_base::{DappContract, DappError, DappResult};
-use pandora_os::native::memory::item::Memory;
-use pandora_os::pandora_dapp::msg::DappInstantiateMsg;
+use abstract_os::common_module::api_msg::ApiInstantiateMsg;
+use abstract_os::native::memory::item::Memory;
 
 use crate::commands;
 use crate::msg::{ExecuteMsg, QueryMsg};
 
 // no extra attrs
-type AnchorExtension = Option<Empty>;
-pub type AnchorDapp<'a> = DappContract<'a, AnchorExtension, Empty>;
-pub type AnchorResult = Result<Response, DappError>;
+pub type AnchorApi<'a> = ApiContract<'a, Empty>;
+pub type AnchorResult = Result<Response, ApiError>;
 
-// use pandora_os::pandora_dapp::msg::DappInstantiateMsg;
+// use abstract_os::pandora_dapp::msg::ApiInstantiateMsg;
 //
 // use crate::commands;
 // use crate::error::AnchorError;
@@ -28,16 +27,16 @@ pub fn instantiate(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: DappInstantiateMsg,
-) -> DappResult {
-    AnchorDapp::default().instantiate(deps, env, info, msg)?;
+    msg: ApiInstantiateMsg,
+) -> ApiResult {
+    AnchorApi::default().instantiate(deps, env, info, msg, "anchor", "v1.1.0")?;
 
     Ok(Response::default())
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> DappResult {
-    let dapp = AnchorDapp::default();
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ApiResult {
+    let dapp = AnchorApi::default();
 
     match msg {
         ExecuteMsg::Base(message) => dapp.execute(deps, env, info, message),
@@ -55,7 +54,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> D
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => AnchorDapp::default().query(deps, env, message),
+        QueryMsg::Base(message) => AnchorApi::default().query(deps, env, message),
         // handle dapp-specific queries here
         // QueryMsg::Custom{} => queries::custom_query(),
     }

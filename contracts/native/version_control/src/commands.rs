@@ -3,7 +3,7 @@ use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
 use crate::error::VCError;
-use pandora_os::native::version_control::state::*;
+use abstract_os::native::version_control::state::*;
 
 /// Add new OS to version control contract
 /// Only Factory can add OS

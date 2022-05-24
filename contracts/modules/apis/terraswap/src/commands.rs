@@ -1,3 +1,5 @@
+use abstract_os::common_module::traits::ProxyExecute;
+use abstract_os::native::memory::state::PAIR_POSTFIX;
 use cosmwasm_std::{
     to_binary, Binary, CosmosMsg, Decimal, Deps, Env, Fraction, MessageInfo, Response, Uint128,
     WasmMsg,
@@ -6,14 +8,12 @@ use cw20::Cw20ExecuteMsg;
 use terraswap::asset::Asset;
 use terraswap::pair::{Cw20HookMsg, PoolResponse};
 
-use pandora_dapp_base::DappError;
-use pandora_os::core::proxy::msg::send_to_proxy;
-use pandora_os::core::proxy::proxy_assets::get_asset_identifier;
-use pandora_os::modules::apis::terraswap::cw_to_terraswap;
-use pandora_os::modules::dapp_base::common::PAIR_POSTFIX;
-use pandora_os::queries::terraswap::{query_asset_balance, query_pool};
+use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::core::proxy::proxy_assets::get_asset_identifier;
+use abstract_os::modules::apis::terraswap::cw_to_terraswap;
+use abstract_os::queries::terraswap::{query_asset_balance, query_pool};
 
-use crate::contract::{TerraswapDapp, TerraswapResult};
+use crate::contract::{TerraswapApi, TerraswapResult};
 use crate::error::TerraswapError;
 use crate::terraswap_msg::{asset_into_swap_msg, deposit_lp_msg};
 use crate::utils::has_sufficient_balance;
@@ -21,17 +21,14 @@ use crate::utils::has_sufficient_balance;
 /// Constructs and forwards the terraswap provide_liquidity message
 pub fn provide_liquidity(
     deps: Deps,
-    msg_info: MessageInfo,
-    dapp: TerraswapDapp,
+    _msg_info: MessageInfo,
+    api: TerraswapApi,
     main_asset_id: String,
     pool_id: String,
     amount: Uint128,
 ) -> TerraswapResult {
-    let state = dapp.base_state.load(deps.storage)?;
+    let state = api.base_state.load(deps.storage)?;
     // Check if caller is trader.
-    state.assert_authorized_trader(&msg_info.sender)?;
-
-    let proxy_address = &state.proxy_address;
 
     // Get pair address using memory single query
     let pair_address = state.memory.query_contract(deps, &pool_id)?;
@@ -62,41 +59,40 @@ pub fn provide_liquidity(
         first_asset = main_asset;
     }
 
-    // Does the proxy have enough of these assets?
-    let first_asset_balance = query_asset_balance(deps, &first_asset.info, proxy_address.clone())?;
-    let second_asset_balance =
-        query_asset_balance(deps, &second_asset.info, proxy_address.clone())?;
-    if second_asset_balance < second_asset.amount || first_asset_balance < first_asset.amount {
-        return Err(DappError::Broke {}.into());
-    }
+    // // Does the proxy have enough of these assets?
+    // let first_asset_balance = query_asset_balance(deps, &first_asset.info, proxy_address.clone())?;
+    // let second_asset_balance =
+    //     query_asset_balance(deps, &second_asset.info, proxy_address.clone())?;
+    // if second_asset_balance < second_asset.amount || first_asset_balance < first_asset.amount {
+    //     return Err(ApiError::Broke {}.into());
+    // }
 
     // Deposit lp msg either returns a bank send msg or an
     // increase allowance msg for each asset.
     let msgs: Vec<CosmosMsg> =
         deposit_lp_msg(deps, [second_asset, first_asset], pair_address, None)?;
 
-    Ok(Response::new().add_message(send_to_proxy(msgs, proxy_address)?))
+    Ok(api.execute_on_proxy(deps, msgs)?)
 }
 
 /// Constructs and forwards the terraswap provide_liquidity message
 /// You can provide custom asset amounts
 pub fn detailed_provide_liquidity(
     deps: Deps,
-    msg_info: MessageInfo,
-    dapp: TerraswapDapp,
+    _msg_info: MessageInfo,
+    api: TerraswapApi,
     assets: Vec<(String, Uint128)>,
     pool_id: String,
     slippage_tolerance: Option<Decimal>,
 ) -> TerraswapResult {
-    let state = dapp.base_state.load(deps.storage)?;
+    let state = api.base_state.load(deps.storage)?;
     // Check if caller is trader.
-    state.assert_authorized_trader(&msg_info.sender)?;
 
     if assets.len() != 2 {
         return Err(TerraswapError::NotTwoAssets {});
     }
 
-    let proxy_address = &state.proxy_address;
+    let proxy_address = &api.request_destination.clone().unwrap();
 
     // Get pair address
     let pair_address = state.memory.query_contract(deps, &pool_id)?;
@@ -116,7 +112,7 @@ pub fn detailed_provide_liquidity(
             let asset_balance = query_asset_balance(deps, &asset_info, proxy_address.clone())?;
             // Check if proxy has enough of this asset
             if asset_balance < asset.1 {
-                return Err(DappError::Broke {}.into());
+                return Err(TerraswapError::Broke {});
             }
             // Append asset to list
             assets_to_send.push(Asset {
@@ -135,21 +131,22 @@ pub fn detailed_provide_liquidity(
     // increase allowance msg for each asset.
     let msgs: Vec<CosmosMsg> = deposit_lp_msg(deps, asset_array, pair_address, slippage_tolerance)?;
 
-    Ok(Response::new().add_message(send_to_proxy(msgs, proxy_address)?))
+    api.execute_on_proxy(deps, msgs)
+        .map_err(TerraswapError::from)
 }
 
 /// Constructs withdraw liquidity msg and forwards it to proxy
 pub fn withdraw_liquidity(
     deps: Deps,
-    msg_info: MessageInfo,
-    dapp: TerraswapDapp,
+    _msg_info: MessageInfo,
+    api: TerraswapApi,
     lp_token_id: String,
     amount: Uint128,
 ) -> TerraswapResult {
-    let state = dapp.base_state.load(deps.storage)?;
+    let state = api.base_state.load(deps.storage)?;
     // Sender must be trader
-    state.assert_authorized_trader(&msg_info.sender)?;
-    let proxy_address = &state.proxy_address;
+
+    let proxy_address = &api.request_destination.clone().unwrap();
 
     // Get lp token address
     let lp_token = &state.memory.query_asset(deps, &lp_token_id)?;
@@ -179,7 +176,8 @@ pub fn withdraw_liquidity(
         funds: vec![],
     });
 
-    Ok(Response::new().add_message(send_to_proxy(vec![lp_call], proxy_address)?))
+    api.execute_on_proxy(deps, vec![lp_call])
+        .map_err(TerraswapError::from)
 }
 
 /// Function constructs terraswap swap messages and forwards them to the proxy
@@ -187,22 +185,21 @@ pub fn withdraw_liquidity(
 pub fn terraswap_swap(
     deps: Deps,
     _env: Env,
-    msg_info: MessageInfo,
-    dapp: TerraswapDapp,
+    _msg_info: MessageInfo,
+    api: TerraswapApi,
     offer_id: String,
     pool_id: String,
     amount: Uint128,
     max_spread: Option<Decimal>,
     belief_price: Option<Decimal>,
 ) -> TerraswapResult {
-    let state = dapp.base_state.load(deps.storage)?;
-    let proxy_address = &state.proxy_address;
+    let state = api.base_state.load(deps.storage)?;
+    let proxy_address = &api.request_destination.unwrap();
 
     // Check if caller is trader
-    state.assert_authorized_trader(&msg_info.sender)?;
 
     // Check if proxy has enough to swap
-    has_sufficient_balance(deps, &state.memory, &offer_id, proxy_address, amount)?;
+    // has_sufficient_balance(deps, &state.memory, &offer_id, proxy_address, amount)?;
 
     let pair_address = state.memory.query_contract(deps, &pool_id)?;
 

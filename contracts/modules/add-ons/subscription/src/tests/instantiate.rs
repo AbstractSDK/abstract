@@ -1,8 +1,8 @@
+use abstract_os::native::memory::item::Memory;
+use abstract_os::proxy::dapp_base::state::{BaseState, BASESTATE};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut};
 use cosmwasm_std::{Api, Decimal};
-use pandora_os::native::memory::item::Memory;
-use pandora_os::proxy::dapp_base::state::{BaseState, BASESTATE};
 
 use crate::contract::instantiate;
 use crate::dapp_base::common::MEMORY_CONTRACT;

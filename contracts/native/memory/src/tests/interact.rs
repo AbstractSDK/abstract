@@ -7,7 +7,7 @@ use crate::tests::common::TEST_CREATOR;
 
 use crate::tests::instantiate::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
-use pandora_os::native::memory::msg::*;
+use abstract_os::native::memory::msg::*;
 
 /**
  * Test unallowed address update

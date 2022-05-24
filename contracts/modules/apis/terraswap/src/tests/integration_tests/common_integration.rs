@@ -1,8 +1,8 @@
 use crate::dapp_base::common::TEST_CREATOR;
+use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::native::memory::msg as MemoryMsg;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
-use pandora_os::core::proxy::msg as TreasuryMsg;
-use pandora_os::native::memory::msg as MemoryMsg;
 use terra_mocks::TerraMockQuerier;
 use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use terraswap::asset::{AssetInfo, PairInfo};
@@ -61,9 +61,7 @@ pub fn init_contracts(app: &mut App) -> BaseContracts {
 
     let proxy_code_id = app.store_code(proxy_contract);
 
-    let proxy_instantiate_msg = TreasuryMsg::InstantiateMsg {
-        os_id: 0u32
-    };
+    let proxy_instantiate_msg = TreasuryMsg::InstantiateMsg { os_id: 0u32 };
 
     // Instantiate Treasury Contract
     let proxy_instance = app

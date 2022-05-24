@@ -1,10 +1,10 @@
 use crate::state::OS_MODULES;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
-use pandora_os::core::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
-use pandora_os::core::manager::{
+use abstract_os::core::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
+use abstract_os::core::manager::{
     msg::EnabledModulesResponse,
     queries::{query_module_addresses, query_module_versions},
 };
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 pub fn handle_module_addresses_query(
     deps: Deps,

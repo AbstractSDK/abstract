@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 
-use pandora_os::tokenomics::lp_emissions::{
+use abstract_os::tokenomics::lp_emissions::{
     ConfigResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     StakerInfoResponse, StateResponse,
 };
