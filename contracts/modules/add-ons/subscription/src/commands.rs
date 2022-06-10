@@ -9,7 +9,6 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
-use cw_storage_plus::U32Key;
 
 use abstract_os::native::version_control::state::OS_ADDRESSES;
 use abstract_os::util::deposit_manager::Deposit;
@@ -80,7 +79,7 @@ pub fn try_pay(
             .increase((asset.amount.u128() as u64).into());
         CLIENTS.save(deps.storage, &os_id.to_be_bytes(), &active_sub)?;
     } else {
-        let maybe_old_client = DORMANT_CLIENTS.may_load(deps.storage, U32Key::new(os_id))?;
+        let maybe_old_client = DORMANT_CLIENTS.may_load(deps.storage, os_id)?;
         if let Some(mut old_client) = maybe_old_client {
             // Subscriber is re-activating his subscription.
             if old_client.balance.get().u64() as u128 + asset.amount.u128()
@@ -90,7 +89,7 @@ pub fn try_pay(
                     config.subscription_cost.u64() - old_client.balance.get().u64(),
                 ));
             } else {
-                DORMANT_CLIENTS.remove(deps.storage, U32Key::new(os_id));
+                DORMANT_CLIENTS.remove(deps.storage, os_id);
                 old_client
                     .balance
                     .increase((asset.amount.u128() as u64).into());
@@ -115,11 +114,7 @@ pub fn try_pay(
                 return Err(SubscriptionError::CallerNotFactory {});
             }
             let manager_addr = OS_ADDRESSES
-                .query(
-                    &deps.querier,
-                    config.version_control_address,
-                    U32Key::new(os_id),
-                )?
+                .query(&deps.querier, config.version_control_address, os_id)?
                 .unwrap()
                 .manager;
             let new_sub = Subscriber {
@@ -254,7 +249,7 @@ fn process_client(
             let os_id = u32::from_be_bytes(key.to_owned().try_into().unwrap());
             acc.debtors.push(os_id);
             let removed_sub = CLIENTS.unsafe_remove(store, key)?;
-            DORMANT_CLIENTS.save(store, os_id.into(), &removed_sub)?;
+            DORMANT_CLIENTS.save(store, os_id, &removed_sub)?;
             Ok(Some(suspend_os(subscriber.manager_addr, true)?))
         }
     }
@@ -314,11 +309,7 @@ pub fn claim_subscriber_emissions(
     }
 
     let subscriber_proxy_address = OS_ADDRESSES
-        .query(
-            &deps.querier,
-            sub_config.version_control_address,
-            U32Key::new(os_id),
-        )?
+        .query(&deps.querier, sub_config.version_control_address, os_id)?
         .unwrap()
         .proxy;
 

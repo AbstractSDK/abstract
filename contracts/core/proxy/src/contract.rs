@@ -59,7 +59,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
                 .push(deps.api.addr_canonicalize(admin_addr.as_str())?);
 
             STATE.save(deps.storage, &state)?;
-            ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
+            ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
 
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)
@@ -215,7 +215,7 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
     // Get all assets from storage
     let mut all_assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(Vec<u8>, ProxyAsset)>>>()?;
+        .collect::<StdResult<Vec<(String, ProxyAsset)>>>()?;
 
     let mut total_value = Uint128::zero();
     // Calculate their value iteratively

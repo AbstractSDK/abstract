@@ -110,7 +110,10 @@ impl ProxyAsset {
     pub fn asset_value(&self, deps: Deps, env: &Env, pool_addr: &Addr) -> StdResult<Uint128> {
         let pool_info: PoolResponse = query_pool(deps, pool_addr)?;
         // Get price
-        let ratio = Decimal::from_ratio(pool_info.assets[0].amount, pool_info.assets[1].amount);
+        let ratio = Decimal::from_ratio(
+            pool_info.assets[0].amount.u128(),
+            pool_info.assets[1].amount.u128(),
+        );
 
         let mut recursive_vault_asset: ProxyAsset;
         let amount_in_other_denom: Uint128;
@@ -178,7 +181,7 @@ pub fn lp_value(deps: Deps, env: &Env, pool_addr: &Addr, holdings: &Uint128) -> 
 
     // Get total supply of LP tokens and calculate share
     let total_lp = pool_info.total_share;
-    let share: Decimal = Decimal::from_ratio(*holdings, total_lp);
+    let share: Decimal = Decimal::from_ratio(*holdings, total_lp.u128());
 
     let asset_1 = &pool_info.assets[0];
     let asset_2 = &pool_info.assets[1];
@@ -194,8 +197,8 @@ pub fn lp_value(deps: Deps, env: &Env, pool_addr: &Addr, holdings: &Uint128) -> 
     )?;
 
     // set the amounts to the LP holdings
-    let vault_asset_1_amount = share * asset_1.amount;
-    let vault_asset_2_amount = share * asset_2.amount;
+    let vault_asset_1_amount = share * Uint128::new(asset_1.amount.u128());
+    let vault_asset_2_amount = share * Uint128::new(asset_2.amount.u128());
     // Call value on these assets.
     Ok(vault_asset_1.value(deps, env, Some(vault_asset_1_amount))?
         + vault_asset_2.value(deps, env, Some(vault_asset_2_amount))?)

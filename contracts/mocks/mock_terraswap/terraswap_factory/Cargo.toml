@@ -1,7 +1,7 @@
 [package]
 name = "terraswap-factory"
-version = "0.1.0"
-authors = ["Terraform Labs, PTE."]
+version = "2.6.0"
+authors = ["Terraform Labs, PTE.", "DELIGHT LABS"]
 edition = "2018"
 description = "A Terraswap factory contract - auto pair contract generator and also directory for all pairs"
 license = "MIT"
@@ -17,16 +17,16 @@ exclude = [
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-# [profile.release]
-# opt-level = 3
-# debug = false
-# rpath = false
-# lto = true
-# debug-assertions = false
-# codegen-units = 1
-# panic = 'abort'
-# incremental = false
-# overflow-checks = true
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
 
 [features]
 # for quicker tests, cargo test --lib
@@ -34,13 +34,15 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-terraswap = "2.4.0"
-cosmwasm-std = { version = "0.16.0" }
-cw-storage-plus = { version = "0.8.0" } 
-schemars = "0.8.1"
+terraswap = { git = "https://github.com/terraswap/terraswap.git", default-features = false, tag = "v2.6.0"}
+# terraswap = { path = "../../packages/terraswap", default-features = false, version = "2.6.0"}
+cosmwasm-std = { version = "1.0.0" }
+cw-storage-plus = { version = "0.13.2" } 
+schemars = "0.8.10"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 protobuf = { version = "2", features = ["with-bytes"] }
+cw20 = { version = "0.11.0" }
 
 [dev-dependencies]
-cosmwasm-schema = "0.16.0"
-cosmwasm-storage = { version = "0.16.0" }
+cosmwasm-schema = { version = "1.0.0" }
+cosmwasm-storage = { version = "1.0.0" }

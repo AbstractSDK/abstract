@@ -1,6 +1,6 @@
 use cosmwasm_std::Addr;
 use cw_controllers::Admin;
-use cw_storage_plus::{Map, U32Key};
+use cw_storage_plus::Map;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -19,4 +19,4 @@ pub const FACTORY: Admin = Admin::new("factory");
 pub const MODULE_CODE_IDS: Map<(&str, &str), u64> = Map::new("module_code_ids");
 
 // Maps OS ID to the address of its core contracts
-pub const OS_ADDRESSES: Map<U32Key, Core> = Map::new("os_core");
+pub const OS_ADDRESSES: Map<u32, Core> = Map::new("os_core");

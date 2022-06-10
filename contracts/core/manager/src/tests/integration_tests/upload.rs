@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use abstract_os::registery::*;
 
-use terra_multi_test::{ContractWrapper, TerraApp};
+use cw_multi_test::{App, ContractWrapper};
 
 use super::common_integration::NativeContracts;
 use super::instantiate::init_native_contracts;
@@ -19,7 +19,7 @@ use super::instantiate::init_native_contracts;
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
-pub fn upload_contracts(app: &mut TerraApp) -> (HashMap<&str, u64>, NativeContracts) {
+pub fn upload_contracts(app: &mut App) -> (HashMap<&str, u64>, NativeContracts) {
     let mut code_ids: HashMap<&str, u64> = HashMap::new();
 
     // Instantiate Token Contract

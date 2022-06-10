@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use abstract_os::native::version_control::state::Core;
-use terra_multi_test::TerraApp;
+use cw_multi_test::App;
 
 use super::common_integration::NativeContracts;
 use abstract_os::native::*;
 
 pub fn os_store_as_expected(
-    app: &TerraApp,
+    app: &App,
     native_contracts: &NativeContracts,
     os_store: &HashMap<u32, Core>,
 ) -> bool {

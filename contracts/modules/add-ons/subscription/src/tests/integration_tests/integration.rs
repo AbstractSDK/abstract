@@ -1,14 +1,14 @@
 use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 
-use terra_multi_test::App;
+use cw_multi_test::App;
 
 use crate::msg::{DepositHookMsg, ExecuteMsg};
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 use cw_asset::Asset;
 
 use crate::dapp_base::common::TEST_CREATOR;

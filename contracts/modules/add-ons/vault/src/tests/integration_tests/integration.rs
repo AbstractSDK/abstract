@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 
-use terra_multi_test::App;
+use cw_multi_test::App;
 
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
@@ -9,7 +9,7 @@ use crate::tests::integration_tests::common_integration::{
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
 use abstract_os::modules::add_ons::vault::{DepositHookMsg, ExecuteMsg};
 use cw_asset::AssetUnchecked;
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 
 use crate::dapp_base::common::TEST_CREATOR;
 use abstract_os::core::proxy::msg as TreasuryMsg;

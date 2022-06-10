@@ -10,7 +10,7 @@ use cosmwasm_std::{
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
-use cw_storage_plus::{Endian, Map, U32Key};
+use cw_storage_plus::{Endian, Map};
 use protobuf::Message;
 
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
@@ -208,7 +208,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::SubscriberState { os_id } => {
             let maybe_sub = CLIENTS.may_load(deps.storage, &os_id.to_be_bytes())?;
-            let maybe_dormant_sub = DORMANT_CLIENTS.may_load(deps.storage, U32Key::new(os_id))?;
+            let maybe_dormant_sub = DORMANT_CLIENTS.may_load(deps.storage, os_id)?;
             let sub_state = if let Some(sub) = maybe_sub {
                 to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,

@@ -5,24 +5,24 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+# [lib]
+# crate-type = ["cdylib", "rlib"]
 
 
 [features]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
-# use library feature to disable all instantiate/execute/query exports
+# # use library feature to disable all instantiate/execute/query exports
 library = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cosmwasm-std = { version = "0.16.7" }
-cw-storage-plus = { version = "0.9.1" }
+cosmwasm-std = { version = "1.0" }
+cw-storage-plus = { version = "0.13" }
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 schemars = "0.8.3"
 abstract-os = { version = "0.1.0", path = "../abstract" }
-cw-controllers = { version = "0.9.1" }
+cw-controllers = { version = "0.13" }
 thiserror = { version = "1.0.21" }
-cw2 = "0.9.1"
+cw2 = "0.13"

@@ -1,11 +1,11 @@
 use cosmwasm_std::{Addr, Uint128};
 
-use terra_multi_test::App;
+use cw_multi_test::App;
 
 use abstract_os::modules::add_ons::vault::ExecuteMsg;
 
 use cw_asset::Asset;
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 
 use abstract_os::core::proxy::msg as TreasuryMsg;
 use abstract_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};

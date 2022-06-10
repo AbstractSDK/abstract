@@ -3,8 +3,8 @@ use abstract_os::core::proxy::msg as TreasuryMsg;
 use abstract_os::native::memory::msg as MemoryMsg;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
+use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use terraswap::asset::{AssetInfo, PairInfo};
 
 #[allow(dead_code)]

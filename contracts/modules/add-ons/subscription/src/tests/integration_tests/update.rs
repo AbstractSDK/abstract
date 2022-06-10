@@ -1,10 +1,10 @@
 use cosmwasm_std::{Addr, Uint128};
 
-use terra_multi_test::App;
+use cw_multi_test::App;
 
 use crate::msg::ExecuteMsg;
 
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 use cw_asset::Asset;
 
 use abstract_os::proxy::msg as TreasuryMsg;

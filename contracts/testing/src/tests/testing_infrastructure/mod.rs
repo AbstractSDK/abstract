@@ -17,8 +17,8 @@ pub mod env {
     use abstract_os::native::version_control::state::Core;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
+    use cw_multi_test::{App, AppResponse, Executor};
     use serde::Serialize;
-    use terra_multi_test::{AppResponse, Executor, TerraApp};
     pub struct AbstractEnv {
         pub native_contracts: NativeContracts,
         pub code_ids: HashMap<String, u64>,
@@ -26,7 +26,7 @@ pub mod env {
     }
 
     impl AbstractEnv {
-        pub fn new(app: &mut TerraApp, sender: &Addr) -> Self {
+        pub fn new(app: &mut App, sender: &Addr) -> Self {
             let (code_ids, native_contracts) = upload_base_contracts(app);
             let mut os_store: HashMap<u32, Core> = HashMap::new();
 
@@ -48,7 +48,7 @@ pub mod env {
     }
 
     pub fn get_os_state(
-        app: &TerraApp,
+        app: &App,
         os_store: &HashMap<u32, Core>,
         os_id: &u32,
     ) -> AnyResult<HashMap<String, Addr>> {
@@ -73,7 +73,7 @@ pub mod env {
     }
 
     pub fn exec_msg_on_manager<T: Serialize>(
-        app: &mut TerraApp,
+        app: &mut App,
         sender: &Addr,
         manager_addr: &Addr,
         module_name: &str,
@@ -88,7 +88,7 @@ pub mod env {
 
     /// Mint tokens
     pub fn mint_tokens(
-        app: &mut TerraApp,
+        app: &mut App,
         owner: &Addr,
         token_instance: &Addr,
         amount: Uint128,
@@ -106,7 +106,7 @@ pub mod env {
         assert_eq!(res.events[1].attributes[3], attr("amount", amount));
     }
 
-    pub fn token_balance(app: &TerraApp, token_instance: &Addr, owner: &Addr) -> u128 {
+    pub fn token_balance(app: &App, token_instance: &Addr, owner: &Addr) -> u128 {
         let balance: cw20::BalanceResponse = app
             .wrap()
             .query_wasm_smart(

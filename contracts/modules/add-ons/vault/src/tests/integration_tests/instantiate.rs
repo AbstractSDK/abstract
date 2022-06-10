@@ -5,8 +5,8 @@ use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
 use abstract_os::native::memory::msg as MemoryMsg;
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
-use terra_multi_test::Executor;
-use terra_multi_test::{App, ContractWrapper};
+use cw_multi_test::Executor;
+use cw_multi_test::{App, ContractWrapper};
 
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
 

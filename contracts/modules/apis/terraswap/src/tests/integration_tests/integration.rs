@@ -2,7 +2,7 @@ use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw20::Cw20Contract;
 
 use cw_asset::AssetInfoUnchecked;
-use terra_multi_test::{App, ContractWrapper};
+use cw_multi_test::{App, ContractWrapper};
 
 use crate::dapp_base::common::TEST_CREATOR;
 use crate::tests::integration_tests::common_integration::{
@@ -11,7 +11,7 @@ use crate::tests::integration_tests::common_integration::{
 use abstract_os::core::proxy::msg as TreasuryMsg;
 use abstract_os::modules::apis::terraswap::ExecuteMsg;
 use abstract_os::native::memory::msg as MemoryMsg;
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 use terraswap::pair::PoolResponse;
 
 use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};

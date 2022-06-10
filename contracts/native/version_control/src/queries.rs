@@ -10,7 +10,6 @@ use crate::error::VCError;
 use abstract_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
-use cw_storage_plus::U32Key;
 
 use abstract_os::core::manager::msg::{EnabledModulesResponse, QueryMsg};
 use abstract_os::native::version_control::msg::CodeIdResponse;
@@ -25,7 +24,7 @@ pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary
 }
 
 pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
-    let os_address = OS_ADDRESSES.load(deps.storage, U32Key::new(os_id));
+    let os_address = OS_ADDRESSES.load(deps.storage, os_id);
     match os_address {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingOsId { id: os_id }.to_string(),
@@ -43,13 +42,13 @@ pub fn query_code_id(deps: Deps, module: ModuleInfo) -> StdResult<Binary> {
         MODULE_CODE_IDS.load(deps.storage, (&module.name, &version))
     } else {
         // get latest
-        let versions: StdResult<Vec<(Vec<u8>, u64)>> = MODULE_CODE_IDS
+        let versions: StdResult<Vec<(String, u64)>> = MODULE_CODE_IDS
             .prefix(&module.name)
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
         let (latest_version, id) = &versions?[0];
-        resulting_version = std::str::from_utf8(latest_version)?.to_owned();
+        resulting_version = latest_version.clone();
         Ok(*id)
     };
 

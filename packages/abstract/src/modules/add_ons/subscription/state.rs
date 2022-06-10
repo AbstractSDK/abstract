@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::util::{deposit_manager::Deposit, paged_map::PagedMap};
 use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
-use cw_storage_plus::{Item, Map, U32Key};
+use cw_storage_plus::{Item, Map};
 
 pub const MONTH: u64 = 60 * 60 * 24 * 30;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -46,7 +46,7 @@ pub const SUB_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
 
 pub const CLIENTS: PagedMap<Subscriber, IncomeAccumulator> =
     PagedMap::new("clients", "clients_status");
-pub const DORMANT_CLIENTS: Map<U32Key, Subscriber> = Map::new("dormant_clients");
+pub const DORMANT_CLIENTS: Map<u32, Subscriber> = Map::new("dormant_clients");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ContributionConfig {

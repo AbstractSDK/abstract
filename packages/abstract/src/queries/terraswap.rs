@@ -1,25 +1,25 @@
 use cosmwasm_std::{
     to_binary, Addr, Coin, Decimal, Deps, QueryRequest, StdResult, Uint128, WasmQuery,
 };
-use terraswap::asset::{Asset, AssetInfo};
+use cw_asset::AssetInfo;
+use terraswap::asset::{Asset as TSAsset, AssetInfo as TSAssetInfo};
 use terraswap::pair::{PoolResponse, QueryMsg, SimulationResponse};
-use terraswap::querier::{query_balance, query_token_balance};
 
 pub fn simulate_swap(deps: Deps, pool_address: Addr, offer_coin: Coin) -> StdResult<Uint128> {
     let response: SimulationResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: pool_address.to_string(),
             msg: to_binary(&QueryMsg::Simulation {
-                offer_asset: Asset {
-                    info: AssetInfo::NativeToken {
+                offer_asset: TSAsset {
+                    info: TSAssetInfo::NativeToken {
                         denom: offer_coin.denom,
                     },
-                    amount: offer_coin.amount,
+                    amount: offer_coin.amount.u128().into(),
                 },
             })?,
         }))?;
 
-    Ok(response.return_amount)
+    Ok(response.return_amount.u128().into())
 }
 
 // perform a query for Pool information using the provided pool_address
@@ -40,7 +40,10 @@ pub fn pool_ratio(deps: Deps, pool_address: Addr) -> StdResult<Decimal> {
         msg: to_binary(&QueryMsg::Pool {})?,
     }))?;
     // [0,1]
-    let ratio = Decimal::from_ratio(response.assets[0].amount, response.assets[1].amount);
+    let ratio = Decimal::from_ratio(
+        response.assets[0].amount.u128(),
+        response.assets[1].amount.u128(),
+    );
     Ok(ratio)
 }
 
@@ -49,13 +52,5 @@ pub fn query_asset_balance(
     asset_info: &AssetInfo,
     address: Addr,
 ) -> StdResult<Uint128> {
-    let amount = match asset_info.clone() {
-        AssetInfo::NativeToken { denom } => query_balance(&deps.querier, address, denom)?,
-        AssetInfo::Token { contract_addr } => query_token_balance(
-            &deps.querier,
-            deps.api.addr_validate(contract_addr.as_str())?,
-            address,
-        )?,
-    };
-    Ok(amount)
+    asset_info.query_balance(&deps.querier, address)
 }

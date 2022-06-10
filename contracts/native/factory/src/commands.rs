@@ -6,11 +6,11 @@ use abstract_os::modules::add_ons::subscription::msg::{
     QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
 };
 use abstract_os::native::os_factory::msg::ExecuteMsg;
+use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg, WasmQuery,
+    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
 };
-use cosmwasm_std::{ContractResult, CosmosMsg, SubMsgExecutionResponse};
 use cw20::Cw20ReceiveMsg;
 use protobuf::Message;
 
@@ -122,10 +122,7 @@ pub fn execute_create_os(
 }
 
 /// instantiates the Treasury contract of the newly created DAO
-pub fn after_manager_create_proxy(
-    deps: DepsMut,
-    result: ContractResult<SubMsgExecutionResponse>,
-) -> OsFactoryResult {
+pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     // Get address of Manager contract
@@ -176,7 +173,7 @@ pub fn after_manager_create_proxy(
 /// adds proxy contract address to Manager
 pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
-    result: ContractResult<SubMsgExecutionResponse>,
+    result: SubMsgResult,
 ) -> OsFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;

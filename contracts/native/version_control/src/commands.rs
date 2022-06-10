@@ -1,5 +1,4 @@
 use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
-use cw_storage_plus::U32Key;
 
 use crate::contract::VCResult;
 use crate::error::VCError;
@@ -19,7 +18,7 @@ pub fn add_os(
 
     let manager = deps.api.addr_validate(&os_manager)?;
     let proxy = deps.api.addr_validate(&os_proxy)?;
-    OS_ADDRESSES.save(deps.storage, U32Key::from(os_id), &Core { manager, proxy })?;
+    OS_ADDRESSES.save(deps.storage, os_id, &Core { manager, proxy })?;
 
     Ok(Response::new().add_attributes(vec![
         ("Action", "Add OS"),
@@ -77,7 +76,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     // Admin is asserted here
-    ADMIN.execute_update_admin::<Empty>(deps, info, Some(admin_addr))?;
+    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))
@@ -91,8 +90,8 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
 //     SUBSCRIPTION.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
 //     for os_id in os_ids {
-//         if OS_ADDRESSES.has(deps.storage, U32Key::from(os_id)) {
-//             OS_ADDRESSES.remove(deps.storage, U32Key::from(os_id));
+//         if OS_ADDRESSES.has(deps.storage, os_id) {
+//             OS_ADDRESSES.remove(deps.storage, os_id);
 //         } else {
 //             return Err(VCError::MissingOsId { id: os_id });
 //         }

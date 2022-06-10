@@ -14,7 +14,7 @@ use cosmwasm_std::Uint64;
 use cw_asset::AssetInfoUnchecked;
 
 use abstract_os::registery::SUBSCRIPTION;
-use terra_multi_test::TerraApp;
+use cw_multi_test::App;
 
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::subscription::register_subscription;
@@ -24,7 +24,7 @@ use abstract_os::core::*;
 use anyhow::Result as AnyResult;
 
 use abstract_os::native::*;
-use terra_multi_test::Executor;
+use cw_multi_test::Executor;
 
 use super::common_integration::NativeContracts;
 
@@ -32,7 +32,7 @@ use super::upload::upload_base_contracts;
 use super::verify::os_store_as_expected;
 
 pub fn init_os(
-    app: &mut TerraApp,
+    app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
     os_store: &mut HashMap<u32, Core>,
@@ -74,7 +74,7 @@ pub fn init_os(
 /// Instantiate the first OS which has the subscriber module.
 /// Update the factory using this new address
 pub fn init_primary_os(
-    app: &mut TerraApp,
+    app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
     os_store: &mut HashMap<u32, Core>,

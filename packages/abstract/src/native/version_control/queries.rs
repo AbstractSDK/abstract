@@ -2,8 +2,6 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
 use cosmwasm_std::StdResult;
 
-use cw_storage_plus::U32Key;
-
 use super::state::{Core, OS_ADDRESSES};
 
 pub fn verify_os_manager(
@@ -12,8 +10,7 @@ pub fn verify_os_manager(
     version_control_addr: &Addr,
     os_id: u32,
 ) -> StdResult<Core> {
-    let maybe_os =
-        OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
+    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(
             "OS with id {} is not active.",
@@ -37,8 +34,7 @@ pub fn verify_os_proxy(
     version_control_addr: &Addr,
     os_id: u32,
 ) -> StdResult<Core> {
-    let maybe_os =
-        OS_ADDRESSES.query(querier, version_control_addr.clone(), U32Key::from(os_id))?;
+    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(
             "OS with id {} is not active.",
@@ -77,7 +73,7 @@ pub fn verify_os_proxy(
 //     version_control_addr: &Addr,
 //     os_id: u32,
 // ) -> StdResult<Addr> {
-//     let path = U32Key::from(os_id).joined_key();
+//     let path = os_id.joined_key();
 //     deps.querier
 //         .query::<Addr>(&QueryRequest::Wasm(WasmQuery::Raw {
 //             contract_addr: version_control_addr.to_string(),

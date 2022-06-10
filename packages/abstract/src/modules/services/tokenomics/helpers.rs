@@ -1,7 +1,6 @@
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
     to_binary, Addr, Api, Binary, Coin, CosmosMsg, QuerierWrapper, QueryRequest, StdResult,
-    Uint128, WasmMsg, WasmQuery,
+    Uint128, Uint256, WasmMsg, WasmQuery,
 };
 use cw20::BalanceResponse as CW20BalanceResponse;
 use cw20_base::msg::{ExecuteMsg as CW20ExecuteMsg, QueryMsg as Cw20QueryMsg};

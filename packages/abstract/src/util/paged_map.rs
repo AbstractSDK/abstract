@@ -167,7 +167,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
             status.last_processed_item = None;
         }
 
-        let start = status.last_processed_item.clone().map(Bound::exclusive);
+        let start = status.last_processed_item.clone().map(Bound::ExclusiveRaw);
 
         let result: Vec<(Vec<u8>, T)> = self
             .data
@@ -227,7 +227,7 @@ impl<'a, T, Acum> PagedMap<'a, T, Acum> {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_MSG_LIMIT) as usize;
         let mut status = self.status.load(deps.storage)?;
 
-        let start = status.last_processed_item.clone().map(Bound::exclusive);
+        let start = status.last_processed_item.clone().map(Bound::ExclusiveRaw);
         let result: Vec<(Vec<u8>, T)> = self
             .data
             .range(deps.storage, start, None, Order::Ascending)
@@ -327,7 +327,7 @@ mod tests {
             }
         }
 
-        let mut deps = mock_dependencies(&[]);
+        let mut deps = mock_dependencies();
         USERS.instantiate(&mut deps.storage).unwrap();
         let mut total = 0;
         let mut even_numbers = vec![];
@@ -419,7 +419,7 @@ mod tests {
             }
         }
 
-        let mut deps = mock_dependencies(&[]);
+        let mut deps = mock_dependencies();
         USERS.instantiate(&mut deps.storage).unwrap();
         let mut even_numbers = vec![];
 

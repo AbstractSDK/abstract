@@ -1,7 +1,6 @@
 use cosmwasm_std::{
-    to_binary, Addr, Binary, ContractResult, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgExecutionResponse, WasmMsg,
-    WasmQuery,
+    to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn,
+    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
 };
 
 use cw2::ContractVersion;
@@ -248,10 +247,7 @@ pub fn create_service(
         }))
 }
 
-pub fn handle_add_on_init_result(
-    deps: DepsMut,
-    result: ContractResult<SubMsgExecutionResponse>,
-) -> ModuleFactoryResult {
+pub fn handle_add_on_init_result(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
     // Get address of Manager contract
     let res: MsgInstantiateContractResponse =
@@ -278,10 +274,7 @@ pub fn handle_add_on_init_result(
     )
 }
 
-pub fn handle_api_init_result(
-    deps: DepsMut,
-    result: ContractResult<SubMsgExecutionResponse>,
-) -> ModuleFactoryResult {
+pub fn handle_api_init_result(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
     // Get address of Manager contract
     let res: MsgInstantiateContractResponse =

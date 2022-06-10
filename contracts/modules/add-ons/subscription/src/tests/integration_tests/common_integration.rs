@@ -4,7 +4,7 @@ use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
 use abstract_os::memory::msg as MemoryMsg;
 use abstract_os::proxy::msg as TreasuryMsg;
 use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
+use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use cw_asset::{AssetInfo, PairInfo};
 
 pub struct BaseContracts {

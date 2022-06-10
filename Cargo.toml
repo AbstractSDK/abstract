@@ -6,7 +6,7 @@ members = [
     "contracts/testing",
     # "contracts/dapps/external/*",
     # "contracts/modules/apis/anchor",
-    "contracts/modules/apis/terraswap",
+    # "contracts/modules/apis/terraswap",
     "contracts/modules/add-ons/vault",
     "contracts/modules/add-ons/subscription",
     # "contracts/dapps/template",

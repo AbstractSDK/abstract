@@ -4,7 +4,7 @@ use abstract_os::core::modules::ModuleInfo;
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::Addr;
 
-use terra_multi_test::{AppBuilder, BankKeeper, TerraApp, TerraMock};
+use cw_multi_test::{App, AppBuilder, BankKeeper, TerraMock};
 
 pub struct NativeContracts {
     pub token: Addr,
@@ -20,7 +20,7 @@ pub struct OsInstance {
     pub modules: HashMap<String, ModuleInfo>,
 }
 
-pub fn mock_app() -> TerraApp {
+pub fn mock_app() -> App {
     let env = mock_env();
     let api = MockApi::default();
     let bank = BankKeeper::new();

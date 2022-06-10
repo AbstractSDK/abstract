@@ -5,8 +5,8 @@ use astroport::asset::{AssetInfo, PairInfo};
 use astroport::factory::{PairConfig, PairType};
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
+use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 use terra_mocks::TerraMockQuerier;
-use terra_multi_test::{App, BankKeeper, ContractWrapper, Executor};
 
 pub struct BaseContracts {
     pub whale: Addr,

@@ -30,16 +30,11 @@ pub fn handle_contract_versions_query(
 }
 
 pub fn handle_enabled_modules_query(deps: Deps) -> StdResult<Binary> {
-    let module_names: Vec<String> = OS_MODULES
+    let module_names: StdResult<Vec<String>> = OS_MODULES
         .keys(deps.storage, None, None, Order::Ascending)
-        .map(|module| String::from_utf8(module).unwrap())
         .collect();
 
-    // for module in modules.into_iter() {
-    //     module_names.push(String::from_utf8(module)?);
-    // };
-
     to_binary(&EnabledModulesResponse {
-        modules: module_names,
+        modules: module_names?,
     })
 }

@@ -5,7 +5,8 @@ use abstract_os::modules::add_ons::subscription::{msg as msgs, state};
 use abstract_os::{core::modules::ModuleInfo, registery::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Coin, Decimal, Uint128, Uint64};
-use terra_multi_test::{ContractWrapper, Executor, TerraApp};
+use cw_controllers::AdminError;
+use cw_multi_test::{App, ContractWrapper, Executor};
 
 use crate::tests::common::RANDOM_USER;
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
@@ -17,7 +18,7 @@ use super::{
 };
 
 pub fn register_subscription(
-    app: &mut TerraApp,
+    app: &mut App,
     sender: &Addr,
     version_control: &Addr,
 ) -> AnyResult<()> {
@@ -107,7 +108,7 @@ fn proper_initialization() {
 
 #[test]
 fn add_and_remove_contributors() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
 
@@ -140,8 +141,11 @@ fn add_and_remove_contributors() {
     let resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         .unwrap_err();
-    // Config changes always go through Manager contract
-    assert_eq!(resp.to_string(), "Caller is not admin");
+
+    assert_eq!(
+        AdminError::NotAdmin {}.to_string(),
+        resp.source().unwrap().to_string()
+    );
 
     exec_msg_on_manager(&mut app, &sender, &manager_addr, SUBSCRIPTION, &msg).unwrap();
 
@@ -216,7 +220,10 @@ fn add_and_remove_contributors() {
     let resp =
         exec_msg_on_manager(&mut app, &random_user, &manager_addr, SUBSCRIPTION, &msg).unwrap_err();
     // Only OS root can change stuff on module
-    assert_eq!(resp.to_string(), "Caller is not admin");
+    assert_eq!(
+        AdminError::NotAdmin {}.to_string(),
+        resp.source().unwrap().to_string()
+    );
 
     exec_msg_on_manager(&mut app, &sender, &manager_addr, SUBSCRIPTION, &msg).unwrap();
 
@@ -252,13 +259,9 @@ fn add_and_remove_contributors() {
 
 #[test]
 fn actions_before_first_month() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
-    app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
-        .unwrap();
-    app.init_bank_balance(&random_user, vec![Coin::new(1_000_000_000, "uusd")])
-        .unwrap();
     let mut env = AbstractEnv::new(&mut app, &sender);
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
@@ -289,11 +292,11 @@ fn actions_before_first_month() {
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         // Can only claim after tallying
         .unwrap_err();
-    assert_eq!(
-        resp.to_string(),
-        "cannot claim emissions before income is collected"
-    );
 
+    assert_eq!(
+        "cannot claim emissions before income is collected".to_string(),
+        resp.source().unwrap().to_string()
+    );
     // Locks the client map
     let msg = msgs::ExecuteMsg::CollectSubs { page_limit: None };
     let resp = app
@@ -307,14 +310,14 @@ fn actions_before_first_month() {
         .unwrap_err();
 
     assert_eq!(
-        resp.to_string(),
+        resp.source().unwrap().to_string(),
         "cannot claim emissions before income is collected"
     );
 
     // Map is locked so no new OS's are allowed to be created
     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap_err();
     assert_eq!(
-        resp.to_string(),
+        resp.source().unwrap().source().unwrap().to_string(),
         "Generic error: Can not save to map while locked. Proceed with operation first."
     );
 
@@ -327,7 +330,7 @@ fn actions_before_first_month() {
         .unwrap_err();
     // No contributor registered
     assert_eq!(
-        resp.to_string(),
+        resp.source().unwrap().to_string(),
         "income target is zero, no contributions can be paid out."
     );
 
@@ -351,7 +354,7 @@ fn actions_before_first_month() {
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         .unwrap_err();
     // Config changes always go through Manager contract
-    assert_eq!(resp.to_string(), "Caller is not admin");
+    assert_eq!(resp.source().unwrap().to_string(), "Caller is not admin");
 
     exec_msg_on_manager(&mut app, &sender, &manager_addr, SUBSCRIPTION, &msg).unwrap();
 
@@ -416,7 +419,7 @@ fn actions_before_first_month() {
         .unwrap_err();
     // Contributor has to wait one month before he can start claiming pay
     assert_eq!(
-        resp.to_string(),
+        resp.source().unwrap().to_string(),
         "Generic error: You cant claim before your next pay day."
     );
 }
@@ -427,13 +430,9 @@ fn actions_before_first_month() {
 
 #[test]
 fn actions_after_first_month() {
-    let mut app: TerraApp = mock_app();
+    let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);
-    app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
-        .unwrap();
-    app.init_bank_balance(&random_user, vec![Coin::new(1_000_000_000, "uusd")])
-        .unwrap();
     let mut env = AbstractEnv::new(&mut app, &sender);
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
@@ -526,7 +525,7 @@ fn actions_after_first_month() {
 }
 // #[test]
 // fn add_subscribers_contributors() {
-//     let mut app: TerraApp = mock_app();
+//     let mut app: App = mock_app();
 //     let sender = Addr::unchecked(TEST_CREATOR);
 //     let random_user = Addr::unchecked(RANDOM_USER);
 //     app.init_bank_balance(&sender, vec![Coin::new(1_000_000_000, "uusd")])
@@ -716,7 +715,7 @@ fn add_block(b: &mut BlockInfo) {
     b.height += 1;
 }
 
-fn collect_subs_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr: &Addr) {
+fn collect_subs_until_done(app: &mut App, sender: &Addr, subscription_addr: &Addr) {
     let mut state: msgs::StateResponse = app
         .wrap()
         .query_wasm_smart(subscription_addr, &msgs::QueryMsg::State {})
@@ -734,7 +733,7 @@ fn collect_subs_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr:
         state.contribution.next_pay_day = new_state.contribution.next_pay_day;
     }
 }
-fn send_compensations_until_done(app: &mut TerraApp, sender: &Addr, subscription_addr: &Addr) {
+fn send_compensations_until_done(app: &mut App, sender: &Addr, subscription_addr: &Addr) {
     let mut done = false;
 
     while !done {
