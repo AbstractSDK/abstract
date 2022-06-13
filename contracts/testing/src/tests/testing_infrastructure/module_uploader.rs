@@ -2,7 +2,7 @@ use crate::tests::common::DEFAULT_VERSION;
 use abstract_os::core::modules::ModuleInfo;
 use abstract_os::native::version_control::msg as VCMsg;
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{Addr, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response};
+use cosmwasm_std::{Addr, Empty};
 
 use cw_multi_test::{App, Contract, Executor};
 

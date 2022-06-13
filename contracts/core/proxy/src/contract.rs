@@ -2,11 +2,11 @@ use abstract_os::core::common::OS_ID;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order,
-    Response, StdResult, Uint128,
+    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response,
+    StdResult, Uint128,
 };
 
-use crate::error::TreasuryError;
+use crate::error::ProxyError;
 use abstract_os::core::proxy::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
     TotalValueResponse,
@@ -17,12 +17,13 @@ use abstract_os::registery::PROXY;
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::AssetInfo;
 use semver::Version;
-type TreasuryResult = Result<Response, TreasuryError>;
+type ProxyResult = Result<Response, ProxyError>;
 /*
     The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
 */
-
+// TODO: test max limit on-chain
+const LIST_SIZE_LIMIT: usize = 15;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -31,11 +32,11 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> TreasuryResult {
+) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     OS_ID.save(deps.storage, &msg.os_id)?;
-    STATE.save(deps.storage, &State { dapps: vec![] })?;
+    STATE.save(deps.storage, &State { modules: vec![] })?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
 
@@ -43,30 +44,19 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> TreasuryResult {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
     match msg {
-        ExecuteMsg::DAppAction { msgs } => execute_action(deps, info, msgs),
+        ExecuteMsg::ModuleAction { msgs } => execute_action(deps, info, msgs),
         ExecuteMsg::SetAdmin { admin } => {
             let admin_addr = deps.api.addr_validate(&admin)?;
             let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-            let mut state = STATE.load(deps.storage)?;
-            let canonical_addr = deps.api.addr_canonicalize(previous_admin.as_str())?;
-            // Rm old admin
-            state.dapps.retain(|addr| *addr != canonical_addr);
-            // Add new admin
-            state
-                .dapps
-                .push(deps.api.addr_canonicalize(admin_addr.as_str())?);
-
-            STATE.save(deps.storage, &state)?;
             ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-
             Ok(Response::default()
                 .add_attribute("previous admin", previous_admin)
                 .add_attribute("admin", admin))
         }
-        ExecuteMsg::AddDApp { dapp } => add_dapp(deps, info, dapp),
-        ExecuteMsg::RemoveDApp { dapp } => remove_dapp(deps, info, dapp),
+        ExecuteMsg::AddModule { module } => add_module(deps, info, module),
+        ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
             update_assets(deps, info, to_add, to_remove)
         }
@@ -74,15 +64,12 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> TreasuryResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
 
     if storage_version < version {
         set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-
-        // If state structure changed in any contract version in the way migration is needed, it
-        // should occur here
     }
     Ok(Response::default())
 }
@@ -93,13 +80,13 @@ pub fn execute_action(
     deps: DepsMut,
     msg_info: MessageInfo,
     msgs: Vec<CosmosMsg<Empty>>,
-) -> TreasuryResult {
+) -> ProxyResult {
     let state = STATE.load(deps.storage)?;
     if !state
-        .dapps
-        .contains(&deps.api.addr_canonicalize(msg_info.sender.as_str())?)
+        .modules
+        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
     {
-        return Err(TreasuryError::SenderNotWhitelisted {});
+        return Err(ProxyError::SenderNotWhitelisted {});
     }
 
     Ok(Response::new().add_messages(msgs))
@@ -111,9 +98,18 @@ pub fn update_assets(
     msg_info: MessageInfo,
     to_add: Vec<ProxyAsset>,
     to_remove: Vec<AssetInfo>,
-) -> TreasuryResult {
+) -> ProxyResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    // Check the vault size to be within the size limit to prevent running out of gas when doing lookups
+    let current_vault_size = VAULT_ASSETS
+        .keys(deps.storage, None, None, Order::Ascending)
+        .count();
+    let delta: i128 = to_add.len() as i128 - to_remove.len() as i128;
+    if current_vault_size as i128 + delta > LIST_SIZE_LIMIT as i128 {
+        return Err(ProxyError::AssetsLimitReached {});
+    }
 
     for new_asset in to_add.into_iter() {
         let id = get_asset_identifier(&new_asset.asset.info);
@@ -131,38 +127,43 @@ pub fn update_assets(
 }
 
 /// Add a contract to the whitelist
-pub fn add_dapp(deps: DepsMut, msg_info: MessageInfo, dapp: String) -> TreasuryResult {
+pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut state = STATE.load(deps.storage)?;
-    if state.dapps.contains(&deps.api.addr_canonicalize(&dapp)?) {
-        return Err(TreasuryError::AlreadyInList {});
+    if state.modules.contains(&deps.api.addr_validate(&module)?) {
+        return Err(ProxyError::AlreadyInList {});
+    }
+
+    // This is a limit to prevent potentially running out of gas when doing lookups on the modules list
+    if state.modules.len() >= LIST_SIZE_LIMIT {
+        return Err(ProxyError::ModuleLimitReached {});
     }
 
     // Add contract to whitelist.
-    state.dapps.push(deps.api.addr_canonicalize(&dapp)?);
+    state.modules.push(deps.api.addr_validate(&module)?);
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
-    Ok(Response::new().add_attribute("Added contract to whitelist: ", dapp))
+    Ok(Response::new().add_attribute("Added contract to whitelist: ", module))
 }
 
 /// Remove a contract from the whitelist
-pub fn remove_dapp(deps: DepsMut, msg_info: MessageInfo, dapp: String) -> TreasuryResult {
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> ProxyResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let mut state = STATE.load(deps.storage)?;
-    if !state.dapps.contains(&deps.api.addr_canonicalize(&dapp)?) {
-        return Err(TreasuryError::NotInList {});
+    if !state.modules.contains(&deps.api.addr_validate(&module)?) {
+        return Err(ProxyError::NotInList {});
     }
 
     // Remove contract from whitelist.
-    let canonical_addr = deps.api.addr_canonicalize(&dapp)?;
-    state.dapps.retain(|addr| *addr != canonical_addr);
+    let module_address = deps.api.addr_validate(&module)?;
+    state.modules.retain(|addr| *addr != module_address);
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
-    Ok(Response::new().add_attribute("Removed contract from whitelist: ", dapp))
+    Ok(Response::new().add_attribute("Removed contract from whitelist: ", module))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -190,14 +191,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-/// Returns the whitelisted dapps
+/// Returns the whitelisted modules
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state = STATE.load(deps.storage)?;
-    let dapps: Vec<CanonicalAddr> = state.dapps;
+    let modules: Vec<Addr> = state.modules;
     let resp = ConfigResponse {
-        dapps: dapps
+        modules: modules
             .iter()
-            .map(|dapp| -> String { deps.api.addr_humanize(dapp).unwrap().to_string() })
+            .map(|module| -> String { module.to_string() })
             .collect(),
     };
     Ok(resp)

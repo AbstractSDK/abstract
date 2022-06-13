@@ -17,11 +17,11 @@ pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
-    DAppAction { msgs: Vec<CosmosMsg<Empty>> },
+    ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
     /// Adds the provided address to whitelisted dapps
-    AddDApp { dapp: String },
+    AddModule { module: String },
     /// Removes the provided address from the whitelisted dapps
-    RemoveDApp { dapp: String },
+    RemoveModule { module: String },
     /// Updates the VAULT_ASSETS map
     UpdateAssets {
         to_add: Vec<ProxyAsset>,
@@ -56,7 +56,7 @@ pub enum QueryMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub dapps: Vec<String>,
+    pub modules: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -85,7 +85,7 @@ pub struct ExternalValueResponse {
 pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
-        msg: to_binary(&ExecuteMsg::DAppAction { msgs })?,
+        msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
         funds: vec![],
     }))
 }

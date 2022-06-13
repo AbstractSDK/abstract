@@ -22,7 +22,7 @@ fn test_non_whitelisted() {
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
-    let msg = ExecuteMsg::AddDApp {
+    let msg = ExecuteMsg::AddModule {
         dapp: TEST_CREATOR.to_string(),
     };
 
@@ -38,7 +38,7 @@ fn test_non_whitelisted() {
 
     let info = mock_info(NOT_ALLOWED, &[]);
 
-    let msg = ExecuteMsg::DAppAction {
+    let msg = ExecuteMsg::ModuleAction {
         msgs: vec![test_token
             .transfer_msg(Addr::unchecked(NOT_ALLOWED))
             .unwrap()],
@@ -60,7 +60,7 @@ fn test_whitelisted() {
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
-    let msg = ExecuteMsg::AddDApp {
+    let msg = ExecuteMsg::AddModule {
         dapp: TEST_CREATOR.to_string(),
     };
 
@@ -76,7 +76,7 @@ fn test_whitelisted() {
 
     let info = mock_info(TEST_CREATOR, &[]);
 
-    let msg = ExecuteMsg::DAppAction {
+    let msg = ExecuteMsg::ModuleAction {
         msgs: vec![test_token
             .transfer_msg(Addr::unchecked(TEST_CREATOR))
             .unwrap()],

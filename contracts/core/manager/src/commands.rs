@@ -388,26 +388,30 @@ fn upgrade_self(
     Ok(Response::new().add_message(migration_msg))
 }
 
-pub fn whitelist_dapp_on_proxy(
+fn whitelist_dapp_on_proxy(
     _deps: Deps,
     proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address,
-        msg: to_binary(&TreasuryMsg::AddDApp { dapp: dapp_address })?,
+        msg: to_binary(&TreasuryMsg::AddModule {
+            module: dapp_address,
+        })?,
         funds: vec![],
     }))
 }
 
-pub fn remove_dapp_from_proxy(
+fn remove_dapp_from_proxy(
     _deps: Deps,
     proxy_address: String,
     dapp_address: String,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address,
-        msg: to_binary(&TreasuryMsg::RemoveDApp { dapp: dapp_address })?,
+        msg: to_binary(&TreasuryMsg::RemoveModule {
+            module: dapp_address,
+        })?,
         funds: vec![],
     }))
 }

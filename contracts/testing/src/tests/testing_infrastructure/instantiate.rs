@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 
-use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
+use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::native::{
     memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,

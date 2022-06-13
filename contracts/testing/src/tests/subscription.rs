@@ -4,7 +4,7 @@ use abstract_os::modules::add_ons::subscription::state::{
 use abstract_os::modules::add_ons::subscription::{msg as msgs, state};
 use abstract_os::{core::modules::ModuleInfo, registery::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{Addr, BlockInfo, Coin, Decimal, Uint128, Uint64};
+use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
 
@@ -261,7 +261,7 @@ fn add_and_remove_contributors() {
 fn actions_before_first_month() {
     let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
-    let random_user = Addr::unchecked(RANDOM_USER);
+    let _random_user = Addr::unchecked(RANDOM_USER);
     let mut env = AbstractEnv::new(&mut app, &sender);
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
@@ -277,7 +277,7 @@ fn actions_before_first_month() {
         proxy_addr.to_string(),
     );
 
-    let contributing_os = 12u32;
+    let _contributing_os = 12u32;
     for _ in 0..50u32 {
         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
     }
@@ -299,7 +299,7 @@ fn actions_before_first_month() {
     );
     // Locks the client map
     let msg = msgs::ExecuteMsg::CollectSubs { page_limit: None };
-    let resp = app
+    let _resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         .unwrap();
 
@@ -397,7 +397,7 @@ fn actions_before_first_month() {
     send_compensations_until_done(&mut app, &sender, &subscription_addr);
 
     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
-    let resp = app
+    let _resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         .unwrap();
     // Proxy has claimed assets
@@ -432,7 +432,7 @@ fn actions_before_first_month() {
 fn actions_after_first_month() {
     let mut app: App = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
-    let random_user = Addr::unchecked(RANDOM_USER);
+    let _random_user = Addr::unchecked(RANDOM_USER);
     let mut env = AbstractEnv::new(&mut app, &sender);
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
@@ -515,12 +515,12 @@ fn actions_after_first_month() {
         contributor: Some(sender.to_string()),
         page_limit: None,
     };
-    let resp = app
+    let _resp = app
         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
         .unwrap();
 
     // contributor has claimed assets
-    let new_balance = token_balance(&app, &env.native_contracts.token, &sender);
+    let _new_balance = token_balance(&app, &env.native_contracts.token, &sender);
     // 50/50 emission split
 }
 // #[test]
@@ -723,7 +723,7 @@ fn collect_subs_until_done(app: &mut App, sender: &Addr, subscription_addr: &Add
 
     while state.contribution.next_pay_day.u64() < app.block_info().time.seconds() {
         let msg = msgs::ExecuteMsg::CollectSubs { page_limit: None };
-        let resp = app
+        let _resp = app
             .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
             .unwrap();
         let new_state: msgs::StateResponse = app

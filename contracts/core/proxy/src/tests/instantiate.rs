@@ -33,14 +33,14 @@ fn successful_initialization() {
     let state: State = STATE.load(&deps.storage).unwrap();
     assert_eq!(state, State { dapps: vec![] });
 
-    let msg = ExecuteMsg::AddDApp {
+    let msg = ExecuteMsg::AddModule {
         dapp: DAPP.to_string(),
     };
     let _res = execute(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
     let state: State = STATE.load(&deps.storage).unwrap();
     assert_eq!(state.dapps[0], deps.api.addr_canonicalize(&DAPP).unwrap(),);
 
-    let msg = ExecuteMsg::RemoveDApp {
+    let msg = ExecuteMsg::RemoveModule {
         dapp: DAPP.to_string(),
     };
     let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();

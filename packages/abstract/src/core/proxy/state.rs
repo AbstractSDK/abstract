@@ -2,16 +2,13 @@ use cw_controllers::Admin;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::CanonicalAddr;
+use cosmwasm_std::Addr;
 use cw_storage_plus::{Item, Map};
 
 use crate::core::proxy::proxy_assets::ProxyAsset;
-
-pub static LUNA_DENOM: &str = "uluna";
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct State {
-    pub dapps: Vec<CanonicalAddr>,
+    pub modules: Vec<Addr>,
 }
 
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");

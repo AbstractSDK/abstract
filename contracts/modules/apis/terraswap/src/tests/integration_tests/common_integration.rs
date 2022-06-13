@@ -172,7 +172,7 @@ fn instantiate_pair(
 
 /// Whitelist a dapp on the proxy
 pub fn whitelist_dapp(app: &mut App, owner: &Addr, proxy_instance: &Addr, dapp_instance: &Addr) {
-    let msg = TreasuryMsg::ExecuteMsg::AddDApp {
+    let msg = TreasuryMsg::ExecuteMsg::AddModule {
         dapp: dapp_instance.to_string(),
     };
     let _res = app

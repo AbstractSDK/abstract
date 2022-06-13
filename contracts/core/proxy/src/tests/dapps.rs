@@ -58,7 +58,7 @@ fn test_add_dapp() {
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
-    let msg = ExecuteMsg::AddDApp {
+    let msg = ExecuteMsg::AddModule {
         dapp: "addr420".to_string(),
     };
 
@@ -79,7 +79,7 @@ fn test_remove_dapp() {
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
-    let msg = ExecuteMsg::AddDApp {
+    let msg = ExecuteMsg::AddModule {
         dapp: "addr420".to_string(),
     };
 
@@ -91,7 +91,7 @@ fn test_remove_dapp() {
         from_binary(&query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap()).unwrap();
     assert_eq!(1, config.dapps.len());
     // now remove dapp again.
-    let msg = ExecuteMsg::RemoveDApp {
+    let msg = ExecuteMsg::RemoveModule {
         dapp: "addr420".to_string(),
     };
     match execute(deps.as_mut(), mock_env(), info, msg) {

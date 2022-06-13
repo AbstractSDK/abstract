@@ -139,10 +139,9 @@ fn instantiate_pair(
 
     let msg = terraswap::pair::InstantiateMsg {
         asset_infos: [
-            AssetInfo::Native("uusd".to_string(),
-            },
-            AssetInfo::Cw20( whale_token_instance.to_string(),
-            },
+            AssetInfo::Native("uusd".to_string()),
+            
+            AssetInfo::Cw20( whale_token_instance.to_string()),
         ],
         token_code_id: token_contract_code_id,
     };
@@ -170,7 +169,7 @@ fn instantiate_pair(
 
 /// Whitelist a dapp on the proxy
 pub fn whitelist_dapp(app: &mut App, owner: &Addr, proxy_instance: &Addr, dapp_instance: &Addr) {
-    let msg = TreasuryMsg::ExecuteMsg::AddDApp {
+    let msg = TreasuryMsg::ExecuteMsg::AddModule {
         dapp: dapp_instance.to_string(),
     };
     let _res = app
