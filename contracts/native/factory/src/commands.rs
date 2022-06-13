@@ -311,6 +311,6 @@ fn forward_payment(
         msgs.push(forward_payment_to_module);
         Ok(())
     } else {
-        Err(OsFactoryError::NotUsingCW20Hook {})
+        Err(OsFactoryError::NoPaymentRecieved {})
     }
 }
