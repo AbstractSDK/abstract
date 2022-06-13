@@ -12,6 +12,7 @@ use crate::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
 use abstract_os::core::manager::msg::{
     ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
+use abstract_os::core::modules::*;
 use abstract_os::registery::MANAGER;
 use cw2::set_contract_version;
 
@@ -82,7 +83,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
                     // Only Admin can call this method
-                    // TODO: do we want Root here too?
+                    // Todo: Admin is currently defaulted to Os Factory.
                     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
                     update_module_addresses(deps, to_add, to_remove)
                 }
@@ -93,10 +94,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module,
                     module_addr,
                 } => register_module(deps, info, env, module, module_addr),
-                ExecuteMsg::ConfigureModule {
+                ExecuteMsg::ExecOnModule {
                     module_name,
-                    config_msg,
-                } => configure_module(deps, info, module_name, config_msg),
+                    exec_msg,
+                } => exec_on_module(deps, info, module_name, exec_msg),
                 ExecuteMsg::Upgrade {
                     module,
                     migrate_msg,
@@ -117,8 +118,7 @@ fn _upgrade_module(
 ) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     match module.kind {
-        // todo: handle upgrading external modules -> change associated addr
-        abstract_os::core::modules::ModuleKind::API => Ok(Response::new()),
+        ModuleKind::API => replace_api(deps, module.info),
         _ => match migrate_msg {
             Some(msg) => migrate_module(deps, env, module.info, msg),
             None => Err(ManagerError::MsgRequired {}),

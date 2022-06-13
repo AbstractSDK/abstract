@@ -37,9 +37,9 @@ pub enum ExecuteMsg {
     /// Remove a module
     RemoveModule { module_name: String },
     /// Forward configuration message to module
-    ConfigureModule {
+    ExecOnModule {
         module_name: String,
-        config_msg: Binary,
+        exec_msg: Binary,
     },
     /// Update contract configuration
     UpdateConfig {

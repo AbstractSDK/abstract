@@ -38,7 +38,9 @@ pub fn add_code_id(
 ) -> VCResult {
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
+    if MODULE_CODE_IDS.has(deps.storage, (&module, &version)) {
+        return Err(VCError::CodeIdUpdate { version, module });
+    }
     MODULE_CODE_IDS.save(deps.storage, (&module, &version), &code_id)?;
 
     Ok(Response::new().add_attributes(vec![
@@ -63,6 +65,56 @@ pub fn remove_code_id(
         MODULE_CODE_IDS.remove(deps.storage, (&module, &version));
     } else {
         return Err(VCError::MissingCodeId { module, version });
+    }
+
+    Ok(Response::new().add_attributes(vec![
+        ("Action", "Remove Code_ID"),
+        ("Module:", &module),
+        ("Version:", &version),
+    ]))
+}
+
+/// Add a new code_id for a module
+pub fn add_api(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: String,
+    version: String,
+    address: String,
+) -> VCResult {
+    // Only Admin can add code-ids
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    if API_ADDRESSES.has(deps.storage, (&module, &version)) {
+        return Err(VCError::ApiUpdate { version, module });
+    }
+    API_ADDRESSES.save(
+        deps.storage,
+        (&module, &version),
+        &deps.api.addr_validate(&address)?,
+    )?;
+
+    Ok(Response::new().add_attributes(vec![
+        ("Action", "Add Code_ID"),
+        ("Module:", &module),
+        ("Version:", &version),
+        ("api addr:", &address),
+    ]))
+}
+
+/// Add a new code_id for a module
+pub fn remove_api(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: String,
+    version: String,
+) -> VCResult {
+    // Only Admin can update code-ids
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    if API_ADDRESSES.has(deps.storage, (&module, &version)) {
+        API_ADDRESSES.remove(deps.storage, (&module, &version));
+    } else {
+        return Err(VCError::MissingApi { version, module });
     }
 
     Ok(Response::new().add_attributes(vec![

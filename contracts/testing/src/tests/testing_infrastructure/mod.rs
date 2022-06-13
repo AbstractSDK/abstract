@@ -79,9 +79,9 @@ pub mod env {
         module_name: &str,
         encapsuled_msg: &T,
     ) -> AnyResult<AppResponse> {
-        let msg = abstract_os::core::manager::msg::ExecuteMsg::ConfigureModule {
+        let msg = abstract_os::core::manager::msg::ExecuteMsg::ExecOnModule {
             module_name: module_name.into(),
-            config_msg: to_binary(encapsuled_msg)?,
+            exec_msg: to_binary(encapsuled_msg)?,
         };
         app.execute_contract(sender.clone(), manager_addr.clone(), &msg, &[])
     }

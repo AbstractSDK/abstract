@@ -13,10 +13,13 @@ use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
 
+use crate::error::ModuleFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::*;
 
-use abstract_os::native::version_control::msg::{CodeIdResponse, QueryMsg as VCQuery};
+use abstract_os::native::version_control::msg::{
+    ApiAddrResponse, CodeIdResponse, QueryMsg as VCQuery,
+};
 
 pub const CREATE_INTERNAL_DAPP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_EXTERNAL_DAPP_RESPONSE_ID: u64 = 2u64;
@@ -42,6 +45,29 @@ pub fn execute_create_module(
         &config.version_control_address,
         os_id,
     )?;
+
+    if module.kind == ModuleKind::API {
+        // Query version_control for api address
+        let api_addr_response: ApiAddrResponse =
+            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: config.version_control_address.to_string(),
+                msg: to_binary(&VCQuery::QueryApiAddress {
+                    module: module.info.clone(),
+                })?,
+            }))?;
+
+        module.info.version = Some(api_addr_response.info.version);
+
+        let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: core.manager.into_string(),
+            funds: vec![],
+            msg: to_binary(&ManagerMsg::RegisterModule {
+                module_addr: api_addr_response.address.to_string(),
+                module,
+            })?,
+        });
+        return Ok(Response::new().add_message(register_msg));
+    }
 
     // Query version_control for code_id Module
     let module_code_id_response: CodeIdResponse =
@@ -78,16 +104,6 @@ pub fn execute_create_module(
     // Match Module type
     match module {
         Module {
-            kind: ModuleKind::API,
-            ..
-        } => create_api(
-            deps,
-            env,
-            module_code_id_response.code_id.u64(),
-            init_msg,
-            module,
-        ),
-        Module {
             kind: ModuleKind::AddOn,
             ..
         } => create_add_on(
@@ -118,6 +134,9 @@ pub fn execute_create_module(
             init_msg,
             module,
         ),
+        _ => Err(ModuleFactoryError::Std(StdError::generic_err(
+            "don't enter here!",
+        ))),
     }
 }
 
@@ -145,38 +164,6 @@ pub fn create_add_on(
                 funds: vec![],
                 // This contract should be able to migrate the contract
                 admin: Some(manager.to_string()),
-                label: format!("Module: --{}--", module),
-                msg: init_msg,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        }))
-}
-
-// Todo: review if we want external dapps to remain per-os instantiated
-pub fn create_api(
-    _deps: DepsMut,
-    env: Env,
-    code_id: u64,
-    init_msg: Binary,
-    module: Module,
-) -> ModuleFactoryResult {
-    let response = Response::new();
-
-    Ok(response
-        .add_attributes(vec![
-            ("action", "create external dapp"),
-            ("initmsg:", &init_msg.to_string()),
-        ])
-        // Create manager
-        .add_submessage(SubMsg {
-            id: CREATE_EXTERNAL_DAPP_RESPONSE_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id,
-                funds: vec![],
-                // This contract should be able to migrate the contract
-                admin: Some(env.contract.address.to_string()),
                 label: format!("Module: --{}--", module),
                 msg: init_msg,
             }

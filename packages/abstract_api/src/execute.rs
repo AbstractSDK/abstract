@@ -28,7 +28,7 @@ impl<T: Serialize + DeserializeOwned> ProxyExecute for ApiContract<'_, T> {
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub fn execute(
         &self,
-        deps: DepsMut,
+        deps: &mut DepsMut,
         _env: Env,
         info: MessageInfo,
         message: ApiExecuteMsg,
@@ -42,7 +42,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
 
     fn update_traders(
         &self,
-        deps: DepsMut,
+        deps: &mut DepsMut,
         info: MessageInfo,
         to_add: Option<Vec<String>>,
         to_remove: Option<Vec<String>>,

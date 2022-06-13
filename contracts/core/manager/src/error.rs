@@ -13,8 +13,8 @@ pub enum ManagerError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error("Cannot add two internal dapps of the same kind")]
-    InternalDappAlreadyAdded {},
+    #[error("Cannot add two modules of the same kind")]
+    ModuleAlreadyAdded {},
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
@@ -39,6 +39,9 @@ pub enum ManagerError {
 
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
+
+    #[error("The provided API key ({0},{1}) was not found in version control")]
+    ApiNotFound(String, String),
 }
 impl From<semver::Error> for ManagerError {
     fn from(err: semver::Error) -> Self {

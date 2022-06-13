@@ -20,6 +20,15 @@ pub enum VCError {
     )]
     MissingCodeId { version: String, module: String },
 
+    #[error("Version {} of Api {} does not have a stored address", version, module)]
+    MissingApi { version: String, module: String },
+
+    #[error("Version {} of Api {} can not be updated", version, module)]
+    ApiUpdate { version: String, module: String },
+
+    #[error("Version {} of module {} can not be updated", version, module)]
+    CodeIdUpdate { version: String, module: String },
+
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },
 }

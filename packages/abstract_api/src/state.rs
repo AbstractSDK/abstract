@@ -1,10 +1,10 @@
 use std::marker::PhantomData;
 
-use abstract_os::common_module::api_msg::ApiRequestMsg;
+use abstract_os::common_module::api_msg::ApiInterfaceMsg;
 use abstract_os::core::common::OS_ID;
 use abstract_os::native::version_control::queries::verify_os_manager;
 use abstract_os::native::version_control::state::Core;
-use cosmwasm_std::{Addr, Deps, MessageInfo, StdResult, Storage};
+use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -49,32 +49,41 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         }
     }
 
-    pub fn verify_request(
+    /// Takes request and parses it to a verified
+    pub fn handle_request(
         &mut self,
-        deps: Deps,
+        deps: &mut DepsMut,
+        env: Env,
         info: &MessageInfo,
-        request: ApiRequestMsg<T>,
-    ) -> Result<T, ApiError> {
+        msg: ApiInterfaceMsg<T>,
+    ) -> Result<ApiInterfaceResponse<T>, ApiError> {
         let sender = &info.sender;
-        let proxy = match request.proxy_addr {
-            Some(addr) => {
-                let traders = self.traders.load(deps.storage, addr.clone())?;
-                if traders.contains(sender) {
-                    addr
-                } else {
-                    self.verify_sender_is_manager(deps, sender)
-                        .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
-                        .proxy
-                }
+        match msg {
+            ApiInterfaceMsg::Request(request) => {
+                let proxy = match request.proxy_addr {
+                    Some(addr) => {
+                        let traders = self.traders.load(deps.storage, addr.clone())?;
+                        if traders.contains(sender) {
+                            addr
+                        } else {
+                            self.verify_sender_is_manager(deps.as_ref(), sender)
+                                .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
+                                .proxy
+                        }
+                    }
+                    None => {
+                        self.verify_sender_is_manager(deps.as_ref(), sender)
+                            .map_err(|_| ApiError::UnauthorizedApiRequest {})?
+                            .proxy
+                    }
+                };
+                self.request_destination = Some(proxy);
+                Ok(ApiInterfaceResponse::ProcessRequest(request.request))
             }
-            None => {
-                self.verify_sender_is_manager(deps, sender)
-                    .map_err(|_| ApiError::UnauthorizedApiRequest {})?
-                    .proxy
-            }
-        };
-        self.request_destination = Some(proxy);
-        Ok(request.request)
+            ApiInterfaceMsg::Configure(exec_msg) => Ok(ApiInterfaceResponse::ExecResponse(
+                self.execute(deps, env, info.clone(), exec_msg)?,
+            )),
+        }
     }
     pub fn verify_sender_is_manager(
         &self,
@@ -96,6 +105,11 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub enum ApiInterfaceResponse<T> {
+    ProcessRequest(T),
+    ExecResponse(Response),
+}
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiState {

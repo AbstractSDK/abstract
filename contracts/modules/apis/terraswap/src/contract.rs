@@ -1,7 +1,8 @@
+use abstract_api::state::ApiInterfaceResponse;
 use abstract_api::{ApiContract, ApiResult};
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use abstract_os::common_module::api_msg::{ApiInstantiateMsg, ApiRequestMsg};
+use abstract_os::common_module::api_msg::{ApiInstantiateMsg, ApiRequestMsg, ApiInterfaceMsg};
 use abstract_os::modules::apis::terraswap::{ExecuteMsg, QueryMsg};
 
 use crate::commands;
@@ -27,52 +28,56 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ApiRequestMsg<ExecuteMsg>,
+    msg: ApiInterfaceMsg<ExecuteMsg>,
 ) -> TerraswapResult {
     let mut api = TerraswapApi::default();
-    let msg = api.verify_request(deps.as_ref(), &info, msg)?;
-
-    match msg {
-        ExecuteMsg::ProvideLiquidity {
-            pool_id,
-            main_asset_id,
-            amount,
-        } => commands::provide_liquidity(deps.as_ref(), info, api, main_asset_id, pool_id, amount),
-        ExecuteMsg::DetailedProvideLiquidity {
-            pool_id,
-            assets,
-            slippage_tolerance,
-        } => commands::detailed_provide_liquidity(
-            deps.as_ref(),
-            info,
-            api,
-            assets,
-            pool_id,
-            slippage_tolerance,
-        ),
-        ExecuteMsg::WithdrawLiquidity {
-            lp_token_id,
-            amount,
-        } => commands::withdraw_liquidity(deps.as_ref(), info, api, lp_token_id, amount),
-        ExecuteMsg::SwapAsset {
-            offer_id,
-            pool_id,
-            amount,
-            max_spread,
-            belief_price,
-        } => commands::terraswap_swap(
-            deps.as_ref(),
-            env,
-            info,
-            api,
-            offer_id,
-            pool_id,
-            amount,
-            max_spread,
-            belief_price,
-        ),
-        ExecuteMsg::Base(dapp_msg) => from_base_dapp_result(api.execute(deps, env, info, dapp_msg)),
+    let resp = api.handle_request(&mut deps, env,&info, msg)?;
+    match resp {
+        ApiInterfaceResponse::ExecResponse(resp) => Ok(resp),
+        ApiInterfaceResponse::ProcessRequest(msg) => {
+        match msg {
+            ExecuteMsg::ProvideLiquidity {
+                pool_id,
+                main_asset_id,
+                amount,
+            } => commands::provide_liquidity(deps.as_ref(), info, api, main_asset_id, pool_id, amount),
+            ExecuteMsg::DetailedProvideLiquidity {
+                pool_id,
+                assets,
+                slippage_tolerance,
+            } => commands::detailed_provide_liquidity(
+                deps.as_ref(),
+                info,
+                api,
+                assets,
+                pool_id,
+                slippage_tolerance,
+            ),
+            ExecuteMsg::WithdrawLiquidity {
+                lp_token_id,
+                amount,
+            } => commands::withdraw_liquidity(deps.as_ref(), info, api, lp_token_id, amount),
+            ExecuteMsg::SwapAsset {
+                offer_id,
+                pool_id,
+                amount,
+                max_spread,
+                belief_price,
+            } => commands::terraswap_swap(
+                deps.as_ref(),
+                env,
+                info,
+                api,
+                offer_id,
+                pool_id,
+                amount,
+                max_spread,
+                belief_price,
+            ),
+        }
     }
+}
+
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

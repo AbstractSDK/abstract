@@ -9,8 +9,6 @@ use crate::common_module::api_msg::*;
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    /// dApp base messages that handle updating the config and addressbook
-    Base(ApiExecuteMsg),
     /// Constructs a provide liquidity msg and forwards it to the proxy
     /// Calculates the required asset amount for the second asset in the pool.
     ProvideLiquidity {

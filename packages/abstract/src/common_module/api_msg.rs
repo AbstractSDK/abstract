@@ -10,6 +10,13 @@ pub struct ApiInstantiateMsg {
     pub version_control_address: String,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(untagged)]
+pub enum ApiInterfaceMsg<T> {
+    Request(ApiRequestMsg<T>),
+    Configure(ApiExecuteMsg),
+}
+
 /// Api request forwards generated msg to the optionally attached proxy addr.
 /// If proxy = None, then the sender must be an OS manager.  
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

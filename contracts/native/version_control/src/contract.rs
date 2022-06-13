@@ -53,6 +53,12 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             code_id,
         } => add_code_id(deps, info, module, version, code_id),
         ExecuteMsg::RemoveCodeId { module, version } => remove_code_id(deps, info, module, version),
+        ExecuteMsg::AddApi {
+            module,
+            version,
+            address,
+        } => add_api(deps, info, module, version, address),
+        ExecuteMsg::RemoveApi { module, version } => remove_api(deps, info, module, version),
         ExecuteMsg::AddOs {
             os_id,
             manager_address,
@@ -75,6 +81,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
+        QueryMsg::QueryApiAddress { module } => queries::query_api_address(deps, module),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();

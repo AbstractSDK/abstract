@@ -1,4 +1,4 @@
-use cosmwasm_std::Uint64;
+use cosmwasm_std::{Addr, Uint64};
 use cw2::ContractVersion;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,6 @@ pub struct InstantiateMsg {}
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Call to add a new version and code-id for a module
-    /// Only Admin can call this
     AddCodeId {
         module: String,
         version: String,
@@ -22,6 +21,17 @@ pub enum ExecuteMsg {
     },
     /// Remove some version of a module
     RemoveCodeId {
+        module: String,
+        version: String,
+    },
+    /// Call to add a new APi
+    AddApi {
+        module: String,
+        version: String,
+        address: String,
+    },
+    /// Remove an API
+    RemoveApi {
         module: String,
         version: String,
     },
@@ -55,12 +65,22 @@ pub enum QueryMsg {
     QueryCodeId {
         module: ModuleInfo,
     },
+    /// Queries api addresses
+    QueryApiAddress {
+        module: ModuleInfo,
+    },
     Config {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct CodeIdResponse {
     pub code_id: Uint64,
+    pub info: ContractVersion,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ApiAddrResponse {
+    pub address: Addr,
     pub info: ContractVersion,
 }
 
