@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/DappExecuteMsg"
+          "$ref": "#/definitions/AddOnExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -104,6 +104,31 @@
     }
   ],
   "definitions": {
+    "AddOnExecuteMsg": {
+      "oneOf": [
+        {
+          "description": "Updates the base config",
+          "type": "object",
+          "required": [
+            "update_config"
+          ],
+          "properties": {
+            "update_config": {
+              "type": "object",
+              "properties": {
+                "memory_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "AssetBase_for_String": {
       "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: [`info`], which specifies the asset's type (CW20 or native), and its [`amount`], which specifies the asset's amount",
       "type": "object",
@@ -182,85 +207,6 @@
           "type": "string"
         }
       }
-    },
-    "DappExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config Sets new values for the provided options",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "proxy_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Adds/removes traders If a trader is both in to_add and to_remove, it will be removed.",
-          "type": "object",
-          "required": [
-            "update_traders"
-          ],
-          "properties": {
-            "update_traders": {
-              "type": "object",
-              "properties": {
-                "to_add": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "to_remove": {
-                  "type": [
-                    "array",
-                    "null"
-                  ],
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Sets a new Admin",
-          "type": "object",
-          "required": [
-            "set_admin"
-          ],
-          "properties": {
-            "set_admin": {
-              "type": "object",
-              "required": [
-                "admin"
-              ],
-              "properties": {
-                "admin": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",

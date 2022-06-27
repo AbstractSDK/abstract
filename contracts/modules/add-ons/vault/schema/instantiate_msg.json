@@ -11,7 +11,7 @@
   ],
   "properties": {
     "base": {
-      "$ref": "#/definitions/DappInstantiateMsg"
+      "$ref": "#/definitions/AddOnInstantiateMsg"
     },
     "deposit_asset": {
       "type": "string"
@@ -41,14 +41,14 @@
     }
   },
   "definitions": {
-    "DappInstantiateMsg": {
+    "AddOnInstantiateMsg": {
       "type": "object",
       "required": [
         "memory_address"
       ],
       "properties": {
         "memory_address": {
-          "description": "Used by Module Factory to instantiate dApp",
+          "description": "Used by Module Factory to instantiate AddOn",
           "type": "string"
         }
       }

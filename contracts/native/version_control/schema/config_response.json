@@ -3,14 +3,15 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "modules"
+    "admin",
+    "factory"
   ],
   "properties": {
-    "modules": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+    "admin": {
+      "type": "string"
+    },
+    "factory": {
+      "type": "string"
     }
   }
 }

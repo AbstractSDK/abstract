@@ -69,6 +69,17 @@ pub struct HoldingValueResponse {
     pub value: Uint128,
 }
 
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct HoldingAmountResponse {
+    pub value: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct VaultAssetConfigResponse {
+    pub value: ProxyAsset,
+}
+
 /// Query message to external contract to get asset value
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]

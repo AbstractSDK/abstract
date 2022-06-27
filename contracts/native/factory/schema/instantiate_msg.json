@@ -3,17 +3,11 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "creation_fee",
     "memory_address",
     "module_factory_address",
     "version_control_address"
   ],
   "properties": {
-    "creation_fee": {
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0.0
-    },
     "memory_address": {
       "description": "Memory contract",
       "type": "string"

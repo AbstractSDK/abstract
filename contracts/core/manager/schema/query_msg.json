@@ -3,90 +3,73 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Returns the proxy Config",
+      "description": "Queries assets based on name",
       "type": "object",
       "required": [
-        "config"
+        "query_versions"
       ],
       "properties": {
-        "config": {
+        "query_versions": {
+          "type": "object",
+          "required": [
+            "names"
+          ],
+          "properties": {
+            "names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "query_modules"
+      ],
+      "properties": {
+        "query_modules": {
+          "type": "object",
+          "required": [
+            "names"
+          ],
+          "properties": {
+            "names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "query_enabled_modules"
+      ],
+      "properties": {
+        "query_enabled_modules": {
           "type": "object"
         }
       },
       "additionalProperties": false
     },
     {
-      "description": "Returns the total value of all held assets",
+      "description": "Query OS_ID",
       "type": "object",
       "required": [
-        "total_value"
+        "query_os_config"
       ],
       "properties": {
-        "total_value": {
+        "query_os_config": {
           "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the value of one specific asset",
-      "type": "object",
-      "required": [
-        "holding_value"
-      ],
-      "properties": {
-        "holding_value": {
-          "type": "object",
-          "required": [
-            "identifier"
-          ],
-          "properties": {
-            "identifier": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the amount of specified tokens this contract holds",
-      "type": "object",
-      "required": [
-        "holding_amount"
-      ],
-      "properties": {
-        "holding_amount": {
-          "type": "object",
-          "required": [
-            "identifier"
-          ],
-          "properties": {
-            "identifier": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the VAULT_ASSETS value for the specified key",
-      "type": "object",
-      "required": [
-        "vault_asset_config"
-      ],
-      "properties": {
-        "vault_asset_config": {
-          "type": "object",
-          "required": [
-            "identifier"
-          ],
-          "properties": {
-            "identifier": {
-              "type": "string"
-            }
-          }
         }
       },
       "additionalProperties": false

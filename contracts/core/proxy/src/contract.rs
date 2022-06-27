@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use crate::error::ProxyError;
 use abstract_os::core::proxy::msg::{
     ConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
-    TotalValueResponse,
+    TotalValueResponse, HoldingAmountResponse, VaultAssetConfigResponse,
 };
 use abstract_os::core::proxy::proxy_assets::{get_asset_identifier, ProxyAsset};
 use abstract_os::core::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
@@ -175,19 +175,20 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }),
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, identifier.as_str())?;
-            to_binary(
-                &vault_asset
+            to_binary(&HoldingAmountResponse {
+                value: vault_asset
                     .asset
                     .info
                     .query_balance(&deps.querier, env.contract.address)?,
-            )
+            })
         }
         QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
-        QueryMsg::VaultAssetConfig { identifier } => {
-            to_binary(&VAULT_ASSETS.load(deps.storage, identifier.as_str())?)
-        }
+        QueryMsg::VaultAssetConfig { identifier } => to_binary(&VaultAssetConfigResponse {
+            value: VAULT_ASSETS.load(deps.storage, identifier.as_str())?
+        }),
+
     }
 }
 

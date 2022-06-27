@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Module",
+  "type": "object",
+  "required": [
+    "info",
+    "kind"
+  ],
+  "properties": {
+    "info": {
+      "$ref": "#/definitions/ModuleInfo"
+    },
+    "kind": {
+      "$ref": "#/definitions/ModuleKind"
+    }
+  },
+  "definitions": {
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleKind": {
+      "type": "string",
+      "enum": [
+        "add_on",
+        "a_p_i",
+        "service",
+        "perk"
+      ]
+    }
+  }
+}

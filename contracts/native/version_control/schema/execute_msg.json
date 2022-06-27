@@ -3,7 +3,7 @@
   "title": "ExecuteMsg",
   "oneOf": [
     {
-      "description": "Call to add a new version and code-id for a module Only Admin can call this",
+      "description": "Call to add a new version and code-id for a module",
       "type": "object",
       "required": [
         "add_code_id"
@@ -59,6 +59,60 @@
       "additionalProperties": false
     },
     {
+      "description": "Call to add a new APi",
+      "type": "object",
+      "required": [
+        "add_api"
+      ],
+      "properties": {
+        "add_api": {
+          "type": "object",
+          "required": [
+            "address",
+            "module",
+            "version"
+          ],
+          "properties": {
+            "address": {
+              "type": "string"
+            },
+            "module": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Remove an API",
+      "type": "object",
+      "required": [
+        "remove_api"
+      ],
+      "properties": {
+        "remove_api": {
+          "type": "object",
+          "required": [
+            "module",
+            "version"
+          ],
+          "properties": {
+            "module": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Add a new OS to the deployed OSs Only Factory can call this",
       "type": "object",
       "required": [
@@ -68,40 +122,21 @@
         "add_os": {
           "type": "object",
           "required": [
+            "manager_address",
             "os_id",
-            "os_manager_address"
+            "proxy_address"
           ],
           "properties": {
+            "manager_address": {
+              "type": "string"
+            },
             "os_id": {
               "type": "integer",
               "format": "uint32",
               "minimum": 0.0
             },
-            "os_manager_address": {
+            "proxy_address": {
               "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Remove an OS from the deployed OSs",
-      "type": "object",
-      "required": [
-        "remove_os"
-      ],
-      "properties": {
-        "remove_os": {
-          "type": "object",
-          "required": [
-            "os_id"
-          ],
-          "properties": {
-            "os_id": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0.0
             }
           }
         }

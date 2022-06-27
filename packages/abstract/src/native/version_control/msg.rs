@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 use crate::core::modules::ModuleInfo;
 use terra_rust_script_derive::CosmWasmContract;
 
+use super::state::Core;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, CosmWasmContract)]
 #[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {}
@@ -70,6 +72,11 @@ pub enum QueryMsg {
         module: ModuleInfo,
     },
     Config {},
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct OsAddrResponse {
+    pub os_address: Core,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

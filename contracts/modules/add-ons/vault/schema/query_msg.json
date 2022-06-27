@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/DappQueryMsg"
+          "$ref": "#/definitions/AddOnQueryMsg"
         }
       },
       "additionalProperties": false
@@ -28,11 +28,10 @@
     }
   ],
   "definitions": {
-    "DappQueryMsg": {
-      "description": "Rename to DappQueryMsg",
+    "AddOnQueryMsg": {
       "oneOf": [
         {
-          "description": "Returns the base configuration for the DApp",
+          "description": "Returns the base configuration for the AddOn",
           "type": "object",
           "required": [
             "config"
@@ -45,20 +44,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Return type: TradersResponse. TODO: enable pagination of some sort",
-          "type": "object",
-          "required": [
-            "traders"
-          ],
-          "properties": {
-            "traders": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns the admin",
+          "description": "Returns the admin = manager",
           "type": "object",
           "required": [
             "admin"

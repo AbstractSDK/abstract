@@ -3,7 +3,6 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "creation_fee",
     "memory_contract",
     "module_factory_address",
     "next_os_id",
@@ -11,11 +10,6 @@
     "version_control_contract"
   ],
   "properties": {
-    "creation_fee": {
-      "type": "integer",
-      "format": "uint32",
-      "minimum": 0.0
-    },
     "memory_contract": {
       "type": "string"
     },
@@ -29,6 +23,12 @@
     },
     "owner": {
       "type": "string"
+    },
+    "subscription_address": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "version_control_contract": {
       "type": "string"
