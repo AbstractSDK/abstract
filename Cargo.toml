@@ -4,6 +4,7 @@ members = [
     "contracts/native/*",
     "contracts/core/*",
     "contracts/testing",
+    "contracts/abstract-token",
     # "contracts/dapps/external/*",
     # "contracts/modules/apis/anchor",
     # "contracts/modules/apis/terraswap",

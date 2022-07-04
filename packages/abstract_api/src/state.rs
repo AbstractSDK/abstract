@@ -1,7 +1,6 @@
 use std::marker::PhantomData;
 
 use abstract_os::common_module::api_msg::ApiInterfaceMsg;
-use abstract_os::core::common::OS_ID;
 use abstract_os::native::version_control::queries::verify_os_manager;
 use abstract_os::native::version_control::state::Core;
 use cosmwasm_std::{Addr, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Storage};
@@ -91,8 +90,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         maybe_manager: &Addr,
     ) -> Result<Core, ApiError> {
         let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-        let os_id = OS_ID.query(&deps.querier, maybe_manager.clone())?;
-        let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr, os_id)?;
+        let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
         Ok(core)
     }
 

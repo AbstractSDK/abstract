@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use cw2::ContractVersion;
 
-use abstract_os::core::manager::{msg::ExecuteMsg as ManagerMsg, queries::query_os_id};
+use abstract_os::core::manager::msg::ExecuteMsg as ManagerMsg;
 use abstract_os::core::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
 use abstract_os::native::version_control::queries::verify_os_manager;
 
@@ -35,16 +35,9 @@ pub fn execute_create_module(
     root_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-    // Check if caller is manager of registered OS
-    let os_id = query_os_id(deps.as_ref(), &info.sender)?;
 
     // Verify sender is active OS manager
-    let core = verify_os_manager(
-        &deps.querier,
-        &info.sender,
-        &config.version_control_address,
-        os_id,
-    )?;
+    let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
 
     if module.kind == ModuleKind::API {
         // Query version_control for api address
