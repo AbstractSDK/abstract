@@ -4,8 +4,8 @@ use cw2::set_contract_version;
 use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
-use abstract_os::native::memory::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-use abstract_os::native::memory::state::ADMIN;
+use abstract_os::memory::state::ADMIN;
+use abstract_os::memory::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

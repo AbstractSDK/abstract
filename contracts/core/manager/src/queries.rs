@@ -1,9 +1,6 @@
-use crate::state::OS_MODULES;
-use abstract_os::core::manager::msg::{ModuleQueryResponse, VersionsQueryResponse};
-use abstract_os::core::manager::{
-    msg::EnabledModulesResponse,
-    queries::{query_module_addresses, query_module_versions},
-};
+use abstract_os::manager::state::OS_MODULES;
+use abstract_os::manager::{EnabledModulesResponse, ModuleQueryResponse, VersionsQueryResponse};
+use abstract_sdk::manager::{query_module_addresses, query_module_versions};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 pub fn handle_module_addresses_query(

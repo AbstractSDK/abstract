@@ -7,12 +7,12 @@ use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
 use crate::tests::integration_tests::instantiate::{configure_memory, init_vault_dapp};
-use abstract_os::modules::add_ons::vault::{DepositHookMsg, ExecuteMsg};
+use abstract_os::vault::{DepositHookMsg, ExecuteMsg};
 use cw_asset::AssetUnchecked;
 use cw_multi_test::Executor;
 
 use crate::dapp_base::common::TEST_CREATOR;
-use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
 
 use super::update::change_base_to_whale;
 const MILLION: u64 = 1_000_000u64;

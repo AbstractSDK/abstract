@@ -6,8 +6,8 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ExecuteMsg;
 
-use abstract_os::core::proxy::msg::send_to_proxy;
-use abstract_os::core::proxy::proxy_assets::get_identifier;
+use abstract_os::proxy::send_to_proxy;
+use abstract_os::objects::proxy_assets::get_identifier;
 use abstract_os::modules::dapp_base::common::PAIR_POSTFIX;
 use pandora_dapp_base::ApiError;
 // TODO: should be astroport

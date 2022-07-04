@@ -3,7 +3,7 @@ use cosmwasm_std::{coins, from_binary, DepsMut};
 use cosmwasm_std::{Api, CanonicalAddr, Decimal, Uint128};
 
 use crate::contract::{execute, instantiate, query};
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use crate::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::{config_read, state_read, Config, ConfigResponse, State};
 use crate::tests::common::{
     DEFAULT_EXPIRATION_PERIOD, DEFAULT_FIX_PERIOD, DEFAULT_PROPOSAL_DEPOSIT, DEFAULT_QUORUM,

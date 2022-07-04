@@ -4,7 +4,7 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 
 use cosmwasm_std::{attr, Addr, Timestamp, Uint128};
 
-use abstract_os::native::{
+use abstract_os::{
     memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,
     os_factory::msg as OSFactoryMsg, version_control::msg as VCMsg,
 };
@@ -20,7 +20,7 @@ use super::common_integration::NativeContracts;
 pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<&str, u64>) -> NativeContracts {
     let owner = Addr::unchecked(TEST_CREATOR);
     // Instantiate Token Contract
-    let msg = cw20_base::msg::InstantiateMsg {
+    let msg = cw20_base::InstantiateMsg {
         name: String::from("token"),
         symbol: String::from("TOKE"),
         decimals: 6,

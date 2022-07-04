@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Deps, Uint128};
 
 use abstract_os::modules::dapp_base::error::BaseDAppError;
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 use abstract_os::queries::terraswap::query_asset_balance;
 
 /// Checks if the given address has enough tokens with a given offer_id

@@ -1,10 +1,14 @@
-use abstract_os::common_module::api_msg::{ApiExecuteMsg, ApiQueryMsg, TradersResponse};
-use abstract_os::core::manager::queries::query_module_version;
-use abstract_os::core::modules::{Module, ModuleInfo, ModuleKind};
-use abstract_os::core::proxy::msg::ExecuteMsg as TreasuryMsg;
-use abstract_os::native::version_control::msg::QueryMsg as VersionQuery;
-use abstract_os::native::version_control::msg::{ApiAddrResponse, CodeIdResponse};
-use abstract_os::native::version_control::state::{API_ADDRESSES, MODULE_CODE_IDS};
+use abstract_os::{
+    api::{ApiExecuteMsg, ApiQueryMsg, TradersResponse},
+    manager::state::{Subscribed, ADMIN, CONFIG, OS_MODULES, ROOT, STATUS},
+    module_factory::ExecuteMsg as ModuleFactoryMsg,
+    modules::{Module, ModuleInfo, ModuleKind},
+    proxy::ExecuteMsg as TreasuryMsg,
+    version_control::{
+        state::{API_ADDRESSES, MODULE_CODE_IDS},
+        ApiAddrResponse, CodeIdResponse, QueryMsg as VersionQuery,
+    },
+};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
     QueryRequest, Response, StdResult, WasmMsg, WasmQuery,
@@ -12,12 +16,9 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
-use crate::contract::ManagerResult;
-use crate::error::ManagerError;
-use crate::state::*;
-use abstract_os::native::module_factory::msg::ExecuteMsg as ModuleFactoryMsg;
+use crate::{contract::ManagerResult, error::ManagerError};
 use abstract_os::registery::{MANAGER, PROXY};
-
+use abstract_sdk::manager::query_module_version;
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
 /// Adds, updates or removes provided addresses.

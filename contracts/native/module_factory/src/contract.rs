@@ -9,7 +9,7 @@ use cw2::set_contract_version;
 
 use crate::commands;
 use crate::state::*;
-use abstract_os::native::module_factory::msg::*;
+use abstract_os::module_factory::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 

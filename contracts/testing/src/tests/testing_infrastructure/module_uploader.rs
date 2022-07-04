@@ -1,6 +1,6 @@
 use crate::tests::common::DEFAULT_VERSION;
-use abstract_os::core::modules::ModuleInfo;
-use abstract_os::native::version_control::msg as VCMsg;
+use abstract_os::modules::ModuleInfo;
+use abstract_os::version_control as VCMsg;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Empty};
 

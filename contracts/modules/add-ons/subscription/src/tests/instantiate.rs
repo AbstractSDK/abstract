@@ -1,4 +1,4 @@
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 use abstract_os::proxy::dapp_base::state::{BaseState, BASESTATE};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut};
@@ -6,7 +6,7 @@ use cosmwasm_std::{Api, Decimal};
 
 use crate::contract::instantiate;
 use crate::dapp_base::common::MEMORY_CONTRACT;
-use crate::msg::InstantiateMsg;
+use crate::InstantiateMsg;
 use crate::state::{State, STATE};
 use crate::tests::base_mocks::mocks::instantiate_msg as base_init_msg;
 use crate::tests::common::{TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};

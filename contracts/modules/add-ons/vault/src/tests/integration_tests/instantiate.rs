@@ -1,8 +1,8 @@
-use abstract_os::core::proxy::msg as TreasuryMsg;
-use abstract_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
-use abstract_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
-use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
-use abstract_os::native::memory::msg as MemoryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::objects::proxy_assets::{ProxyAsset, ValueRef};
+use abstract_os::vault::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use abstract_os::modules::dapp_base::{BaseExecuteMsg, BaseInstantiateMsg};
+use abstract_os::memory::msg as MemoryMsg;
 use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 use cw_multi_test::Executor;

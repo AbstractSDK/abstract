@@ -24,7 +24,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-abstract-os = { version = "0.1.0" }
+abstract-sdk = { version = "0.1.0" }
 
 cosmwasm-std = { version = "1.0" }
 cw-storage-plus = { version = "0.13.0" }

@@ -2,8 +2,8 @@ use cosmwasm_std::testing::mock_info;
 use cosmwasm_std::{DepsMut, Env};
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT};
-use crate::msg::ExecuteMsg;
-use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg};
+use crate::ExecuteMsg;
+use abstract_os::modules::dapp_base::{BaseExecuteMsg, BaseInstantiateMsg};
 
 use crate::contract::{execute, instantiate};
 

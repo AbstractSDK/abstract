@@ -1,4 +1,4 @@
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 use cosmwasm_std::{Addr, Deps, Uint128};
 
 use crate::error::TerraswapError;

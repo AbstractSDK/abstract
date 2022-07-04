@@ -3,7 +3,7 @@ use cosmwasm_std::{Addr, Api};
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR};
 use abstract_os::modules::dapp_base::state::{BaseState, BASESTATE};
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 
 use crate::contract::instantiate;
 use crate::tests::base_mocks::mocks::instantiate_msg;

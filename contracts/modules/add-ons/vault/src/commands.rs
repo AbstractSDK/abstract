@@ -6,11 +6,11 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::core::proxy::msg::send_to_proxy;
-use abstract_os::modules::add_ons::vault::DepositHookMsg;
-use abstract_os::queries::vault::{query_supply, query_total_value};
-use abstract_os::util::deposit_info::DepositInfo;
-use abstract_os::util::fee::Fee;
+use abstract_os::objects::deposit_info::DepositInfo;
+use abstract_os::objects::fee::Fee;
+use abstract_os::proxy::send_to_proxy;
+use abstract_os::vault::DepositHookMsg;
+use abstract_sdk::vault::{query_supply, query_total_value};
 
 use crate::contract::{VaultDapp, VaultResult};
 use crate::error::VaultError;

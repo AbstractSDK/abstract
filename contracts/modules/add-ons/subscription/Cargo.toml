@@ -28,11 +28,13 @@ cw20 = { version = "0.13" }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }
-abstract-os = { version = "0.1.0", path = "../../../../packages/abstract" }
-abstract-add-on = { version = "0.1.0", path = "../../../../packages/abstract_add_on", features = ["library"] }
 protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = "2.0"
 semver = "1.0.0"
+
+abstract-sdk = { path = "../../../../packages/abstract-sdk" }
+abstract-add-on = { path = "../../../../packages/abstract-add-on", features = ["library"] }
+abstract-os = { path = "../../../../packages/abstract-os" }
 
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0" }

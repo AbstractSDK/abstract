@@ -1,20 +1,20 @@
 use crate::error::VCError;
 use abstract_os::registery::VERSION_CONTROL;
-use abstract_os::util::admin::authorized_set_admin;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
 use cw2::set_contract_version;
+use cw_controllers::{Admin, AdminError};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use abstract_os::native::version_control::msg::{
+use abstract_os::version_control::state::{ADMIN, FACTORY};
+use abstract_os::version_control::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
-use abstract_os::native::version_control::state::{ADMIN, FACTORY};
 
 pub type VCResult = Result<Response, VCError>;
 
@@ -76,8 +76,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         // TODO: Add query to get latest version and code_id for some module
         // That way we don't need to hard-code versions in factory contract
-        QueryMsg::QueryEnabledModules { os_address } => {
-            queries::query_enabled_modules(deps, deps.api.addr_validate(&os_address)?)
+        QueryMsg::QueryEnabledModules { manager_address } => {
+            queries::query_enabled_modules(deps, deps.api.addr_validate(&manager_address)?)
         }
         QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
@@ -88,4 +88,20 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_binary(&ConfigResponse { admin, factory })
         }
     }
+}
+
+fn authorized_set_admin<
+    C: std::clone::Clone + std::fmt::Debug + std::cmp::PartialEq + schemars::JsonSchema,
+>(
+    deps: DepsMut,
+    info: MessageInfo,
+    authorized_user: &Admin,
+    admin_to_update: &Admin,
+    new_admin: String,
+) -> Result<Response<C>, AdminError> {
+    authorized_user.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let new_admin_addr = deps.api.addr_validate(&new_admin)?;
+    admin_to_update.set(deps, Some(new_admin_addr))?;
+    Ok(Response::new().add_attribute("Set admin item to:", new_admin))
 }

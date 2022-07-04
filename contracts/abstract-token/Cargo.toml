@@ -18,7 +18,6 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-abstract-os = { path = "../../packages/abstract"}
 cw-controllers = { version ="0.13" }
 cw-storage-plus = "0.13"
 cw2 = "0.13"
@@ -27,6 +26,9 @@ cw20-base = { version = "0.13", features = ["library"] }
 cosmwasm-std = { version = "1.0", features = ["iterator"] }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+
+abstract-os = { path = "../../packages/abstract-os"}
+abstract-sdk = { version = "0.1.0", path = "../../packages/abstract-sdk" }
 
 [dev-dependencies]
 # we only need to enable this if we use integration tests

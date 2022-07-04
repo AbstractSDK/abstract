@@ -8,12 +8,12 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use cw20::Cw20ExecuteMsg;
 use cw20_base::contract::{create_accounts, execute as cw20_execute, query as cw20_query};
+use cw20_base::msg::QueryMsg as Cw20QueryMsg;
 use cw20_base::state::{MinterData, TokenInfo, TOKEN_INFO};
 use cw20_base::ContractError;
 
 use crate::state::{Config, ADMIN, CONFIG};
-use abstract_os::native::version_control;
-use abstract_os::util::abstract_token::{
+use abstract_os::abstract_token::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 
@@ -179,7 +179,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
     {
         return Ok(());
     }
-    version_control::queries::verify_os_proxy(
+    abstract_sdk::version_control::verify_os_proxy(
         &deps.querier,
         &Addr::unchecked(recipient),
         &config.version_control_address,

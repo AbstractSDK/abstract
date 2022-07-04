@@ -1,6 +1,6 @@
 use crate::dapp_base::common::TEST_CREATOR;
-use abstract_os::core::proxy::msg as TreasuryMsg;
-use abstract_os::native::memory::msg as MemoryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::memory::msg as MemoryMsg;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Addr, Empty, Timestamp, Uint128};
 use cw_multi_test::{App, BankKeeper, ContractWrapper, Executor};
@@ -29,7 +29,7 @@ pub fn init_contracts(app: &mut App) -> BaseContracts {
 
     let cw20_token_code_id = app.store_code(cw20_token_contract);
 
-    let msg = cw20_base::msg::InstantiateMsg {
+    let msg = cw20_base::InstantiateMsg {
         name: String::from("Whale token"),
         symbol: String::from("WHALE"),
         decimals: 6,

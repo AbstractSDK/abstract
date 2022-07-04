@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use abstract_os::util::abstract_token::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::abstract_token::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cw20::{
     AllAccountsResponse, AllAllowancesResponse, AllowanceResponse, BalanceResponse, MinterResponse,
     TokenInfoResponse,

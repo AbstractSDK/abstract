@@ -3,7 +3,7 @@ use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 
 use cw_multi_test::App;
 
-use crate::msg::{DepositHookMsg, ExecuteMsg};
+use crate::{DepositHookMsg, ExecuteMsg};
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };

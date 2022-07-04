@@ -3,8 +3,8 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use abstract_os::core::proxy::msg::{ExecuteMsg, QueryMsg};
-use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg;
+use abstract_os::proxy::{ExecuteMsg, QueryMsg};
+use abstract_os::modules::dapp_base::BaseInstantiateMsg;
 use abstract_os::modules::dapp_base::state::BaseState;
 
 fn main() {

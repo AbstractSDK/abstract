@@ -27,9 +27,9 @@ cw2 = "0.13"
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }
-abstract-os = { version = "0.1.0", path = "../../../packages/abstract" }
 semver = "1"
-
+abstract-sdk = { path = "../../../packages/abstract-sdk" }
+abstract-os = {path = "../../../packages/abstract-os"}
 
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0" }

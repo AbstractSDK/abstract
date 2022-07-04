@@ -1,10 +1,16 @@
-use abstract_os::core::{manager::msg::{InstantiateMsg, ExecuteMsg, QueryMsg, EnabledModulesResponse, ModuleQueryResponse, VersionsQueryResponse, ConfigQueryResponse}, modules::Module};
+use abstract_os::{
+    manager::{
+        ConfigQueryResponse, EnabledModulesResponse, ExecuteMsg, InstantiateMsg,
+        ModuleQueryResponse, QueryMsg, VersionsQueryResponse,
+    },
+    modules::Module,
+};
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-use cw_asset::{AssetInfo, Asset, AssetInfoBase};
+use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use std::{env::current_dir, fs::create_dir_all};
 
-use cosmwasm_std::{Addr, CosmosMsg, Empty, Binary};
-use manager::state::Config;
+use abstract_os::manager::state::Config;
+use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

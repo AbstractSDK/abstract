@@ -2,16 +2,16 @@ use cosmwasm_std::{Addr, Coin, Decimal, Uint128};
 
 use cw_multi_test::{App, ContractWrapper};
 
-use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
+use crate::{ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse};
 use crate::tests::integration_tests::common_integration::{mint_some_whale, store_token_code};
 use cw_multi_test::Executor;
 use cw_asset::Asset;
 
 use abstract_os::memory::msg as MemoryMsg;
 use abstract_os::proxy::msg as TreasuryMsg;
-use abstract_os::proxy::proxy_assets::{ValueRef, ProxyAsset};
+use abstract_os::objects::proxy_assets::{ValueRef, ProxyAsset};
 
-use abstract_os::proxy::dapp_base::msg::BaseInstantiateMsg;
+use abstract_os::proxy::dapp_base::BaseInstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

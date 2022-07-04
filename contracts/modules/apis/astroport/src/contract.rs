@@ -5,20 +5,20 @@ use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 };
 
-use abstract_os::core::proxy::proxy_assets::{get_identifier, ProxyAsset};
+use abstract_os::objects::proxy_assets::{get_identifier, ProxyAsset};
 use abstract_os::modules::apis::astroport::{ExecuteMsg, QueryMsg};
 use abstract_os::modules::dapp_base::commands::{self as dapp_base_commands, handle_base_init};
 use abstract_os::modules::dapp_base::common::BaseDAppResult;
-use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg;
+use abstract_os::modules::dapp_base::BaseInstantiateMsg;
 use abstract_os::modules::dapp_base::queries as dapp_base_queries;
 use abstract_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use abstract_os::native::memory::item::Memory;
-use abstract_os::pandora_dapp::msg::ApiInstantiateMsg;
+use abstract_sdk::memory::Memory;
+use abstract_os::pandora_dapp::ApiInstantiateMsg;
 use pandora_dapp_base::{ApiContract, ApiResult};
 
 use crate::commands;
 use crate::error::AstroportError;
-use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::{ExecuteMsg, QueryMsg};
 
 type AstroportExtension = Option<Empty>;
 pub type AstroportApi<'a> = ApiContract<'a, AstroportExtension, Empty>;

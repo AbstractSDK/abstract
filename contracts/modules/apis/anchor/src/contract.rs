@@ -7,20 +7,20 @@ use cosmwasm_std::{
 };
 
 use abstract_os::common_module::api_msg::ApiInstantiateMsg;
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 
 use crate::commands;
-use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::{ExecuteMsg, QueryMsg};
 
 // no extra attrs
 pub type AnchorApi<'a> = ApiContract<'a, Empty>;
 pub type AnchorResult = Result<Response, ApiError>;
 
-// use abstract_os::pandora_dapp::msg::ApiInstantiateMsg;
+// use abstract_os::pandora_dapp::ApiInstantiateMsg;
 //
 // use crate::commands;
 // use crate::error::AnchorError;
-// use crate::msg::{ExecuteMsg, QueryMsg};
+// use crate::{ExecuteMsg, QueryMsg};
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(

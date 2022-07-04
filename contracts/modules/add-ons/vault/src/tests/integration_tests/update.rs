@@ -2,13 +2,13 @@ use cosmwasm_std::{Addr, Uint128};
 
 use cw_multi_test::App;
 
-use abstract_os::modules::add_ons::vault::ExecuteMsg;
+use abstract_os::vault::ExecuteMsg;
 
 use cw_asset::Asset;
 use cw_multi_test::Executor;
 
-use abstract_os::core::proxy::msg as TreasuryMsg;
-use abstract_os::core::proxy::proxy_assets::{ProxyAsset, ValueRef};
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::objects::proxy_assets::{ProxyAsset, ValueRef};
 
 use super::common_integration::BaseContracts;
 

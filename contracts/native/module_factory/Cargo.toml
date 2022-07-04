@@ -31,7 +31,8 @@ schemars = "0.8.1"
 thiserror = { version = "1.0.21" }
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 protobuf = { version = "2", features = ["with-bytes"] }
-abstract-os = { version = "0.1.0", path = "../../../packages/abstract" }
+abstract-sdk = { path = "../../../packages/abstract-sdk" }
+abstract-os = {path = "../../../packages/abstract-os"}
 
 [dev-dependencies]
 cosmwasm-schema = "1.0"

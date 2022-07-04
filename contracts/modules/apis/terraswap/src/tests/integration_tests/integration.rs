@@ -8,13 +8,13 @@ use crate::dapp_base::common::TEST_CREATOR;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
-use abstract_os::core::proxy::msg as TreasuryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
 use abstract_os::modules::apis::terraswap::ExecuteMsg;
-use abstract_os::native::memory::msg as MemoryMsg;
+use abstract_os::memory::msg as MemoryMsg;
 use cw_multi_test::Executor;
 use terraswap::pair::PoolResponse;
 
-use abstract_os::modules::dapp_base::msg::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};
+use abstract_os::modules::dapp_base::{BaseExecuteMsg, BaseInstantiateMsg as InstantiateMsg};
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

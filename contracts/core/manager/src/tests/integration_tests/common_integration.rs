@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::core::modules::ModuleInfo;
+use abstract_os::modules::ModuleInfo;
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::Addr;
 

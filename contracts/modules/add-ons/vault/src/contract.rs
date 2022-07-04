@@ -14,11 +14,9 @@ use cw_storage_plus::Map;
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::modules::add_ons::vault::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
-};
+use abstract_os::objects::fee::Fee;
 use abstract_os::registery::VAULT;
-use abstract_os::util::fee::Fee;
+use abstract_os::vault::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::error::VaultError;
@@ -125,7 +123,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             assets_to_add,
             assets_to_remove,
         ),
-        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, fee),
+        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, Fee { share: fee }),
     }
 }
 

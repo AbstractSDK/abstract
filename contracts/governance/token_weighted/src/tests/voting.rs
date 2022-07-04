@@ -1,5 +1,5 @@
 use crate::contract::{execute, query};
-use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::{ExecuteMsg, QueryMsg};
 use crate::state::{
     bank_read, bank_store, poll_store, poll_voter_read, poll_voter_store, state_read, Cw20HookMsg,
     OrderBy, Poll, PollStatus, StakerResponse, State, TokenManager, VoteOption, VoterInfo,

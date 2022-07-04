@@ -2,7 +2,7 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 
 use crate::contract::VCResult;
 use crate::error::VCError;
-use abstract_os::native::version_control::state::*;
+use abstract_os::version_control::{state::*, Core};
 
 /// Add new OS to version control contract
 /// Only Factory can add OS

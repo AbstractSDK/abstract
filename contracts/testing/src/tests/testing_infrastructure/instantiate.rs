@@ -4,11 +4,11 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 
 use cosmwasm_std::{Addr, Timestamp};
 
-use abstract_os::native::{
-    memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,
-    os_factory::msg as OSFactoryMsg, version_control::msg as VCMsg,
-};
 use abstract_os::registery::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+use abstract_os::{
+    memory as MemoryMsg, module_factory as ModuleFactoryMsg, os_factory as OSFactoryMsg,
+    version_control as VCMsg,
+};
 
 use cw_multi_test::{App, Executor};
 

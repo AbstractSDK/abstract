@@ -1,7 +1,7 @@
-use abstract_os::modules::add_ons::vault::{ExecuteMsg, InstantiateMsg};
-use abstract_os::modules::dapp_base::msg::BaseExecuteMsg;
+use abstract_os::vault::{ExecuteMsg, InstantiateMsg};
+use abstract_os::modules::dapp_base::BaseExecuteMsg;
 use abstract_os::modules::dapp_base::state::{BaseState, BASESTATE};
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut, Env};
 use cosmwasm_std::{Api, Decimal};

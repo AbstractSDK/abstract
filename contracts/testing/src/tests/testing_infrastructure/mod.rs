@@ -13,8 +13,8 @@ pub mod env {
     pub use super::os_creation::init_os;
     use super::os_creation::init_primary_os;
     use super::upload::upload_base_contracts;
-    use abstract_os::core::manager::msg as ManagerMsgs;
-    use abstract_os::native::version_control::state::Core;
+    use abstract_os::manager as ManagerMsgs;
+    use abstract_os::version_control::Core;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
     use cw_multi_test::{App, AppResponse, Executor};
@@ -79,7 +79,7 @@ pub mod env {
         module_name: &str,
         encapsuled_msg: &T,
     ) -> AnyResult<AppResponse> {
-        let msg = abstract_os::core::manager::msg::ExecuteMsg::ExecOnModule {
+        let msg = abstract_os::manager::ExecuteMsg::ExecOnModule {
             module_name: module_name.into(),
             exec_msg: to_binary(encapsuled_msg)?,
         };

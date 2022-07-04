@@ -2,10 +2,10 @@ use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 
 use crate::dapp_base::common::{MEMORY_CONTRACT, TRADER_CONTRACT, TREASURY_CONTRACT};
-use abstract_os::modules::dapp_base::msg::{BaseQueryMsg, BaseStateResponse};
+use abstract_os::modules::dapp_base::{BaseQueryMsg, BaseStateResponse};
 
 use crate::contract::query;
-use crate::msg::QueryMsg;
+use crate::QueryMsg;
 use crate::tests::base_mocks::mocks::mock_instantiate;
 
 #[test]

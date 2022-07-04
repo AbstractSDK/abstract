@@ -2,8 +2,8 @@ use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 use crate::contract::MemoryResult;
-use abstract_os::native::memory::msg::ExecuteMsg;
-use abstract_os::native::memory::state::*;
+use abstract_os::memory::state::*;
+use abstract_os::memory::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(deps: DepsMut, info: MessageInfo, message: ExecuteMsg) -> MemoryResult {

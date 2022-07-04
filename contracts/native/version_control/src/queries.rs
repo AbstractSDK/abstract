@@ -1,7 +1,7 @@
-use abstract_os::core::modules::ModuleInfo;
-use abstract_os::native::version_control::msg::ApiAddrResponse;
-use abstract_os::native::version_control::msg::OsAddrResponse;
-use abstract_os::native::version_control::state::API_ADDRESSES;
+use abstract_os::modules::ModuleInfo;
+use abstract_os::version_control::state::API_ADDRESSES;
+use abstract_os::version_control::ApiAddrResponse;
+use abstract_os::version_control::OsAddrResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
@@ -10,12 +10,12 @@ use cosmwasm_std::WasmQuery;
 use cw2::ContractVersion;
 
 use crate::error::VCError;
-use abstract_os::native::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
+use abstract_os::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 
-use abstract_os::core::manager::msg::{EnabledModulesResponse, QueryMsg};
-use abstract_os::native::version_control::msg::CodeIdResponse;
+use abstract_os::manager::{EnabledModulesResponse, QueryMsg};
+use abstract_os::version_control::CodeIdResponse;
 
 pub fn query_enabled_modules(deps: Deps, manager_addr: Addr) -> StdResult<Binary> {
     let response: EnabledModulesResponse =

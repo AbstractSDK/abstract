@@ -1,11 +1,14 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for, export_schema_with_title};
+use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::core::proxy::msg::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse, HoldingAmountResponse, HoldingValueResponse};
-use abstract_os::core::proxy::proxy_assets::ProxyAsset;
-use abstract_os::core::proxy::state::State;
+use abstract_os::objects::proxy_assets::ProxyAsset;
+use abstract_os::proxy::state::State;
+use abstract_os::proxy::{
+    ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
+    QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
+};
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
 
@@ -34,9 +37,5 @@ fn main() {
         "CosmosMsg_for_Empty",
     );
 
-    export_schema_with_title(
-        &schema_for!(AssetInfo),
-        &out_dir,
-        "AssetInfoBase_for_Addr",
-    );
+    export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");
 }

@@ -1,6 +1,6 @@
 use cosmwasm_std::{Coin, CosmosMsg, Deps, Env, Fraction, MessageInfo, Response, Uint128};
 
-use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::proxy::send_to_proxy;
 use abstract_os::modules::dapp_base::common::{ANCHOR_MONEY_MARKET_ID, AUST_TOKEN_ID};
 use abstract_os::queries::anchor::query_aust_exchange_rate;
 use abstract_os::util::anchor::{anchor_deposit_msg, anchor_withdraw_msg};

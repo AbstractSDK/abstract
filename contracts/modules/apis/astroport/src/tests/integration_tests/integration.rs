@@ -4,16 +4,16 @@ use cw20::Cw20Contract;
 use cw_multi_test::{App, ContractWrapper};
 
 use crate::dapp_base::common::TEST_CREATOR;
-use crate::msg::ExecuteMsg;
+use crate::ExecuteMsg;
 use crate::tests::integration_tests::common_integration::{
     init_contracts, mint_some_whale, mock_app,
 };
-use abstract_os::core::proxy::msg as TreasuryMsg;
-use abstract_os::native::memory::msg as MemoryMsg;
+use abstract_os::proxy::msg as TreasuryMsg;
+use abstract_os::memory::msg as MemoryMsg;
 use astroport::pair::PoolResponse;
 use cw_multi_test::Executor;
 
-use abstract_os::modules::dapp_base::msg::BaseInstantiateMsg as InstantiateMsg;
+use abstract_os::modules::dapp_base::BaseInstantiateMsg as InstantiateMsg;
 
 use super::common_integration::{whitelist_dapp, BaseContracts};
 const MILLION: u64 = 1_000_000u64;

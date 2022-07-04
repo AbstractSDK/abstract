@@ -1,9 +1,14 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for, export_schema_with_title};
+use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::{native::version_control::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, CodeIdResponse, ConfigResponse, OsAddrResponse}, core::{manager::msg::EnabledModulesResponse, modules::ModuleInfo}};
+use abstract_os::{
+    version_control::{
+        CodeIdResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, OsAddrResponse, QueryMsg,
+    },
+    {manager::EnabledModulesResponse, modules::ModuleInfo},
+};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -22,6 +27,14 @@ fn main() {
         &out_dir,
         "QueryEnabledModulesResponse",
     );
-    export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "QueryCodeIdResponse");
-    export_schema_with_title(&schema_for!(OsAddrResponse), &out_dir, "QueryOsAddrResponse");
+    export_schema_with_title(
+        &schema_for!(CodeIdResponse),
+        &out_dir,
+        "QueryCodeIdResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(OsAddrResponse),
+        &out_dir,
+        "QueryOsAddrResponse",
+    );
 }

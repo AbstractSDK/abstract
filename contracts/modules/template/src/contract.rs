@@ -5,11 +5,11 @@ use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdResult,
 };
 
-use abstract_os::pandora_dapp::msg::DappInstantiateMsg;
+use abstract_os::pandora_dapp::DappInstantiateMsg;
 use pandora_dapp_base::{DappContract, DappError, DappResult};
 
 use crate::commands;
-use crate::msg::{ExecuteMsg, QueryMsg};
+use crate::{ExecuteMsg, QueryMsg};
 
 type TemplateExtension = Option<Empty>;
 pub type TemplateDapp<'a> = DappContract<'a, TemplateExtension, Empty>;

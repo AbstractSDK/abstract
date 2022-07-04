@@ -10,7 +10,7 @@ use cw2::set_contract_version;
 
 use crate::commands;
 use crate::state::*;
-use abstract_os::native::os_factory::msg::*;
+use abstract_os::os_factory::*;
 
 pub type OsFactoryResult = Result<Response, OsFactoryError>;
 

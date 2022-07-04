@@ -1,19 +1,16 @@
-use abstract_os::core::common::OS_ID;
-use abstract_os::core::modules::Module;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     Uint64,
 };
 
-use crate::commands::*;
-use crate::error::ManagerError;
-use crate::queries;
-use crate::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
-use abstract_os::core::manager::msg::{
-    ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-};
-use abstract_os::core::modules::*;
+use crate::{commands::*, error::ManagerError, queries};
+use abstract_os::manager::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
 use abstract_os::registery::MANAGER;
+use abstract_os::{
+    manager::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    modules::*,
+    proxy::state::OS_ID,
+};
 use cw2::set_contract_version;
 
 pub type ManagerResult = Result<Response, ManagerError>;

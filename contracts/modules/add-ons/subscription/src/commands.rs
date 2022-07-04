@@ -1,8 +1,8 @@
 use std::convert::TryInto;
 
-use abstract_os::common_module::constants::ADMIN;
-use abstract_os::core::manager::msg::ExecuteMsg as ManagerMsg;
-use abstract_os::core::proxy::msg::send_to_proxy;
+use abstract_os::manager::ExecuteMsg as ManagerMsg;
+use abstract_os::proxy::send_to_proxy;
+use abstract_sdk::common_module::ADMIN;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env,
     MessageInfo, Response, StdError, StdResult, Storage, Uint128, Uint64, WasmMsg,
@@ -10,17 +10,17 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::native::version_control::state::OS_ADDRESSES;
-use abstract_os::util::deposit_manager::Deposit;
+use abstract_os::objects::deposit_manager::Deposit;
+use abstract_os::version_control::state::OS_ADDRESSES;
 
 use crate::contract::{SubscriptionAddOn, SubscriptionResult};
 use crate::error::SubscriptionError;
-use abstract_os::modules::add_ons::subscription::msg::DepositHookMsg;
-use abstract_os::modules::add_ons::subscription::state::{
+use abstract_os::subscription::state::{
     Compensation, ContributionState, ContributorContext, IncomeAccumulator, Subscriber,
     SubscriberContext, SubscriptionConfig, SubscriptionState, CLIENTS, CONTRIBUTORS, CON_CONFIG,
     CON_STATE, DORMANT_CLIENTS, MONTH, SUB_CONFIG, SUB_STATE,
 };
+use abstract_os::subscription::DepositHookMsg;
 
 pub fn receive_cw20(
     add_on: SubscriptionAddOn,

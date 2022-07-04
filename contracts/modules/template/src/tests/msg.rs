@@ -2,13 +2,13 @@ use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi, Moc
 use cosmwasm_std::{Addr, Env, MemoryStorage, OwnedDeps};
 
 use abstract_os::modules::dapp_base::error::BaseDAppError;
-use abstract_os::modules::dapp_base::msg::BaseExecuteMsg;
+use abstract_os::modules::dapp_base::BaseExecuteMsg;
 use abstract_os::modules::dapp_base::state::{BaseState, ADMIN, BASESTATE};
-use abstract_os::native::memory::item::Memory;
+use abstract_sdk::memory::Memory;
 
 use crate::contract::execute;
 use crate::dapp_base::common::{MEMORY_CONTRACT, TEST_CREATOR, TRADER_CONTRACT, TREASURY_CONTRACT};
-use crate::msg::ExecuteMsg;
+use crate::ExecuteMsg;
 use crate::tests::base_mocks::mocks::mock_instantiate;
 use rstest::*;
 

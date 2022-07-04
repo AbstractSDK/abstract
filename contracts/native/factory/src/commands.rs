@@ -1,11 +1,11 @@
-use abstract_os::core::manager::helper::register_module_on_manager;
-use abstract_os::core::modules::ModuleInfo;
-use abstract_os::governance::gov_type::GovernanceDetails;
-use abstract_os::modules::add_ons::subscription::msg::{
+use abstract_os::gov_type::GovernanceDetails;
+use abstract_os::modules::ModuleInfo;
+use abstract_os::os_factory::ExecuteMsg;
+use abstract_os::subscription::{
     DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
     QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
 };
-use abstract_os::native::os_factory::msg::ExecuteMsg;
+use abstract_sdk::manager::register_module_on_manager;
 use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
@@ -20,12 +20,10 @@ use crate::error::OsFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use abstract_os::core::manager::msg::InstantiateMsg as ManagerInstantiateMsg;
-use abstract_os::core::proxy::msg::{
-    ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg,
-};
+use abstract_os::manager::InstantiateMsg as ManagerInstantiateMsg;
+use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
-use abstract_os::native::version_control::msg::{
+use abstract_os::version_control::{
     CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
 };
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

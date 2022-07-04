@@ -16,15 +16,15 @@ use protobuf::Message;
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg, MinterResponse};
 use semver::Version;
 
-use abstract_os::util::fee::Fee;
+use abstract_os::objects::fee::Fee;
 
 use crate::error::SubscriptionError;
 use crate::{commands, queries};
-use abstract_os::modules::add_ons::subscription::msg::{
+use abstract_os::subscription::state::*;
+use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };
-use abstract_os::modules::add_ons::subscription::state::*;
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
 pub type SubscriptionAddOn<'a> = AddOnContract<'a>;

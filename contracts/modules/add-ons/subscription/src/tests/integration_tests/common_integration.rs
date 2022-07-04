@@ -29,7 +29,7 @@ pub fn init_contracts(app: &mut App) -> BaseContracts {
 
     let cw20_token_code_id = app.store_code(cw20_token_contract);
 
-    let msg = cw20_base::msg::InstantiateMsg {
+    let msg = cw20_base::InstantiateMsg {
         name: String::from("Whale token"),
         symbol: String::from("WHALE"),
         decimals: 6,
