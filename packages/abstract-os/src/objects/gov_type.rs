@@ -12,7 +12,28 @@ pub enum GovernanceDetails {
         threshold_votes: u8,
         members: Vec<String>,
     },
-    TokenWeighted {
-        token_addr: String,
+    /// An external governance source
+    External {
+        /// The external contract address
+        governance_address: String,
+        /// Governance type used for doing extra off-chain queries depending on the type.
+        governance_type: String,
     },
+}
+
+impl ToString for GovernanceDetails {
+    fn to_string(&self) -> String {
+        match self {
+            GovernanceDetails::Monarchy { monarch: _ } => "monarchy".to_string(),
+            GovernanceDetails::MultiSignature {
+                total_members: _,
+                threshold_votes: _,
+                members: _,
+            } => "multisig".to_string(),
+            GovernanceDetails::External {
+                governance_address: _,
+                governance_type,
+            } => governance_type.clone(),
+        }
+    }
 }

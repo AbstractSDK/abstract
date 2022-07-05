@@ -3,12 +3,12 @@
 //! [`crate::vault`] is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
 //! ## Description  
-//! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset. 
+//! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
 //! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.  
-//! 
+//!
 //! ---
-//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the vault's size. 
-//! 
+//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the vault's size.
+//!
 //! ## Creation
 //! The vault contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
 //! ```ignore

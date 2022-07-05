@@ -10,6 +10,7 @@ pub struct Config {
     pub memory_contract: Addr,
     pub module_factory_address: Addr,
     pub subscription_address: Option<Addr>,
+    pub chain_id: String,
     pub next_os_id: u32,
 }
 

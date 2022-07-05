@@ -39,7 +39,7 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
         .wrap()
         .query_wasm_smart(
             &native_contracts.version_control,
-            &version_control::QueryMsg::QueryOsAddress { os_id: 0u32 },
+            &version_control::QueryMsg::QueryOsCore { os_id: 0u32 },
         )
         .unwrap();
 

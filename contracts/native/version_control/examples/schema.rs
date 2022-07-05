@@ -4,10 +4,11 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
 use abstract_os::{
+    modules::ModuleInfo,
     version_control::{
-        CodeIdResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg,
+        ExecuteMsg, InstantiateMsg, QueryApiAddressesResponse, QueryCodeIdResponse,
+        QueryConfigResponse, QueryMsg, QueryOsCoreResponse,
     },
-    {manager::EnabledModulesResponse, modules::ModuleInfo},
 };
 
 fn main() {
@@ -20,21 +21,18 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(ModuleInfo), &out_dir);
-    export_schema(&schema_for!(ConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryApiAddressesResponse), &out_dir);
+    export_schema(&schema_for!(QueryCodeIdResponse), &out_dir);
     // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
     export_schema_with_title(
-        &schema_for!(EnabledModulesResponse),
-        &out_dir,
-        "QueryEnabledModulesResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(CodeIdResponse),
+        &schema_for!(QueryCodeIdResponse),
         &out_dir,
         "QueryCodeIdResponse",
     );
     export_schema_with_title(
-        &schema_for!(OsCoreResponse),
+        &schema_for!(QueryOsCoreResponse),
         &out_dir,
-        "QueryOsAddrResponse",
+        "QueryOsCoreResponse",
     );
 }

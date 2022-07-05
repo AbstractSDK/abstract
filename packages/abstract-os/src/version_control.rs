@@ -78,44 +78,58 @@ pub enum ExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    /// Queries enabled modules of some OS
-    QueryEnabledModules {
-        manager_address: String,
-    },
-    /// Returns Core of OS
-    QueryOsAddress {
-        os_id: u32,
-    },
+    /// Query Core of an OS
+    /// Returns [`QueryOsCoreResponse`]
+    QueryOsCore { os_id: u32 },
     /// Queries contract code_id
-    QueryCodeId {
-        module: ModuleInfo,
-    },
+    /// Returns [`QueryCodeIdResponse`]
+    QueryCodeId { module: ModuleInfo },
     /// Queries api addresses
-    QueryApiAddress {
-        module: ModuleInfo,
+    /// Returns [`QueryApiAddressResponse`]
+    QueryApiAddress { module: ModuleInfo },
+    /// Returns [`QueryConfigResponse`]
+    QueryConfig {},
+    /// Returns [`QueryCodeIdsResponse`]
+    QueryCodeIds {
+        last_module: Option<ContractVersion>,
+        iter_limit: Option<u8>,
     },
-    Config {},
+    /// Returns [`QueryApiAddressesResponse`]
+    QueryApiAddresses {
+        last_api_module: Option<ContractVersion>,
+        iter_limit: Option<u8>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct OsAddrResponse {
-    pub os_address: Core,
+pub struct QueryOsCoreResponse {
+    pub os_core: Core,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct CodeIdResponse {
+pub struct QueryCodeIdResponse {
     pub code_id: Uint64,
     pub info: ContractVersion,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ApiAddrResponse {
+pub struct QueryCodeIdsResponse {
+    pub module_code_ids: Vec<(ContractVersion, u64)>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryApiAddressResponse {
     pub address: Addr,
     pub info: ContractVersion,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ConfigResponse {
+pub struct QueryApiAddressesResponse {
+    pub api_addresses: Vec<(ContractVersion, String)>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryConfigResponse {
     pub admin: String,
     pub factory: String,
 }

@@ -4,35 +4,35 @@
 
 //! # Abstract OS
 //!
-//! Abstract OS is the interface-defining crate to the Abstract OS smart-contract framework. 
-//! 
+//! Abstract OS is the interface-defining crate to the Abstract OS smart-contract framework.
+//!
 //! ## Description
 //! This crate provides the key utilities that are required to integrate with or to write Abstract contracts.
-//! 
+//!
 //! ## Messages
 //! All interfacing message structs are defined here so they can be imported.  
 //! **Example:** `use abstract_os::manager::ExecuteMsg`
 //! ### Assets
 //! [`cw-asset`](https://crates.io/crates/cw-asset) is used for asset-management.
-//! If a message requests a String value for an Asset field then you need to provide the human-readable memory key. 
+//! If a message requests a String value for an Asset field then you need to provide the human-readable memory key.
 //! The full list of supported assets and contracts is given [here](https://github.com/Abstract-OS/scripts/tree/main/resources/memory).  
 //! The contract will handel address retrieval internally.  
 //! TODO: Create better list / open repo
-//! 
+//!
 //! ## State
-//! The internal state for each contract is also contained within this crate. This ensures that breaking changes to the internal state are easily spotted. 
+//! The internal state for each contract is also contained within this crate. This ensures that breaking changes to the internal state are easily spotted.
 //! It also allows for tight and low-gas integration between contracts by performing raw queries on these states.
-//! A contract's state object can be imported and used like: 
+//! A contract's state object can be imported and used like:
 //! ```ignore
 //! use crate::manager::state::OS_ID
 //! let os_id = OS_ID.query(querier, manager_address).unwrap();
 //! ```
-//! The internally stored objects are also contained within this package in [`crate::objects`]. 
-//! 
+//! The internally stored objects are also contained within this package in [`crate::objects`].
+//!
 //! ## Names
-//! Abstract module names are stored in [`registry`]. 
+//! Abstract module names are stored in [`registry`].
 //! These names are used throughout the stack to retrieve code-ids or to get associated contract addresses.
-//! They are re-exported for ease of use: 
+//! They are re-exported for ease of use:
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
@@ -45,11 +45,11 @@ pub mod api;
 pub mod manager;
 pub mod memory;
 pub mod module_factory;
-pub mod version_control;
-pub mod vault;
-pub mod subscription;
 pub mod modules;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;
 pub(crate) mod registry;
+pub mod subscription;
+pub mod vault;
+pub mod version_control;

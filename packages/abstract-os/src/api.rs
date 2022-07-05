@@ -47,7 +47,7 @@ pub enum ApiQueryMsg {
 
     /// Return type: TradersResponse.
     /// TODO: enable pagination of some sort
-    Traders { proxy_addr: String },
+    Traders { proxy_address: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]

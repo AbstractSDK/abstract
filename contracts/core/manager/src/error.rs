@@ -42,6 +42,24 @@ pub enum ManagerError {
 
     #[error("The provided API key ({0},{1}) was not found in version control")]
     ApiNotFound(String, String),
+
+    #[error("description too short, must be at least {0} characters")]
+    DescriptionInvalidShort(usize),
+
+    #[error("description too long, must be at most {0} characters")]
+    DescriptionInvalidLong(usize),
+
+    #[error("link too short, must be at least {0} characters")]
+    LinkInvalidShort(usize),
+
+    #[error("link too long, must be at most {0} characters")]
+    LinkInvalidLong(usize),
+
+    #[error("title/gov-type too short, must be at least {0} characters")]
+    TitleInvalidShort(usize),
+
+    #[error("title/gov-type too long, must be at most {0} characters")]
+    TitleInvalidLong(usize),
 }
 impl From<semver::Error> for ManagerError {
     fn from(err: semver::Error) -> Self {

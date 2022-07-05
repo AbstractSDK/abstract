@@ -5,3 +5,5 @@ pub const TEST_CREATOR: &str = "creator";
 pub const RANDOM_USER: &str = "random_user";
 pub const WHALE_TOKEN: &str = "token";
 pub const DEFAULT_VERSION: &str = "v1.0.0";
+pub const CHAIN_ID: &str = "chain-0";
+pub const OS_NAME: &str = "default_name";

@@ -13,10 +13,20 @@ pub mod state {
         pub module_factory_address: Addr,
         pub subscription_address: Addr,
     }
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    pub struct OsInfo {
+        pub name: String,
+        pub governance_type: String,
+        pub chain_id: String,
+        pub description: Option<String>,
+        pub link: Option<String>,
+    }
 
     pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
-
+    /// Info about the OS
+    pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
+    /// Contract Admin
     pub const ADMIN: Admin = Admin::new("admin");
     pub const ROOT: Admin = Admin::new("root");
     pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
@@ -29,6 +39,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::modules::Module;
 
+use self::state::OsInfo;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
@@ -39,6 +51,11 @@ pub struct InstantiateMsg {
     pub version_control_address: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
+    pub chain_id: String,
+    pub governance_type: String,
+    pub os_name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -50,7 +67,10 @@ pub enum ExecuteMsg {
         to_remove: Option<Vec<String>>,
     },
     /// Sets a new Admin
-    SetAdmin { admin: String },
+    SetAdmin {
+        admin: String,
+        governance_type: Option<String>,
+    },
     /// Create module using module factory
     CreateModule {
         module: Module,
@@ -76,42 +96,63 @@ pub enum ExecuteMsg {
     },
     /// Suspend manager contract
     SuspendOs { new_status: bool },
+    /// Update info
+    UpdateInfo {
+        os_name: Option<String>,
+        description: Option<String>,
+        link: Option<String>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    /// Queries assets based on name
-    QueryVersions {
-        names: Vec<String>,
+    /// Returns [`QueryModuleVersionsResponse`]
+    QueryModuleVersions { names: Vec<String> },
+    /// Returns [`QueryModuleAddressesResponse`]
+    QueryModuleAddresses { names: Vec<String> },
+    /// Returns [`QueryModuleInfosResponse`]
+    QueryModuleInfos {
+        last_module_name: Option<String>,
+        iter_limit: Option<u8>,
     },
-    QueryModules {
-        names: Vec<String>,
-    },
-    QueryEnabledModules {},
-    /// Query OS_ID
-    QueryOsConfig {},
+    /// Returns [`QueryConfigResponse`]
+    QueryConfig {},
+    /// Returns [`QueryInfoResponse`]
+    QueryInfo {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct VersionsQueryResponse {
+pub struct QueryModuleVersionsResponse {
     pub versions: Vec<ContractVersion>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ModuleQueryResponse {
+pub struct QueryModuleAddressesResponse {
     pub modules: Vec<(String, String)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct EnabledModulesResponse {
-    pub modules: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ConfigQueryResponse {
+pub struct QueryConfigResponse {
     pub root: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub os_id: Uint64,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryInfoResponse {
+    pub info: OsInfo,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ManagerModuleInfo {
+    pub name: String,
+    pub version: ContractVersion,
+    pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryModuleInfosResponse {
+    pub module_infos: Vec<ManagerModuleInfo>,
 }

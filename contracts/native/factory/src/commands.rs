@@ -1,5 +1,5 @@
-use abstract_os::objects::gov_type::GovernanceDetails;
 use abstract_os::modules::ModuleInfo;
+use abstract_os::objects::gov_type::GovernanceDetails;
 use abstract_os::os_factory::ExecuteMsg;
 use abstract_os::subscription::{
     DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
@@ -24,7 +24,7 @@ use abstract_os::manager::InstantiateMsg as ManagerInstantiateMsg;
 use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
 use abstract_os::version_control::{
-    CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
+    ExecuteMsg as VCExecuteMsg, QueryCodeIdResponse, QueryMsg as VCQuery,
 };
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
@@ -39,13 +39,26 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> OsFactoryResult {
     match from_binary(&cw20_msg.msg)? {
-        ExecuteMsg::CreateOs { governance } => {
+        ExecuteMsg::CreateOs {
+            governance,
+            description,
+            link,
+            os_name,
+        } => {
             // Construct deposit asset
             let asset = Asset {
                 info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
-            execute_create_os(deps, env, governance, Some(asset))
+            execute_create_os(
+                deps,
+                env,
+                governance,
+                Some(asset),
+                os_name,
+                description,
+                link,
+            )
         }
         _ => Err(OsFactoryError::Std(StdError::generic_err(
             "unknown send msg hook",
@@ -59,6 +72,9 @@ pub fn execute_create_os(
     env: Env,
     governance: GovernanceDetails,
     asset: Option<Asset>,
+    os_name: String,
+    description: Option<String>,
+    link: Option<String>,
 ) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -71,13 +87,13 @@ pub fn execute_create_os(
         }
     }
     // Get address of OS root user, depends on gov-type
-    let root_user: Addr = match governance {
-        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(&monarch)?,
+    let root_user: Addr = match &governance {
+        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
         _ => return Err(StdError::generic_err("Not Implemented").into()),
     };
 
     // Query version_control for code_id of Manager contract
-    let manager_code_id_response: CodeIdResponse =
+    let manager_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {
@@ -110,6 +126,11 @@ pub fn execute_create_os(
                     version_control_address: config.version_control_contract.to_string(),
                     subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
+                    chain_id: config.chain_id,
+                    os_name,
+                    description,
+                    link,
+                    governance_type: governance.to_string(),
                 })?,
             }
             .into(),
@@ -138,7 +159,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     )?;
 
     // Query version_control for code_id of Treasury
-    let proxy_code_id_response: CodeIdResponse =
+    let proxy_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
             msg: to_binary(&VCQuery::QueryCodeId {

@@ -1,12 +1,12 @@
 use abstract_os::{
     api::{ApiExecuteMsg, ApiQueryMsg, TradersResponse},
-    manager::state::{Subscribed, ADMIN, CONFIG, OS_MODULES, ROOT, STATUS},
+    manager::state::{OsInfo, Subscribed, ADMIN, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     modules::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
-        ApiAddrResponse, CodeIdResponse, QueryMsg as VersionQuery,
+        QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VersionQuery,
     },
 };
 use cosmwasm_std::{
@@ -16,15 +16,13 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
-use crate::{contract::ManagerResult, error::ManagerError};
+use crate::{contract::ManagerResult, error::ManagerError, validators::validate_name_or_gov_type};
 use abstract_os::{MANAGER, PROXY};
 use abstract_sdk::manager::query_module_version;
-pub const DAPP_CREATE_ID: u64 = 1u64;
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
 /// Factory is admin on init
-/// TODO: Add functionality to version_control (or some other contract) to add and upgrade contracts.
 pub fn update_module_addresses(
     deps: DepsMut,
     to_add: Option<Vec<(String, String)>>,
@@ -168,11 +166,23 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) 
     Ok(Response::new().add_attribute("Removed module", &module_name))
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> ManagerResult {
+pub fn set_admin_and_gov_type(
+    deps: DepsMut,
+    info: MessageInfo,
+    admin: String,
+    governance_type: Option<String>,
+) -> ManagerResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    if let Some(new_gov_type) = governance_type {
+        let mut info = INFO.load(deps.storage)?;
+        validate_name_or_gov_type(&new_gov_type)?;
+        info.governance_type = new_gov_type;
+        INFO.save(deps.storage, &info)?;
+    }
+
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
@@ -292,6 +302,25 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     Ok(Response::new().add_messages(msgs))
 }
 
+/// Update the OS information
+pub fn update_info(
+    deps: DepsMut,
+    info: MessageInfo,
+    os_name: Option<String>,
+    description: Option<String>,
+    link: Option<String>,
+) -> ManagerResult {
+    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    let mut info: OsInfo = INFO.load(deps.storage)?;
+    if let Some(os_name) = os_name {
+        // validate address format
+        info.name = os_name;
+    }
+    info.description = description;
+    info.link = link;
+    INFO.save(deps.storage, &info)?;
+    Ok(Response::new())
+}
 pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -329,7 +358,7 @@ fn get_code_id(
         }
         None => {
             // Query latest version of contract
-            let resp: CodeIdResponse =
+            let resp: QueryCodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::QueryCodeId {
@@ -359,7 +388,7 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
         }
         None => {
             // Query latest version of contract
-            let resp: ApiAddrResponse =
+            let resp: QueryApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::QueryApiAddress {

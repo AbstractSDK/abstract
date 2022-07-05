@@ -1,15 +1,15 @@
 use abstract_os::{
     manager::{
-        ConfigQueryResponse, EnabledModulesResponse, ExecuteMsg, InstantiateMsg,
-        ModuleQueryResponse, QueryMsg, VersionsQueryResponse,
+        ExecuteMsg, InstantiateMsg, ManagerModuleInfo, QueryConfigResponse, QueryInfoResponse,
+        QueryModuleAddressesResponse, QueryModuleInfosResponse, QueryModuleVersionsResponse,
+        QueryMsg,
     },
     modules::Module,
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use std::{env::current_dir, fs::create_dir_all};
 
-use abstract_os::manager::state::Config;
+use abstract_os::manager::state::OsInfo;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
 
 fn main() {
@@ -21,27 +21,22 @@ fn main() {
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     // TODO: failing because of the array, need to delete update_module_addresses
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
+    export_schema(&schema_for!(OsInfo), &out_dir);
+    export_schema(&schema_for!(ManagerModuleInfo), &out_dir);
     export_schema(&schema_for!(Module), &out_dir);
     // TODO:
     export_schema(&schema_for!(Binary), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
+    export_schema(&schema_for!(QueryInfoResponse), &out_dir);
+    export_schema(&schema_for!(QueryModuleInfosResponse), &out_dir);
+    export_schema(&schema_for!(QueryModuleAddressesResponse), &out_dir);
     export_schema_with_title(
-        &schema_for!(VersionsQueryResponse),
+        &schema_for!(QueryModuleVersionsResponse),
         &out_dir,
         "QueryVersionsResponse",
     );
     export_schema_with_title(
-        &schema_for!(ModuleQueryResponse),
-        &out_dir,
-        "QueryModulesResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(EnabledModulesResponse),
-        &out_dir,
-        "QueryEnabledModulesResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(ConfigQueryResponse),
+        &schema_for!(QueryConfigResponse),
         &out_dir,
         "QueryOsConfigResponse",
     );

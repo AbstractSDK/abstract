@@ -13,7 +13,7 @@ pub mod env {
     pub use super::os_creation::init_os;
     use super::os_creation::init_primary_os;
     use super::upload::upload_base_contracts;
-    use abstract_os::manager as ManagerMsgs;
+    use abstract_os::manager::{self as ManagerMsgs, ManagerModuleInfo};
     use abstract_os::version_control::Core;
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
@@ -54,20 +54,32 @@ pub mod env {
     ) -> AnyResult<HashMap<String, Addr>> {
         let manager_addr: Addr = os_store.get(os_id).unwrap().manager.clone();
         // Check OS
-        let resp: ManagerMsgs::EnabledModulesResponse = app.wrap().query_wasm_smart(
+        let mut resp: ManagerMsgs::QueryModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
-            &ManagerMsgs::QueryMsg::QueryEnabledModules {},
-        )?;
-
-        let modules: ManagerMsgs::ModuleQueryResponse = app.wrap().query_wasm_smart(
-            &manager_addr,
-            &ManagerMsgs::QueryMsg::QueryModules {
-                names: resp.modules,
+            &ManagerMsgs::QueryMsg::QueryModuleInfos {
+                last_module_name: None,
+                iter_limit: None,
             },
         )?;
         let mut state = HashMap::new();
-        for (module, addr) in modules.modules {
-            state.insert(module, Addr::unchecked(addr));
+        while !resp.module_infos.is_empty() {
+            let mut last_module: Option<String> = None;
+            for ManagerModuleInfo {
+                address,
+                name,
+                version: _,
+            } in resp.module_infos
+            {
+                last_module = Some(name.clone());
+                state.insert(name, Addr::unchecked(address));
+            }
+            resp = app.wrap().query_wasm_smart(
+                &manager_addr,
+                &ManagerMsgs::QueryMsg::QueryModuleInfos {
+                    last_module_name: last_module,
+                    iter_limit: None,
+                },
+            )?;
         }
         Ok(state)
     }

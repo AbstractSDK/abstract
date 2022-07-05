@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::version_control::OsCoreResponse;
+use abstract_os::version_control::QueryOsCoreResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::add_on::AddOnInstantiateMsg;
@@ -17,6 +17,7 @@ use cw_asset::AssetInfoUnchecked;
 use abstract_os::SUBSCRIPTION;
 use cw_multi_test::App;
 
+use crate::tests::common::OS_NAME;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::subscription::register_subscription;
 use crate::tests::testing_infrastructure::common_integration::mock_app;
@@ -50,6 +51,9 @@ pub fn init_os(
             governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
+            os_name: OS_NAME.to_string(),
+            description: None,
+            link: None,
         },
         &funds,
     )?;
@@ -61,7 +65,7 @@ pub fn init_os(
     let os_id = resp.next_os_id - 1;
 
     // Check OS
-    let core: OsCoreResponse = app.wrap().query_wasm_smart(
+    let core: QueryOsCoreResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
         &version_control::QueryMsg::QueryOsCore { os_id },
     )?;

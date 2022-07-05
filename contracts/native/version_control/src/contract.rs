@@ -13,7 +13,7 @@ use crate::commands::*;
 use crate::queries;
 use abstract_os::version_control::state::{ADMIN, FACTORY};
 use abstract_os::version_control::{
-    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryMsg,
 };
 
 pub type VCResult = Result<Response, VCError>;
@@ -74,19 +74,22 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        // TODO: Add query to get latest version and code_id for some module
-        // That way we don't need to hard-code versions in factory contract
-        QueryMsg::QueryEnabledModules { manager_address } => {
-            queries::query_enabled_modules(deps, deps.api.addr_validate(&manager_address)?)
-        }
-        QueryMsg::QueryOsCore { os_id } => queries::query_os_address(deps, os_id),
-        QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
-        QueryMsg::QueryApiAddress { module } => queries::query_api_address(deps, module),
-        QueryMsg::Config {} => {
+        QueryMsg::QueryOsCore { os_id } => queries::handle_os_address_query(deps, os_id),
+        QueryMsg::QueryCodeId { module } => queries::handle_code_id_query(deps, module),
+        QueryMsg::QueryApiAddress { module } => queries::handle_api_address_query(deps, module),
+        QueryMsg::QueryConfig {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
-            to_binary(&ConfigResponse { admin, factory })
+            to_binary(&QueryConfigResponse { admin, factory })
         }
+        QueryMsg::QueryCodeIds {
+            last_module,
+            iter_limit,
+        } => queries::handle_code_ids_query(deps, last_module, iter_limit),
+        QueryMsg::QueryApiAddresses {
+            last_api_module,
+            iter_limit,
+        } => queries::handle_api_addresses_query(deps, last_api_module, iter_limit),
     }
 }
 

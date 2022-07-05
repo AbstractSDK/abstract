@@ -28,6 +28,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         memory_contract: deps.api.addr_validate(&msg.memory_address)?,
+        chain_id: msg.chain_id,
         subscription_address: None,
         next_os_id: 0u32,
     };
@@ -59,9 +60,22 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             module_factory_address,
             subscription_address,
         ),
-        ExecuteMsg::CreateOs { governance } => {
+        ExecuteMsg::CreateOs {
+            governance,
+            link,
+            os_name,
+            description,
+        } => {
             let maybe_recieved_coin = info.funds.last().map(Asset::from);
-            commands::execute_create_os(deps, env, governance, maybe_recieved_coin)
+            commands::execute_create_os(
+                deps,
+                env,
+                governance,
+                maybe_recieved_coin,
+                os_name,
+                description,
+                link,
+            )
         }
     }
 }
