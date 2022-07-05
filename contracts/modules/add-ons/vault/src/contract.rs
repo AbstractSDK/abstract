@@ -15,7 +15,7 @@ use protobuf::Message;
 use semver::Version;
 
 use abstract_os::objects::fee::Fee;
-use abstract_os::registery::VAULT;
+use abstract_os::VAULT;
 use abstract_os::vault::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 

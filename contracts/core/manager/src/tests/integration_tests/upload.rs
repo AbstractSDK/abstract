@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::registery::*;
+use abstract_os::*;
 
 use cw_multi_test::{App, ContractWrapper};
 

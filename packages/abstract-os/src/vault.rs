@@ -1,3 +1,42 @@
+//! # Vault Add-On
+//!
+//! [`crate::vault`] is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
+//!
+//! ## Description  
+//! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset. 
+//! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.  
+//! 
+//! ---
+//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the vault's size. 
+//! 
+//! ## Creation
+//! The vault contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
+//! ```ignore
+//! let vault_init_msg = InstantiateMsg{
+//!                deposit_asset: "juno".to_string(),
+//!                base: AddOnInstantiateMsg{memory_address: "juno1...".to_string()},
+//!                fee: Decimal::percent(10),
+//!                provider_addr: "juno1...".to_string(),
+//!                token_code_id: 3,
+//!                vault_lp_token_name: Some("demo_vault".to_string()),
+//!                vault_lp_token_symbol: Some("DEMO".to_string()),
+//!        };
+//! let create_module_msg = ExecuteMsg::CreateModule {
+//!                 module: Module {
+//!                     info: ModuleInfo {
+//!                         name: VAULT.into(),
+//!                         version: None,
+//!                     },
+//!                     kind: crate::core::modules::ModuleKind::External,
+//!                 },
+//!                 init_msg: Some(to_binary(&vault_init_msg).unwrap()),
+//!        };
+//! // Call create_module_msg on manager
+//! ```
+//!
+//! ## Migration
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::registry::VAULT` as module.
+
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;

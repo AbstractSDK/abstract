@@ -1,4 +1,13 @@
-use crate::gov_type::GovernanceDetails;
+//! # Memory
+//!
+//! `abstract_os::memory` stores chain-specific contract addresses.
+//!
+//! ## Description
+//! Contract and asset addresses are stored on the proxy contract and are retrievable trough smart or raw queries.
+//! This is useful when managing a large set of contracts. 
+
+
+use crate::objects::gov_type::GovernanceDetails;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

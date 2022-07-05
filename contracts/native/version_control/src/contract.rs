@@ -1,5 +1,5 @@
 use crate::error::VCError;
-use abstract_os::registery::VERSION_CONTROL;
+use abstract_os::VERSION_CONTROL;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
@@ -79,7 +79,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::QueryEnabledModules { manager_address } => {
             queries::query_enabled_modules(deps, deps.api.addr_validate(&manager_address)?)
         }
-        QueryMsg::QueryOsAddress { os_id } => queries::query_os_address(deps, os_id),
+        QueryMsg::QueryOsCore { os_id } => queries::query_os_address(deps, os_id),
         QueryMsg::QueryCodeId { module } => queries::query_code_id(deps, module),
         QueryMsg::QueryApiAddress { module } => queries::query_api_address(deps, module),
         QueryMsg::Config {} => {

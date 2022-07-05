@@ -13,7 +13,7 @@ use abstract_os::proxy::{
     ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
     MigrateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
 };
-use abstract_os::registery::PROXY;
+use abstract_os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::AssetInfo;
 use semver::Version;

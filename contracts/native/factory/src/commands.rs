@@ -1,4 +1,4 @@
-use abstract_os::gov_type::GovernanceDetails;
+use abstract_os::objects::gov_type::GovernanceDetails;
 use abstract_os::modules::ModuleInfo;
 use abstract_os::os_factory::ExecuteMsg;
 use abstract_os::subscription::{
@@ -30,7 +30,7 @@ use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
-use abstract_os::registery::{MANAGER, PROXY};
+use abstract_os::{MANAGER, PROXY};
 
 pub fn receive_cw20(
     deps: DepsMut,

@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_os::manager::state::{Config, ADMIN, CONFIG, ROOT, STATUS};
-use abstract_os::registery::MANAGER;
+use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ConfigQueryResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     modules::*,

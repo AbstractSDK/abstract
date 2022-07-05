@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use abstract_add_on::AddOnContract;
-use abstract_os::registery::SUBSCRIPTION;
+use abstract_os::SUBSCRIPTION;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Decimal, Deps, DepsMut, Empty, Env, MessageInfo, Reply,
     ReplyOn, Response, StdError, StdResult, SubMsg, Uint128, Uint64, WasmMsg,

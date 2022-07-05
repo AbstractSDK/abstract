@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::version_control::OsAddrResponse;
+use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Addr;
 
 use abstract_os::add_on::AddOnInstantiateMsg;
@@ -14,7 +14,7 @@ use cosmwasm_std::Uint128;
 use cosmwasm_std::Uint64;
 use cw_asset::AssetInfoUnchecked;
 
-use abstract_os::registery::SUBSCRIPTION;
+use abstract_os::SUBSCRIPTION;
 use cw_multi_test::App;
 
 use crate::tests::common::TEST_CREATOR;
@@ -47,7 +47,7 @@ pub fn init_os(
         sender.clone(),
         native_contracts.os_factory.clone(),
         &abstract_os::os_factory::ExecuteMsg::CreateOs {
-            governance: abstract_os::gov_type::GovernanceDetails::Monarchy {
+            governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
         },
@@ -61,12 +61,12 @@ pub fn init_os(
     let os_id = resp.next_os_id - 1;
 
     // Check OS
-    let core: OsAddrResponse = app.wrap().query_wasm_smart(
+    let core: OsCoreResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
-        &version_control::QueryMsg::QueryOsAddress { os_id },
+        &version_control::QueryMsg::QueryOsCore { os_id },
     )?;
 
-    os_store.insert(os_id, core.os_address.clone());
+    os_store.insert(os_id, core.os_core.clone());
     assert!(os_store_as_expected(&app, &native_contracts, &os_store));
     Ok(())
 }

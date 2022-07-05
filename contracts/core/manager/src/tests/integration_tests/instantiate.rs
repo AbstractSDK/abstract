@@ -8,7 +8,7 @@ use abstract_os::{
     memory::msg as MemoryMsg, module_factory::msg as ModuleFactoryMsg,
     os_factory::msg as OSFactoryMsg, version_control::msg as VCMsg,
 };
-use abstract_os::registery::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+use abstract_os::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 
 use cw_multi_test::{App, App, Executor};
 

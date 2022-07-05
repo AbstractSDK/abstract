@@ -17,7 +17,7 @@ use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
 use crate::{contract::ManagerResult, error::ManagerError};
-use abstract_os::registery::{MANAGER, PROXY};
+use abstract_os::{MANAGER, PROXY};
 use abstract_sdk::manager::query_module_version;
 pub const DAPP_CREATE_ID: u64 = 1u64;
 
@@ -242,7 +242,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: config.version_control_address.to_string(),
         msg: to_binary(&ApiQueryMsg::Traders {
-            proxy_addr: proxy_addr.to_string(),
+            proxy_address: proxy_addr.to_string(),
         })?,
     }))?;
     // Get the address of the new API

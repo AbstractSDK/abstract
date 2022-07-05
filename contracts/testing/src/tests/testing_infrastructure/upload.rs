@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::registery::*;
-
+use abstract_os::{PROXY, MEMORY, VERSION_CONTROL, OS_FACTORY, MODULE_FACTORY, MANAGER};
 use cw_multi_test::{App, ContractWrapper};
 
 use super::common_integration::NativeContracts;

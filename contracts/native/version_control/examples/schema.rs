@@ -5,7 +5,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 
 use abstract_os::{
     version_control::{
-        CodeIdResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, OsAddrResponse, QueryMsg,
+        CodeIdResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, OsCoreResponse, QueryMsg,
     },
     {manager::EnabledModulesResponse, modules::ModuleInfo},
 };
@@ -33,7 +33,7 @@ fn main() {
         "QueryCodeIdResponse",
     );
     export_schema_with_title(
-        &schema_for!(OsAddrResponse),
+        &schema_for!(OsCoreResponse),
         &out_dir,
         "QueryOsAddrResponse",
     );

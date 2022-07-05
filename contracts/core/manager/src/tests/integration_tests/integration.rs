@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use cosmwasm_std::Addr;
 
 use abstract_os::version_control::state::Core;
-use abstract_os::registery::PROXY;
+use abstract_os::PROXY;
 
 use cw_multi_test::App;
 
@@ -26,7 +26,7 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
             sender.clone(),
             native_contracts.os_factory.clone(),
             &abstract_os::os_factory::ExecuteMsg::CreateOs {
-                governance: abstract_os::gov_type::GovernanceDetails::Monarchy {
+                governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: sender.into_string(),
                 },
             },

@@ -1,4 +1,4 @@
-# Pandora Architecture
+# Abstract OS Architecture
 
 
 ![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true)

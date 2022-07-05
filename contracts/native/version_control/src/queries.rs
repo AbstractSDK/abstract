@@ -1,7 +1,7 @@
 use abstract_os::modules::ModuleInfo;
 use abstract_os::version_control::state::API_ADDRESSES;
 use abstract_os::version_control::ApiAddrResponse;
-use abstract_os::version_control::OsAddrResponse;
+use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::QueryRequest;
 use cosmwasm_std::StdError;
@@ -32,9 +32,7 @@ pub fn query_os_address(deps: Deps, os_id: u32) -> StdResult<Binary> {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingOsId { id: os_id }.to_string(),
         )),
-        Ok(address) => to_binary(&OsAddrResponse {
-            os_address: address,
-        }),
+        Ok(core) => to_binary(&OsCoreResponse { os_core: core }),
     }
 }
 

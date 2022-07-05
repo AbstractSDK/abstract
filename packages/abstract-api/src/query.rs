@@ -20,10 +20,10 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub fn query(&self, deps: Deps, _env: Env, query: ApiQueryMsg) -> StdResult<Binary> {
         match query {
             ApiQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
-            ApiQueryMsg::Traders { proxy_addr } => {
+            ApiQueryMsg::Traders { proxy_address } => {
                 let traders = self
                     .traders
-                    .load(deps.storage, deps.api.addr_validate(&proxy_addr)?)?;
+                    .load(deps.storage, deps.api.addr_validate(&proxy_address)?)?;
                 to_binary(&TradersResponse { traders })
             }
         }

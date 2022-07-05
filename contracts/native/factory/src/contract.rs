@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use cw_asset::Asset;
 
 use crate::error::OsFactoryError;
-use abstract_os::registery::OS_FACTORY;
+use abstract_os::OS_FACTORY;
 use cw2::set_contract_version;
 
 use crate::commands;
