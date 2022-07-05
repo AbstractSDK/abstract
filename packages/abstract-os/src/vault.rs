@@ -45,37 +45,49 @@ use serde::{Deserialize, Serialize};
 
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
 
+/// Migrate msg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
 
+/// Init msg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
+    /// Base init msg, sets memory address
     pub base: AddOnInstantiateMsg,
+    /// Code-id used to create the LP token
     pub token_code_id: u64,
+    /// Fee charged on withdrawal
     pub fee: Decimal,
+    /// Address of the service provider which receives the fee.
     pub provider_addr: String,
+    /// Asset required to deposit into the vault.
     pub deposit_asset: String,
+    /// Name of the vault token
     pub vault_lp_token_name: Option<String>,
+    /// Symbol of the vault token
     pub vault_lp_token_symbol: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    /// Execute on the base-add-on contract logic
     Base(AddOnExecuteMsg),
-    // Add dapp-specific messages here
+    /// Handler called by the CW-20 contract on a send-call
+    /// Acts as the withdraw/provide liquidity function.
+    /// Provide the token send message with a [`DepositHookMsg`]
     Receive(Cw20ReceiveMsg),
-    ProvideLiquidity {
-        asset: AssetUnchecked,
-    },
+    /// Provide liquidity to the attached proxy using a native token.
+    ProvideLiquidity { asset: AssetUnchecked },
+    /// Update the vault pool information
+    /// Asset names are resolved using [`abstract_os::memory`].
     UpdatePool {
         deposit_asset: Option<String>,
         assets_to_add: Vec<String>,
         assets_to_remove: Vec<String>,
     },
-    SetFee {
-        fee: Decimal,
-    },
+    /// Set the withdraw fee
+    SetFee { fee: Decimal },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -83,6 +95,7 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     Base(AddOnQueryMsg),
     // Add dapp-specific queries here
+    /// Returns [`StateResponse`]
     State {},
 }
 

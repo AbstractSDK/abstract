@@ -1,3 +1,15 @@
+//! # TODO Subscription Add-On
+//!
+//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions.
+//!
+//! ## Description
+//! The subscription contract has three main uses.
+//! 1. Provide a way to earn income with a subscription-style modal.  
+//! 2. Distribute income and native assets to project contributors. (optional)  
+//! 3. Distribute a native asset to your active users. (optional)  
+//!
+//! TODO
+
 pub mod state {
     use std::ops::Sub;
 
@@ -127,6 +139,7 @@ pub mod state {
         pub subscription_cost: Uint64,
     }
 
+    /// Compensation details for contributors
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct Compensation {
         pub base: u32,
@@ -155,7 +168,7 @@ use serde::{Deserialize, Serialize};
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 
-use crate::subscription::state::{
+use state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     SubscriptionState,
 };
@@ -171,6 +184,7 @@ pub struct InstantiateMsg {
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SubscriptionInstantiateMsg {
+    /// Payment asset for
     pub payment_asset: AssetInfoUnchecked,
     pub subscription_cost: Uint64,
     pub version_control_addr: String,

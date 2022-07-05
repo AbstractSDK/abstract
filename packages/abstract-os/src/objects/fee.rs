@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use cw_asset::Asset;
 
+/// A wrapper around Decimal to help handle fractional fees.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Fee {
+    /// fraction of asset to take as fee.
     pub share: Decimal,
 }
 

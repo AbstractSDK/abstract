@@ -1,10 +1,18 @@
+//! # Abstract Add-On Base
+//!
+//! `abstract_os::add_on` implements shared functionality that's useful for creating new Abstract add-ons.
+//!
+//! ## Description
+//! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
+//! The source code is accessible on [todo](todo).
+
 use cosmwasm_std::Addr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+/// Used by Module Factory to instantiate AddOn
 pub struct AddOnInstantiateMsg {
-    /// Used by Module Factory to instantiate AddOn
     pub memory_address: String,
 }
 
@@ -18,9 +26,9 @@ pub enum AddOnExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum AddOnQueryMsg {
-    /// Returns the base configuration for the AddOn
+    /// Returns [`AddOnConfigResponse`]
     Config {},
-    /// Returns the admin = manager
+    /// Returns the admin.
     Admin {},
 }
 

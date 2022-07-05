@@ -1,3 +1,19 @@
+//! # OS Manager
+//!
+//! `abstract_os::manager` implements the contract interface and state lay-out.
+//!
+//! ## Description
+//!
+//! The OS-manager is part of the Core OS contracts along with the `abstract_os::proxy` contract.
+//! This contract is responsible for:
+//! - Managing modules instantiation and migrations.
+//! - Managing permissions.
+//! - Upgrading the OS and its modules.
+//! - Providing module name to address resolution.
+//!
+//! **The manager should be set as the contract/CosmWasm admin by default on your modules.**
+//! ## Migration
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
     pub use crate::objects::core::OS_ID;
     use cosmwasm_std::Addr;
@@ -7,6 +23,8 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     pub type Subscribed = bool;
+
+    /// Manager configuration
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct Config {
         pub version_control_address: Addr,
@@ -22,13 +40,17 @@ pub mod state {
         pub link: Option<String>,
     }
 
+    /// Subscription status
     pub const STATUS: Item<Subscribed> = Item::new("\u{0}{6}status");
+    /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the OS
     pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ADMIN: Admin = Admin::new("admin");
+    /// Root user
     pub const ROOT: Admin = Admin::new("root");
+    /// Enabled Abstract modules
     pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
 }
 
@@ -58,10 +80,12 @@ pub struct InstantiateMsg {
     pub link: Option<String>,
 }
 
+/// Execute messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    /// Updates the Modules
+    /// Updates the `OS_MODULES` map
+    /// Only callable by module factory.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,
@@ -73,14 +97,17 @@ pub enum ExecuteMsg {
     },
     /// Create module using module factory
     CreateModule {
+        /// Module information.
         module: Module,
+        /// Instantiate message used to instantiate the contract.
         init_msg: Option<Binary>,
     },
-    /// Register a module after creation
+    /// Registers a module after creation.
+    /// Only callable by module factory.
     RegisterModule { module_addr: String, module: Module },
     /// Remove a module
     RemoveModule { module_name: String },
-    /// Forward configuration message to module
+    /// Forward execution message to module
     ExecOnModule {
         module_name: String,
         exec_msg: Binary,
@@ -90,6 +117,8 @@ pub enum ExecuteMsg {
         vc_addr: Option<String>,
         root: Option<String>,
     },
+    /// Upgrade the module to a new version
+    /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
         module: Module,
         migrate_msg: Option<Binary>,

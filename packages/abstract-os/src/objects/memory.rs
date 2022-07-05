@@ -8,14 +8,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES, PAIR_POSTFIX};
 
-// Struct that holds address
+/// Struct that provides easy in-contract memory querying.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Memory {
+    /// Address of the memory contract
     pub address: Addr,
 }
 
 impl Memory {
-    // Raw Query to Memory contract
+    /// Raw Query to Memory contract
     pub fn query_contracts(
         &self,
         deps: Deps,
@@ -24,12 +25,12 @@ impl Memory {
         query_contracts_from_mem(deps, &self.address, contract_names)
     }
 
-    // Raw query of a single contract Addr
+    /// Raw query of a single contract Addr
     pub fn query_contract(&self, deps: Deps, contract_name: &str) -> StdResult<Addr> {
         query_contract_from_mem(deps, &self.address, contract_name)
     }
 
-    // Raw Query to Memory contract
+    /// Raw Query to Memory contract
     pub fn query_assets(
         &self,
         deps: Deps,
@@ -38,7 +39,7 @@ impl Memory {
         query_assets_from_mem(deps, &self.address, asset_names)
     }
 
-    // Raw query of a single AssetInfo
+    /// Raw query of a single AssetInfo
     pub fn query_asset(&self, deps: Deps, asset_name: &str) -> StdResult<AssetInfo> {
         query_asset_from_mem(deps, &self.address, asset_name)
     }

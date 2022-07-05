@@ -1,3 +1,11 @@
+//! # OS Proxy
+//!
+//! `abstract_os::proxy` hold all the assets associated with the OS instance. It accepts Cosmos messages from whitelisted addresses and executes them.
+//!
+//! ## Description
+//! The proxy is part of the Core OS contracts along with the `abstract_os::manager` contract.
+//! This contract is responsible for executing Cosmos messages and calculating the value of its assets.
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -25,7 +33,7 @@ pub mod state {
     pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
 }
 
-/// Constructs the proxy dapp action message used by all dApps.
+/// Constructs the proxy dapp action message used by all modules.
 pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
@@ -34,12 +42,16 @@ pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<Co
     }))
 }
 
+/// A proxy asset with unchecked address fields.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct UncheckedProxyAsset {
+    /// The asset that's held by the proxy
     pub asset: AssetUnchecked,
-    // The value reference provides the tooling to get the value of the holding
-    // relative to the base asset.
+    /// The value reference provides the tooling to get the value of the asset
+    /// relative to the base asset.
+    /// If None, the provided asset is set as the base asset.
+    /// You can only have one base asset!
     pub value_reference: Option<UncheckedValueRef>,
 }
 
@@ -96,7 +108,7 @@ pub struct MigrateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    /// Returns the proxy Config
+    /// Returns [`ConfigResponse`]
     Config {},
     /// Returns the total value of all held assets
     TotalValue {},
