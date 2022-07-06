@@ -8,8 +8,8 @@ use cw_asset::{Asset, AssetInfo};
 
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
-use abstract_os::proxy::send_to_proxy;
 use abstract_os::vault::DepositHookMsg;
+use abstract_sdk::proxy::send_to_proxy;
 use abstract_sdk::vault::{query_supply, query_total_value};
 
 use crate::contract::{VaultDapp, VaultResult};

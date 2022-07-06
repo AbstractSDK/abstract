@@ -1,21 +1,24 @@
 use abstract_os::objects::core::OS_ID;
+use abstract_os::objects::memory_entry::AssetEntry;
+use abstract_sdk::memory::Memory;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response,
     StdResult, Uint128,
 };
+use cw_storage_plus::Bound;
 
 use crate::error::ProxyError;
-use abstract_os::objects::proxy_assets::{get_asset_identifier, ProxyAsset};
-use abstract_os::proxy::state::{State, ADMIN, STATE, VAULT_ASSETS};
+use abstract_os::objects::proxy_asset::{get_asset_identifier, ProxyAsset, UncheckedProxyAsset};
+use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
-    ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
-    MigrateMsg, QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
+    QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
+    QueryTotalValueResponse,
 };
 use abstract_os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
-use cw_asset::AssetInfo;
 use semver::Version;
 type ProxyResult = Result<Response, ProxyError>;
 /*
@@ -25,6 +28,8 @@ type ProxyResult = Result<Response, ProxyError>;
 // TODO: test max limit on-chain
 const LIST_SIZE_LIMIT: usize = 15;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const DEFAULT_LIMIT: u8 = 5;
+const MAX_LIMIT: u8 = 20;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -37,9 +42,14 @@ pub fn instantiate(
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
+    MEMORY.save(
+        deps.storage,
+        &Memory {
+            address: deps.api.addr_validate(&msg.memory_address)?,
+        },
+    )?;
     let admin_addr = Some(info.sender);
     ADMIN.set(deps, admin_addr)?;
-
     Ok(Response::default())
 }
 
@@ -58,10 +68,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::AddModule { module } => add_module(deps, info, module),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
-            // TODO
-            // let to_add = to_add.iter().map(From::from).collect();
-            // update_assets(deps, info, to_add, to_remove)
-            Ok(Response::default())
+            update_assets(deps, info, to_add, to_remove)
         }
     }
 }
@@ -99,12 +106,12 @@ pub fn execute_action(
 pub fn update_assets(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<ProxyAsset>,
-    to_remove: Vec<AssetInfo>,
+    to_add: Vec<UncheckedProxyAsset>,
+    to_remove: Vec<String>,
 ) -> ProxyResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
+    let memory = &MEMORY.load(deps.storage)?;
     // Check the vault size to be within the size limit to prevent running out of gas when doing lookups
     let current_vault_size = VAULT_ASSETS
         .keys(deps.storage, None, None, Order::Ascending)
@@ -115,18 +122,19 @@ pub fn update_assets(
     }
 
     for new_asset in to_add.into_iter() {
-        let id = get_asset_identifier(&new_asset.asset.info);
+        let checked_asset = new_asset.check(deps.as_ref(), memory)?;
         // update function for new or existing keys
-        let insert =
-            |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> { Ok(new_asset.clone()) };
-        VAULT_ASSETS.update(deps.storage, &id, insert)?;
+        let insert = |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> {
+            Ok(checked_asset.clone())
+        };
+        VAULT_ASSETS.update(deps.storage, &checked_asset.asset.as_str(), insert)?;
     }
 
     for asset_id in to_remove {
-        VAULT_ASSETS.remove(deps.storage, get_asset_identifier(&asset_id).as_str());
+        VAULT_ASSETS.remove(deps.storage, asset_id.as_str());
     }
 
-    Ok(Response::new().add_attribute("action", "update_cw20_token_list"))
+    Ok(Response::new().add_attribute("action", "update_proxy_assets"))
 }
 
 /// Add a contract to the whitelist
@@ -173,32 +181,54 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::TotalValue {} => to_binary(&TotalValueResponse {
+        QueryMsg::TotalValue {} => to_binary(&QueryTotalValueResponse {
             value: compute_total_value(deps, env)?,
         }),
         QueryMsg::HoldingAmount { identifier } => {
-            let vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, identifier.as_str())?;
-            to_binary(&HoldingAmountResponse {
-                value: vault_asset
-                    .asset
-                    .info
-                    .query_balance(&deps.querier, env.contract.address)?,
+            let vault_asset: AssetEntry = identifier.into();
+            let memory = MEMORY.load(deps.storage)?;
+            let asset_info = vault_asset.resolve(deps, &memory)?;
+            to_binary(&QueryHoldingAmountResponse {
+                amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })
         }
-        QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
+        QueryMsg::HoldingValue { identifier } => to_binary(&QueryHoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
-        QueryMsg::VaultAssetConfig { identifier } => to_binary(&VaultAssetConfigResponse {
-            value: VAULT_ASSETS.load(deps.storage, identifier.as_str())?,
+        QueryMsg::ProxyAssetConfig { identifier } => to_binary(&QueryProxyAssetConfigResponse {
+            proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.as_str())?,
         }),
+        QueryMsg::ProxyAssets {
+            last_asset_name,
+            iter_limit,
+        } => to_binary(&query_proxy_assets(deps, last_asset_name, iter_limit)?),
     }
 }
 
+fn query_proxy_assets(
+    deps: Deps,
+    last_asset_name: Option<String>,
+    limit: Option<u8>,
+) -> StdResult<QueryProxyAssetsResponse> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+
+    let res: Result<Vec<(String, ProxyAsset)>, _> = VAULT_ASSETS
+        .range(deps.storage, start_bound, None, Order::Descending)
+        .take(limit)
+        .collect();
+
+    let names_and_configs = res?;
+    Ok(QueryProxyAssetsResponse {
+        assets: names_and_configs,
+    })
+}
+
 /// Returns the whitelisted modules
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
     let state = STATE.load(deps.storage)?;
     let modules: Vec<Addr> = state.modules;
-    let resp = ConfigResponse {
+    let resp = QueryConfigResponse {
         modules: modules
             .iter()
             .map(|module| -> String { module.to_string() })
@@ -208,9 +238,10 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 /// Returns the value of a specified asset.
-pub fn compute_holding_value(deps: Deps, env: &Env, holding: String) -> StdResult<Uint128> {
-    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, holding.as_str())?;
-    let value = vault_asset.value(deps, env, None)?;
+pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> StdResult<Uint128> {
+    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.as_str())?;
+    let memory = MEMORY.load(deps.storage)?;
+    let value = vault_asset.value(deps, env, &memory, None)?;
     Ok(value)
 }
 
@@ -222,10 +253,10 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
         .collect::<StdResult<Vec<(String, ProxyAsset)>>>()?;
 
     let mut total_value = Uint128::zero();
+    let memory = MEMORY.load(deps.storage)?;
     // Calculate their value iteratively
     for vault_asset_entry in all_assets.iter_mut() {
-        total_value += vault_asset_entry.1.value(deps, &env, None)?;
+        total_value += vault_asset_entry.1.value(deps, &env, &memory, None)?;
     }
-
     Ok(total_value)
 }

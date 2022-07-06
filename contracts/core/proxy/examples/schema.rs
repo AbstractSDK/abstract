@@ -3,11 +3,12 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::objects::proxy_assets::ProxyAsset;
+use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
-    ConfigResponse, ExecuteMsg, HoldingAmountResponse, HoldingValueResponse, InstantiateMsg,
-    QueryMsg, TotalValueResponse, VaultAssetConfigResponse,
+    ExecuteMsg, InstantiateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
+    QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
+    QueryTotalValueResponse,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
@@ -22,14 +23,16 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(State), &out_dir);
-    export_schema(&schema_for!(ConfigResponse), &out_dir);
     export_schema(&schema_for!(ProxyAsset), &out_dir);
+    export_schema(&schema_for!(UncheckedProxyAsset), &out_dir);
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
-    export_schema(&schema_for!(TotalValueResponse), &out_dir);
-    export_schema(&schema_for!(HoldingValueResponse), &out_dir);
-    export_schema(&schema_for!(HoldingAmountResponse), &out_dir);
-    export_schema(&schema_for!(VaultAssetConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryTotalValueResponse), &out_dir);
+    export_schema(&schema_for!(QueryHoldingValueResponse), &out_dir);
+    export_schema(&schema_for!(QueryHoldingAmountResponse), &out_dir);
+    export_schema(&schema_for!(QueryProxyAssetConfigResponse), &out_dir);
+    export_schema(&schema_for!(QueryProxyAssetsResponse), &out_dir);
 
     export_schema_with_title(
         &schema_for!(CosmosMsg<Empty>),

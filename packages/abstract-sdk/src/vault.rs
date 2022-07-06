@@ -3,12 +3,12 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
-use abstract_os::proxy::{QueryMsg, TotalValueResponse};
+use abstract_os::proxy::{QueryMsg, QueryTotalValueResponse};
 
 /// Query the total value denominated in the vault base asset
 /// The provided address must implement the TotalValue Query
 pub fn query_total_value(deps: Deps, vault_address: &Addr) -> StdResult<Uint128> {
-    let response: TotalValueResponse =
+    let response: QueryTotalValueResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: vault_address.to_string(),
             msg: to_binary(&QueryMsg::TotalValue {})?,

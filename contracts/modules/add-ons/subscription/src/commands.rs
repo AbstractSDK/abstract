@@ -1,8 +1,8 @@
 use std::convert::TryInto;
 
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::proxy::send_to_proxy;
 use abstract_sdk::common_module::ADMIN;
+use abstract_sdk::proxy::send_to_proxy;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, BankMsg, Coin, CosmosMsg, Decimal, Deps, DepsMut, Empty, Env,
     MessageInfo, Response, StdError, StdResult, Storage, Uint128, Uint64, WasmMsg,

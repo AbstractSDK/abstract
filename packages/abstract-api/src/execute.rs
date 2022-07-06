@@ -1,6 +1,6 @@
 use abstract_os::api::ApiExecuteMsg;
-use abstract_os::proxy::send_to_proxy;
 use abstract_sdk::common_module::ProxyExecute;
+use abstract_sdk::proxy::send_to_proxy;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 use serde::de::DeserializeOwned;
 use serde::Serialize;

@@ -182,6 +182,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
                 label: format!("Proxy of OS: {}", config.next_os_id),
                 msg: to_binary(&ProxyInstantiateMsg {
                     os_id: config.next_os_id,
+                    memory_address: config.memory_contract.to_string(),
                 })?,
             }
             .into(),

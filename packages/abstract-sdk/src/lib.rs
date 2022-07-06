@@ -1,6 +1,7 @@
 pub mod _modules;
 pub mod common_module;
 pub mod manager;
+pub mod proxy;
 pub mod vault;
 pub mod version_control;
 pub mod memory {
