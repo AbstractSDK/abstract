@@ -96,7 +96,7 @@ pub fn execute_create_os(
     let manager_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::QueryCodeId {
+            msg: to_binary(&VCQuery::CodeId {
                 module: ModuleInfo {
                     name: String::from(MANAGER),
                     version: None,
@@ -162,7 +162,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     let proxy_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::QueryCodeId {
+            msg: to_binary(&VCQuery::CodeId {
                 module: ModuleInfo {
                     name: String::from(PROXY),
                     version: None,
@@ -331,6 +331,6 @@ fn forward_payment(
         msgs.push(forward_payment_to_module);
         Ok(())
     } else {
-        Err(OsFactoryError::NoPaymentRecieved {})
+        Err(OsFactoryError::NoPaymentReceived {})
     }
 }

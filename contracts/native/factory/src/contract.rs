@@ -66,12 +66,12 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             os_name,
             description,
         } => {
-            let maybe_recieved_coin = info.funds.last().map(Asset::from);
+            let maybe_received_coin = info.funds.last().map(Asset::from);
             commands::execute_create_os(
                 deps,
                 env,
                 governance,
-                maybe_recieved_coin,
+                maybe_received_coin,
                 os_name,
                 description,
                 link,

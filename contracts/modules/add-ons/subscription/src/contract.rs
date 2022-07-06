@@ -115,8 +115,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
             .map_err(|e| e.into()),
         ExecuteMsg::Receive(msg) => commands::receive_cw20(add_on, deps, env, info, msg),
         ExecuteMsg::Pay { os_id } => {
-            let maybe_recieved_coin = info.funds.last();
-            if let Some(coin) = maybe_recieved_coin.cloned() {
+            let maybe_received_coin = info.funds.last();
+            if let Some(coin) = maybe_received_coin.cloned() {
                 commands::try_pay(add_on, deps, info, Asset::from(coin), os_id)
             } else {
                 Err(SubscriptionError::NotUsingCW20Hook {})

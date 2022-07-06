@@ -19,6 +19,6 @@ pub enum OsFactoryError {
     #[error("Your payment does not match the required payment {0}")]
     WrongAmount(String),
 
-    #[error("No payment recieved")]
-    NoPaymentRecieved {},
+    #[error("No payment received")]
+    NoPaymentReceived {},
 }

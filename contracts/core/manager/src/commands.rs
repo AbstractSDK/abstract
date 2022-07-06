@@ -361,7 +361,7 @@ fn get_code_id(
             let resp: QueryCodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
-                    msg: to_binary(&VersionQuery::QueryCodeId {
+                    msg: to_binary(&VersionQuery::CodeId {
                         module: module_info,
                     })?,
                 }))?;
@@ -391,7 +391,7 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
             let resp: QueryApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
-                    msg: to_binary(&VersionQuery::QueryApiAddress {
+                    msg: to_binary(&VersionQuery::ApiAddress {
                         module: module_info,
                     })?,
                 }))?;

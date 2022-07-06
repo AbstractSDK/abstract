@@ -74,19 +74,19 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryOsCore { os_id } => queries::handle_os_address_query(deps, os_id),
-        QueryMsg::QueryCodeId { module } => queries::handle_code_id_query(deps, module),
-        QueryMsg::QueryApiAddress { module } => queries::handle_api_address_query(deps, module),
-        QueryMsg::QueryConfig {} => {
+        QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),
+        QueryMsg::CodeId { module } => queries::handle_code_id_query(deps, module),
+        QueryMsg::ApiAddress { module } => queries::handle_api_address_query(deps, module),
+        QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
             to_binary(&QueryConfigResponse { admin, factory })
         }
-        QueryMsg::QueryCodeIds {
+        QueryMsg::CodeIds {
             last_module,
             iter_limit,
         } => queries::handle_code_ids_query(deps, last_module, iter_limit),
-        QueryMsg::QueryApiAddresses {
+        QueryMsg::ApiAddresses {
             last_api_module,
             iter_limit,
         } => queries::handle_api_addresses_query(deps, last_api_module, iter_limit),

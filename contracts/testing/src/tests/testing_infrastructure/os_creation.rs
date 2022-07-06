@@ -67,7 +67,7 @@ pub fn init_os(
     // Check OS
     let core: QueryOsCoreResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
-        &version_control::QueryMsg::QueryOsCore { os_id },
+        &version_control::QueryMsg::OsCore { os_id },
     )?;
 
     os_store.insert(os_id, core.os_core.clone());

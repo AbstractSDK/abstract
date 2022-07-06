@@ -173,7 +173,7 @@ fn deposit_and_withdraw_with_native_token() {
         proxy_res.value.u128()
     );
 
-    // Check whale recieved by withdrawer
+    // Check whale received by withdrawer
     let whale_balance: BalanceResponse = app
         .wrap()
         .query_wasm_smart(
@@ -321,7 +321,7 @@ fn deposit_and_withdraw_with_cw20() {
     // 100 + 45
     assert_eq!(Uint128::from(145u64 * MILLION), sender_balance);
 
-    // Check whale recieved by withdrawer
+    // Check whale received by withdrawer
     let whale_balance: BalanceResponse = app
         .wrap()
         .query_wasm_smart(

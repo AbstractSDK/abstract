@@ -43,7 +43,7 @@ pub fn execute_create_module(
         let api_addr_response: QueryApiAddressResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: config.version_control_address.to_string(),
-                msg: to_binary(&VCQuery::QueryApiAddress {
+                msg: to_binary(&VCQuery::ApiAddress {
                     module: module.info.clone(),
                 })?,
             }))?;
@@ -65,7 +65,7 @@ pub fn execute_create_module(
     let module_code_id_response: QueryCodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_address.to_string(),
-            msg: to_binary(&VCQuery::QueryCodeId {
+            msg: to_binary(&VCQuery::CodeId {
                 module: module.info,
             })?,
         }))?;

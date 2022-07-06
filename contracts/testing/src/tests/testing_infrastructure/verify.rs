@@ -26,7 +26,7 @@ pub fn os_store_as_expected(
             .wrap()
             .query_wasm_smart(
                 &native_contracts.version_control,
-                &version_control::QueryMsg::QueryOsCore { os_id },
+                &version_control::QueryMsg::OsCore { os_id },
             )
             .unwrap();
         if core.os_core.ne(os_store.get(&os_id).unwrap()) {

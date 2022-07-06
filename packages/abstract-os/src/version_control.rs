@@ -83,22 +83,22 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     /// Query Core of an OS
     /// Returns [`QueryOsCoreResponse`]
-    QueryOsCore { os_id: u32 },
+    OsCore { os_id: u32 },
     /// Queries contract code_id
     /// Returns [`QueryCodeIdResponse`]
-    QueryCodeId { module: ModuleInfo },
+    CodeId { module: ModuleInfo },
     /// Queries api addresses
     /// Returns [`QueryApiAddressResponse`]
-    QueryApiAddress { module: ModuleInfo },
+    ApiAddress { module: ModuleInfo },
     /// Returns [`QueryConfigResponse`]
-    QueryConfig {},
+    Config {},
     /// Returns [`QueryCodeIdsResponse`]
-    QueryCodeIds {
+    CodeIds {
         last_module: Option<ContractVersion>,
         iter_limit: Option<u8>,
     },
     /// Returns [`QueryApiAddressesResponse`]
-    QueryApiAddresses {
+    ApiAddresses {
         last_api_module: Option<ContractVersion>,
         iter_limit: Option<u8>,
     },
