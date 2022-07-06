@@ -34,7 +34,15 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryAssets { names } => queries::query_assets(deps, env, names),
-        QueryMsg::QueryContracts { names } => queries::query_contract(deps, env, names),
+        QueryMsg::Assets { names } => queries::query_assets(deps, env, names),
+        QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
+        QueryMsg::AssetList {
+            last_asset_name,
+            iter_limit,
+        } => queries::query_asset_list(deps, last_asset_name, iter_limit),
+        QueryMsg::ContractList {
+            last_contract_name,
+            iter_limit,
+        } => queries::query_contract_list(deps, last_contract_name, iter_limit),
     }
 }

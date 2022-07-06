@@ -63,27 +63,52 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries assets based on name
-    /// returns [`AssetQueryResponse`]
-    QueryAssets {
+    /// returns [`QueryAssetsResponse`]
+    Assets {
         /// Names of assets to query
         names: Vec<String>,
     },
     /// Queries contracts based on name
-    /// returns [`ContractQueryResponse`]
-    QueryContracts {
+    /// returns [`QueryContractsResponse`]
+    Contracts {
         /// Names of contracts to query
         names: Vec<String>,
+    },
+    /// Page over contracts
+    /// returns [`QueryContractListResponse`]
+    ContractList {
+        last_contract_name: Option<String>,
+        iter_limit: Option<u8>,
+    },
+    /// Page over assets
+    /// returns [`QueryAssetListResponse`]
+    AssetList {
+        last_asset_name: Option<String>,
+        iter_limit: Option<u8>,
     },
 }
 /// Query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AssetQueryResponse {
+pub struct QueryAssetsResponse {
     /// Assets (name, assetinfo)
     pub assets: Vec<(String, AssetInfo)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ContractQueryResponse {
+pub struct QueryContractsResponse {
+    /// Contracts (name, address)
+    pub contracts: Vec<(String, String)>,
+}
+
+/// Query response
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryAssetListResponse {
+    /// Assets (name, assetinfo)
+    pub assets: Vec<(String, AssetInfo)>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryContractListResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(String, String)>,
 }
