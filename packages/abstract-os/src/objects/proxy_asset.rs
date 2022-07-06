@@ -1,15 +1,13 @@
 //! # Proxy Asset
-//! Proxy assets are objects that describe an asset and a way to calculate that asset's value against a base asset. 
-//! 
+//! Proxy assets are objects that describe an asset and a way to calculate that asset's value against a base asset.
+//!
 //! ## Details
 //! A proxy asset is composed of two components.
 //! * The `asset`, which is an [`AssetEntry`] and maps to an [`AssetInfo`].
 //! * The [`ValueRef`] which is an enum that indicates how to calculate the value for that asset.
-//! 
-//! The base asset is the asset for which `value_reference` in `None`. 
+//!
+//! The base asset is the asset for which `value_reference` in `None`.
 //! **There should only be ONE base asset when configuring your proxy**
-
-
 
 use cosmwasm_std::{
     to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
@@ -43,7 +41,6 @@ pub struct UncheckedProxyAsset {
     /// **You can only have one base asset!**
     pub value_reference: Option<UncheckedValueRef>,
 }
-
 
 impl UncheckedProxyAsset {
     /// Perform checks on the proxy asset to ensure it's valid
@@ -112,7 +109,7 @@ impl UncheckedValueRef {
 /// a base asset.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ProxyAsset {
-    /// Asset entry that maps to an AssetInfo using raw-queries on memory 
+    /// Asset entry that maps to an AssetInfo using raw-queries on memory
     pub asset: AssetEntry,
     /// The value reference provides the tooling to get the value of the asset
     /// relative to the base asset.
@@ -141,8 +138,8 @@ pub enum ValueRef {
 impl ProxyAsset {
     /// Calculates the value of the asset through the optionally provided ValueReference
     // TODO: improve efficiency
-    // We could cache each asset/contract address and store each asset in a stack with the most complex (most hops) assets on top. 
-    // Doing this would prevent an asset value from being calculated multiple times. 
+    // We could cache each asset/contract address and store each asset in a stack with the most complex (most hops) assets on top.
+    // Doing this would prevent an asset value from being calculated multiple times.
     pub fn value(
         &mut self,
         deps: Deps,
@@ -314,12 +311,13 @@ pub fn proxy_value(
 fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
     composite
         .split('_')
-        .filter(|component| *component != asset)
-        .next()
-        .ok_or(StdError::generic_err(format!(
-            "composite {} is not structured correctly",
-            composite
-        )))
+        .find(|component| *component != asset)
+        .ok_or_else(|| {
+            StdError::generic_err(format!(
+                "composite {} is not structured correctly",
+                composite
+            ))
+        })
 }
 
 fn pair_asset_names(composite: &str) -> Vec<&str> {

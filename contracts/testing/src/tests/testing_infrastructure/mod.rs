@@ -56,7 +56,7 @@ pub mod env {
         // Check OS
         let mut resp: ManagerMsgs::QueryModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
-            &ManagerMsgs::QueryMsg::QueryModuleInfos {
+            &ManagerMsgs::QueryMsg::ModuleInfos {
                 last_module_name: None,
                 iter_limit: None,
             },
@@ -75,7 +75,7 @@ pub mod env {
             }
             resp = app.wrap().query_wasm_smart(
                 &manager_addr,
-                &ManagerMsgs::QueryMsg::QueryModuleInfos {
+                &ManagerMsgs::QueryMsg::ModuleInfos {
                     last_module_name: last_module,
                     iter_limit: None,
                 },

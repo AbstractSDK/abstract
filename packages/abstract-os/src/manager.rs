@@ -137,18 +137,18 @@ pub enum ExecuteMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Returns [`QueryModuleVersionsResponse`]
-    QueryModuleVersions { names: Vec<String> },
+    ModuleVersions { names: Vec<String> },
     /// Returns [`QueryModuleAddressesResponse`]
-    QueryModuleAddresses { names: Vec<String> },
+    ModuleAddresses { names: Vec<String> },
     /// Returns [`QueryModuleInfosResponse`]
-    QueryModuleInfos {
+    ModuleInfos {
         last_module_name: Option<String>,
         iter_limit: Option<u8>,
     },
     /// Returns [`QueryConfigResponse`]
-    QueryConfig {},
+    Config {},
     /// Returns [`QueryInfoResponse`]
-    QueryInfo {},
+    Info {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

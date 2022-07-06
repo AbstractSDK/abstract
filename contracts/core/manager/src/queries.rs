@@ -1,10 +1,10 @@
-use abstract_os::manager::state::{OsInfo, INFO, OS_MODULES};
+use abstract_os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
 use abstract_os::manager::{
-    ManagerModuleInfo, QueryInfoResponse, QueryModuleAddressesResponse, QueryModuleInfosResponse,
-    QueryModuleVersionsResponse,
+    ManagerModuleInfo, QueryConfigResponse, QueryInfoResponse, QueryModuleAddressesResponse,
+    QueryModuleInfosResponse, QueryModuleVersionsResponse,
 };
 use abstract_sdk::manager::{query_module_addresses, query_module_version, query_module_versions};
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Uint64};
 use cw_storage_plus::Bound;
 
 const DEFAULT_LIMIT: u8 = 5;
@@ -34,6 +34,20 @@ pub fn handle_os_info_query(deps: Deps) -> StdResult<Binary> {
     to_binary(&QueryInfoResponse { info })
 }
 
+pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
+    let os_id = Uint64::from(OS_ID.load(deps.storage)?);
+    let root = ROOT
+        .get(deps)?
+        .unwrap_or_else(|| Addr::unchecked(""))
+        .to_string();
+    let config = CONFIG.load(deps.storage)?;
+    to_binary(&QueryConfigResponse {
+        root,
+        os_id,
+        version_control_address: config.version_control_address.to_string(),
+        module_factory_address: config.module_factory_address.into_string(),
+    })
+}
 pub fn handle_module_info_query(
     deps: Deps,
     last_module_name: Option<String>,

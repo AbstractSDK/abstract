@@ -10,7 +10,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use std::{env::current_dir, fs::create_dir_all};
 
 use abstract_os::manager::state::OsInfo;
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty};
+use cosmwasm_std::Binary;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

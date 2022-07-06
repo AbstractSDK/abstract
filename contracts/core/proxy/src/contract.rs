@@ -10,7 +10,7 @@ use cosmwasm_std::{
 use cw_storage_plus::Bound;
 
 use crate::error::ProxyError;
-use abstract_os::objects::proxy_asset::{get_asset_identifier, ProxyAsset, UncheckedProxyAsset};
+use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
@@ -127,7 +127,7 @@ pub fn update_assets(
         let insert = |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> {
             Ok(checked_asset.clone())
         };
-        VAULT_ASSETS.update(deps.storage, &checked_asset.asset.as_str(), insert)?;
+        VAULT_ASSETS.update(deps.storage, checked_asset.asset.as_str(), insert)?;
     }
 
     for asset_id in to_remove {

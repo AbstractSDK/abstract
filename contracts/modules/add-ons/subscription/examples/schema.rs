@@ -8,7 +8,7 @@ use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
     SubscriberStateResponse, SubscriptionFeeResponse,
 };
-use cosmwasm_std::Binary;
+
 use cw_asset::AssetInfo;
 
 fn main() {

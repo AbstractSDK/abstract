@@ -1,4 +1,3 @@
-use abstract_sdk::manager::query_os_id;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn,
     Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,

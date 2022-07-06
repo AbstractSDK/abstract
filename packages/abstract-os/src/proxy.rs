@@ -5,21 +5,16 @@
 //! ## Description
 //! The proxy is part of the Core OS contracts along with the `abstract_os::manager` contract.
 //! This contract is responsible for executing Cosmos messages and calculating the value of its assets.
-//! 
+//!
 //! ## Proxy assets
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{to_binary, Addr, CosmosMsg, Decimal, Empty, StdResult, Uint128, WasmMsg};
-use cw_asset::{AssetInfo, AssetInfoUnchecked, AssetUnchecked};
+use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
-use crate::objects::{
-    memory::Memory,
-    memory_entry::AssetEntry,
-    proxy_asset::{ProxyAsset, UncheckedProxyAsset},
-};
+use crate::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 
 pub mod state {
     pub use crate::objects::core::OS_ID;

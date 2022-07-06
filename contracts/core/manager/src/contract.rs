@@ -1,16 +1,14 @@
-use abstract_os::manager::QueryInfoResponse;
 use cosmwasm_std::{
-    entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-    Uint64,
+    entry_point, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
 };
 
-use crate::queries::{handle_module_info_query, handle_os_info_query};
+use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
 use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STATUS};
 use abstract_os::MANAGER;
 use abstract_os::{
-    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryMsg},
+    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     modules::*,
     proxy::state::OS_ID,
 };
@@ -157,30 +155,17 @@ fn _upgrade_module(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::QueryModuleVersions { names } => {
+        QueryMsg::ModuleVersions { names } => {
             queries::handle_contract_versions_query(deps, env, names)
         }
-        QueryMsg::QueryModuleAddresses { names } => {
+        QueryMsg::ModuleAddresses { names } => {
             queries::handle_module_address_query(deps, env, names)
         }
-        QueryMsg::QueryModuleInfos {
+        QueryMsg::ModuleInfos {
             last_module_name,
             iter_limit,
         } => handle_module_info_query(deps, last_module_name, iter_limit),
-        QueryMsg::QueryInfo {} => handle_os_info_query(deps),
-        QueryMsg::QueryConfig {} => {
-            let os_id = Uint64::from(OS_ID.load(deps.storage)?);
-            let root = ROOT
-                .get(deps)?
-                .unwrap_or_else(|| Addr::unchecked(""))
-                .to_string();
-            let config = CONFIG.load(deps.storage)?;
-            to_binary(&QueryConfigResponse {
-                root,
-                os_id,
-                version_control_address: config.version_control_address.to_string(),
-                module_factory_address: config.module_factory_address.into_string(),
-            })
-        }
+        QueryMsg::Info {} => handle_os_info_query(deps),
+        QueryMsg::Config {} => handle_config_query(deps),
     }
 }

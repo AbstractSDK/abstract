@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 
 use abstract_os::api::ApiInterfaceMsg;
-use abstract_os::proxy::state::OS_ID;
+
 use abstract_os::version_control::Core;
 use abstract_sdk::common_module::BASE_STATE_KEY;
 use abstract_sdk::memory::Memory;
