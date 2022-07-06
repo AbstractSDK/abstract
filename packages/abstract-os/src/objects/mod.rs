@@ -9,3 +9,4 @@ pub mod gov_type;
 pub mod memory;
 pub mod paged_map;
 pub mod proxy_assets;
+pub mod memory_entry;

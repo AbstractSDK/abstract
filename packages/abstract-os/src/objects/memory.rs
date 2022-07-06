@@ -69,9 +69,9 @@ pub fn query_assets_from_mem(
     for asset in asset_names.iter() {
         let result = ASSET_ADDRESSES
             .query(&deps.querier, memory_addr.clone(), asset)?
-            .ok_or(StdError::GenericErr {
-                msg: "asset not found in memory".to_string(),
-            })?;
+            .ok_or(StdError::generic_err(format!(
+               "asset {} not found in memory", &asset
+            )))?;
         assets.insert(asset.clone(), result);
     }
     Ok(assets)
@@ -85,9 +85,9 @@ pub fn query_asset_from_mem(
 ) -> StdResult<AssetInfo> {
     let result = ASSET_ADDRESSES
         .query(&deps.querier, memory_addr.clone(), asset_name)?
-        .ok_or(StdError::GenericErr {
-            msg: "asset not found in memory".to_string(),
-        })?;
+        .ok_or(StdError::generic_err(format!(
+            "asset {} not found in memory", &asset_name
+         )))?;
     Ok(result)
 }
 
@@ -103,9 +103,9 @@ pub fn query_contracts_from_mem(
     for contract in contract_names.iter() {
         let result: Addr = CONTRACT_ADDRESSES
             .query(&deps.querier, memory_addr.clone(), contract)?
-            .ok_or(StdError::GenericErr {
-                msg: "contract not found in memory".to_string(),
-            })?;
+            .ok_or(StdError::generic_err(format!(
+                "contract {} not found in memory", &contract
+             )))?;
         contracts.insert(contract.clone(), result);
     }
     Ok(contracts)
@@ -119,9 +119,9 @@ pub fn query_contract_from_mem(
 ) -> StdResult<Addr> {
     let result: Addr = CONTRACT_ADDRESSES
         .query(&deps.querier, memory_addr.clone(), contract_name)?
-        .ok_or(StdError::GenericErr {
-            msg: "contract not found in memory".to_string(),
-        })?;
+        .ok_or(StdError::generic_err(format!(
+            "contract {} not found in memory", &contract_name
+         )))?;
     // Addresses are checked when stored.
     Ok(Addr::unchecked(result))
 }
