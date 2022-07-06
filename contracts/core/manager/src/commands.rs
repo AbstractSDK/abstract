@@ -1,8 +1,8 @@
 use abstract_os::{
-    api::{ApiExecuteMsg, ApiQueryMsg, TradersResponse},
+    api::{ApiExecuteMsg, ApiQueryMsg, QueryTradersResponse},
     manager::state::{OsInfo, Subscribed, ADMIN, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
-    modules::{Module, ModuleInfo, ModuleKind},
+    objects::module::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
@@ -249,12 +249,13 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Makes sure we already have the API installed
     let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
-    let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: config.version_control_address.to_string(),
-        msg: to_binary(&ApiQueryMsg::Traders {
-            proxy_address: proxy_addr.to_string(),
-        })?,
-    }))?;
+    let traders: QueryTradersResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: config.version_control_address.to_string(),
+            msg: to_binary(&ApiQueryMsg::Traders {
+                proxy_address: proxy_addr.to_string(),
+            })?,
+        }))?;
     // Get the address of the new API
     let new_api_addr = get_api_addr(deps.as_ref(), module_info)?;
     // Remove API permissions from proxy

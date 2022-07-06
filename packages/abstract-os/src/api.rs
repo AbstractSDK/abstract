@@ -58,22 +58,22 @@ pub enum ApiExecuteMsg {
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ApiQueryMsg {
-    /// Returns [`ApiConfigResponse`].
+    /// Returns [`QueryApiConfigResponse`].
     Config {},
-    /// Returns [`TradersResponse`].
+    /// Returns [`QueryTradersResponse`].
     /// TODO: enable pagination of some sort
     Traders { proxy_address: String },
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct ApiConfigResponse {
+pub struct QueryApiConfigResponse {
     pub version_control_address: Addr,
     pub memory_address: Addr,
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
-pub struct TradersResponse {
+pub struct QueryTradersResponse {
     /// Contains all traders
     pub traders: Vec<Addr>,
 }

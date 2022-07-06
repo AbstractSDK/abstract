@@ -4,7 +4,7 @@ use abstract_os::{
         QueryModuleAddressesResponse, QueryModuleInfosResponse, QueryModuleVersionsResponse,
         QueryMsg,
     },
-    modules::Module,
+    objects::module::Module,
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 use std::{env::current_dir, fs::create_dir_all};

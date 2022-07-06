@@ -34,7 +34,7 @@ use cw2::ContractVersion;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::modules::ModuleInfo;
+use crate::objects::module::ModuleInfo;
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

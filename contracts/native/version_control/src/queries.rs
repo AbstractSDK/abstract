@@ -1,4 +1,4 @@
-use abstract_os::modules::ModuleInfo;
+use abstract_os::objects::module::ModuleInfo;
 use abstract_os::version_control::state::API_ADDRESSES;
 use abstract_os::version_control::QueryApiAddressResponse;
 use abstract_os::version_control::QueryApiAddressesResponse;

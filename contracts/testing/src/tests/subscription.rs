@@ -1,5 +1,5 @@
 use abstract_os::subscription::state::{Compensation, ContributionState, SubscriptionState, MONTH};
-use abstract_os::{modules::ModuleInfo, SUBSCRIPTION};
+use abstract_os::{objects::module::ModuleInfo, SUBSCRIPTION};
 use abstract_os::{subscription as msgs, subscription::state};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};

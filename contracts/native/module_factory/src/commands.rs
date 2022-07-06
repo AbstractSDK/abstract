@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 
 use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::modules::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
+use abstract_os::objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
 use abstract_sdk::version_control::verify_os_manager;
 
 use cw2::ContractVersion;

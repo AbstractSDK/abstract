@@ -9,7 +9,7 @@ use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STA
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    modules::*,
+    objects::module::*,
     proxy::state::OS_ID,
 };
 use cw2::set_contract_version;

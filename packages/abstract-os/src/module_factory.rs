@@ -1,4 +1,4 @@
-use crate::{modules::Module, version_control::Core};
+use crate::{objects::module::Module, version_control::Core};
 use cosmwasm_std::Binary;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -41,14 +41,14 @@ pub enum QueryMsg {
 
 // We define a custom struct for each query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ConfigResponse {
+pub struct QueryConfigResponse {
     pub owner: String,
     pub memory_address: String,
     pub version_control_address: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ContextResponse {
+pub struct QueryContextResponse {
     pub core: Option<Core>,
     pub module: Option<Module>,
 }

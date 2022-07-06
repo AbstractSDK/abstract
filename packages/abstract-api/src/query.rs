@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Storage};
 
-use abstract_os::api::{ApiConfigResponse, ApiQueryMsg, TradersResponse};
+use abstract_os::api::{ApiQueryMsg, QueryApiConfigResponse, QueryTradersResponse};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -24,14 +24,14 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                 let traders = self
                     .traders
                     .load(deps.storage, deps.api.addr_validate(&proxy_address)?)?;
-                to_binary(&TradersResponse { traders })
+                to_binary(&QueryTradersResponse { traders })
             }
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<ApiConfigResponse> {
+    fn dapp_config(&self, deps: Deps) -> StdResult<QueryApiConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
-        Ok(ApiConfigResponse {
+        Ok(QueryApiConfigResponse {
             version_control_address: state.version_control,
             memory_address: state.memory.address,
         })

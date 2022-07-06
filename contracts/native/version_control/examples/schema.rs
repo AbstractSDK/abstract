@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
 use abstract_os::{
-    modules::ModuleInfo,
+    objects::module::ModuleInfo,
     version_control::{
         ExecuteMsg, InstantiateMsg, QueryApiAddressesResponse, QueryCodeIdResponse,
         QueryConfigResponse, QueryMsg, QueryOsCoreResponse,

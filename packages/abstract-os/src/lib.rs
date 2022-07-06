@@ -45,7 +45,6 @@ pub mod api;
 pub mod manager;
 pub mod memory;
 pub mod module_factory;
-pub mod modules;
 pub mod objects;
 pub mod os_factory;
 pub mod proxy;

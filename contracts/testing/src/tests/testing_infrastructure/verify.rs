@@ -11,7 +11,7 @@ pub fn os_store_as_expected(
     native_contracts: &NativeContracts,
     os_store: &HashMap<u32, Core>,
 ) -> bool {
-    let resp: os_factory::ConfigResponse = app
+    let resp: os_factory::QueryConfigResponse = app
         .wrap()
         .query_wasm_smart(
             &native_contracts.os_factory,

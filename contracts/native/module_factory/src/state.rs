@@ -1,4 +1,4 @@
-use abstract_os::{modules::Module, version_control::Core};
+use abstract_os::{objects::module::Module, version_control::Core};
 use cosmwasm_std::{Addr, Binary};
 use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
