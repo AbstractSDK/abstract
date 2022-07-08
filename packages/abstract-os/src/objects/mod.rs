@@ -11,3 +11,4 @@ pub mod memory_entry;
 pub mod module;
 pub mod paged_map;
 pub mod proxy_asset;
+pub mod time_weighted_average;

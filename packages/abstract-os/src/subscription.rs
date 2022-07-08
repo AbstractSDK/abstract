@@ -1,6 +1,6 @@
-//! # TODO Subscription Add-On
+//! # Subscription Add-On
 //!
-//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions.
+//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.
@@ -8,7 +8,23 @@
 //! 2. Distribute income and native assets to project contributors. (optional)  
 //! 3. Distribute a native asset to your active users. (optional)  
 //!
-//! TODO
+//! ## Income
+//! The income of the instance can change over time as subscribers join and leave.
+//! If we want our infrastructure to change parameters based on the income of the unit, then we need a way of keeping track of that income.
+//! Because blockchains don't have a notion of monthly settlement we settled on a per-month payment schema.
+//! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-block income.
+//! We average the income over a monthly basis.
+//!
+//! ## Emissions
+//! Protocol emissions are an important part of creating a tight community of users and contributors around your product. The emissions feature of this
+//! module allows you to easily configure emission parameters based on your needs.
+//! These emission parameters are set when creating the module and are described on the [`UncheckedEmissionType`] struct.
+//!
+//! ## Contributions
+//! The contribution feature of this contract can be used to provide direct incentives for users to join in building out your product.
+//! Each contributor is registered with his own [`Compensation`] parameters.
+//! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
+//! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 pub mod state {
     use std::ops::Sub;
@@ -16,50 +32,101 @@ pub mod state {
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{deposit_manager::Deposit, paged_map::PagedMap};
-    use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
-    use cw_asset::AssetInfo;
+    use crate::objects::time_weighted_average::TimeWeightedAverage;
+    use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
+    use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
 
-    pub const MONTH: u64 = 60 * 60 * 24 * 30;
+    // #### SUBSCRIPTION SECTION ####
+
+    /// Setting for protocol token emissions
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    pub enum UncheckedEmissionType {
+        None,
+        /// A fixed number of tokens are distributed to users on a per-block basis.
+        /// emission = block_shared / total_subscribers
+        BlockShared(Decimal, AssetInfoUnchecked),
+        /// Each user receives a fixed number of tokens on a per-block basis.
+        /// emission = block_per_user
+        BlockPerUser(Decimal, AssetInfoUnchecked),
+        /// Requires contribution functionality to be active
+        /// Emissions will be based on protocol income and user/contributor split.
+        /// See [`ContributionConfig`]
+        IncomeBased(AssetInfoUnchecked),
+    }
+
+    impl UncheckedEmissionType {
+        pub fn check(self, api: &dyn Api) -> StdResult<EmissionType> {
+            match self {
+                UncheckedEmissionType::None => Ok(EmissionType::None),
+                UncheckedEmissionType::BlockShared(d, a) => {
+                    Ok(EmissionType::BlockShared(d, a.check(api, None)?))
+                }
+                UncheckedEmissionType::BlockPerUser(d, a) => {
+                    Ok(EmissionType::BlockPerUser(d, a.check(api, None)?))
+                }
+                UncheckedEmissionType::IncomeBased(a) => {
+                    Ok(EmissionType::IncomeBased(a.check(api, None)?))
+                }
+            }
+        }
+    }
+
+    /// Setting for protocol token emissions
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    pub enum EmissionType {
+        None,
+        /// emission = block_shared / total_subs
+        BlockShared(Decimal, AssetInfo),
+        /// emission = block_per_user
+        BlockPerUser(Decimal, AssetInfo),
+        /// Requires contribution functionality to be active
+        IncomeBased(AssetInfo),
+    }
+
+    /// Config for subscriber functionality
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct SubscriptionConfig {
+        /// Used to verify OS and get the proxy
         pub version_control_address: Addr,
+        /// Only addr that can register on OS
         pub factory_address: Addr,
+        /// Asset that's accepted as payment
         pub payment_asset: AssetInfo,
-        pub subscription_cost: Uint64,
+        /// Cost of the subscription on a per-block basis.
+        pub subscription_cost_per_block: Decimal,
+        /// Subscription emissions per block
+        pub subscription_per_block_emissions: EmissionType,
     }
 
+    /// Keeps track of the active subscribers.
+    /// Is updated each time a sub joins/leaves
+    /// Used to calculate income.
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct SubscriptionState {
-        /// Total income for the last month
-        pub income: Uint64,
         /// amount of active subscribers
         pub active_subs: u32,
-        /// Is the income collected?
-        pub collected: bool,
     }
 
+    /// Stored info for each subscriber.
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct Subscriber {
-        pub balance: Deposit,
-        pub claimed_emissions: bool,
+        /// When the subscription ends
+        pub expiration_block: u64,
+        /// last time emissions were claimed
+        pub last_emission_claim_block: u64,
+        /// Address of the OS manager
         pub manager_addr: Addr,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Default)]
-    pub struct IncomeAccumulator {
-        pub income: u32,
-        pub active_subs: u32,
-        pub debtors: Vec<u32>,
-    }
+    /// Average number of subscribers
+    pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");
+    pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
+    pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
+    pub const SUBSCRIBERS: Map<u32, Subscriber> = Map::new("subscribed");
+    pub const DORMANT_SUBSCRIBERS: Map<u32, Subscriber> = Map::new("un-subscribed");
 
-    pub const SUB_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
-    pub const SUB_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
-
-    pub const CLIENTS: PagedMap<Subscriber, IncomeAccumulator> =
-        PagedMap::new("clients", "clients_status");
-    pub const DORMANT_CLIENTS: Map<u32, Subscriber> = Map::new("dormant_clients");
+    // #### CONTRIBUTION SECTION ####
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct ContributionConfig {
@@ -69,14 +136,12 @@ pub mod state {
         pub emission_user_share: Decimal,
         /// Max emissions (when income = 0) = max_emissions_multiple * floor_emissions
         pub max_emissions_multiple: Decimal,
-        /// Token address of the emitted token
-        pub project_token: Addr,
         /// Emissions amplification factor in inverse emissions <-> target equation
         pub emissions_amp_factor: Uint128,
         /// Emissions offset factor in inverse emissions <-> target equation
         pub emissions_offset: Uint128,
-        /// Denom of base payment to contributors
-        pub base_denom: String,
+        /// token
+        pub token_info: AssetInfo,
     }
 
     impl ContributionConfig {
@@ -100,60 +165,59 @@ pub mod state {
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct ContributionState {
         /// Target income to pay base salaries
-        pub target: Uint64,
-        /// expense the org is able to make based on the income, target and splitS
-        pub expense: Uint64,
+        pub income_target: Decimal,
+        /// expense the org is able to make based on the income, target and split
+        pub expense: Decimal,
         /// total weights for token emission allocations
         pub total_weight: Uint128,
         /// total emissions for this month
-        pub emissions: Uint128,
-        /// time of next payout
-        pub next_pay_day: Uint64,
+        pub emissions: Decimal,
     }
-    #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
-    pub struct ContributorAccumulator {
-        pub contributors_to_retire: Vec<String>,
-    }
+
     // List contributors
-    pub const CONTRIBUTORS: PagedMap<Compensation, ContributorAccumulator> =
-        PagedMap::new("contributors", "status");
-    pub const CON_CONFIG: Item<ContributionConfig> = Item::new("\u{0}{10}con_config");
-    pub const CON_STATE: Item<ContributionState> = Item::new("\u{0}{9}con_state");
-
-    pub struct ContributorContext {
-        /// Total token emissions weight
-        pub total_weight: u128,
-        /// Total emissions going to contributors
-        pub contributor_emissions: u64,
-        /// Base salary payout % ( Income / Target ), max 100%
-        pub payout_ratio: Decimal,
-        /// Block time at execution
-        pub block_time: u64,
-        pub next_pay_day: u64,
-        pub base_denom: String,
-        pub token_address: String,
-        pub proxy_address: String,
-    }
-
-    pub struct SubscriberContext {
-        pub subscription_cost: Uint64,
-    }
+    pub const CONTRIBUTORS: Map<&Addr, Compensation> = Map::new("contributors");
+    pub const CONTRIBUTION_CONFIG: Item<ContributionConfig> = Item::new("\u{0}{10}con_config");
+    pub const CACHED_CONTRIBUTION_STATE: Item<ContributionState> =
+        Item::new("\u{0}{15}cache_con_state");
+    pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("\u{0}{9}con_state");
 
     /// Compensation details for contributors
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, Default)]
     pub struct Compensation {
-        pub base: u32,
+        pub base_per_block: Decimal,
         pub weight: u32,
-        pub next_pay_day: Uint64,
-        pub expiration: Uint64,
+        pub last_claim_block: Uint64,
+        pub expiration_block: Uint64,
+    }
+
+    impl Compensation {
+        pub fn overwrite(
+            mut self,
+            base_per_block: Option<Decimal>,
+            weight: Option<u32>,
+            expiration_block: Option<u64>,
+        ) -> Self {
+            if let Some(base_per_block) = base_per_block {
+                self.base_per_block = base_per_block;
+            }
+
+            if let Some(weight) = weight {
+                self.weight = weight;
+            }
+
+            if let Some(expiration_block) = expiration_block {
+                self.expiration_block = expiration_block.into();
+            }
+            self
+        }
     }
 
     impl Sub for Compensation {
-        type Output = (i32, i32);
+        type Output = (Decimal, i32);
 
-        fn sub(self, other: Self) -> (i32, i32) {
+        fn sub(self, other: Self) -> (Decimal, i32) {
             (
-                self.base as i32 - other.base as i32,
+                self.base_per_block - other.base_per_block,
                 self.weight as i32 - other.weight as i32,
             )
         }
@@ -166,12 +230,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
-use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
+use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     SubscriptionState,
 };
+
+use self::state::UncheckedEmissionType;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
@@ -180,15 +246,16 @@ pub struct MigrateMsg {}
 pub struct InstantiateMsg {
     pub base: AddOnInstantiateMsg,
     pub subscription: SubscriptionInstantiateMsg,
-    pub contribution: ContributionInstantiateMsg,
+    pub contribution: Option<ContributionInstantiateMsg>,
 }
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SubscriptionInstantiateMsg {
     /// Payment asset for
     pub payment_asset: AssetInfoUnchecked,
-    pub subscription_cost: Uint64,
+    pub subscription_cost_per_block: Decimal,
     pub version_control_addr: String,
     pub factory_addr: String,
+    pub subscription_per_block_emissions: UncheckedEmissionType,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -196,10 +263,10 @@ pub struct ContributionInstantiateMsg {
     pub protocol_income_share: Decimal,
     pub emission_user_share: Decimal,
     pub max_emissions_multiple: Decimal,
-    pub project_token: String,
+    pub token_info: AssetInfoUnchecked,
     pub emissions_amp_factor: Uint128,
     pub emissions_offset: Uint128,
-    pub base_denom: String,
+    pub income_averaging_period: Uint64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -211,38 +278,38 @@ pub enum ExecuteMsg {
     Pay {
         os_id: u32,
     },
-    CollectSubs {
-        page_limit: Option<u32>,
+    Unsubscribe {
+        os_ids: Vec<u32>,
     },
-
     ClaimCompensation {
-        contributor: Option<String>,
-        page_limit: Option<u32>,
+        // os_id the OS
+        os_id: u32,
     },
     ClaimEmissions {
         os_id: u32,
     },
     UpdateContributor {
-        contributor_addr: String,
-        compensation: Compensation,
+        contributor_os_id: u32,
+        base_per_block: Option<Decimal>,
+        weight: Option<Uint64>,
+        expiration_block: Option<Uint64>,
     },
     RemoveContributor {
-        contributor_addr: String,
+        os_id: u32,
     },
     UpdateSubscriptionConfig {
-        payment_asset: Option<AssetInfo>,
+        payment_asset: Option<AssetInfoUnchecked>,
         version_control_address: Option<String>,
         factory_address: Option<String>,
-        subscription_cost: Option<Uint64>,
+        subscription_cost: Option<Decimal>,
     },
     UpdateContributionConfig {
         protocol_income_share: Option<Decimal>,
         emission_user_share: Option<Decimal>,
         max_emissions_multiple: Option<Decimal>,
-        project_token: Option<String>,
+        project_token_info: Option<AssetInfoUnchecked>,
         emissions_amp_factor: Option<Uint128>,
         emissions_offset: Option<Uint128>,
-        base_denom: Option<String>,
     },
 }
 
@@ -255,7 +322,7 @@ pub enum QueryMsg {
     Config {},
     Fee {},
     SubscriberState { os_id: u32 },
-    ContributorState { contributor_addr: String },
+    ContributorState { os_id: u32 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

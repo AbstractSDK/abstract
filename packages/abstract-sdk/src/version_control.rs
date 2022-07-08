@@ -5,6 +5,21 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
 use cosmwasm_std::StdResult;
 
+pub fn get_os_core(
+    querier: &QuerierWrapper,
+    os_id: u32,
+    version_control_addr: &Addr,
+) -> StdResult<Core> {
+    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
+    match maybe_os {
+        None => Err(StdError::generic_err(format!(
+            "OS with id {} is not active.",
+            os_id
+        ))),
+        Some(core) => Ok(core),
+    }
+}
+
 pub fn verify_os_manager(
     querier: &QuerierWrapper,
     maybe_manager: &Addr,

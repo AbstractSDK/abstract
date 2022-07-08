@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
 use abstract_os::version_control::QueryOsCoreResponse;
 use cosmwasm_std::Addr;
@@ -18,6 +19,7 @@ use abstract_os::SUBSCRIPTION;
 use cw_multi_test::App;
 
 use crate::tests::common::OS_NAME;
+use crate::tests::common::SUBSCRIPTION_COST;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::subscription::register_subscription;
 use crate::tests::testing_infrastructure::common_integration::mock_app;
@@ -41,7 +43,7 @@ pub fn init_os(
     let funds = if os_store.is_empty() {
         vec![]
     } else {
-        vec![Coin::new(100, "uusd")]
+        vec![Coin::new(43200, "uusd")]
     };
 
     let _resp = app.execute_contract(
@@ -91,20 +93,24 @@ pub fn init_primary_os(
         base: AddOnInstantiateMsg {
             memory_address: native_contracts.memory.to_string(),
         },
-        contribution: abstract_os::subscription::ContributionInstantiateMsg {
+        contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {
             protocol_income_share: Decimal::percent(10),
             emission_user_share: Decimal::percent(25),
             max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
-            project_token: native_contracts.token.to_string(),
+            token_info: cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
             emissions_amp_factor: Uint128::new(680000000),
             emissions_offset: Uint128::new(52000),
-            base_denom: "uusd".to_string(),
-        },
+            income_averaging_period: Uint64::new(100),
+        }),
         subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
             factory_addr: native_contracts.os_factory.to_string(),
             payment_asset: AssetInfoUnchecked::native("uusd"),
-            subscription_cost: Uint64::new(100),
+            subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
             version_control_addr: native_contracts.version_control.to_string(),
+            subscription_per_block_emissions:
+                subscription::state::UncheckedEmissionType::IncomeBased(
+                    cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
+                ),
         },
     })?;
 

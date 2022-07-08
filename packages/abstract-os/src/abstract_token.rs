@@ -12,8 +12,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
-use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
-use cw20_base::msg::QueryMsg as Cw20QueryMsg;
+pub use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
+pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;
 
 /// ## Description
 /// This structure describes the basic settings for creating a token contract.

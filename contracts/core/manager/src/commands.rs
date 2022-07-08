@@ -145,7 +145,6 @@ pub fn exec_on_module(
 ) -> ManagerResult {
     // Only root can update module configs
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
     let module_addr = OS_MODULES.load(deps.storage, &module_name)?;
 
     let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {

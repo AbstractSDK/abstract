@@ -42,8 +42,8 @@ pub enum SubscriptionError {
     #[error("The contributor you wanted to remove is not registered.")]
     ContributorNotRegistered,
 
-    #[error("You cant claim before your next payday on {0}")]
-    WaitForNextPayday(u64),
+    #[error("You can't claim before the end of the current period.")]
+    CompensationAlreadyClaimed,
 
     #[error("Your contribution compensation expired")]
     ContributionExpired,
@@ -54,14 +54,29 @@ pub enum SubscriptionError {
     #[error("only the factory can register new subscribers")]
     CallerNotFactory,
 
-    #[error("cannot claim emissions before income is collected")]
-    CollectIncomeFirst,
+    #[error("compensation does not yield you any assets.")]
+    NoAssetsToSend,
 
     #[error("income target is zero, no contributions can be paid out.")]
     TargetIsZero,
 
-    #[error("you need to deposit at least {0} to reactivate this OS")]
-    InsufficientPayment(u64),
+    #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
+    InsufficientPayment(u64, String),
+
+    #[error("Subscriber emissions are not enabled")]
+    SubscriberEmissionsNotEnabled,
+
+    #[error("Contribution function must be enabled to use this feature")]
+    ContributionNotEnabled,
+
+    #[error("contributor must be a manager address")]
+    ContributorNotManager,
+
+    #[error("no os found with id {0}")]
+    OsNotFound(u32),
+
+    #[error("You must wait one TWA period before claiming can start")]
+    AveragingPeriodNotPassed,
 }
 
 impl From<semver::Error> for SubscriptionError {
