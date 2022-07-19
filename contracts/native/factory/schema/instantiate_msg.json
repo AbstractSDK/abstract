@@ -1,18 +1,25 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "InstantiateMsg",
+  "description": "Msg used on instantiation",
   "type": "object",
   "required": [
+    "chain_id",
     "memory_address",
     "module_factory_address",
     "version_control_address"
   ],
   "properties": {
+    "chain_id": {
+      "description": "Provide the deployment chain-id",
+      "type": "string"
+    },
     "memory_address": {
       "description": "Memory contract",
       "type": "string"
     },
     "module_factory_address": {
+      "description": "Address of module factory. Used for instantiating manager.",
       "type": "string"
     },
     "version_control_address": {

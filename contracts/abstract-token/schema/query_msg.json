@@ -3,6 +3,18 @@
   "title": "QueryMsg",
   "oneOf": [
     {
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Returns the current balance of the given address, 0 if unset. Return type: BalanceResponse.",
       "type": "object",
       "required": [
@@ -152,7 +164,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"marketing\" extension Downloads the mbeded logo data (if stored on chain). Errors if no logo data ftored for this contract. Return type: DownloadLogoResponse.",
+      "description": "Only with \"marketing\" extension Downloads the embedded logo data (if stored on chain). Errors if no logo data is stored for this contract. Return type: DownloadLogoResponse.",
       "type": "object",
       "required": [
         "download_logo"

@@ -3,34 +3,13 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Queries enabled modules of some OS",
+      "description": "Query Core of an OS Returns [`QueryOsCoreResponse`]",
       "type": "object",
       "required": [
-        "query_enabled_modules"
+        "os_core"
       ],
       "properties": {
-        "query_enabled_modules": {
-          "type": "object",
-          "required": [
-            "os_address"
-          ],
-          "properties": {
-            "os_address": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns Core of OS",
-      "type": "object",
-      "required": [
-        "query_os_address"
-      ],
-      "properties": {
-        "query_os_address": {
+        "os_core": {
           "type": "object",
           "required": [
             "os_id"
@@ -47,13 +26,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Queries contract code_id",
+      "description": "Queries contract code_id Returns [`QueryCodeIdResponse`]",
       "type": "object",
       "required": [
-        "query_code_id"
+        "code_id"
       ],
       "properties": {
-        "query_code_id": {
+        "code_id": {
           "type": "object",
           "required": [
             "module"
@@ -68,13 +47,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Queries api addresses",
+      "description": "Queries api addresses Returns [`QueryApiAddressResponse`]",
       "type": "object",
       "required": [
-        "query_api_address"
+        "api_address"
       ],
       "properties": {
-        "query_api_address": {
+        "api_address": {
           "type": "object",
           "required": [
             "module"
@@ -89,6 +68,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Returns [`QueryConfigResponse`]",
       "type": "object",
       "required": [
         "config"
@@ -99,9 +79,92 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Returns [`QueryCodeIdsResponse`]",
+      "type": "object",
+      "required": [
+        "code_ids"
+      ],
+      "properties": {
+        "code_ids": {
+          "type": "object",
+          "properties": {
+            "iter_limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "last_module": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ContractVersion"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns [`QueryApiAddressesResponse`]",
+      "type": "object",
+      "required": [
+        "api_addresses"
+      ],
+      "properties": {
+        "api_addresses": {
+          "type": "object",
+          "properties": {
+            "iter_limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "last_api_module": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ContractVersion"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
+    "ContractVersion": {
+      "type": "object",
+      "required": [
+        "contract",
+        "version"
+      ],
+      "properties": {
+        "contract": {
+          "description": "contract is the crate name of the implementing contract, eg. `crate:cw20-base` we will use other prefixes for other languages, and their standard global namespacing",
+          "type": "string"
+        },
+        "version": {
+          "description": "version is any string that this implementation knows. It may be simple counter \"1\", \"2\". or semantic version on release tags \"v0.7.0\", or some custom feature flag list. the only code that needs to understand the version parsing is code that knows how to migrate from the given contract (and is tied to it's implementation somehow)",
+          "type": "string"
+        }
+      }
+    },
     "ModuleInfo": {
       "type": "object",
       "required": [

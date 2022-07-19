@@ -15,6 +15,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Returns [`StateResponse`]",
       "type": "object",
       "required": [
         "state"
@@ -31,7 +32,7 @@
     "AddOnQueryMsg": {
       "oneOf": [
         {
-          "description": "Returns the base configuration for the AddOn",
+          "description": "Returns [`AddOnConfigResponse`]",
           "type": "object",
           "required": [
             "config"
@@ -44,7 +45,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin = manager",
+          "description": "Returns the admin.",
           "type": "object",
           "required": [
             "admin"

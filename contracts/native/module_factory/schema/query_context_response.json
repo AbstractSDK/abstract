@@ -1,13 +1,27 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "QueryQueryOsCoreResponse",
+  "title": "QueryContextResponse",
   "type": "object",
-  "required": [
-    "os_address"
-  ],
   "properties": {
-    "os_address": {
-      "$ref": "#/definitions/Core"
+    "core": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Core"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "module": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Module"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "definitions": {
@@ -16,6 +30,7 @@
       "type": "string"
     },
     "Core": {
+      "description": "Contains the minimal Abstract-OS contract addresses.",
       "type": "object",
       "required": [
         "manager",
@@ -29,6 +44,47 @@
           "$ref": "#/definitions/Addr"
         }
       }
+    },
+    "Module": {
+      "type": "object",
+      "required": [
+        "info",
+        "kind"
+      ],
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/ModuleInfo"
+        },
+        "kind": {
+          "$ref": "#/definitions/ModuleKind"
+        }
+      }
+    },
+    "ModuleInfo": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleKind": {
+      "type": "string",
+      "enum": [
+        "add_on",
+        "a_p_i",
+        "service",
+        "perk"
+      ]
     }
   }
 }

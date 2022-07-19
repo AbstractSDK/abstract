@@ -1,8 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
+  "description": "Execute function entrypoint.",
   "oneOf": [
     {
+      "description": "Handler called by the CW-20 contract on a send-call",
       "type": "object",
       "required": [
         "receive"
@@ -25,30 +27,35 @@
           "type": "object",
           "properties": {
             "admin": {
+              "description": "New admin",
               "type": [
                 "string",
                 "null"
               ]
             },
             "memory_contract": {
+              "description": "New memory contract",
               "type": [
                 "string",
                 "null"
               ]
             },
             "module_factory_address": {
+              "description": "New module factory contract",
               "type": [
                 "string",
                 "null"
               ]
             },
             "subscription_address": {
+              "description": "New subscription contract",
               "type": [
                 "string",
                 "null"
               ]
             },
             "version_control_contract": {
+              "description": "New version control contract",
               "type": [
                 "string",
                 "null"
@@ -60,7 +67,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Creates the core contracts for the OS",
+      "description": "Creates the core contracts and sets the permissions. [`crate::manager`] and [`crate::proxy`]",
       "type": "object",
       "required": [
         "create_os"
@@ -69,16 +76,32 @@
         "create_os": {
           "type": "object",
           "required": [
-            "governance"
+            "governance",
+            "os_name"
           ],
           "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
             "governance": {
-              "description": "Governance details TODO: add support for other types of gov.",
+              "description": "Governance details Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal. TODO: add support for other types of gov.",
               "allOf": [
                 {
                   "$ref": "#/definitions/GovernanceDetails"
                 }
               ]
+            },
+            "link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "os_name": {
+              "type": "string"
             }
           }
         }
@@ -112,8 +135,10 @@
       }
     },
     "GovernanceDetails": {
+      "description": "Governance types",
       "oneOf": [
         {
+          "description": "A single address is admin",
           "type": "object",
           "required": [
             "monarchy"
@@ -126,6 +151,7 @@
               ],
               "properties": {
                 "monarch": {
+                  "description": "The monarch's address",
                   "type": "string"
                 }
               }
@@ -134,6 +160,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Fixed multi-sig governance",
           "type": "object",
           "required": [
             "multi_signature"
@@ -148,17 +175,20 @@
               ],
               "properties": {
                 "members": {
+                  "description": "Member addresses, must be of length total_members",
                   "type": "array",
                   "items": {
                     "type": "string"
                   }
                 },
                 "threshold_votes": {
+                  "description": "Minimum amounts of votes for a proposal to pass",
                   "type": "integer",
                   "format": "uint8",
                   "minimum": 0.0
                 },
                 "total_members": {
+                  "description": "Number of signatures",
                   "type": "integer",
                   "format": "uint8",
                   "minimum": 0.0
@@ -169,18 +199,25 @@
           "additionalProperties": false
         },
         {
+          "description": "An external governance source",
           "type": "object",
           "required": [
-            "token_weighted"
+            "external"
           ],
           "properties": {
-            "token_weighted": {
+            "external": {
               "type": "object",
               "required": [
-                "token_addr"
+                "governance_address",
+                "governance_type"
               ],
               "properties": {
-                "token_addr": {
+                "governance_address": {
+                  "description": "The external contract address",
+                  "type": "string"
+                },
+                "governance_type": {
+                  "description": "Governance type used for doing extra off-chain queries depending on the type.",
                   "type": "string"
                 }
               }

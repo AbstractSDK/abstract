@@ -1,25 +1,21 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ProxyAsset",
-  "description": "Every ProxyAsset provides a way to determine its value recursively relative to a base asset.",
+  "title": "UncheckedProxyAsset",
+  "description": "A proxy asset with unchecked memory entry fields.",
   "type": "object",
   "required": [
     "asset"
   ],
   "properties": {
     "asset": {
-      "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
-      "allOf": [
-        {
-          "$ref": "#/definitions/AssetEntry"
-        }
-      ]
+      "description": "The asset that's held by the proxy",
+      "type": "string"
     },
     "value_reference": {
-      "description": "The value reference provides the tooling to get the value of the asset relative to the base asset.",
+      "description": "The value reference provides the tooling to get the value of the asset relative to the base asset. If None, the provided asset is set as the base asset. **You can only have one base asset!**",
       "anyOf": [
         {
-          "$ref": "#/definitions/ValueRef"
+          "$ref": "#/definitions/UncheckedValueRef"
         },
         {
           "type": "null"
@@ -28,21 +24,15 @@
     }
   },
   "definitions": {
-    "AssetEntry": {
-      "type": "string"
-    },
-    "ContractEntry": {
-      "type": "string"
-    },
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
       "type": "string"
     },
-    "ValueRef": {
+    "UncheckedValueRef": {
       "description": "Provides information on how to calculate the value of an asset",
       "oneOf": [
         {
-          "description": "A pool name of an asset/asset pair Both assets must be defined in the Vault_assets state",
+          "description": "A pool address of an asset/asset pair Both assets must be defined in the Proxy_assets state",
           "type": "object",
           "required": [
             "pool"
@@ -55,7 +45,7 @@
               ],
               "properties": {
                 "pair": {
-                  "$ref": "#/definitions/ContractEntry"
+                  "type": "string"
                 }
               }
             }
@@ -63,7 +53,6 @@
           "additionalProperties": false
         },
         {
-          "description": "Liquidity pool token",
           "type": "object",
           "required": [
             "liquidity_token"
@@ -76,7 +65,6 @@
           "additionalProperties": false
         },
         {
-          "description": "Or a Proxy, the proxy also takes a Decimal (the multiplier) Asset will be valued as if they are Proxy tokens",
           "type": "object",
           "required": [
             "proxy"
@@ -93,7 +81,7 @@
                   "$ref": "#/definitions/Decimal"
                 },
                 "proxy_asset": {
-                  "$ref": "#/definitions/AssetEntry"
+                  "type": "string"
                 }
               }
             }
@@ -101,7 +89,6 @@
           "additionalProperties": false
         },
         {
-          "description": "Query an external contract to get the value",
           "type": "object",
           "required": [
             "external"

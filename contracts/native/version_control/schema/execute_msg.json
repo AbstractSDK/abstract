@@ -59,7 +59,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Call to add a new APi",
+      "description": "Add a new APi",
       "type": "object",
       "required": [
         "add_api"
@@ -113,7 +113,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Add a new OS to the deployed OSs Only Factory can call this",
+      "description": "Add a new OS to the deployed OSs. Only Factory can call this",
       "type": "object",
       "required": [
         "add_os"
@@ -144,6 +144,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Sets a new Admin",
       "type": "object",
       "required": [
         "set_admin"
@@ -164,6 +165,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Sets a new Factory",
       "type": "object",
       "required": [
         "set_factory"

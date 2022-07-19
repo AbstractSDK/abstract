@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryContractListResponse",
+  "type": "object",
+  "required": [
+    "contracts"
+  ],
+  "properties": {
+    "contracts": {
+      "description": "Contracts (name, address)",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
+    }
+  }
+}

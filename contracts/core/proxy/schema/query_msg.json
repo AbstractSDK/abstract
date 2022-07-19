@@ -3,7 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Returns the proxy Config",
+      "description": "Returns [`QueryConfigResponse`]",
       "type": "object",
       "required": [
         "config"
@@ -16,7 +16,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the total value of all held assets",
+      "description": "Returns the total value of all held assets [`QueryTotalValueResponse`]",
       "type": "object",
       "required": [
         "total_value"
@@ -29,7 +29,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the value of one specific asset",
+      "description": "Returns the value of one specific asset [`QueryHoldingValueResponse`]",
       "type": "object",
       "required": [
         "holding_value"
@@ -50,7 +50,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the amount of specified tokens this contract holds",
+      "description": "Returns the amount of specified tokens this contract holds [`QueryHoldingAmountResponse`]",
       "type": "object",
       "required": [
         "holding_amount"
@@ -71,13 +71,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the VAULT_ASSETS value for the specified key",
+      "description": "Returns the VAULT_ASSETS value for the specified key [`QueryProxyAssetConfigResponse`]",
       "type": "object",
       "required": [
-        "vault_asset_config"
+        "proxy_asset_config"
       ],
       "properties": {
-        "vault_asset_config": {
+        "proxy_asset_config": {
           "type": "object",
           "required": [
             "identifier"
@@ -85,6 +85,35 @@
           "properties": {
             "identifier": {
               "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns [`QueryProxyAssetsResponse`]",
+      "type": "object",
+      "required": [
+        "proxy_assets"
+      ],
+      "properties": {
+        "proxy_assets": {
+          "type": "object",
+          "properties": {
+            "iter_limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "last_asset_name": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }

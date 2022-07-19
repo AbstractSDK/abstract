@@ -1,8 +1,10 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "GovernanceDetails",
+  "description": "Governance types",
   "oneOf": [
     {
+      "description": "A single address is admin",
       "type": "object",
       "required": [
         "monarchy"
@@ -15,6 +17,7 @@
           ],
           "properties": {
             "monarch": {
+              "description": "The monarch's address",
               "type": "string"
             }
           }
@@ -23,6 +26,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Fixed multi-sig governance",
       "type": "object",
       "required": [
         "multi_signature"
@@ -37,17 +41,20 @@
           ],
           "properties": {
             "members": {
+              "description": "Member addresses, must be of length total_members",
               "type": "array",
               "items": {
                 "type": "string"
               }
             },
             "threshold_votes": {
+              "description": "Minimum amounts of votes for a proposal to pass",
               "type": "integer",
               "format": "uint8",
               "minimum": 0.0
             },
             "total_members": {
+              "description": "Number of signatures",
               "type": "integer",
               "format": "uint8",
               "minimum": 0.0
@@ -58,18 +65,25 @@
       "additionalProperties": false
     },
     {
+      "description": "An external governance source",
       "type": "object",
       "required": [
-        "token_weighted"
+        "external"
       ],
       "properties": {
-        "token_weighted": {
+        "external": {
           "type": "object",
           "required": [
-            "token_addr"
+            "governance_address",
+            "governance_type"
           ],
           "properties": {
-            "token_addr": {
+            "governance_address": {
+              "description": "The external contract address",
+              "type": "string"
+            },
+            "governance_type": {
+              "description": "Governance type used for doing extra off-chain queries depending on the type.",
               "type": "string"
             }
           }

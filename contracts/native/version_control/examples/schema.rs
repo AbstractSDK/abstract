@@ -7,7 +7,7 @@ use abstract_os::{
     objects::module::ModuleInfo,
     version_control::{
         ExecuteMsg, InstantiateMsg, QueryApiAddressesResponse, QueryCodeIdResponse,
-        QueryConfigResponse, QueryMsg, QueryOsCoreResponse,
+        QueryConfigResponse, QueryMsg, QueryOsCoreResponse, QueryApiAddressResponse, QueryCodeIdsResponse,
     },
 };
 
@@ -21,18 +21,40 @@ fn main() {
     export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(ModuleInfo), &out_dir);
-    export_schema(&schema_for!(QueryConfigResponse), &out_dir);
-    export_schema(&schema_for!(QueryApiAddressesResponse), &out_dir);
-    export_schema(&schema_for!(QueryCodeIdResponse), &out_dir);
     // export_schema(&schema_for!(EnabledModulesResponse), &out_dir);
     export_schema_with_title(
         &schema_for!(QueryCodeIdResponse),
         &out_dir,
-        "QueryCodeIdResponse",
+        "CodeIdResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryConfigResponse),
+        &out_dir,
+        "ConfigResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryApiAddressesResponse),
+        &out_dir,
+        "ApiAddressesResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryApiAddressResponse),
+        &out_dir,
+        "ApiAddressResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryCodeIdResponse),
+        &out_dir,
+        "CodeIdResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryCodeIdsResponse),
+        &out_dir,
+        "CodeIdsResponse",
     );
     export_schema_with_title(
         &schema_for!(QueryOsCoreResponse),
         &out_dir,
-        "QueryOsCoreResponse",
+        "OsCoreResponse",
     );
 }

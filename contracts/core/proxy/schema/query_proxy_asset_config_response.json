@@ -1,30 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ProxyAsset",
-  "description": "Every ProxyAsset provides a way to determine its value recursively relative to a base asset.",
+  "title": "QueryProxyAssetConfigResponse",
   "type": "object",
   "required": [
-    "asset"
+    "proxy_asset"
   ],
   "properties": {
-    "asset": {
-      "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
-      "allOf": [
-        {
-          "$ref": "#/definitions/AssetEntry"
-        }
-      ]
-    },
-    "value_reference": {
-      "description": "The value reference provides the tooling to get the value of the asset relative to the base asset.",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ValueRef"
-        },
-        {
-          "type": "null"
-        }
-      ]
+    "proxy_asset": {
+      "$ref": "#/definitions/ProxyAsset"
     }
   },
   "definitions": {
@@ -37,6 +20,34 @@
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
       "type": "string"
+    },
+    "ProxyAsset": {
+      "description": "Every ProxyAsset provides a way to determine its value recursively relative to a base asset.",
+      "type": "object",
+      "required": [
+        "asset"
+      ],
+      "properties": {
+        "asset": {
+          "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            }
+          ]
+        },
+        "value_reference": {
+          "description": "The value reference provides the tooling to get the value of the asset relative to the base asset.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ValueRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     },
     "ValueRef": {
       "description": "Provides information on how to calculate the value of an asset",

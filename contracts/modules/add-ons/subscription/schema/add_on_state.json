@@ -31,13 +31,19 @@
       "type": "string"
     },
     "Memory": {
+      "description": "Struct that provides easy in-contract memory querying.",
       "type": "object",
       "required": [
         "address"
       ],
       "properties": {
         "address": {
-          "$ref": "#/definitions/Addr"
+          "description": "Address of the memory contract",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Addr"
+            }
+          ]
         }
       }
     }

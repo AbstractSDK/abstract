@@ -1,7 +1,63 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Cw20ExecuteMsg",
+  "title": "ExecuteMsg",
   "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "update_whitelist"
+      ],
+      "properties": {
+        "update_whitelist": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "restrict_transfers": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "update_admin"
+      ],
+      "properties": {
+        "update_admin": {
+          "type": "object",
+          "required": [
+            "new_admin"
+          ],
+          "properties": {
+            "new_admin": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     {
       "description": "Transfer is a base message to move tokens to another account without triggering actions",
       "type": "object",

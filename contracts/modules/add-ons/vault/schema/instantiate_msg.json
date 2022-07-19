@@ -1,6 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "InstantiateMsg",
+  "description": "Init msg",
   "type": "object",
   "required": [
     "base",
@@ -11,29 +12,44 @@
   ],
   "properties": {
     "base": {
-      "$ref": "#/definitions/AddOnInstantiateMsg"
+      "description": "Base init msg, sets memory address",
+      "allOf": [
+        {
+          "$ref": "#/definitions/AddOnInstantiateMsg"
+        }
+      ]
     },
     "deposit_asset": {
+      "description": "Asset required to deposit into the vault.",
       "type": "string"
     },
     "fee": {
-      "$ref": "#/definitions/Decimal"
+      "description": "Fee charged on withdrawal",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Decimal"
+        }
+      ]
     },
     "provider_addr": {
+      "description": "Address of the service provider which receives the fee.",
       "type": "string"
     },
     "token_code_id": {
+      "description": "Code-id used to create the LP token",
       "type": "integer",
       "format": "uint64",
       "minimum": 0.0
     },
     "vault_lp_token_name": {
+      "description": "Name of the vault token",
       "type": [
         "string",
         "null"
       ]
     },
     "vault_lp_token_symbol": {
+      "description": "Symbol of the vault token",
       "type": [
         "string",
         "null"
@@ -42,13 +58,13 @@
   },
   "definitions": {
     "AddOnInstantiateMsg": {
+      "description": "Used by Module Factory to instantiate AddOn",
       "type": "object",
       "required": [
         "memory_address"
       ],
       "properties": {
         "memory_address": {
-          "description": "Used by Module Factory to instantiate AddOn",
           "type": "string"
         }
       }

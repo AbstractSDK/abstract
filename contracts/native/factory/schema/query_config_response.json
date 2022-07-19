@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ConfigResponse",
+  "title": "QueryConfigResponse",
   "type": "object",
   "required": [
     "memory_contract",

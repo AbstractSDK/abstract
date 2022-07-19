@@ -1,7 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
+  "description": "Execute messages",
   "oneOf": [
+
     {
       "description": "Sets a new Admin",
       "type": "object",
@@ -17,6 +19,12 @@
           "properties": {
             "admin": {
               "type": "string"
+            },
+            "governance_type": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }
@@ -37,6 +45,7 @@
           ],
           "properties": {
             "init_msg": {
+              "description": "Instantiate message used to instantiate the contract.",
               "anyOf": [
                 {
                   "$ref": "#/definitions/Binary"
@@ -47,7 +56,12 @@
               ]
             },
             "module": {
-              "$ref": "#/definitions/Module"
+              "description": "Module information.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/Module"
+                }
+              ]
             }
           }
         }
@@ -55,7 +69,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Register a module after creation",
+      "description": "Registers a module after creation. Only callable by module factory.",
       "type": "object",
       "required": [
         "register_module"
@@ -101,7 +115,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Forward configuration message to module",
+      "description": "Forward execution message to module",
       "type": "object",
       "required": [
         "exec_on_module"
@@ -153,6 +167,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Upgrade the module to a new version If module is `abstract::manager` then the contract will do a self-migration.",
       "type": "object",
       "required": [
         "upgrade"
@@ -197,6 +212,39 @@
           "properties": {
             "new_status": {
               "type": "boolean"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Update info",
+      "type": "object",
+      "required": [
+        "update_info"
+      ],
+      "properties": {
+        "update_info": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "link": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "os_name": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           }
         }

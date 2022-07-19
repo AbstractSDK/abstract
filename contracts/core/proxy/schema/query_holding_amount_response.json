@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "HoldingValueResponse",
+  "title": "QueryHoldingAmountResponse",
   "type": "object",
   "required": [
-    "value"
+    "amount"
   ],
   "properties": {
-    "value": {
+    "amount": {
       "$ref": "#/definitions/Uint128"
     }
   },

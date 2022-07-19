@@ -81,11 +81,13 @@
         "contributor_state": {
           "type": "object",
           "required": [
-            "contributor_addr"
+            "os_id"
           ],
           "properties": {
-            "contributor_addr": {
-              "type": "string"
+            "os_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
             }
           }
         }
@@ -97,7 +99,7 @@
     "AddOnQueryMsg": {
       "oneOf": [
         {
-          "description": "Returns the base configuration for the AddOn",
+          "description": "Returns [`AddOnConfigResponse`]",
           "type": "object",
           "required": [
             "config"
@@ -110,7 +112,7 @@
           "additionalProperties": false
         },
         {
-          "description": "Returns the admin = manager",
+          "description": "Returns the admin.",
           "type": "object",
           "required": [
             "admin"

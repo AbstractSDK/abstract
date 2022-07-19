@@ -12,23 +12,22 @@
   },
   "definitions": {
     "Compensation": {
+      "description": "Compensation details for contributors",
       "type": "object",
       "required": [
-        "base",
-        "expiration",
-        "next_pay_day",
+        "base_per_block",
+        "expiration_block",
+        "last_claim_block",
         "weight"
       ],
       "properties": {
-        "base": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
+        "base_per_block": {
+          "$ref": "#/definitions/Decimal"
         },
-        "expiration": {
+        "expiration_block": {
           "$ref": "#/definitions/Uint64"
         },
-        "next_pay_day": {
+        "last_claim_block": {
           "$ref": "#/definitions/Uint64"
         },
         "weight": {
@@ -37,6 +36,10 @@
           "minimum": 0.0
         }
       }
+    },
+    "Decimal": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
     },
     "Uint64": {
       "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",

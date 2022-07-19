@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OsInfo",
+  "type": "object",
+  "required": [
+    "chain_id",
+    "governance_type",
+    "name"
+  ],
+  "properties": {
+    "chain_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "governance_type": {
+      "type": "string"
+    },
+    "link": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "name": {
+      "type": "string"
+    }
+  }
+}

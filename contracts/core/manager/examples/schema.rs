@@ -27,13 +27,30 @@ fn main() {
     // TODO:
     export_schema(&schema_for!(Binary), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(QueryInfoResponse), &out_dir);
-    export_schema(&schema_for!(QueryModuleInfosResponse), &out_dir);
-    export_schema(&schema_for!(QueryModuleAddressesResponse), &out_dir);
     export_schema_with_title(
         &schema_for!(QueryModuleVersionsResponse),
         &out_dir,
-        "QueryVersionsResponse",
+        "ModuleVersionsResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryInfoResponse),
+        &out_dir,
+        "InfoResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryConfigResponse),
+        &out_dir,
+        "ConfigResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryModuleInfosResponse),
+        &out_dir,
+        "ModuleInfosResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryModuleAddressesResponse),
+        &out_dir,
+        "ModuleAddressesResponse",
     );
     export_schema_with_title(
         &schema_for!(QueryConfigResponse),

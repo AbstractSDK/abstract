@@ -4,7 +4,6 @@
   "type": "object",
   "required": [
     "base",
-    "contribution",
     "subscription"
   ],
   "properties": {
@@ -12,7 +11,14 @@
       "$ref": "#/definitions/AddOnInstantiateMsg"
     },
     "contribution": {
-      "$ref": "#/definitions/ContributionInstantiateMsg"
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ContributionInstantiateMsg"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "subscription": {
       "$ref": "#/definitions/SubscriptionInstantiateMsg"
@@ -20,13 +26,13 @@
   },
   "definitions": {
     "AddOnInstantiateMsg": {
+      "description": "Used by Module Factory to instantiate AddOn",
       "type": "object",
       "required": [
         "memory_address"
       ],
       "properties": {
         "memory_address": {
-          "description": "Used by Module Factory to instantiate AddOn",
           "type": "string"
         }
       }
@@ -63,18 +69,15 @@
     "ContributionInstantiateMsg": {
       "type": "object",
       "required": [
-        "base_denom",
         "emission_user_share",
         "emissions_amp_factor",
         "emissions_offset",
+        "income_averaging_period",
         "max_emissions_multiple",
-        "project_token",
-        "protocol_income_share"
+        "protocol_income_share",
+        "token_info"
       ],
       "properties": {
-        "base_denom": {
-          "type": "string"
-        },
         "emission_user_share": {
           "$ref": "#/definitions/Decimal"
         },
@@ -84,14 +87,17 @@
         "emissions_offset": {
           "$ref": "#/definitions/Uint128"
         },
+        "income_averaging_period": {
+          "$ref": "#/definitions/Uint64"
+        },
         "max_emissions_multiple": {
           "$ref": "#/definitions/Decimal"
         },
-        "project_token": {
-          "type": "string"
-        },
         "protocol_income_share": {
           "$ref": "#/definitions/Decimal"
+        },
+        "token_info": {
+          "$ref": "#/definitions/AssetInfoBase_for_String"
         }
       }
     },
@@ -104,7 +110,8 @@
       "required": [
         "factory_addr",
         "payment_asset",
-        "subscription_cost",
+        "subscription_cost_per_block",
+        "subscription_per_block_emissions",
         "version_control_addr"
       ],
       "properties": {
@@ -112,10 +119,18 @@
           "type": "string"
         },
         "payment_asset": {
-          "$ref": "#/definitions/AssetInfoBase_for_String"
+          "description": "Payment asset for",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            }
+          ]
         },
-        "subscription_cost": {
-          "$ref": "#/definitions/Uint64"
+        "subscription_cost_per_block": {
+          "$ref": "#/definitions/Decimal"
+        },
+        "subscription_per_block_emissions": {
+          "$ref": "#/definitions/UncheckedEmissionType"
         },
         "version_control_addr": {
           "type": "string"
@@ -129,6 +144,76 @@
     "Uint64": {
       "description": "A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```",
       "type": "string"
+    },
+    "UncheckedEmissionType": {
+      "description": "Setting for protocol token emissions",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "None"
+          ]
+        },
+        {
+          "description": "A fixed number of tokens are distributed to users on a per-block basis. emission = block_shared / total_subscribers",
+          "type": "object",
+          "required": [
+            "BlockShared"
+          ],
+          "properties": {
+            "BlockShared": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/Decimal"
+                },
+                {
+                  "$ref": "#/definitions/AssetInfoBase_for_String"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Each user receives a fixed number of tokens on a per-block basis. emission = block_per_user",
+          "type": "object",
+          "required": [
+            "BlockPerUser"
+          ],
+          "properties": {
+            "BlockPerUser": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/Decimal"
+                },
+                {
+                  "$ref": "#/definitions/AssetInfoBase_for_String"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Requires contribution functionality to be active Emissions will be based on protocol income and user/contributor split. See [`ContributionConfig`]",
+          "type": "object",
+          "required": [
+            "IncomeBased"
+          ],
+          "properties": {
+            "IncomeBased": {
+              "$ref": "#/definitions/AssetInfoBase_for_String"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }
