@@ -32,11 +32,7 @@ fn main() {
         &out_dir,
         "ModuleVersionsResponse",
     );
-    export_schema_with_title(
-        &schema_for!(QueryInfoResponse),
-        &out_dir,
-        "InfoResponse",
-    );
+    export_schema_with_title(&schema_for!(QueryInfoResponse), &out_dir, "InfoResponse");
     export_schema_with_title(
         &schema_for!(QueryConfigResponse),
         &out_dir,

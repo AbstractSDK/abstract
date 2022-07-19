@@ -14,9 +14,11 @@ use cw_storage_plus::Map;
 use protobuf::Message;
 use semver::Version;
 
+use abstract_os::liquidity_interface::{
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+};
 use abstract_os::objects::fee::Fee;
-use abstract_os::vault::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
-use abstract_os::VAULT;
+use abstract_os::LIQUIDITY_INTERFACE;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
 use crate::error::VaultError;
@@ -39,7 +41,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
     if storage_version < version {
-        set_contract_version(deps.storage, VAULT, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, LIQUIDITY_INTERFACE, CONTRACT_VERSION)?;
     }
     Ok(Response::default())
 }
@@ -69,7 +71,14 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
     )?;
     FEE.save(deps.storage, &Fee { share: msg.fee })?;
 
-    VaultDapp::default().instantiate(deps, env.clone(), info, msg.base, VAULT, CONTRACT_VERSION)?;
+    VaultDapp::default().instantiate(
+        deps,
+        env.clone(),
+        info,
+        msg.base,
+        LIQUIDITY_INTERFACE,
+        CONTRACT_VERSION,
+    )?;
 
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token

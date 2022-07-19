@@ -11,5 +11,5 @@ pub const OS_FACTORY: &str = "abstract:os_factory";
 pub const MODULE_FACTORY: &str = "abstract:module_factory";
 pub const PROXY: &str = "abstract:proxy";
 pub const MEMORY: &str = "abstract:memory";
-pub const VAULT: &str = "abstract:vault";
+pub const LIQUIDITY_INTERFACE: &str = "abstract:liquidity_interface";
 pub const SUBSCRIPTION: &str = "abstract:subscription";

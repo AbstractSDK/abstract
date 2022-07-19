@@ -6,8 +6,9 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use abstract_os::{
     objects::module::ModuleInfo,
     version_control::{
-        ExecuteMsg, InstantiateMsg, QueryApiAddressesResponse, QueryCodeIdResponse,
-        QueryConfigResponse, QueryMsg, QueryOsCoreResponse, QueryApiAddressResponse, QueryCodeIdsResponse,
+        ExecuteMsg, InstantiateMsg, QueryApiAddressResponse, QueryApiAddressesResponse,
+        QueryCodeIdResponse, QueryCodeIdsResponse, QueryConfigResponse, QueryMsg,
+        QueryOsCoreResponse,
     },
 };
 

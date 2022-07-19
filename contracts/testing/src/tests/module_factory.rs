@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use abstract_os::modules::Module;
 use abstract_os::vault as vault_msg;
-use abstract_os::VAULT;
+use abstract_os::LIQUIDITY_INTERFACE;
 use abstract_os::{modules::ModuleInfo, registry::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
@@ -36,7 +36,7 @@ fn proper_initialization() {
         .with_migrate_empty(proxy::contract::migrate),
     );
     let vault_info = ModuleInfo {
-        name: VAULT.into(),
+        name: LIQUIDITY_INTERFACE.into(),
         version: None,
     };
     register_module(
@@ -57,7 +57,7 @@ fn proper_initialization() {
             &sender,
             Module {
                 info: ModuleInfo {
-                    name: VAULT.into(),
+                    name: LIQUIDITY_INTERFACE.into(),
                     version: None,
                 },
                 kind: abstract_os::modules::ModuleKind::AddOn,

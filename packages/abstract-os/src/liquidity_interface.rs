@@ -24,7 +24,7 @@
 //! let create_module_msg = ExecuteMsg::CreateModule {
 //!                 module: Module {
 //!                     info: ModuleInfo {
-//!                         name: VAULT.into(),
+//!                         name: LIQUIDITY_INTERFACE.into(),
 //!                         version: None,
 //!                     },
 //!                     kind: crate::core::modules::ModuleKind::External,
@@ -35,7 +35,7 @@
 //! ```
 //!
 //! ## Migration
-//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::registry::VAULT` as module.
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::registry::LIQUIDITY_INTERFACE` as module.
 
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
