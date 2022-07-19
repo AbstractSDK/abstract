@@ -29,7 +29,6 @@ cw20 = { version = "0.13" }
 cw-asset = "2.0"
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-terraswap = "2.4.0"
 thiserror = { version = "1.0.21" }
 abstract-sdk = { path = "../../../packages/abstract-sdk" }
 abstract-os = {path = "../../../packages/abstract-os"}
@@ -38,9 +37,6 @@ semver = "1.0.4"
 [dev-dependencies]
 cosmwasm-schema = { version = "1.0" }
 cw-multi-test = { version = "0.13"}
-terra-mocks = {git ="https://github.com/terra-money/cosmwasm-contracts.git", package = "terra-mocks"}
-# terra-multi-test = {git="https://github.com/astroport-fi/terra-plus", tag = "v0.9.1-terra"}
-terra-multi-test = {git = "https://github.com/Abstract-OS/terra-plus.git"}
 cw20-base = { version = "0.13", features = ["library"] }
 
 proxy = { version = "0.1.0", path = "../proxy" }

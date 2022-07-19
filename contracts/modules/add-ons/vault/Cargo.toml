@@ -39,13 +39,7 @@ abstract-sdk = { path = "../../../../packages/abstract-sdk" }
 
 [dev-dependencies]
 memory = { version = "0.1.0", path = "../../../native/memory" }
-terraswap = "2.4.0"
 cosmwasm-schema = { version = "1.0" }
 cw-multi-test = { version = "0.13" }
-terra-mocks = { git = "https://github.com/terra-money/cosmwasm-contracts.git", rev = "b25f4ac2d7bddaa3a18838cfe51d18e1ae855dcd", package = "terra-mocks" }
-terra-multi-test = { git = "https://github.com/astroport-fi/terra-plus", rev = "b3991b9b109accf445fec086ce9792b197be6ca4", package = "terra-multi-test" }
 cw20-base = { version = "0.13", features = ["library"] }
 proxy = { version = "0.1.0", path = "../../../core/proxy" }
-terraswap-factory = { version = "2.6.0", path = "../../../mocks/mock_terraswap/terraswap_factory" }
-terraswap-pair = { version = "2.6.0", path = "../../../mocks/mock_terraswap/terraswap_pair" }
-terraswap-token = { version = "2.6.0", path = "../../../mocks/mock_terraswap/terraswap_token" }
