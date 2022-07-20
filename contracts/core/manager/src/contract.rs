@@ -36,7 +36,7 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ManagerResult {
@@ -68,7 +68,7 @@ pub fn instantiate(
     let os_info = OsInfo {
         name: msg.os_name,
         governance_type: msg.governance_type,
-        chain_id: msg.chain_id,
+        chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
     };

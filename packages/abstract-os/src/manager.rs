@@ -73,7 +73,6 @@ pub struct InstantiateMsg {
     pub version_control_address: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
-    pub chain_id: String,
     pub governance_type: String,
     pub os_name: String,
     pub description: Option<String>,

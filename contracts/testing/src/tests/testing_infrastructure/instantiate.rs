@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::tests::common::{CHAIN_ID, DEFAULT_VERSION, TEST_CREATOR};
+use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 
 use cosmwasm_std::{Addr, Timestamp};
 
@@ -87,7 +87,6 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> 
         .unwrap();
 
     let os_factory_msg = OSFactoryMsg::InstantiateMsg {
-        chain_id: CHAIN_ID.to_string(),
         memory_address: memory_instance.to_string(),
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),

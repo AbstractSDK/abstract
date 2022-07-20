@@ -126,7 +126,6 @@ pub fn execute_create_os(
                     version_control_address: config.version_control_contract.to_string(),
                     subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
-                    chain_id: config.chain_id,
                     os_name,
                     description,
                     link,
