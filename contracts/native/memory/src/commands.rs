@@ -57,15 +57,12 @@ pub fn update_asset_addresses(
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    for (name, new_address) in to_add.into_iter() {
+    for (name, new_asset) in to_add.into_iter() {
         // Update function for new or existing keys
         let api = deps.api;
         let insert = |_| -> StdResult<AssetInfo> {
             // use own check, cw_asset otherwise changes cases to lowercase
-            match new_address {
-                AssetInfoUnchecked::Cw20(addr) => Ok(AssetInfo::Cw20(api.addr_validate(&addr)?)),
-                AssetInfoUnchecked::Native(denom) => Ok(AssetInfo::Native(denom)),
-            }
+            new_asset.check(api, None)
         };
         ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
     }

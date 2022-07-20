@@ -26,6 +26,9 @@ impl DepositInfo {
             AssetInfo::Cw20(..) => Err(StdError::generic_err(
                 "'denom' only exists for native tokens.",
             )),
+            AssetInfo::Cw1155(..) => Err(StdError::generic_err(
+                "'denom' only exists for native tokens.",
+            )),
         }
     }
 }

@@ -24,6 +24,6 @@ cw20-base = { version = "0.13", features = ["library"] }
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
-cw-asset = "2.0"
+cw-asset = {version = "2.2.0"}
 serde-cw-value = "0.7.0"
 abstract-os = {path = "../abstract-os"}

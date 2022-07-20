@@ -29,7 +29,6 @@ pub mod state {
     pub const ADMIN: Admin = Admin::new("admin");
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
-
 }
 
 use crate::objects::gov_type::GovernanceDetails;

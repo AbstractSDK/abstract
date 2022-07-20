@@ -347,14 +347,6 @@ impl Proxy {
     }
 }
 
-/// Gets the identifier of the asset (either its denom or contract address)
-pub fn get_asset_identifier(asset_info: &AssetInfo) -> String {
-    match asset_info {
-        AssetInfo::Native(denom) => denom.to_owned(),
-        AssetInfo::Cw20(contract_addr) => contract_addr.into(),
-    }
-}
-
 fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<Uint128> {
     let response: cw20::TokenInfoResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {

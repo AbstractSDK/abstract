@@ -325,6 +325,11 @@ fn forward_payment(
                 })?,
                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
             }),
+            AssetInfoBase::Cw1155(_, _) => {
+                return Err(OsFactoryError::Std(StdError::generic_err(
+                    "Cw1155 not supported.",
+                )))
+            }
         };
 
         msgs.push(forward_payment_to_module);

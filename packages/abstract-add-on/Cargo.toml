@@ -26,6 +26,6 @@ abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
 cw-controllers = { version = "0.13" }
 thiserror = { version = "1.0.21" }
 cw2 = "0.13"
-cw-asset = "2.0"
+cw-asset = {version = "2.2.0"}
 abstract-os = {path = "../abstract-os"}
 

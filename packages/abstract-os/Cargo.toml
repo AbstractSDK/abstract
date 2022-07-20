@@ -20,7 +20,7 @@ schemars = "0.8.1"
 cw-controllers = { version = "0.13" }
 cw-storage-plus = { version = "0.13" }
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-cw-asset = "2.0"
+cw-asset = {version = "2.2.0"}
 cw2 = { version = "0.13" }
 cw20 = { version = "0.13" }
 cw20-base = { version = "0.13", features = ["library"] }

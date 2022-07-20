@@ -26,7 +26,7 @@ cw-controllers = { version ="0.13" }
 cw-storage-plus = "0.13"
 cw2 = "0.13"
 cw20 = { version = "0.13" }
-cw-asset = "2.0"
+cw-asset = {version = "2.2.0"}
 abstract-sdk = { version = "0.1.0", path = "../../../packages/abstract-sdk" }
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }

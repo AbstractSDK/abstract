@@ -82,6 +82,7 @@ pub fn try_provide_liquidity(
                     msg_info.sender
                 }
                 AssetInfo::Cw20(_) => return Err(VaultError::NotUsingCW20Hook {}),
+                AssetInfo::Cw1155(_, _) => return Err(VaultError::NotUsingCW20Hook {}),
             }
         }
     };
