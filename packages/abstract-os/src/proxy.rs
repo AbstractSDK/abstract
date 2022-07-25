@@ -3,11 +3,12 @@
 //! `abstract_os::proxy` hold all the assets associated with the OS instance. It accepts Cosmos messages from whitelisted addresses and executes them.
 //!
 //! ## Description
-//! The proxy is part of the Core OS contracts along with the `abstract_os::manager` contract.
-//! This contract is responsible for executing Cosmos messages and calculating the value of its assets.
+//! The proxy is part of the Core OS contracts along with the [`crate::manager`] contract.
+//! This contract is responsible for executing Cosmos messages and calculating the value of its internal assets.
 //!
 //! ## Proxy assets
-//! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets.
+//! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
+//! After configurating the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

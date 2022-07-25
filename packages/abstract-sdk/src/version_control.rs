@@ -5,6 +5,7 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
 use cosmwasm_std::StdResult;
 
+/// Get the [`abstract_os::version_control::Core`] object for an os-id.
 pub fn get_os_core(
     querier: &QuerierWrapper,
     os_id: u32,
@@ -20,6 +21,7 @@ pub fn get_os_core(
     }
 }
 
+/// Verify if the provided manager address is indeed a user.
 pub fn verify_os_manager(
     querier: &QuerierWrapper,
     maybe_manager: &Addr,
@@ -44,6 +46,7 @@ pub fn verify_os_manager(
     }
 }
 
+/// Verify if the provided proxy address is indeed a user.
 pub fn verify_os_proxy(
     querier: &QuerierWrapper,
     maybe_proxy: &Addr,

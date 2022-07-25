@@ -1,25 +1,25 @@
-//! # Vault Add-On
+//! # Liquidity Interface Add-On
 //!
-//! [`crate::vault`] is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
+//! `abstract_os::liquidity_interface` is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
 //! ## Description  
 //! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
 //! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.  
 //!
 //! ---
-//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the vault's size.
+//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the liquidity_interface's size.
 //!
 //! ## Creation
-//! The vault contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
+//! The liquidity_interface contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
 //! ```ignore
-//! let vault_init_msg = InstantiateMsg{
+//! let liquidity_interface_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
 //!                base: AddOnInstantiateMsg{memory_address: "juno1...".to_string()},
 //!                fee: Decimal::percent(10),
 //!                provider_addr: "juno1...".to_string(),
 //!                token_code_id: 3,
-//!                vault_lp_token_name: Some("demo_vault".to_string()),
-//!                vault_lp_token_symbol: Some("DEMO".to_string()),
+//!                liquidity_interface_lp_token_name: Some("demo_liquidity_interface".to_string()),
+//!                liquidity_interface_lp_token_symbol: Some("DEMO".to_string()),
 //!        };
 //! let create_module_msg = ExecuteMsg::CreateModule {
 //!                 module: Module {
@@ -29,13 +29,13 @@
 //!                     },
 //!                     kind: crate::core::modules::ModuleKind::External,
 //!                 },
-//!                 init_msg: Some(to_binary(&vault_init_msg).unwrap()),
+//!                 init_msg: Some(to_binary(&liquidity_interface_init_msg).unwrap()),
 //!        };
 //! // Call create_module_msg on manager
 //! ```
 //!
 //! ## Migration
-//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::registry::LIQUIDITY_INTERFACE` as module.
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::LIQUIDITY_INTERFACE` as module.
 
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
@@ -60,12 +60,12 @@ pub struct InstantiateMsg {
     pub fee: Decimal,
     /// Address of the service provider which receives the fee.
     pub provider_addr: String,
-    /// Asset required to deposit into the vault.
+    /// Asset required to deposit into the liquidity_interface.
     pub deposit_asset: String,
-    /// Name of the vault token
-    pub vault_lp_token_name: Option<String>,
-    /// Symbol of the vault token
-    pub vault_lp_token_symbol: Option<String>,
+    /// Name of the liquidity_interface token
+    pub token_name: Option<String>,
+    /// Symbol of the liquidity_interface token
+    pub token_symbol: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -79,7 +79,7 @@ pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
-    /// Update the vault pool information
+    /// Update the liquidity_interface pool information
     /// Asset names are resolved using [`abstract_os::memory`].
     UpdatePool {
         deposit_asset: Option<String>,

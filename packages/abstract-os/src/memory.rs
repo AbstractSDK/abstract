@@ -4,7 +4,6 @@
 //!
 //! ## Description
 //! Contract and asset addresses are stored on the memory contract and are retrievable trough smart or raw queries.
-//! This is useful when managing a large set of contracts.
 
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;

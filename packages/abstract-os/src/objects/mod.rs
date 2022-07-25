@@ -1,4 +1,4 @@
-//! # State/Message Objects
+//! # State and Message Objects
 //! This module contains all the structs and enums used in contract state-storage or contained in contract interaction.
 
 pub mod core;

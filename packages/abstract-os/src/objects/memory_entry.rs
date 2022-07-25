@@ -1,3 +1,6 @@
+//! # Memory Entry
+//! An entry (value) in the memory key-value store.
+
 use cosmwasm_std::{Addr, Deps, StdResult};
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
@@ -5,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use super::memory::Memory;
 
+/// Information on an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AssetEntry(String);
 
@@ -31,6 +35,7 @@ impl ToString for AssetEntry {
     }
 }
 
+/// Information on a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ContractEntry(String);
 

@@ -6,7 +6,6 @@
 //! An Abstract API contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
-//! The source code is accessible on [todo](todo).
 
 use cosmwasm_std::Addr;
 use schemars::JsonSchema;

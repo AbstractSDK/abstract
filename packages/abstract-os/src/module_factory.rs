@@ -1,3 +1,10 @@
+//! # Module Factory
+//!
+//! `abstract_os::module_factory` is a native contract that handles instantiation and migration of os modules.
+//!
+//! ## Description  
+//! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
+
 use crate::{objects::module::Module, version_control::Core};
 use cosmwasm_std::Binary;
 use schemars::JsonSchema;

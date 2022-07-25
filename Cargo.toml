@@ -5,7 +5,7 @@ members = [
     "contracts/core/*",
     "contracts/testing",
     "contracts/abstract-token",
-    "contracts/modules/add-ons/vault",
+    "contracts/modules/add-ons/liquidity-interface",
     "contracts/modules/add-ons/subscription",
 ]
 

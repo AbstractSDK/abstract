@@ -3,6 +3,7 @@ use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// Helper for handling deposit assets.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct DepositInfo {
     pub asset_info: AssetInfo,

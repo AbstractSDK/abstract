@@ -82,6 +82,9 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         }
 
         self.traders.save(deps.storage, proxy.clone(), &traders)?;
-        Ok(Response::new().add_attribute("action", format!("update_{}_traders", proxy)))
+        Ok(
+            Response::new()
+                .add_attribute("action", format!("update_{}_traders", proxy.to_string())),
+        )
     }
 }

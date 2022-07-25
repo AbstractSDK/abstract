@@ -54,11 +54,11 @@ pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateM
     };
 
     let lp_token_name: String = msg
-        .vault_lp_token_name
+        .token_name
         .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_NAME));
 
     let lp_token_symbol: String = msg
-        .vault_lp_token_symbol
+        .token_symbol
         .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
     STATE.save(deps.storage, &state)?;

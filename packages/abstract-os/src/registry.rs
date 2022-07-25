@@ -1,6 +1,6 @@
 //! # Registry
 //!
-//! `abstract_os::registry` contains all contract names supported by Abstract OS.
+//! `abstract_os` contains all contract names supported by Abstract OS.
 //!
 //! ## Description
 //! These fixed names can be used to provide name-addressable searches for complex logic.

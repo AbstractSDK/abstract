@@ -1,10 +1,12 @@
-//! # Memory
+//! # Os Factory
 //!
-//! `abstract_os::memory` stores chain-specific contract addresses.
+//! `abstract_os::os_factory` handles OS creation and registration.
 //!
 //! ## Description
-//! Contract and asset addresses are stored on the proxy contract and are retrievable trough smart or raw queries.
-//! This is useful when managing a large set of contracts.
+//! The OS factory instantiates a new OS instance and registeres it with the [`crate::version_control`] contract. It then forwards the payment to the main os's subscription module.  
+//! ## Create a new OS
+//! Call [`ExecuteMsg::CreateOs`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your OS.
+//!
 pub mod state {
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;

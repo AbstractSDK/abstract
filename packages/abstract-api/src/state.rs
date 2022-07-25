@@ -19,12 +19,13 @@ pub const TRADER_NAMESPACE: &str = "traders";
 
 /// The state variables for our ApiContract.
 pub struct ApiContract<'a, T: Serialize + DeserializeOwned> {
-    // Map ProxyAddr -> WhitelistedTraders
+    /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'a, Addr, Vec<Addr>>,
-    // Every DApp should use the provided memory contract for token/contract address resolution
+    /// Every DApp should use the provided memory contract for token/contract address resolution
     pub base_state: Item<'a, ApiState>,
+    /// Stores the API version
     pub version: Item<'a, ContractVersion>,
-
+    ///
     pub request_destination: Option<Addr>,
 
     _phantom_data: PhantomData<T>,

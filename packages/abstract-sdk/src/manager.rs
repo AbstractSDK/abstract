@@ -1,3 +1,9 @@
+//! # Manager Helpers
+//! Raw Query helpers to get module information.
+//!
+//! *Add raw map paging when support is added*
+//!
+
 use cosmwasm_std::{to_binary, CosmosMsg, Empty, QuerierWrapper, StdResult, WasmMsg};
 
 use abstract_os::manager::{state::OS_ID, ExecuteMsg::UpdateModuleAddresses};
@@ -11,13 +17,13 @@ use cosmwasm_storage::to_length_prefixed;
 use cosmwasm_std::{Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 
+/// Get the os-id of the core contract
 pub fn query_os_id(querier: &QuerierWrapper, core_contract_addr: &Addr) -> StdResult<u32> {
     OS_ID.query(querier, core_contract_addr.clone())
 }
 
 /// Register the module on the manager
-/// can only be called by admin of manager
-/// Factory on init
+/// can only be called by admin of manager (currently the factory)
 pub fn register_module_on_manager(
     manager_address: String,
     module_name: String,
@@ -32,6 +38,7 @@ pub fn register_module_on_manager(
         funds: vec![],
     }))
 }
+/// RawQuery the version of an enabled module
 pub fn query_module_version(deps: &Deps, module_addr: Addr) -> StdResult<ContractVersion> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: module_addr.into(),
@@ -40,7 +47,8 @@ pub fn query_module_version(deps: &Deps, module_addr: Addr) -> StdResult<Contrac
     deps.querier.query::<ContractVersion>(&req)
 }
 
-/// Query the module versions of the modules part of the OS
+/// RawQuery the module versions of the modules part of the OS
+/// Errors if not present
 pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
@@ -56,7 +64,8 @@ pub fn query_module_versions(
     Ok(module_versions)
 }
 
-/// Query module addresses from manager
+/// RawQuery module addresses from manager
+/// Errors if not present
 pub fn query_module_addresses(
     deps: Deps,
     manager_addr: &Addr,
@@ -85,7 +94,7 @@ pub fn query_module_addresses(
     Ok(modules)
 }
 
-/// Query single module address from manager
+/// RawQuery single module address from manager
 pub fn query_module_address(deps: Deps, manager_addr: &Addr, module_name: &str) -> StdResult<Addr> {
     let result = deps
         .querier

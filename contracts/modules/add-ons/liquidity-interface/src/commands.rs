@@ -9,8 +9,8 @@ use cw_asset::{Asset, AssetInfo};
 use abstract_os::liquidity_interface::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
-use abstract_sdk::proxy::send_to_proxy;
-use abstract_sdk::vault::{query_supply, query_total_value};
+use abstract_sdk::cw20::query_supply;
+use abstract_sdk::proxy::{query_total_value, send_to_proxy};
 
 use crate::contract::{VaultDapp, VaultResult};
 use crate::error::VaultError;
