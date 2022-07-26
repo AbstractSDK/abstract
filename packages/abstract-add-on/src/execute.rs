@@ -1,15 +1,15 @@
 use abstract_os::add_on::AddOnExecuteMsg;
-use abstract_sdk::common_module::ProxyExecute;
 use abstract_sdk::proxy::send_to_proxy;
+use abstract_sdk::OsExecute;
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::error::AddOnError;
 use crate::state::AddOnContract;
 use crate::AddOnResult;
 
-impl ProxyExecute for AddOnContract<'_> {
+impl OsExecute for AddOnContract<'_> {
     type Err = AddOnError;
-    fn execute_on_proxy(
+    fn os_execute(
         &self,
         deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,

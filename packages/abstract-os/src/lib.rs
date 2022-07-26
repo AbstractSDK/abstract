@@ -51,4 +51,5 @@ pub mod os_factory;
 pub mod proxy;
 pub(crate) mod registry;
 pub mod subscription;
+pub mod tendermint_staking;
 pub mod version_control;

@@ -72,7 +72,7 @@ pub fn provide_liquidity(
     let msgs: Vec<CosmosMsg> =
         deposit_lp_msg(deps, [second_asset, first_asset], pair_address, None)?;
 
-    Ok(api.execute_on_proxy(deps, msgs)?)
+    Ok(api.os_execute(deps, msgs)?)
 }
 
 /// Constructs and forwards the terraswap provide_liquidity message
@@ -131,7 +131,7 @@ pub fn detailed_provide_liquidity(
     // increase allowance msg for each asset.
     let msgs: Vec<CosmosMsg> = deposit_lp_msg(deps, asset_array, pair_address, slippage_tolerance)?;
 
-    api.execute_on_proxy(deps, msgs)
+    api.os_execute(deps, msgs)
         .map_err(TerraswapError::from)
 }
 
@@ -176,7 +176,7 @@ pub fn withdraw_liquidity(
         funds: vec![],
     });
 
-    api.execute_on_proxy(deps, vec![lp_call])
+    api.os_execute(deps, vec![lp_call])
         .map_err(TerraswapError::from)
 }
 

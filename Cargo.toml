@@ -7,6 +7,7 @@ members = [
     "contracts/abstract-token",
     "contracts/modules/add-ons/liquidity-interface",
     "contracts/modules/add-ons/subscription",
+    "contracts/modules/apis/tendermint-staking",
 ]
 
 [profile.release]

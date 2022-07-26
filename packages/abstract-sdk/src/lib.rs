@@ -7,10 +7,11 @@
 //! The functions provided by this SDK can be used to quickly write and test your unique CosmWasm application.
 
 pub mod _modules;
-pub mod common_module;
-pub mod cw20;
+pub mod common_namespace;
 pub mod manager;
+mod module_traits;
 pub mod proxy;
+pub mod tendermint_staking;
 pub mod version_control;
 pub mod memory {
     pub use abstract_os::objects::memory::{
@@ -18,5 +19,7 @@ pub mod memory {
         query_contracts_from_mem, Memory,
     };
 }
+
+pub use module_traits::{LoadMemory, OsExecute};
 
 pub extern crate abstract_os;
