@@ -11,14 +11,15 @@ use cw2::set_contract_version;
 
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub fn instantiate(
-        &self,
         deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
         msg: ApiInstantiateMsg,
         module_name: &str,
         module_version: &str,
+        api_dependencies: Vec<String>,
     ) -> StdResult<Response> {
+        let api = Self::default();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
@@ -27,10 +28,11 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         let state = ApiState {
             version_control: deps.api.addr_validate(&msg.version_control_address)?,
             memory,
+            api_dependencies,
         };
 
         set_contract_version(deps.storage, module_name, module_version)?;
-        self.base_state.save(deps.storage, &state)?;
+        api.base_state.save(deps.storage, &state)?;
 
         Ok(Response::default())
     }

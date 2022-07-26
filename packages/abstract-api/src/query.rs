@@ -36,6 +36,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         Ok(QueryApiConfigResponse {
             version_control_address: state.version_control,
             memory_address: state.memory.address,
+            dependencies: state.api_dependencies,
         })
     }
 }

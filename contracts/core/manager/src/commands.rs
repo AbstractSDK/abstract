@@ -10,15 +10,15 @@ use abstract_os::{
     },
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    QueryRequest, Response, StdResult, WasmMsg, WasmQuery,
+    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
+    Response, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
 use crate::{contract::ManagerResult, error::ManagerError, validators::validate_name_or_gov_type};
 use abstract_os::{MANAGER, PROXY};
-use abstract_sdk::manager::query_module_version;
+use abstract_sdk::{configure_api, manager::query_module_version};
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -257,41 +257,38 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         }))?;
     // Get the address of the new API
     let new_api_addr = get_api_addr(deps.as_ref(), module_info)?;
-    // Remove API permissions from proxy
-    msgs.push(remove_dapp_from_proxy(
-        deps.as_ref(),
-        proxy_addr.to_string(),
-        old_api_addr.to_string(),
-    )?);
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()
         .map(|addr| addr.into_string())
         .collect();
     // Remove traders from old
-    msgs.push(
-        wasm_execute(
-            old_api_addr,
-            &ApiExecuteMsg::UpdateTraders {
-                to_add: None,
-                to_remove: Some(traders_to_migrate.clone()),
-            },
-            vec![],
-        )?
-        .into(),
-    );
+    msgs.push(configure_api(
+        old_api_addr.to_string(),
+        ApiExecuteMsg::UpdateTraders {
+            to_add: None,
+            to_remove: Some(traders_to_migrate.clone()),
+        },
+    )?);
+    // Remove api as trader on dependencies
+    msgs.push(configure_api(
+        old_api_addr.to_string(),
+        ApiExecuteMsg::Remove {},
+    )?);
     // Add traders to new
-    msgs.push(
-        wasm_execute(
-            new_api_addr.clone(),
-            &ApiExecuteMsg::UpdateTraders {
-                to_add: Some(traders_to_migrate),
-                to_remove: None,
-            },
-            vec![],
-        )?
-        .into(),
-    );
+    msgs.push(configure_api(
+        new_api_addr.clone(),
+        ApiExecuteMsg::UpdateTraders {
+            to_add: Some(traders_to_migrate),
+            to_remove: None,
+        },
+    )?);
+    // Remove API permissions from proxy
+    msgs.push(remove_dapp_from_proxy(
+        deps.as_ref(),
+        proxy_addr.to_string(),
+        old_api_addr.into_string(),
+    )?);
     // Add new API to proxy
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
