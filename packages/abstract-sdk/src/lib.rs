@@ -16,10 +16,7 @@ pub mod proxy;
 pub mod tendermint_staking;
 pub mod version_control;
 pub mod memory {
-    pub use abstract_os::objects::memory::{
-        query_asset_from_mem, query_assets_from_mem, query_contract_from_mem,
-        query_contracts_from_mem, Memory,
-    };
+    pub use abstract_os::objects::memory::Memory;
 }
 
 pub use api::{api_req, configure_api};

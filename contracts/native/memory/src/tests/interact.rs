@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_asset::AssetInfo;
 
@@ -36,7 +38,10 @@ fn unauthorized_memory_update() {
 
     // Try adding a contract to the memory
     let msg = ExecuteMsg::UpdateContractAddresses {
-        to_add: vec![("contract".to_string(), "contract_address".to_string())],
+        to_add: vec![(
+            "project/contract".to_string().try_into().unwrap(),
+            "contract_address".to_string(),
+        )],
         to_remove: vec![],
     };
 
@@ -75,7 +80,10 @@ fn authorized_memory_update() {
 
     // Try adding a contract to the memory
     let msg = ExecuteMsg::UpdateContractAddresses {
-        to_add: vec![("contract".to_string(), "contract_address".to_string())],
+        to_add: vec![(
+            "project/contract".to_string().try_into().unwrap(),
+            "contract_address".to_string(),
+        )],
         to_remove: vec![],
     };
 
@@ -89,7 +97,7 @@ fn authorized_memory_update() {
     // Try removing a contract from the memory
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![],
-        to_remove: vec!["contract".to_string()],
+        to_remove: vec!["project/contract".to_string().try_into().unwrap()],
     };
 
     let res = execute(deps.as_mut(), env.clone(), info, msg);

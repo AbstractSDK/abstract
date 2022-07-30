@@ -9,6 +9,8 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::objects::memory_entry::{ContractEntry, UncheckedContractEntry};
+
 /// Memory state details
 pub mod state {
     use cosmwasm_std::Addr;
@@ -16,8 +18,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    /// Post-fix for asset trading pair addresses
-    pub const PAIR_POSTFIX: &str = "pair";
+    use crate::objects::memory_entry::ContractEntry;
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
@@ -26,8 +27,9 @@ pub mod state {
     pub const ASSET_ADDRESSES: Map<&str, AssetInfo> = Map::new("assets");
 
     /// Stores contract addresses
-    /// Pairs are stored here like LP tokens but with a post-fix
-    pub const CONTRACT_ADDRESSES: Map<&str, Addr> = Map::new("contracts");
+    /// Pairs are stored here as (dex_name, pair_id)
+    /// pair_id is "asset1_asset2" where the asset names are sorted alphabetically.
+    pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");
 }
 
 /// Memory Instantiate msg
@@ -42,9 +44,9 @@ pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
         /// Contracts to update or add
-        to_add: Vec<(String, String)>,
+        to_add: Vec<(UncheckedContractEntry, String)>,
         /// Contracts to remove
-        to_remove: Vec<String>,
+        to_remove: Vec<UncheckedContractEntry>,
     },
     /// Updates the Asset addressbook
     UpdateAssetAddresses {
@@ -70,13 +72,13 @@ pub enum QueryMsg {
     /// Queries contracts based on name
     /// returns [`QueryContractsResponse`]
     Contracts {
-        /// Names of contracts to query
-        names: Vec<String>,
+        /// Project and contract names of contracts to query
+        names: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`QueryContractListResponse`]
     ContractList {
-        last_contract_name: Option<String>,
+        last_contract: Option<ContractEntry>,
         iter_limit: Option<u8>,
     },
     /// Page over assets
@@ -96,7 +98,7 @@ pub struct QueryAssetsResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryContractsResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<(String, String)>,
+    pub contracts: Vec<(ContractEntry, String)>,
 }
 
 /// Query response
@@ -109,5 +111,5 @@ pub struct QueryAssetListResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryContractListResponse {
     /// Contracts (name, address)
-    pub contracts: Vec<(String, String)>,
+    pub contracts: Vec<(ContractEntry, String)>,
 }
