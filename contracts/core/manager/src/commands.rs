@@ -303,15 +303,15 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
 pub fn update_info(
     deps: DepsMut,
     info: MessageInfo,
-    os_name: Option<String>,
+    name: Option<String>,
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     let mut info: OsInfo = INFO.load(deps.storage)?;
-    if let Some(os_name) = os_name {
+    if let Some(name) = name {
         // validate address format
-        info.name = os_name;
+        info.name = name;
     }
     info.description = description;
     info.link = link;

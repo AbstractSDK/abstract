@@ -3,7 +3,7 @@ use abstract_os::{
     module_factory::{QueryContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, StdResult, WasmQuery,
+    to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery,
 };
 
 use abstract_sdk::memory::Memory;
@@ -21,7 +21,7 @@ impl<'a> AddOnContract<'a> {
         msg: AddOnInstantiateMsg,
         module_name: &str,
         module_version: &str,
-    ) -> StdResult<Response> {
+    ) -> StdResult<Self> {
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
@@ -52,6 +52,6 @@ impl<'a> AddOnContract<'a> {
         self.base_state.save(deps.storage, &state)?;
         self.admin.set(deps, Some(core.manager))?;
 
-        Ok(Response::default())
+        Ok(AddOnContract::default())
     }
 }

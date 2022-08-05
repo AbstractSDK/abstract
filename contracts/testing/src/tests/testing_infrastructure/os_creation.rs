@@ -53,7 +53,7 @@ pub fn init_os(
             governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            os_name: OS_NAME.to_string(),
+            name: OS_NAME.to_string(),
             description: None,
             link: None,
         },

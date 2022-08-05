@@ -1,6 +1,4 @@
-use abstract_os::objects::memory_entry::ContractEntry;
-use abstract_os::objects::memory_entry::UncheckedContractEntry;
-use abstract_sdk::memory::Memory;
+use abstract_os::objects::{ContractEntry, UncheckedContractEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -35,7 +33,7 @@ pub fn handle_message(
 pub fn update_contract_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    env: Env,
+    _env: Env,
     to_add: Vec<(UncheckedContractEntry, String)>,
     to_remove: Vec<UncheckedContractEntry>,
 ) -> MemoryResult {
@@ -55,12 +53,7 @@ pub fn update_contract_addresses(
     }
 
     for key in to_remove {
-        let key = key.check(
-            deps.as_ref(),
-            &Memory {
-                address: env.contract.address.clone(),
-            },
-        )?;
+        let key = key.check();
         CONTRACT_ADDRESSES.remove(deps.storage, key);
     }
 
@@ -84,11 +77,11 @@ pub fn update_asset_addresses(
             // use own check, cw_asset otherwise changes cases to lowercase
             new_asset.check(api, None)
         };
-        ASSET_ADDRESSES.update(deps.storage, name.as_str(), insert)?;
+        ASSET_ADDRESSES.update(deps.storage, name.into(), insert)?;
     }
 
     for name in to_remove {
-        ASSET_ADDRESSES.remove(deps.storage, name.as_str());
+        ASSET_ADDRESSES.remove(deps.storage, name.into());
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))

@@ -63,10 +63,10 @@ pub fn instantiate(
     // Verify info
     validate_description(&msg.description)?;
     validate_link(&msg.link)?;
-    validate_name_or_gov_type(&msg.os_name)?;
+    validate_name_or_gov_type(&msg.name)?;
 
     let os_info = OsInfo {
-        name: msg.os_name,
+        name: msg.name,
         governance_type: msg.governance_type,
         chain_id: env.block.chain_id,
         description: msg.description,
@@ -125,10 +125,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 } => _upgrade_module(deps, env, info, module, migrate_msg),
                 ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
                 ExecuteMsg::UpdateInfo {
-                    os_name,
+                    name,
                     description,
                     link,
-                } => update_info(deps, info, os_name, description, link),
+                } => update_info(deps, info, name, description, link),
                 _ => panic!(),
             }
         }

@@ -1,5 +1,5 @@
 use abstract_os::api::ApiInstantiateMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -18,7 +18,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         module_name: &str,
         module_version: &str,
         api_dependencies: Vec<String>,
-    ) -> StdResult<Response> {
+    ) -> StdResult<Self> {
         let api = Self::default();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
@@ -34,6 +34,6 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         set_contract_version(deps.storage, module_name, module_version)?;
         api.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default())
+        Ok(api)
     }
 }

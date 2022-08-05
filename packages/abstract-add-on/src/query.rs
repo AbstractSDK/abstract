@@ -2,12 +2,12 @@ use abstract_os::add_on::{AddOnQueryMsg, QueryAddOnConfigResponse};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Storage};
 use cw_controllers::AdminResponse;
 
-use abstract_sdk::LoadMemory;
+use abstract_sdk::MemoryOperation;
 
 use crate::state::AddOnContract;
 
-impl LoadMemory for AddOnContract<'_> {
-    fn mem(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
+impl MemoryOperation for AddOnContract<'_> {
+    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }

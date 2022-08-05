@@ -9,7 +9,10 @@ use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::objects::memory_entry::{ContractEntry, UncheckedContractEntry};
+use crate::objects::{
+    asset_entry::AssetEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+};
 
 /// Memory state details
 pub mod state {
@@ -18,13 +21,13 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::memory_entry::ContractEntry;
+    use crate::objects::{asset_entry::AssetEntry, contract_entry::ContractEntry};
 
     /// Admin address store
     pub const ADMIN: Admin = Admin::new("admin");
-    /// stores name and address of tokens and pairs
-    /// LP tokens are stored alphabetically
-    pub const ASSET_ADDRESSES: Map<&str, AssetInfo> = Map::new("assets");
+    /// Stores name and address of tokens and pairs
+    /// LP token pairs are stored alphabetically
+    pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
 
     /// Stores contract addresses
     /// Pairs are stored here as (dex_name, pair_id)
@@ -92,7 +95,7 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryAssetsResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(String, AssetInfo)>,
+    pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -105,7 +108,7 @@ pub struct QueryContractsResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryAssetListResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(String, AssetInfo)>,
+    pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

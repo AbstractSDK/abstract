@@ -1,7 +1,11 @@
 //! # Proxy Helpers
-use abstract_os::proxy::{ExecuteMsg, QueryMsg, QueryTotalValueResponse};
+use abstract_os::{
+    objects::{proxy_asset::ProxyAsset, AssetEntry},
+    proxy::{state::VAULT_ASSETS, ExecuteMsg, QueryMsg, QueryTotalValueResponse},
+};
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdResult, Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, Uint128, WasmMsg,
+    WasmQuery,
 };
 
 // Re-export os-id query as proxy is also core-contract.
@@ -25,4 +29,19 @@ pub fn query_total_value(deps: Deps, proxy_address: &Addr) -> StdResult<Uint128>
         }))?;
 
     Ok(response.value)
+}
+
+/// RawQuery the proxy for a ProxyAsset
+pub fn query_proxy_asset_raw(
+    deps: Deps,
+    proxy_address: &Addr,
+    asset: &AssetEntry,
+) -> StdResult<ProxyAsset> {
+    let response = VAULT_ASSETS.query(&deps.querier, proxy_address.clone(), asset.clone())?;
+    response.ok_or_else(|| {
+        StdError::generic_err(format!(
+            "Asset {} is not registered as an asset on your proxy contract.",
+            asset
+        ))
+    })
 }

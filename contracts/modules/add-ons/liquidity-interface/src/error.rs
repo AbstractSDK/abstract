@@ -44,6 +44,9 @@ pub enum VaultError {
     #[error("The provided fee is invalid")]
     InvalidFee {},
 
+    #[error("The deposit asset {0} is not the base asset for holding value calculation")]
+    DepositAssetNotBase(String),
+
     #[error("The actual amount of tokens transfered is different from the claimed amount.")]
     InvalidAmount {},
 }

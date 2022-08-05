@@ -57,7 +57,7 @@ pub fn handle_module_info_query(
     let start_bound = last_module_name.as_deref().map(Bound::exclusive);
 
     let res: Result<Vec<(String, Addr)>, _> = OS_MODULES
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 

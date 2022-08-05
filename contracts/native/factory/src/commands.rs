@@ -43,7 +43,7 @@ pub fn receive_cw20(
             governance,
             description,
             link,
-            os_name,
+            name,
         } => {
             // Construct deposit asset
             let asset = Asset {
@@ -55,7 +55,7 @@ pub fn receive_cw20(
                 env,
                 governance,
                 Some(asset),
-                os_name,
+                name,
                 description,
                 link,
             )
@@ -72,7 +72,7 @@ pub fn execute_create_os(
     env: Env,
     governance: GovernanceDetails,
     asset: Option<Asset>,
-    os_name: String,
+    name: String,
     description: Option<String>,
     link: Option<String>,
 ) -> OsFactoryResult {
@@ -126,7 +126,7 @@ pub fn execute_create_os(
                     version_control_address: config.version_control_contract.to_string(),
                     subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
-                    os_name,
+                    name,
                     description,
                     link,
                     governance_type: governance.to_string(),

@@ -1,45 +1,13 @@
-//! # Memory Entry
-//! An entry (value) in the memory key-value store.
-
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Display,
 };
 
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-use cw_asset::AssetInfo;
+use cosmwasm_std::{StdError, StdResult};
+
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use super::memory::Memory;
-
-/// Information on an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct AssetEntry(String);
-
-impl AssetEntry {
-    pub fn new<T: ToString>(entry: T) -> Self {
-        Self(entry.to_string().to_ascii_lowercase())
-    }
-    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<AssetInfo> {
-        memory.query_asset(deps, &self.0)
-    }
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-impl From<String> for AssetEntry {
-    fn from(entry: String) -> Self {
-        Self::new(entry)
-    }
-}
-
-impl ToString for AssetEntry {
-    fn to_string(&self) -> String {
-        self.0.clone()
-    }
-}
 
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
@@ -55,13 +23,11 @@ impl UncheckedContractEntry {
             contract: contract.to_string(),
         }
     }
-    pub fn check(self, deps: Deps, memory: &Memory) -> Result<ContractEntry, StdError> {
-        let entry = ContractEntry {
+    pub fn check(self) -> ContractEntry {
+        ContractEntry {
             contract: self.contract.to_ascii_lowercase(),
             protocol: self.protocol.to_ascii_lowercase(),
-        };
-        entry.resolve(deps, memory)?;
-        Ok(entry)
+        }
     }
 }
 
@@ -84,12 +50,6 @@ impl TryFrom<String> for UncheckedContractEntry {
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,
-}
-
-impl ContractEntry {
-    pub fn resolve(&self, deps: Deps, memory: &Memory) -> StdResult<Addr> {
-        memory.query_contract(deps, self)
-    }
 }
 
 impl Display for ContractEntry {

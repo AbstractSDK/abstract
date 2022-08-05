@@ -41,7 +41,7 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
         // get latest
         let versions: StdResult<Vec<(String, u64)>> = MODULE_CODE_IDS
             .prefix(&module.name)
-            .range(deps.storage, None, None, Order::Descending)
+            .range(deps.storage, None, None, Order::Ascending)
             .take(1)
             .collect();
         let (latest_version, id) = &versions?[0];
@@ -78,7 +78,7 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
         // get latest
         let versions: StdResult<Vec<(String, Addr)>> = API_ADDRESSES
             .prefix(&module.name)
-            .range(deps.storage, None, None, Order::Descending)
+            .range(deps.storage, None, None, Order::Ascending)
             .take(1)
             .collect();
         let (latest_version, addr) = &versions?[0];
@@ -118,7 +118,7 @@ pub fn handle_code_ids_query(
     };
 
     let res: Result<Vec<((String, String), u64)>, _> = MODULE_CODE_IDS
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
@@ -146,7 +146,7 @@ pub fn handle_api_addresses_query(
         None
     };
     let res: Result<Vec<((String, String), Addr)>, _> = API_ADDRESSES
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 

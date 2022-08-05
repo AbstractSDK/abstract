@@ -1,21 +1,27 @@
+use std::collections::HashSet;
+use std::convert::TryInto;
+
 use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::memory_entry::AssetEntry;
+use abstract_os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::memory::Memory;
+use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, Order, Response,
-    StdResult, Uint128,
+    StdError, StdResult, Uint128,
 };
 use cw_storage_plus::Bound;
 
 use crate::error::ProxyError;
-use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
+use abstract_os::objects::proxy_asset::{
+    get_pair_asset_names, other_asset_name, ProxyAsset, UncheckedProxyAsset, ValueRef,
+};
 use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
     ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
     QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
-    QueryTotalValueResponse,
+    QueryTotalValueResponse, QueryValidityResponse,
 };
 use abstract_os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
@@ -123,15 +129,20 @@ pub fn update_assets(
 
     for new_asset in to_add.into_iter() {
         let checked_asset = new_asset.check(deps.as_ref(), memory)?;
-        // update function for new or existing keys
-        let insert = |_vault_asset: Option<ProxyAsset>| -> StdResult<ProxyAsset> {
-            Ok(checked_asset.clone())
-        };
-        VAULT_ASSETS.update(deps.storage, checked_asset.asset.as_str(), insert)?;
+
+        VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), &checked_asset)?;
     }
 
     for asset_id in to_remove {
-        VAULT_ASSETS.remove(deps.storage, asset_id.as_str());
+        VAULT_ASSETS.remove(deps.storage, asset_id.into());
+    }
+
+    // Check validity of new configuration
+    let validity_result = query_proxy_asset_validity(deps.as_ref())?;
+    if validity_result.missing_dependencies.is_some()
+        || validity_result.unresolvable_assets.is_some()
+    {
+        return Err(ProxyError::BadUpdate(format!("{:?}", validity_result)));
     }
 
     Ok(Response::new().add_attribute("action", "update_proxy_assets"))
@@ -196,12 +207,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
         QueryMsg::ProxyAssetConfig { identifier } => to_binary(&QueryProxyAssetConfigResponse {
-            proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.as_str())?,
+            proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
         }),
         QueryMsg::ProxyAssets {
             last_asset_name,
             iter_limit,
         } => to_binary(&query_proxy_assets(deps, last_asset_name, iter_limit)?),
+        QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
     }
 }
 
@@ -213,8 +225,8 @@ fn query_proxy_assets(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
-    let res: Result<Vec<(String, ProxyAsset)>, _> = VAULT_ASSETS
-        .range(deps.storage, start_bound, None, Order::Descending)
+    let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
@@ -239,7 +251,7 @@ pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
 
 /// Returns the value of a specified asset.
 pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> StdResult<Uint128> {
-    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.as_str())?;
+    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.into())?;
     let memory = MEMORY.load(deps.storage)?;
     let value = vault_asset.value(deps, env, &memory, None)?;
     Ok(value)
@@ -250,7 +262,7 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
     // Get all assets from storage
     let mut all_assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(String, ProxyAsset)>>>()?;
+        .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
 
     let mut total_value = Uint128::zero();
     let memory = MEMORY.load(deps.storage)?;
@@ -259,4 +271,162 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
         total_value += vault_asset_entry.1.value(deps, &env, &memory, None)?;
     }
     Ok(total_value)
+}
+
+fn query_proxy_asset_validity(deps: Deps) -> StdResult<QueryValidityResponse> {
+    // assets that resolve and have valid value-references
+    let mut checked_assets: HashSet<String> = HashSet::new();
+    // assets that don't resolve, they have a missing dependency
+    let mut unresolvable_assets: HashSet<String> = HashSet::new();
+    // assets that are missing
+    let mut missing_assets: HashSet<String> = HashSet::new();
+    let mut base_asset: Option<String> = None;
+
+    let assets = VAULT_ASSETS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
+    for (_, asset) in assets {
+        resolve_asset(
+            deps,
+            &mut checked_assets,
+            &mut unresolvable_assets,
+            &mut missing_assets,
+            asset,
+            &mut base_asset,
+        )?;
+    }
+
+    let unresolvable_assets_resp = {
+        if unresolvable_assets.is_empty() {
+            None
+        } else {
+            Some(
+                unresolvable_assets
+                    .into_iter()
+                    .map(|asset| asset.into())
+                    .collect(),
+            )
+        }
+    };
+
+    let missing_assets_resp = {
+        if missing_assets.is_empty() {
+            None
+        } else {
+            Some(
+                missing_assets
+                    .into_iter()
+                    .map(|asset| asset.into())
+                    .collect(),
+            )
+        }
+    };
+
+    Ok(QueryValidityResponse {
+        unresolvable_assets: unresolvable_assets_resp,
+        missing_dependencies: missing_assets_resp,
+    })
+}
+
+fn resolve_asset(
+    deps: Deps,
+    checked_assets: &mut HashSet<String>,
+    unresolvable_assets: &mut HashSet<String>,
+    missing_assets: &mut HashSet<String>,
+    proxy_asset: ProxyAsset,
+    base: &mut Option<String>,
+) -> StdResult<()> {
+    let ProxyAsset {
+        asset: entry,
+        value_reference,
+    } = proxy_asset;
+    // key already checked?
+    if checked_assets.contains(entry.as_str()) || unresolvable_assets.contains(entry.as_str()) {
+        return Ok(());
+    }
+
+    match value_reference {
+        None => {
+            if base.is_some() {
+                if entry.as_str() != base.as_ref().unwrap() {
+                    return Err(StdError::generic_err(format!(
+                        "there can only be one base asset, multiple are registered: {}, {}",
+                        base.as_ref().unwrap(),
+                        entry.as_str()
+                    )));
+                }
+            } else {
+                *base = Some(entry.to_string());
+            }
+        }
+        Some(value_ref) => {
+            let asset_dependencies = get_value_ref_dependencies(&value_ref, entry.to_string());
+            let mut loaded_dependencies = vec![];
+            for asset in asset_dependencies {
+                match try_load_asset(deps, missing_assets, asset) {
+                    Some(proxy_asset) => {
+                        // successfully loaded dependency
+                        loaded_dependencies.push(proxy_asset)
+                    }
+                    None => {
+                        // current asset unresolvable because it has dependencies that can't be loaded.
+                        unresolvable_assets.insert(entry.to_string());
+                    }
+                }
+            }
+            // proceed with dependencies that resolved and add entry as checked
+            checked_assets.insert(entry.to_string());
+            for dep in loaded_dependencies {
+                resolve_asset(
+                    deps,
+                    checked_assets,
+                    unresolvable_assets,
+                    missing_assets,
+                    dep,
+                    base,
+                )?
+            }
+        }
+    }
+    Ok(())
+}
+
+fn try_load_asset(
+    deps: Deps,
+    missing_assets: &mut HashSet<String>,
+    key: AssetEntry,
+) -> Option<ProxyAsset> {
+    let maybe_proxy_asset = VAULT_ASSETS.load(deps.storage, key.clone());
+    match maybe_proxy_asset {
+        Ok(asset) => Some(asset),
+        Err(_) => {
+            missing_assets.insert(key.to_string());
+            None
+        }
+    }
+}
+
+fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<AssetEntry> {
+    match value_reference {
+        abstract_os::objects::proxy_asset::ValueRef::Pool { pair } => {
+            // Check if the other asset in the pool resolves
+            let other_pool_asset: AssetEntry = other_asset_name(entry.as_str(), &pair.contract)
+                .unwrap()
+                .into();
+            vec![other_pool_asset]
+        }
+        abstract_os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
+            // check if both tokens of pool resolve
+            let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
+            let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
+            let asset1: AssetEntry = other_pool_asset_names[0].into();
+            let asset2: AssetEntry = other_pool_asset_names[1].into();
+            vec![asset1, asset2]
+        }
+        abstract_os::objects::proxy_asset::ValueRef::Proxy {
+            proxy_asset,
+            multiplier: _,
+        } => vec![proxy_asset.clone()],
+        abstract_os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
+    }
 }

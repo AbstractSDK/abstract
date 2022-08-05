@@ -15,7 +15,10 @@ use serde::{Deserialize, Serialize};
 
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
-use crate::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
+use crate::objects::{
+    proxy_asset::{ProxyAsset, UncheckedProxyAsset},
+    AssetEntry,
+};
 
 pub mod state {
     pub use crate::objects::core::OS_ID;
@@ -26,7 +29,7 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{memory::Memory, proxy_asset::ProxyAsset};
+    use crate::objects::{asset_entry::AssetEntry, memory::Memory, proxy_asset::ProxyAsset};
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
     pub struct State {
         pub modules: Vec<Addr>,
@@ -34,7 +37,7 @@ pub mod state {
     pub const MEMORY: Item<Memory> = Item::new("\u{0}{6}memory");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new("admin");
-    pub const VAULT_ASSETS: Map<&str, ProxyAsset> = Map::new("proxy_assets");
+    pub const VAULT_ASSETS: Map<AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -85,6 +88,8 @@ pub enum QueryMsg {
         last_asset_name: Option<String>,
         iter_limit: Option<u8>,
     },
+    /// Returns [`QueryProxyAssetsResponse`]
+    CheckValidity {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -103,6 +108,14 @@ pub struct QueryHoldingValueResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct QueryValidityResponse {
+    /// Assets that have unresolvable dependencies in their value calculation
+    pub unresolvable_assets: Option<Vec<AssetEntry>>,
+    /// Assets that are missing in the VAULT_ASSET map which caused some assets to be unresolvable.
+    pub missing_dependencies: Option<Vec<AssetEntry>>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryHoldingAmountResponse {
     pub amount: Uint128,
 }
@@ -114,14 +127,14 @@ pub struct QueryProxyAssetConfigResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryProxyAssetsResponse {
-    pub assets: Vec<(String, ProxyAsset)>,
+    pub assets: Vec<(AssetEntry, ProxyAsset)>,
 }
 
 /// Query message to external contract to get asset value
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct ValueQueryMsg {
-    pub asset_name: String,
+    pub asset: AssetEntry,
     pub amount: Uint128,
 }
 /// External contract value response

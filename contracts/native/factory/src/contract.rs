@@ -62,7 +62,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
         ExecuteMsg::CreateOs {
             governance,
             link,
-            os_name,
+            name,
             description,
         } => {
             let maybe_received_coin = info.funds.last().map(Asset::from);
@@ -71,7 +71,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
                 env,
                 governance,
                 maybe_received_coin,
-                os_name,
+                name,
                 description,
                 link,
             )

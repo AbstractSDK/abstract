@@ -74,7 +74,7 @@ pub struct InstantiateMsg {
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
     pub governance_type: String,
-    pub os_name: String,
+    pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
 }
@@ -126,7 +126,7 @@ pub enum ExecuteMsg {
     SuspendOs { new_status: bool },
     /// Update info
     UpdateInfo {
-        os_name: Option<String>,
+        name: Option<String>,
         description: Option<String>,
         link: Option<String>,
     },

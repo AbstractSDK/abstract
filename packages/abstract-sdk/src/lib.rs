@@ -11,6 +11,7 @@ mod api;
 pub mod common_namespace;
 pub mod cw20;
 pub mod manager;
+mod memory_traits;
 mod module_traits;
 pub mod proxy;
 pub mod tendermint_staking;
@@ -20,6 +21,7 @@ pub mod memory {
 }
 
 pub use api::{api_req, configure_api};
-pub use module_traits::{LoadMemory, OsExecute};
+pub use memory_traits::Resolve;
+pub use module_traits::{MemoryOperation, OsExecute};
 
 pub extern crate abstract_os;

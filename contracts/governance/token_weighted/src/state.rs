@@ -34,7 +34,7 @@ impl From<OrderBy> for Order {
         if o == OrderBy::Asc {
             Order::Ascending
         } else {
-            Order::Descending
+            Order::Ascending
         }
     }
 }

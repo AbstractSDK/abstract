@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use abstract_os::memory::{
     QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse, QueryContractsResponse,
 };
-use abstract_os::objects::memory_entry::ContractEntry;
+use abstract_os::objects::ContractEntry;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use abstract_os::proxy::state::State;

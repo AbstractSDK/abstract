@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use abstract_os::objects::fee::Fee;
+use abstract_os::objects::{fee::Fee, AssetEntry};
 use cosmwasm_std::Addr;
 use cw_storage_plus::Item;
 
@@ -17,8 +17,8 @@ pub struct State {
 /// Pool stores claimable assets in vault.
 /// deposit_asset is the asset which can be used to deposit into the vault.
 pub struct Pool {
-    pub deposit_asset: String,
-    pub assets: Vec<String>,
+    pub deposit_asset: AssetEntry,
+    pub assets: Vec<AssetEntry>,
 }
 
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");

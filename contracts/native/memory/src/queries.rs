@@ -6,7 +6,7 @@ use abstract_os::{
         QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse,
         QueryContractsResponse,
     },
-    objects::memory_entry::ContractEntry,
+    objects::{AssetEntry, ContractEntry},
 };
 use cw_asset::AssetInfo;
 use cw_storage_plus::Bound;
@@ -15,9 +15,13 @@ const DEFAULT_LIMIT: u8 = 15;
 const MAX_LIMIT: u8 = 25;
 
 pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let res: Result<Vec<(String, AssetInfo)>, _> = ASSET_ADDRESSES
+    let assets: Vec<AssetEntry> = asset_names
+        .iter()
+        .map(|name| name.as_str().into())
+        .collect();
+    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
         .range(deps.storage, None, None, Order::Descending)
-        .filter(|e| asset_names.contains(&e.as_ref().unwrap().0))
+        .filter(|e| assets.contains(&e.as_ref().unwrap().0))
         .collect();
     to_binary(&QueryAssetsResponse { assets: res? })
 }
@@ -41,7 +45,7 @@ pub fn query_asset_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
-    let res: Result<Vec<(String, AssetInfo)>, _> = ASSET_ADDRESSES
+    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Descending)
         .take(limit)
         .collect();
