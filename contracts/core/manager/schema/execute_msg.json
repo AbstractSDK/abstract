@@ -3,7 +3,49 @@
   "title": "ExecuteMsg",
   "description": "Execute messages",
   "oneOf": [
-
+    {
+      "description": "Updates the `OS_MODULES` map Only callable by module factory.",
+      "type": "object",
+      "required": [
+        "update_module_addresses"
+      ],
+      "properties": {
+        "update_module_addresses": {
+          "type": "object",
+          "properties": {
+            "to_add": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     {
       "description": "Sets a new Admin",
       "type": "object",
@@ -240,7 +282,7 @@
                 "null"
               ]
             },
-            "os_name": {
+            "name": {
               "type": [
                 "string",
                 "null"

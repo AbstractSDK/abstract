@@ -119,6 +119,19 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Returns [`QueryProxyAssetsResponse`]",
+      "type": "object",
+      "required": [
+        "check_validity"
+      ],
+      "properties": {
+        "check_validity": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }

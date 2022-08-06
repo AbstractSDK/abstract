@@ -4,11 +4,9 @@ use std::fs::create_dir_all;
 use abstract_os::memory::{
     QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse, QueryContractsResponse,
 };
-use abstract_os::objects::ContractEntry;
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::proxy::state::State;
-use abstract_os::proxy::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_os::memory::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -17,12 +15,10 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(ExecuteMsg), &out_dir);
+    // export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(State), &out_dir);
-    export_schema(&schema_for!(ContractEntry), &out_dir);
-    export_schema(&schema_for!(QueryContractsResponse), &out_dir);
-    export_schema(&schema_for!(QueryAssetsResponse), &out_dir);
-    export_schema(&schema_for!(QueryContractListResponse), &out_dir);
-    export_schema(&schema_for!(QueryAssetListResponse), &out_dir);
+    export_schema_with_title(&schema_for!(QueryContractsResponse), &out_dir, "ContractsResponse");
+    export_schema_with_title(&schema_for!(QueryAssetsResponse), &out_dir, "AssetsResponse");
+    export_schema_with_title(&schema_for!(QueryContractListResponse), &out_dir, "ContractListResponse");
+    export_schema_with_title(&schema_for!(QueryAssetListResponse), &out_dir, "AssetListResponse");
 }

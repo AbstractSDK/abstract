@@ -20,7 +20,7 @@
       ]
     },
     "deposit_asset": {
-      "description": "Asset required to deposit into the vault.",
+      "description": "Asset required to deposit into the liquidity_interface.",
       "type": "string"
     },
     "fee": {
@@ -41,15 +41,15 @@
       "format": "uint64",
       "minimum": 0.0
     },
-    "vault_lp_token_name": {
-      "description": "Name of the vault token",
+    "token_name": {
+      "description": "Name of the liquidity_interface token",
       "type": [
         "string",
         "null"
       ]
     },
-    "vault_lp_token_symbol": {
-      "description": "Symbol of the vault token",
+    "token_symbol": {
+      "description": "Symbol of the liquidity_interface token",
       "type": [
         "string",
         "null"

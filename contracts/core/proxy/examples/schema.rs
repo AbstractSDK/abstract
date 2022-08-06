@@ -8,7 +8,7 @@ use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
     ExecuteMsg, InstantiateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
     QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
-    QueryTotalValueResponse,
+    QueryTotalValueResponse, QueryValidityResponse,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
@@ -25,14 +25,13 @@ fn main() {
     export_schema(&schema_for!(State), &out_dir);
     export_schema(&schema_for!(ProxyAsset), &out_dir);
     export_schema(&schema_for!(UncheckedProxyAsset), &out_dir);
-    export_schema(&schema_for!(InstantiateMsg), &out_dir);
-    export_schema(&schema_for!(ExecuteMsg), &out_dir);
-    export_schema(&schema_for!(QueryConfigResponse), &out_dir);
-    export_schema(&schema_for!(QueryTotalValueResponse), &out_dir);
-    export_schema(&schema_for!(QueryHoldingValueResponse), &out_dir);
-    export_schema(&schema_for!(QueryHoldingAmountResponse), &out_dir);
-    export_schema(&schema_for!(QueryProxyAssetConfigResponse), &out_dir);
-    export_schema(&schema_for!(QueryProxyAssetsResponse), &out_dir);
+    export_schema_with_title(&schema_for!(QueryConfigResponse), &out_dir, "ConfigResponse");
+    export_schema_with_title(&schema_for!(QueryTotalValueResponse), &out_dir, "TotalValueResponse");
+    export_schema_with_title(&schema_for!(QueryHoldingValueResponse), &out_dir, "HoldingValueResponse");
+    export_schema_with_title(&schema_for!(QueryHoldingAmountResponse), &out_dir, "HoldingAmountResponse");
+    export_schema_with_title(&schema_for!(QueryProxyAssetConfigResponse), &out_dir, "ProxyAssetConfigResponse");
+    export_schema_with_title(&schema_for!(QueryProxyAssetsResponse), &out_dir, "ProxyAssetsResponse");
+    export_schema_with_title(&schema_for!(QueryValidityResponse), &out_dir, "CheckValidityResponse");
 
     export_schema_with_title(
         &schema_for!(CosmosMsg<Empty>),

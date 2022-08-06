@@ -1,48 +1,27 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "QueryMsg",
+  "description": "Memory smart-query",
   "oneOf": [
     {
-      "description": "Returns [`QueryConfigResponse`]",
+      "description": "Queries assets based on name returns [`QueryAssetsResponse`]",
       "type": "object",
       "required": [
-        "config"
+        "assets"
       ],
       "properties": {
-        "config": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the total value of all held assets [`QueryTotalValueResponse`]",
-      "type": "object",
-      "required": [
-        "total_value"
-      ],
-      "properties": {
-        "total_value": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Returns the value of one specific asset [`QueryHoldingValueResponse`]",
-      "type": "object",
-      "required": [
-        "holding_value"
-      ],
-      "properties": {
-        "holding_value": {
+        "assets": {
           "type": "object",
           "required": [
-            "identifier"
+            "names"
           ],
           "properties": {
-            "identifier": {
-              "type": "string"
+            "names": {
+              "description": "Names of assets to query",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }
@@ -50,20 +29,24 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the amount of specified tokens this contract holds [`QueryHoldingAmountResponse`]",
+      "description": "Queries contracts based on name returns [`QueryContractsResponse`]",
       "type": "object",
       "required": [
-        "holding_amount"
+        "contracts"
       ],
       "properties": {
-        "holding_amount": {
+        "contracts": {
           "type": "object",
           "required": [
-            "identifier"
+            "names"
           ],
           "properties": {
-            "identifier": {
-              "type": "string"
+            "names": {
+              "description": "Project and contract names of contracts to query",
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ContractEntry"
+              }
             }
           }
         }
@@ -71,20 +54,32 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the VAULT_ASSETS value for the specified key [`QueryProxyAssetConfigResponse`]",
+      "description": "Page over contracts returns [`QueryContractListResponse`]",
       "type": "object",
       "required": [
-        "proxy_asset_config"
+        "contract_list"
       ],
       "properties": {
-        "proxy_asset_config": {
+        "contract_list": {
           "type": "object",
-          "required": [
-            "identifier"
-          ],
           "properties": {
-            "identifier": {
-              "type": "string"
+            "iter_limit": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "last_contract": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ContractEntry"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         }
@@ -92,13 +87,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryProxyAssetsResponse`]",
+      "description": "Page over assets returns [`QueryAssetListResponse`]",
       "type": "object",
       "required": [
-        "proxy_assets"
+        "asset_list"
       ],
       "properties": {
-        "proxy_assets": {
+        "asset_list": {
           "type": "object",
           "properties": {
             "iter_limit": {
@@ -120,5 +115,23 @@
       },
       "additionalProperties": false
     }
-  ]
+  ],
+  "definitions": {
+    "ContractEntry": {
+      "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
+      "type": "object",
+      "required": [
+        "contract",
+        "protocol"
+      ],
+      "properties": {
+        "contract": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

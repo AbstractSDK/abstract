@@ -77,7 +77,7 @@
           "type": "object",
           "required": [
             "governance",
-            "os_name"
+            "name"
           ],
           "properties": {
             "description": {
@@ -100,7 +100,7 @@
                 "null"
               ]
             },
-            "os_name": {
+            "name": {
               "type": "string"
             }
           }
@@ -153,45 +153,6 @@
                 "monarch": {
                   "description": "The monarch's address",
                   "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Fixed multi-sig governance",
-          "type": "object",
-          "required": [
-            "multi_signature"
-          ],
-          "properties": {
-            "multi_signature": {
-              "type": "object",
-              "required": [
-                "members",
-                "threshold_votes",
-                "total_members"
-              ],
-              "properties": {
-                "members": {
-                  "description": "Member addresses, must be of length total_members",
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "threshold_votes": {
-                  "description": "Minimum amounts of votes for a proposal to pass",
-                  "type": "integer",
-                  "format": "uint8",
-                  "minimum": 0.0
-                },
-                "total_members": {
-                  "description": "Number of signatures",
-                  "type": "integer",
-                  "format": "uint8",
-                  "minimum": 0.0
                 }
               }
             }

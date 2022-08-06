@@ -41,9 +41,13 @@
             "pool": {
               "type": "object",
               "required": [
+                "exchange",
                 "pair"
               ],
               "properties": {
+                "exchange": {
+                  "type": "string"
+                },
                 "pair": {
                   "type": "string"
                 }

@@ -26,45 +26,6 @@
       "additionalProperties": false
     },
     {
-      "description": "Fixed multi-sig governance",
-      "type": "object",
-      "required": [
-        "multi_signature"
-      ],
-      "properties": {
-        "multi_signature": {
-          "type": "object",
-          "required": [
-            "members",
-            "threshold_votes",
-            "total_members"
-          ],
-          "properties": {
-            "members": {
-              "description": "Member addresses, must be of length total_members",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "threshold_votes": {
-              "description": "Minimum amounts of votes for a proposal to pass",
-              "type": "integer",
-              "format": "uint8",
-              "minimum": 0.0
-            },
-            "total_members": {
-              "description": "Number of signatures",
-              "type": "integer",
-              "format": "uint8",
-              "minimum": 0.0
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
       "description": "An external governance source",
       "type": "object",
       "required": [

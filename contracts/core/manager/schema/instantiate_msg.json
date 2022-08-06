@@ -3,18 +3,14 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "chain_id",
     "governance_type",
     "module_factory_address",
+    "name",
     "os_id",
-    "os_name",
     "root_user",
     "version_control_address"
   ],
   "properties": {
-    "chain_id": {
-      "type": "string"
-    },
     "description": {
       "type": [
         "string",
@@ -33,13 +29,13 @@
     "module_factory_address": {
       "type": "string"
     },
+    "name": {
+      "type": "string"
+    },
     "os_id": {
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0
-    },
-    "os_name": {
-      "type": "string"
     },
     "root_user": {
       "type": "string"
