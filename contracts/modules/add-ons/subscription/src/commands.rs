@@ -127,7 +127,7 @@ pub fn try_pay(
         INCOME_TWA.accumulate(
             &env,
             deps.storage,
-            Decimal::new(Uint128::from(subscription_state.active_subs))
+            Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
                 * config.subscription_cost_per_block,
         )?;
     }
@@ -168,7 +168,7 @@ pub fn unsubscribe(
     INCOME_TWA.accumulate(
         &env,
         deps.storage,
-        Decimal::new(Uint128::from(subscription_state.active_subs))
+        Decimal::from_atomics(Uint128::from(subscription_state.active_subs),0)?
             * subscription_config.subscription_cost_per_block,
     )?;
     Ok(Response::new().add_submessages(suspend_msgs))
@@ -481,9 +481,9 @@ fn update_contribution_state(
     contributor_config: &ContributionConfig,
     income: Decimal,
 ) -> StdResult<()> {
-    let floor_emissions: Decimal = (Decimal::new(contributor_config.emissions_amp_factor)
+    let floor_emissions: Decimal = (Decimal::from_atomics(contributor_config.emissions_amp_factor,0).map_err(|e| StdError::GenericErr { msg: e.to_string() })?
         / contributor_state.income_target)
-        + Decimal::new(contributor_config.emissions_offset);
+        + Decimal::from_atomics(contributor_config.emissions_offset,0).map_err(|e| StdError::GenericErr { msg: e.to_string() })?;
     let max_emissions = floor_emissions * contributor_config.max_emissions_multiple;
     if income < contributor_state.income_target {
         contributor_state.emissions = max_emissions

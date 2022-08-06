@@ -1,5 +1,5 @@
 use abstract_add_on::AddOnError;
-use cosmwasm_std::{OverflowError, StdError};
+use cosmwasm_std::{OverflowError, StdError, DecimalRangeExceeded};
 use cw_asset::AssetInfo;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -11,6 +11,9 @@ pub enum SubscriptionError {
 
     #[error("{0}")]
     AdminError(#[from] AdminError),
+
+    #[error("{0}")]
+    DecimalError(#[from] DecimalRangeExceeded),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
