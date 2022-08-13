@@ -9,8 +9,10 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use super::AssetEntry;
+
 /// Key to get the Address of a contract
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
 pub struct UncheckedContractEntry {
     pub protocol: String,
     pub contract: String,
@@ -50,6 +52,21 @@ impl TryFrom<String> for UncheckedContractEntry {
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,
+}
+
+impl ContractEntry {
+    pub fn construct_dex_entry(dex_name: &str, assets: &mut [AssetEntry]) -> Self {
+        assets.sort();
+        let contract_name = assets
+            .iter()
+            .map(|a| a.0.clone())
+            .collect::<Vec<String>>()
+            .join("_");
+        Self {
+            protocol: dex_name.to_ascii_lowercase(),
+            contract: contract_name,
+        }
+    }
 }
 
 impl Display for ContractEntry {

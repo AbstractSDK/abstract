@@ -3,8 +3,7 @@ pub mod contract;
 mod error;
 mod querier;
 mod response;
-pub mod state;
-
+pub(crate) use abstract_os::module_factory::state;
 // #[cfg(test)]
 // mod testing;
 

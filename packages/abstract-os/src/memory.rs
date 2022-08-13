@@ -36,7 +36,7 @@ pub mod state {
 }
 
 /// Memory Instantiate msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct InstantiateMsg {}
 
@@ -63,7 +63,7 @@ pub enum ExecuteMsg {
 }
 
 /// Memory smart-query
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Queries assets based on name
@@ -98,7 +98,7 @@ pub struct QueryAssetsResponse {
     pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct QueryContractsResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,
@@ -111,7 +111,7 @@ pub struct QueryAssetListResponse {
     pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct QueryContractListResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,

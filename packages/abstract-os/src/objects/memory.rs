@@ -12,7 +12,7 @@ use super::asset_entry::AssetEntry;
 use super::contract_entry::ContractEntry;
 
 /// Struct that provides easy in-contract memory querying.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct Memory {
     /// Address of the memory contract
     pub address: Addr,

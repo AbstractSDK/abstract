@@ -102,14 +102,14 @@ pub mod state {
     /// Keeps track of the active subscribers.
     /// Is updated each time a sub joins/leaves
     /// Used to calculate income.
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct SubscriptionState {
         /// amount of active subscribers
         pub active_subs: u32,
     }
 
     /// Stored info for each subscriber.
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct Subscriber {
         /// When the subscription ends
         pub expiration_block: u64,
@@ -162,7 +162,7 @@ pub mod state {
         decimal <= &Decimal::one()
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct ContributionState {
         /// Target income to pay base salaries
         pub income_target: Decimal,
@@ -182,7 +182,7 @@ pub mod state {
     pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("\u{0}{9}con_state");
 
     /// Compensation details for contributors
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, Default)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, Default)]
     pub struct Compensation {
         pub base_per_block: Decimal,
         pub weight: u32,
@@ -239,7 +239,7 @@ use state::{
 
 use self::state::UncheckedEmissionType;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -313,7 +313,7 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Base(AddOnQueryMsg),
@@ -325,7 +325,7 @@ pub enum QueryMsg {
     ContributorState { os_id: u32 },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum DepositHookMsg {
     Pay { os_id: u32 },
@@ -337,7 +337,7 @@ pub struct ConfigResponse {
     pub subscription: SubscriptionConfig,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct StateResponse {
     pub contribution: ContributionState,
     pub subscription: SubscriptionState,
@@ -348,13 +348,13 @@ pub struct SubscriptionFeeResponse {
     pub fee: Asset,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct SubscriberStateResponse {
     pub currently_subscribed: bool,
     pub subscriber_details: Subscriber,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ContributorStateResponse {
     pub compensation: Compensation,
 }

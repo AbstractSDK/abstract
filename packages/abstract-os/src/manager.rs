@@ -25,13 +25,13 @@ pub mod state {
     pub type Subscribed = bool;
 
     /// Manager configuration
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Addr,
     }
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct OsInfo {
         pub name: String,
         pub governance_type: String,
@@ -63,10 +63,10 @@ use crate::objects::module::Module;
 
 use self::state::OsInfo;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub root_user: String,
@@ -80,7 +80,7 @@ pub struct InstantiateMsg {
 }
 
 /// Execute messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Updates the `OS_MODULES` map
@@ -132,7 +132,7 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     /// Returns [`QueryModuleVersionsResponse`]
@@ -155,12 +155,12 @@ pub struct QueryModuleVersionsResponse {
     pub versions: Vec<ContractVersion>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct QueryModuleAddressesResponse {
     pub modules: Vec<(String, String)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct QueryConfigResponse {
     pub root: String,
     pub version_control_address: String,
@@ -168,7 +168,7 @@ pub struct QueryConfigResponse {
     pub os_id: Uint64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct QueryInfoResponse {
     pub info: OsInfo,
 }

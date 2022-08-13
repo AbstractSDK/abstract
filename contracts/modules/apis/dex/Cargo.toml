@@ -1,0 +1,40 @@
+[package]
+name = "dex"
+version = "0.1.0"
+authors = ["CyberHoward"]
+edition = "2018"
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+default = ["juno"]
+juno = ["dep:wasmswap", "dep:cw20_junoswap"]
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = "1.0.0"
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.21" }
+abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
+abstract-sdk = { version = "0.1.0", path = "../../../../packages/abstract-sdk" }
+abstract-api = { version = "0.1.0", path = "../../../../packages/abstract-api", features = ["library"] }
+cw-asset = {version = "2.2.0"}
+
+# Juno dexes
+cw20_junoswap = {package = "cw20", version = "0.10.0", optional = true}
+wasmswap = {git = "https://github.com/Wasmswap/wasmswap-contracts", features = ["library"], optional = true}
+
+[dev-dependencies]
+cosmwasm-schema = { version = "1.0" }

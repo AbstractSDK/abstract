@@ -8,6 +8,7 @@ members = [
     "contracts/modules/add-ons/liquidity-interface",
     "contracts/modules/add-ons/subscription",
     "contracts/modules/apis/tendermint-staking",
+    "contracts/modules/apis/dex",
 ]
 
 [profile.release]

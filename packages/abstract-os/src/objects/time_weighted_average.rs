@@ -113,7 +113,7 @@ impl<'a> TimeWeightedAverage<'a> {
     }
 }
 
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct TimeWeightedAverageData {
     // settings for accumulating value data
     pub precision: u8,

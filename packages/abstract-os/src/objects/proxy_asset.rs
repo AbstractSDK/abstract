@@ -33,7 +33,7 @@ use super::{
 };
 
 /// A proxy asset with unchecked memory entry fields.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct UncheckedProxyAsset {
     /// The asset that's held by the proxy
     pub asset: String,
@@ -60,7 +60,7 @@ impl UncheckedProxyAsset {
 }
 
 /// Provides information on how to calculate the value of an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum UncheckedValueRef {
     /// A pool address of an asset/asset pair
@@ -128,7 +128,7 @@ impl UncheckedValueRef {
 
 /// Every ProxyAsset provides a way to determine its value recursively relative to
 /// a base asset.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ProxyAsset {
     /// Asset entry that maps to an AssetInfo using raw-queries on memory
     pub asset: AssetEntry,
@@ -138,7 +138,7 @@ pub struct ProxyAsset {
 }
 
 /// Provides information on how to calculate the value of an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ValueRef {
     /// A pool name of an asset/asset pair
@@ -354,7 +354,7 @@ pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
 /// other asset with a multiplier.
 /// For example: AssetInfo = bluna, BaseAsset = uusd, Proxy: luna, multiplier = 1
 /// Each bluna would be valued as one luna.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct Proxy {
     // Proxy asset

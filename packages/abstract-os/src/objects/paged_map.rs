@@ -267,13 +267,13 @@ mod tests {
     #[cfg(feature = "iterator")]
     use cosmwasm_storage::iter_helpers::to_length_prefixed;
 
-    #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
+    #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
     struct Data {
         pub name: String,
         pub balance: u32,
     }
 
-    #[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
+    #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Default)]
     struct IncomeAcc {
         pub total: u32,
     }

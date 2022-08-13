@@ -1,8 +1,10 @@
 use abstract_api::{ApiContract, ApiResult};
+use abstract_os::api::ApiQueryMsg;
 use abstract_os::api::{ApiInstantiateMsg, ApiInterfaceMsg};
+use abstract_os::TENDERMINT_STAKING;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
-use abstract_os::tendermint_staking::{QueryMsg, RequestMsg};
+use abstract_os::tendermint_staking::RequestMsg;
 use abstract_sdk::tendermint_staking::*;
 use abstract_sdk::OsExecute;
 
@@ -10,6 +12,7 @@ use crate::error::TendermintStakeError;
 
 pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -18,7 +21,15 @@ pub fn instantiate(
     info: MessageInfo,
     msg: ApiInstantiateMsg,
 ) -> ApiResult {
-    TendermintStakeApi::instantiate(deps, env, info, msg, "tendermint_staking", "3.2.8", vec![])?;
+    TendermintStakeApi::instantiate(
+        deps,
+        env,
+        info,
+        msg,
+        TENDERMINT_STAKING,
+        CONTRACT_VERSION,
+        vec![],
+    )?;
 
     Ok(Response::default())
 }
@@ -96,8 +107,6 @@ pub fn handle_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
-    match msg {
-        QueryMsg::Base(dapp_msg) => TendermintStakeApi::default().query(deps, env, dapp_msg),
-    }
+pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg) -> StdResult<Binary> {
+    TendermintStakeApi::default().query(deps, env, msg)
 }

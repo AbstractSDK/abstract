@@ -37,6 +37,35 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::LIQUIDITY_INTERFACE` as module.
 
+pub mod state {
+    use schemars::JsonSchema;
+    use serde::{Deserialize, Serialize};
+
+    use crate::objects::{fee::Fee, AssetEntry};
+    use cosmwasm_std::Addr;
+    use cw_storage_plus::Item;
+
+    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+    /// State stores LP token address
+    /// BaseState is initialized in contract
+    pub struct State {
+        pub liquidity_token_addr: Addr,
+        pub provider_addr: Addr,
+    }
+
+    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+    /// Pool stores claimable assets in vault.
+    /// deposit_asset is the asset which can be used to deposit into the vault.
+    pub struct Pool {
+        pub deposit_asset: AssetEntry,
+        pub assets: Vec<AssetEntry>,
+    }
+
+    pub const STATE: Item<State> = Item::new("\u{0}{5}state");
+    pub const POOL: Item<Pool> = Item::new("\u{0}{4}pool");
+    pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
+}
+
 use cosmwasm_std::Decimal;
 use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
@@ -46,11 +75,11 @@ use serde::{Deserialize, Serialize};
 use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
 
 /// Migrate msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct MigrateMsg {}
 
 /// Init msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct InstantiateMsg {
     /// Base init msg, sets memory address
     pub base: AddOnInstantiateMsg,
@@ -90,7 +119,7 @@ pub enum ExecuteMsg {
     SetFee { fee: Decimal },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Base(AddOnQueryMsg),
@@ -99,14 +128,14 @@ pub enum QueryMsg {
     State {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum DepositHookMsg {
     WithdrawLiquidity {},
     ProvideLiquidity {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct StateResponse {
     pub liquidity_token: String,
 }

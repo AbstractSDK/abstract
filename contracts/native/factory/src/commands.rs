@@ -50,15 +50,7 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
-            execute_create_os(
-                deps,
-                env,
-                governance,
-                Some(asset),
-                name,
-                description,
-                link,
-            )
+            execute_create_os(deps, env, governance, Some(asset), name, description, link)
         }
         _ => Err(OsFactoryError::Std(StdError::generic_err(
             "unknown send msg hook",

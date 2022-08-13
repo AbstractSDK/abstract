@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// May key to retrieve information on an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
 pub struct AssetEntry(pub(crate) String);
 
 impl AssetEntry {
@@ -16,6 +16,9 @@ impl AssetEntry {
     }
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+    pub fn format(&mut self) {
+        self.0 = self.0.to_ascii_lowercase();
     }
 }
 

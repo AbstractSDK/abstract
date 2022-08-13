@@ -58,7 +58,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
 }
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct ApiState {
     /// Used to verify requests
     pub version_control: Addr,
