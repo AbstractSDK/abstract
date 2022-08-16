@@ -141,8 +141,8 @@ pub enum QueryMsg {
     ModuleAddresses { names: Vec<String> },
     /// Returns [`QueryModuleInfosResponse`]
     ModuleInfos {
-        last_module_name: Option<String>,
-        iter_limit: Option<u8>,
+        page_token: Option<String>,
+        page_size: Option<u8>,
     },
     /// Returns [`QueryConfigResponse`]
     Config {},

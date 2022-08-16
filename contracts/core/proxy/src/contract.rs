@@ -19,8 +19,8 @@ use abstract_os::objects::proxy_asset::{
 };
 use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryHoldingAmountResponse,
-    QueryHoldingValueResponse, QueryMsg, QueryProxyAssetConfigResponse, QueryProxyAssetsResponse,
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryAssetConfigResponse, QueryAssetsResponse,
+    QueryConfigResponse, QueryHoldingAmountResponse, QueryHoldingValueResponse, QueryMsg,
     QueryTotalValueResponse, QueryValidityResponse,
 };
 use abstract_os::PROXY;
@@ -206,13 +206,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::HoldingValue { identifier } => to_binary(&QueryHoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
-        QueryMsg::ProxyAssetConfig { identifier } => to_binary(&QueryProxyAssetConfigResponse {
+        QueryMsg::AssetConfig { identifier } => to_binary(&QueryAssetConfigResponse {
             proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
         }),
-        QueryMsg::ProxyAssets {
-            last_asset_name,
-            iter_limit,
-        } => to_binary(&query_proxy_assets(deps, last_asset_name, iter_limit)?),
+        QueryMsg::Assets {
+            page_token,
+            page_size,
+        } => to_binary(&query_proxy_assets(deps, page_token, page_size)?),
         QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
     }
 }
@@ -221,7 +221,7 @@ fn query_proxy_assets(
     deps: Deps,
     last_asset_name: Option<String>,
     limit: Option<u8>,
-) -> StdResult<QueryProxyAssetsResponse> {
+) -> StdResult<QueryAssetsResponse> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
@@ -231,7 +231,7 @@ fn query_proxy_assets(
         .collect();
 
     let names_and_configs = res?;
-    Ok(QueryProxyAssetsResponse {
+    Ok(QueryAssetsResponse {
         assets: names_and_configs,
     })
 }

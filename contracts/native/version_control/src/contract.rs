@@ -83,13 +83,13 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             to_binary(&QueryConfigResponse { admin, factory })
         }
         QueryMsg::CodeIds {
-            last_module,
-            iter_limit,
-        } => queries::handle_code_ids_query(deps, last_module, iter_limit),
+            page_token,
+            page_size,
+        } => queries::handle_code_ids_query(deps, page_token, page_size),
         QueryMsg::ApiAddresses {
-            last_api_module,
-            iter_limit,
-        } => queries::handle_api_addresses_query(deps, last_api_module, iter_limit),
+            page_token,
+            page_size,
+        } => queries::handle_api_addresses_query(deps, page_token, page_size),
     }
 }
 

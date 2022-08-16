@@ -81,14 +81,14 @@ pub enum QueryMsg {
     /// [`QueryHoldingAmountResponse`]
     HoldingAmount { identifier: String },
     /// Returns the VAULT_ASSETS value for the specified key
-    /// [`QueryProxyAssetConfigResponse`]
-    ProxyAssetConfig { identifier: String },
-    /// Returns [`QueryProxyAssetsResponse`]
-    ProxyAssets {
-        last_asset_name: Option<String>,
-        iter_limit: Option<u8>,
+    /// [`QueryAssetConfigResponse`]
+    AssetConfig { identifier: String },
+    /// Returns [`QueryAssetsResponse`]
+    Assets {
+        page_token: Option<String>,
+        page_size: Option<u8>,
     },
-    /// Returns [`QueryProxyAssetsResponse`]
+    /// Returns [`QueryAssetsResponse`]
     CheckValidity {},
 }
 
@@ -121,12 +121,12 @@ pub struct QueryHoldingAmountResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryProxyAssetConfigResponse {
+pub struct QueryAssetConfigResponse {
     pub proxy_asset: ProxyAsset,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryProxyAssetsResponse {
+pub struct QueryAssetsResponse {
     pub assets: Vec<(AssetEntry, ProxyAsset)>,
 }
 

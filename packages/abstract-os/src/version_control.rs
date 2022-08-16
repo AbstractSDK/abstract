@@ -94,13 +94,13 @@ pub enum QueryMsg {
     Config {},
     /// Returns [`QueryCodeIdsResponse`]
     CodeIds {
-        last_module: Option<ContractVersion>,
-        iter_limit: Option<u8>,
+        page_token: Option<ContractVersion>,
+        page_size: Option<u8>,
     },
     /// Returns [`QueryApiAddressesResponse`]
     ApiAddresses {
-        last_api_module: Option<ContractVersion>,
-        iter_limit: Option<u8>,
+        page_token: Option<ContractVersion>,
+        page_size: Option<u8>,
     },
 }
 

@@ -4,10 +4,13 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
 use abstract_add_on::state::AddOnState;
-use abstract_os::{subscription::{
-    ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg, StateResponse,
-    SubscriberStateResponse, SubscriptionFeeResponse,
-}, add_on::AddOnQueryMsg};
+use abstract_os::{
+    add_on::AddOnQueryMsg,
+    subscription::{
+        ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
+        StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
+    },
+};
 
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
@@ -30,8 +33,11 @@ fn main() {
     export_schema_with_title(&schema_for!(AddOnQueryMsg), &out_dir, "BaseResponse");
 
     export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");
-    export_schema_with_title(&schema_for!(AssetInfoUnchecked), &out_dir, "AssetInfoBase_for_String");
-
+    export_schema_with_title(
+        &schema_for!(AssetInfoUnchecked),
+        &out_dir,
+        "AssetInfoBase_for_String",
+    );
 
     export_schema_with_title(
         &schema_for!(SubscriptionFeeResponse),

@@ -37,12 +37,12 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Assets { names } => queries::query_assets(deps, env, names),
         QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
         QueryMsg::AssetList {
-            last_asset_name,
-            iter_limit,
-        } => queries::query_asset_list(deps, last_asset_name, iter_limit),
+            page_token,
+            page_size,
+        } => queries::query_asset_list(deps, page_token, page_size),
         QueryMsg::ContractList {
-            last_contract,
-            iter_limit,
-        } => queries::query_contract_list(deps, last_contract, iter_limit),
+            page_token,
+            page_size,
+        } => queries::query_contract_list(deps, page_token, page_size),
     }
 }

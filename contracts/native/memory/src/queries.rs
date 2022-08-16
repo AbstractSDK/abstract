@@ -20,7 +20,7 @@ pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResul
         .map(|name| name.as_str().into())
         .collect();
     let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
-        .range(deps.storage, None, None, Order::Descending)
+        .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| assets.contains(&e.as_ref().unwrap().0))
         .collect();
     to_binary(&QueryAssetsResponse { assets: res? })
@@ -28,7 +28,7 @@ pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResul
 
 pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
     let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
-        .range(deps.storage, None, None, Order::Descending)
+        .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
 
@@ -46,7 +46,7 @@ pub fn query_asset_list(
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
     let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
@@ -62,7 +62,7 @@ pub fn query_contract_list(
     let start_bound = last_contract.map(Bound::exclusive);
 
     let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
-        .range(deps.storage, start_bound, None, Order::Descending)
+        .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
     to_binary(&QueryContractListResponse {

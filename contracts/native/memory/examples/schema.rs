@@ -17,8 +17,24 @@ fn main() {
     export_schema(&schema_for!(InstantiateMsg), &out_dir);
     // export_schema(&schema_for!(ExecuteMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema_with_title(&schema_for!(QueryContractsResponse), &out_dir, "ContractsResponse");
-    export_schema_with_title(&schema_for!(QueryAssetsResponse), &out_dir, "AssetsResponse");
-    export_schema_with_title(&schema_for!(QueryContractListResponse), &out_dir, "ContractListResponse");
-    export_schema_with_title(&schema_for!(QueryAssetListResponse), &out_dir, "AssetListResponse");
+    export_schema_with_title(
+        &schema_for!(QueryContractsResponse),
+        &out_dir,
+        "ContractsResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryAssetsResponse),
+        &out_dir,
+        "AssetsResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryContractListResponse),
+        &out_dir,
+        "ContractListResponse",
+    );
+    export_schema_with_title(
+        &schema_for!(QueryAssetListResponse),
+        &out_dir,
+        "AssetListResponse",
+    );
 }

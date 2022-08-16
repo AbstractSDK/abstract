@@ -1,5 +1,5 @@
 use abstract_add_on::AddOnError;
-use cosmwasm_std::{OverflowError, StdError, DecimalRangeExceeded};
+use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
 use cw_asset::AssetInfo;
 use cw_controllers::AdminError;
 use thiserror::Error;

@@ -81,14 +81,14 @@ pub enum QueryMsg {
     /// Page over contracts
     /// returns [`QueryContractListResponse`]
     ContractList {
-        last_contract: Option<ContractEntry>,
-        iter_limit: Option<u8>,
+        page_token: Option<ContractEntry>,
+        page_size: Option<u8>,
     },
     /// Page over assets
     /// returns [`QueryAssetListResponse`]
     AssetList {
-        last_asset_name: Option<String>,
-        iter_limit: Option<u8>,
+        page_token: Option<String>,
+        page_size: Option<u8>,
     },
 }
 /// Query response

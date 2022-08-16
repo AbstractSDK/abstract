@@ -162,9 +162,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             queries::handle_module_address_query(deps, env, names)
         }
         QueryMsg::ModuleInfos {
-            last_module_name,
-            iter_limit,
-        } => handle_module_info_query(deps, last_module_name, iter_limit),
+            page_token,
+            page_size,
+        } => handle_module_info_query(deps, page_token, page_size),
         QueryMsg::Info {} => handle_os_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
     }
