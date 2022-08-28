@@ -10,6 +10,7 @@ use crate::state::{ApiContract, ApiState};
 use cw2::set_contract_version;
 
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
+    /// Instantiate the API
     pub fn instantiate(
         deps: DepsMut,
         _env: Env,

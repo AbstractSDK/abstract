@@ -15,6 +15,7 @@ use crate::error::ApiError;
 use crate::state::{ApiContract, TRADER_NAMESPACE};
 use crate::ApiResult;
 
+/// Execute a set of CosmosMsgs on the proxy contract of an OS.
 impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
     type Err = ApiError;
 
@@ -27,6 +28,7 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
     }
 }
 
+/// The api-contract base implementation.
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
@@ -89,6 +91,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         }
     }
 
+    /// If dependencies are set, remove self from them.
     pub(crate) fn remove_self_from_deps(
         &self,
         deps: Deps,
