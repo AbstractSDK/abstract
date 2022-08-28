@@ -1,7 +1,9 @@
 //! # Proxy Helpers
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{state::VAULT_ASSETS, ExecuteMsg, QueryMsg, QueryTotalValueResponse},
+    proxy::{
+        state::VAULT_ASSETS, ExecuteMsg, QueryAssetsResponse, QueryMsg, QueryTotalValueResponse,
+    },
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, Uint128, WasmMsg,
@@ -44,4 +46,42 @@ pub fn query_proxy_asset_raw(
             asset
         ))
     })
+}
+
+/// List ProxyAssets raw
+pub fn query_enabled_proxy_assets(
+    deps: Deps,
+    proxy_address: &Addr,
+) -> StdResult<(Vec<AssetEntry>, AssetEntry)> {
+    let mut asset_keys = vec![];
+    let mut base_asset: Option<AssetEntry> = None;
+    let mut resp: QueryAssetsResponse = deps.querier.query_wasm_smart(
+        proxy_address,
+        &QueryMsg::Assets {
+            page_token: None,
+            page_size: None,
+        },
+    )?;
+    while !resp.assets.is_empty() {
+        let page_token = resp.assets.last().unwrap().0.clone();
+        for (k, v) in resp.assets {
+            maybe_set_base(&v, &mut base_asset);
+            asset_keys.push(k);
+        }
+        resp = deps.querier.query_wasm_smart(
+            proxy_address,
+            &QueryMsg::Assets {
+                page_token: Some(page_token.to_string()),
+                page_size: None,
+            },
+        )?;
+    }
+    Ok((asset_keys, base_asset.unwrap()))
+}
+
+#[inline(always)]
+fn maybe_set_base(value: &ProxyAsset, base: &mut Option<AssetEntry>) {
+    if value.value_reference.is_none() {
+        *base = Some(value.asset.clone());
+    }
 }

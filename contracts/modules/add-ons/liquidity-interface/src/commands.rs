@@ -302,6 +302,25 @@ pub fn update_pool(
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
+/// Updates the pool information
+pub fn import_from_proxy(deps: DepsMut, msg_info: MessageInfo, vault: VaultAddOn) -> VaultResult {
+    // Only the admin should be able to call this
+    vault.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    let mut pool = POOL.load(deps.storage)?;
+    let state = vault.state(deps.storage)?;
+    let (proxy_assets, base_asset) =
+        abstract_sdk::proxy::query_enabled_proxy_assets(deps.as_ref(), &state.proxy_address)?;
+    let len = proxy_assets.len();
+
+    pool.deposit_asset = base_asset;
+    pool.assets = proxy_assets;
+
+    // Save pool
+    POOL.save(deps.storage, &pool)?;
+    Ok(Response::new().add_attribute("imported_from_proxy", len.to_string()))
+}
+
 pub fn set_fee(
     deps: DepsMut,
     msg_info: MessageInfo,

@@ -144,6 +144,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             assets_to_remove,
         ),
         ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, Fee { share: fee }),
+        ExecuteMsg::Import {} => commands::import_from_proxy(deps, info, dapp),
     }
 }
 

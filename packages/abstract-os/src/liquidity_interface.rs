@@ -115,6 +115,10 @@ pub enum ExecuteMsg {
         assets_to_add: Vec<String>,
         assets_to_remove: Vec<String>,
     },
+    /// Import the proxy assets as liquidity-assets
+    /// Set base-token as deposit token.
+    /// Remove all other enabled assets
+    Import {},
     /// Set the withdraw fee
     SetFee { fee: Decimal },
 }
