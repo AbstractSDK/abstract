@@ -24,6 +24,7 @@ pub struct ApiInstantiateMsg {
 /// Interface to the API.
 /// Equivalent to ExecuteMsg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum ApiInterfaceMsg<T: Serialize = Empty> {
     /// An API request. Forwards the msg to the associated proxy.
     Request(ApiRequestMsg<T>),

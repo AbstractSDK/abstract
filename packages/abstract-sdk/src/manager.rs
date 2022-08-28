@@ -4,9 +4,9 @@
 //! *Add raw map paging when support is added*
 //!
 
-use cosmwasm_std::{to_binary, CosmosMsg, Empty, QuerierWrapper, StdResult, WasmMsg};
+use cosmwasm_std::{QuerierWrapper, StdResult};
 
-use abstract_os::manager::{state::OS_ID, ExecuteMsg::UpdateModuleAddresses};
+use abstract_os::manager::state::OS_ID;
 
 use std::collections::BTreeMap;
 
@@ -22,22 +22,6 @@ pub fn query_os_id(querier: &QuerierWrapper, core_contract_addr: &Addr) -> StdRe
     OS_ID.query(querier, core_contract_addr.clone())
 }
 
-/// Register the module on the manager
-/// can only be called by admin of manager (currently the factory)
-pub fn register_module_on_manager(
-    manager_address: String,
-    module_name: String,
-    module_address: String,
-) -> StdResult<CosmosMsg<Empty>> {
-    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: manager_address,
-        msg: to_binary(&UpdateModuleAddresses {
-            to_add: Some(vec![(module_name, module_address)]),
-            to_remove: None,
-        })?,
-        funds: vec![],
-    }))
-}
 /// RawQuery the version of an enabled module
 pub fn query_module_version(deps: &Deps, module_addr: Addr) -> StdResult<ContractVersion> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {

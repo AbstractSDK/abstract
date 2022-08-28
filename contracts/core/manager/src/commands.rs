@@ -1,6 +1,6 @@
 use abstract_os::{
     api::{ApiExecuteMsg, ApiQueryMsg, QueryTradersResponse},
-    manager::state::{OsInfo, Subscribed, ADMIN, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
+    manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::module::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
@@ -165,16 +165,16 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) 
     Ok(Response::new().add_attribute("Removed module", &module_name))
 }
 
-pub fn set_admin_and_gov_type(
+pub fn set_root_and_gov_type(
     deps: DepsMut,
     info: MessageInfo,
-    admin: String,
+    root: String,
     governance_type: Option<String>,
 ) -> ManagerResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let admin_addr = deps.api.addr_validate(&admin)?;
-    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    let root_addr = deps.api.addr_validate(&root)?;
+    let previous_root = ROOT.get(deps.as_ref())?.unwrap();
     if let Some(new_gov_type) = governance_type {
         let mut info = INFO.load(deps.storage)?;
         validate_name_or_gov_type(&new_gov_type)?;
@@ -182,32 +182,10 @@ pub fn set_admin_and_gov_type(
         INFO.save(deps.storage, &info)?;
     }
 
-    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
+    ROOT.execute_update_admin::<Empty, Empty>(deps, info, Some(root_addr))?;
     Ok(Response::default()
-        .add_attribute("previous admin", previous_admin)
-        .add_attribute("admin", admin))
-}
-
-// Only owner can execute it
-pub fn execute_update_config(
-    deps: DepsMut,
-    info: MessageInfo,
-    version_control_contract: Option<String>,
-    root: Option<String>,
-) -> ManagerResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    let mut config = CONFIG.load(deps.storage)?;
-    if let Some(version_control_contract) = version_control_contract {
-        config.version_control_address = deps.api.addr_validate(&version_control_contract)?;
-        CONFIG.save(deps.storage, &config)?;
-    }
-
-    if let Some(root) = root {
-        let addr = deps.api.addr_validate(&root)?;
-        ROOT.set(deps, Some(addr))?;
-    }
-
-    Ok(Response::new().add_attribute("action", "update_config"))
+        .add_attribute("previous root", previous_root)
+        .add_attribute("root", root))
 }
 
 // migrates the module to a new version
@@ -321,12 +299,13 @@ pub fn update_info(
 pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
-    if info.sender != config.subscription_address {
-        Err(ManagerError::CallerNotSubscriptionContract {})
-    } else {
-        STATUS.save(deps.storage, &new_status)?;
-        Ok(Response::new().add_attribute("new_status", new_status.to_string()))
+    if let Some(sub_addr) = config.subscription_address {
+        if sub_addr.eq(&info.sender) {
+            STATUS.save(deps.storage, &new_status)?;
+            return Ok(Response::new().add_attribute("new_status", new_status.to_string()));
+        }
     }
+    Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
 fn get_code_id(

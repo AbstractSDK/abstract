@@ -1,11 +1,9 @@
-use cosmwasm_std::{
-    entry_point, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
-};
+use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::state::{Config, OsInfo, ADMIN, CONFIG, INFO, ROOT, STATUS};
+use abstract_os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
@@ -42,13 +40,10 @@ pub fn instantiate(
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
 
-    let subscription_address = if let Some(addr) = msg.subscription_address {
-        deps.api.addr_validate(&addr)?
-    } else if msg.os_id == 0 {
-        Addr::unchecked("".to_string())
-    } else {
-        return Err(ManagerError::NoSubscriptionAddrProvided {});
-    };
+    let subscription_address = msg
+        .subscription_address
+        .map(|a| deps.api.addr_validate(&a))
+        .transpose()?;
 
     OS_ID.save(deps.storage, &msg.os_id)?;
     CONFIG.save(
@@ -78,8 +73,7 @@ pub fn instantiate(
     let root = deps.api.addr_validate(&msg.root_user)?;
     ROOT.set(deps.branch(), Some(root))?;
     STATUS.save(deps.storage, &true)?;
-    // Setup the admin as the creator of the contract
-    ADMIN.set(deps, Some(info.sender))?;
+    OS_FACTORY.set(deps, Some(info.sender))?;
     Ok(Response::new())
 }
 
@@ -95,17 +89,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetAdmin {
-                    admin,
+                ExecuteMsg::SetRoot {
+                    root,
                     governance_type,
-                } => set_admin_and_gov_type(deps, info, admin, governance_type),
-                ExecuteMsg::UpdateConfig { vc_addr, root } => {
-                    execute_update_config(deps, info, vc_addr, root)
-                }
+                } => set_root_and_gov_type(deps, info, root, governance_type),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                    // Only Admin can call this method
-                    // Todo: Admin is currently defaulted to Os Factory.
-                    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+                    // only factory/root can add custom modules.
+                    // required to add Proxy after init by os factory.
+                    OS_FACTORY
+                        .assert_admin(deps.as_ref(), &info.sender)
+                        .or(ROOT.assert_admin(deps.as_ref(), &info.sender))?;
+
                     update_module_addresses(deps, to_add, to_remove)
                 }
                 ExecuteMsg::CreateModule { module, init_msg } => {

@@ -29,7 +29,7 @@ pub mod state {
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
-        pub subscription_address: Addr,
+        pub subscription_address: Option<Addr>,
     }
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
     pub struct OsInfo {
@@ -47,7 +47,7 @@ pub mod state {
     /// Info about the OS
     pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
-    pub const ADMIN: Admin = Admin::new("admin");
+    pub const OS_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Root user
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules
@@ -83,18 +83,18 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
+    /// Forward execution message to module
+    ExecOnModule {
+        module_name: String,
+        exec_msg: Binary,
+    },
     /// Updates the `OS_MODULES` map
-    /// Only callable by module factory.
+    /// Only callable by os factory or root.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,
     },
-    /// Sets a new Admin
-    SetAdmin {
-        admin: String,
-        governance_type: Option<String>,
-    },
-    /// Create module using module factory
+    /// Create module using module factory, callable by Root
     CreateModule {
         /// Module information.
         module: Module,
@@ -106,30 +106,25 @@ pub enum ExecuteMsg {
     RegisterModule { module_addr: String, module: Module },
     /// Remove a module
     RemoveModule { module_name: String },
-    /// Forward execution message to module
-    ExecOnModule {
-        module_name: String,
-        exec_msg: Binary,
-    },
-    /// Update contract configuration
-    UpdateConfig {
-        vc_addr: Option<String>,
-        root: Option<String>,
-    },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
         module: Module,
         migrate_msg: Option<Binary>,
     },
-    /// Suspend manager contract
-    SuspendOs { new_status: bool },
     /// Update info
     UpdateInfo {
         name: Option<String>,
         description: Option<String>,
         link: Option<String>,
     },
+    /// Sets a new Root
+    SetRoot {
+        root: String,
+        governance_type: Option<String>,
+    },
+    /// Suspend manager contract
+    SuspendOs { new_status: bool },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

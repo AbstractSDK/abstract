@@ -5,7 +5,6 @@ use abstract_os::subscription::{
     DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
     QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
 };
-use abstract_sdk::manager::register_module_on_manager;
 use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
@@ -20,7 +19,9 @@ use crate::error::OsFactoryError;
 use crate::response::MsgInstantiateContractResponse;
 
 use crate::state::*;
-use abstract_os::manager::InstantiateMsg as ManagerInstantiateMsg;
+use abstract_os::manager::{
+    ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg,
+};
 use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
 use abstract_os::version_control::{
@@ -81,7 +82,10 @@ pub fn execute_create_os(
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match &governance {
         GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
-        _ => return Err(StdError::generic_err("Not Implemented").into()),
+        GovernanceDetails::External {
+            governance_address,
+            governance_type: _,
+        } => deps.api.addr_validate(governance_address)?,
     };
 
     // Query version_control for code_id of Manager contract
@@ -108,10 +112,9 @@ pub fn execute_create_os(
             msg: WasmMsg::Instantiate {
                 code_id: manager_code_id_response.code_id.u64(),
                 funds: vec![],
-                // TODO: Review
-                // This contract is able to upgrade the manager contract
+                // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("CosmWasm OS: {}", config.next_os_id),
+                label: format!("Abstract OS: {}", config.next_os_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     os_id: config.next_os_id,
                     root_user: root_user.to_string(),
@@ -227,11 +230,14 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     Ok(Response::new()
         .add_message(add_os_core_to_version_control_msg)
         .add_attribute("proxy_address", res.get_contract_address())
-        .add_message(register_module_on_manager(
-            context.os_manager_address.to_string(),
-            PROXY.to_string(),
-            proxy_address.to_string(),
-        )?)
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: context.os_manager_address.to_string(),
+            msg: to_binary(&UpdateModuleAddresses {
+                to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
+                to_remove: None,
+            })?,
+            funds: vec![],
+        }))
         .add_message(set_proxy_admin_msg)
         .add_message(set_manager_admin_msg))
 }
