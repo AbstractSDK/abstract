@@ -9,7 +9,7 @@ pub mod env {
     use std::collections::HashMap;
 
     pub use super::common_integration::*;
-    pub use super::module_uploader::register_module;
+    pub use super::module_uploader::*;
     pub use super::os_creation::init_os;
     use super::os_creation::init_primary_os;
     use super::upload::upload_base_contracts;

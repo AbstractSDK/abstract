@@ -6,7 +6,7 @@ use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{api::ApiQueryMsg, objects::AssetEntry};
+use crate::objects::AssetEntry;
 
 type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
@@ -47,6 +47,4 @@ pub enum RequestMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
-    Base(ApiQueryMsg),
-}
+pub enum QueryMsg {}

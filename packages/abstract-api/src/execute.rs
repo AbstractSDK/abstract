@@ -77,7 +77,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         }
     }
     pub fn execute(
-        &self,
+        &mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
@@ -93,12 +93,14 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
 
     /// If dependencies are set, remove self from them.
     pub(crate) fn remove_self_from_deps(
-        &self,
+        &mut self,
         deps: Deps,
         env: Env,
         info: MessageInfo,
     ) -> Result<Response, ApiError> {
         let core = self.verify_sender_is_manager(deps, &info.sender)?;
+        // Dangerous to forget!! add to verify fn?
+        self.request_destination = core.proxy;
         let dependencies = self.state(deps.storage)?.api_dependencies;
         let mut msgs: Vec<CosmosMsg> = vec![];
         for dep in dependencies {
@@ -158,7 +160,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
 
         let mut traders = self
             .traders
-            .load(deps.storage, proxy.clone())
+            .may_load(deps.storage, proxy.clone())?
             .unwrap_or_default();
 
         // Handle the addition of traders

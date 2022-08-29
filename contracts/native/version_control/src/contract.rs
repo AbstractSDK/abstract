@@ -36,9 +36,9 @@ pub fn instantiate(
     info: MessageInfo,
     _msg: InstantiateMsg,
 ) -> VCResult {
+    set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
-
     FACTORY.set(deps, None)?;
 
     Ok(Response::default())

@@ -16,9 +16,9 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
+default = ["juno"]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
-default = ["juno"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap"]
 
 # Keep as is until TendermintStake updates.

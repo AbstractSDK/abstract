@@ -1,5 +1,5 @@
 use abstract_os::{
-    api::{ApiExecuteMsg, ApiQueryMsg, QueryTradersResponse},
+    api::{ApiExecuteMsg, ApiQueryMsg, BaseQueryMsg, QueryTradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::module::{Module, ModuleInfo, ModuleKind},
@@ -220,7 +220,6 @@ pub fn migrate_module(
 /// Replaces the current API with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
 pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
     let mut msgs = vec![];
 
     // Makes sure we already have the API installed
@@ -228,13 +227,13 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: QueryTradersResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_address.to_string(),
-            msg: to_binary(&ApiQueryMsg::Traders {
+            contract_addr: old_api_addr.to_string(),
+            msg: to_binary(&<ApiQueryMsg>::Base(BaseQueryMsg::Traders {
                 proxy_address: proxy_addr.to_string(),
-            })?,
+            }))?,
         }))?;
     // Get the address of the new API
-    let new_api_addr = get_api_addr(deps.as_ref(), module_info)?;
+    let new_api_addr = get_api_addr(deps.as_ref(), &module_info)?;
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()
@@ -271,8 +270,15 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
-        new_api_addr.into_string(),
+        new_api_addr.to_string(),
     )?);
+
+    // Update the address of the API internally
+    update_module_addresses(
+        deps,
+        Some(vec![(module_info.name, new_api_addr.into_string())]),
+        None,
+    )?;
 
     Ok(Response::new().add_messages(msgs))
 }
@@ -347,19 +353,22 @@ fn get_code_id(
     Ok(new_code_id)
 }
 
-fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerError> {
+fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
-    let new_addr = match module_info.version {
+    let new_addr = match &module_info.version {
         Some(new_version) => {
             let maybe_new_addr = API_ADDRESSES.query(
                 &deps.querier,
                 config.version_control_address,
-                (&module_info.name, &new_version),
+                (&module_info.name, new_version),
             )?;
             if let Some(new_addr) = maybe_new_addr {
                 new_addr
             } else {
-                return Err(ManagerError::ApiNotFound(module_info.name, new_version));
+                return Err(ManagerError::ApiNotFound(
+                    module_info.name.clone(),
+                    new_version.clone(),
+                ));
             }
         }
         None => {
@@ -368,7 +377,7 @@ fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerErro
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::ApiAddress {
-                        module: module_info,
+                        module: module_info.clone(),
                     })?,
                 }))?;
             resp.address

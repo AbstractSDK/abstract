@@ -22,3 +22,19 @@ pub fn register_module(
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())
 }
+
+pub fn register_api(
+    app: &mut App,
+    sender: &Addr,
+    version_control: &Addr,
+    module: ModuleInfo,
+    address: Addr,
+) -> AnyResult<()> {
+    let msg = VCMsg::ExecuteMsg::AddApi {
+        module: module.name,
+        version: module.version.unwrap_or(DEFAULT_VERSION.to_string()),
+        address: address.to_string(),
+    };
+    app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
+    Ok(())
+}

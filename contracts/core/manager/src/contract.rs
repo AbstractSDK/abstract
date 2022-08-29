@@ -98,7 +98,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     // required to add Proxy after init by os factory.
                     OS_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
-                        .or_else(|_|ROOT.assert_admin(deps.as_ref(), &info.sender))?;
+                        .or_else(|_| ROOT.assert_admin(deps.as_ref(), &info.sender))?;
 
                     update_module_addresses(deps, to_add, to_remove)
                 }

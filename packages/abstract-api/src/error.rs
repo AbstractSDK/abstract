@@ -18,4 +18,7 @@ pub enum ApiError {
 
     #[error("The trader you wished to add: {} is already present", trader)]
     TraderAlreadyPresent { trader: String },
+
+    #[error("This API does not implement any custom queries")]
+    NoCustomQueries,
 }

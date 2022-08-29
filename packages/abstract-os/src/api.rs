@@ -75,10 +75,19 @@ pub enum ApiExecuteMsg {
     Remove {},
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ApiQueryMsg<Q: Serialize = Empty> {
+    /// An API request. Forwards the msg to the associated proxy.
+    Api(Q),
+    /// A configuration message to whitelist traders.
+    Base(BaseQueryMsg),
+}
+
 /// Query API message
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ApiQueryMsg {
+pub enum BaseQueryMsg {
     /// Returns [`QueryApiConfigResponse`].
     Config {},
     /// Returns [`QueryTradersResponse`].
