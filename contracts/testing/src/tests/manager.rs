@@ -94,13 +94,20 @@ fn proper_initialization() {
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
     println!("{:?}", os_state);
 
-    let resp: abstract_os::version_control::QueryApiAddressResponse = app.wrap().query_wasm_smart(env.native_contracts.version_control.clone(), &abstract_os::version_control::QueryMsg::ApiAddress { module: ModuleInfo {
-            name: EXCHANGE.to_owned(),
-            version: None,
-        } }).unwrap();
+    let resp: abstract_os::version_control::QueryApiAddressResponse = app
+        .wrap()
+        .query_wasm_smart(
+            env.native_contracts.version_control.clone(),
+            &abstract_os::version_control::QueryMsg::ApiAddress {
+                module: ModuleInfo {
+                    name: EXCHANGE.to_owned(),
+                    version: None,
+                },
+            },
+        )
+        .unwrap();
 
     println!("{:?}", resp);
-    
 
     app.execute_contract(
         sender.clone(),
@@ -129,11 +136,18 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let resp: abstract_os::version_control::QueryApiAddressResponse = app.wrap().query_wasm_smart(env.native_contracts.version_control.clone(), &abstract_os::version_control::QueryMsg::ApiAddress { module: ModuleInfo {
-        name: EXCHANGE.to_owned(),
-        version: None,
-    } }).unwrap();
+    let resp: abstract_os::version_control::QueryApiAddressResponse = app
+        .wrap()
+        .query_wasm_smart(
+            env.native_contracts.version_control.clone(),
+            &abstract_os::version_control::QueryMsg::ApiAddress {
+                module: ModuleInfo {
+                    name: EXCHANGE.to_owned(),
+                    version: None,
+                },
+            },
+        )
+        .unwrap();
 
     println!("{:?}", resp);
-
 }

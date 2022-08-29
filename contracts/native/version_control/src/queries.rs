@@ -44,9 +44,14 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
-        let (latest_version, id) = &versions?[0];
-        resulting_version = latest_version.clone();
-        Ok(*id)
+        let (latest_version, id) = versions?
+            .first()
+            .ok_or(StdError::GenericErr {
+                msg: format!("code id for {} not found", module),
+            })?
+            .clone();
+        resulting_version = latest_version;
+        Ok(id)
     };
 
     match code_id {

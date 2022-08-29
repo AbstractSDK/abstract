@@ -6,7 +6,7 @@ use abstract_os::memory::{
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
-use abstract_os::memory::{InstantiateMsg, QueryMsg, ExecuteMsg};
+use abstract_os::memory::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

@@ -75,7 +75,7 @@ impl DEX for JunoSwap {
                     contract_addr: token_addr.to_string(),
                     msg: to_binary(&Cw20ExecuteMsg::IncreaseAllowance {
                         spender: pair_address.to_string(),
-                        amount: offer_asset.amount.clone(),
+                        amount: offer_asset.amount,
                         expires: None,
                     })?,
                     funds: vec![],
