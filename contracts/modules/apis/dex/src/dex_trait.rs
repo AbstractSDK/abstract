@@ -33,7 +33,7 @@ pub trait DEX {
         &self,
         deps: Deps,
         api: DexApi,
-        contract_address: Addr,
+        pair_address: Addr,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
@@ -43,7 +43,7 @@ pub trait DEX {
         &self,
         deps: Deps,
         api: DexApi,
-        contract_address: Addr,
+        pair_address: Addr,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> DexResult;
@@ -51,7 +51,7 @@ pub trait DEX {
         &self,
         deps: Deps,
         api: DexApi,
-        contract_address: Addr,
+        pair_address: Addr,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> DexResult;
@@ -61,7 +61,7 @@ pub trait DEX {
         &self,
         deps: Deps,
         api: &DexApi,
-        contract_address: Addr,
+        pair_address: Addr,
         lp_token: Asset,
     ) -> DexResult;
     // fn raw_withdraw_liquidity();
