@@ -20,7 +20,7 @@ pub mod memory {
     pub use abstract_os::objects::memory::Memory;
 }
 
-pub use api::{api_req, configure_api};
+pub use api::{api_request, configure_api};
 pub use memory_traits::Resolve;
 pub use module_traits::{MemoryOperation, OsExecute};
 
