@@ -3,6 +3,7 @@ use crate::{
     error::DexError,
     DEX,
 };
+
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
@@ -234,6 +235,57 @@ impl DEX for JunoSwap {
         )?;
         msgs.push(junoswap_msg.into());
         api.os_execute(deps, msgs).map_err(From::from)
+    }
+
+    fn simulate_swap(
+        &self,
+        deps: Deps,
+        pair_address: Addr,
+        offer_asset: Asset,
+        ask_asset: AssetInfo,
+    ) -> Result<(Uint128, Uint128, Uint128, bool), DexError> {
+        let pair_config: InfoResponse =
+            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+                contract_addr: pair_address.to_string(),
+                msg: to_binary(&QueryMsg::Info {})?,
+            }))?;
+
+        let (return_amount, spread_amount) =
+            if denom_and_asset_match(&pair_config.token1_denom, &offer_asset.info)? {
+                let price =
+                    Decimal::from_ratio(pair_config.token2_reserve, pair_config.token1_reserve);
+                let ideal_return = offer_asset.amount * price;
+
+                let sim_resp: Token1ForToken2PriceResponse = deps.querier.query_wasm_smart(
+                    pair_address,
+                    &QueryMsg::Token1ForToken2Price {
+                        token1_amount: offer_asset.amount,
+                    },
+                )?;
+                let spread = ideal_return - sim_resp.token2_amount;
+                (sim_resp.token2_amount, spread)
+            } else if denom_and_asset_match(&pair_config.token1_denom, &ask_asset)? {
+                let price =
+                    Decimal::from_ratio(pair_config.token1_reserve, pair_config.token2_reserve);
+                let ideal_return = offer_asset.amount * price;
+
+                let sim_resp: Token2ForToken1PriceResponse = deps.querier.query_wasm_smart(
+                    pair_address,
+                    &QueryMsg::Token2ForToken1Price {
+                        token2_amount: offer_asset.amount,
+                    },
+                )?;
+                let spread = ideal_return - sim_resp.token1_amount;
+
+                (sim_resp.token1_amount, spread)
+            } else {
+                return Err(DexError::DexMismatch(
+                    format!("{}/{}", &offer_asset.info, &ask_asset),
+                    self.name().into(),
+                    pair_address.to_string(),
+                ));
+            };
+        Ok((return_amount, spread_amount, Uint128::zero(), true))
     }
 }
 

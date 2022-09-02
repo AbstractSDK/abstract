@@ -55,7 +55,7 @@ pub struct ContractEntry {
 }
 
 impl ContractEntry {
-    pub fn construct_dex_entry(dex_name: &str, assets: &mut [AssetEntry]) -> Self {
+    pub fn construct_dex_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
         assets.sort();
         let contract_name = assets
             .iter()

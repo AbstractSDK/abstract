@@ -16,7 +16,7 @@ use abstract_os::{
 #[cfg(feature = "juno")]
 pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
 
-fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
+pub(crate) fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
     match value.as_str() {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
@@ -43,7 +43,7 @@ pub fn swap(
     let offer_asset_info = api.resolve(deps, &offer_asset)?;
     let ask_asset_info = api.resolve(deps, &ask_asset)?;
 
-    let pair_address = exchange.pair_address(deps, &api, &mut [offer_asset, ask_asset])?;
+    let pair_address = exchange.pair_address(deps, &api, &mut vec![&offer_asset, &ask_asset])?;
     let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
     exchange.swap(
@@ -77,9 +77,9 @@ pub fn provide_liquidity(
         deps,
         &api,
         offer_assets
-            .into_iter()
+            .iter()
             .map(|(a, _)| a)
-            .collect::<Vec<AssetEntry>>()
+            .collect::<Vec<&AssetEntry>>()
             .as_mut(),
     )?;
     exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
@@ -100,7 +100,7 @@ pub fn provide_liquidity_symmetric(
         .map(|entry| api.resolve(deps, entry))
         .collect();
     paired_assets.push(offer_asset.0.clone());
-    let pair_address = exchange.pair_address(deps, &api, &mut paired_assets)?;
+    let pair_address = exchange.pair_address(deps, &api, &mut paired_assets.iter().collect())?;
     let offer_asset = Asset::new(api.resolve(deps, &offer_asset.0)?, offer_asset.1);
     exchange.provide_liquidity_symmetric(deps, api, pair_address, offer_asset, paired_asset_infos?)
 }

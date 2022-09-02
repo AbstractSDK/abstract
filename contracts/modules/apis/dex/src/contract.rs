@@ -1,14 +1,16 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
-    dex::RequestMsg,
+    dex::{QueryMsg, RequestMsg},
     EXCHANGE,
 };
+
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     commands::{provide_liquidity, provide_liquidity_symmetric, swap, withdraw_liquidity},
     error::DexError,
+    queries::simulate_swap,
 };
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
@@ -111,6 +113,16 @@ pub fn handle_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexError> {
-    DexApi::handle_query(deps, env, msg, None)
+pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg<QueryMsg>) -> Result<Binary, DexError> {
+    DexApi::handle_query(deps, env, msg, Some(query_handler))
+}
+
+fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, DexError> {
+    match msg {
+        QueryMsg::SimulateSwap {
+            offer_asset,
+            ask_asset,
+            dex,
+        } => simulate_swap(deps, env, offer_asset, ask_asset, dex.unwrap()),
+    }
 }

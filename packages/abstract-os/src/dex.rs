@@ -6,7 +6,7 @@ use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::objects::AssetEntry;
+use crate::objects::{AssetEntry, ContractEntry};
 
 type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
@@ -47,4 +47,22 @@ pub enum RequestMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum QueryMsg {}
+pub enum QueryMsg {
+    SimulateSwap {
+        offer_asset: OfferAsset,
+        ask_asset: AssetEntry,
+        dex: Option<DexName>,
+    }
+}
+
+// LP/protocol fees could be withheld from either input or output so commission asset must be included.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct SimulateSwapResponse{
+    pub pool: ContractEntry,
+    /// Amount you would receive when performing the swap.
+    pub return_amount: Uint128,
+    /// Spread in ask_asset for this swap
+    pub spread_amount: Uint128, 
+    /// Commission charged for the swap
+    pub commission: (AssetEntry, Uint128)
+}
