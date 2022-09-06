@@ -22,6 +22,9 @@ pub enum DexError {
     #[error("Can't provide liquidity with more than {0} assets")]
     TooManyAssets(u8),
 
+    #[error("Provided asset {0} not in pool with assets {1:?}.")]
+    ArgumentMismatch(String, Vec<String>),
+
     #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
     DexMismatch(String, String, String),
 }

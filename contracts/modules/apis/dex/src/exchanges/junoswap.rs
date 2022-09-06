@@ -138,7 +138,7 @@ impl DEX for JunoSwap {
             max_token2,
             expiration: None,
         };
-        let mut msgs = cw_approve_msgs(&offer_assets, &api.request_destination)?;
+        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
         let coins = coins_in_assets(&offer_assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),
@@ -203,7 +203,7 @@ impl DEX for JunoSwap {
             expiration: None,
         };
         let assets = &[offer_asset, other_asset];
-        let mut msgs = cw_approve_msgs(assets, &api.request_destination)?;
+        let mut msgs = cw_approve_msgs(assets, &pair_address)?;
         let coins = coins_in_assets(assets);
         let junoswap_msg = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: pair_address.into_string(),

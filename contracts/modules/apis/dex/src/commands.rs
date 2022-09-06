@@ -14,12 +14,22 @@ use abstract_os::{
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
-pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+pub use crate::exchanges::{junoswap::{JunoSwap, JUNOSWAP}};
+
+#[cfg(any(feature = "juno", feature = "terra"))]
+pub use crate::exchanges::loop_dex::{LOOP, Loop};
+
+#[cfg(feature = "terra")]
+pub use crate::exchanges::{terraswap::{Terraswap, TERRASWAP}};
 
 pub(crate) fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
     match value.as_str() {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
+        #[cfg(any(feature = "juno", feature = "terra"))]
+        LOOP => Ok(&Loop{}),
+        #[cfg(feature = "terra")]
+        TERRASWAP => Ok(&Terraswap {}),
         _ => Err(DexError::UnknownDex(value)),
     }
 }
