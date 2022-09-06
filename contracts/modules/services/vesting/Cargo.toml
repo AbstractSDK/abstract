@@ -1,0 +1,29 @@
+[package]
+name = "cw20-vesting"
+version = "1.0.0"
+authors = ["Abstract Labs"]
+edition = "2018"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all init/handle/query exports
+library = []
+
+[dependencies]
+abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
+
+cosmwasm-std = { version = "1.0.0", features = ["iterator"] }
+cw-storage-plus = "0.13.4"
+cw20 = { version = "0.13.4" }
+
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+
+[dev-dependencies]
+cosmwasm-schema = { version = "1.0.0", default-features = false  }
+cw-multi-test = "0.13.4"
+cw20-base = { version = "0.13.4", features = ["library"] }

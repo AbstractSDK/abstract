@@ -9,6 +9,7 @@ members = [
     "contracts/modules/add-ons/subscription",
     "contracts/modules/apis/tendermint-staking",
     "contracts/modules/apis/dex",
+    "contracts/modules/services/vesting",
 ]
 
 [profile.release]

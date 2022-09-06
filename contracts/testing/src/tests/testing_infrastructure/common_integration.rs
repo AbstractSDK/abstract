@@ -14,14 +14,10 @@ pub struct NativeContracts {
 }
 
 pub fn mock_app() -> App {
-    let _env = mock_env();
-    let _api = MockApi::default();
-    let _bank = BankKeeper::new();
-    let storage = MockStorage::new();
-
     let env = mock_env();
     let api = MockApi::default();
     let bank = BankKeeper::new();
+    let storage = MockStorage::new();
 
     let sender = Addr::unchecked(TEST_CREATOR);
     let random_user = Addr::unchecked(RANDOM_USER);

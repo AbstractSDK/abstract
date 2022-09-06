@@ -54,3 +54,4 @@ pub(crate) mod registry;
 pub mod subscription;
 pub mod tendermint_staking;
 pub mod version_control;
+pub mod vesting;

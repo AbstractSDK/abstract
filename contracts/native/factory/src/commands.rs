@@ -328,6 +328,7 @@ fn forward_payment(
                     "Cw1155 not supported.",
                 )))
             }
+            _ => todo!(),
         };
 
         msgs.push(forward_payment_to_module);
