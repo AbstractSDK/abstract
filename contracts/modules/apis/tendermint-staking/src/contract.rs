@@ -1,5 +1,5 @@
 use abstract_api::{ApiContract, ApiResult};
-use abstract_os::api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg};
+use abstract_os::api::{ApiInstantiateMsg, ApiQueryMsg, ExecuteMsg};
 use abstract_os::TENDERMINT_STAKING;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
@@ -38,7 +38,7 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ApiInterfaceMsg<RequestMsg>,
+    msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
     TendermintStakeApi::handle_request(deps, env, info, msg, handle_api_request)
 }

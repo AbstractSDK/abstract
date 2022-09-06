@@ -1,6 +1,6 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
-    api::{ApiInstantiateMsg, ApiInterfaceMsg, ApiQueryMsg},
+    api::{ApiInstantiateMsg, ApiQueryMsg, ExecuteMsg},
     dex::{QueryMsg, RequestMsg},
     EXCHANGE,
 };
@@ -36,7 +36,7 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ApiInterfaceMsg<RequestMsg>,
+    msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
     DexApi::handle_request(deps, env, info, msg, handle_api_request)
 }

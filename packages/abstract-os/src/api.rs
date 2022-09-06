@@ -22,29 +22,27 @@ pub struct ApiInstantiateMsg {
 }
 
 /// Interface to the API.
-/// Equivalent to ExecuteMsg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ApiInterfaceMsg<T: Serialize = Empty> {
-    /// An API request. Forwards the msg to the associated proxy.
+pub enum ExecuteMsg<T: Serialize = Empty> {
+    /// An API request.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
-    Configure(ApiExecuteMsg),
+    Configure(BaseExecuteMsg),
 }
 
-impl<T: Serialize> From<ApiExecuteMsg> for ApiInterfaceMsg<T> {
-    fn from(api_msg: ApiExecuteMsg) -> Self {
+impl<T: Serialize> From<BaseExecuteMsg> for ExecuteMsg<T> {
+    fn from(api_msg: BaseExecuteMsg) -> Self {
         Self::Configure(api_msg)
     }
 }
 
-impl<T: Serialize> From<ApiRequestMsg<T>> for ApiInterfaceMsg<T> {
+impl<T: Serialize> From<ApiRequestMsg<T>> for ExecuteMsg<T> {
     fn from(request_msg: ApiRequestMsg<T>) -> Self {
         Self::Request(request_msg)
     }
 }
 /// An API request.
-/// The api contract forwards the generated msg to the optionally attached proxy addr.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ApiRequestMsg<T: Serialize = Empty> {
@@ -65,13 +63,14 @@ impl<T: Serialize> ApiRequestMsg<T> {
 /// Configuration message for the API
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
 #[serde(rename_all = "snake_case")]
-pub enum ApiExecuteMsg {
+pub enum BaseExecuteMsg {
     /// Add or remove traders
     /// If a trader is both in to_add and to_remove, it will be removed.
     UpdateTraders {
         to_add: Option<Vec<String>>,
         to_remove: Option<Vec<String>>,
     },
+    /// Remove the API
     Remove {},
 }
 
@@ -96,7 +95,6 @@ pub enum BaseQueryMsg {
 }
 
 #[derive(Serialize, Deserialize, Debug, JsonSchema)]
-#[serde(rename_all = "snake_case")]
 pub struct QueryApiConfigResponse {
     pub version_control_address: Addr,
     pub memory_address: Addr,

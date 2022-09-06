@@ -1,4 +1,4 @@
-use abstract_os::api::{ApiExecuteMsg, ApiInterfaceMsg};
+use abstract_os::api::{BaseExecuteMsg, ExecuteMsg};
 use abstract_os::version_control::Core;
 use abstract_sdk::common_namespace::BASE_STATE_KEY;
 use abstract_sdk::manager::query_module_address;
@@ -36,7 +36,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: ApiInterfaceMsg<T>,
+        msg: ExecuteMsg<T>,
         request_handler: impl FnOnce(
             DepsMut,
             Env,
@@ -48,7 +48,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         let sender = &info.sender;
         let mut api = Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""));
         match msg {
-            ApiInterfaceMsg::Request(request) => {
+            ExecuteMsg::Request(request) => {
                 let proxy = match request.proxy_address {
                     Some(addr) => {
                         let traders = api
@@ -71,7 +71,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                 api.request_destination = proxy;
                 request_handler(deps, env, info, api, request.request)
             }
-            ApiInterfaceMsg::Configure(exec_msg) => api
+            ExecuteMsg::Configure(exec_msg) => api
                 .execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
         }
@@ -81,13 +81,13 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        message: ApiExecuteMsg,
+        message: BaseExecuteMsg,
     ) -> ApiResult {
         match message {
-            ApiExecuteMsg::UpdateTraders { to_add, to_remove } => {
+            BaseExecuteMsg::UpdateTraders { to_add, to_remove } => {
                 self.update_traders(deps, info, to_add, to_remove)
             }
-            ApiExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
+            BaseExecuteMsg::Remove {} => self.remove_self_from_deps(deps.as_ref(), env, info),
         }
     }
 
@@ -111,7 +111,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
             };
             msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: api_addr?.into_string(),
-                msg: to_binary(&ApiExecuteMsg::UpdateTraders {
+                msg: to_binary(&BaseExecuteMsg::UpdateTraders {
                     to_add: None,
                     to_remove: Some(vec![env.contract.address.to_string()]),
                 })?,

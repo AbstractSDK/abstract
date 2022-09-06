@@ -1,5 +1,5 @@
 use abstract_os::{
-    api::{ApiExecuteMsg, ApiQueryMsg, BaseQueryMsg, QueryTradersResponse},
+    api::{ApiQueryMsg, BaseExecuteMsg, BaseQueryMsg, QueryTradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::module::{Module, ModuleInfo, ModuleKind},
@@ -242,7 +242,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Remove traders from old
     msgs.push(configure_api(
         old_api_addr.to_string(),
-        ApiExecuteMsg::UpdateTraders {
+        BaseExecuteMsg::UpdateTraders {
             to_add: None,
             to_remove: Some(traders_to_migrate.clone()),
         },
@@ -250,12 +250,12 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Remove api as trader on dependencies
     msgs.push(configure_api(
         old_api_addr.to_string(),
-        ApiExecuteMsg::Remove {},
+        BaseExecuteMsg::Remove {},
     )?);
     // Add traders to new
     msgs.push(configure_api(
         new_api_addr.clone(),
-        ApiExecuteMsg::UpdateTraders {
+        BaseExecuteMsg::UpdateTraders {
             to_add: Some(traders_to_migrate),
             to_remove: None,
         },
