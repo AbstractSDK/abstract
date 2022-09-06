@@ -8,7 +8,7 @@
 //!
 //! ## Proxy assets
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
-//! After configurating the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
+//! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -69,46 +69,48 @@ pub struct MigrateMsg {}
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    /// Returns [`QueryConfigResponse`]
+    /// Returns [`ConfigResponse`]
     Config {},
     /// Returns the total value of all held assets
-    /// [`QueryTotalValueResponse`]
+    /// [`TotalValueResponse`]
     TotalValue {},
     /// Returns the value of one specific asset
-    /// [`QueryHoldingValueResponse`]
+    /// [`yHoldingValueResponse`]
     HoldingValue { identifier: String },
     /// Returns the amount of specified tokens this contract holds
-    /// [`QueryHoldingAmountResponse`]
+    /// [`HoldingAmountResponse`]
     HoldingAmount { identifier: String },
     /// Returns the VAULT_ASSETS value for the specified key
-    /// [`QueryAssetConfigResponse`]
+    /// [`AssetConfigResponse`]
     AssetConfig { identifier: String },
-    /// Returns [`QueryAssetsResponse`]
+    /// Returns [`AssetsResponse`]
     Assets {
         page_token: Option<String>,
         page_size: Option<u8>,
     },
-    /// Returns [`QueryAssetsResponse`]
+    /// Returns [`ValidityResponse`]
     CheckValidity {},
+    /// Returns [`BaseAssetResponse`]
+    BaseAsset {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryConfigResponse {
+pub struct ConfigResponse {
     pub modules: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryTotalValueResponse {
+pub struct TotalValueResponse {
     pub value: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryHoldingValueResponse {
+pub struct HoldingValueResponse {
     pub value: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryValidityResponse {
+pub struct ValidityResponse {
     /// Assets that have unresolvable dependencies in their value calculation
     pub unresolvable_assets: Option<Vec<AssetEntry>>,
     /// Assets that are missing in the VAULT_ASSET map which caused some assets to be unresolvable.
@@ -116,17 +118,22 @@ pub struct QueryValidityResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryHoldingAmountResponse {
+pub struct BaseAssetResponse {
+    pub base_asset: ProxyAsset,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct HoldingAmountResponse {
     pub amount: Uint128,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryAssetConfigResponse {
+pub struct AssetConfigResponse {
     pub proxy_asset: ProxyAsset,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryAssetsResponse {
+pub struct AssetsResponse {
     pub assets: Vec<(AssetEntry, ProxyAsset)>,
 }
 

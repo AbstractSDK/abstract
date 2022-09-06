@@ -1,9 +1,7 @@
 //! # Proxy Helpers
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{
-        state::VAULT_ASSETS, ExecuteMsg, QueryAssetsResponse, QueryMsg, QueryTotalValueResponse,
-    },
+    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, Uint128, WasmMsg,
@@ -24,7 +22,7 @@ pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<Co
 /// Query the total value denominated in the base asset
 /// The provided address must implement the TotalValue Query
 pub fn query_total_value(deps: Deps, proxy_address: &Addr) -> StdResult<Uint128> {
-    let response: QueryTotalValueResponse =
+    let response: TotalValueResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: proxy_address.to_string(),
             msg: to_binary(&QueryMsg::TotalValue {})?,
@@ -55,7 +53,7 @@ pub fn query_enabled_proxy_assets(
 ) -> StdResult<(Vec<AssetEntry>, AssetEntry)> {
     let mut asset_keys = vec![];
     let mut base_asset: Option<AssetEntry> = None;
-    let mut resp: QueryAssetsResponse = deps.querier.query_wasm_smart(
+    let mut resp: AssetsResponse = deps.querier.query_wasm_smart(
         proxy_address,
         &QueryMsg::Assets {
             page_token: None,

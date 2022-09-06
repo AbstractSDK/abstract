@@ -6,9 +6,9 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_os::proxy::state::State;
 use abstract_os::proxy::{
-    ExecuteMsg, InstantiateMsg, QueryAssetConfigResponse, QueryAssetsResponse, QueryConfigResponse,
-    QueryHoldingAmountResponse, QueryHoldingValueResponse, QueryMsg, QueryTotalValueResponse,
-    QueryValidityResponse,
+    AssetConfigResponse, AssetsResponse, BaseAssetResponse, ConfigResponse, ExecuteMsg,
+    HoldingAmountResponse, HoldingValueResponse, InstantiateMsg, QueryMsg, TotalValueResponse,
+    ValidityResponse,
 };
 use cosmwasm_std::{CosmosMsg, Empty};
 use cw_asset::AssetInfo;
@@ -25,38 +25,35 @@ fn main() {
     export_schema(&schema_for!(State), &out_dir);
     export_schema(&schema_for!(ProxyAsset), &out_dir);
     export_schema(&schema_for!(UncheckedProxyAsset), &out_dir);
+    export_schema(&schema_for!(BaseAssetResponse), &out_dir);
+    export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
     export_schema_with_title(
-        &schema_for!(QueryConfigResponse),
-        &out_dir,
-        "ConfigResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(QueryTotalValueResponse),
+        &schema_for!(TotalValueResponse),
         &out_dir,
         "TotalValueResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryHoldingValueResponse),
+        &schema_for!(HoldingValueResponse),
         &out_dir,
         "HoldingValueResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryHoldingAmountResponse),
+        &schema_for!(HoldingAmountResponse),
         &out_dir,
         "HoldingAmountResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryAssetConfigResponse),
+        &schema_for!(AssetConfigResponse),
         &out_dir,
         "ProxyAssetConfigResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryAssetsResponse),
+        &schema_for!(AssetsResponse),
         &out_dir,
         "ProxyAssetsResponse",
     );
     export_schema_with_title(
-        &schema_for!(QueryValidityResponse),
+        &schema_for!(ValidityResponse),
         &out_dir,
         "CheckValidityResponse",
     );

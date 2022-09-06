@@ -19,9 +19,9 @@ use abstract_os::objects::proxy_asset::{
 };
 use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryAssetConfigResponse, QueryAssetsResponse,
-    QueryConfigResponse, QueryHoldingAmountResponse, QueryHoldingValueResponse, QueryMsg,
-    QueryTotalValueResponse, QueryValidityResponse,
+    AssetConfigResponse, AssetsResponse, BaseAssetResponse, ConfigResponse, ExecuteMsg,
+    HoldingAmountResponse, HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg,
+    TotalValueResponse, ValidityResponse,
 };
 use abstract_os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
@@ -192,21 +192,21 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::TotalValue {} => to_binary(&QueryTotalValueResponse {
+        QueryMsg::TotalValue {} => to_binary(&TotalValueResponse {
             value: compute_total_value(deps, env)?,
         }),
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: AssetEntry = identifier.into();
             let memory = MEMORY.load(deps.storage)?;
             let asset_info = vault_asset.resolve(deps, &memory)?;
-            to_binary(&QueryHoldingAmountResponse {
+            to_binary(&HoldingAmountResponse {
                 amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })
         }
-        QueryMsg::HoldingValue { identifier } => to_binary(&QueryHoldingValueResponse {
+        QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
-        QueryMsg::AssetConfig { identifier } => to_binary(&QueryAssetConfigResponse {
+        QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
             proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
         }),
         QueryMsg::Assets {
@@ -214,6 +214,22 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => to_binary(&query_proxy_assets(deps, page_token, page_size)?),
         QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
+        QueryMsg::BaseAsset {} => {
+            let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
+                .range(deps.storage, None, None, Order::Ascending)
+                .collect();
+            let maybe_base_asset: Vec<(AssetEntry, ProxyAsset)> = res?
+                .into_iter()
+                .filter(|(_, p)| p.value_reference.is_none())
+                .collect();
+            if maybe_base_asset.len() != 1 {
+                Err(StdError::generic_err("No base asset configured."))
+            } else {
+                to_binary(&BaseAssetResponse {
+                    base_asset: maybe_base_asset[0].1.to_owned(),
+                })
+            }
+        }
     }
 }
 
@@ -221,7 +237,7 @@ fn query_proxy_assets(
     deps: Deps,
     last_asset_name: Option<String>,
     limit: Option<u8>,
-) -> StdResult<QueryAssetsResponse> {
+) -> StdResult<AssetsResponse> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
@@ -231,16 +247,16 @@ fn query_proxy_assets(
         .collect();
 
     let names_and_configs = res?;
-    Ok(QueryAssetsResponse {
+    Ok(AssetsResponse {
         assets: names_and_configs,
     })
 }
 
 /// Returns the whitelisted modules
-pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state = STATE.load(deps.storage)?;
     let modules: Vec<Addr> = state.modules;
-    let resp = QueryConfigResponse {
+    let resp = ConfigResponse {
         modules: modules
             .iter()
             .map(|module| -> String { module.to_string() })
@@ -273,7 +289,7 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
     Ok(total_value)
 }
 
-fn query_proxy_asset_validity(deps: Deps) -> StdResult<QueryValidityResponse> {
+fn query_proxy_asset_validity(deps: Deps) -> StdResult<ValidityResponse> {
     // assets that resolve and have valid value-references
     let mut checked_assets: HashSet<String> = HashSet::new();
     // assets that don't resolve, they have a missing dependency
@@ -322,7 +338,7 @@ fn query_proxy_asset_validity(deps: Deps) -> StdResult<QueryValidityResponse> {
         }
     };
 
-    Ok(QueryValidityResponse {
+    Ok(ValidityResponse {
         unresolvable_assets: unresolvable_assets_resp,
         missing_dependencies: missing_assets_resp,
     })
@@ -350,7 +366,7 @@ fn resolve_asset(
             if base.is_some() {
                 if entry.as_str() != base.as_ref().unwrap() {
                     return Err(StdError::generic_err(format!(
-                        "there can only be one base asset, multiple are registered: {}, {}",
+                        "All assets accept the base asset must have a value reference. One of these assets is missing it: {}, {}",
                         base.as_ref().unwrap(),
                         entry.as_str()
                     )));
@@ -423,10 +439,10 @@ fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<
             let asset2: AssetEntry = other_pool_asset_names[1].into();
             vec![asset1, asset2]
         }
-        abstract_os::objects::proxy_asset::ValueRef::Proxy {
-            proxy_asset,
+        abstract_os::objects::proxy_asset::ValueRef::ValueAs {
+            asset,
             multiplier: _,
-        } => vec![proxy_asset.clone()],
+        } => vec![asset.clone()],
         abstract_os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
     }
 }

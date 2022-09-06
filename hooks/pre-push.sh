@@ -94,5 +94,5 @@ lint_check() {
   fi
 }
 
-#format_check
-#lint_check
+format_check
+lint_check

@@ -73,8 +73,8 @@ pub enum UncheckedValueRef {
     LiquidityToken {},
     // a Proxy, the proxy also takes a Decimal (the multiplier)
     // Asset will be valued as if they are Proxy tokens
-    Proxy {
-        proxy_asset: String,
+    ValueAs {
+        asset: String,
         multiplier: Decimal,
     },
     // Query an external contract to get the value
@@ -110,14 +110,11 @@ impl UncheckedValueRef {
                 memory.query_contract(deps, &maybe_pair.check())?;
                 Ok(ValueRef::LiquidityToken {})
             }
-            UncheckedValueRef::Proxy {
-                proxy_asset,
-                multiplier,
-            } => {
-                let replacement_asset: AssetEntry = proxy_asset.into();
+            UncheckedValueRef::ValueAs { asset, multiplier } => {
+                let replacement_asset: AssetEntry = asset.into();
                 memory.query_asset(deps, &replacement_asset)?;
-                Ok(ValueRef::Proxy {
-                    proxy_asset: replacement_asset,
+                Ok(ValueRef::ValueAs {
+                    asset: replacement_asset,
                     multiplier,
                 })
             }
@@ -146,10 +143,9 @@ pub enum ValueRef {
     Pool { pair: ContractEntry },
     /// Liquidity pool token
     LiquidityToken {},
-    /// Or a Proxy, the proxy also takes a Decimal (the multiplier)
-    /// Asset will be valued as if they are Proxy tokens
-    Proxy {
-        proxy_asset: AssetEntry,
+    /// Asset will be valued as if they are ValueAs.asset tokens
+    ValueAs {
+        asset: AssetEntry,
         multiplier: Decimal,
     },
     /// Query an external contract to get the value
@@ -194,10 +190,9 @@ impl ProxyAsset {
                     return self.lp_value(deps, env, memory, valued_asset, pair);
                 }
                 // A proxy asset is used instead
-                ValueRef::Proxy {
-                    proxy_asset,
-                    multiplier,
-                } => return proxy_value(deps, env, memory, proxy_asset, multiplier, holding),
+                ValueRef::ValueAs { asset, multiplier } => {
+                    return value_as_value(deps, env, memory, asset, multiplier, holding)
+                }
                 ValueRef::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
                     let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
@@ -315,7 +310,7 @@ impl ProxyAsset {
     }
 }
 
-pub fn proxy_value(
+pub fn value_as_value(
     deps: Deps,
     env: &Env,
     memory: &Memory,
