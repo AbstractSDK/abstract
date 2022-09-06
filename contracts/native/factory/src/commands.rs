@@ -210,6 +210,15 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         })?,
     });
 
+    // add manager to whitelisted addresses
+    let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: proxy_address.to_string(),
+        funds: vec![],
+        msg: to_binary(&ProxyExecMsg::AddModule {
+            module: context.os_manager_address.to_string(),
+        })?,
+    });
+
     let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
@@ -238,6 +247,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             })?,
             funds: vec![],
         }))
+        .add_message(whitelist_manager)
         .add_message(set_proxy_admin_msg)
         .add_message(set_manager_admin_msg))
 }
