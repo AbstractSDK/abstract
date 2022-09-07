@@ -4,7 +4,8 @@ use cosmwasm_std::{CosmosMsg, Deps, StdResult};
 use crate::Dependency;
 use abstract_os::dex::RequestMsg;
 
-/// Perform actions on an exchange API
+/// Perform actions on an exchange API.
+/// WIP
 pub trait Exchange: Dependency {
     fn swap(
         &self,
