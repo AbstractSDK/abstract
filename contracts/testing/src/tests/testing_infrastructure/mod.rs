@@ -8,13 +8,12 @@ mod verify;
 pub mod env {
     use std::collections::HashMap;
 
-    pub use super::common_integration::*;
-    pub use super::module_uploader::*;
-    pub use super::os_creation::init_os;
-    use super::os_creation::init_primary_os;
-    use super::upload::upload_base_contracts;
-    use abstract_os::manager::{self as ManagerMsgs, ManagerModuleInfo};
-    use abstract_os::version_control::Core;
+    pub use super::{common_integration::*, module_uploader::*, os_creation::init_os};
+    use super::{os_creation::init_primary_os, upload::upload_base_contracts};
+    use abstract_os::{
+        manager::{self as ManagerMsgs, ManagerModuleInfo},
+        version_control::Core,
+    };
     use anyhow::Result as AnyResult;
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
     use cw_multi_test::{App, AppResponse, Executor};

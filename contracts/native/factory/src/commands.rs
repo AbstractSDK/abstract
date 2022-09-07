@@ -1,28 +1,28 @@
-use abstract_os::objects::gov_type::GovernanceDetails;
-use abstract_os::objects::module::ModuleInfo;
-use abstract_os::os_factory::ExecuteMsg;
-use abstract_os::subscription::{
-    DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
-    QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+use abstract_os::{
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    os_factory::ExecuteMsg,
+    subscription::{
+        DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
+        QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+    },
 };
-use cosmwasm_std::CosmosMsg;
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
+    from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult,
+    WasmMsg, WasmQuery,
 };
 use cw20::Cw20ReceiveMsg;
 use protobuf::Message;
 
 use crate::contract::OsFactoryResult;
 
-use crate::error::OsFactoryError;
-use crate::response::MsgInstantiateContractResponse;
+use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 
 use crate::state::*;
-use abstract_os::manager::{
-    ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg,
+use abstract_os::{
+    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
 };
-use abstract_os::proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg};
 
 use abstract_os::version_control::{
     ExecuteMsg as VCExecuteMsg, QueryCodeIdResponse, QueryMsg as VCQuery,

@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use abstract_os::{MANAGER, MEMORY, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 use cw_multi_test::{App, ContractWrapper};
 
-use super::common_integration::NativeContracts;
-use super::instantiate::init_native_contracts;
+use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
 
 /// Uploads:
 /// - CW Token

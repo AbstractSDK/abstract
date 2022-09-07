@@ -12,6 +12,8 @@ mod execute;
 pub mod instantiate;
 mod query;
 pub mod state;
+/// Abstract SDK trait implementations
+pub mod traits;
 
 // Default to Empty
 pub type ApiResult<C = Empty> = Result<Response<C>, ApiError>;

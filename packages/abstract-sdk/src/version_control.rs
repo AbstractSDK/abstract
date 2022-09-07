@@ -1,6 +1,7 @@
-use abstract_os::manager::state::OS_ID;
-use abstract_os::version_control::state::OS_ADDRESSES;
-use abstract_os::version_control::Core;
+use abstract_os::{
+    manager::state::OS_ID,
+    version_control::{state::OS_ADDRESSES, Core},
+};
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
 use cosmwasm_std::StdResult;

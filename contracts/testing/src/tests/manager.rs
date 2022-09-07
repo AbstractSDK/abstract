@@ -1,9 +1,6 @@
-use abstract_os::api::ApiInstantiateMsg;
-use abstract_os::manager as ManagerMsgs;
-use abstract_os::objects::module::Module;
+use abstract_os::{api::ApiInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
 
-use abstract_os::objects::module::ModuleInfo;
-use abstract_os::EXCHANGE;
+use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
 
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Addr;

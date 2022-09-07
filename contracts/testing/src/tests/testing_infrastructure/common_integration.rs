@@ -1,5 +1,7 @@
-use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{
+    testing::{mock_env, MockApi, MockStorage},
+    Addr, Coin,
+};
 
 use cw_multi_test::{App, AppBuilder, BankKeeper};
 

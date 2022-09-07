@@ -1,0 +1,13 @@
+name: "Pull Request Labeler"
+on:
+  pull_request:
+    branches:
+     - main
+
+jobs:
+  labeler:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/labeler@v4.0.0
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"

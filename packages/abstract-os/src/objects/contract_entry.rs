@@ -132,8 +132,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::{Addr, Order};
+    use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
     fn mock_key() -> ContractEntry {

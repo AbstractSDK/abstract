@@ -5,8 +5,7 @@ use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use abstract_sdk::common_namespace::{ADMIN_KEY, BASE_STATE_KEY};
-use abstract_sdk::memory::Memory;
+use abstract_sdk::{memory::Memory, ADMIN, BASE_STATE};
 
 /// The state variables for our AddOnContract.
 pub struct AddOnContract<'a> {
@@ -18,7 +17,7 @@ pub struct AddOnContract<'a> {
 
 impl Default for AddOnContract<'static> {
     fn default() -> Self {
-        Self::new(BASE_STATE_KEY, ADMIN_KEY)
+        Self::new(BASE_STATE, ADMIN)
     }
 }
 

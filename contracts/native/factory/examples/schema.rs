@@ -1,5 +1,4 @@
-use std::env::current_dir;
-use std::fs::create_dir_all;
+use std::{env::current_dir, fs::create_dir_all};
 
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
