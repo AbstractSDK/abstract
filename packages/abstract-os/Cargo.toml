@@ -1,10 +1,13 @@
 [package]
 name = "abstract-os"
 version = "0.1.0"
-authors = ["CyberHoward"]
-edition = "2018"
+authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
+edition = "2021"
 description = "Abstract contract interfaces and storage layouts"
 license = "GPL-2.0-or-later"
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts/tree/main/packages/abstract-os"
+
 
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
