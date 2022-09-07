@@ -16,6 +16,7 @@ mod module_traits;
 pub mod proxy;
 pub mod tendermint_staking;
 pub mod version_control;
+mod exchange;
 pub mod memory {
     pub use abstract_os::objects::memory::Memory;
 }
