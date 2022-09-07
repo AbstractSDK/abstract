@@ -1,7 +1,7 @@
 [package]
 name = "dex"
 version = "0.1.0"
-authors = ["CyberHoward"]
+authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2018"
 
 exclude = [

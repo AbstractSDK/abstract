@@ -1,7 +1,7 @@
 [package]
 name = "cw20-vesting"
 version = "1.0.0"
-authors = ["Abstract Labs"]
+authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2018"
 license = "MIT"
 

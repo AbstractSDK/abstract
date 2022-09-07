@@ -1,7 +1,7 @@
 [package]
 name = "abstract-os"
-version = "0.1.0"
-authors = ["CyberHoward"]
+version = "0.1.0-rc1"
+authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2018"
 description = "Abstract contract interfaces and storage layouts"
 license = "GPL-2.0-or-later"
