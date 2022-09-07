@@ -1,8 +1,7 @@
 use abstract_os::api::{BaseExecuteMsg, ExecuteMsg};
 use abstract_os::version_control::Core;
-use abstract_sdk::common_namespace::BASE_STATE_KEY;
 use abstract_sdk::manager::query_module_address;
-use abstract_sdk::proxy::send_to_proxy;
+use abstract_sdk::proxy::{query_os_manager_address, send_to_proxy};
 use abstract_sdk::version_control::{verify_os_manager, verify_os_proxy};
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
@@ -12,7 +11,7 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::error::ApiError;
-use crate::state::{ApiContract, TRADER_NAMESPACE};
+use crate::state::ApiContract;
 use crate::ApiResult;
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
@@ -24,7 +23,11 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
         _deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
     ) -> Result<Response, Self::Err> {
-        Ok(Response::new().add_message(send_to_proxy(msgs, &self.request_destination.clone())?))
+        if let Some(target) = &self.target_os {
+            Ok(Response::new().add_message(send_to_proxy(msgs, &target.proxy)?))
+        } else {
+            Err(ApiError::NoTargetOS {})
+        }
     }
 }
 
@@ -33,6 +36,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
     pub fn handle_request<RequestError: From<cosmwasm_std::StdError> + From<ApiError>>(
+        mut self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
@@ -46,32 +50,30 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         ) -> Result<Response, RequestError>,
     ) -> Result<Response, RequestError> {
         let sender = &info.sender;
-        let mut api = Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""));
         match msg {
             ExecuteMsg::Request(request) => {
-                let proxy = match request.proxy_address {
+                let core = match request.proxy_address {
                     Some(addr) => {
-                        let traders = api
+                        let traders = self
                             .traders
                             .load(deps.storage, Addr::unchecked(addr.clone()))?;
                         if traders.contains(sender) {
-                            Addr::unchecked(addr)
+                            let proxy = Addr::unchecked(addr);
+                            let manager = query_os_manager_address(&deps.querier, &proxy)?;
+                            Core { manager, proxy }
                         } else {
-                            api.verify_sender_is_manager(deps.as_ref(), sender)
+                            self.verify_sender_is_manager(deps.as_ref(), sender)
                                 .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
-                                .proxy
                         }
                     }
-                    None => {
-                        api.verify_sender_is_manager(deps.as_ref(), sender)
-                            .map_err(|_| ApiError::UnauthorizedApiRequest {})?
-                            .proxy
-                    }
+                    None => self
+                        .verify_sender_is_manager(deps.as_ref(), sender)
+                        .map_err(|_| ApiError::UnauthorizedApiRequest {})?,
                 };
-                api.request_destination = proxy;
-                request_handler(deps, env, info, api, request.request)
+                self.target_os = Some(core);
+                request_handler(deps, env, info, self, request.request)
             }
-            ExecuteMsg::Configure(exec_msg) => api
+            ExecuteMsg::Configure(exec_msg) => self
                 .execute(deps, env, info.clone(), exec_msg)
                 .map_err(From::from),
         }
@@ -100,11 +102,12 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     ) -> Result<Response, ApiError> {
         let core = self.verify_sender_is_manager(deps, &info.sender)?;
         // Dangerous to forget!! add to verify fn?
-        self.request_destination = core.proxy;
-        let dependencies = self.state(deps.storage)?.api_dependencies;
+        self.target_os = Some(core);
+        let dependencies = self.dependencies;
         let mut msgs: Vec<CosmosMsg> = vec![];
         for dep in dependencies {
-            let api_addr = query_module_address(deps, &core.manager, dep.as_str());
+            let api_addr =
+                query_module_address(deps, &self.target_os.as_ref().unwrap().manager, dep);
             // just skip if dep is already removed. This means all the traders are already removed.
             if api_addr.is_err() {
                 continue;

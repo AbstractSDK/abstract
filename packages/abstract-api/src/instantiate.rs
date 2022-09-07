@@ -18,7 +18,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         msg: ApiInstantiateMsg,
         module_name: &str,
         module_version: &str,
-        api_dependencies: Vec<String>,
+        _api_dependencies: Vec<String>,
     ) -> StdResult<Self> {
         let api = Self::default();
         let memory = Memory {
@@ -29,7 +29,6 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         let state = ApiState {
             version_control: deps.api.addr_validate(&msg.version_control_address)?,
             memory,
-            api_dependencies,
         };
 
         set_contract_version(deps.storage, module_name, module_version)?;

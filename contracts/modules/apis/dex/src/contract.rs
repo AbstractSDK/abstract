@@ -12,10 +12,11 @@ use crate::{
     error::DexError,
     queries::simulate_swap,
 };
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg>;
 pub type DexResult = Result<Response, DexError>;
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const DEX_API: DexApi<'static> = DexApi::new(&[]);
 
 // Supported exchanges on XXX
 // ...
@@ -38,7 +39,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> DexResult {
-    DexApi::handle_request(deps, env, info, msg, handle_api_request)
+    DEX_API.handle_request(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
@@ -114,7 +115,7 @@ pub fn handle_api_request(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg<QueryMsg>) -> Result<Binary, DexError> {
-    DexApi::handle_query(deps, env, msg, Some(query_handler))
+    DEX_API.handle_query(deps, env, msg, Some(query_handler))
 }
 
 fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, DexError> {

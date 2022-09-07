@@ -1,14 +1,24 @@
 use abstract_os::add_on::{AddOnQueryMsg, QueryAddOnConfigResponse};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Storage};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdError, StdResult, Storage};
 use cw_controllers::AdminResponse;
 
-use abstract_sdk::MemoryOperation;
+use abstract_sdk::{manager::query_module_address, Dependency, MemoryOperation};
 
 use crate::state::AddOnContract;
 
 impl MemoryOperation for AddOnContract<'_> {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
+    }
+}
+
+impl Dependency for AddOnContract<'_> {
+    fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
+        let manager_addr = &self
+            .admin
+            .get(deps)?
+            .ok_or_else(|| StdError::generic_err("No admin on add-on"))?;
+        query_module_address(deps, manager_addr, dependency_name)
     }
 }
 

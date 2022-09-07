@@ -6,8 +6,8 @@ use crate::{
 
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest,
-    StdResult, Uint128, WasmMsg, WasmQuery,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
+    Uint128, WasmMsg, WasmQuery,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

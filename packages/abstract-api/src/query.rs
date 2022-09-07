@@ -1,18 +1,29 @@
-use abstract_sdk::common_namespace::BASE_STATE_KEY;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult, Storage};
+use abstract_sdk::manager::query_module_address;
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdError, StdResult, Storage};
 
 use abstract_os::api::{ApiQueryMsg, BaseQueryMsg, QueryApiConfigResponse, QueryTradersResponse};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use abstract_sdk::MemoryOperation;
+use abstract_sdk::{Dependency, MemoryOperation};
 
-use crate::state::{ApiContract, TRADER_NAMESPACE};
+use crate::state::ApiContract;
 use crate::ApiError;
 
 impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
+    }
+}
+
+impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
+    fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
+        let manager_addr = &self
+            .target_os
+            .as_ref()
+            .ok_or_else(|| StdError::generic_err(ApiError::NoTargetOS {}.to_string()))?
+            .manager;
+        query_module_address(deps, manager_addr, dependency_name)
     }
 }
 
@@ -25,6 +36,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         Q: Serialize + DeserializeOwned,
         QueryError: From<cosmwasm_std::StdError> + From<ApiError>,
     >(
+        &self,
         deps: Deps,
         env: Env,
         msg: ApiQueryMsg<Q>,
@@ -35,10 +47,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
                 .map(|func| func(deps, env, api_query))
                 .transpose()?
                 .ok_or_else(|| ApiError::NoCustomQueries {}.into()),
-            ApiQueryMsg::Base(base_query) => {
-                let api = Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""));
-                api.query(deps, env, base_query).map_err(From::from)
-            }
+            ApiQueryMsg::Base(base_query) => self.query(deps, env, base_query).map_err(From::from),
         }
     }
 
@@ -62,7 +71,11 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         Ok(QueryApiConfigResponse {
             version_control_address: state.version_control,
             memory_address: state.memory.address,
-            dependencies: state.api_dependencies,
+            dependencies: self
+                .dependencies
+                .iter()
+                .map(|dep| dep.to_string())
+                .collect(),
         })
     }
 }

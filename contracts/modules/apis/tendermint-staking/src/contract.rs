@@ -1,6 +1,5 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::api::{ApiInstantiateMsg, ApiQueryMsg, ExecuteMsg};
-use abstract_os::TENDERMINT_STAKING;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use abstract_os::tendermint_staking::RequestMsg;
@@ -9,9 +8,12 @@ use abstract_sdk::OsExecute;
 
 use crate::error::TendermintStakeError;
 
+use abstract_os::TENDERMINT_STAKING;
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new(&[]);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -40,7 +42,7 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    TendermintStakeApi::handle_request(deps, env, info, msg, handle_api_request)
+    STAKING_API.handle_request(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
@@ -58,14 +60,13 @@ pub fn handle_api_request(
         RequestMsg::UndelegateFrom { validator, amount } => {
             let undelegate_msg = match amount {
                 Some(amount) => undelegate_from(&deps.querier, &validator, amount.u128())?,
-                None => undelegate_all_from(&deps.querier, &api.request_destination, &validator)?,
+                None => undelegate_all_from(&deps.querier, api.target()?, &validator)?,
             };
             api.os_execute(deps.as_ref(), vec![undelegate_msg])
         }
-        RequestMsg::UndelegateAll {} => api.os_execute(
-            deps.as_ref(),
-            undelegate_all(&deps.querier, &api.request_destination)?,
-        ),
+        RequestMsg::UndelegateAll {} => {
+            api.os_execute(deps.as_ref(), undelegate_all(&deps.querier, api.target()?)?)
+        }
 
         RequestMsg::Redelegate {
             source_validator,
@@ -83,7 +84,7 @@ pub fn handle_api_request(
                     &deps.querier,
                     &source_validator,
                     &destination_validator,
-                    &api.request_destination,
+                    api.target()?,
                 )?,
             };
             api.os_execute(deps.as_ref(), vec![redelegate_msg])
@@ -99,7 +100,7 @@ pub fn handle_api_request(
         }
         RequestMsg::WithdrawAllRewards {} => api.os_execute(
             deps.as_ref(),
-            withdraw_all_rewards(&deps.querier, &api.request_destination)?,
+            withdraw_all_rewards(&deps.querier, api.target()?)?,
         ),
     }
     .map_err(From::from)
@@ -107,5 +108,5 @@ pub fn handle_api_request(
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, TendermintStakeError> {
-    TendermintStakeApi::handle_query(deps, env, msg, None)
+    STAKING_API.handle_query(deps, env, msg, None)
 }

@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::marker::PhantomData;
 
+use abstract_os::version_control::Core;
 use abstract_sdk::common_namespace::BASE_STATE_KEY;
 use abstract_sdk::memory::Memory;
 
@@ -10,6 +11,8 @@ use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+
+use crate::ApiError;
 
 pub const TRADER_NAMESPACE: &str = "traders";
 
@@ -22,28 +25,27 @@ pub struct ApiContract<'a, T: Serialize + DeserializeOwned> {
     /// Stores the API version
     pub version: Item<'a, ContractVersion>,
 
-    pub request_destination: Addr,
+    pub dependencies: &'static [&'static str],
+
+    pub target_os: Option<Core>,
     _phantom_data: PhantomData<T>,
 }
 
 impl<'a, T: Serialize + DeserializeOwned> Default for ApiContract<'a, T> {
     fn default() -> Self {
-        Self::new(BASE_STATE_KEY, TRADER_NAMESPACE, Addr::unchecked(""))
+        Self::new(&[])
     }
 }
 
 /// Constructor
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
-    pub(crate) fn new(
-        base_state_key: &'a str,
-        traders_namespace: &'a str,
-        proxy_address: Addr,
-    ) -> Self {
+    pub const fn new(dependencies: &'static [&'static str]) -> Self {
         Self {
             version: CONTRACT,
-            base_state: Item::new(base_state_key),
-            traders: Map::new(traders_namespace),
-            request_destination: proxy_address,
+            base_state: Item::new(BASE_STATE_KEY),
+            traders: Map::new(TRADER_NAMESPACE),
+            target_os: None,
+            dependencies,
             _phantom_data: PhantomData,
         }
     }
@@ -55,6 +57,14 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
+
+    pub fn target(&self) -> Result<&Addr, ApiError> {
+        Ok(&self
+            .target_os
+            .as_ref()
+            .ok_or(ApiError::NoTargetOS {})?
+            .proxy)
+    }
 }
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
@@ -64,5 +74,4 @@ pub struct ApiState {
     pub version_control: Addr,
     /// Memory contract struct (address)
     pub memory: Memory,
-    pub api_dependencies: Vec<String>,
 }

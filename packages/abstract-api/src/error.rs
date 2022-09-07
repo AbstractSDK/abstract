@@ -21,4 +21,7 @@ pub enum ApiError {
 
     #[error("This API does not implement any custom queries")]
     NoCustomQueries,
+
+    #[error("No target OS specified to execute on.")]
+    NoTargetOS,
 }
