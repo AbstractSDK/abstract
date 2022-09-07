@@ -1,5 +1,5 @@
 use abstract_os::add_on::{AddOnQueryMsg, QueryAddOnConfigResponse};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult, Storage};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 use crate::state::AddOnContract;
