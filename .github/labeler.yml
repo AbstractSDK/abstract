@@ -17,16 +17,16 @@
   - contracts/native/**/*
 "breaking?":
   # Match all of native folders
-  - contracts/packages/abstract-os/**/*
+  - packages/abstract-os/**/*
 "sdk":
   # Match all of native folders
-  - contracts/packages/abstract-sdk/**/*
+  - packages/abstract-sdk/**/*
 "api_base":
   # Match all of native folders
-  - contracts/packages/abstract-api/**/*
+  - packages/abstract-api/**/*
 "add-on_base":
   # Match all of native folders
-  - contracts/packages/abstract-add-on/**/*
+  - packages/abstract-add-on/**/*
 "build":
   - build_release.sh
 "CI":
