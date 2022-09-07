@@ -2,7 +2,7 @@
 name = "cw20-vesting"
 version = "1.0.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 
 [lib]

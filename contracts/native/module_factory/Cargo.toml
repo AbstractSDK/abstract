@@ -2,7 +2,7 @@
 name = "module-factory"
 version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 description = ""
 license = "MIT"
 

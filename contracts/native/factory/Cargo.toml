@@ -2,7 +2,7 @@
 name = "os-factory"
 version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 description = "A CosmWasm DAO factory contract - Generates the initial DAO infrastructure"
 license = "MIT"
 
