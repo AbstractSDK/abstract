@@ -1,23 +1,8 @@
 use abstract_os::add_on::AddOnExecuteMsg;
-use abstract_sdk::proxy::send_to_proxy;
-use abstract_sdk::OsExecute;
-use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 
-use crate::error::AddOnError;
-use crate::state::AddOnContract;
-use crate::AddOnResult;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-impl OsExecute for AddOnContract<'_> {
-    type Err = AddOnError;
-    fn os_execute(
-        &self,
-        deps: Deps,
-        msgs: Vec<cosmwasm_std::CosmosMsg>,
-    ) -> Result<Response, Self::Err> {
-        let proxy = self.base_state.load(deps.storage)?.proxy_address;
-        Ok(Response::new().add_message(send_to_proxy(msgs, &proxy)?))
-    }
-}
+use crate::{state::AddOnContract, AddOnResult};
 
 impl<'a> AddOnContract<'a> {
     pub fn execute(

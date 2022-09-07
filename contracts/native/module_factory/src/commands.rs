@@ -3,8 +3,10 @@ use cosmwasm_std::{
     Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
 };
 
-use abstract_os::manager::ExecuteMsg as ManagerMsg;
-use abstract_os::objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind};
+use abstract_os::{
+    manager::ExecuteMsg as ManagerMsg,
+    objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind},
+};
 use abstract_sdk::version_control::verify_os_manager;
 
 use cw2::ContractVersion;
@@ -12,9 +14,7 @@ use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
 
-use crate::error::ModuleFactoryError;
-use crate::response::MsgInstantiateContractResponse;
-use crate::state::*;
+use crate::{error::ModuleFactoryError, response::MsgInstantiateContractResponse, state::*};
 
 use abstract_os::version_control::{
     QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VCQuery,

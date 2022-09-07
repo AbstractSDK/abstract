@@ -1,35 +1,19 @@
-use abstract_os::api::{BaseExecuteMsg, ExecuteMsg};
-use abstract_os::version_control::Core;
-use abstract_sdk::manager::query_module_address;
-use abstract_sdk::proxy::{query_os_manager_address, send_to_proxy};
-use abstract_sdk::version_control::{verify_os_manager, verify_os_proxy};
-use abstract_sdk::OsExecute;
+use abstract_os::{
+    api::{BaseExecuteMsg, ExecuteMsg},
+    version_control::Core,
+};
+use abstract_sdk::{
+    manager::query_module_address,
+    proxy::query_os_manager_address,
+    version_control::{verify_os_manager, verify_os_proxy},
+    OsExecute,
+};
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, WasmMsg,
 };
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
-use crate::error::ApiError;
-use crate::state::ApiContract;
-use crate::ApiResult;
-
-/// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
-    type Err = ApiError;
-
-    fn os_execute(
-        &self,
-        _deps: Deps,
-        msgs: Vec<cosmwasm_std::CosmosMsg>,
-    ) -> Result<Response, Self::Err> {
-        if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(send_to_proxy(msgs, &target.proxy)?))
-        } else {
-            Err(ApiError::NoTargetOS {})
-        }
-    }
-}
+use crate::{error::ApiError, state::ApiContract, ApiResult};
 
 /// The api-contract base implementation.
 impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {

@@ -1,14 +1,12 @@
-use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 
 use crate::error::ModuleFactoryError;
 use abstract_os::OS_FACTORY;
 use cw2::set_contract_version;
 
-use crate::commands;
-use crate::state::*;
+use crate::{commands, state::*};
 use abstract_os::module_factory::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;

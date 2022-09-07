@@ -1,31 +1,9 @@
-use abstract_sdk::manager::query_module_address;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdError, StdResult, Storage};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 use abstract_os::api::{ApiQueryMsg, BaseQueryMsg, QueryApiConfigResponse, QueryTradersResponse};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
-use abstract_sdk::{Dependency, MemoryOperation};
-
-use crate::state::ApiContract;
-use crate::ApiError;
-
-impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
-    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
-        Ok(self.base_state.load(store)?.memory)
-    }
-}
-
-impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
-    fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
-        let manager_addr = &self
-            .target_os
-            .as_ref()
-            .ok_or_else(|| StdError::generic_err(ApiError::NoTargetOS {}.to_string()))?
-            .manager;
-        query_module_address(deps, manager_addr, dependency_name)
-    }
-}
+use crate::{state::ApiContract, ApiError};
 
 pub type ApiQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Binary, QueryError>>;
 

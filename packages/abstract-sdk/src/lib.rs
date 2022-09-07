@@ -10,13 +10,13 @@ pub mod _modules;
 mod api;
 pub mod common_namespace;
 pub mod cw20;
+mod exchange;
 pub mod manager;
 mod memory_traits;
 mod module_traits;
 pub mod proxy;
 pub mod tendermint_staking;
 pub mod version_control;
-mod exchange;
 pub mod memory {
     pub use abstract_os::objects::memory::Memory;
 }

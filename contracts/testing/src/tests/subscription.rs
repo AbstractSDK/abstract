@@ -1,21 +1,28 @@
 use std::str::FromStr;
 
-use abstract_os::subscription::state::{Compensation, EmissionType};
-use abstract_os::{objects::module::ModuleInfo, SUBSCRIPTION};
-use abstract_os::{subscription as msgs, subscription::state};
+use abstract_os::{
+    objects::module::ModuleInfo,
+    subscription as msgs,
+    subscription::{
+        state,
+        state::{Compensation, EmissionType},
+    },
+    SUBSCRIPTION,
+};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
 
-use crate::tests::common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST};
-use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens};
+use crate::tests::{
+    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
+    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
+};
 
-use super::testing_infrastructure::env::init_os;
 use super::{
     common::TEST_CREATOR,
-    testing_infrastructure::env::{get_os_state, mock_app, register_module, AbstractEnv},
+    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_module, AbstractEnv},
 };
 
 pub fn register_subscription(

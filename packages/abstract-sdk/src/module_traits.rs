@@ -1,5 +1,6 @@
 use abstract_os::objects::memory::Memory;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdResult, Storage};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Response, StdResult, Storage};
+use serde::Serialize;
 
 use crate::Resolve;
 
@@ -20,6 +21,14 @@ pub trait MemoryOperation {
     }
 }
 
+/// Call functions on dependencies
 pub trait Dependency {
     fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr>;
+    fn call_api_dependency<E: Serialize>(
+        &self,
+        deps: Deps,
+        dependency_name: &str,
+        request_msg: &E,
+        funds: Vec<Coin>,
+    ) -> StdResult<CosmosMsg>;
 }

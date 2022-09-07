@@ -1,28 +1,23 @@
-use std::collections::HashMap;
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use abstract_os::version_control::QueryOsCoreResponse;
 use cosmwasm_std::Addr;
 
-use abstract_os::add_on::AddOnInstantiateMsg;
-use abstract_os::objects::module::ModuleInfo;
-use abstract_os::subscription::InstantiateMsg as SubInitMsg;
-use abstract_os::version_control::Core;
-use cosmwasm_std::to_binary;
-use cosmwasm_std::Coin;
-use cosmwasm_std::Decimal;
-use cosmwasm_std::Uint128;
-use cosmwasm_std::Uint64;
+use abstract_os::{
+    add_on::AddOnInstantiateMsg, objects::module::ModuleInfo,
+    subscription::InstantiateMsg as SubInitMsg, version_control::Core,
+};
+use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
 use cw_asset::AssetInfoUnchecked;
 
 use abstract_os::SUBSCRIPTION;
 use cw_multi_test::App;
 
-use crate::tests::common::OS_NAME;
-use crate::tests::common::SUBSCRIPTION_COST;
-use crate::tests::common::TEST_CREATOR;
-use crate::tests::subscription::register_subscription;
-use crate::tests::testing_infrastructure::common_integration::mock_app;
+use crate::tests::{
+    common::{OS_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
+    subscription::register_subscription,
+    testing_infrastructure::common_integration::mock_app,
+};
 
 use abstract_os::*;
 use anyhow::Result as AnyResult;
@@ -31,8 +26,7 @@ use cw_multi_test::Executor;
 
 use super::common_integration::NativeContracts;
 
-use super::upload::upload_base_contracts;
-use super::verify::os_store_as_expected;
+use super::{upload::upload_base_contracts, verify::os_store_as_expected};
 
 pub fn init_os(
     app: &mut App,

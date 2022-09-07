@@ -11,7 +11,8 @@ mod execute;
 pub mod instantiate;
 mod query;
 pub mod state;
-
+/// Abstract SDK trait implementations
+pub mod traits;
 // #[cfg(test)]
 // mod testing;
 

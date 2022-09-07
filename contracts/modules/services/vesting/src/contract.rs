@@ -1,8 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 
-use abstract_os::vesting::state::{Config, ALLOCATIONS, CONFIG, STATE};
 use abstract_os::vesting::{
+    state::{Config, ALLOCATIONS, CONFIG, STATE},
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };

@@ -12,7 +12,7 @@ pub fn api_request<T: Serialize>(
     Ok(wasm_execute(api_address, &api_msg, funds)?.into())
 }
 
-/// Construct an API configure message 
+/// Construct an API configure message
 pub fn configure_api(
     api_address: impl Into<String>,
     message: BaseExecuteMsg,

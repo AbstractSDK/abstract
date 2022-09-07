@@ -22,8 +22,10 @@ use cw_asset::{Asset, AssetInfo};
 
 use crate::{
     manager::state::OS_MODULES,
-    proxy::state::ADMIN,
-    proxy::{state::VAULT_ASSETS, ExternalValueResponse, ValueQueryMsg},
+    proxy::{
+        state::{ADMIN, VAULT_ASSETS},
+        ExternalValueResponse, ValueQueryMsg,
+    },
 };
 
 use super::{

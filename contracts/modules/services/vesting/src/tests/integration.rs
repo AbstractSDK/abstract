@@ -2,8 +2,11 @@ use abstract_os::vesting::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
-use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
-use cosmwasm_std::{attr, to_binary, Addr, Coin, Timestamp, Uint128};
+use cosmwasm_std::{
+    attr,
+    testing::{mock_env, MockApi, MockStorage},
+    to_binary, Addr, Coin, Timestamp, Uint128,
+};
 use cw_multi_test::{App, AppBuilder, BankKeeper, ContractWrapper, Executor};
 
 const OWNER: &str = "owner";

@@ -7,9 +7,11 @@ use cosmwasm_std::{
 
 use cw2::set_contract_version;
 use cw20::Cw20ExecuteMsg;
-use cw20_base::contract::{create_accounts, execute as cw20_execute, query as cw20_query};
-use cw20_base::state::{MinterData, TokenInfo, TOKEN_INFO};
-use cw20_base::ContractError;
+use cw20_base::{
+    contract::{create_accounts, execute as cw20_execute, query as cw20_query},
+    state::{MinterData, TokenInfo, TOKEN_INFO},
+    ContractError,
+};
 
 use crate::state::{Config, ADMIN, CONFIG};
 use abstract_os::abstract_token::{

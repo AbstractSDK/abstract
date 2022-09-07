@@ -6,9 +6,8 @@ use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::{
     memory as MemoryMsg, module_factory as ModuleFactoryMsg, os_factory as OSFactoryMsg,
-    version_control as VCMsg,
+    version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
 };
-use abstract_os::{MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 
 use cw_multi_test::{App, Executor};
 

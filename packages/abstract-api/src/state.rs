@@ -1,16 +1,13 @@
-use std::collections::HashSet;
-use std::marker::PhantomData;
+use std::{collections::HashSet, marker::PhantomData};
 
 use abstract_os::version_control::Core;
-use abstract_sdk::common_namespace::BASE_STATE_KEY;
-use abstract_sdk::memory::Memory;
+use abstract_sdk::{common_namespace::BASE_STATE_KEY, memory::Memory};
 
 use cosmwasm_std::{Addr, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::ApiError;
 
