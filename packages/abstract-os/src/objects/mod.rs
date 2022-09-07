@@ -2,6 +2,7 @@
 //! This module contains all the structs and enums used in contract state-storage or contained in contract interaction.
 
 pub(crate) mod asset_entry;
+pub mod common_namespace;
 pub(crate) mod contract_entry;
 pub mod core;
 pub mod deposit_info;

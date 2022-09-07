@@ -3,9 +3,7 @@ use abstract_os::{
     version_control::Core,
 };
 use abstract_sdk::{
-    manager::query_module_address,
-    proxy::query_os_manager_address,
-    version_control::{verify_os_manager, verify_os_proxy},
+    proxy::query_os_manager_address, query_module_address, verify_os_manager, verify_os_proxy,
     OsExecute,
 };
 use cosmwasm_std::{

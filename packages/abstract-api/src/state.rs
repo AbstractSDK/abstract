@@ -1,7 +1,7 @@
 use std::{collections::HashSet, marker::PhantomData};
 
 use abstract_os::version_control::Core;
-use abstract_sdk::{common_namespace::BASE_STATE_KEY, memory::Memory};
+use abstract_sdk::{memory::Memory, BASE_STATE};
 
 use cosmwasm_std::{Addr, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
@@ -39,7 +39,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
     pub const fn new(dependencies: &'static [&'static str]) -> Self {
         Self {
             version: CONTRACT,
-            base_state: Item::new(BASE_STATE_KEY),
+            base_state: Item::new(BASE_STATE),
             traders: Map::new(TRADER_NAMESPACE),
             target_os: None,
             dependencies,

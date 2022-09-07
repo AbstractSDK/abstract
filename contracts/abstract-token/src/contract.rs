@@ -180,7 +180,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
     {
         return Ok(());
     }
-    abstract_sdk::version_control::verify_os_proxy(
+    abstract_sdk::verify_os_proxy(
         &deps.querier,
         &Addr::unchecked(recipient),
         &config.version_control_address,

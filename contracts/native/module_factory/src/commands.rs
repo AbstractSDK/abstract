@@ -7,7 +7,7 @@ use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
     objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind},
 };
-use abstract_sdk::version_control::verify_os_manager;
+use abstract_sdk::verify_os_manager;
 
 use cw2::ContractVersion;
 use protobuf::Message;
