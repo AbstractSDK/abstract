@@ -1,4 +1,5 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use semver::Version;
 
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
@@ -10,7 +11,7 @@ use abstract_os::{
     objects::module::*,
     proxy::state::OS_ID,
 };
-use cw2::set_contract_version;
+use cw2::{get_contract_version, set_contract_version};
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
@@ -22,12 +23,12 @@ pub(crate) const MAX_LINK_LENGTH: usize = 128;
 pub(crate) const MIN_TITLE_LENGTH: usize = 4;
 pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
-    // let version: Version = CONTRACT_VERSION.parse()?;
-    // let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
-    // if storage_version < version {
-    //     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-    // }
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    if storage_version < version {
+        set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    }
     Ok(Response::default())
 }
 

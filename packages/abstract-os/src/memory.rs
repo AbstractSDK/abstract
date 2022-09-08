@@ -91,6 +91,10 @@ pub enum QueryMsg {
         page_size: Option<u8>,
     },
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub struct MigrateMsg {}
 /// Query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct QueryAssetsResponse {

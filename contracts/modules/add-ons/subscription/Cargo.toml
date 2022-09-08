@@ -1,6 +1,6 @@
 [package]
 name = "subscription"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 
@@ -40,4 +40,4 @@ abstract-os = { path = "../../../../packages/abstract-os" }
 cosmwasm-schema = { version = "1.0" }
 cw-multi-test = { version = "0.13" }
 cw20-base = { version = "0.13", features = ["library"] }
-proxy = { version = "0.1.0", path = "../../../core/proxy" }
+proxy = { version = "0.1.0-rc.1", path = "../../../core/proxy" }

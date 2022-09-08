@@ -4,7 +4,7 @@ pub mod dapp_base;
 pub mod error;
 pub mod queries;
 pub mod response;
-pub(crate) use abstract_os::liquidity_interface::state;
+pub(crate) use abstract_os::etf::state;
 
 // TODO; FIX
 // #[cfg(test)]

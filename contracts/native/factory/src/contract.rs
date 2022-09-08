@@ -3,10 +3,11 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw_asset::Asset;
+use semver::Version;
 
 use crate::error::OsFactoryError;
 use abstract_os::OS_FACTORY;
-use cw2::set_contract_version;
+use cw2::{get_contract_version, set_contract_version};
 
 use crate::{commands, state::*};
 use abstract_os::os_factory::*;
@@ -117,6 +118,11 @@ pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    if storage_version < version {
+        set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+    }
     Ok(Response::default())
 }

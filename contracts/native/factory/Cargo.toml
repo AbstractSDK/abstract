@@ -1,6 +1,6 @@
 [package]
 name = "os-factory"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 description = "A CosmWasm DAO factory contract - Generates the initial DAO infrastructure"
@@ -35,7 +35,7 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }
 protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = {version = "2.2.0"}
-
+semver = "1.0.13"
 [dev-dependencies]
 cosmwasm-schema = "1.0"
 cosmwasm-storage = { version = "1.0" }

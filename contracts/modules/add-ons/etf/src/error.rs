@@ -11,9 +11,6 @@ pub enum VaultError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("Semver parsing error: {0}")]
-    SemVer(String),
-
     #[error("{0}")]
     DappError(#[from] AddOnError),
 
@@ -49,10 +46,4 @@ pub enum VaultError {
 
     #[error("The actual amount of tokens transfered is different from the claimed amount.")]
     InvalidAmount {},
-}
-
-impl From<semver::Error> for VaultError {
-    fn from(err: semver::Error) -> Self {
-        Self::SemVer(err.to_string())
-    }
 }

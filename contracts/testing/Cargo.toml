@@ -1,6 +1,6 @@
 [package]
 name = "integration_testing"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 
@@ -34,20 +34,20 @@ cw2 = "0.13"
 cw20 = { version = "0.13" }
 cw-asset = {version = "2.0.0"}
 cosmwasm-std = { version = "1.0" }
-abstract-os = { version = "0.1.0", path = "../../packages/abstract-os" }
-abstract-sdk = { version = "0.1.0", path = "../../packages/abstract-sdk" }
+abstract-os = { version = "0.1.0-rc.1", path = "../../packages/abstract-os" }
+abstract-sdk = { version = "0.1.0-rc.1", path = "../../packages/abstract-sdk" }
 cosmwasm-schema = { version = "1.0" }
 cw-multi-test = {git = "https://github.com/Abstract-OS/cw-plus.git", branch="main"}
 cw20-base = { version = "0.13", features = ["library"] }
 anyhow = "1.0.57"
-proxy = { version = "0.1.0", path = "../core/proxy" }
-manager = { version = "0.1.0", path = "../core/manager" }
-memory = { version = "0.1.0", path = "../native/memory" }
-os-factory = { version = "0.1.0", path = "../native/factory" }
-module-factory = { version = "0.1.0", path = "../native/module_factory" }
-version-control = { version = "0.1.0", path = "../native/version_control" }
-subscription = { version = "0.1.0", path = "../modules/add-ons/subscription" }
-dex = { version = "0.1.0", path = "../modules/apis/dex" }
+proxy = { version = "0.1.0-rc.1", path = "../core/proxy" }
+manager = { version = "0.1.0-rc.1", path = "../core/manager" }
+memory = { version = "0.1.0-rc.1", path = "../native/memory" }
+os-factory = { version = "0.1.0-rc.1", path = "../native/factory" }
+module-factory = { version = "0.1.0-rc.1", path = "../native/module_factory" }
+version-control = { version = "0.1.0-rc.1", path = "../native/version_control" }
+subscription = { version = "0.1.0-rc.1", path = "../modules/add-ons/subscription" }
+dex = { version = "0.1.0-rc.1", path = "../modules/apis/dex" }
 
 
 # [package.metadata.scripts]

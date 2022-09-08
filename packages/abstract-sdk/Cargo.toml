@@ -1,6 +1,6 @@
 [package]
 name = "abstract-sdk"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 description = "Helpers for Abstract contracts"
@@ -28,5 +28,5 @@ serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
 cw-asset = {version = "2.2.0"}
 serde-cw-value = "0.7.0"
-abstract-os = {path = "../abstract-os", version="0.1.0"}
+abstract-os = {path = "../abstract-os", version = "0.1.0-rc.1"}
 # abstract-os = {path = "../abstract-os"}

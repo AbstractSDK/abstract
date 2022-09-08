@@ -1,11 +1,12 @@
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::set_contract_version;
+use cw2::{get_contract_version, set_contract_version};
+use semver::Version;
 
 use crate::commands::*;
 use crate::error::MemoryError;
 use crate::queries;
 use abstract_os::memory::state::ADMIN;
-use abstract_os::memory::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_os::memory::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type MemoryResult = Result<Response, MemoryError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -45,4 +46,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_size,
         } => queries::query_contract_list(deps, page_token, page_size),
     }
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    if storage_version < version {
+        set_contract_version(deps.storage, MEMORY, CONTRACT_VERSION)?;
+    }
+    Ok(Response::default())
 }

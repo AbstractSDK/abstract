@@ -10,9 +10,6 @@ pub enum ManagerError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("Semver parsing error: {0}")]
-    SemVer(String),
-
     #[error("Cannot add two modules of the same kind")]
     ModuleAlreadyAdded {},
 
@@ -60,9 +57,4 @@ pub enum ManagerError {
 
     #[error("title/gov-type too long, must be at most {0} characters")]
     TitleInvalidLong(usize),
-}
-impl From<semver::Error> for ManagerError {
-    fn from(err: semver::Error) -> Self {
-        Self::SemVer(err.to_string())
-    }
 }

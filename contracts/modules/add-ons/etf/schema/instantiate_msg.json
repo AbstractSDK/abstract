@@ -20,7 +20,7 @@
       ]
     },
     "deposit_asset": {
-      "description": "Asset required to deposit into the liquidity_interface.",
+      "description": "Asset required to deposit into the etf.",
       "type": "string"
     },
     "fee": {
@@ -42,14 +42,14 @@
       "minimum": 0.0
     },
     "token_name": {
-      "description": "Name of the liquidity_interface token",
+      "description": "Name of the etf token",
       "type": [
         "string",
         "null"
       ]
     },
     "token_symbol": {
-      "description": "Symbol of the liquidity_interface token",
+      "description": "Symbol of the etf token",
       "type": [
         "string",
         "null"

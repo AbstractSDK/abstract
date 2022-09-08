@@ -92,7 +92,7 @@ Migratable contracts are always a security risk. Therefore we'll outline all the
 - OS Factory (Abstract)
 - Module Factory (Abstract)
 - Version Control (Abstract)
+- Memory
 
 ## Not Migratable
-- Memory
 - APIs

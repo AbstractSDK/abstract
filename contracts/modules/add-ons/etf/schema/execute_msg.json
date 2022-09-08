@@ -50,7 +50,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Update the liquidity_interface pool information Asset names are resolved using [`abstract_os::memory`].",
+      "description": "Update the etf pool information Asset names are resolved using [`abstract_os::memory`].",
       "type": "object",
       "required": [
         "update_pool"

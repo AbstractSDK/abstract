@@ -1,41 +1,41 @@
 //! # Liquidity Interface Add-On
 //!
-//! `abstract_os::liquidity_interface` is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
+//! `abstract_os::etf` is an add-on which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
 //! ## Description  
 //! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
 //! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.  
 //!
 //! ---
-//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the liquidity_interface's size.
+//! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the etf's size.
 //!
 //! ## Creation
-//! The liquidity_interface contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
+//! The etf contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
 //! ```ignore
-//! let liquidity_interface_init_msg = InstantiateMsg{
+//! let etf_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
 //!                base: AddOnInstantiateMsg{memory_address: "juno1...".to_string()},
 //!                fee: Decimal::percent(10),
 //!                provider_addr: "juno1...".to_string(),
 //!                token_code_id: 3,
-//!                liquidity_interface_lp_token_name: Some("demo_liquidity_interface".to_string()),
-//!                liquidity_interface_lp_token_symbol: Some("DEMO".to_string()),
+//!                etf_lp_token_name: Some("demo_etf".to_string()),
+//!                etf_lp_token_symbol: Some("DEMO".to_string()),
 //!        };
 //! let create_module_msg = ExecuteMsg::CreateModule {
 //!                 module: Module {
 //!                     info: ModuleInfo {
-//!                         name: LIQUIDITY_INTERFACE.into(),
+//!                         name: ETF.into(),
 //!                         version: None,
 //!                     },
 //!                     kind: crate::core::modules::ModuleKind::External,
 //!                 },
-//!                 init_msg: Some(to_binary(&liquidity_interface_init_msg).unwrap()),
+//!                 init_msg: Some(to_binary(&etf_init_msg).unwrap()),
 //!        };
 //! // Call create_module_msg on manager
 //! ```
 //!
 //! ## Migration
-//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::LIQUIDITY_INTERFACE` as module.
+//! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
 
 pub mod state {
     use schemars::JsonSchema;
@@ -89,11 +89,11 @@ pub struct InstantiateMsg {
     pub fee: Decimal,
     /// Address of the service provider which receives the fee.
     pub provider_addr: String,
-    /// Asset required to deposit into the liquidity_interface.
+    /// Asset required to deposit into the etf.
     pub deposit_asset: String,
-    /// Name of the liquidity_interface token
+    /// Name of the etf token
     pub token_name: Option<String>,
-    /// Symbol of the liquidity_interface token
+    /// Symbol of the etf token
     pub token_symbol: Option<String>,
 }
 
@@ -108,7 +108,7 @@ pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
-    /// Update the liquidity_interface pool information
+    /// Update the etf pool information
     /// Asset names are resolved using [`abstract_os::memory`].
     UpdatePool {
         deposit_asset: Option<String>,

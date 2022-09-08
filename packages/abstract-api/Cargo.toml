@@ -1,6 +1,6 @@
 [package]
 name = "abstract-api"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -26,6 +26,6 @@ cw-controllers = { version = "0.13" }
 thiserror = { version = "1.0.21" }
 cw2 = "0.13"
 
-abstract-sdk = { version = "0.1.0-rc1", path = "../abstract-sdk" }
-abstract-os = {version = "0.1.0-rc1", path = "../abstract-os"}
+abstract-sdk = { version = "0.1.0-rc.1", path = "../abstract-sdk" }
+abstract-os = {version = "0.1.0-rc.1", path = "../abstract-os"}
 

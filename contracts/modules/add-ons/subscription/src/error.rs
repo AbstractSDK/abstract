@@ -15,9 +15,6 @@ pub enum SubscriptionError {
     #[error("{0}")]
     DecimalError(#[from] DecimalRangeExceeded),
 
-    #[error("Semver parsing error: {0}")]
-    SemVer(String),
-
     #[error("{0}")]
     AddOnError(#[from] AddOnError),
 
@@ -80,10 +77,4 @@ pub enum SubscriptionError {
 
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,
-}
-
-impl From<semver::Error> for SubscriptionError {
-    fn from(err: semver::Error) -> Self {
-        Self::SemVer(err.to_string())
-    }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "cw20-vesting"
-version = "1.0.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 license = "MIT"
@@ -14,7 +14,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
-abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
+abstract-os = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-os" }
 
 cosmwasm-std = { version = "1.0.0", features = ["iterator"] }
 cw-storage-plus = "0.13.4"

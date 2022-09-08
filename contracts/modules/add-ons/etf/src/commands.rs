@@ -8,7 +8,7 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::liquidity_interface::DepositHookMsg;
+use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;

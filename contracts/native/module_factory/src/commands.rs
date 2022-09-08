@@ -20,8 +20,7 @@ use abstract_os::version_control::{
     QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VCQuery,
 };
 
-pub const CREATE_INTERNAL_DAPP_RESPONSE_ID: u64 = 1u64;
-pub const CREATE_EXTERNAL_DAPP_RESPONSE_ID: u64 = 2u64;
+pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
 pub const CREATE_PERK_RESPONSE_ID: u64 = 4u64;
 
@@ -115,6 +114,7 @@ pub fn execute_create_module(
             module_code_id_response.code_id.u64(),
             init_msg,
             module,
+            core.manager,
         ),
         Module {
             kind: ModuleKind::Perk,
@@ -144,19 +144,19 @@ pub fn create_add_on(
 
     Ok(response
         .add_attributes(vec![
-            ("action", "create internal dapp"),
+            ("action", "create add-on"),
             ("initmsg:", &init_msg.to_string()),
         ])
         // Create manager
         .add_submessage(SubMsg {
-            id: CREATE_INTERNAL_DAPP_RESPONSE_ID,
+            id: CREATE_ADD_ON_RESPONSE_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id,
                 funds: vec![],
                 // This contract should be able to migrate the contract
                 admin: Some(manager.to_string()),
-                label: format!("Module: --{}--", module),
+                label: format!("Module: {}", module),
                 msg: init_msg,
             }
             .into(),
@@ -187,7 +187,7 @@ pub fn create_perk(
                 funds: vec![],
                 // Not migratable
                 admin: None,
-                label: format!("Module: --{}--", module),
+                label: format!("Module: {}", module),
                 msg: init_msg,
             }
             .into(),
@@ -197,10 +197,11 @@ pub fn create_perk(
 
 pub fn create_service(
     _deps: DepsMut,
-    env: Env,
+    _env: Env,
     code_id: u64,
     init_msg: Binary,
     module: Module,
+    manager: Addr,
 ) -> ModuleFactoryResult {
     let response = Response::new();
 
@@ -217,8 +218,8 @@ pub fn create_service(
                 code_id,
                 funds: vec![],
                 // This contract should be able to migrate the contract
-                admin: Some(env.contract.address.to_string()),
-                label: format!("Module: --{}--", module),
+                admin: Some(manager.to_string()),
+                label: format!("Module: {}", module),
                 msg: init_msg,
             }
             .into(),
@@ -226,36 +227,9 @@ pub fn create_service(
         }))
 }
 
-pub fn handle_add_on_init_result(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
+pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of Manager contract
-    let res: MsgInstantiateContractResponse =
-        Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
-            StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
-        })?;
-    let dapp_address = res.get_contract_address();
-
-    let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: context.core.unwrap().manager.into_string(),
-        funds: vec![],
-        msg: to_binary(&ManagerMsg::RegisterModule {
-            module_addr: dapp_address.to_string(),
-            module: context.module.unwrap(),
-        })?,
-    });
-
-    clear_context(deps)?;
-
-    Ok(
-        Response::new()
-            .add_attribute("new module:", &dapp_address.to_string())
-            .add_message(register_msg), // Instantiate Treasury contract
-    )
-}
-
-pub fn handle_api_init_result(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
-    let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of Manager contract
+    // Get address of add_on contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")

@@ -1,6 +1,6 @@
 [package]
 name = "module-factory"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 description = ""
@@ -30,6 +30,7 @@ cw2 = "0.13"
 schemars = "0.8.1"
 thiserror = { version = "1.0.21" }
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+semver = "1.0.13"
 protobuf = { version = "2", features = ["with-bytes"] }
 abstract-sdk = { path = "../../../packages/abstract-sdk" }
 abstract-os = {path = "../../../packages/abstract-os"}

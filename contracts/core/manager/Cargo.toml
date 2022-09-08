@@ -1,6 +1,6 @@
 [package]
 name = "manager"
-version = "0.1.0"
+version = "0.1.0-rc.1"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 
@@ -39,11 +39,11 @@ cosmwasm-schema = { version = "1.0" }
 cw-multi-test = { version = "0.13"}
 cw20-base = { version = "0.13", features = ["library"] }
 
-proxy = { version = "0.1.0", path = "../proxy" }
-memory = { version = "0.1.0", path = "../../native/memory" }
-os-factory = { version = "0.1.0", path = "../../native/factory" }
-module-factory = { version = "0.1.0", path = "../../native/module_factory" }
-version-control = { version = "0.1.0", path = "../../native/version_control" }
+proxy = { version = "0.1.0-rc.1", path = "../proxy" }
+memory = { version = "0.1.0-rc.1", path = "../../native/memory" }
+os-factory = { version = "0.1.0-rc.1", path = "../../native/factory" }
+module-factory = { version = "0.1.0-rc.1", path = "../../native/module_factory" }
+version-control = { version = "0.1.0-rc.1", path = "../../native/version_control" }
 
 
 [package.metadata.scripts]

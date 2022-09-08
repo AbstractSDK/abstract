@@ -27,10 +27,11 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> SubscriptionResult {
-    let _version = CONTRACT_VERSION.parse::<Version>()?;
+    let _version = CONTRACT_VERSION.parse::<Version>().unwrap();
     let _storage_version = get_contract_version(deps.storage)?
         .version
-        .parse::<Version>()?;
+        .parse::<Version>()
+        .unwrap();
     set_contract_version(deps.storage, SUBSCRIPTION, CONTRACT_VERSION)?;
 
     Ok(Response::default())

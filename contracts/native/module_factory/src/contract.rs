@@ -1,10 +1,11 @@
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
+use semver::Version;
 
 use crate::error::ModuleFactoryError;
 use abstract_os::OS_FACTORY;
-use cw2::set_contract_version;
+use cw2::{get_contract_version, set_contract_version};
 
 use crate::{commands, state::*};
 use abstract_os::module_factory::*;
@@ -70,15 +71,18 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_INTERNAL_DAPP_RESPONSE_ID,
+            id: commands::CREATE_ADD_ON_RESPONSE_ID,
             result,
-        } => commands::handle_add_on_init_result(deps, result),
+        } => commands::register_contract(deps, result),
         Reply {
-            id: commands::CREATE_EXTERNAL_DAPP_RESPONSE_ID,
+            id: commands::CREATE_SERVICE_RESPONSE_ID,
             result,
-        } => commands::handle_api_init_result(deps, result),
+        } => commands::register_contract(deps, result),
+        Reply {
+            id: commands::CREATE_PERK_RESPONSE_ID,
+            result,
+        } => commands::register_contract(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
-        // TODO: add admin setters for services and perks
     }
 }
 
@@ -113,6 +117,11 @@ pub fn query_context(deps: Deps) -> StdResult<QueryContextResponse> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    if storage_version < version {
+        set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+    }
     Ok(Response::default())
 }
