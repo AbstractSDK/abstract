@@ -52,41 +52,4 @@ for pack in $ALL_PACKAGES; do
   )
 done
 
-
-# wait for these to be processed on crates.io
-echo "Waiting for publishing all packages"
-sleep $SLEEP_TIME
-
-for cont in $CW20_BASE; do
-  (
-    cd "contracts/$cont"
-    echo "Publishing $cont"
-    cargo publish
-  )
-done
-
-# wait for these to be processed on crates.io
-echo "Waiting for publishing cw20 base"
-sleep $SLEEP_TIME
-
-# for cont in $BASE_CONTRACTS; do
-#   (
-#     cd "contracts/$cont"
-#     echo "Publishing $cont"
-#     cargo publish
-#   )
-# done
-
-# # wait for these to be processed on crates.io
-# echo "Waiting for publishing base contracts"
-# sleep $SLEEP_TIME
-
-# for cont in $ALL_CONTRACTS; do
-#   (
-#     cd "contracts/$cont"
-#     echo "Publishing $cont"
-#     cargo publish
-#   )
-# done
-
 echo "Everything is published!"
