@@ -90,7 +90,7 @@
         "code_ids": {
           "type": "object",
           "properties": {
-            "iter_limit": {
+            "page_size": {
               "type": [
                 "integer",
                 "null"
@@ -98,7 +98,7 @@
               "format": "uint8",
               "minimum": 0.0
             },
-            "last_module": {
+            "page_token": {
               "anyOf": [
                 {
                   "$ref": "#/definitions/ContractVersion"
@@ -123,7 +123,7 @@
         "api_addresses": {
           "type": "object",
           "properties": {
-            "iter_limit": {
+            "page_size": {
               "type": [
                 "integer",
                 "null"
@@ -131,7 +131,7 @@
               "format": "uint8",
               "minimum": 0.0
             },
-            "last_api_module": {
+            "page_token": {
               "anyOf": [
                 {
                   "$ref": "#/definitions/ContractVersion"

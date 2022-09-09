@@ -6,11 +6,11 @@
     "default_unlock_schedule",
     "owner",
     "refund_recipient",
-    "whale_token"
+    "token"
   ],
   "properties": {
     "default_unlock_schedule": {
-      "description": "By default, unlocking starts at WhiteWhale launch, with a cliff of 12 months and a duration of 12 months. If not specified, all allocations use this default schedule",
+      "description": "By default, unlocking starts at init, with a cliff of 12 months and a duration of 12 months. If not specified, all allocations use this default schedule",
       "allOf": [
         {
           "$ref": "#/definitions/Schedule"
@@ -25,8 +25,8 @@
       "description": "Account which will receive refunds upon allocation terminations",
       "type": "string"
     },
-    "whale_token": {
-      "description": "Address of WHALE token",
+    "token": {
+      "description": "Address of tokens token",
       "type": "string"
     }
   },

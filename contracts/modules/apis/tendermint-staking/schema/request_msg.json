@@ -19,6 +19,7 @@
               "$ref": "#/definitions/Uint128"
             },
             "validator": {
+              "description": "Validator address",
               "type": "string"
             }
           }
@@ -49,6 +50,7 @@
               ]
             },
             "validator": {
+              "description": "Validator address",
               "type": "string"
             }
           }
@@ -92,9 +94,11 @@
               ]
             },
             "destination_validator": {
+              "description": "Validator address",
               "type": "string"
             },
             "source_validator": {
+              "description": "Validator address",
               "type": "string"
             }
           }
@@ -136,7 +140,7 @@
           ],
           "properties": {
             "validator": {
-              "description": "The `validator_address`",
+              "description": "Validator address",
               "type": "string"
             }
           }
@@ -145,6 +149,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Withdraw all the rewards",
       "type": "object",
       "required": [
         "withdraw_all_rewards"

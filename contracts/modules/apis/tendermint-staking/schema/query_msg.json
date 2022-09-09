@@ -2,59 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "QueryMsg",
   "description": "Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`]. Helper function are exposed by [`abstract_sdk::tendermint_staking`]",
-  "oneOf": [
-    {
-      "type": "object",
-      "required": [
-        "base"
-      ],
-      "properties": {
-        "base": {
-          "$ref": "#/definitions/ApiQueryMsg"
-        }
-      },
-      "additionalProperties": false
-    }
-  ],
-  "definitions": {
-    "ApiQueryMsg": {
-      "description": "Query API message",
-      "oneOf": [
-        {
-          "description": "Returns [`QueryApiConfigResponse`].",
-          "type": "object",
-          "required": [
-            "config"
-          ],
-          "properties": {
-            "config": {
-              "type": "object"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Returns [`QueryTradersResponse`]. TODO: enable pagination of some sort",
-          "type": "object",
-          "required": [
-            "traders"
-          ],
-          "properties": {
-            "traders": {
-              "type": "object",
-              "required": [
-                "proxy_address"
-              ],
-              "properties": {
-                "proxy_address": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    }
-  }
+  "type": "string",
+  "enum": []
 }

@@ -45,12 +45,12 @@ fn main() {
     export_schema_with_title(
         &schema_for!(AssetConfigResponse),
         &out_dir,
-        "ProxyAssetConfigResponse",
+        "AssetConfigResponse",
     );
     export_schema_with_title(
         &schema_for!(AssetsResponse),
         &out_dir,
-        "ProxyAssetsResponse",
+        "AssetsResponse",
     );
     export_schema_with_title(
         &schema_for!(ValidityResponse),

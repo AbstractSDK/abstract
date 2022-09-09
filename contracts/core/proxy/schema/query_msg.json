@@ -3,7 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "Returns [`QueryConfigResponse`]",
+      "description": "Returns [`ConfigResponse`]",
       "type": "object",
       "required": [
         "config"
@@ -16,7 +16,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the total value of all held assets [`QueryTotalValueResponse`]",
+      "description": "Returns the total value of all held assets [`TotalValueResponse`]",
       "type": "object",
       "required": [
         "total_value"
@@ -29,7 +29,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the value of one specific asset [`QueryHoldingValueResponse`]",
+      "description": "Returns the value of one specific asset [`yHoldingValueResponse`]",
       "type": "object",
       "required": [
         "holding_value"
@@ -50,7 +50,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the amount of specified tokens this contract holds [`QueryHoldingAmountResponse`]",
+      "description": "Returns the amount of specified tokens this contract holds [`HoldingAmountResponse`]",
       "type": "object",
       "required": [
         "holding_amount"
@@ -71,13 +71,13 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns the VAULT_ASSETS value for the specified key [`QueryProxyAssetConfigResponse`]",
+      "description": "Returns the VAULT_ASSETS value for the specified key [`AssetConfigResponse`]",
       "type": "object",
       "required": [
-        "proxy_asset_config"
+        "asset_config"
       ],
       "properties": {
-        "proxy_asset_config": {
+        "asset_config": {
           "type": "object",
           "required": [
             "identifier"
@@ -92,16 +92,16 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryProxyAssetsResponse`]",
+      "description": "Returns [`AssetsResponse`]",
       "type": "object",
       "required": [
-        "proxy_assets"
+        "assets"
       ],
       "properties": {
-        "proxy_assets": {
+        "assets": {
           "type": "object",
           "properties": {
-            "iter_limit": {
+            "page_size": {
               "type": [
                 "integer",
                 "null"
@@ -109,7 +109,7 @@
               "format": "uint8",
               "minimum": 0.0
             },
-            "last_asset_name": {
+            "page_token": {
               "type": [
                 "string",
                 "null"
@@ -121,13 +121,26 @@
       "additionalProperties": false
     },
     {
-      "description": "Returns [`QueryProxyAssetsResponse`]",
+      "description": "Returns [`ValidityResponse`]",
       "type": "object",
       "required": [
         "check_validity"
       ],
       "properties": {
         "check_validity": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns [`BaseAssetResponse`]",
+      "type": "object",
+      "required": [
+        "base_asset"
+      ],
+      "properties": {
+        "base_asset": {
           "type": "object"
         }
       },

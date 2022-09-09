@@ -474,21 +474,21 @@
         {
           "type": "object",
           "required": [
-            "proxy"
+            "value_as"
           ],
           "properties": {
-            "proxy": {
+            "value_as": {
               "type": "object",
               "required": [
-                "multiplier",
-                "proxy_asset"
+                "asset",
+                "multiplier"
               ],
               "properties": {
+                "asset": {
+                  "type": "string"
+                },
                 "multiplier": {
                   "$ref": "#/definitions/Decimal"
-                },
-                "proxy_asset": {
-                  "type": "string"
                 }
               }
             }

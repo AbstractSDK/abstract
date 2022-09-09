@@ -4,69 +4,24 @@
   "description": "Execute messages",
   "oneOf": [
     {
-      "description": "Updates the `OS_MODULES` map Only callable by module factory.",
+      "description": "Forward execution message to module",
       "type": "object",
       "required": [
-        "update_module_addresses"
+        "exec_on_module"
       ],
       "properties": {
-        "update_module_addresses": {
-          "type": "object",
-          "properties": {
-            "to_add": {
-              "type": [
-                "array",
-                "null"
-              ],
-              "items": {
-                "type": "array",
-                "items": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "string"
-                  }
-                ],
-                "maxItems": 2,
-                "minItems": 2
-              }
-            },
-            "to_remove": {
-              "type": [
-                "array",
-                "null"
-              ],
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Sets a new Admin",
-      "type": "object",
-      "required": [
-        "set_admin"
-      ],
-      "properties": {
-        "set_admin": {
+        "exec_on_module": {
           "type": "object",
           "required": [
-            "admin"
+            "exec_msg",
+            "module_name"
           ],
           "properties": {
-            "admin": {
-              "type": "string"
+            "exec_msg": {
+              "$ref": "#/definitions/Binary"
             },
-            "governance_type": {
-              "type": [
-                "string",
-                "null"
-              ]
+            "module_name": {
+              "type": "string"
             }
           }
         }
@@ -74,7 +29,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Create module using module factory",
+      "description": "Create module using module factory, callable by Root",
       "type": "object",
       "required": [
         "create_module"
@@ -157,58 +112,6 @@
       "additionalProperties": false
     },
     {
-      "description": "Forward execution message to module",
-      "type": "object",
-      "required": [
-        "exec_on_module"
-      ],
-      "properties": {
-        "exec_on_module": {
-          "type": "object",
-          "required": [
-            "exec_msg",
-            "module_name"
-          ],
-          "properties": {
-            "exec_msg": {
-              "$ref": "#/definitions/Binary"
-            },
-            "module_name": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Update contract configuration",
-      "type": "object",
-      "required": [
-        "update_config"
-      ],
-      "properties": {
-        "update_config": {
-          "type": "object",
-          "properties": {
-            "root": {
-              "type": [
-                "string",
-                "null"
-              ]
-            },
-            "vc_addr": {
-              "type": [
-                "string",
-                "null"
-              ]
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
       "description": "Upgrade the module to a new version If module is `abstract::manager` then the contract will do a self-migration.",
       "type": "object",
       "required": [
@@ -233,27 +136,6 @@
             },
             "module": {
               "$ref": "#/definitions/Module"
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Suspend manager contract",
-      "type": "object",
-      "required": [
-        "suspend_os"
-      ],
-      "properties": {
-        "suspend_os": {
-          "type": "object",
-          "required": [
-            "new_status"
-          ],
-          "properties": {
-            "new_status": {
-              "type": "boolean"
             }
           }
         }
@@ -287,6 +169,54 @@
                 "string",
                 "null"
               ]
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Sets a new Root",
+      "type": "object",
+      "required": [
+        "set_root"
+      ],
+      "properties": {
+        "set_root": {
+          "type": "object",
+          "required": [
+            "root"
+          ],
+          "properties": {
+            "governance_type": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "root": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Suspend manager contract",
+      "type": "object",
+      "required": [
+        "suspend_os"
+      ],
+      "properties": {
+        "suspend_os": {
+          "type": "object",
+          "required": [
+            "new_status"
+          ],
+          "properties": {
+            "new_status": {
+              "type": "boolean"
             }
           }
         }

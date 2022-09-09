@@ -37,7 +37,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Claim withdrawable WHALE",
+      "description": "Claim withdrawable tokens",
       "type": "object",
       "required": [
         "withdraw"

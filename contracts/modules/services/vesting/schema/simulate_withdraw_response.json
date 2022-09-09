@@ -3,31 +3,31 @@
   "title": "SimulateWithdrawResponse",
   "type": "object",
   "required": [
-    "total_whale_locked",
-    "total_whale_unlocked",
-    "total_whale_vested",
+    "total_tokens_locked",
+    "total_tokens_unlocked",
+    "total_tokens_vested",
     "withdrawable_amount",
     "withdrawn_amount"
   ],
   "properties": {
-    "total_whale_locked": {
-      "description": "Total number of WHALE tokens allocated to this account",
+    "total_tokens_locked": {
+      "description": "Total number of tokens tokens allocated to this account",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"
         }
       ]
     },
-    "total_whale_unlocked": {
-      "description": "Total number of WHALE tokens that have been unlocked till now",
+    "total_tokens_unlocked": {
+      "description": "Total number of tokens tokens that have been unlocked till now",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"
         }
       ]
     },
-    "total_whale_vested": {
-      "description": "Total number of WHALE tokens that have been vested till now",
+    "total_tokens_vested": {
+      "description": "Total number of tokens tokens that have been vested till now",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"
@@ -35,7 +35,7 @@
       ]
     },
     "withdrawable_amount": {
-      "description": "Number of WHALE tokens that can be withdrawn by the beneficiary post the provided timestamp",
+      "description": "Number of tokens tokens that can be withdrawn by the beneficiary post the provided timestamp",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"
@@ -43,7 +43,7 @@
       ]
     },
     "withdrawn_amount": {
-      "description": "Number of WHALE tokens that have been withdrawn by the beneficiary",
+      "description": "Number of tokens tokens that have been withdrawn by the beneficiary",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"

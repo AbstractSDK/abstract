@@ -1,0 +1,276 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "description": "Interface to the API.",
+  "oneOf": [
+    {
+      "description": "An API request.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/ApiRequestMsg_for_RequestMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "A configuration message to whitelist traders.",
+      "type": "object",
+      "required": [
+        "configure"
+      ],
+      "properties": {
+        "configure": {
+          "$ref": "#/definitions/BaseExecuteMsg"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "ApiRequestMsg_for_RequestMsg": {
+      "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "proxy_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request": {
+          "description": "The actual request",
+          "allOf": [
+            {
+              "$ref": "#/definitions/RequestMsg"
+            }
+          ]
+        }
+      }
+    },
+    "BaseExecuteMsg": {
+      "description": "Configuration message for the API",
+      "oneOf": [
+        {
+          "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
+          "type": "object",
+          "required": [
+            "update_traders"
+          ],
+          "properties": {
+            "update_traders": {
+              "type": "object",
+              "properties": {
+                "to_add": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "to_remove": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Remove the API",
+          "type": "object",
+          "required": [
+            "remove"
+          ],
+          "properties": {
+            "remove": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "RequestMsg": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "delegate"
+          ],
+          "properties": {
+            "delegate": {
+              "type": "object",
+              "required": [
+                "amount",
+                "validator"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/Uint128"
+                },
+                "validator": {
+                  "description": "Validator address",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "undelegate_from"
+          ],
+          "properties": {
+            "undelegate_from": {
+              "type": "object",
+              "required": [
+                "validator"
+              ],
+              "properties": {
+                "amount": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "validator": {
+                  "description": "Validator address",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "undelegate_all"
+          ],
+          "properties": {
+            "undelegate_all": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "redelegate"
+          ],
+          "properties": {
+            "redelegate": {
+              "type": "object",
+              "required": [
+                "destination_validator",
+                "source_validator"
+              ],
+              "properties": {
+                "amount": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Uint128"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "destination_validator": {
+                  "description": "Validator address",
+                  "type": "string"
+                },
+                "source_validator": {
+                  "description": "Validator address",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "set_withdraw_address"
+          ],
+          "properties": {
+            "set_withdraw_address": {
+              "type": "object",
+              "required": [
+                "new_withdraw_address"
+              ],
+              "properties": {
+                "new_withdraw_address": {
+                  "description": "The new `withdraw_address`",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "withdraw_delegator_reward"
+          ],
+          "properties": {
+            "withdraw_delegator_reward": {
+              "type": "object",
+              "required": [
+                "validator"
+              ],
+              "properties": {
+                "validator": {
+                  "description": "Validator address",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Withdraw all the rewards",
+          "type": "object",
+          "required": [
+            "withdraw_all_rewards"
+          ],
+          "properties": {
+            "withdraw_all_rewards": {
+              "type": "object"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Uint128": {
+      "description": "A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```",
+      "type": "string"
+    }
+  }
+}

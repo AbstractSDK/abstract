@@ -1,26 +1,13 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ProxyAssetsResponse",
+  "title": "AssetConfigResponse",
   "type": "object",
   "required": [
-    "assets"
+    "proxy_asset"
   ],
   "properties": {
-    "assets": {
-      "type": "array",
-      "items": {
-        "type": "array",
-        "items": [
-          {
-            "$ref": "#/definitions/AssetEntry"
-          },
-          {
-            "$ref": "#/definitions/ProxyAsset"
-          }
-        ],
-        "maxItems": 2,
-        "minItems": 2
-      }
+    "proxy_asset": {
+      "$ref": "#/definitions/ProxyAsset"
     }
   },
   "definitions": {
@@ -114,24 +101,24 @@
           "additionalProperties": false
         },
         {
-          "description": "Or a Proxy, the proxy also takes a Decimal (the multiplier) Asset will be valued as if they are Proxy tokens",
+          "description": "Asset will be valued as if they are ValueAs.asset tokens",
           "type": "object",
           "required": [
-            "proxy"
+            "value_as"
           ],
           "properties": {
-            "proxy": {
+            "value_as": {
               "type": "object",
               "required": [
-                "multiplier",
-                "proxy_asset"
+                "asset",
+                "multiplier"
               ],
               "properties": {
+                "asset": {
+                  "$ref": "#/definitions/AssetEntry"
+                },
                 "multiplier": {
                   "$ref": "#/definitions/Decimal"
-                },
-                "proxy_asset": {
-                  "$ref": "#/definitions/AssetEntry"
                 }
               }
             }

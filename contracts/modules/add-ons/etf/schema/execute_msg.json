@@ -87,6 +87,19 @@
       "additionalProperties": false
     },
     {
+      "description": "Import the proxy assets as liquidity-assets Set base-token as deposit token. Remove all other enabled assets",
+      "type": "object",
+      "required": [
+        "import"
+      ],
+      "properties": {
+        "import": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Set the withdraw fee",
       "type": "object",
       "required": [

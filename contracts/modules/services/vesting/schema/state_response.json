@@ -3,20 +3,20 @@
   "title": "StateResponse",
   "type": "object",
   "required": [
-    "remaining_whale_tokens",
-    "total_whale_deposited"
+    "remaining_tokens",
+    "total_deposited"
   ],
   "properties": {
-    "remaining_whale_tokens": {
-      "description": "Currently available WHALE Tokens",
+    "remaining_tokens": {
+      "description": "Currently available tokens Tokens",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"
         }
       ]
     },
-    "total_whale_deposited": {
-      "description": "WHALE Tokens deposited into the contract",
+    "total_deposited": {
+      "description": "tokens Tokens deposited into the contract",
       "allOf": [
         {
           "$ref": "#/definitions/Uint128"

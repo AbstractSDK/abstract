@@ -52,7 +52,7 @@
           "type": "boolean"
         },
         "total_amount": {
-          "description": "Total number of WHALE tokens allocated to this account",
+          "description": "Total number of tokens tokens allocated to this account",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
@@ -79,7 +79,7 @@
           ]
         },
         "withdrawn_amount": {
-          "description": "Number of WHALE tokens that have been withdrawn by the beneficiary",
+          "description": "Number of tokens tokens that have been withdrawn by the beneficiary",
           "allOf": [
             {
               "$ref": "#/definitions/Uint128"
