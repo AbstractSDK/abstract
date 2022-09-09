@@ -84,10 +84,7 @@ pub struct InstantiateMsg {
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-    },
+    ExecOnModule { module_id: String, exec_msg: Binary },
     /// Updates the `OS_MODULES` map
     /// Only callable by os factory or root.
     UpdateModuleAddresses {

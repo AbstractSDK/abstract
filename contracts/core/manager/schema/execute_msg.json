@@ -14,13 +14,13 @@
           "type": "object",
           "required": [
             "exec_msg",
-            "module_name"
+            "module_id"
           ],
           "properties": {
             "exec_msg": {
               "$ref": "#/definitions/Binary"
             },
-            "module_name": {
+            "module_id": {
               "type": "string"
             }
           }
