@@ -85,7 +85,7 @@ pub struct InstantiateMsg {
 pub enum ExecuteMsg {
     /// Forward execution message to module
     ExecOnModule {
-        module_name: String,
+        module_id: String,
         exec_msg: Binary,
     },
     /// Updates the `OS_MODULES` map

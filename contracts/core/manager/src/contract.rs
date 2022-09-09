@@ -111,9 +111,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module_addr,
                 } => register_module(deps, info, env, module, module_addr),
                 ExecuteMsg::ExecOnModule {
-                    module_name,
+                    module_id,
                     exec_msg,
-                } => exec_on_module(deps, info, module_name, exec_msg),
+                } => exec_on_module(deps, info, module_id, exec_msg),
                 ExecuteMsg::Upgrade {
                     module,
                     migrate_msg,
