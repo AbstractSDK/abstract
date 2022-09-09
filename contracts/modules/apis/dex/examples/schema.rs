@@ -1,7 +1,6 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use abstract_api::ApiResult;
 use abstract_os::{
     api::{ApiQueryMsg, ExecuteMsg, QueryApiConfigResponse, QueryTradersResponse},
     dex::{QueryMsg, RequestMsg, SimulateSwapResponse},
