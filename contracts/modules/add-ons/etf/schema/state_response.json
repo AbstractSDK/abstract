@@ -3,10 +3,27 @@
   "title": "StateResponse",
   "type": "object",
   "required": [
+    "deposit_asset",
+    "etf_assets",
     "liquidity_token"
   ],
   "properties": {
+    "deposit_asset": {
+      "$ref": "#/definitions/AssetEntry"
+    },
+    "etf_assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AssetEntry"
+      }
+    },
     "liquidity_token": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "AssetEntry": {
+      "description": "May key to retrieve information on an asset",
       "type": "string"
     }
   }

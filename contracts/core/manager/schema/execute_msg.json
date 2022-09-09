@@ -29,6 +29,49 @@
       "additionalProperties": false
     },
     {
+      "description": "Updates the `OS_MODULES` map Only callable by os factory or root.",
+      "type": "object",
+      "required": [
+        "update_module_addresses"
+      ],
+      "properties": {
+        "update_module_addresses": {
+          "type": "object",
+          "properties": {
+            "to_add": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
       "description": "Create module using module factory, callable by Root",
       "type": "object",
       "required": [

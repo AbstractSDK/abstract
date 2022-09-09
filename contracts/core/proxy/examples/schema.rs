@@ -47,11 +47,7 @@ fn main() {
         &out_dir,
         "AssetConfigResponse",
     );
-    export_schema_with_title(
-        &schema_for!(AssetsResponse),
-        &out_dir,
-        "AssetsResponse",
-    );
+    export_schema_with_title(&schema_for!(AssetsResponse), &out_dir, "AssetsResponse");
     export_schema_with_title(
         &schema_for!(ValidityResponse),
         &out_dir,

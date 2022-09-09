@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigValidityResponse",
+  "type": "object",
+  "required": [
+    "is_valid"
+  ],
+  "properties": {
+    "is_valid": {
+      "type": "boolean"
+    }
+  }
+}
