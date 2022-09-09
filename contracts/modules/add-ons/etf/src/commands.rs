@@ -115,7 +115,7 @@ pub fn try_provide_liquidity(
     // Get total supply of LP tokens and calculate share
     let total_share = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
 
-    let share = if total_share == Uint128::zero() || value.checked_sub(deposit)? == Uint128::zero()
+    let share = if total_share == Uint128::zero()
     {
         // Initial share = deposit amount
         deposit
