@@ -12,7 +12,9 @@ use cw20::MinterResponse;
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::etf::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
+use abstract_os::etf::{
+    ConfigValidityResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
+};
 use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
@@ -151,9 +153,25 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
         // handle dapp-specific queries here
-        QueryMsg::State {} => to_binary(&StateResponse {
-            liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),
-        }),
+        QueryMsg::State {} => {
+            let pool = POOL.load(deps.storage)?;
+            to_binary(&StateResponse {
+                liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),
+                deposit_asset: pool.deposit_asset,
+                etf_assets: pool.assets,
+            })
+        }
+        QueryMsg::ConfigValidity {} => {
+            let vault = VaultAddOn::default();
+            let pool = POOL.load(deps.storage)?;
+            let state = vault.state(deps.storage)?;
+            let (proxy_assets, base_asset) =
+                abstract_sdk::proxy::query_enabled_proxy_assets(deps, &state.proxy_address)?;
+            if pool.deposit_asset != base_asset || pool.assets != proxy_assets {
+                return to_binary(&ConfigValidityResponse { is_valid: false });
+            }
+            to_binary(&ConfigValidityResponse { is_valid: false })
+        }
     }
 }
 

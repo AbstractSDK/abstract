@@ -36,10 +36,8 @@ pub struct AddOnMigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct QueryAddOnConfigResponse {
+pub struct AddOnConfigResponse {
     pub proxy_address: Addr,
     pub memory_address: Addr,
     pub manager_address: Addr,
 }
-
-pub mod state {}

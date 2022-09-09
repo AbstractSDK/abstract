@@ -1,4 +1,4 @@
-use abstract_os::add_on::{AddOnQueryMsg, QueryAddOnConfigResponse};
+use abstract_os::add_on::{AddOnConfigResponse, AddOnQueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
@@ -14,10 +14,10 @@ impl<'a> AddOnContract<'a> {
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<QueryAddOnConfigResponse> {
+    fn dapp_config(&self, deps: Deps) -> StdResult<AddOnConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         let admin = self.admin.get(deps)?.unwrap();
-        Ok(QueryAddOnConfigResponse {
+        Ok(AddOnConfigResponse {
             proxy_address: state.proxy_address,
             memory_address: state.memory.address,
             manager_address: admin,

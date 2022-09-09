@@ -72,7 +72,10 @@ use cw_asset::AssetUnchecked;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
+use crate::{
+    add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg},
+    objects::AssetEntry,
+};
 
 /// Migrate msg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -130,6 +133,9 @@ pub enum QueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},
+    /// Checks validity
+    /// Returns [`ConfigValidityResponse`]
+    ConfigValidity {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -142,4 +148,11 @@ pub enum DepositHookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct StateResponse {
     pub liquidity_token: String,
+    pub etf_assets: Vec<AssetEntry>,
+    pub deposit_asset: AssetEntry,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+pub struct ConfigValidityResponse {
+    pub is_valid: bool,
 }
