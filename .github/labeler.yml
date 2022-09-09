@@ -12,6 +12,9 @@
 "service":
   # Match all of api folders
   - contracts/modules/services/**/*
+"perk":
+  # Match all of api folders
+  - contracts/modules/perks/**/*
 "native":
   # Match all of native folders
   - contracts/native/**/*

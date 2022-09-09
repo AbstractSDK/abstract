@@ -1,10 +1,13 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 
-use abstract_os::vesting::{
-    state::{Config, ALLOCATIONS, CONFIG, STATE},
-    AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
-    ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
+use abstract_os::{
+    vesting::{
+        state::{Config, ALLOCATIONS, CONFIG, STATE},
+        AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
+        ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
+    },
+    CW20_VESTING,
 };
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError,
@@ -13,6 +16,8 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use std::cmp;
 
+use cw2::set_contract_version;
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 //----------------------------------------------------------------------------------------
 // Entry Points
 //----------------------------------------------------------------------------------------
@@ -33,6 +38,8 @@ pub fn instantiate(
             default_unlock_schedule: msg.default_unlock_schedule,
         },
     )?;
+    set_contract_version(deps.storage, CW20_VESTING, CONTRACT_VERSION)?;
+
     Ok(Response::default())
 }
 

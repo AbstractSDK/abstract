@@ -15,6 +15,7 @@ pub const ETF: &str = "abstract:etf";
 pub const SUBSCRIPTION: &str = "abstract:subscription";
 pub const EXCHANGE: &str = "abstract:dex";
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint_staking";
+pub const CW20_VESTING: &str = "abstract:cw20_vesting";
 
 /// Useful when deploying version control
 #[allow(unused)]
