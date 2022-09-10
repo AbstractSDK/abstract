@@ -12,11 +12,13 @@ use abstract_os::etf::DepositHookMsg;
 use abstract_os::objects::deposit_info::DepositInfo;
 use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
-use abstract_sdk::proxy::{query_proxy_asset_raw, query_total_value, send_to_proxy};
+use abstract_sdk::proxy::{
+    query_enabled_asset_names, query_proxy_asset_raw, query_total_value, send_to_proxy,
+};
 
 use crate::contract::{VaultAddOn, VaultResult};
 use crate::error::VaultError;
-use crate::state::{Pool, State, FEE, POOL, STATE};
+use crate::state::{State, FEE, STATE};
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
@@ -59,11 +61,8 @@ pub fn try_provide_liquidity(
     sender: Option<String>,
 ) -> VaultResult {
     // Load all needed states
-    let pool: Pool = POOL.load(deps.storage)?;
-    let state = STATE.load(deps.storage)?;
     let base_state = dapp.base_state.load(deps.storage)?;
-    let memory = base_state.memory;
-
+    let state = STATE.load(deps.storage)?;
     // Get the liquidity provider address
     let liq_provider = match sender {
         Some(addr) => deps.api.addr_validate(&addr)?,
@@ -91,11 +90,11 @@ pub fn try_provide_liquidity(
     };
 
     // Get all the required asset information from the memory contract
-    let assets = memory.query_assets(deps.as_ref(), pool.assets)?;
-
+    let (_, base_asset) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
+    let deposit_asset = dapp.resolve(deps.as_ref(), &base_asset)?;
     // Construct deposit info
     let deposit_info = DepositInfo {
-        asset_info: assets.get(&pool.deposit_asset).unwrap().clone(),
+        asset_info: deposit_asset,
     };
 
     // Assert deposited asset and claimed asset infos are the same
@@ -115,7 +114,7 @@ pub fn try_provide_liquidity(
     // Get total supply of LP tokens and calculate share
     let total_share = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
 
-    let share = if total_share == Uint128::zero() {
+    let share = if total_share == Uint128::zero() || value.is_zero() {
         // Initial share = deposit amount
         deposit
     } else {
@@ -123,7 +122,8 @@ pub fn try_provide_liquidity(
         // lt_to_receive = deposit * lt_price
         // lt_to_receive = deposit * lt_supply / previous_total_vault_value )
         // lt_to_receive = deposit * ( lt_supply / ( current_total_vault_value - deposit ) )
-        deposit.multiply_ratio(total_share, value - deposit)
+        let value_increase = Decimal::from_ratio(value + deposit, value);
+        (total_share * value_increase) - total_share
     };
 
     // mint LP token to liq_provider
@@ -158,13 +158,13 @@ pub fn try_withdraw_liquidity(
     sender: String,
     amount: Uint128,
 ) -> VaultResult {
-    let pool: Pool = POOL.load(deps.storage)?;
     let state: State = STATE.load(deps.storage)?;
     let base_state: AddOnState = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
-    let assets = memory.query_assets(deps.as_ref(), pool.assets)?;
+    let (assets, _) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
+    let assets = memory.query_assets(deps.as_ref(), assets)?;
 
     // Logging var
     let mut attrs = vec![
@@ -250,91 +250,18 @@ pub fn try_withdraw_liquidity(
         .add_attributes(attrs))
 }
 
-/// Updates the pool information
-pub fn update_pool(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    vault: VaultAddOn,
-    deposit_asset: Option<String>,
-    assets_to_add: Vec<String>,
-    assets_to_remove: Vec<String>,
-) -> VaultResult {
-    // Only the admin should be able to call this
-    vault.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-    let mut pool = POOL.load(deps.storage)?;
-
-    // If provided, update pool
-    if let Some(deposit_asset) = deposit_asset {
-        let deposit_asset = deposit_asset.into();
-        verify_asset_is_valid(deps.as_ref(), &vault, &deposit_asset, true)?;
-        pool.deposit_asset = deposit_asset;
-    }
-
-    // Add the asset to the vector if not already present
-    for asset in assets_to_add.into_iter() {
-        let entry = asset.into();
-        verify_asset_is_valid(deps.as_ref(), &vault, &entry, true)?;
-
-        if !pool.assets.contains(&entry) {
-            pool.assets.push(entry)
-        } else {
-            return Err(VaultError::AssetAlreadyPresent {
-                asset: entry.to_string(),
-            });
-        }
-    }
-
-    // Remove asset from vector if present
-    for asset in assets_to_remove.into_iter() {
-        let entry = asset.into();
-        if pool.assets.contains(&entry) {
-            pool.assets.retain(|x| *x != entry)
-        } else {
-            return Err(VaultError::AssetNotPresent {
-                asset: entry.to_string(),
-            });
-        }
-    }
-
-    // Save pool
-    POOL.save(deps.storage, &pool)?;
-    Ok(Response::new().add_attribute("Update:", "Successful"))
-}
-
-/// Updates the pool information
-pub fn import_from_proxy(deps: DepsMut, msg_info: MessageInfo, vault: VaultAddOn) -> VaultResult {
-    // Only the admin should be able to call this
-    vault.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-    let mut pool = POOL.load(deps.storage)?;
-    let state = vault.state(deps.storage)?;
-    let (proxy_assets, base_asset) =
-        abstract_sdk::proxy::query_enabled_proxy_assets(deps.as_ref(), &state.proxy_address)?;
-    let len = proxy_assets.len();
-
-    pool.deposit_asset = base_asset;
-    pool.assets = proxy_assets;
-
-    // Save pool
-    POOL.save(deps.storage, &pool)?;
-    Ok(Response::new().add_attribute("imported_from_proxy", len.to_string()))
-}
-
 pub fn set_fee(
     deps: DepsMut,
     msg_info: MessageInfo,
     dapp: VaultAddOn,
-    new_fee: Fee,
+    new_fee: Decimal,
 ) -> VaultResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    if new_fee.share > Decimal::one() {
-        return Err(VaultError::InvalidFee {});
-    }
+    let fee = Fee::new(new_fee)?;
 
-    FEE.save(deps.storage, &new_fee)?;
+    FEE.save(deps.storage, &fee)?;
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 

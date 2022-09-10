@@ -55,7 +55,7 @@ pub fn query_proxy_asset_raw(
 }
 
 /// List ProxyAssets raw
-pub fn query_enabled_proxy_assets(
+pub fn query_enabled_asset_names(
     deps: Deps,
     proxy_address: &Addr,
 ) -> StdResult<(Vec<AssetEntry>, AssetEntry)> {
@@ -83,6 +83,33 @@ pub fn query_enabled_proxy_assets(
         )?;
     }
     Ok((asset_keys, base_asset.unwrap()))
+}
+
+/// List ProxyAssets raw
+pub fn query_enabled_assets(
+    deps: Deps,
+    proxy_address: &Addr,
+) -> StdResult<Vec<(AssetEntry, ProxyAsset)>> {
+    let mut assets = vec![];
+    let mut resp: AssetsResponse = deps.querier.query_wasm_smart(
+        proxy_address,
+        &QueryMsg::Assets {
+            page_token: None,
+            page_size: None,
+        },
+    )?;
+    while !resp.assets.is_empty() {
+        let page_token = resp.assets.last().unwrap().0.clone();
+        assets.append(resp.assets.as_mut());
+        resp = deps.querier.query_wasm_smart(
+            proxy_address,
+            &QueryMsg::Assets {
+                page_token: Some(page_token.to_string()),
+                page_size: None,
+            },
+        )?;
+    }
+    Ok(assets)
 }
 
 #[inline(always)]

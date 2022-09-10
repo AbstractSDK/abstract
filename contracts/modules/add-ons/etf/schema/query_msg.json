@@ -26,19 +26,6 @@
         }
       },
       "additionalProperties": false
-    },
-    {
-      "description": "Checks validity Returns [`ConfigValidityResponse`]",
-      "type": "object",
-      "required": [
-        "config_validity"
-      ],
-      "properties": {
-        "config_validity": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
     }
   ],
   "definitions": {

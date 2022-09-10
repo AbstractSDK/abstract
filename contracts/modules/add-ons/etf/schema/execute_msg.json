@@ -50,56 +50,6 @@
       "additionalProperties": false
     },
     {
-      "description": "Update the etf pool information Asset names are resolved using [`abstract_os::memory`].",
-      "type": "object",
-      "required": [
-        "update_pool"
-      ],
-      "properties": {
-        "update_pool": {
-          "type": "object",
-          "required": [
-            "assets_to_add",
-            "assets_to_remove"
-          ],
-          "properties": {
-            "assets_to_add": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "assets_to_remove": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "deposit_asset": {
-              "type": [
-                "string",
-                "null"
-              ]
-            }
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Import the proxy assets as liquidity-assets Set base-token as deposit token. Remove all other enabled assets",
-      "type": "object",
-      "required": [
-        "import"
-      ],
-      "properties": {
-        "import": {
-          "type": "object"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
       "description": "Set the withdraw fee",
       "type": "object",
       "required": [

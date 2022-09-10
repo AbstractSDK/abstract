@@ -41,7 +41,7 @@ pub mod state {
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{fee::Fee, AssetEntry};
+    use crate::objects::fee::Fee;
     use cosmwasm_std::Addr;
     use cw_storage_plus::Item;
 
@@ -53,16 +53,7 @@ pub mod state {
         pub provider_addr: Addr,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
-    /// Pool stores claimable assets in vault.
-    /// deposit_asset is the asset which can be used to deposit into the vault.
-    pub struct Pool {
-        pub deposit_asset: AssetEntry,
-        pub assets: Vec<AssetEntry>,
-    }
-
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
-    pub const POOL: Item<Pool> = Item::new("\u{0}{4}pool");
     pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
 }
 
@@ -72,10 +63,7 @@ use cw_asset::AssetUnchecked;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg},
-    objects::AssetEntry,
-};
+use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
 
 /// Migrate msg
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -111,17 +99,6 @@ pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
-    /// Update the etf pool information
-    /// Asset names are resolved using [`abstract_os::memory`].
-    UpdatePool {
-        deposit_asset: Option<String>,
-        assets_to_add: Vec<String>,
-        assets_to_remove: Vec<String>,
-    },
-    /// Import the proxy assets as liquidity-assets
-    /// Set base-token as deposit token.
-    /// Remove all other enabled assets
-    Import {},
     /// Set the withdraw fee
     SetFee { fee: Decimal },
 }
@@ -133,9 +110,6 @@ pub enum QueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},
-    /// Checks validity
-    /// Returns [`ConfigValidityResponse`]
-    ConfigValidity {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -148,11 +122,5 @@ pub enum DepositHookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct StateResponse {
     pub liquidity_token: String,
-    pub etf_assets: Vec<AssetEntry>,
-    pub deposit_asset: AssetEntry,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct ConfigValidityResponse {
-    pub is_valid: bool,
+    pub fee: Decimal,
 }

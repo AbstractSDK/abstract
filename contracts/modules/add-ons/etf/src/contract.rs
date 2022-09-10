@@ -12,9 +12,7 @@ use cw20::MinterResponse;
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::etf::{
-    ConfigValidityResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse,
-};
+use abstract_os::etf::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
@@ -22,7 +20,7 @@ use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 use crate::commands::{self, verify_asset_is_valid};
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
-use crate::state::{Pool, State, FEE, POOL, STATE};
+use crate::state::{State, FEE, STATE};
 
 const INSTANTIATE_REPLY_ID: u8 = 1u8;
 
@@ -65,7 +63,7 @@ pub fn instantiate(
         .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
     STATE.save(deps.storage, &state)?;
-    FEE.save(deps.storage, &Fee { share: msg.fee })?;
+    FEE.save(deps.storage, &Fee::new(msg.fee)?)?;
 
     let vault = VaultAddOn::default().instantiate(
         deps.branch(),
@@ -84,13 +82,6 @@ pub fn instantiate(
         true,
     )?;
 
-    POOL.save(
-        deps.storage,
-        &Pool {
-            deposit_asset: msg.deposit_asset.as_str().into(),
-            assets: vec![msg.deposit_asset.into()],
-        },
-    )?;
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token
         msg: WasmMsg::Instantiate {
@@ -131,20 +122,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 
             commands::try_provide_liquidity(deps, info, dapp, asset, None)
         }
-        ExecuteMsg::UpdatePool {
-            deposit_asset,
-            assets_to_add,
-            assets_to_remove,
-        } => commands::update_pool(
-            deps,
-            info,
-            dapp,
-            deposit_asset,
-            assets_to_add,
-            assets_to_remove,
-        ),
-        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, Fee { share: fee }),
-        ExecuteMsg::Import {} => commands::import_from_proxy(deps, info, dapp),
+        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, fee),
     }
 }
 
@@ -154,23 +132,11 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
         // handle dapp-specific queries here
         QueryMsg::State {} => {
-            let pool = POOL.load(deps.storage)?;
+            let fee = FEE.load(deps.storage)?;
             to_binary(&StateResponse {
                 liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),
-                deposit_asset: pool.deposit_asset,
-                etf_assets: pool.assets,
+                fee: fee.share(),
             })
-        }
-        QueryMsg::ConfigValidity {} => {
-            let vault = VaultAddOn::default();
-            let pool = POOL.load(deps.storage)?;
-            let state = vault.state(deps.storage)?;
-            let (proxy_assets, base_asset) =
-                abstract_sdk::proxy::query_enabled_proxy_assets(deps, &state.proxy_address)?;
-            if pool.deposit_asset != base_asset || pool.assets != proxy_assets {
-                return to_binary(&ConfigValidityResponse { is_valid: false });
-            }
-            to_binary(&ConfigValidityResponse { is_valid: false })
         }
     }
 }
