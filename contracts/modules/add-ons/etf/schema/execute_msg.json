@@ -10,7 +10,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/AddOnExecuteMsg"
+          "$ref": "#/definitions/BaseExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -44,7 +44,8 @@
             "asset": {
               "$ref": "#/definitions/AssetBase_for_String"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -65,38 +66,14 @@
             "fee": {
               "$ref": "#/definitions/Decimal"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "AddOnExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "memory_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "AssetBase_for_String": {
       "description": "Represents a fungible asset with a known amount\n\nEach asset instance contains two values: [`info`], which specifies the asset's type (CW20 or native), and its [`amount`], which specifies the asset's amount",
       "type": "object",
@@ -168,6 +145,32 @@
               ],
               "maxItems": 2,
               "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "BaseExecuteMsg": {
+      "oneOf": [
+        {
+          "description": "Updates the base config",
+          "type": "object",
+          "required": [
+            "update_config"
+          ],
+          "properties": {
+            "update_config": {
+              "type": "object",
+              "properties": {
+                "memory_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

@@ -16,9 +16,7 @@ use crate::contract::ModuleFactoryResult;
 
 use crate::{error::ModuleFactoryError, response::MsgInstantiateContractResponse, state::*};
 
-use abstract_os::version_control::{
-    QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VCQuery,
-};
+use abstract_os::version_control::{ApiAddressResponse, CodeIdResponse, QueryMsg as VCQuery};
 
 pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
@@ -39,7 +37,7 @@ pub fn execute_create_module(
 
     if module.kind == ModuleKind::API {
         // Query version_control for api address
-        let api_addr_response: QueryApiAddressResponse =
+        let api_addr_response: ApiAddressResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: config.version_control_address.to_string(),
                 msg: to_binary(&VCQuery::ApiAddress {
@@ -61,7 +59,7 @@ pub fn execute_create_module(
     }
 
     // Query version_control for code_id Module
-    let module_code_id_response: QueryCodeIdResponse =
+    let module_code_id_response: CodeIdResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_address.to_string(),
             msg: to_binary(&VCQuery::CodeId {

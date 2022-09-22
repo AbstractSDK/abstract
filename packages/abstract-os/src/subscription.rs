@@ -102,14 +102,14 @@ pub mod state {
     /// Keeps track of the active subscribers.
     /// Is updated each time a sub joins/leaves
     /// Used to calculate income.
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct SubscriptionState {
         /// amount of active subscribers
         pub active_subs: u32,
     }
 
     /// Stored info for each subscriber.
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct Subscriber {
         /// When the subscription ends
         pub expiration_block: u64,
@@ -162,7 +162,7 @@ pub mod state {
         decimal <= &Decimal::one()
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct ContributionState {
         /// Target income to pay base salaries
         pub income_target: Decimal,
@@ -226,10 +226,8 @@ pub mod state {
 
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw20::Cw20ReceiveMsg;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-use crate::add_on::{AddOnExecuteMsg, AddOnInstantiateMsg, AddOnQueryMsg};
+use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
@@ -239,16 +237,16 @@ use state::{
 
 use self::state::UncheckedEmissionType;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub base: AddOnInstantiateMsg,
+    pub base: BaseInstantiateMsg,
     pub subscription: SubscriptionInstantiateMsg,
     pub contribution: Option<ContributionInstantiateMsg>,
 }
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct SubscriptionInstantiateMsg {
     /// Payment asset for
     pub payment_asset: AssetInfoUnchecked,
@@ -258,7 +256,7 @@ pub struct SubscriptionInstantiateMsg {
     pub subscription_per_block_emissions: UncheckedEmissionType,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ContributionInstantiateMsg {
     pub protocol_income_share: Decimal,
     pub emission_user_share: Decimal,
@@ -269,10 +267,9 @@ pub struct ContributionInstantiateMsg {
     pub income_averaging_period: Uint64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    Base(AddOnExecuteMsg),
+    Base(BaseExecuteMsg),
     // Add dapp-specific messages here
     Receive(Cw20ReceiveMsg),
     Pay {
@@ -313,10 +310,9 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
-    Base(AddOnQueryMsg),
+    Base(BaseQueryMsg),
     // Add dapp-specific queries here
     State {},
     Config {},
@@ -325,36 +321,35 @@ pub enum QueryMsg {
     ContributorState { os_id: u32 },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {
     Pay { os_id: u32 },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub contribution: ContributionConfig,
     pub subscription: SubscriptionConfig,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
     pub contribution: ContributionState,
     pub subscription: SubscriptionState,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct SubscriptionFeeResponse {
     pub fee: Asset,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct SubscriberStateResponse {
     pub currently_subscribed: bool,
     pub subscriber_details: Subscriber,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ContributorStateResponse {
     pub compensation: Compensation,
 }

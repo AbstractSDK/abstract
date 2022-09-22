@@ -1,7 +1,7 @@
 use abstract_os::manager::state::{OsInfo, CONFIG, INFO, OS_ID, OS_MODULES, ROOT};
 use abstract_os::manager::{
-    ManagerModuleInfo, QueryConfigResponse, QueryInfoResponse, QueryModuleAddressesResponse,
-    QueryModuleInfosResponse, QueryModuleVersionsResponse,
+    ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
+    ModuleVersionsResponse,
 };
 use abstract_sdk::manager::{query_module_addresses, query_module_version, query_module_versions};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Uint64};
@@ -16,7 +16,7 @@ pub fn handle_module_address_query(deps: Deps, env: Env, names: Vec<String>) -> 
         .into_iter()
         .map(|(v, k)| (v, k.to_string()))
         .collect();
-    to_binary(&QueryModuleAddressesResponse { modules: vector })
+    to_binary(&ModuleAddressesResponse { modules: vector })
 }
 
 pub fn handle_contract_versions_query(
@@ -26,12 +26,12 @@ pub fn handle_contract_versions_query(
 ) -> StdResult<Binary> {
     let response = query_module_versions(deps, &env.contract.address, &names)?;
     let versions = response.into_values().collect();
-    to_binary(&QueryModuleVersionsResponse { versions })
+    to_binary(&ModuleVersionsResponse { versions })
 }
 
 pub fn handle_os_info_query(deps: Deps) -> StdResult<Binary> {
     let info: OsInfo = INFO.load(deps.storage)?;
-    to_binary(&QueryInfoResponse { info })
+    to_binary(&InfoResponse { info })
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
@@ -41,7 +41,7 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
         .unwrap_or_else(|| Addr::unchecked(""))
         .to_string();
     let config = CONFIG.load(deps.storage)?;
-    to_binary(&QueryConfigResponse {
+    to_binary(&ConfigResponse {
         root,
         os_id,
         version_control_address: config.version_control_address.to_string(),
@@ -72,7 +72,7 @@ pub fn handle_module_info_query(
         })
     }
 
-    to_binary(&QueryModuleInfosResponse {
+    to_binary(&ModuleInfosResponse {
         module_infos: resp_vec,
     })
 }

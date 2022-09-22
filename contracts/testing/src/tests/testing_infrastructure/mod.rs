@@ -53,7 +53,7 @@ pub mod env {
     ) -> AnyResult<HashMap<String, Addr>> {
         let manager_addr: Addr = os_store.get(os_id).unwrap().manager.clone();
         // Check OS
-        let mut resp: ManagerMsgs::QueryModuleInfosResponse = app.wrap().query_wasm_smart(
+        let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
             &ManagerMsgs::QueryMsg::ModuleInfos {
                 page_token: None,

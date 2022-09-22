@@ -18,7 +18,7 @@ pub mod state {
         pub memory_address: Addr,
     }
 
-    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
+    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
         pub core: Option<Core>,
         pub module: Option<Module>,
@@ -31,11 +31,10 @@ pub mod state {
 }
 
 use crate::{objects::module::Module, version_control::Core};
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Binary;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// Version control address used to get code-ids and register OS
     pub version_control_address: String,
@@ -43,8 +42,7 @@ pub struct InstantiateMsg {
     pub memory_address: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
@@ -64,27 +62,29 @@ pub enum ExecuteMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(ConfigResponse)]
     Config {},
+    #[returns(ContextResponse)]
     Context {},
 }
 
 // We define a custom struct for each query response
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryConfigResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
     pub owner: String,
     pub memory_address: String,
     pub version_control_address: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryContextResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ContextResponse {
     pub core: Option<Core>,
     pub module: Option<Module>,
 }
 
 /// We currently take no arguments for migrations
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

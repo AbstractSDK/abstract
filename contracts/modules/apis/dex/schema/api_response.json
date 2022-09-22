@@ -43,6 +43,7 @@
       ]
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "AssetEntry": {
       "description": "May key to retrieve information on an asset",

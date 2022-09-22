@@ -63,7 +63,7 @@ impl UncheckedProxyAsset {
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
 pub enum UncheckedValueRef {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Proxy_assets state
@@ -138,7 +138,7 @@ pub struct ProxyAsset {
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
 pub enum ValueRef {
     /// A pool name of an asset/asset pair
     /// Both assets must be defined in the Vault_assets state
@@ -352,7 +352,7 @@ pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
 /// For example: AssetInfo = bluna, BaseAsset = uusd, Proxy: luna, multiplier = 1
 /// Each bluna would be valued as one luna.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
 pub struct Proxy {
     // Proxy asset
     proxy_asset: String,

@@ -1,0 +1,370 @@
+{
+  "contract_name": "module-factory",
+  "contract_version": "0.1.0-rc.2",
+  "idl_version": "1.0.0",
+  "instantiate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "InstantiateMsg",
+    "type": "object",
+    "required": [
+      "memory_address",
+      "version_control_address"
+    ],
+    "properties": {
+      "memory_address": {
+        "description": "Memory address",
+        "type": "string"
+      },
+      "version_control_address": {
+        "description": "Version control address used to get code-ids and register OS",
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "execute": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ExecuteMsg",
+    "oneOf": [
+      {
+        "description": "Update config",
+        "type": "object",
+        "required": [
+          "update_config"
+        ],
+        "properties": {
+          "update_config": {
+            "type": "object",
+            "properties": {
+              "admin": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "memory_address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "version_control_address": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Creates the core contracts for the OS",
+        "type": "object",
+        "required": [
+          "create_module"
+        ],
+        "properties": {
+          "create_module": {
+            "type": "object",
+            "required": [
+              "module"
+            ],
+            "properties": {
+              "init_msg": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/Binary"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "module": {
+                "description": "Module details",
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Module"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "update_factory_binary_msgs"
+        ],
+        "properties": {
+          "update_factory_binary_msgs": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "array",
+                      "items": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "maxItems": 2,
+                      "minItems": 2
+                    },
+                    {
+                      "$ref": "#/definitions/Binary"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ],
+    "definitions": {
+      "Binary": {
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+        "type": "string"
+      },
+      "Module": {
+        "type": "object",
+        "required": [
+          "info",
+          "kind"
+        ],
+        "properties": {
+          "info": {
+            "$ref": "#/definitions/ModuleInfo"
+          },
+          "kind": {
+            "$ref": "#/definitions/ModuleKind"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleInfo": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ModuleKind": {
+        "type": "string",
+        "enum": [
+          "add_on",
+          "a_p_i",
+          "service",
+          "perk"
+        ]
+      }
+    }
+  },
+  "query": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "QueryMsg",
+    "oneOf": [
+      {
+        "type": "object",
+        "required": [
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "context"
+        ],
+        "properties": {
+          "context": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    ]
+  },
+  "migrate": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MigrateMsg",
+    "description": "We currently take no arguments for migrations",
+    "type": "object",
+    "additionalProperties": false
+  },
+  "sudo": null,
+  "responses": {
+    "config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ConfigResponse",
+      "type": "object",
+      "required": [
+        "memory_address",
+        "owner",
+        "version_control_address"
+      ],
+      "properties": {
+        "memory_address": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "version_control_address": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ContextResponse",
+      "type": "object",
+      "properties": {
+        "core": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Core"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "module": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Module"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "Core": {
+          "description": "Contains the minimal Abstract-OS contract addresses.",
+          "type": "object",
+          "required": [
+            "manager",
+            "proxy"
+          ],
+          "properties": {
+            "manager": {
+              "$ref": "#/definitions/Addr"
+            },
+            "proxy": {
+              "$ref": "#/definitions/Addr"
+            }
+          },
+          "additionalProperties": false
+        },
+        "Module": {
+          "type": "object",
+          "required": [
+            "info",
+            "kind"
+          ],
+          "properties": {
+            "info": {
+              "$ref": "#/definitions/ModuleInfo"
+            },
+            "kind": {
+              "$ref": "#/definitions/ModuleKind"
+            }
+          },
+          "additionalProperties": false
+        },
+        "ModuleInfo": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "ModuleKind": {
+          "type": "string",
+          "enum": [
+            "add_on",
+            "a_p_i",
+            "service",
+            "perk"
+          ]
+        }
+      }
+    }
+  }
+}

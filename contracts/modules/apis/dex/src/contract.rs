@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
-    api::{ApiInstantiateMsg, ApiQueryMsg, ExecuteMsg},
-    dex::{QueryMsg, RequestMsg},
+    api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
+    dex::{ApiQueryMsg, RequestMsg},
     EXCHANGE,
 };
 
@@ -26,7 +26,7 @@ pub fn instantiate(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ApiInstantiateMsg,
+    msg: BaseInstantiateMsg,
 ) -> ApiResult {
     DexApi::instantiate(deps, env, info, msg, EXCHANGE, CONTRACT_VERSION, vec![])?;
     Ok(Response::default())
@@ -114,13 +114,13 @@ pub fn handle_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: ApiQueryMsg<QueryMsg>) -> Result<Binary, DexError> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<ApiQueryMsg>) -> Result<Binary, DexError> {
     DEX_API.handle_query(deps, env, msg, Some(query_handler))
 }
 
-fn query_handler(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, DexError> {
+fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexError> {
     match msg {
-        QueryMsg::SimulateSwap {
+        ApiQueryMsg::SimulateSwap {
             offer_asset,
             ask_asset,
             dex,

@@ -29,6 +29,7 @@ pub mod state {
     pub const OS_ADDRESSES: Map<u32, Core> = Map::new("os_core");
 }
 
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Uint64};
 use cw2::ContractVersion;
 use schemars::JsonSchema;
@@ -37,17 +38,16 @@ use serde::{Deserialize, Serialize};
 use crate::objects::module::ModuleInfo;
 
 /// Contains the minimal Abstract-OS contract addresses.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct Core {
     pub manager: Addr,
     pub proxy: Addr,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Call to add a new version and code-id for a module
     AddCodeId {
@@ -78,64 +78,69 @@ pub enum ExecuteMsg {
     SetFactory { new_factory: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, QueryResponses)]
 pub enum QueryMsg {
     /// Query Core of an OS
-    /// Returns [`QueryOsCoreResponse`]
+    /// Returns [`OsCoreResponse`]
+    #[returns(OsCoreResponse)]
     OsCore { os_id: u32 },
     /// Queries contract code_id
-    /// Returns [`QueryCodeIdResponse`]
+    /// Returns [`CodeIdResponse`]
+    #[returns(CodeIdResponse)]
     CodeId { module: ModuleInfo },
     /// Queries api addresses
-    /// Returns [`QueryApiAddressResponse`]
+    /// Returns [`ApiAddressResponse`]
+    #[returns(ApiAddressResponse)]
     ApiAddress { module: ModuleInfo },
-    /// Returns [`QueryConfigResponse`]
+    /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
     Config {},
-    /// Returns [`QueryCodeIdsResponse`]
+    /// Returns [`CodeIdsResponse`]
+    #[returns(CodeIdsResponse)]
     CodeIds {
         page_token: Option<ContractVersion>,
         page_size: Option<u8>,
     },
-    /// Returns [`QueryApiAddressesResponse`]
+    /// Returns [`ApiAddressesResponse`]
+    #[returns(ApiAddressesResponse)]
     ApiAddresses {
         page_token: Option<ContractVersion>,
         page_size: Option<u8>,
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryOsCoreResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct OsCoreResponse {
     pub os_core: Core,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryCodeIdResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct CodeIdResponse {
     pub code_id: Uint64,
     pub info: ContractVersion,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryCodeIdsResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct CodeIdsResponse {
     pub module_code_ids: Vec<(ContractVersion, u64)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryApiAddressResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ApiAddressResponse {
     pub address: Addr,
     pub info: ContractVersion,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryApiAddressesResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ApiAddressesResponse {
     pub api_addresses: Vec<(ContractVersion, String)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryConfigResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
     pub admin: String,
     pub factory: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

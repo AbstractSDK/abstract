@@ -10,6 +10,7 @@
       "$ref": "#/definitions/Compensation"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "Compensation": {
       "description": "Compensation details for contributors",

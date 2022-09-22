@@ -2,9 +2,8 @@
 //!
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::{AssetEntry, ContractEntry};
 
@@ -12,8 +11,7 @@ type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
 
 /// Dex Execute msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum RequestMsg {
     ProvideLiquidity {
         // support complex pool types
@@ -45,9 +43,10 @@ pub enum RequestMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum QueryMsg {
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
+pub enum ApiQueryMsg {
+    #[returns(SimulateSwapResponse)]
     SimulateSwap {
         offer_asset: OfferAsset,
         ask_asset: AssetEntry,
@@ -56,7 +55,7 @@ pub enum QueryMsg {
 }
 
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct SimulateSwapResponse {
     pub pool: ContractEntry,
     /// Amount you would receive when performing the swap.

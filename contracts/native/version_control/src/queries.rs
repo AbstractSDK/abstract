@@ -1,9 +1,9 @@
 use abstract_os::objects::module::ModuleInfo;
 use abstract_os::version_control::state::API_ADDRESSES;
-use abstract_os::version_control::QueryApiAddressResponse;
-use abstract_os::version_control::QueryApiAddressesResponse;
-use abstract_os::version_control::QueryCodeIdsResponse;
-use abstract_os::version_control::QueryOsCoreResponse;
+use abstract_os::version_control::ApiAddressResponse;
+use abstract_os::version_control::ApiAddressesResponse;
+use abstract_os::version_control::CodeIdsResponse;
+use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::StdError;
 use cosmwasm_std::Uint64;
@@ -15,7 +15,7 @@ use abstract_os::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
 use cosmwasm_std::Addr;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 
-use abstract_os::version_control::QueryCodeIdResponse;
+use abstract_os::version_control::CodeIdResponse;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -26,7 +26,7 @@ pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
         Err(_) => Err(StdError::generic_err(
             VCError::MissingOsId { id: os_id }.to_string(),
         )),
-        Ok(core) => to_binary(&QueryOsCoreResponse { os_core: core }),
+        Ok(core) => to_binary(&OsCoreResponse { os_core: core }),
     }
 }
 
@@ -62,7 +62,7 @@ pub fn handle_code_id_query(deps: Deps, module: ModuleInfo) -> StdResult<Binary>
             }
             .to_string(),
         )),
-        Ok(id) => to_binary(&QueryCodeIdResponse {
+        Ok(id) => to_binary(&CodeIdResponse {
             code_id: Uint64::from(id),
             info: ContractVersion {
                 version: resulting_version,
@@ -104,7 +104,7 @@ pub fn handle_api_address_query(deps: Deps, module: ModuleInfo) -> StdResult<Bin
             }
             .to_string(),
         )),
-        Ok(address) => to_binary(&QueryApiAddressResponse {
+        Ok(address) => to_binary(&ApiAddressResponse {
             address,
             info: ContractVersion {
                 version: resulting_version,
@@ -138,7 +138,7 @@ pub fn handle_code_ids_query(
         resp_vec.push((ContractVersion { contract, version }, code_id))
     }
 
-    to_binary(&QueryCodeIdsResponse {
+    to_binary(&CodeIdsResponse {
         module_code_ids: resp_vec,
     })
 }
@@ -166,7 +166,7 @@ pub fn handle_api_addresses_query(
         resp_vec.push((ContractVersion { contract, version }, addr.to_string()))
     }
 
-    to_binary(&QueryApiAddressesResponse {
+    to_binary(&ApiAddressesResponse {
         api_addresses: resp_vec,
     })
 }

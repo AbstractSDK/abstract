@@ -1,12 +1,12 @@
 use abstract_os::{
-    api::{ApiQueryMsg, BaseExecuteMsg, BaseQueryMsg, QueryTradersResponse},
+    api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::module::{Module, ModuleInfo, ModuleKind},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
-        QueryApiAddressResponse, QueryCodeIdResponse, QueryMsg as VersionQuery,
+        ApiAddressResponse, CodeIdResponse, QueryMsg as VersionQuery,
     },
 };
 use cosmwasm_std::{
@@ -221,13 +221,12 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Makes sure we already have the API installed
     let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
-    let traders: QueryTradersResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: old_api_addr.to_string(),
-            msg: to_binary(&<ApiQueryMsg>::Base(BaseQueryMsg::Traders {
-                proxy_address: proxy_addr.to_string(),
-            }))?,
-        }))?;
+    let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: old_api_addr.to_string(),
+        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
+            proxy_address: proxy_addr.to_string(),
+        }))?,
+    }))?;
     // Get the address of the new API
     let new_api_addr = get_api_addr(deps.as_ref(), &module_info)?;
     let traders_to_migrate: Vec<String> = traders
@@ -338,7 +337,7 @@ fn get_code_id(
         }
         None => {
             // Query latest version of contract
-            let resp: QueryCodeIdResponse =
+            let resp: CodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::CodeId {
@@ -371,7 +370,7 @@ fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerErr
         }
         None => {
             // Query latest version of contract
-            let resp: QueryApiAddressResponse =
+            let resp: ApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
                     msg: to_binary(&VersionQuery::ApiAddress {

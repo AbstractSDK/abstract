@@ -1,16 +1,16 @@
-use abstract_os::add_on::{AddOnConfigResponse, AddOnQueryMsg};
+use abstract_os::add_on::{AddOnConfigResponse, BaseQueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 use crate::state::AddOnContract;
 
 /// Where we dispatch the queries for the AddOnContract
-/// These AddOnQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
+/// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
 impl<'a> AddOnContract<'a> {
-    pub fn query(&self, deps: Deps, _env: Env, query: AddOnQueryMsg) -> StdResult<Binary> {
+    pub fn query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            AddOnQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
-            AddOnQueryMsg::Admin {} => to_binary(&self.admin(deps)?),
+            BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
+            BaseQueryMsg::Admin {} => to_binary(&self.admin(deps)?),
         }
     }
 

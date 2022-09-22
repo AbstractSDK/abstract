@@ -63,7 +63,7 @@ fn proper_initialization() {
                 kind: abstract_os::modules::ModuleKind::AddOn,
             },
             Some(vault_msg::InstantiateMsg {
-                base: abstract_os::add_on::AddOnInstantiateMsg {
+                base: abstract_os::add_on::BaseInstantiateMsg {
                     memory_address: env.native_contracts.memory.to_string(),
                 },
                 deposit_asset: "test".into(),

@@ -52,7 +52,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "AssetEntry": {
       "description": "May key to retrieve information on an asset",
@@ -89,7 +90,8 @@
                     "type": "string"
                   }
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -102,7 +104,8 @@
           ],
           "properties": {
             "remove": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -162,7 +165,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -207,7 +211,8 @@
                     "$ref": "#/definitions/AssetEntry"
                   }
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -237,7 +242,8 @@
                 "lp_token": {
                   "$ref": "#/definitions/AssetEntry"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -297,7 +303,8 @@
                   "maxItems": 2,
                   "minItems": 2
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::version_control::{Core, QueryOsCoreResponse};
+use abstract_os::version_control::{Core, OsCoreResponse};
 use cw_multi_test::App;
 
 use super::common_integration::NativeContracts;
@@ -11,7 +11,7 @@ pub fn os_store_as_expected(
     native_contracts: &NativeContracts,
     os_store: &HashMap<u32, Core>,
 ) -> bool {
-    let resp: os_factory::QueryConfigResponse = app
+    let resp: os_factory::ConfigResponse = app
         .wrap()
         .query_wasm_smart(
             &native_contracts.os_factory,
@@ -22,7 +22,7 @@ pub fn os_store_as_expected(
 
     for os_id in 0..max_os_id {
         // Check OS
-        let core: QueryOsCoreResponse = app
+        let core: OsCoreResponse = app
             .wrap()
             .query_wasm_smart(
                 &native_contracts.version_control,

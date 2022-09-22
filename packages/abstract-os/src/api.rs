@@ -7,14 +7,14 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
-use cosmwasm_std::{Addr, Empty};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
+use serde::Serialize;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct ApiInstantiateMsg {
+#[cosmwasm_schema::cw_serde]
+pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
     pub memory_address: String,
     /// Used to verify senders
@@ -22,9 +22,8 @@ pub struct ApiInstantiateMsg {
 }
 
 /// Interface to the API.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg<T: Serialize = Empty> {
+#[cosmwasm_schema::cw_serde]
+pub enum ExecuteMsg<T: Serialize> {
     /// An API request.
     Request(ApiRequestMsg<T>),
     /// A configuration message to whitelist traders.
@@ -44,8 +43,8 @@ impl<T: Serialize> From<ApiRequestMsg<T>> for ExecuteMsg<T> {
 }
 /// An API request.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct ApiRequestMsg<T: Serialize = Empty> {
+#[cosmwasm_schema::cw_serde]
+pub struct ApiRequestMsg<T: Serialize> {
     pub proxy_address: Option<String>,
     /// The actual request
     pub request: T,
@@ -61,8 +60,7 @@ impl<T: Serialize> ApiRequestMsg<T> {
 }
 
 /// Configuration message for the API
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Add or remove traders
     /// If a trader is both in to_add and to_remove, it will be removed.
@@ -74,35 +72,36 @@ pub enum BaseExecuteMsg {
     Remove {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum ApiQueryMsg<Q: Serialize = Empty> {
-    /// An API request. Forwards the msg to the associated proxy.
+#[cosmwasm_schema::cw_serde]
+pub enum QueryMsg<Q: Serialize> {
+    /// An API query message. Forwards the msg to the associated proxy.
     Api(Q),
     /// A configuration message to whitelist traders.
     Base(BaseQueryMsg),
 }
 
 /// Query API message
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum BaseQueryMsg {
-    /// Returns [`QueryApiConfigResponse`].
+    /// Returns [`ApiConfigResponse`].
+    #[returns(ApiConfigResponse)]
     Config {},
-    /// Returns [`QueryTradersResponse`].
+    /// Returns [`TradersResponse`].
     /// TODO: enable pagination of some sort
+    #[returns(TradersResponse)]
     Traders { proxy_address: String },
 }
 
-#[derive(Serialize, Deserialize, Debug, JsonSchema)]
-pub struct QueryApiConfigResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ApiConfigResponse {
     pub version_control_address: Addr,
     pub memory_address: Addr,
     pub dependencies: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
-pub struct QueryTradersResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct TradersResponse {
     /// Contains all traders
     pub traders: Vec<Addr>,
 }

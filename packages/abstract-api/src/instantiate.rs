@@ -1,4 +1,4 @@
-use abstract_os::api::ApiInstantiateMsg;
+use abstract_os::api::BaseInstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult};
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -14,7 +14,7 @@ impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
         deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
-        msg: ApiInstantiateMsg,
+        msg: BaseInstantiateMsg,
         module_name: &str,
         module_version: &str,
         _api_dependencies: Vec<String>,

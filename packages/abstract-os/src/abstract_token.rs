@@ -7,17 +7,19 @@
 //!
 use std::convert::TryInto;
 
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
+use cw20::{
+    AllAccountsResponse, AllAllowancesResponse, AllowanceResponse, BalanceResponse,
+    DownloadLogoResponse, MarketingInfoResponse, TokenInfoResponse,
+};
 pub use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
 pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;
 
 /// ## Description
 /// This structure describes the basic settings for creating a token contract.
 /// TokenContract InstantiateMsg
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// the name
     pub name: String,
@@ -36,7 +38,7 @@ pub struct InstantiateMsg {
 /// ## Description
 /// This structure describes a migration message.
 /// We currently take no arguments for migrations.
-#[derive(Serialize, Deserialize, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
 impl InstantiateMsg {
@@ -92,8 +94,7 @@ fn is_valid_symbol(symbol: &str) -> bool {
     true
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     UpdateWhitelist {
         to_add: Vec<String>,
@@ -259,33 +260,33 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
         }
     }
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
+    #[returns(ConfigResponse)]
     Config {},
     /// Returns the current balance of the given address, 0 if unset.
     /// Return type: BalanceResponse.
-    Balance {
-        address: String,
-    },
+    #[returns(BalanceResponse)]
+    Balance { address: String },
     /// Returns metadata on the contract - name, decimals, supply, etc.
     /// Return type: TokenInfoResponse.
+    #[returns(TokenInfoResponse)]
     TokenInfo {},
     /// Only with "mintable" extension.
     /// Returns who can mint and the hard cap on maximum tokens after minting.
     /// Return type: MinterResponse.
+    #[returns(MinterResponse)]
     Minter {},
     /// Only with "allowance" extension.
     /// Returns how much spender can use from owner account, 0 if unset.
     /// Return type: AllowanceResponse.
-    Allowance {
-        owner: String,
-        spender: String,
-    },
+    #[returns(AllowanceResponse)]
+    Allowance { owner: String, spender: String },
     /// Only with "enumerable" extension (and "allowances")
     /// Returns all allowances this owner has approved. Supports pagination.
     /// Return type: AllAllowancesResponse.
+    #[returns(AllAllowancesResponse)]
     AllAllowances {
         owner: String,
         start_after: Option<String>,
@@ -294,6 +295,7 @@ pub enum QueryMsg {
     /// Only with "enumerable" extension
     /// Returns all accounts that have balances. Supports pagination.
     /// Return type: AllAccountsResponse.
+    #[returns(AllAccountsResponse)]
     AllAccounts {
         start_after: Option<String>,
         limit: Option<u32>,
@@ -302,11 +304,13 @@ pub enum QueryMsg {
     /// Returns more metadata on the contract to display in the client:
     /// - description, logo, project url, etc.
     /// Return type: MarketingInfoResponse
+    #[returns(MarketingInfoResponse)]
     MarketingInfo {},
     /// Only with "marketing" extension
     /// Downloads the embedded logo data (if stored on chain). Errors if no logo data is stored for this
     /// contract.
     /// Return type: DownloadLogoResponse.
+    #[returns(DownloadLogoResponse)]
     DownloadLogo {},
 }
 
@@ -337,8 +341,7 @@ impl TryInto<Cw20QueryMsg> for QueryMsg {
         }
     }
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub transfers_restricted: bool,
     pub version_control_address: String,

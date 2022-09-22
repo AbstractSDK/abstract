@@ -5,9 +5,8 @@
 //! ## Description
 //! Contract and asset addresses are stored on the memory contract and are retrievable trough smart or raw queries.
 
+use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::{
     asset_entry::AssetEntry,
@@ -36,13 +35,11 @@ pub mod state {
 }
 
 /// Memory Instantiate msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
 /// Memory Execute msg
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
@@ -63,60 +60,63 @@ pub enum ExecuteMsg {
 }
 
 /// Memory smart-query
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
     /// Queries assets based on name
-    /// returns [`QueryAssetsResponse`]
+    /// returns [`AssetsResponse`]
+    #[returns(AssetsResponse)]
     Assets {
         /// Names of assets to query
         names: Vec<String>,
     },
     /// Queries contracts based on name
-    /// returns [`QueryContractsResponse`]
+    /// returns [`ContractsResponse`]
+    #[returns(ContractsResponse)]
     Contracts {
         /// Project and contract names of contracts to query
         names: Vec<ContractEntry>,
     },
     /// Page over contracts
-    /// returns [`QueryContractListResponse`]
+    /// returns [`ContractListResponse`]
+    #[returns(ContractListResponse)]
     ContractList {
         page_token: Option<ContractEntry>,
         page_size: Option<u8>,
     },
     /// Page over assets
-    /// returns [`QueryAssetListResponse`]
+    /// returns [`AssetListResponse`]
+    #[returns(AssetListResponse)]
     AssetList {
         page_token: Option<String>,
         page_size: Option<u8>,
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 /// Query response
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryAssetsResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct AssetsResponse {
     /// Assets (name, assetinfo)
     pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryContractsResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ContractsResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,
 }
 
 /// Query response
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryAssetListResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct AssetListResponse {
     /// Assets (name, assetinfo)
     pub assets: Vec<(AssetEntry, AssetInfo)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryContractListResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ContractListResponse {
     /// Contracts (name, address)
     pub contracts: Vec<(ContractEntry, String)>,
 }

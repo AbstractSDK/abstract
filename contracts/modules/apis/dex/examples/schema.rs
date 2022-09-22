@@ -2,8 +2,8 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_os::{
-    api::{ApiQueryMsg, ExecuteMsg, QueryApiConfigResponse, QueryTradersResponse},
-    dex::{QueryMsg, RequestMsg, SimulateSwapResponse},
+    api::{ApiConfigResponse, ExecuteMsg, TradersResponse},
+    dex::{ApiQueryMsg, RequestMsg, SimulateSwapResponse},
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 
@@ -13,21 +13,13 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    export_schema_with_title(&schema_for!(ApiQueryMsg<QueryMsg>), &out_dir, "QueryMsg");
+    export_schema_with_title(&schema_for!(ApiQueryMsg), &out_dir, "QueryMsg");
 
     export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 
-    export_schema(&schema_for!(ExecuteMsg), &out_dir);
-    export_schema_with_title(
-        &schema_for!(QueryTradersResponse),
-        &out_dir,
-        "TradersResponse",
-    );
-    export_schema_with_title(
-        &schema_for!(QueryApiConfigResponse),
-        &out_dir,
-        "ConfigResponse",
-    );
+    export_schema(&schema_for!(ExecuteMsg<RequestMsg>), &out_dir);
+    export_schema_with_title(&schema_for!(TradersResponse), &out_dir, "TradersResponse");
+    export_schema_with_title(&schema_for!(ApiConfigResponse), &out_dir, "ConfigResponse");
 
     // export_schema_with_title(&schema_for!(ApiQueryMsg), &out_dir, "QueryMsg");
     export_schema_with_title(&schema_for!(ExecuteMsg<RequestMsg>), &out_dir, "ExecuteMsg");

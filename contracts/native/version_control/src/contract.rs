@@ -13,7 +13,7 @@ use crate::commands::*;
 use crate::queries;
 use abstract_os::version_control::state::{ADMIN, FACTORY};
 use abstract_os::version_control::{
-    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryConfigResponse, QueryMsg,
+    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 
 pub type VCResult = Result<Response, VCError>;
@@ -80,7 +80,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
-            to_binary(&QueryConfigResponse { admin, factory })
+            to_binary(&ConfigResponse { admin, factory })
         }
         QueryMsg::CodeIds {
             page_token,

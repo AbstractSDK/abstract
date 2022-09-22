@@ -20,12 +20,13 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-cosmwasm-std = { version = "1.0" }
+cosmwasm-std = { version = "1.1" }
 cosmwasm-storage = { version = "1.0" }
-cw-controllers = { version ="0.13" }
-cw-storage-plus = "0.13"
-cw2 = "0.13"
-cw20 = { version = "0.13" }
+cosmwasm-schema = { version = "1.1" }
+cw-controllers = { version ="0.14" }
+cw-storage-plus = "0.14"
+cw2 = "0.14"
+cw20 = { version = "0.14" }
 cw-asset = {version = "2.2.0"}
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
@@ -35,6 +36,5 @@ semver = "1"
 abstract-os = {path = "../../../packages/abstract-os"}
 
 [dev-dependencies]
-cosmwasm-schema = { version = "1.0" }
-cw20-base = { version = "0.13", features = ["library"] } 
-cw-multi-test = { version = "0.13"}
+cw20-base = { version = "0.14", features = ["library"] } 
+cw-multi-test = { version = "0.14"}

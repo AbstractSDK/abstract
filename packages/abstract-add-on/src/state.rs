@@ -40,7 +40,7 @@ impl<'a> AddOnContract<'a> {
 }
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AddOnState {
     /// Proxy contract address for relaying transactions
     pub proxy_address: Addr,

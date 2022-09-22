@@ -2,11 +2,9 @@ use std::fmt;
 
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub struct ModuleInfo {
     pub name: String,
     pub version: Option<String>,
@@ -34,8 +32,8 @@ impl From<ContractVersion> for ModuleInfo {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub struct Module {
     pub info: ModuleInfo,
     pub kind: ModuleKind,
@@ -47,8 +45,8 @@ impl fmt::Display for Module {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub enum ModuleKind {
     AddOn,
     API,
@@ -56,8 +54,8 @@ pub enum ModuleKind {
     Perk,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,
     pub root_init: Option<Binary>,

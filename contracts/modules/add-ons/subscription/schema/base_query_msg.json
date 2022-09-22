@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BaseQueryMsg",
+  "oneOf": [
+    {
+      "description": "Returns [`AddOnConfigResponse`]",
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns the admin.",
+      "type": "object",
+      "required": [
+        "admin"
+      ],
+      "properties": {
+        "admin": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

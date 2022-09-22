@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/AddOnQueryMsg"
+          "$ref": "#/definitions/BaseQueryMsg"
         }
       },
       "additionalProperties": false
@@ -21,7 +21,8 @@
       ],
       "properties": {
         "state": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -33,7 +34,8 @@
       ],
       "properties": {
         "config": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -45,7 +47,8 @@
       ],
       "properties": {
         "fee": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -67,7 +70,8 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -89,14 +93,15 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "AddOnQueryMsg": {
+    "BaseQueryMsg": {
       "oneOf": [
         {
           "description": "Returns [`AddOnConfigResponse`]",
@@ -106,7 +111,8 @@
           ],
           "properties": {
             "config": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -119,7 +125,8 @@
           ],
           "properties": {
             "admin": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

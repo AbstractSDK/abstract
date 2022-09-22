@@ -5,7 +5,7 @@ use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, s
 
 use abstract_add_on::state::AddOnState;
 use abstract_os::{
-    add_on::AddOnQueryMsg,
+    add_on::{AddOnConfigResponse, BaseQueryMsg},
     subscription::{
         ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
         StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
@@ -13,6 +13,7 @@ use abstract_os::{
 };
 
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cw_controllers::AdminResponse;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -29,8 +30,10 @@ fn main() {
     export_schema(&schema_for!(SubscriberStateResponse), &out_dir);
     export_schema(&schema_for!(ConfigResponse), &out_dir);
 
-    // TODO: we need to pull this out into a better type
-    export_schema_with_title(&schema_for!(AddOnQueryMsg), &out_dir, "BaseResponse");
+    // Base add-on exports
+    export_schema(&schema_for!(BaseQueryMsg), &out_dir);
+    export_schema(&schema_for!(AddOnConfigResponse), &out_dir);
+    export_schema(&schema_for!(AdminResponse), &out_dir);
 
     export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");
     export_schema_with_title(

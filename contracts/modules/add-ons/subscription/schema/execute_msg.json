@@ -9,7 +9,7 @@
       ],
       "properties": {
         "base": {
-          "$ref": "#/definitions/AddOnExecuteMsg"
+          "$ref": "#/definitions/BaseExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -43,7 +43,8 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -68,7 +69,8 @@
                 "minimum": 0.0
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -90,7 +92,8 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -112,7 +115,8 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -164,7 +168,8 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -186,7 +191,8 @@
               "format": "uint32",
               "minimum": 0.0
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -232,7 +238,8 @@
                 "null"
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -306,38 +313,14 @@
                 }
               ]
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "AddOnExecuteMsg": {
-      "oneOf": [
-        {
-          "description": "Updates the base config",
-          "type": "object",
-          "required": [
-            "update_config"
-          ],
-          "properties": {
-            "update_config": {
-              "type": "object",
-              "properties": {
-                "memory_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              }
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "AssetInfoBase_for_String": {
       "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
       "oneOf": [
@@ -383,6 +366,32 @@
               ],
               "maxItems": 2,
               "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "BaseExecuteMsg": {
+      "oneOf": [
+        {
+          "description": "Updates the base config",
+          "type": "object",
+          "required": [
+            "update_config"
+          ],
+          "properties": {
+            "update_config": {
+              "type": "object",
+              "properties": {
+                "memory_address": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

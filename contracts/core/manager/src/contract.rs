@@ -15,7 +15,7 @@ use cw2::{get_contract_version, set_contract_version};
 
 pub type ManagerResult = Result<Response, ManagerError>;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MIN_DESC_LENGTH: usize = 4;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;
 pub(crate) const MIN_LINK_LENGTH: usize = 12;

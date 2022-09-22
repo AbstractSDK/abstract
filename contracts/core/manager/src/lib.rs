@@ -1,7 +1,7 @@
-pub mod commands;
+mod commands;
 pub mod contract;
 pub mod error;
-pub mod queries;
+mod queries;
 mod response;
 mod validators;
 

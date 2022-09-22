@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// Governance types
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+
 pub enum GovernanceDetails {
     /// A single address is admin
     Monarchy {

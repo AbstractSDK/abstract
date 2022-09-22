@@ -52,7 +52,8 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     "BaseExecuteMsg": {
       "description": "Configuration message for the API",
@@ -85,7 +86,8 @@
                     "type": "string"
                   }
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -98,7 +100,8 @@
           ],
           "properties": {
             "remove": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -127,7 +130,8 @@
                   "description": "Validator address",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -158,7 +162,8 @@
                   "description": "Validator address",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -170,7 +175,8 @@
           ],
           "properties": {
             "undelegate_all": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -206,7 +212,8 @@
                   "description": "Validator address",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -227,7 +234,8 @@
                   "description": "The new `withdraw_address`",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -248,7 +256,8 @@
                   "description": "Validator address",
                   "type": "string"
                 }
-              }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
@@ -261,7 +270,8 @@
           ],
           "properties": {
             "withdraw_all_rewards": {
-              "type": "object"
+              "type": "object",
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

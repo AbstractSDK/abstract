@@ -1,4 +1,4 @@
-use abstract_os::add_on::AddOnExecuteMsg;
+use abstract_os::add_on::BaseExecuteMsg;
 
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
@@ -10,10 +10,10 @@ impl<'a> AddOnContract<'a> {
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        message: AddOnExecuteMsg,
+        message: BaseExecuteMsg,
     ) -> AddOnResult {
         match message {
-            AddOnExecuteMsg::UpdateConfig { memory_address } => {
+            BaseExecuteMsg::UpdateConfig { memory_address } => {
                 self.update_config(deps, info, memory_address)
             }
         }

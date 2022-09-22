@@ -10,8 +10,7 @@
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::QueryResponses;
 
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 
@@ -23,14 +22,12 @@ use crate::objects::{
 pub mod state {
     pub use crate::objects::core::OS_ID;
     use cw_controllers::Admin;
-    use schemars::JsonSchema;
-    use serde::{Deserialize, Serialize};
 
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{asset_entry::AssetEntry, memory::Memory, proxy_asset::ProxyAsset};
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
@@ -40,16 +37,14 @@ pub mod state {
     pub const VAULT_ASSETS: Map<AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub memory_address: String,
 }
 
 // hot fix
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
@@ -65,53 +60,61 @@ pub enum ExecuteMsg {
         to_remove: Vec<String>,
     },
 }
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
     Config {},
     /// Returns the total value of all held assets
     /// [`TotalValueResponse`]
+    #[returns(TotalValueResponse)]
     TotalValue {},
     /// Returns the value of one specific asset
-    /// [`yHoldingValueResponse`]
+    /// [`HoldingValueResponse`]
+    #[returns(HoldingValueResponse)]
     HoldingValue { identifier: String },
     /// Returns the amount of specified tokens this contract holds
     /// [`HoldingAmountResponse`]
+    #[returns(HoldingAmountResponse)]
     HoldingAmount { identifier: String },
     /// Returns the VAULT_ASSETS value for the specified key
     /// [`AssetConfigResponse`]
+    #[returns(AssetConfigResponse)]
     AssetConfig { identifier: String },
     /// Returns [`AssetsResponse`]
+    #[returns(AssetsResponse)]
     Assets {
         page_token: Option<String>,
         page_size: Option<u8>,
     },
     /// Returns [`ValidityResponse`]
+    #[returns(ValidityResponse)]
     CheckValidity {},
     /// Returns [`BaseAssetResponse`]
+    #[returns(BaseAssetResponse)]
     BaseAsset {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub modules: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct TotalValueResponse {
     pub value: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct HoldingValueResponse {
     pub value: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ValidityResponse {
     /// Assets that have unresolvable dependencies in their value calculation
     pub unresolvable_assets: Option<Vec<AssetEntry>>,
@@ -119,35 +122,35 @@ pub struct ValidityResponse {
     pub missing_dependencies: Option<Vec<AssetEntry>>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct BaseAssetResponse {
     pub base_asset: ProxyAsset,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct HoldingAmountResponse {
     pub amount: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct AssetConfigResponse {
     pub proxy_asset: ProxyAsset,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
     pub assets: Vec<(AssetEntry, ProxyAsset)>,
 }
 
 /// Query message to external contract to get asset value
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub struct ValueQueryMsg {
     pub asset: AssetEntry,
     pub amount: Uint128,
 }
 /// External contract value response
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ExternalValueResponse {
     pub value: Uint128,
 }

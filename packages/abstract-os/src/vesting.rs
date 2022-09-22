@@ -1,3 +1,4 @@
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Uint128};
 use cw20::Cw20ReceiveMsg;
 use cw_storage_plus::{Item, Map};
@@ -10,7 +11,7 @@ pub mod state {
     pub const STATE: Item<State> = Item::new("state");
     pub const ALLOCATIONS: Map<&Addr, AllocationInfo> = Map::new("vested_allocations");
 
-    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct Config {
         /// Account which can create new allocations
         pub owner: Addr,
@@ -41,7 +42,7 @@ pub mod state {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// Account which can create new allocations
     pub owner: String,
@@ -54,8 +55,7 @@ pub struct InstantiateMsg {
     pub default_unlock_schedule: Schedule,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Admin function. Update addresses of owner
     TransferOwnership { new_owner: String },
@@ -67,8 +67,7 @@ pub enum ExecuteMsg {
     Terminate { user_address: String },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
 pub enum ReceiveMsg {
     /// Create new allocations
     CreateAllocations {
@@ -76,18 +75,20 @@ pub enum ReceiveMsg {
     },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
     // Config of this contract
+    #[returns(ConfigResponse)]
     Config {},
     // State of this contract
+    #[returns(StateResponse)]
     State {},
     // Parameters and current status of an allocation
-    Allocation {
-        account: String,
-    },
+    #[returns(AllocationResponse)]
+    Allocation { account: String },
     // Simulate how many tokens will be released if a withdrawal is attempted
+    #[returns(SimulateWithdrawResponse)]
     SimulateWithdraw {
         account: String,
         timestamp: Option<u64>,
@@ -97,7 +98,7 @@ pub enum QueryMsg {
 pub type ConfigResponse = InstantiateMsg;
 pub type AllocationResponse = AllocationInfo;
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
     /// tokens Tokens deposited into the contract
     pub total_deposited: Uint128,
@@ -105,7 +106,7 @@ pub struct StateResponse {
     pub remaining_tokens: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct SimulateWithdrawResponse {
     /// Total number of tokens tokens allocated to this account
     pub total_tokens_locked: Uint128,
@@ -119,7 +120,7 @@ pub struct SimulateWithdrawResponse {
     pub withdrawable_amount: Uint128,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct AllocationInfo {
     /// Total number of tokens tokens allocated to this account
     pub total_amount: Uint128,
@@ -134,7 +135,7 @@ pub struct AllocationInfo {
 }
 
 // Parameters describing a typical vesting schedule
-#[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct Schedule {
     /// Timestamp of when vesting is to be started
     pub start_time: u64,

@@ -19,19 +19,17 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
-    use schemars::JsonSchema;
-    use serde::{Deserialize, Serialize};
 
     pub type Subscribed = bool;
 
     /// Manager configuration
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_address: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
     }
-    #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+    #[cosmwasm_schema::cw_serde]
     pub struct OsInfo {
         pub name: String,
         pub governance_type: String,
@@ -54,19 +52,18 @@ pub mod state {
     pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
 }
 
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
 use crate::objects::module::Module;
 
 use self::state::OsInfo;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub os_id: u32,
     pub root_user: String,
@@ -80,8 +77,8 @@ pub struct InstantiateMsg {
 }
 
 /// Execute messages
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+
 pub enum ExecuteMsg {
     /// Forward execution message to module
     ExecOnModule { module_id: String, exec_msg: Binary },
@@ -124,55 +121,60 @@ pub enum ExecuteMsg {
     SuspendOs { new_status: bool },
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
-    /// Returns [`QueryModuleVersionsResponse`]
+    /// Returns [`ModuleVersionsResponse`]
+    #[returns(ModuleVersionsResponse)]
     ModuleVersions { names: Vec<String> },
-    /// Returns [`QueryModuleAddressesResponse`]
+    /// Returns [`ModuleAddressesResponse`]
+    #[returns(ModuleAddressesResponse)]
     ModuleAddresses { names: Vec<String> },
-    /// Returns [`QueryModuleInfosResponse`]
+    /// Returns [`ModuleInfosResponse`]
+    #[returns(ModuleInfosResponse)]
     ModuleInfos {
         page_token: Option<String>,
         page_size: Option<u8>,
     },
-    /// Returns [`QueryConfigResponse`]
+    /// Returns [`ConfigResponse`]
+    #[returns(ConfigResponse)]
     Config {},
-    /// Returns [`QueryInfoResponse`]
+    /// Returns [`InfoResponse`]
+    #[returns(InfoResponse)]
     Info {},
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryModuleVersionsResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleVersionsResponse {
     pub versions: Vec<ContractVersion>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryModuleAddressesResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleAddressesResponse {
     pub modules: Vec<(String, String)>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryConfigResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ConfigResponse {
     pub root: String,
     pub version_control_address: String,
     pub module_factory_address: String,
     pub os_id: Uint64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-pub struct QueryInfoResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct InfoResponse {
     pub info: OsInfo,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub name: String,
     pub version: ContractVersion,
     pub address: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct QueryModuleInfosResponse {
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleInfosResponse {
     pub module_infos: Vec<ManagerModuleInfo>,
 }

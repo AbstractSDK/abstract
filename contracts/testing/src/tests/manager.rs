@@ -1,4 +1,4 @@
-use abstract_os::{api::ApiInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
+use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
 
 use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
 
@@ -29,7 +29,7 @@ pub fn register_and_create_dex_api(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = ApiInstantiateMsg {
+    let msg = BaseInstantiateMsg {
         memory_address: memory.to_string(),
         version_control_address: version_control.to_string(),
     };
@@ -91,7 +91,7 @@ fn proper_initialization() {
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
     println!("{:?}", os_state);
 
-    let resp: abstract_os::version_control::QueryApiAddressResponse = app
+    let resp: abstract_os::version_control::ApiAddressResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
@@ -133,7 +133,7 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let resp: abstract_os::version_control::QueryApiAddressResponse = app
+    let resp: abstract_os::version_control::ApiAddressResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),

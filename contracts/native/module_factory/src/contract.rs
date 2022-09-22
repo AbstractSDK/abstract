@@ -94,10 +94,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
+pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state: Config = CONFIG.load(deps.storage)?;
     let admin = ADMIN.get(deps)?.unwrap();
-    let resp = QueryConfigResponse {
+    let resp = ConfigResponse {
         owner: admin.into(),
         version_control_address: state.version_control_address.into(),
         memory_address: state.memory_address.into(),
@@ -106,9 +106,9 @@ pub fn query_config(deps: Deps) -> StdResult<QueryConfigResponse> {
     Ok(resp)
 }
 
-pub fn query_context(deps: Deps) -> StdResult<QueryContextResponse> {
+pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let context: Context = CONTEXT.load(deps.storage)?;
-    let resp = QueryContextResponse {
+    let resp = ContextResponse {
         core: context.core,
         module: context.module,
     };

@@ -3,8 +3,7 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 use abstract_os::{
     memory::{
         state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES},
-        QueryAssetListResponse, QueryAssetsResponse, QueryContractListResponse,
-        QueryContractsResponse,
+        AssetListResponse, AssetsResponse, ContractListResponse, ContractsResponse,
     },
     objects::{AssetEntry, ContractEntry},
 };
@@ -23,7 +22,7 @@ pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResul
         .range(deps.storage, None, None, Order::Ascending)
         .filter(|e| assets.contains(&e.as_ref().unwrap().0))
         .collect();
-    to_binary(&QueryAssetsResponse { assets: res? })
+    to_binary(&AssetsResponse { assets: res? })
 }
 
 pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
@@ -32,7 +31,7 @@ pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdRe
         .filter(|e| names.contains(&e.as_ref().unwrap().0))
         .collect();
 
-    to_binary(&QueryContractsResponse {
+    to_binary(&ContractsResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
 }
@@ -50,7 +49,7 @@ pub fn query_asset_list(
         .take(limit)
         .collect();
 
-    to_binary(&QueryAssetListResponse { assets: res? })
+    to_binary(&AssetListResponse { assets: res? })
 }
 
 pub fn query_contract_list(
@@ -65,7 +64,7 @@ pub fn query_contract_list(
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
-    to_binary(&QueryContractListResponse {
+    to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
 }
