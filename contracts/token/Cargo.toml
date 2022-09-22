@@ -1,6 +1,6 @@
 [package]
 name = "token"
-version = "0.1.0-rc.2"
+version = "0.1.0-rc.3"
 authors = ["Cyberhoward"]
 edition = "2021"
 description = "Expanded implementation of a CosmWasm-20 compliant token for post intialization"
