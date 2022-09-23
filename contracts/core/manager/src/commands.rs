@@ -156,13 +156,21 @@ pub fn exec_on_module(
     Ok(response)
 }
 
-pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) -> ManagerResult {
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // Only root can remove modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let proxy = OS_MODULES.load(deps.storage, PROXY)?;
+    let module_addr = OS_MODULES.load(deps.storage, &module_id)?;
+    let remove_from_proxy_msg = remove_dapp_from_proxy(
+        deps.as_ref(),
+        proxy.into_string(),
+        module_addr.into_string(),
+    )?;
+    OS_MODULES.remove(deps.storage, &module_id);
 
-    OS_MODULES.remove(deps.storage, &module_name);
-
-    Ok(Response::new().add_attribute("Removed module", &module_name))
+    Ok(Response::new()
+        .add_message(remove_from_proxy_msg)
+        .add_attribute("Removed module", &module_id))
 }
 
 pub fn set_root_and_gov_type(

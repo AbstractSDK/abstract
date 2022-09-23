@@ -118,7 +118,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module,
                     migrate_msg,
                 } => _upgrade_module(deps, env, info, module, migrate_msg),
-                ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
+                ExecuteMsg::RemoveModule { module_id } => remove_module(deps, info, module_id),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,

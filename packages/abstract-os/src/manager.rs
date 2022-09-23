@@ -99,7 +99,7 @@ pub enum ExecuteMsg {
     /// Only callable by module factory.
     RegisterModule { module_addr: String, module: Module },
     /// Remove a module
-    RemoveModule { module_name: String },
+    RemoveModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {

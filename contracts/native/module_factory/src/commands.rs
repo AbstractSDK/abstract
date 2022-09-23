@@ -132,13 +132,14 @@ pub fn execute_create_module(
 
 pub fn create_add_on(
     _deps: DepsMut,
-    _env: Env,
+    env: Env,
     code_id: u64,
     init_msg: Binary,
     module: Module,
     manager: Addr,
 ) -> ModuleFactoryResult {
     let response = Response::new();
+    let block_height = env.block.height;
 
     Ok(response
         .add_attributes(vec![
@@ -154,7 +155,7 @@ pub fn create_add_on(
                 funds: vec![],
                 // This contract should be able to migrate the contract
                 admin: Some(manager.to_string()),
-                label: format!("Module: {}", module),
+                label: format!("Module: {}, Height {}", module, block_height),
                 msg: init_msg,
             }
             .into(),
@@ -164,13 +165,13 @@ pub fn create_add_on(
 
 pub fn create_perk(
     _deps: DepsMut,
-    _env: Env,
+    env: Env,
     code_id: u64,
     init_msg: Binary,
     module: Module,
 ) -> ModuleFactoryResult {
     let response = Response::new();
-
+    let block_height = env.block.height;
     Ok(response
         .add_attributes(vec![
             ("action", "create perk"),
@@ -185,7 +186,7 @@ pub fn create_perk(
                 funds: vec![],
                 // Not migratable
                 admin: None,
-                label: format!("Module: {}", module),
+                label: format!("Module: {}, Height {}", module, block_height),
                 msg: init_msg,
             }
             .into(),
@@ -195,13 +196,14 @@ pub fn create_perk(
 
 pub fn create_service(
     _deps: DepsMut,
-    _env: Env,
+    env: Env,
     code_id: u64,
     init_msg: Binary,
     module: Module,
     manager: Addr,
 ) -> ModuleFactoryResult {
     let response = Response::new();
+    let block_height = env.block.height;
 
     Ok(response
         .add_attributes(vec![
@@ -217,7 +219,7 @@ pub fn create_service(
                 funds: vec![],
                 // This contract should be able to migrate the contract
                 admin: Some(manager.to_string()),
-                label: format!("Module: {}", module),
+                label: format!("Module: {}, Height {}", module, block_height),
                 msg: init_msg,
             }
             .into(),

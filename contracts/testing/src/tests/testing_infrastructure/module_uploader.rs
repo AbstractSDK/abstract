@@ -1,4 +1,3 @@
-
 use abstract_os::{objects::module::ModuleInfo, version_control as VCMsg};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Empty};
