@@ -2,7 +2,7 @@ use abstract_os::{
     api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
-    objects::module::{Module, ModuleInfo, ModuleKind},
+    objects::module::{Module, ModuleInfo, ModuleKind, ModuleVersion},
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{
         state::{API_ADDRESSES, MODULE_CODE_IDS},
@@ -99,13 +99,13 @@ pub fn register_module(
 
     let mut response = update_module_addresses(
         deps.branch(),
-        Some(vec![(module.info.name.clone(), module_address.clone())]),
+        Some(vec![(module.info.id(), module_address.clone())]),
         None,
     )?;
 
     match module {
         _dapp @ Module {
-            kind: ModuleKind::API,
+            kind: ModuleKind::Extension,
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -115,7 +115,7 @@ pub fn register_module(
             )?)
         }
         _dapp @ Module {
-            kind: ModuleKind::AddOn,
+            kind: ModuleKind::App,
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -196,11 +196,11 @@ pub fn migrate_module(
     migrate_msg: Binary,
 ) -> ManagerResult {
     // Check if trying to upgrade this contract.
-    if module_info.name == MANAGER {
+    if module_info.id() == MANAGER {
         return upgrade_self(deps, env, module_info, migrate_msg);
     }
 
-    let module_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
+    let module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
 
     let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
     let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
@@ -219,7 +219,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     let mut msgs = vec![];
 
     // Makes sure we already have the API installed
-    let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
+    let old_api_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: old_api_addr.to_string(),
@@ -228,7 +228,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         }))?,
     }))?;
     // Get the address of the new API
-    let new_api_addr = get_api_addr(deps.as_ref(), &module_info)?;
+    let new_api_addr = get_api_addr(deps.as_ref(), module_info.clone())?;
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()
@@ -271,7 +271,7 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
     // Update the address of the API internally
     update_module_addresses(
         deps,
-        Some(vec![(module_info.name, new_api_addr.into_string())]),
+        Some(vec![(module_info.id(), new_api_addr.into_string())]),
         None,
     )?;
 
@@ -316,26 +316,22 @@ fn get_code_id(
 ) -> Result<u64, ManagerError> {
     let new_code_id: u64;
     let config = CONFIG.load(deps.storage)?;
-    match module_info.version {
-        Some(new_version) => {
+    match &module_info.version {
+        ModuleVersion::Version(new_version) => {
             if new_version.parse::<Version>().unwrap()
                 > old_contract.version.parse::<Version>().unwrap()
             {
                 new_code_id = MODULE_CODE_IDS
-                    .query(
-                        &deps.querier,
-                        config.version_control_address,
-                        (&module_info.name, &new_version),
-                    )?
+                    .query(&deps.querier, config.version_control_address, module_info)?
                     .unwrap();
             } else {
                 return Err(ManagerError::OlderVersion(
-                    new_version,
+                    new_version.to_owned(),
                     old_contract.version,
                 ));
             };
         }
-        None => {
+        ModuleVersion::Latest {} => {
             // Query latest version of contract
             let resp: CodeIdResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
@@ -350,25 +346,25 @@ fn get_code_id(
     Ok(new_code_id)
 }
 
-fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerError> {
+fn get_api_addr(deps: Deps, module_info: ModuleInfo) -> Result<Addr, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     let new_addr = match &module_info.version {
-        Some(new_version) => {
+        ModuleVersion::Version(new_version) => {
             let maybe_new_addr = API_ADDRESSES.query(
                 &deps.querier,
                 config.version_control_address,
-                (&module_info.name, new_version),
+                module_info.clone(),
             )?;
             if let Some(new_addr) = maybe_new_addr {
                 new_addr
             } else {
                 return Err(ManagerError::ApiNotFound(
-                    module_info.name.clone(),
+                    module_info.id(),
                     new_version.clone(),
                 ));
             }
         }
-        None => {
+        ModuleVersion::Latest {} => {
             // Query latest version of contract
             let resp: ApiAddressResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {

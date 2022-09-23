@@ -27,7 +27,7 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
         cw20_base::contract::query,
     ));
     let cw20_token_code_id = app.store_code(cw20_token_contract);
-    code_ids.insert("cw20".into(), cw20_token_code_id);
+    code_ids.insert("cw_plus:cw20".into(), cw20_token_code_id);
 
     // Upload Treasury Contract
     let proxy_contract = Box::new(

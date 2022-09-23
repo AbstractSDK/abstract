@@ -88,7 +88,6 @@ impl DepositManager {
     pub fn increase(&self, storage: &mut dyn Storage, key: &[u8], amount: Uint64) -> StdResult<()> {
         let deposit = self.total_deposits.load(storage);
         if deposit.is_err() {
-            println!("new deposit storage");
             self.total_deposits.save(storage, &Deposit::new())?;
         }
         let mut total_deposits = self.total_deposits.load(storage)?;

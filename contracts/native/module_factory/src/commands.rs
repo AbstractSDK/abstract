@@ -9,7 +9,6 @@ use abstract_os::{
 };
 use abstract_sdk::verify_os_manager;
 
-use cw2::ContractVersion;
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
@@ -35,8 +34,10 @@ pub fn execute_create_module(
     // Verify sender is active OS manager
     let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
 
-    if module.kind == ModuleKind::API {
-        // Query version_control for api address
+    // Extension installation is handled differently.
+    // No contract instantiation required
+    if module.kind == ModuleKind::Extension {
+        // Query version_control for address
         let api_addr_response: ApiAddressResponse =
             deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: config.version_control_address.to_string(),
@@ -44,8 +45,9 @@ pub fn execute_create_module(
                     module: module.info.clone(),
                 })?,
             }))?;
-
-        module.info.version = Some(api_addr_response.info.version);
+        // update version of response in case no version was provided.
+        // in that case the latest version will be used.
+        module.info.version = api_addr_response.info.version;
 
         let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: core.manager.into_string(),
@@ -68,13 +70,11 @@ pub fn execute_create_module(
         }))?;
 
     // Update module info
-    module.info = ModuleInfo::from(module_code_id_response.info.clone());
-    // Get factory binary
-    let ContractVersion { contract, version } = &module_code_id_response.info;
+    module.info = module_code_id_response.info;
 
-    // Todo: check if this can be generalised for some contracts
+    // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, (contract, version))?;
+    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, module.info.clone())?;
     let init_msg = ModuleInitMsg {
         fixed_init: fixed_binary,
         root_init: root_init_msg,
@@ -93,7 +93,7 @@ pub fn execute_create_module(
     // Match Module type
     match module {
         Module {
-            kind: ModuleKind::AddOn,
+            kind: ModuleKind::App,
             ..
         } => create_add_on(
             deps,
@@ -287,20 +287,22 @@ pub fn execute_update_config(
 pub fn update_factory_binaries(
     deps: DepsMut,
     info: MessageInfo,
-    to_add: Vec<((String, String), Binary)>,
-    to_remove: Vec<(String, String)>,
+    to_add: Vec<(ModuleInfo, Binary)>,
+    to_remove: Vec<ModuleInfo>,
 ) -> ModuleFactoryResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     for (key, binary) in to_add.into_iter() {
         // Update function for new or existing keys
+        key.assert_version_variant()?;
         let insert = |_| -> StdResult<Binary> { Ok(binary) };
-        MODULE_INIT_BINARIES.update(deps.storage, (&key.0, &key.1), insert)?;
+        MODULE_INIT_BINARIES.update(deps.storage, key, insert)?;
     }
 
     for key in to_remove {
-        MODULE_INIT_BINARIES.remove(deps.storage, (&key.0, &key.1));
+        key.assert_version_variant()?;
+        MODULE_INIT_BINARIES.remove(deps.storage, key);
     }
     Ok(Response::new().add_attribute("Action: ", "update binaries"))
 }

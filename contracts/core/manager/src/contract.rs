@@ -139,7 +139,7 @@ fn _upgrade_module(
 ) -> ManagerResult {
     ROOT.assert_admin(deps.as_ref(), &info.sender)?;
     match module.kind {
-        ModuleKind::API => replace_api(deps, module.info),
+        ModuleKind::Extension => replace_api(deps, module.info),
         _ => match migrate_msg {
             Some(msg) => migrate_module(deps, env, module.info, msg),
             None => Err(ManagerError::MsgRequired {}),

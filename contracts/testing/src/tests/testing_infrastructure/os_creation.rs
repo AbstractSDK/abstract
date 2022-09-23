@@ -1,6 +1,6 @@
 use std::{collections::HashMap, str::FromStr};
 
-use abstract_os::version_control::OsCoreResponse;
+use abstract_os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
 use cosmwasm_std::Addr;
 
 use abstract_os::{
@@ -110,11 +110,8 @@ pub fn init_primary_os(
 
     let msg = abstract_os::manager::ExecuteMsg::CreateModule {
         module: objects::module::Module {
-            info: ModuleInfo {
-                name: SUBSCRIPTION.to_string(),
-                version: None,
-            },
-            kind: objects::module::ModuleKind::AddOn,
+            info: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest {})?,
+            kind: objects::module::ModuleKind::App,
         },
         init_msg: Some(init_msg),
     };

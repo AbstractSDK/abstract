@@ -5,8 +5,10 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::{
-    memory as MemoryMsg, module_factory as ModuleFactoryMsg, os_factory as OSFactoryMsg,
-    version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
+    memory as MemoryMsg, module_factory as ModuleFactoryMsg,
+    objects::module::{ModuleInfo, ModuleVersion},
+    os_factory as OSFactoryMsg, version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY,
+    VERSION_CONTROL,
 };
 
 use cw_multi_test::{App, Executor};
@@ -33,7 +35,7 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> 
 
     let token_instance = app
         .instantiate_contract(
-            code_ids.get("cw20").unwrap().clone(),
+            code_ids.get("cw_plus:cw20").unwrap().clone(),
             owner.clone(),
             &msg,
             &[],
@@ -111,6 +113,7 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> 
         app,
         &owner,
         code_ids,
+        &DEFAULT_VERSION.to_string(),
         &version_control_instance,
         &os_factory_instance,
     );
@@ -133,18 +136,24 @@ fn add_contracts_to_version_control_and_set_factory(
     app: &mut App,
     owner: &Addr,
     code_ids: &HashMap<String, u64>,
+    version: &String,
     version_control: &Addr,
     os_factory: &Addr,
 ) {
-    for contract in code_ids {
-        let msg = VCMsg::ExecuteMsg::AddCodeId {
-            module: contract.0.clone(),
-            version: DEFAULT_VERSION.to_string(),
-            code_id: contract.1.clone(),
-        };
-        app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
-            .unwrap();
-    }
+    let modules = code_ids
+        .iter()
+        .map(|(k, v)| {
+            (
+                ModuleInfo::from_id(k, ModuleVersion::Version(version.to_string())).unwrap(),
+                v.clone(),
+            )
+        })
+        .collect();
+
+    let msg = VCMsg::ExecuteMsg::AddCodeIds { code_ids: modules };
+    app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
+        .unwrap();
+
     let msg = VCMsg::ExecuteMsg::SetFactory {
         new_factory: os_factory.to_string(),
     };

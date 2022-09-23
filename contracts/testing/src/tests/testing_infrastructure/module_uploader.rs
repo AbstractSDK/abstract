@@ -1,4 +1,4 @@
-use crate::tests::common::DEFAULT_VERSION;
+
 use abstract_os::{objects::module::ModuleInfo, version_control as VCMsg};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Empty};
@@ -13,10 +13,8 @@ pub fn register_module(
     contract: Box<dyn Contract<Empty>>,
 ) -> AnyResult<()> {
     let code_id = app.store_code(contract);
-    let msg = VCMsg::ExecuteMsg::AddCodeId {
-        module: module.name,
-        version: module.version.unwrap_or(DEFAULT_VERSION.to_string()),
-        code_id,
+    let msg = VCMsg::ExecuteMsg::AddCodeIds {
+        code_ids: vec![(module, code_id)],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())
@@ -29,10 +27,8 @@ pub fn register_api(
     module: ModuleInfo,
     address: Addr,
 ) -> AnyResult<()> {
-    let msg = VCMsg::ExecuteMsg::AddApi {
-        module: module.name,
-        version: module.version.unwrap_or(DEFAULT_VERSION.to_string()),
-        address: address.to_string(),
+    let msg = VCMsg::ExecuteMsg::AddApis {
+        addresses: vec![(module, address.to_string())],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())
