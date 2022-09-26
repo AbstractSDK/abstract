@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use abstract_os::{MANAGER, MEMORY, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_os::{
+    objects::module_reference::ModuleReference, MANAGER, MEMORY, MODULE_FACTORY, OS_FACTORY, PROXY,
+    VERSION_CONTROL,
+};
 use cw_multi_test::{App, ContractWrapper};
 
 use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
@@ -19,6 +22,7 @@ use super::{common_integration::NativeContracts, instantiate::init_native_contra
 /// - Os Factory
 pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeContracts) {
     let mut code_ids: HashMap<String, u64> = HashMap::new();
+    let mut modules: HashMap<String, ModuleReference> = HashMap::new();
 
     // Instantiate Token Contract
     let cw20_token_contract = Box::new(ContractWrapper::new_with_empty(
@@ -40,6 +44,7 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
     );
     let proxy_code_id = app.store_code(proxy_contract);
     code_ids.insert(PROXY.into(), proxy_code_id);
+    modules.insert(PROXY.into(), ModuleReference::App(proxy_code_id));
 
     // Upload Memory Contract
     let memory_contract = Box::new(ContractWrapper::new_with_empty(
@@ -102,7 +107,8 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
 
     let manager_code_id = app.store_code(manager_contract);
     code_ids.insert(MANAGER.into(), manager_code_id);
+    modules.insert(MANAGER.into(), ModuleReference::App(manager_code_id));
 
-    let native_contracts = init_native_contracts(app, &code_ids);
+    let native_contracts = init_native_contracts(app, &code_ids, &modules);
     (code_ids, native_contracts)
 }

@@ -3,7 +3,7 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_os::{
-    objects::module::ModuleInfo,
+    objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
 };
 
@@ -22,78 +22,40 @@ pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, core: Core) -> V
     ]))
 }
 
-/// Add a new code_id for a module
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
-pub fn add_code_ids(
+pub fn add_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
-    code_ids: Vec<(ModuleInfo, u64)>,
+    modules: Vec<(ModuleInfo, ModuleReference)>,
 ) -> VCResult {
-    // Only Admin can update code-ids
+    // Only Admin can update modules
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    for (module, code_id) in code_ids {
-        if MODULE_CODE_IDS.has(deps.storage, module.clone()) {
-            return Err(VCError::CodeIdUpdate(module));
+    for (module, mod_ref) in modules {
+        if MODULE_LIBRARY.has(deps.storage, module.clone()) {
+            return Err(VCError::ModuleUpdate(module));
         }
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
-        MODULE_CODE_IDS.save(deps.storage, module, &code_id)?;
+        MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
     }
 
-    Ok(Response::new().add_attributes(vec![("Action", "Add Code_IDs")]))
+    Ok(Response::new().add_attributes(vec![("action", "add module")]))
 }
 
-/// Remove a code_id for a module
-pub fn remove_code_id(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
+/// Remove a module
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     module.assert_version_variant()?;
-    if MODULE_CODE_IDS.has(deps.storage, module.clone()) {
-        MODULE_CODE_IDS.remove(deps.storage, module.clone());
+    if MODULE_LIBRARY.has(deps.storage, module.clone()) {
+        MODULE_LIBRARY.remove(deps.storage, module.clone());
     } else {
-        return Err(VCError::MissingCodeId(module));
+        return Err(VCError::MissingModule(module));
     }
 
     Ok(Response::new().add_attributes(vec![
-        ("action", "remove code_id"),
-        ("module:", &module.to_string()),
-    ]))
-}
-
-/// Add a new code_id for a module
-pub fn add_apis(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    addresses: Vec<(ModuleInfo, String)>,
-) -> VCResult {
-    // Only Admin can add code-ids
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    for (module, address) in addresses {
-        if API_ADDRESSES.has(deps.storage, module.clone()) {
-            return Err(VCError::ApiUpdate(module));
-        }
-        module.assert_version_variant()?;
-        API_ADDRESSES.save(deps.storage, module, &deps.api.addr_validate(&address)?)?;
-    }
-
-    Ok(Response::new().add_attributes(vec![("Action", "Add Code_ID")]))
-}
-
-/// Add a new code_id for a module
-pub fn remove_api(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
-    // Only Admin can update code-ids
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    module.assert_version_variant()?;
-
-    if API_ADDRESSES.has(deps.storage, module.clone()) {
-        API_ADDRESSES.remove(deps.storage, module.clone());
-    } else {
-        return Err(VCError::MissingApi(module));
-    }
-
-    Ok(Response::new().add_attributes(vec![
-        ("action", "remove code_id"),
+        ("action", "remove module"),
         ("module:", &module.to_string()),
     ]))
 }

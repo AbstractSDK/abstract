@@ -12,6 +12,8 @@ pub enum OsFactoryError {
 
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
+    #[error("module {0} is required to be of kind {1}")]
+    WrongModuleKind(String, String),
 
     #[error("Bad subscription module configuration.")]
     UnsupportedAsset(),

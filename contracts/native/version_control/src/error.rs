@@ -14,17 +14,11 @@ pub enum VCError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error("Module {0} does not have a stored code id")]
-    MissingCodeId(ModuleInfo),
-
-    #[error("Api {0} does not have a stored address")]
-    MissingApi(ModuleInfo),
+    #[error("Module {0} does not have a stored module reference")]
+    MissingModule(ModuleInfo),
 
     #[error("Api {0} can not be updated")]
-    ApiUpdate(ModuleInfo),
-
-    #[error("Module {0} can not be updated")]
-    CodeIdUpdate(ModuleInfo),
+    ModuleUpdate(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },

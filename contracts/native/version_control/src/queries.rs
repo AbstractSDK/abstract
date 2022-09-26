@@ -1,21 +1,18 @@
+use abstract_os::objects::module::Module;
 use abstract_os::objects::module::ModuleInfo;
 use abstract_os::objects::module::ModuleVersion;
-use abstract_os::version_control::state::API_ADDRESSES;
-use abstract_os::version_control::ApiAddressResponse;
-use abstract_os::version_control::ApiAddressesResponse;
-use abstract_os::version_control::CodeIdsResponse;
+use abstract_os::objects::module_reference::ModuleReference;
+use abstract_os::version_control::state::MODULE_LIBRARY;
+use abstract_os::version_control::ModuleResponse;
+use abstract_os::version_control::ModulesResponse;
 use abstract_os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::StdError;
-use cosmwasm_std::Uint64;
 use cw_storage_plus::Bound;
 
 use crate::error::VCError;
-use abstract_os::version_control::state::{MODULE_CODE_IDS, OS_ADDRESSES};
-use cosmwasm_std::Addr;
+use abstract_os::version_control::state::OS_ADDRESSES;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
-
-use abstract_os::version_control::CodeIdResponse;
 
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
@@ -30,69 +27,40 @@ pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
     }
 }
 
-pub fn handle_code_id_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-    let maybe_code_id = if let ModuleVersion::Version(_) = module.version {
-        MODULE_CODE_IDS.load(deps.storage, module.clone())
+pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
+    let maybe_module = if let ModuleVersion::Version(_) = module.version {
+        MODULE_LIBRARY.load(deps.storage, module.clone())
     } else {
         // get latest
-        let versions: StdResult<Vec<(String, u64)>> = MODULE_CODE_IDS
+        let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
             .prefix((module.provider.clone(), module.name.clone()))
             .range(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect();
         let (latest_version, id) = versions?
             .first()
-            .ok_or(StdError::GenericErr {
-                msg: format!("code id for {} not found", module),
+            .ok_or_else(|| StdError::GenericErr {
+                msg: VCError::MissingModule(module.clone()).to_string(),
             })?
             .clone();
         module.version = ModuleVersion::Version(latest_version);
         Ok(id)
     };
 
-    match maybe_code_id {
+    match maybe_module {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingCodeId(module).to_string(),
+            VCError::MissingModule(module).to_string(),
         )),
-        Ok(id) => to_binary(&CodeIdResponse {
-            code_id: Uint64::from(id),
-            info: module,
+        Ok(mod_ref) => to_binary(&ModuleResponse {
+            module: Module {
+                info: module,
+                reference: mod_ref,
+            },
         }),
     }
 }
 
-pub fn handle_api_address_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Binary> {
-    let maybe_addr = if let ModuleVersion::Version(_) = module.version {
-        API_ADDRESSES.load(deps.storage, module.clone())
-    } else {
-        // get latest
-        let versions: StdResult<Vec<(String, Addr)>> = API_ADDRESSES
-            .prefix((module.provider.clone(), module.name.clone()))
-            .range(deps.storage, None, None, Order::Descending)
-            .take(1)
-            .collect();
-        let (latest_version, addr) = versions?
-            .first()
-            .ok_or(StdError::GenericErr {
-                msg: format!("api module {} not available", module),
-            })?
-            .clone();
-        module.version = ModuleVersion::Version(latest_version);
-        Ok(addr)
-    };
-
-    match maybe_addr {
-        Err(_) => Err(StdError::generic_err(
-            VCError::MissingCodeId(module).to_string(),
-        )),
-        Ok(address) => to_binary(&ApiAddressResponse {
-            address,
-            info: module,
-        }),
-    }
-}
-
-pub fn handle_code_ids_query(
+pub fn handle_modules_query(
     deps: Deps,
     page_token: Option<ModuleInfo>,
     limit: Option<u8>,
@@ -100,32 +68,10 @@ pub fn handle_code_ids_query(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
 
-    let res: Result<Vec<(ModuleInfo, u64)>, _> = MODULE_CODE_IDS
+    let res: Result<Vec<(ModuleInfo, ModuleReference)>, _> = MODULE_LIBRARY
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
-    to_binary(&CodeIdsResponse {
-        module_code_ids: res?,
-    })
-}
-
-pub fn handle_api_addresses_query(
-    deps: Deps,
-    page_token: Option<ModuleInfo>,
-    limit: Option<u8>,
-) -> StdResult<Binary> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
-    let res: Result<Vec<(ModuleInfo, Addr)>, _> = API_ADDRESSES
-        .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
-        .collect();
-
-    to_binary(&ApiAddressesResponse {
-        api_addresses: res?
-            .into_iter()
-            .map(|(module, addr)| (module, addr.into_string()))
-            .collect(),
-    })
+    to_binary(&ModulesResponse { modules: res? })
 }

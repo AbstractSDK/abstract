@@ -4,6 +4,8 @@ use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
+use super::module_reference::ModuleReference;
+
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {
     /// Provider of the module
@@ -156,8 +158,8 @@ impl fmt::Display for ModuleInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "contract {} provided by {} with version {}.)",
-            self.provider, self.name, self.version,
+            "{} provided by {} with version {}",
+            self.name, self.provider, self.version,
         )
     }
 }
@@ -185,21 +187,13 @@ impl TryFrom<ContractVersion> for ModuleInfo {
 
 pub struct Module {
     pub info: ModuleInfo,
-    pub kind: ModuleKind,
+    pub reference: ModuleReference,
 }
 
 impl fmt::Display for Module {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Info: [{}], Kind: [{:?}]", self.info, self.kind)
+        write!(f, "info: {}, reference: {:?}", self.info, self.reference)
     }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum ModuleKind {
-    App,
-    Extension,
-    Service,
-    Perk,
 }
 
 #[cosmwasm_schema::cw_serde]

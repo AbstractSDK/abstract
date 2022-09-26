@@ -22,7 +22,7 @@ use crate::tests::{
 
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_module, AbstractEnv},
+    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
 };
 
 pub fn register_subscription(
@@ -44,7 +44,7 @@ pub fn register_subscription(
         )
         .with_migrate_empty(subscription::contract::migrate),
     );
-    register_module(app, &sender, &version_control, module, contract).unwrap();
+    register_app(app, &sender, &version_control, module, contract).unwrap();
     Ok(())
 }
 

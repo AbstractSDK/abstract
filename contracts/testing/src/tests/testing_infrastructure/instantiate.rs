@@ -6,9 +6,13 @@ use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::{
     memory as MemoryMsg, module_factory as ModuleFactoryMsg,
-    objects::module::{ModuleInfo, ModuleVersion},
-    os_factory as OSFactoryMsg, version_control as VCMsg, MEMORY, MODULE_FACTORY, OS_FACTORY,
-    VERSION_CONTROL,
+    objects::{
+        module::{ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+    },
+    os_factory as OSFactoryMsg,
+    version_control::{self as VCMsg, ModulesResponse},
+    MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
 };
 
 use cw_multi_test::{App, Executor};
@@ -18,7 +22,11 @@ use super::common_integration::NativeContracts;
 /// Creates the basic contract instances needed to test the os.
 ///
 
-pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> NativeContracts {
+pub fn init_native_contracts(
+    app: &mut App,
+    code_ids: &HashMap<String, u64>,
+    modules: &HashMap<String, ModuleReference>,
+) -> NativeContracts {
     let owner = Addr::unchecked(TEST_CREATOR);
     // Instantiate Token Contract
     let msg = cw20_base::msg::InstantiateMsg {
@@ -112,7 +120,7 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> 
     add_contracts_to_version_control_and_set_factory(
         app,
         &owner,
-        code_ids,
+        modules,
         &DEFAULT_VERSION.to_string(),
         &version_control_instance,
         &os_factory_instance,
@@ -135,7 +143,7 @@ pub fn init_native_contracts(app: &mut App, code_ids: &HashMap<String, u64>) -> 
 fn add_contracts_to_version_control_and_set_factory(
     app: &mut App,
     owner: &Addr,
-    code_ids: &HashMap<String, u64>,
+    code_ids: &HashMap<String, ModuleReference>,
     version: &String,
     version_control: &Addr,
     os_factory: &Addr,
@@ -150,10 +158,21 @@ fn add_contracts_to_version_control_and_set_factory(
         })
         .collect();
 
-    let msg = VCMsg::ExecuteMsg::AddCodeIds { code_ids: modules };
+    let msg = VCMsg::ExecuteMsg::AddModules { modules };
     app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
         .unwrap();
 
+    let resp: ModulesResponse = app
+        .wrap()
+        .query_wasm_smart(
+            version_control,
+            &VCMsg::QueryMsg::Modules {
+                page_token: None,
+                page_size: None,
+            },
+        )
+        .unwrap();
+    println!("{:?}", resp);
     let msg = VCMsg::ExecuteMsg::SetFactory {
         new_factory: os_factory.to_string(),
     };

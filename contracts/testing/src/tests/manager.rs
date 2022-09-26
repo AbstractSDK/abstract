@@ -1,17 +1,18 @@
-use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs, objects::module::Module};
+use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
 
 use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
 
 use abstract_sdk::abstract_os::objects::module::ModuleVersion;
+use abstract_sdk::api::api_init_msg;
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Addr;
-
 use cw_multi_test::{App, ContractWrapper, Executor};
 
 use super::common::DEFAULT_VERSION;
+use super::testing_infrastructure::env::register_extension;
 use super::{
     common::TEST_CREATOR,
-    testing_infrastructure::env::{get_os_state, mock_app, register_api, AbstractEnv},
+    testing_infrastructure::env::{get_os_state, mock_app, AbstractEnv},
 };
 
 pub fn register_and_create_dex_api(
@@ -40,7 +41,7 @@ pub fn register_and_create_dex_api(
     let api_addr = app
         .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
         .unwrap();
-    register_api(app, &sender, &version_control, module, api_addr).unwrap();
+    register_extension(app, &sender, &version_control, module, api_addr).unwrap();
     Ok(())
 }
 
@@ -68,11 +69,14 @@ fn proper_initialization() {
         sender.clone(),
         manager.clone(),
         &ManagerMsgs::ExecuteMsg::CreateModule {
-            module: Module {
-                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
-                kind: abstract_os::objects::module::ModuleKind::Extension,
-            },
-            init_msg: None,
+            module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+            init_msg: Some(
+                api_init_msg(
+                    &env.native_contracts.memory,
+                    &env.native_contracts.version_control,
+                )
+                .unwrap(),
+            ),
         },
         &[],
     )
@@ -89,11 +93,11 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    let _resp: abstract_os::version_control::ApiAddressResponse = app
+    let _resp: abstract_os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::ApiAddress {
+            &abstract_os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )
@@ -103,10 +107,7 @@ fn proper_initialization() {
         sender.clone(),
         manager,
         &ManagerMsgs::ExecuteMsg::Upgrade {
-            module: Module {
-                info: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
-                kind: abstract_os::objects::module::ModuleKind::Extension,
-            },
+            module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             migrate_msg: None,
         },
         &[],
@@ -123,11 +124,11 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let _resp: abstract_os::version_control::ApiAddressResponse = app
+    let _resp: abstract_os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::ApiAddress {
+            &abstract_os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )

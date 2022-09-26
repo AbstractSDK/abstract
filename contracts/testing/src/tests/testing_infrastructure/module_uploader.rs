@@ -1,10 +1,13 @@
-use abstract_os::{objects::module::ModuleInfo, version_control as VCMsg};
+use abstract_os::{
+    objects::{module::ModuleInfo, module_reference::ModuleReference},
+    version_control as VCMsg,
+};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Empty};
 
 use cw_multi_test::{App, Contract, Executor};
 
-pub fn register_module(
+pub fn register_app(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
@@ -12,22 +15,22 @@ pub fn register_module(
     contract: Box<dyn Contract<Empty>>,
 ) -> AnyResult<()> {
     let code_id = app.store_code(contract);
-    let msg = VCMsg::ExecuteMsg::AddCodeIds {
-        code_ids: vec![(module, code_id)],
+    let msg = VCMsg::ExecuteMsg::AddModules {
+        modules: vec![(module, ModuleReference::App(code_id))],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())
 }
 
-pub fn register_api(
+pub fn register_extension(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
     module: ModuleInfo,
     address: Addr,
 ) -> AnyResult<()> {
-    let msg = VCMsg::ExecuteMsg::AddApis {
-        addresses: vec![(module, address.to_string())],
+    let msg = VCMsg::ExecuteMsg::AddModules {
+        modules: vec![(module, ModuleReference::Extension(address))],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())

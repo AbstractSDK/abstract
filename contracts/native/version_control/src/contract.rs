@@ -47,10 +47,8 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
-        ExecuteMsg::AddCodeIds { code_ids } => add_code_ids(deps, info, code_ids),
-        ExecuteMsg::RemoveCodeId { module } => remove_code_id(deps, info, module),
-        ExecuteMsg::AddApis { addresses } => add_apis(deps, info, addresses),
-        ExecuteMsg::RemoveApi { module } => remove_api(deps, info, module),
+        ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::AddOs { os_id, core } => add_os(deps, info, os_id, core),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
@@ -63,21 +61,16 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),
-        QueryMsg::CodeId { module } => queries::handle_code_id_query(deps, module),
-        QueryMsg::ApiAddress { module } => queries::handle_api_address_query(deps, module),
+        QueryMsg::Module { module } => queries::handle_module_query(deps, module),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
             to_binary(&ConfigResponse { admin, factory })
         }
-        QueryMsg::CodeIds {
+        QueryMsg::Modules {
             page_token,
             page_size,
-        } => queries::handle_code_ids_query(deps, page_token, page_size),
-        QueryMsg::ApiAddresses {
-            page_token,
-            page_size,
-        } => queries::handle_api_addresses_query(deps, page_token, page_size),
+        } => queries::handle_modules_query(deps, page_token, page_size),
     }
 }
 

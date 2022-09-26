@@ -109,10 +109,7 @@ pub fn init_primary_os(
     })?;
 
     let msg = abstract_os::manager::ExecuteMsg::CreateModule {
-        module: objects::module::Module {
-            info: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest {})?,
-            kind: objects::module::ModuleKind::App,
-        },
+        module: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest {})?,
         init_msg: Some(init_msg),
     };
 
@@ -125,7 +122,7 @@ pub fn init_primary_os(
         memory_contract: None,
         version_control_contract: None,
         module_factory_address: None,
-        subscription_address: Some(resp.events[5].attributes[1].value.clone()),
+        subscription_address: Some(resp.events[4].attributes[1].value.clone()),
     };
 
     app.execute_contract(

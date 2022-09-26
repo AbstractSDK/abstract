@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Creates the core contracts for the OS
     CreateModule {
         /// Module details
-        module: Module,
+        module: ModuleInfo,
         init_msg: Option<Binary>,
     },
     UpdateFactoryBinaryMsgs {
