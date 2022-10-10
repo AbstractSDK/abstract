@@ -2,6 +2,9 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
+# Or use cargo workspaces
+# https://crates.io/crates/cargo-workspaces
+
 function print_usage() {
   echo "Usage: $0 [-h|--help] <new_version>"
   echo "e.g.: $0 0.8.0"

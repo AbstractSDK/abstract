@@ -1,6 +1,6 @@
 [package]
 name = "os-factory"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 description = "A CosmWasm DAO factory contract - Generates the initial DAO infrastructure"
