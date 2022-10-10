@@ -60,7 +60,7 @@ fn proper_initialization() {
                     name: ETF.into(),
                     version: None,
                 },
-                kind: abstract_os::modules::ModuleKind::AddOn,
+                kind: abstract_os::modules::ModuleKind::App,
             },
             Some(vault_msg::InstantiateMsg {
                 base: abstract_os::add_on::BaseInstantiateMsg {

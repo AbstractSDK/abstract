@@ -8,7 +8,6 @@ use abstract_os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT
 use abstract_os::MANAGER;
 use abstract_os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    objects::module::*,
     proxy::state::OS_ID,
 };
 use cw2::{get_contract_version, set_contract_version};
@@ -117,8 +116,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::Upgrade {
                     module,
                     migrate_msg,
-                } => _upgrade_module(deps, env, info, module, migrate_msg),
-                ExecuteMsg::RemoveModule { module_name } => remove_module(deps, info, module_name),
+                } => upgrade_module(deps, env, info, module, migrate_msg),
+                ExecuteMsg::RemoveModule { module_id } => remove_module(deps, info, module_id),
                 ExecuteMsg::UpdateInfo {
                     name,
                     description,
@@ -127,23 +126,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 _ => panic!(),
             }
         }
-    }
-}
-
-fn _upgrade_module(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    module: Module,
-    migrate_msg: Option<Binary>,
-) -> ManagerResult {
-    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
-    match module.kind {
-        ModuleKind::API => replace_api(deps, module.info),
-        _ => match migrate_msg {
-            Some(msg) => migrate_module(deps, env, module.info, msg),
-            None => Err(ManagerError::MsgRequired {}),
-        },
     }
 }
 

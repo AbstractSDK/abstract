@@ -1,3 +1,4 @@
+use abstract_os::objects::module::ModuleInfo;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -28,6 +29,9 @@ pub enum ManagerError {
     #[error("A migratemsg is required when when migrating this module")]
     MsgRequired {},
 
+    #[error("{0} not upgradable")]
+    NotUpgradeable(ModuleInfo),
+
     #[error("you need a subscription to use this contract")]
     NotSubscribed {},
 
@@ -37,8 +41,11 @@ pub enum ManagerError {
     #[error("The provided contract version {0} is lower than the current version {1}")]
     OlderVersion(String, String),
 
-    #[error("The provided API key ({0},{1}) was not found in version control")]
-    ApiNotFound(String, String),
+    #[error("The provided module key ({0},{1}) was not found in version control")]
+    ModuleNotFound(String, String),
+
+    #[error("The provided module {0} has an invalid module reference.")]
+    InvalidReference(ModuleInfo),
 
     #[error("description too short, must be at least {0} characters")]
     DescriptionInvalidShort(usize),

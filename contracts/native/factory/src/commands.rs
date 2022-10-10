@@ -1,10 +1,15 @@
 use abstract_os::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo},
+    objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
+    },
     os_factory::ExecuteMsg,
     subscription::{
         DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
         QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
     },
+    version_control::{Core, ModuleResponse},
 };
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -24,13 +29,11 @@ use abstract_os::{
     proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
 };
 
-use abstract_os::version_control::{
-    CodeIdResponse, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery,
-};
+use abstract_os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
-pub const CREATE_OS_TREASURY_MSG_ID: u64 = 2u64;
+pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
 use abstract_os::{MANAGER, PROXY};
 
 pub fn receive_cw20(
@@ -89,49 +92,53 @@ pub fn execute_create_os(
     };
 
     // Query version_control for code_id of Manager contract
-    let manager_code_id_response: CodeIdResponse =
+    let module_resp: ModuleResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::CodeId {
-                module: ModuleInfo {
-                    name: String::from(MANAGER),
-                    version: None,
-                },
+            msg: to_binary(&VCQuery::Module {
+                module: ModuleInfo::from_id(MANAGER, ModuleVersion::Latest {})?,
             })?,
         }))?;
 
-    Ok(Response::new()
-        .add_attributes(vec![
-            ("action", "create os"),
-            ("os_id:", &config.next_os_id.to_string()),
-        ])
-        // Create manager
-        .add_submessage(SubMsg {
-            id: CREATE_OS_MANAGER_MSG_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id: manager_code_id_response.code_id.u64(),
-                funds: vec![],
-                // Currently set admin to self, update later when we know the contract's address.
-                admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract OS: {}", config.next_os_id),
-                msg: to_binary(&ManagerInstantiateMsg {
-                    os_id: config.next_os_id,
-                    root_user: root_user.to_string(),
-                    version_control_address: config.version_control_contract.to_string(),
-                    subscription_address: config.subscription_address.map(Addr::into),
-                    module_factory_address: config.module_factory_address.to_string(),
-                    name,
-                    description,
-                    link,
-                    governance_type: governance.to_string(),
-                })?,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        })
-        // Add as subscription registration as last. Gets called after the reply sequence is done.
-        .add_messages(msgs))
+    if let ModuleReference::App(manager_code_id) = module_resp.module.reference {
+        Ok(Response::new()
+            .add_attributes(vec![
+                ("action", "create os"),
+                ("os_id:", &config.next_os_id.to_string()),
+            ])
+            // Create manager
+            .add_submessage(SubMsg {
+                id: CREATE_OS_MANAGER_MSG_ID,
+                gas_limit: None,
+                msg: WasmMsg::Instantiate {
+                    code_id: manager_code_id,
+                    funds: vec![],
+                    // Currently set admin to self, update later when we know the contract's address.
+                    admin: Some(env.contract.address.to_string()),
+                    label: format!("Abstract OS: {}", config.next_os_id),
+                    msg: to_binary(&ManagerInstantiateMsg {
+                        os_id: config.next_os_id,
+                        root_user: root_user.to_string(),
+                        version_control_address: config.version_control_contract.to_string(),
+                        subscription_address: config.subscription_address.map(Addr::into),
+                        module_factory_address: config.module_factory_address.to_string(),
+                        name,
+                        description,
+                        link,
+                        governance_type: governance.to_string(),
+                    })?,
+                }
+                .into(),
+                reply_on: ReplyOn::Success,
+            })
+            // Add as subscription registration as last. Gets called after the reply sequence is done.
+            .add_messages(msgs))
+    } else {
+        Err(OsFactoryError::WrongModuleKind(
+            module_resp.module.info.to_string(),
+            "app".to_string(),
+        ))
+    }
 }
 
 /// instantiates the Treasury contract of the newly created DAO
@@ -152,36 +159,41 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         },
     )?;
 
-    // Query version_control for code_id of Treasury
-    let proxy_code_id_response: CodeIdResponse =
+    // Query version_control for code_id of proxy
+    let module_resp: ModuleResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::CodeId {
-                module: ModuleInfo {
-                    name: String::from(PROXY),
-                    version: None,
-                },
+            msg: to_binary(&VCQuery::Module {
+                module: ModuleInfo::from_id(PROXY, ModuleVersion::Latest {})?,
             })?,
         }))?;
-    Ok(Response::new()
-        .add_attribute("manager_address", &manager_address.to_string())
-        // Instantiate Treasury contract
-        .add_submessage(SubMsg {
-            id: CREATE_OS_TREASURY_MSG_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id: proxy_code_id_response.code_id.u64(),
-                funds: vec![],
-                admin: Some(manager_address.to_string()),
-                label: format!("Proxy of OS: {}", config.next_os_id),
-                msg: to_binary(&ProxyInstantiateMsg {
-                    os_id: config.next_os_id,
-                    memory_address: config.memory_contract.to_string(),
-                })?,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        }))
+
+    if let ModuleReference::App(proxy_code_id) = module_resp.module.reference {
+        Ok(Response::new()
+            .add_attribute("manager_address", &manager_address.to_string())
+            // Instantiate proxy contract
+            .add_submessage(SubMsg {
+                id: CREATE_OS_PROXY_MSG_ID,
+                gas_limit: None,
+                msg: WasmMsg::Instantiate {
+                    code_id: proxy_code_id,
+                    funds: vec![],
+                    admin: Some(manager_address.to_string()),
+                    label: format!("Proxy of OS: {}", config.next_os_id),
+                    msg: to_binary(&ProxyInstantiateMsg {
+                        os_id: config.next_os_id,
+                        memory_address: config.memory_contract.to_string(),
+                    })?,
+                }
+                .into(),
+                reply_on: ReplyOn::Success,
+            }))
+    } else {
+        Err(OsFactoryError::WrongModuleKind(
+            module_resp.module.info.to_string(),
+            "app".to_string(),
+        ))
+    }
 }
 /// Registers the DAO on the version_control contract and
 /// adds proxy contract address to Manager
@@ -199,14 +211,19 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     let proxy_address = res.get_contract_address();
 
+    // construct OS core
+    let core = Core {
+        manager: context.os_manager_address.clone(),
+        proxy: deps.api.addr_validate(proxy_address)?,
+    };
+
     // Add OS core to version_control
     let add_os_core_to_version_control_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddOs {
             os_id: config.next_os_id,
-            manager_address: context.os_manager_address.to_string(),
-            proxy_address: deps.api.addr_validate(proxy_address)?.into_string(),
+            core,
         })?,
     });
 

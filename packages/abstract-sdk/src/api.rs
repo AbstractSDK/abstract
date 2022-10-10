@@ -1,5 +1,5 @@
-use abstract_os::api::{BaseExecuteMsg, ExecuteMsg};
-use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Empty, StdResult};
+use abstract_os::api::{BaseExecuteMsg, BaseInstantiateMsg, ExecuteMsg};
+use cosmwasm_std::{to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Empty, StdResult};
 use serde::Serialize;
 
 /// Construct an API request message.
@@ -19,4 +19,11 @@ pub fn configure_api(
 ) -> StdResult<CosmosMsg> {
     let api_msg: ExecuteMsg<Empty> = message.into();
     Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+}
+
+pub fn api_init_msg(memory_address: &Addr, version_control_address: &Addr) -> StdResult<Binary> {
+    to_binary(&BaseInstantiateMsg {
+        memory_address: memory_address.to_string(),
+        version_control_address: version_control_address.to_string(),
+    })
 }

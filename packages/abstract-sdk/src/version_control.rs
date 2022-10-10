@@ -1,6 +1,7 @@
 use abstract_os::{
     manager::state::OS_ID,
-    version_control::{state::OS_ADDRESSES, Core},
+    objects::module::{Module, ModuleInfo},
+    version_control::{state::OS_ADDRESSES, Core, ModuleResponse, QueryMsg},
 };
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 
@@ -70,4 +71,19 @@ pub fn verify_os_proxy(
             }
         }
     }
+}
+
+/// Query module information
+pub fn get_module(
+    querier: &QuerierWrapper,
+    module_info: ModuleInfo,
+    version_control_addr: &Addr,
+) -> StdResult<Module> {
+    let resp: ModuleResponse = querier.query_wasm_smart(
+        version_control_addr,
+        &QueryMsg::Module {
+            module: module_info,
+        },
+    )?;
+    Ok(resp.module)
 }

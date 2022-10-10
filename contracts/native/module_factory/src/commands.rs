@@ -1,22 +1,22 @@
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QueryRequest, ReplyOn,
-    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg, WasmQuery,
+    to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, Response,
+    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
-    objects::module::{Module, ModuleInfo, ModuleInitMsg, ModuleKind},
+    objects::{
+        module::{ModuleInfo, ModuleInitMsg},
+        module_reference::ModuleReference,
+    },
 };
-use abstract_sdk::verify_os_manager;
+use abstract_sdk::{get_module, verify_os_manager};
 
-use cw2::ContractVersion;
 use protobuf::Message;
 
 use crate::contract::ModuleFactoryResult;
 
-use crate::{error::ModuleFactoryError, response::MsgInstantiateContractResponse, state::*};
-
-use abstract_os::version_control::{ApiAddressResponse, CodeIdResponse, QueryMsg as VCQuery};
+use crate::{response::MsgInstantiateContractResponse, state::*};
 
 pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
@@ -27,54 +27,17 @@ pub fn execute_create_module(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    mut module: Module,
+    module_info: ModuleInfo,
     root_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-
     // Verify sender is active OS manager
     let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
+    let new_module = get_module(&deps.querier, module_info, &config.version_control_address)?;
 
-    if module.kind == ModuleKind::API {
-        // Query version_control for api address
-        let api_addr_response: ApiAddressResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: config.version_control_address.to_string(),
-                msg: to_binary(&VCQuery::ApiAddress {
-                    module: module.info.clone(),
-                })?,
-            }))?;
-
-        module.info.version = Some(api_addr_response.info.version);
-
-        let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: core.manager.into_string(),
-            funds: vec![],
-            msg: to_binary(&ManagerMsg::RegisterModule {
-                module_addr: api_addr_response.address.to_string(),
-                module,
-            })?,
-        });
-        return Ok(Response::new().add_message(register_msg));
-    }
-
-    // Query version_control for code_id Module
-    let module_code_id_response: CodeIdResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_address.to_string(),
-            msg: to_binary(&VCQuery::CodeId {
-                module: module.info,
-            })?,
-        }))?;
-
-    // Update module info
-    module.info = ModuleInfo::from(module_code_id_response.info.clone());
-    // Get factory binary
-    let ContractVersion { contract, version } = &module_code_id_response.info;
-
-    // Todo: check if this can be generalised for some contracts
+    // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, (contract, version))?;
+    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
     let init_msg = ModuleInitMsg {
         fixed_init: fixed_binary,
         root_init: root_init_msg,
@@ -86,143 +49,71 @@ pub fn execute_create_module(
         deps.storage,
         &Context {
             core: Some(core.clone()),
-            module: Some(module.clone()),
+            module: Some(new_module.clone()),
         },
     )?;
-
-    // Match Module type
-    match module {
-        Module {
-            kind: ModuleKind::AddOn,
-            ..
-        } => create_add_on(
-            deps,
-            env,
-            module_code_id_response.code_id.u64(),
+    let block_height = env.block.height;
+    match &new_module.reference {
+        ModuleReference::App(code_id) => instantiate_contract(
+            block_height,
+            *code_id,
             init_msg,
-            module,
-            core.manager,
+            Some(core.manager),
+            CREATE_ADD_ON_RESPONSE_ID,
+            new_module.info,
         ),
-        Module {
-            kind: ModuleKind::Service,
-            ..
-        } => create_service(
-            deps,
-            env,
-            module_code_id_response.code_id.u64(),
+        ModuleReference::Perk(code_id) => instantiate_contract(
+            block_height,
+            *code_id,
             init_msg,
-            module,
-            core.manager,
+            None,
+            CREATE_PERK_RESPONSE_ID,
+            new_module.info,
         ),
-        Module {
-            kind: ModuleKind::Perk,
-            ..
-        } => create_perk(
-            deps,
-            env,
-            module_code_id_response.code_id.u64(),
+        ModuleReference::Service(code_id) => instantiate_contract(
+            block_height,
+            *code_id,
             init_msg,
-            module,
+            Some(core.manager),
+            CREATE_SERVICE_RESPONSE_ID,
+            new_module.info,
         ),
-        _ => Err(ModuleFactoryError::Std(StdError::generic_err(
-            "don't enter here!",
-        ))),
+        ModuleReference::Extension(addr) => {
+            let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: core.manager.into_string(),
+                funds: vec![],
+                msg: to_binary(&ManagerMsg::RegisterModule {
+                    module_addr: addr.to_string(),
+                    module: new_module,
+                })?,
+            });
+            Ok(Response::new().add_message(register_msg))
+        }
     }
 }
 
-pub fn create_add_on(
-    _deps: DepsMut,
-    _env: Env,
+fn instantiate_contract(
+    block_height: u64,
     code_id: u64,
     init_msg: Binary,
-    module: Module,
-    manager: Addr,
+    admin: Option<Addr>,
+    reply_id: u64,
+    module_info: ModuleInfo,
 ) -> ModuleFactoryResult {
     let response = Response::new();
-
-    Ok(response
-        .add_attributes(vec![
-            ("action", "create add-on"),
-            ("initmsg:", &init_msg.to_string()),
-        ])
-        // Create manager
-        .add_submessage(SubMsg {
-            id: CREATE_ADD_ON_RESPONSE_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id,
-                funds: vec![],
-                // This contract should be able to migrate the contract
-                admin: Some(manager.to_string()),
-                label: format!("Module: {}", module),
-                msg: init_msg,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        }))
-}
-
-pub fn create_perk(
-    _deps: DepsMut,
-    _env: Env,
-    code_id: u64,
-    init_msg: Binary,
-    module: Module,
-) -> ModuleFactoryResult {
-    let response = Response::new();
-
-    Ok(response
-        .add_attributes(vec![
-            ("action", "create perk"),
-            ("initmsg:", &init_msg.to_string()),
-        ])
-        // Create manager
-        .add_submessage(SubMsg {
-            id: CREATE_PERK_RESPONSE_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id,
-                funds: vec![],
-                // Not migratable
-                admin: None,
-                label: format!("Module: {}", module),
-                msg: init_msg,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        }))
-}
-
-pub fn create_service(
-    _deps: DepsMut,
-    _env: Env,
-    code_id: u64,
-    init_msg: Binary,
-    module: Module,
-    manager: Addr,
-) -> ModuleFactoryResult {
-    let response = Response::new();
-
-    Ok(response
-        .add_attributes(vec![
-            ("action", "create service"),
-            ("initmsg:", &init_msg.to_string()),
-        ])
-        // Create manager
-        .add_submessage(SubMsg {
-            id: CREATE_SERVICE_RESPONSE_ID,
-            gas_limit: None,
-            msg: WasmMsg::Instantiate {
-                code_id,
-                funds: vec![],
-                // This contract should be able to migrate the contract
-                admin: Some(manager.to_string()),
-                label: format!("Module: {}", module),
-                msg: init_msg,
-            }
-            .into(),
-            reply_on: ReplyOn::Success,
-        }))
+    Ok(response.add_submessage(SubMsg {
+        id: reply_id,
+        gas_limit: None,
+        msg: WasmMsg::Instantiate {
+            code_id,
+            funds: vec![],
+            admin: admin.map(Into::into),
+            label: format!("Module: {}, Height {}", module_info, block_height),
+            msg: init_msg,
+        }
+        .into(),
+        reply_on: ReplyOn::Success,
+    }))
 }
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
@@ -287,20 +178,22 @@ pub fn execute_update_config(
 pub fn update_factory_binaries(
     deps: DepsMut,
     info: MessageInfo,
-    to_add: Vec<((String, String), Binary)>,
-    to_remove: Vec<(String, String)>,
+    to_add: Vec<(ModuleInfo, Binary)>,
+    to_remove: Vec<ModuleInfo>,
 ) -> ModuleFactoryResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     for (key, binary) in to_add.into_iter() {
         // Update function for new or existing keys
+        key.assert_version_variant()?;
         let insert = |_| -> StdResult<Binary> { Ok(binary) };
-        MODULE_INIT_BINARIES.update(deps.storage, (&key.0, &key.1), insert)?;
+        MODULE_INIT_BINARIES.update(deps.storage, key, insert)?;
     }
 
     for key in to_remove {
-        MODULE_INIT_BINARIES.remove(deps.storage, (&key.0, &key.1));
+        key.assert_version_variant()?;
+        MODULE_INIT_BINARIES.remove(deps.storage, key);
     }
     Ok(Response::new().add_attribute("Action: ", "update binaries"))
 }

@@ -47,23 +47,9 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
-        ExecuteMsg::AddCodeId {
-            module,
-            version,
-            code_id,
-        } => add_code_id(deps, info, module, version, code_id),
-        ExecuteMsg::RemoveCodeId { module, version } => remove_code_id(deps, info, module, version),
-        ExecuteMsg::AddApi {
-            module,
-            version,
-            address,
-        } => add_api(deps, info, module, version, address),
-        ExecuteMsg::RemoveApi { module, version } => remove_api(deps, info, module, version),
-        ExecuteMsg::AddOs {
-            os_id,
-            manager_address,
-            proxy_address,
-        } => add_os(deps, info, os_id, manager_address, proxy_address),
+        ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
+        ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
+        ExecuteMsg::AddOs { os_id, core } => add_os(deps, info, os_id, core),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
@@ -75,21 +61,16 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),
-        QueryMsg::CodeId { module } => queries::handle_code_id_query(deps, module),
-        QueryMsg::ApiAddress { module } => queries::handle_api_address_query(deps, module),
+        QueryMsg::Module { module } => queries::handle_module_query(deps, module),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();
             let factory = FACTORY.get(deps)?.unwrap().into_string();
             to_binary(&ConfigResponse { admin, factory })
         }
-        QueryMsg::CodeIds {
+        QueryMsg::Modules {
             page_token,
             page_size,
-        } => queries::handle_code_ids_query(deps, page_token, page_size),
-        QueryMsg::ApiAddresses {
-            page_token,
-            page_size,
-        } => queries::handle_api_addresses_query(deps, page_token, page_size),
+        } => queries::handle_modules_query(deps, page_token, page_size),
     }
 }
 

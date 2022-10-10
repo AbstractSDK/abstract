@@ -21,6 +21,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     pub type Subscribed = bool;
+    pub type ModuleId<'a> = &'a str;
 
     /// Manager configuration
     #[cosmwasm_schema::cw_serde]
@@ -49,14 +50,14 @@ pub mod state {
     /// Root user
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules
-    pub const OS_MODULES: Map<&str, Addr> = Map::new("os_modules");
+    pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
 }
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
 
-use crate::objects::module::Module;
+use crate::objects::module::{Module, ModuleInfo};
 
 use self::state::OsInfo;
 
@@ -91,7 +92,7 @@ pub enum ExecuteMsg {
     /// Create module using module factory, callable by Root
     CreateModule {
         /// Module information.
-        module: Module,
+        module: ModuleInfo,
         /// Instantiate message used to instantiate the contract.
         init_msg: Option<Binary>,
     },
@@ -99,11 +100,11 @@ pub enum ExecuteMsg {
     /// Only callable by module factory.
     RegisterModule { module_addr: String, module: Module },
     /// Remove a module
-    RemoveModule { module_name: String },
+    RemoveModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
-        module: Module,
+        module: ModuleInfo,
         migrate_msg: Option<Binary>,
     },
     /// Update info

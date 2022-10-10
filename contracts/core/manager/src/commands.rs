@@ -2,12 +2,12 @@ use abstract_os::{
     api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
-    objects::module::{Module, ModuleInfo, ModuleKind},
-    proxy::ExecuteMsg as TreasuryMsg,
-    version_control::{
-        state::{API_ADDRESSES, MODULE_CODE_IDS},
-        ApiAddressResponse, CodeIdResponse, QueryMsg as VersionQuery,
+    objects::{
+        module::{Module, ModuleInfo, ModuleVersion},
+        module_reference::ModuleReference,
     },
+    proxy::ExecuteMsg as TreasuryMsg,
+    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
 };
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
@@ -56,17 +56,14 @@ pub fn create_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    module: Module,
+    module: ModuleInfo,
     init_msg: Option<Binary>,
 ) -> ManagerResult {
     // Only Root can call this method
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
-    if OS_MODULES
-        .may_load(deps.storage, &module.info.name)?
-        .is_some()
-    {
+    if OS_MODULES.may_load(deps.storage, &module.name)?.is_some() {
         return Err(ManagerError::ModuleAlreadyAdded {});
     }
 
@@ -99,13 +96,13 @@ pub fn register_module(
 
     let mut response = update_module_addresses(
         deps.branch(),
-        Some(vec![(module.info.name.clone(), module_address.clone())]),
+        Some(vec![(module.info.id(), module_address.clone())]),
         None,
     )?;
 
     match module {
         _dapp @ Module {
-            kind: ModuleKind::API,
+            reference: ModuleReference::App(_),
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -115,7 +112,7 @@ pub fn register_module(
             )?)
         }
         _dapp @ Module {
-            kind: ModuleKind::AddOn,
+            reference: ModuleReference::Extension(_),
             ..
         } => {
             response = response.add_message(whitelist_dapp_on_proxy(
@@ -124,14 +121,7 @@ pub fn register_module(
                 module_address,
             )?)
         }
-        Module {
-            kind: ModuleKind::Service,
-            ..
-        } => (),
-        Module {
-            kind: ModuleKind::Perk,
-            ..
-        } => (),
+        _ => (),
     };
 
     Ok(response)
@@ -156,13 +146,21 @@ pub fn exec_on_module(
     Ok(response)
 }
 
-pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_name: String) -> ManagerResult {
+pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // Only root can remove modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let proxy = OS_MODULES.load(deps.storage, PROXY)?;
+    let module_addr = OS_MODULES.load(deps.storage, &module_id)?;
+    let remove_from_proxy_msg = remove_dapp_from_proxy(
+        deps.as_ref(),
+        proxy.into_string(),
+        module_addr.into_string(),
+    )?;
+    OS_MODULES.remove(deps.storage, &module_id);
 
-    OS_MODULES.remove(deps.storage, &module_name);
-
-    Ok(Response::new().add_attribute("Removed module", &module_name))
+    Ok(Response::new()
+        .add_message(remove_from_proxy_msg)
+        .add_attribute("Removed module", &module_id))
 }
 
 pub fn set_root_and_gov_type(
@@ -188,23 +186,49 @@ pub fn set_root_and_gov_type(
         .add_attribute("root", root))
 }
 
-// migrates the module to a new version
-pub fn migrate_module(
-    deps: DepsMut,
+pub fn upgrade_module(
+    mut deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     module_info: ModuleInfo,
+    migrate_msg: Option<Binary>,
+) -> ManagerResult {
+    ROOT.assert_admin(deps.as_ref(), &info.sender)?;
+    // Check if trying to upgrade this contract.
+    if module_info.id() == MANAGER {
+        return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
+    }
+    let old_module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
+    let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
+    let module_ref = get_module(deps.as_ref(), module_info.clone(), contract)?;
+    match module_ref {
+        ModuleReference::Extension(addr) => {
+            // Update the address of the API internally
+            update_module_addresses(
+                deps.branch(),
+                Some(vec![(module_info.id(), addr.to_string())]),
+                None,
+            )?;
+            // replace it
+            replace_api(deps, addr, old_module_addr)
+        }
+        ModuleReference::App(code_id) => {
+            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
+        }
+        ModuleReference::Service(code_id) => {
+            migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
+        }
+        _ => Err(ManagerError::NotUpgradeable(module_info)),
+    }
+}
+// migrates the module to a new version
+fn migrate_module(
+    _deps: DepsMut,
+    _env: Env,
+    module_addr: Addr,
+    new_code_id: u64,
     migrate_msg: Binary,
 ) -> ManagerResult {
-    // Check if trying to upgrade this contract.
-    if module_info.name == MANAGER {
-        return upgrade_self(deps, env, module_info, migrate_msg);
-    }
-
-    let module_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
-
-    let contract = query_module_version(&deps.as_ref(), module_addr.clone())?;
-    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
-
     let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
         contract_addr: module_addr.into_string(),
         new_code_id,
@@ -215,11 +239,9 @@ pub fn migrate_module(
 
 /// Replaces the current API with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
-pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
+pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> ManagerResult {
     let mut msgs = vec![];
-
     // Makes sure we already have the API installed
-    let old_api_addr = OS_MODULES.load(deps.storage, &module_info.name)?;
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: old_api_addr.to_string(),
@@ -227,8 +249,6 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
             proxy_address: proxy_addr.to_string(),
         }))?,
     }))?;
-    // Get the address of the new API
-    let new_api_addr = get_api_addr(deps.as_ref(), &module_info)?;
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()
@@ -268,13 +288,6 @@ pub fn replace_api(deps: DepsMut, module_info: ModuleInfo) -> ManagerResult {
         new_api_addr.to_string(),
     )?);
 
-    // Update the address of the API internally
-    update_module_addresses(
-        deps,
-        Some(vec![(module_info.name, new_api_addr.into_string())]),
-        None,
-    )?;
-
     Ok(Response::new().add_messages(msgs))
 }
 
@@ -309,78 +322,39 @@ pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed
     Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
-fn get_code_id(
+fn get_module(
     deps: Deps,
     module_info: ModuleInfo,
     old_contract: ContractVersion,
-) -> Result<u64, ManagerError> {
-    let new_code_id: u64;
+) -> Result<ModuleReference, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
-    match module_info.version {
-        Some(new_version) => {
+    match &module_info.version {
+        ModuleVersion::Version(new_version) => {
             if new_version.parse::<Version>().unwrap()
                 > old_contract.version.parse::<Version>().unwrap()
             {
-                new_code_id = MODULE_CODE_IDS
-                    .query(
-                        &deps.querier,
-                        config.version_control_address,
-                        (&module_info.name, &new_version),
-                    )?
-                    .unwrap();
+                Ok(MODULE_LIBRARY
+                    .query(&deps.querier, config.version_control_address, module_info)?
+                    .unwrap())
             } else {
-                return Err(ManagerError::OlderVersion(
-                    new_version,
+                Err(ManagerError::OlderVersion(
+                    new_version.to_owned(),
                     old_contract.version,
-                ));
-            };
+                ))
+            }
         }
-        None => {
+        ModuleVersion::Latest {} => {
             // Query latest version of contract
-            let resp: CodeIdResponse =
+            let resp: ModuleResponse =
                 deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
                     contract_addr: config.version_control_address.to_string(),
-                    msg: to_binary(&VersionQuery::CodeId {
+                    msg: to_binary(&VersionQuery::Module {
                         module: module_info,
                     })?,
                 }))?;
-            new_code_id = resp.code_id.u64();
+            Ok(resp.module.reference)
         }
     }
-    Ok(new_code_id)
-}
-
-fn get_api_addr(deps: Deps, module_info: &ModuleInfo) -> Result<Addr, ManagerError> {
-    let config = CONFIG.load(deps.storage)?;
-    let new_addr = match &module_info.version {
-        Some(new_version) => {
-            let maybe_new_addr = API_ADDRESSES.query(
-                &deps.querier,
-                config.version_control_address,
-                (&module_info.name, new_version),
-            )?;
-            if let Some(new_addr) = maybe_new_addr {
-                new_addr
-            } else {
-                return Err(ManagerError::ApiNotFound(
-                    module_info.name.clone(),
-                    new_version.clone(),
-                ));
-            }
-        }
-        None => {
-            // Query latest version of contract
-            let resp: ApiAddressResponse =
-                deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                    contract_addr: config.version_control_address.to_string(),
-                    msg: to_binary(&VersionQuery::ApiAddress {
-                        module: module_info.clone(),
-                    })?,
-                }))?;
-            resp.address
-        }
-    };
-    Ok(new_addr)
 }
 
 fn upgrade_self(
@@ -390,14 +364,17 @@ fn upgrade_self(
     migrate_msg: Binary,
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
-    let new_code_id = get_code_id(deps.as_ref(), module_info, contract)?;
-
-    let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
-        contract_addr: env.contract.address.into_string(),
-        new_code_id,
-        msg: migrate_msg,
-    });
-    Ok(Response::new().add_message(migration_msg))
+    let mod_ref = get_module(deps.as_ref(), module_info.clone(), contract)?;
+    if let ModuleReference::App(manager_code_id) = mod_ref {
+        let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
+            contract_addr: env.contract.address.into_string(),
+            new_code_id: manager_code_id,
+            msg: migrate_msg,
+        });
+        Ok(Response::new().add_message(migration_msg))
+    } else {
+        Err(ManagerError::InvalidReference(module_info))
+    }
 }
 
 fn whitelist_dapp_on_proxy(
