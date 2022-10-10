@@ -1,6 +1,6 @@
 [package]
 name = "abstract-add-on"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 edition = "2021"
 description = "base add-on contract implementation"
 license = "GPL-2.0-or-later"
