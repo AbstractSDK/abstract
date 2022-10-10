@@ -1,6 +1,6 @@
 [package]
 name = "abstract-api"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 edition = "2021"
 description = "base API contract implementation"
 license = "GPL-2.0-or-later"
