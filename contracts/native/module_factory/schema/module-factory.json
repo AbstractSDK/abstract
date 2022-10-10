@@ -87,7 +87,7 @@
                 "description": "Module details",
                 "allOf": [
                   {
-                    "$ref": "#/definitions/Module"
+                    "$ref": "#/definitions/ModuleInfo"
                   }
                 ]
               }
@@ -116,17 +116,7 @@
                   "type": "array",
                   "items": [
                     {
-                      "type": "array",
-                      "items": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "string"
-                        }
-                      ],
-                      "maxItems": 2,
-                      "minItems": 2
+                      "$ref": "#/definitions/ModuleInfo"
                     },
                     {
                       "$ref": "#/definitions/Binary"
@@ -139,17 +129,7 @@
               "to_remove": {
                 "type": "array",
                 "items": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
+                  "$ref": "#/definitions/ModuleInfo"
                 }
               }
             },
@@ -164,47 +144,60 @@
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
         "type": "string"
       },
-      "Module": {
-        "type": "object",
-        "required": [
-          "info",
-          "kind"
-        ],
-        "properties": {
-          "info": {
-            "$ref": "#/definitions/ModuleInfo"
-          },
-          "kind": {
-            "$ref": "#/definitions/ModuleKind"
-          }
-        },
-        "additionalProperties": false
-      },
       "ModuleInfo": {
         "type": "object",
         "required": [
-          "name"
+          "name",
+          "provider",
+          "version"
         ],
         "properties": {
           "name": {
+            "description": "Name of the contract",
+            "type": "string"
+          },
+          "provider": {
+            "description": "Provider of the module",
             "type": "string"
           },
           "version": {
-            "type": [
-              "string",
-              "null"
+            "description": "Version of the module",
+            "allOf": [
+              {
+                "$ref": "#/definitions/ModuleVersion"
+              }
             ]
           }
         },
         "additionalProperties": false
       },
-      "ModuleKind": {
-        "type": "string",
-        "enum": [
-          "add_on",
-          "a_p_i",
-          "service",
-          "perk"
+      "ModuleVersion": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "latest"
+            ],
+            "properties": {
+              "latest": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "version"
+            ],
+            "properties": {
+              "version": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
         ]
       }
     }
@@ -325,14 +318,14 @@
           "type": "object",
           "required": [
             "info",
-            "kind"
+            "reference"
           ],
           "properties": {
             "info": {
               "$ref": "#/definitions/ModuleInfo"
             },
-            "kind": {
-              "$ref": "#/definitions/ModuleKind"
+            "reference": {
+              "$ref": "#/definitions/ModuleReference"
             }
           },
           "additionalProperties": false
@@ -340,28 +333,115 @@
         "ModuleInfo": {
           "type": "object",
           "required": [
-            "name"
+            "name",
+            "provider",
+            "version"
           ],
           "properties": {
             "name": {
+              "description": "Name of the contract",
+              "type": "string"
+            },
+            "provider": {
+              "description": "Provider of the module",
               "type": "string"
             },
             "version": {
-              "type": [
-                "string",
-                "null"
+              "description": "Version of the module",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ModuleVersion"
+                }
               ]
             }
           },
           "additionalProperties": false
         },
-        "ModuleKind": {
-          "type": "string",
-          "enum": [
-            "add_on",
-            "a_p_i",
-            "service",
-            "perk"
+        "ModuleReference": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "extension"
+              ],
+              "properties": {
+                "extension": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "app"
+              ],
+              "properties": {
+                "app": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "perk"
+              ],
+              "properties": {
+                "perk": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "service"
+              ],
+              "properties": {
+                "service": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ModuleVersion": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "latest"
+              ],
+              "properties": {
+                "latest": {
+                  "type": "object",
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "required": [
+                "version"
+              ],
+              "properties": {
+                "version": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
           ]
         }
       }
