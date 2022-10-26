@@ -40,11 +40,11 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0"
 
-abstract-sdk = {path = "packages/abstract-sdk"}
-abstract-os = {path = "packages/abstract-os" }
-abstract-add-on = { path = "packages/abstract-add-on", features = ["library"] }
-abstract-api = { path = "packages/abstract-api", features = ["library"] }
-abstract-ibc-host = { path = "packages/abstract-ibc-host" }
+abstract-sdk = {version = "0.2.0-beta.1" ,path = "packages/abstract-sdk"}
+abstract-os = {version = "0.2.0-beta.1" ,path = "packages/abstract-os" }
+abstract-add-on = {version = "0.2.0-beta.1" , path = "packages/abstract-add-on", features = ["library"] }
+abstract-api = { version = "0.2.0-beta.1" ,path = "packages/abstract-api", features = ["library"] }
+abstract-ibc-host = { version = "0.2.0-beta.1" ,path = "packages/abstract-ibc-host" }
 
 cw-multi-test = {git = "https://github.com/Abstract-OS/cw-plus.git", branch="main"}
 
