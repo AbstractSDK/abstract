@@ -45,6 +45,7 @@ abstract-os = {version = "0.2.0-beta.1" ,path = "packages/abstract-os" }
 abstract-add-on = {version = "0.2.0-beta.1" , path = "packages/abstract-add-on", features = ["library"] }
 abstract-api = { version = "0.2.0-beta.1" ,path = "packages/abstract-api", features = ["library"] }
 abstract-ibc-host = { version = "0.2.0-beta.1" ,path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.2.0-beta.1" ,path = "packages/abstract-ica" }
 
 cw-multi-test = {git = "https://github.com/Abstract-OS/cw-plus.git", branch="main"}
 

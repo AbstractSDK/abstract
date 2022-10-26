@@ -14,41 +14,41 @@ then
 fi
 
 # these are imported by other packages
-BASE_PACKAGES="abstract-ica abstract-os"
-UTILS_PACKAGES="abstract-sdk"
+# BASE_PACKAGES="abstract-ica abstract-os"
+# UTILS_PACKAGES="abstract-sdk"
 ALL_PACKAGES="abstract-api abstract-add-on abstract-ibc-host"
 
 SLEEP_TIME=30
 
-for pack in $BASE_PACKAGES; do
-  (
-    cd "packages/$pack"
-    echo "Publishing $pack"
-    cargo publish
-  )
-done
+# for pack in $BASE_PACKAGES; do
+#   (
+#     cd "packages/$pack"
+#     echo "Publishing $pack"
+#     cargo publish
+#   )
+# done
 
-# wait for these to be processed on crates.io
-echo "Waiting for publishing base packages"
-sleep $SLEEP_TIME
+# # wait for these to be processed on crates.io
+# echo "Waiting for publishing base packages"
+# sleep $SLEEP_TIME
 
-for pack in $UTILS_PACKAGES; do
-  (
-    cd "packages/$pack"
-    echo "Publishing $pack"
-    cargo publish
-  )
-done
+# for pack in $UTILS_PACKAGES; do
+#   (
+#     cd "packages/$pack"
+#     echo "Publishing $pack"
+#     cargo publish
+#   )
+# done
 
 # wait for these to be processed on crates.io
 echo "Waiting for publishing utils packages"
-sleep $SLEEP_TIME
+# sleep $SLEEP_TIME
 
 for pack in $ALL_PACKAGES; do
   (
     cd "packages/$pack"
     echo "Publishing $pack"
-    cargo publish
+    cargo publish --allow-dirty
   )
 done
 

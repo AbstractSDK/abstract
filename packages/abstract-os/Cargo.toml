@@ -30,4 +30,4 @@ cw-asset= {workspace = true}
 cw2 = {workspace = true}
 cw20 = {workspace = true}
 cw20-base = {workspace = true}
-abstract-ica = {path = "../abstract-ica"}
+abstract-ica = {workspace = true}
