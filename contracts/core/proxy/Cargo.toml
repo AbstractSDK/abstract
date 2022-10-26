@@ -31,7 +31,7 @@ cw-asset = {version = "2.2.0"}
 schemars = "0.8.3"
 serde = { version = "1.0.127", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.26" }
-abstract-sdk = { version = "0.1.0-rc.1", path = "../../../packages/abstract-sdk" }
+abstract-sdk = { version = "0.1.0", path = "../../../packages/abstract-sdk" }
 semver = "1"
 abstract-os = {path = "../../../packages/abstract-os"}
 

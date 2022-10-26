@@ -1,19 +1,23 @@
 use abstract_add_on::AddOnContract;
 
 use abstract_os::SUBSCRIPTION;
-use abstract_sdk::get_os_core;
+use abstract_sdk::{get_os_core, AbstractExecute};
 use cosmwasm_std::{
     entry_point, to_binary, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
     StdResult, Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
+use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
 
 use semver::Version;
 
-use crate::commands;
 use crate::commands::BLOCKS_PER_MONTH;
+use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
+use abstract_os::add_on::{
+    ExecuteMsg as AddOnExecuteMsg, InstantiateMsg as AddOnInstantiateMsg, QueryMsg as AddOnQueryMsg,
+};
 use abstract_os::subscription::state::*;
 use abstract_os::subscription::{
     ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -21,8 +25,9 @@ use abstract_os::subscription::{
 };
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
-pub type SubscriptionAddOn<'a> = AddOnContract<'a>;
-
+pub type SubscriptionAddOn<'a> = AddOnContract<'a, ExecuteMsg, SubscriptionError, Cw20ReceiveMsg>;
+const SUBSCRIPTION_MODULE: SubscriptionAddOn<'static> =
+    SubscriptionAddOn::new().with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -42,8 +47,17 @@ pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: AddOnInstantiateMsg<InstantiateMsg>,
 ) -> SubscriptionResult {
+    SubscriptionAddOn::instantiate(
+        deps.branch(),
+        env.clone(),
+        info,
+        msg.base,
+        SUBSCRIPTION,
+        CONTRACT_VERSION,
+    )?;
+    let msg = msg.custom;
     let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
         subscription_cost_per_block: msg.subscription.subscription_cost_per_block,
@@ -82,15 +96,6 @@ pub fn instantiate(
         INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
     }
 
-    SubscriptionAddOn::default().instantiate(
-        deps.branch(),
-        env,
-        info,
-        msg.base,
-        SUBSCRIPTION,
-        CONTRACT_VERSION,
-    )?;
-
     SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
 
@@ -98,14 +103,23 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> SubscriptionResult {
-    let add_on = SubscriptionAddOn::default();
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: AddOnExecuteMsg<ExecuteMsg, Cw20ReceiveMsg>,
+) -> SubscriptionResult {
+    SUBSCRIPTION_MODULE.execute(deps, env, info, msg, request_handler)
+}
 
+fn request_handler(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    add_on: SubscriptionAddOn,
+    msg: ExecuteMsg,
+) -> SubscriptionResult {
     match msg {
-        ExecuteMsg::Base(message) => add_on
-            .execute(deps, env, info, message)
-            .map_err(|e| e.into()),
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(add_on, deps, env, info, msg),
         ExecuteMsg::Pay { os_id } => {
             let maybe_received_coin = info.funds.last();
             if let Some(coin) = maybe_received_coin.cloned() {
@@ -173,71 +187,77 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> S
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(message) => SubscriptionAddOn::default().query(deps, env, message),
-        // handle dapp-specific queries here
-        QueryMsg::State {} => {
-            let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-            let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
-            to_binary(&StateResponse {
-                contribution: contributor_state,
-                subscription: subscription_state,
-            })
-        }
-        QueryMsg::Fee {} => {
-            let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let minimal_cost = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
-            to_binary(&SubscriptionFeeResponse {
-                fee: Asset {
-                    info: config.payment_asset,
-                    amount: minimal_cost,
-                },
-            })
-        }
-        QueryMsg::Config {} => {
-            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
-            to_binary(&ConfigResponse {
-                contribution: contributor_config,
-                subscription: subscription_config,
-            })
-        }
-        QueryMsg::SubscriberState { os_id } => {
-            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
-            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
-            let subscription_state = if let Some(sub) = maybe_sub {
-                to_binary(&SubscriberStateResponse {
-                    currently_subscribed: true,
-                    subscriber_details: sub,
-                })?
-            } else if let Some(sub) = maybe_dormant_sub {
-                to_binary(&SubscriberStateResponse {
-                    currently_subscribed: true,
-                    subscriber_details: sub,
-                })?
-            } else {
-                return Err(StdError::generic_err("os has os_id 0 or does not exist"));
-            };
-            Ok(subscription_state)
-        }
-        QueryMsg::ContributorState { os_id } => {
-            let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let contributor_addr = get_os_core(
-                &deps.querier,
-                os_id,
-                &subscription_config.version_control_address,
-            )?
-            .manager;
-            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-            let subscription_state = if let Some(compensation) = maybe_contributor {
-                to_binary(&ContributorStateResponse { compensation })?
-            } else {
-                return Err(StdError::generic_err(
-                    "provided address is not a contributor",
-                ));
-            };
-            Ok(subscription_state)
+        AddOnQueryMsg::Base(message) => SUBSCRIPTION_MODULE.query(deps, env, message),
+        AddOnQueryMsg::AddOn(msg) => {
+            match msg {
+                // handle dapp-specific queries here
+                QueryMsg::State {} => {
+                    let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
+                    let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
+                    to_binary(&StateResponse {
+                        contribution: contributor_state,
+                        subscription: subscription_state,
+                    })
+                }
+                QueryMsg::Fee {} => {
+                    let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+                    let minimal_cost =
+                        Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
+                    to_binary(&SubscriptionFeeResponse {
+                        fee: Asset {
+                            info: config.payment_asset,
+                            amount: minimal_cost,
+                        },
+                    })
+                }
+                QueryMsg::Config {} => {
+                    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+                    let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
+                    to_binary(&ConfigResponse {
+                        contribution: contributor_config,
+                        subscription: subscription_config,
+                    })
+                }
+                QueryMsg::SubscriberState { os_id } => {
+                    let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
+                    let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
+                    let subscription_state = if let Some(sub) = maybe_sub {
+                        to_binary(&SubscriberStateResponse {
+                            currently_subscribed: true,
+                            subscriber_details: sub,
+                        })?
+                    } else if let Some(sub) = maybe_dormant_sub {
+                        to_binary(&SubscriberStateResponse {
+                            currently_subscribed: true,
+                            subscriber_details: sub,
+                        })?
+                    } else {
+                        return Err(StdError::generic_err("os has os_id 0 or does not exist"));
+                    };
+                    Ok(subscription_state)
+                }
+                QueryMsg::ContributorState { os_id } => {
+                    let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+                    let contributor_addr = get_os_core(
+                        &deps.querier,
+                        os_id,
+                        &subscription_config.version_control_address,
+                    )?
+                    .manager;
+                    let maybe_contributor =
+                        CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
+                    let subscription_state = if let Some(compensation) = maybe_contributor {
+                        to_binary(&ContributorStateResponse { compensation })?
+                    } else {
+                        return Err(StdError::generic_err(
+                            "provided address is not a contributor",
+                        ));
+                    };
+                    Ok(subscription_state)
+                }
+            }
         }
     }
 }

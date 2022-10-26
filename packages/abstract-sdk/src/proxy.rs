@@ -1,22 +1,34 @@
 //! # Proxy Helpers
 use abstract_os::{
+    ibc_client,
     objects::{proxy_asset::ProxyAsset, AssetEntry},
     proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, Empty, QuerierWrapper, QueryRequest, StdError, StdResult,
-    Uint128, WasmMsg, WasmQuery,
+    to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, QueryRequest, StdError, StdResult, Uint128,
+    WasmMsg, WasmQuery,
 };
 use cw_storage_plus::Item;
 
-use crate::ADMIN;
+use crate::{OsAction, ADMIN};
 // Re-export os-id query as proxy is also core-contract.
 pub use crate::manager::query_os_id;
 /// Constructs the proxy dapp action message to execute CosmosMsgs on the Proxy.
-pub fn send_to_proxy(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<CosmosMsg<Empty>> {
+pub fn os_module_action(msgs: Vec<CosmosMsg>, proxy_address: &Addr) -> StdResult<OsAction> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         msg: to_binary(&ExecuteMsg::ModuleAction { msgs })?,
+        funds: vec![],
+    }))
+}
+
+pub fn os_ibc_action(
+    msgs: Vec<ibc_client::ExecuteMsg>,
+    proxy_address: &Addr,
+) -> StdResult<OsAction> {
+    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: proxy_address.to_string(),
+        msg: to_binary(&ExecuteMsg::IbcAction { msgs })?,
         funds: vec![],
     }))
 }

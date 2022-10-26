@@ -1,10 +1,5 @@
-use crate::{
-    contract::{DexApi, DexResult},
-    error::DexError,
-    DEX,
-};
+use crate::{error::DexError, DEX};
 
-use abstract_sdk::OsExecute;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
     Uint128, WasmMsg, WasmQuery,
@@ -19,17 +14,19 @@ impl DEX for Loop {
     fn name(&self) -> &'static str {
         LOOP
     }
+    fn over_ibc(&self) -> bool {
+        false
+    }
     fn swap(
         &self,
-        deps: Deps,
-        api: DexApi,
+        _deps: Deps,
         pair_address: Addr,
         offer_asset: Asset,
         _ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
-    ) -> DexResult {
-        let proxy_msg = if let AssetInfoBase::Cw20(token_addr) = &offer_asset.info {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let msg = if let AssetInfoBase::Cw20(token_addr) = &offer_asset.info {
             let hook_msg = terraswap::pair::Cw20HookMsg::Swap {
                 belief_price,
                 max_spread,
@@ -52,19 +49,16 @@ impl DEX for Loop {
             };
             wasm_execute(pair_address, &swap_msg, coins_in_assets(&[offer_asset]))?
         };
-
-        api.os_execute(deps, vec![proxy_msg.into()])
-            .map_err(From::from)
+        Ok(vec![msg.into()])
     }
 
     fn provide_liquidity(
         &self,
-        deps: Deps,
-        api: DexApi,
+        _deps: Deps,
         pair_address: Addr,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
@@ -89,18 +83,16 @@ impl DEX for Loop {
             funds: coins,
         });
         msgs.push(liquidity_msg);
-
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        api: DexApi,
         pair_address: Addr,
         offer_asset: Asset,
         other_assets: Vec<AssetInfo>,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         if other_assets.len() > 1 {
             return Err(DexError::TooManyAssets(2));
         }
@@ -162,21 +154,18 @@ impl DEX for Loop {
             funds: coins,
         });
         msgs.push(liquidity_msg);
-
-        api.os_execute(deps, msgs).map_err(From::from)
+        Ok(msgs)
     }
 
     fn withdraw_liquidity(
         &self,
-        deps: Deps,
-        api: &DexApi,
+        _deps: Deps,
         pair_address: Addr,
         lp_token: Asset,
-    ) -> DexResult {
+    ) -> Result<Vec<CosmosMsg>, DexError> {
         let hook_msg = terraswap::pair::Cw20HookMsg::WithdrawLiquidity {};
         // Call swap on pair through cw20 Send
-        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
-        api.os_execute(deps, vec![withdraw_msg]).map_err(From::from)
+        Ok(vec![lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?])
     }
 
     fn simulate_swap(

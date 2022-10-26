@@ -7,35 +7,8 @@
       "description": "An API request.",
       "type": "object",
       "required": [
-        "request"
-      ],
-      "properties": {
-        "request": {
-          "$ref": "#/definitions/ApiRequestMsg_for_RequestMsg"
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "A configuration message to whitelist traders.",
-      "type": "object",
-      "required": [
-        "configure"
-      ],
-      "properties": {
-        "configure": {
-          "$ref": "#/definitions/BaseExecuteMsg"
-        }
-      },
-      "additionalProperties": false
-    }
-  ],
-  "definitions": {
-    "ApiRequestMsg_for_RequestMsg": {
-      "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
-      "type": "object",
-      "required": [
-        "request"
+        "request",
+        "type"
       ],
       "properties": {
         "proxy_address": {
@@ -51,12 +24,19 @@
               "$ref": "#/definitions/RequestMsg"
             }
           ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "request"
+          ]
         }
       },
       "additionalProperties": false
     },
-    "BaseExecuteMsg": {
-      "description": "Configuration message for the API",
+    {
+      "description": "A configuration message to whitelist traders.",
+      "type": "object",
       "oneOf": [
         {
           "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
@@ -106,7 +86,65 @@
           },
           "additionalProperties": false
         }
-      ]
+      ],
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "configure"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "IbcReceive to process callbacks",
+      "type": "object",
+      "required": [
+        "id",
+        "msg",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ibc_callback"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "receive"
+          ]
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
+      "type": "string"
     },
     "RequestMsg": {
       "oneOf": [
@@ -272,6 +310,35 @@
             "withdraw_all_rewards": {
               "type": "object",
               "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StdAck": {
+      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "string"
             }
           },
           "additionalProperties": false

@@ -8,10 +8,11 @@ use abstract_os::{
     },
     proxy::ExecuteMsg as TreasuryMsg,
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
+    IBC_CLIENT,
 };
 use cosmwasm_std::{
     to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
-    Response, StdResult, WasmMsg, WasmQuery,
+    Response, StdError, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
@@ -200,7 +201,7 @@ pub fn upgrade_module(
     }
     let old_module_addr = OS_MODULES.load(deps.storage, &module_info.id())?;
     let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
-    let module_ref = get_module(deps.as_ref(), module_info.clone(), contract)?;
+    let module_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     match module_ref {
         ModuleReference::Extension(addr) => {
             // Update the address of the API internally
@@ -322,16 +323,63 @@ pub fn update_os_status(deps: DepsMut, info: MessageInfo, new_status: Subscribed
     Err(ManagerError::CallerNotSubscriptionContract {})
 }
 
+pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, new_status: bool) -> ManagerResult {
+    // Only root can update IBC status
+    ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    let maybe_client = OS_MODULES.may_load(deps.storage, IBC_CLIENT)?;
+    let proxy = OS_MODULES.load(deps.storage, PROXY)?;
+    let msg = if let Some(ibc_client) = maybe_client {
+        // we have an IBC client so can't add more
+        if new_status {
+            return Err(ManagerError::ModuleAlreadyAdded {});
+        }
+
+        let remove_from_proxy_msg =
+            remove_dapp_from_proxy(deps.as_ref(), proxy.into_string(), ibc_client.into_string())?;
+        OS_MODULES.remove(deps.storage, IBC_CLIENT);
+        remove_from_proxy_msg
+    } else {
+        if !new_status {
+            return Err(ManagerError::Std(StdError::generic_err(
+                "ibc_client is not installed",
+            )));
+        }
+        let ibc_client = get_module(
+            deps.as_ref(),
+            ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest {})?,
+            None,
+        )?;
+        let ibc_client_addr = match ibc_client {
+            ModuleReference::Native(addr) => addr,
+            _ => return Err(StdError::generic_err("ibc_client must be native contract").into()),
+        };
+
+        let add_to_proxy_msg = whitelist_dapp_on_proxy(
+            deps.as_ref(),
+            proxy.into_string(),
+            ibc_client_addr.to_string(),
+        )?;
+        OS_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
+        add_to_proxy_msg
+    };
+
+    Ok(Response::new()
+        .add_message(msg)
+        .add_attribute("action", "enable_ibc")
+        .add_attribute("new_status", new_status.to_string()))
+}
+
 fn get_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract: ContractVersion,
+    old_contract: Option<ContractVersion>,
 ) -> Result<ModuleReference, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     match &module_info.version {
         ModuleVersion::Version(new_version) => {
+            let old_contract = old_contract.unwrap();
             if new_version.parse::<Version>().unwrap()
-                > old_contract.version.parse::<Version>().unwrap()
+                >= old_contract.version.parse::<Version>().unwrap()
             {
                 Ok(MODULE_LIBRARY
                     .query(&deps.querier, config.version_control_address, module_info)?
@@ -364,7 +412,7 @@ fn upgrade_self(
     migrate_msg: Binary,
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
-    let mod_ref = get_module(deps.as_ref(), module_info.clone(), contract)?;
+    let mod_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     if let ModuleReference::App(manager_code_id) = mod_ref {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),

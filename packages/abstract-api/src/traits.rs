@@ -1,21 +1,46 @@
 use abstract_os::api::ApiRequestMsg;
 use abstract_sdk::{
-    api_request, manager::query_module_address, proxy::send_to_proxy, Dependency, MemoryOperation,
-    OsExecute,
+    api_request,
+    manager::query_module_address,
+    proxy::{os_ibc_action, os_module_action},
+    Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
 
-impl<T: Serialize + DeserializeOwned> MemoryOperation for ApiContract<'_, T> {
+// Default constructor
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > Default for ApiContract<'a, T, E, C>
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > MemoryOperation for ApiContract<'_, T, E, C>
+{
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > OsExecute for ApiContract<'_, T, E, C>
+{
     type Err = ApiError;
 
     fn os_execute(
@@ -24,7 +49,18 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
         msgs: Vec<cosmwasm_std::CosmosMsg>,
     ) -> Result<Response, Self::Err> {
         if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(send_to_proxy(msgs, &target.proxy)?))
+            Ok(Response::new().add_message(os_module_action(msgs, &target.proxy)?))
+        } else {
+            Err(ApiError::NoTargetOS {})
+        }
+    }
+    fn os_ibc_execute(
+        &self,
+        _deps: Deps,
+        msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
+    ) -> Result<Response, Self::Err> {
+        if let Some(target) = &self.target_os {
+            Ok(Response::new().add_message(os_ibc_action(msgs, &target.proxy)?))
         } else {
             Err(ApiError::NoTargetOS {})
         }
@@ -32,7 +68,12 @@ impl<T: Serialize + DeserializeOwned> OsExecute for ApiContract<'_, T> {
 }
 
 /// Implement the dependency functions for an API contract
-impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
+impl<
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > Dependency for ApiContract<'_, T, E, C>
+{
     fn dependency_address(
         &self,
         deps: Deps,
@@ -49,11 +90,11 @@ impl<T: Serialize + DeserializeOwned> Dependency for ApiContract<'_, T> {
         query_module_address(deps, manager_addr, dependency_name)
     }
 
-    fn call_api_dependency<E: Serialize>(
+    fn call_api_dependency<R: Serialize>(
         &self,
         deps: Deps,
         dependency_name: &str,
-        request_msg: &E,
+        request_msg: &R,
         funds: Vec<cosmwasm_std::Coin>,
     ) -> cosmwasm_std::StdResult<CosmosMsg> {
         let proxy = self

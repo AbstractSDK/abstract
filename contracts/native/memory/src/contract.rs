@@ -36,15 +36,20 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Assets { names } => queries::query_assets(deps, env, names),
-        QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
         QueryMsg::AssetList {
             page_token,
             page_size,
         } => queries::query_asset_list(deps, page_token, page_size),
+        QueryMsg::Contracts { names } => queries::query_contract(deps, env, names),
         QueryMsg::ContractList {
             page_token,
             page_size,
         } => queries::query_contract_list(deps, page_token, page_size),
+        QueryMsg::Channels { names } => queries::query_channel(deps, env, names),
+        QueryMsg::ChannelList {
+            page_token,
+            page_size,
+        } => queries::query_channel_list(deps, page_token, page_size),
     }
 }
 

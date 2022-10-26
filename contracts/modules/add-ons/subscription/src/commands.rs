@@ -26,10 +26,10 @@ use abstract_os::subscription::DepositHookMsg;
 pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
 const ADMIN: Admin = Admin::new(ADMIN_KEY);
 pub fn receive_cw20(
-    add_on: SubscriptionAddOn,
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
+    add_on: SubscriptionAddOn,
     cw20_msg: Cw20ReceiveMsg,
 ) -> SubscriptionResult {
     match from_binary(&cw20_msg.msg)? {

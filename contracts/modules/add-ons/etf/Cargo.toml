@@ -1,6 +1,6 @@
 [package]
 name = "etf"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 
@@ -39,7 +39,7 @@ abstract-add-on = { path = "../../../../packages/abstract-add-on", features = ["
 abstract-sdk = { path = "../../../../packages/abstract-sdk" }
 
 [dev-dependencies]
-memory = { version = "0.1.0-rc.1", path = "../../../native/memory" }
+memory = { version = "0.1.0", path = "../../../native/memory" }
 cw-multi-test = { version = "0.14" }
 cw20-base = { version = "0.14", features = ["library"] }
-proxy = { version = "0.1.0-rc.1", path = "../../../core/proxy" }
+proxy = { version = "0.1.0", path = "../../../core/proxy" }

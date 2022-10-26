@@ -15,4 +15,7 @@ pub enum ModuleFactoryError {
 
     #[error("Reply ID does not match any known Reply ID")]
     UnexpectedReply(),
+
+    #[error("This module type can not be installed on your OS")]
+    ModuleNotInstallable {},
 }

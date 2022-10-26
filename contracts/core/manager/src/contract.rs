@@ -123,6 +123,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
+                ExecuteMsg::EnableIBC { new_status } => enable_ibc(deps, info, new_status),
                 _ => panic!(),
             }
         }

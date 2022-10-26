@@ -355,7 +355,7 @@ fn forward_payment(
                     "Cw1155 not supported.",
                 )))
             }
-            _ => todo!(),
+            _ => panic!("unsupported asset"),
         };
 
         msgs.push(forward_payment_to_module);

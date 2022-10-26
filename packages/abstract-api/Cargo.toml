@@ -12,10 +12,12 @@ license = "GPL-2.0-or-later"
 
 
 [features]
+default = []
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 # # use library feature to disable all instantiate/execute/query exports
 library = []
+# ibc = ["dep:simple-ica","abstract-os/ibc"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -29,3 +31,6 @@ thiserror = { version = "1.0.21" }
 cw2 = "0.14"
 abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
 abstract-os = {version = "0.1.0", path = "../abstract-os"}
+
+# Ibc deps
+simple-ica = {path = "../simple-ica"}

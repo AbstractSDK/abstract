@@ -14,7 +14,7 @@ use abstract_sdk::{get_module, verify_os_manager};
 
 use protobuf::Message;
 
-use crate::contract::ModuleFactoryResult;
+use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
 
 use crate::{response::MsgInstantiateContractResponse, state::*};
 
@@ -89,6 +89,7 @@ pub fn execute_create_module(
             });
             Ok(Response::new().add_message(register_msg))
         }
+        _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
     }
 }
 

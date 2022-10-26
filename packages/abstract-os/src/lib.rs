@@ -36,6 +36,9 @@
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
+pub extern crate simple_ica;
+pub mod ibc_client;
+pub mod ibc_host;
 
 pub use registry::*;
 

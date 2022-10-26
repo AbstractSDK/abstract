@@ -58,11 +58,7 @@ pub mod state {
 }
 
 use cosmwasm_std::Decimal;
-use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
-
-use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
-
 /// Migrate msg
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
@@ -70,8 +66,6 @@ pub struct MigrateMsg {}
 /// Init msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    /// Base init msg, sets memory address
-    pub base: BaseInstantiateMsg,
     /// Code-id used to create the LP token
     pub token_code_id: u64,
     /// Fee charged on withdrawal
@@ -86,12 +80,6 @@ pub struct InstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    /// Execute on the base-add-on contract logic
-    Base(BaseExecuteMsg),
-    /// Handler called by the CW-20 contract on a send-call
-    /// Acts as the withdraw/provide liquidity function.
-    /// Provide the token send message with a [`DepositHookMsg`]
-    Receive(Cw20ReceiveMsg),
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
     /// Set the withdraw fee
@@ -100,7 +88,6 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg {
-    Base(BaseQueryMsg),
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},

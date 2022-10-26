@@ -1,0 +1,45 @@
+[package]
+name = "ibc-client"
+version = "0.2.0"
+authors = ["Ethan Frey <ethanfrey@users.noreply.github.com>"]
+edition = "2021"
+publish = false
+license = "Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+cosmwasm-std = { version = "1.0.0", features = ["iterator", "ibc3"] }
+cw-storage-plus = { version = "0.14.0" }
+cw-utils = { version = "0.14.0" }
+cw2 = "0.14.0"
+schemars = "0.8.1"
+serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0.23" }
+abstract-os = {path = "../../../packages/abstract-os"}
+
+abstract-sdk = {path = "../../../packages/abstract-sdk"}
+
+[dev-dependencies]
+cosmwasm-schema = { version = "1.0.0" }

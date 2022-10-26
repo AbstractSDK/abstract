@@ -2,12 +2,16 @@ use std::vec;
 
 use abstract_add_on::AddOnContract;
 
+use abstract_os::add_on::{
+    ExecuteMsg as AddOnExecuteMsg, InstantiateMsg as AddOnInstantiateMsg, QueryMsg as AddOnQueryMsg,
+};
+use abstract_sdk::AbstractExecute;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
     Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw20::MinterResponse;
+use cw20::{Cw20ReceiveMsg, MinterResponse};
 
 use protobuf::Message;
 use semver::Version;
@@ -17,7 +21,7 @@ use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
-use crate::commands;
+use crate::commands::{self, receive_cw20};
 use crate::error::VaultError;
 use crate::response::MsgInstantiateContractResponse;
 use crate::state::{State, FEE, STATE};
@@ -29,8 +33,10 @@ const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type VaultAddOn<'a> = AddOnContract<'a>;
+pub type VaultAddOn<'a> = AddOnContract<'a, ExecuteMsg, VaultError, Cw20ReceiveMsg>;
 pub type VaultResult = Result<Response, VaultError>;
+
+const VAULT: VaultAddOn<'static> = VaultAddOn::new().with_receive(receive_cw20);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
@@ -47,8 +53,17 @@ pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: InstantiateMsg,
+    msg: AddOnInstantiateMsg<InstantiateMsg>,
 ) -> VaultResult {
+    VaultAddOn::instantiate(
+        deps.branch(),
+        env.clone(),
+        info,
+        msg.base,
+        ETF,
+        CONTRACT_VERSION,
+    )?;
+    let msg = msg.custom;
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
         provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
@@ -64,15 +79,6 @@ pub fn instantiate(
 
     STATE.save(deps.storage, &state)?;
     FEE.save(deps.storage, &Fee::new(msg.fee)?)?;
-
-    VaultAddOn::default().instantiate(
-        deps.branch(),
-        env.clone(),
-        info,
-        msg.base,
-        ETF,
-        CONTRACT_VERSION,
-    )?;
 
     Ok(Response::new().add_submessage(SubMsg {
         // Create LP token
@@ -101,29 +107,38 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VaultResult {
-    let dapp = VaultAddOn::default();
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: AddOnExecuteMsg<ExecuteMsg, Cw20ReceiveMsg>,
+) -> VaultResult {
+    VAULT.execute(deps, env, info, msg, request_handler)
+}
+
+fn request_handler(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    vault: VaultAddOn,
+    msg: ExecuteMsg,
+) -> VaultResult {
     match msg {
-        ExecuteMsg::Base(dapp_msg) => dapp
-            .execute(deps, env, info, dapp_msg)
-            .map_err(VaultError::from),
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, dapp, msg),
         ExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
-
-            commands::try_provide_liquidity(deps, info, dapp, asset, None)
+            commands::try_provide_liquidity(deps, info, vault, asset, None)
         }
-        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, dapp, fee),
+        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, vault, fee),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
+        AddOnQueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
         // handle dapp-specific queries here
-        QueryMsg::State {} => {
+        AddOnQueryMsg::AddOn(QueryMsg::State {}) => {
             let fee = FEE.load(deps.storage)?;
             to_binary(&StateResponse {
                 liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),

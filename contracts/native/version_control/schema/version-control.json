@@ -194,6 +194,20 @@
       "ModuleReference": {
         "oneOf": [
           {
+            "description": "Native Abstract Contracts",
+            "type": "object",
+            "required": [
+              "native"
+            ],
+            "properties": {
+              "native": {
+                "$ref": "#/definitions/Addr"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Installable extensions",
             "type": "object",
             "required": [
               "extension"
@@ -206,6 +220,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Installable apps",
             "type": "object",
             "required": [
               "app"
@@ -220,6 +235,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Usable perks",
             "type": "object",
             "required": [
               "perk"
@@ -234,6 +250,7 @@
             "additionalProperties": false
           },
           {
+            "description": "usable services",
             "type": "object",
             "required": [
               "service"
@@ -528,6 +545,20 @@
         "ModuleReference": {
           "oneOf": [
             {
+              "description": "Native Abstract Contracts",
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Installable extensions",
               "type": "object",
               "required": [
                 "extension"
@@ -540,6 +571,7 @@
               "additionalProperties": false
             },
             {
+              "description": "Installable apps",
               "type": "object",
               "required": [
                 "app"
@@ -554,6 +586,7 @@
               "additionalProperties": false
             },
             {
+              "description": "Usable perks",
               "type": "object",
               "required": [
                 "perk"
@@ -568,6 +601,7 @@
               "additionalProperties": false
             },
             {
+              "description": "usable services",
               "type": "object",
               "required": [
                 "service"
@@ -675,6 +709,20 @@
         "ModuleReference": {
           "oneOf": [
             {
+              "description": "Native Abstract Contracts",
+              "type": "object",
+              "required": [
+                "native"
+              ],
+              "properties": {
+                "native": {
+                  "$ref": "#/definitions/Addr"
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "description": "Installable extensions",
               "type": "object",
               "required": [
                 "extension"
@@ -687,6 +735,7 @@
               "additionalProperties": false
             },
             {
+              "description": "Installable apps",
               "type": "object",
               "required": [
                 "app"
@@ -701,6 +750,7 @@
               "additionalProperties": false
             },
             {
+              "description": "Usable perks",
               "type": "object",
               "required": [
                 "perk"
@@ -715,6 +765,7 @@
               "additionalProperties": false
             },
             {
+              "description": "usable services",
               "type": "object",
               "required": [
                 "service"

@@ -19,6 +19,9 @@ impl DEX for Terraswap {
     fn name(&self) -> &'static str {
         TERRASWAP
     }
+    fn over_ibc(&self) -> bool {
+        false
+    }
     fn swap(
         &self,
         deps: Deps,

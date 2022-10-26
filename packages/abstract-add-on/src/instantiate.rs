@@ -7,14 +7,23 @@ use cosmwasm_std::{
 };
 
 use abstract_sdk::memory::Memory;
+use serde::{de::DeserializeOwned, Serialize};
 
-use crate::state::{AddOnContract, AddOnState};
+use crate::{
+    state::{AddOnContract, AddOnState},
+    AddOnError,
+};
 
 use cw2::set_contract_version;
 
-impl<'a> AddOnContract<'a> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > AddOnContract<'a, T, E, C>
+{
     pub fn instantiate(
-        &self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
@@ -22,6 +31,7 @@ impl<'a> AddOnContract<'a> {
         module_name: &str,
         module_version: &str,
     ) -> StdResult<Self> {
+        let add_on = Self::default();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
@@ -48,8 +58,8 @@ impl<'a> AddOnContract<'a> {
         };
 
         set_contract_version(deps.storage, module_name, module_version)?;
-        self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps, Some(core.manager))?;
+        add_on.base_state.save(deps.storage, &state)?;
+        add_on.admin.set(deps, Some(core.manager))?;
 
         Ok(AddOnContract::default())
     }

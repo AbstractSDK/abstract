@@ -1,4 +1,4 @@
-use abstract_os::objects::{ContractEntry, UncheckedContractEntry};
+use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
 use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -11,16 +11,19 @@ use abstract_os::memory::ExecuteMsg;
 pub fn handle_message(
     deps: DepsMut,
     info: MessageInfo,
-    env: Env,
+    _env: Env,
     message: ExecuteMsg,
 ) -> MemoryResult {
     match message {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
         ExecuteMsg::UpdateContractAddresses { to_add, to_remove } => {
-            update_contract_addresses(deps, info, env, to_add, to_remove)
+            update_contract_addresses(deps, info, to_add, to_remove)
         }
         ExecuteMsg::UpdateAssetAddresses { to_add, to_remove } => {
             update_asset_addresses(deps, info, to_add, to_remove)
+        }
+        ExecuteMsg::UpdateChannels { to_add, to_remove } => {
+            update_channels(deps, info, to_add, to_remove)
         }
     }
 }
@@ -33,7 +36,6 @@ pub fn handle_message(
 pub fn update_contract_addresses(
     deps: DepsMut,
     msg_info: MessageInfo,
-    _env: Env,
     to_add: Vec<(UncheckedContractEntry, String)>,
     to_remove: Vec<UncheckedContractEntry>,
 ) -> MemoryResult {
@@ -41,10 +43,7 @@ pub fn update_contract_addresses(
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     for (key, new_address) in to_add.into_iter() {
-        let key = ContractEntry {
-            protocol: key.protocol.to_ascii_lowercase(),
-            contract: key.contract.to_ascii_lowercase(),
-        };
+        let key = key.check();
         // validate addr
         let addr = deps.as_ref().api.addr_validate(&new_address)?;
         // Update function for new or existing keys
@@ -85,6 +84,31 @@ pub fn update_asset_addresses(
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))
+}
+
+/// Adds, updates or removes provided addresses.
+pub fn update_channels(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    to_add: Vec<(UncheckedChannelEntry, String)>,
+    to_remove: Vec<UncheckedChannelEntry>,
+) -> MemoryResult {
+    // Only Admin can call this method
+    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+    for (key, new_channel) in to_add.into_iter() {
+        let key = key.check();
+        // Update function for new or existing keys
+        let insert = |_| -> StdResult<String> { Ok(new_channel) };
+        CHANNELS.update(deps.storage, key, insert)?;
+    }
+
+    for key in to_remove {
+        let key = key.check();
+        CHANNELS.remove(deps.storage, key);
+    }
+
+    Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResult {

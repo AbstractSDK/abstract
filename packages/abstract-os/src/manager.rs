@@ -82,7 +82,10 @@ pub struct InstantiateMsg {
 
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule { module_id: String, exec_msg: Binary },
+    ExecOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
     /// Updates the `OS_MODULES` map
     /// Only callable by os factory or root.
     UpdateModuleAddresses {
@@ -98,9 +101,14 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Only callable by module factory.
-    RegisterModule { module_addr: String, module: Module },
+    RegisterModule {
+        module_addr: String,
+        module: Module,
+    },
     /// Remove a module
-    RemoveModule { module_id: String },
+    RemoveModule {
+        module_id: String,
+    },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -119,7 +127,12 @@ pub enum ExecuteMsg {
         governance_type: Option<String>,
     },
     /// Suspend manager contract
-    SuspendOs { new_status: bool },
+    SuspendOs {
+        new_status: bool,
+    },
+    EnableIBC {
+        new_status: bool,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]

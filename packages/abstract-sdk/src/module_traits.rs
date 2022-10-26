@@ -9,6 +9,11 @@ pub trait OsExecute {
     type Err: ToString;
 
     fn os_execute(&self, deps: Deps, msgs: Vec<CosmosMsg>) -> Result<Response, Self::Err>;
+    fn os_ibc_execute(
+        &self,
+        deps: Deps,
+        msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
+    ) -> Result<Response, Self::Err>;
 }
 
 /// easily retrieve the memory object from the contract to perform queries

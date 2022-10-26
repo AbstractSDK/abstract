@@ -9,7 +9,13 @@ pub type ApiQueryHandlerFn<Q, QueryError> = Option<fn(Deps, Env, Q) -> Result<Bi
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
-impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<ApiError>,
+    > ApiContract<'a, T, E, C>
+{
     pub fn handle_query<
         Q: Serialize + DeserializeOwned,
         QueryError: From<cosmwasm_std::StdError> + From<ApiError>,

@@ -1,12 +1,19 @@
 use abstract_os::add_on::{AddOnConfigResponse, BaseQueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
+use serde::{de::DeserializeOwned, Serialize};
 
-use crate::state::AddOnContract;
+use crate::{state::AddOnContract, AddOnError};
 
 /// Where we dispatch the queries for the AddOnContract
 /// These BaseQueryMsg declarations can be found in `abstract_os::common_module::add_on_msg`
-impl<'a> AddOnContract<'a> {
+impl<
+        'a,
+        T: Serialize + DeserializeOwned,
+        C: Serialize + DeserializeOwned,
+        E: From<cosmwasm_std::StdError> + From<AddOnError>,
+    > AddOnContract<'a, T, E, C>
+{
     pub fn query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
             BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),

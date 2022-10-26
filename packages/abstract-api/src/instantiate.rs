@@ -4,11 +4,16 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use abstract_sdk::memory::Memory;
 
-use crate::state::{ApiContract, ApiState};
+use crate::{
+    state::{ApiContract, ApiState},
+    ApiError,
+};
 
 use cw2::set_contract_version;
 
-impl<'a, T: Serialize + DeserializeOwned> ApiContract<'a, T> {
+impl<'a, T: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From<ApiError>>
+    ApiContract<'a, T, E>
+{
     /// Instantiate the API
     pub fn instantiate(
         deps: DepsMut,

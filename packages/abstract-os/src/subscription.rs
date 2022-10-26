@@ -225,9 +225,8 @@ pub mod state {
 }
 
 use cosmwasm_std::{Decimal, Uint128, Uint64};
-use cw20::Cw20ReceiveMsg;
 
-use crate::add_on::{BaseExecuteMsg, BaseInstantiateMsg, BaseQueryMsg};
+use crate::add_on::BaseInstantiateMsg;
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
@@ -269,9 +268,6 @@ pub struct ContributionInstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
-    Base(BaseExecuteMsg),
-    // Add dapp-specific messages here
-    Receive(Cw20ReceiveMsg),
     Pay {
         os_id: u32,
     },
@@ -311,9 +307,8 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+// Add dapp-specific queries here
 pub enum QueryMsg {
-    Base(BaseQueryMsg),
-    // Add dapp-specific queries here
     State {},
     Config {},
     Fee {},

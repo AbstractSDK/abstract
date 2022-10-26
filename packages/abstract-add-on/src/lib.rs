@@ -1,3 +1,4 @@
+#![feature(generic_associated_types)]
 // #[cfg(test)]
 // mod mock_querier;
 use cosmwasm_std::{Empty, Response};
@@ -8,8 +9,10 @@ pub use crate::state::AddOnContract;
 
 pub mod error;
 mod execute;
+mod ibc_callback;
 pub mod instantiate;
 mod query;
+mod receive;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;

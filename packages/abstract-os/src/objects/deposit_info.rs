@@ -30,7 +30,7 @@ impl DepositInfo {
             AssetInfo::Cw1155(..) => Err(StdError::generic_err(
                 "'denom' only exists for native tokens.",
             )),
-            _ => todo!(),
+            _ => panic!("asset not supported"),
         }
     }
 }

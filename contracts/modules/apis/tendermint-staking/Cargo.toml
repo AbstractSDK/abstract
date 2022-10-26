@@ -1,6 +1,6 @@
 [package]
 name = "tendermint-staking"
-version = "0.1.0-rc.3"
+version = "0.1.0"
 authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
 edition = "2021"
 
@@ -26,6 +26,6 @@ cosmwasm-std = "1.1"
 schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0.21" }
-abstract-os = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-os" }
-abstract-sdk = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-sdk" }
-abstract-api = { version = "0.1.0-rc.1", path = "../../../../packages/abstract-api", features = ["library"] }
+abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
+abstract-sdk = { version = "0.1.0", path = "../../../../packages/abstract-sdk" }
+abstract-api = { version = "0.1.0", path = "../../../../packages/abstract-api", features = ["library"] }

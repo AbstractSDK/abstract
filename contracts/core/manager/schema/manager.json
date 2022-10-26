@@ -332,6 +332,27 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "enable_i_b_c"
+        ],
+        "properties": {
+          "enable_i_b_c": {
+            "type": "object",
+            "required": [
+              "new_status"
+            ],
+            "properties": {
+              "new_status": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     ],
     "definitions": {
@@ -340,7 +361,7 @@
         "type": "string"
       },
       "Binary": {
-        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+        "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
         "type": "string"
       },
       "Module": {
@@ -389,6 +410,20 @@
       "ModuleReference": {
         "oneOf": [
           {
+            "description": "Native Abstract Contracts",
+            "type": "object",
+            "required": [
+              "native"
+            ],
+            "properties": {
+              "native": {
+                "$ref": "#/definitions/Addr"
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Installable extensions",
             "type": "object",
             "required": [
               "extension"
@@ -401,6 +436,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Installable apps",
             "type": "object",
             "required": [
               "app"
@@ -415,6 +451,7 @@
             "additionalProperties": false
           },
           {
+            "description": "Usable perks",
             "type": "object",
             "required": [
               "perk"
@@ -429,6 +466,7 @@
             "additionalProperties": false
           },
           {
+            "description": "usable services",
             "type": "object",
             "required": [
               "service"

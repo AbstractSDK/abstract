@@ -4,17 +4,17 @@ use cosmwasm_std::Empty;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 
 use abstract_os::tendermint_staking::RequestMsg;
-use abstract_sdk::tendermint_staking::*;
 use abstract_sdk::OsExecute;
+use abstract_sdk::{tendermint_staking::*, AbstractExecute};
 
 use crate::error::TendermintStakeError;
 
 use abstract_os::TENDERMINT_STAKING;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg>;
+pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg, TendermintStakeError>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
-const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new(&[]);
+const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new();
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -43,14 +43,14 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    STAKING_API.handle_request(deps, env, info, msg, handle_api_request)
+    STAKING_API.execute(deps, env, info, msg, handle_api_request)
 }
 
 pub fn handle_api_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    api: ApiContract<RequestMsg>,
+    api: TendermintStakeApi,
     msg: RequestMsg,
 ) -> TendermintStakeResult {
     match msg {

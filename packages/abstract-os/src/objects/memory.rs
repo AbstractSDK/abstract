@@ -4,9 +4,9 @@ use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
-use crate::memory::state::{ASSET_ADDRESSES, CONTRACT_ADDRESSES};
+use crate::memory::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
 
-use super::{asset_entry::AssetEntry, contract_entry::ContractEntry};
+use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
 /// Struct that provides easy in-contract memory querying.
 #[cosmwasm_schema::cw_serde]
@@ -73,6 +73,17 @@ impl Memory {
             .ok_or_else(|| {
                 StdError::generic_err(format!("asset {} not found in memory", &asset))
             })?;
+        Ok(result)
+    }
+
+    /// Raw query of a single channel Addr
+    pub fn query_channel(&self, deps: Deps, channel: &ChannelEntry) -> StdResult<String> {
+        let result: String = CHANNELS
+            .query(&deps.querier, self.address.clone(), channel.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!("channel {} not found in memory", channel))
+            })?;
+        // Addresses are checked when stored.
         Ok(result)
     }
 

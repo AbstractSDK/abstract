@@ -1,4 +1,5 @@
-use abstract_sdk::MemoryOperation;
+// #![allow(unused)]
+use abstract_sdk::{MemoryOperation, OsExecute};
 use cosmwasm_std::{Decimal, Deps, Env, MessageInfo};
 use cw_asset::{Asset, AssetInfo};
 
@@ -22,15 +23,15 @@ pub use crate::exchanges::loop_dex::{Loop, LOOP};
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
-pub(crate) fn resolve_exchange(value: String) -> Result<&'static dyn DEX, DexError> {
-    match value.as_str() {
+pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+    match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
         #[cfg(any(feature = "juno", feature = "terra"))]
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
-        _ => Err(DexError::UnknownDex(value)),
+        _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
 
@@ -42,11 +43,10 @@ pub fn swap(
     api: DexApi,
     offer_asset: OfferAsset,
     mut ask_asset: AssetEntry,
-    dex: String,
+    exchange: &dyn DEX,
     max_spread: Option<Decimal>,
     belief_price: Option<Decimal>,
 ) -> DexResult {
-    let exchange = resolve_exchange(dex)?;
     let (mut offer_asset, offer_amount) = offer_asset;
     offer_asset.format();
     ask_asset.format();
@@ -56,15 +56,15 @@ pub fn swap(
     let pair_address = exchange.pair_address(deps, &api, &mut vec![&offer_asset, &ask_asset])?;
     let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
-    exchange.swap(
+    let msgs = exchange.swap(
         deps,
-        api,
         pair_address,
         offer_asset,
         ask_asset_info,
         belief_price,
         max_spread,
-    )
+    )?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn provide_liquidity(
@@ -73,10 +73,9 @@ pub fn provide_liquidity(
     _info: MessageInfo,
     api: DexApi,
     offer_assets: Vec<OfferAsset>,
-    dex: String,
+    exchange: &dyn DEX,
     max_spread: Option<Decimal>,
 ) -> DexResult {
-    let exchange = resolve_exchange(dex)?;
     let mut assets = vec![];
     for offer in &offer_assets {
         let info = api.resolve(deps, &offer.0)?;
@@ -92,7 +91,8 @@ pub fn provide_liquidity(
             .collect::<Vec<&AssetEntry>>()
             .as_mut(),
     )?;
-    exchange.provide_liquidity(deps, api, pair_address, assets, max_spread)
+    let msgs = exchange.provide_liquidity(deps, pair_address, assets, max_spread)?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn provide_liquidity_symmetric(
@@ -102,9 +102,8 @@ pub fn provide_liquidity_symmetric(
     api: DexApi,
     offer_asset: OfferAsset,
     mut paired_assets: Vec<AssetEntry>,
-    dex: String,
+    exchange: &dyn DEX,
 ) -> DexResult {
-    let exchange = resolve_exchange(dex)?;
     let paired_asset_infos: Result<Vec<AssetInfo>, _> = paired_assets
         .iter()
         .map(|entry| api.resolve(deps, entry))
@@ -112,7 +111,13 @@ pub fn provide_liquidity_symmetric(
     paired_assets.push(offer_asset.0.clone());
     let pair_address = exchange.pair_address(deps, &api, &mut paired_assets.iter().collect())?;
     let offer_asset = Asset::new(api.resolve(deps, &offer_asset.0)?, offer_asset.1);
-    exchange.provide_liquidity_symmetric(deps, api, pair_address, offer_asset, paired_asset_infos?)
+    let msgs = exchange.provide_liquidity_symmetric(
+        deps,
+        pair_address,
+        offer_asset,
+        paired_asset_infos?,
+    )?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }
 
 pub fn withdraw_liquidity(
@@ -121,14 +126,13 @@ pub fn withdraw_liquidity(
     _info: MessageInfo,
     api: DexApi,
     lp_token: OfferAsset,
-    dex: String,
+    exchange: &dyn DEX,
 ) -> DexResult {
-    let exchange = resolve_exchange(dex.clone())?;
-
     let info = api.resolve(deps, &lp_token.0)?;
     let lp_asset = Asset::new(info, lp_token.1);
-    let pair_entry = UncheckedContractEntry::new(dex, lp_token.0.to_string()).check();
+    let pair_entry = UncheckedContractEntry::new(exchange.name(), lp_token.0.as_str()).check();
 
     let pair_address = api.resolve(deps, &pair_entry)?;
-    exchange.withdraw_liquidity(deps, &api, pair_address, lp_asset)
+    let msgs = exchange.withdraw_liquidity(deps, pair_address, lp_asset)?;
+    api.os_execute(deps, msgs).map_err(From::from)
 }

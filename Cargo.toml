@@ -10,6 +10,7 @@ members = [
     "contracts/modules/apis/tendermint-staking",
     "contracts/modules/apis/dex",
     "contracts/modules/perks/vesting",
+    "contracts/ibc-hosts/osmosis"
 ]
 
 [profile.release]

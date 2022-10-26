@@ -15,7 +15,7 @@ pub fn simulate_swap(
     mut ask_asset: AssetEntry,
     dex: String,
 ) -> Result<Binary, DexError> {
-    let exchange = resolve_exchange(dex)?;
+    let exchange = resolve_exchange(&dex)?;
     let api = DexApi::default();
     // format input
     let (mut offer_asset, offer_amount) = offer_asset;

@@ -103,6 +103,50 @@
         "additionalProperties": false
       },
       {
+        "description": "Updates the Asset addressbook",
+        "type": "object",
+        "required": [
+          "update_channels"
+        ],
+        "properties": {
+          "update_channels": {
+            "type": "object",
+            "required": [
+              "to_add",
+              "to_remove"
+            ],
+            "properties": {
+              "to_add": {
+                "description": "Assets to update or add",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/UncheckedChannelEntry"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "to_remove": {
+                "description": "Assets to remove",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/UncheckedChannelEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Sets a new Admin",
         "type": "object",
         "required": [
@@ -177,6 +221,22 @@
           }
         ]
       },
+      "UncheckedChannelEntry": {
+        "description": "Key to get the Address of a connected_chain",
+        "type": "object",
+        "required": [
+          "connected_chain",
+          "protocol"
+        ],
+        "properties": {
+          "connected_chain": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
       "UncheckedContractEntry": {
         "description": "Key to get the Address of a contract",
         "type": "object",
@@ -219,6 +279,36 @@
                 "items": {
                   "type": "string"
                 }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over assets returns [`AssetListResponse`]",
+        "type": "object",
+        "required": [
+          "asset_list"
+        ],
+        "properties": {
+          "asset_list": {
+            "type": "object",
+            "properties": {
+              "page_size": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "uint8",
+                "minimum": 0.0
+              },
+              "page_token": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "additionalProperties": false
@@ -287,13 +377,39 @@
         "additionalProperties": false
       },
       {
-        "description": "Page over assets returns [`AssetListResponse`]",
+        "description": "Queries contracts based on name returns [`ChannelsResponse`]",
         "type": "object",
         "required": [
-          "asset_list"
+          "channels"
         ],
         "properties": {
-          "asset_list": {
+          "channels": {
+            "type": "object",
+            "required": [
+              "names"
+            ],
+            "properties": {
+              "names": {
+                "description": "Project and contract names of contracts to query",
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/ChannelEntry"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Page over contracts returns [`ChannelListResponse`]",
+        "type": "object",
+        "required": [
+          "channel_list"
+        ],
+        "properties": {
+          "channel_list": {
             "type": "object",
             "properties": {
               "page_size": {
@@ -305,9 +421,13 @@
                 "minimum": 0.0
               },
               "page_token": {
-                "type": [
-                  "string",
-                  "null"
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/ChannelEntry"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               }
             },
@@ -318,6 +438,22 @@
       }
     ],
     "definitions": {
+      "ChannelEntry": {
+        "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+        "type": "object",
+        "required": [
+          "connected_chain",
+          "protocol"
+        ],
+        "properties": {
+          "connected_chain": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        }
+      },
       "ContractEntry": {
         "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
         "type": "object",
@@ -521,6 +657,96 @@
               "additionalProperties": false
             }
           ]
+        }
+      }
+    },
+    "channel_list": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChannelListResponse",
+      "type": "object",
+      "required": [
+        "channels"
+      ],
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ChannelEntry"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "ChannelEntry": {
+          "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "connected_chain",
+            "protocol"
+          ],
+          "properties": {
+            "connected_chain": {
+              "type": "string"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "channels": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChannelsResponse",
+      "type": "object",
+      "required": [
+        "channels"
+      ],
+      "properties": {
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "$ref": "#/definitions/ChannelEntry"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "ChannelEntry": {
+          "description": "Key to get the Address of a connected_chain Use [`UncheckedChannelEntry`] to construct this type.",
+          "type": "object",
+          "required": [
+            "connected_chain",
+            "protocol"
+          ],
+          "properties": {
+            "connected_chain": {
+              "type": "string"
+            },
+            "protocol": {
+              "type": "string"
+            }
+          }
         }
       }
     },

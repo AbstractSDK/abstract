@@ -1,8 +1,12 @@
-use cosmwasm_std::{CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response};
+use abstract_os::IBC_CLIENT;
+use cosmwasm_std::{
+    wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
+};
 
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use crate::queries::*;
+use abstract_os::ibc_client::ExecuteMsg as IbcClientMsg;
 use abstract_os::objects::proxy_asset::UncheckedProxyAsset;
 use abstract_os::proxy::state::{ADMIN, MEMORY, STATE, VAULT_ASSETS};
 
@@ -24,6 +28,36 @@ pub fn execute_action(
     }
 
     Ok(Response::new().add_messages(msgs))
+}
+
+/// Executes IBC actions forwarded by whitelisted contracts
+/// Calls the messages on the IBC client (ensuring permission)
+pub fn execute_ibc_action(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    msgs: Vec<IbcClientMsg>,
+) -> ProxyResult {
+    let state = STATE.load(deps.storage)?;
+    if !state
+        .modules
+        .contains(&deps.api.addr_validate(msg_info.sender.as_str())?)
+    {
+        return Err(ProxyError::SenderNotWhitelisted {});
+    }
+    let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
+    let ibc_client_address = abstract_os::manager::state::OS_MODULES
+        .query(&deps.querier, manager_address, IBC_CLIENT)?
+        .ok_or_else(|| StdError::GenericErr {
+            msg: format!(
+                "ibc_client not found on manager. Add it under the {} name.",
+                IBC_CLIENT
+            ),
+        })?;
+    let client_msgs: Result<Vec<_>, _> = msgs
+        .into_iter()
+        .map(|execute_msg| wasm_execute(&ibc_client_address, &execute_msg, vec![]))
+        .collect();
+    Ok(Response::new().add_messages(client_msgs?))
 }
 
 /// Update the stored vault asset information
