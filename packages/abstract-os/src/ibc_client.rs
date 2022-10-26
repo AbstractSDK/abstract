@@ -1,7 +1,7 @@
-use crate::simple_ica::StdAck;
+use crate::abstract_ica::StdAck;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 
-use simple_ica::IbcResponseMsg;
+use abstract_ica::IbcResponseMsg;
 
 use crate::ibc_host::HostAction;
 

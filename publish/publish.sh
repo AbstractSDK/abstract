@@ -14,9 +14,9 @@ then
 fi
 
 # these are imported by other packages
-BASE_PACKAGES="abstract-os"
+BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-api abstract-add-on"
+ALL_PACKAGES="abstract-api abstract-add-on abstract-ibc-host"
 
 SLEEP_TIME=30
 
@@ -53,3 +53,7 @@ for pack in $ALL_PACKAGES; do
 done
 
 echo "Everything is published!"
+
+VERSION=$(cat Cargo.toml | grep -m 1 version | sed 's/-/_/g' | grep -o '".*"' | sed 's/"//g');
+git tag v$VERSION
+git push origin

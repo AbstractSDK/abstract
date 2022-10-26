@@ -1,6 +1,6 @@
 use abstract_os::{
+    abstract_ica::{IbcResponseMsg, StdAck},
     objects::UncheckedContractEntry,
-    simple_ica::{IbcResponseMsg, StdAck},
     IBC_CLIENT,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};

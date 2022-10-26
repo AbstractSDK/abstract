@@ -7,7 +7,7 @@ use cosmwasm_std::{
     IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
 };
 
-use abstract_os::simple_ica::{
+use abstract_os::abstract_ica::{
     check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
 
@@ -322,7 +322,7 @@ pub fn ibc_packet_timeout(
 //     use crate::contract::{execute, instantiate, query};
 //     use abstract_os::ibc_client::{AccountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
-//     use abstract_os::simple_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
+//     use abstract_os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
 //     use cosmwasm_std::testing::{
 //         mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
 //         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,

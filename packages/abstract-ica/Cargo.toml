@@ -1,0 +1,18 @@
+[package]
+name = "abstract-ica"
+version = {workspace = true}
+edition = {workspace = true}
+license = {workspace = true}
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = []
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["ibc3"] }
+schemars = {workspace = true}
+serde = {workspace = true}
+thiserror = {workspace = true}
+cosmwasm-schema = { workspace = true }

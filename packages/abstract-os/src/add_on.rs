@@ -5,11 +5,11 @@
 //! ## Description
 //! An add-on is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 
+use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use cw_controllers::AdminResponse;
 use serde::Serialize;
-use simple_ica::IbcResponseMsg;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].

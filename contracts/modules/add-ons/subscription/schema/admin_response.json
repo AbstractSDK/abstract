@@ -10,5 +10,6 @@
         "null"
       ]
     }
-  }
+  },
+  "additionalProperties": false
 }

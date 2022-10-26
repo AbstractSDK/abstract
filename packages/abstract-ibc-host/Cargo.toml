@@ -1,9 +1,9 @@
 [package]
 name = "abstract-ibc-host"
-version = "0.1.0"
-edition = "2021"
+version = {workspace = true}
+edition = {workspace = true}
+license = {workspace = true}
 description = "base API contract implementation"
-license = "GPL-2.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,16 +20,16 @@ library = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cosmwasm-std = { version = "1.1", features = ["ibc3"] }
-cw-utils = { version = "0.14.0" }
-cw1-whitelist = { version = "0.14.0", features = ["library"]}
-cw-storage-plus = { version = "0.14.0" }
-serde = { version = "1.0.127", default-features = false, features = ["derive"] }
-schemars = "0.8.3"
-cw-controllers = { version = "0.14.0" }
-thiserror = { version = "1.0.21" }
-cw2 = "0.14.0"
+cosmwasm-std = { workspace = true, features = ["ibc3"] }
+cw-utils = { workspace = true }
+cw1-whitelist = { version = "0.16.0", features = ["library"]}
+cw-storage-plus = {workspace = true}
+serde = {workspace = true}
+schemars = {workspace = true}
+cw-controllers = {workspace = true}
+thiserror = {workspace = true}
+cw2 = {workspace = true}
 
-abstract-sdk = { version = "0.1.0", path = "../abstract-sdk" }
-abstract-os = {version = "0.1.0", path = "../abstract-os"}
+abstract-sdk = {workspace = true}
+abstract-os = {workspace = true}
 

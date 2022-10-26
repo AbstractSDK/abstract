@@ -1,8 +1,8 @@
 [package]
 name = "osmosis-host"
-version = "0.1.0"
-authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2021"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -22,15 +22,15 @@ backtraces = ["cosmwasm-std/backtraces"]
 # Keep as is until TendermintStake updates.
 [dependencies]
 cosmwasm-std = "1.1"
-schemars = "0.8.1"
-serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-thiserror = { version = "1.0.21" }
+schemars = {workspace = true}
+serde = {workspace = true}
+thiserror = {workspace = true}
 # Osmosis feature also enables library feature
 dex = { path = "../../modules/apis/dex", features = ["osmosis", "library"] }
-abstract-os = { version = "0.1.0", path = "../../../packages/abstract-os" }
-abstract-ibc-host = { version = "0.1.0", path = "../../../packages/abstract-ibc-host" }
-abstract-sdk = { version = "0.1.0", path = "../../../packages/abstract-sdk" }
-cw2 = "0.14.0"
-semver = "1"
-cw-asset = {version = "2.2.0"}
-cosmwasm-schema = { version = "1.1" }
+abstract-os = {workspace = true}
+abstract-ibc-host = { workspace = true}
+abstract-sdk = {workspace = true}
+cw2 = {workspace = true}
+semver = {workspace = true}
+cw-asset= {workspace = true}
+cosmwasm-schema = { workspace = true }

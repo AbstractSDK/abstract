@@ -1,8 +1,8 @@
 [package]
 name = "memory"
-version = "0.1.0"
-authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2021"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -20,17 +20,17 @@ crate-type = ["cdylib", "rlib"]
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-cosmwasm-std = { version = "1.1" }
-cw-controllers = { version ="0.14" }
-cw-storage-plus = "0.14"
-cw2 = "0.14"
-schemars = "0.8.1"
-serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-semver = "1.0"
-thiserror = { version = "1.0.21" }
-abstract-sdk = { path = "../../../packages/abstract-sdk" }
-abstract-os = {path = "../../../packages/abstract-os"}
-cw-asset = {version = "2.0.0"}
+cosmwasm-std = { workspace = true }
+cw-controllers = {workspace = true}
+cw-storage-plus = {workspace = true}
+cw2 = {workspace = true}
+schemars = {workspace = true}
+serde = {workspace = true}
+semver = {workspace = true}
+thiserror = {workspace = true}
+abstract-sdk = {workspace = true}
+abstract-os = {workspace = true}
+cw-asset= {workspace = true}
 [dev-dependencies]
-cw20 = { version = "0.14" }
-cosmwasm-schema = { version = "1.0" }
+cw20 = {workspace = true}
+cosmwasm-schema = { workspace = true }

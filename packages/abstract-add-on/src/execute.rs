@@ -1,6 +1,6 @@
 use abstract_os::{
+    abstract_ica::IbcResponseMsg,
     add_on::{BaseExecuteMsg, ExecuteMsg},
-    simple_ica::IbcResponseMsg,
 };
 
 use abstract_sdk::AbstractExecute;

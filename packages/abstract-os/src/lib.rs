@@ -36,7 +36,7 @@
 //! ```no_run
 //! use abstract_os::PROXY;
 //! ```
-pub extern crate simple_ica;
+pub extern crate abstract_ica;
 pub mod ibc_client;
 pub mod ibc_host;
 

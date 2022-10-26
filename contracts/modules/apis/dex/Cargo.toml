@@ -1,8 +1,8 @@
 [package]
 name = "dex"
-version = "0.1.0"
-authors = ["CyberHoward <cyberhoward@users.noreply.github.com>"]
-edition = "2021"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -26,14 +26,14 @@ osmosis = ["library","dep:osmosis-std", "cosmwasm-std/stargate"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
-cosmwasm-std = "1.1"
-schemars = "0.8.1"
-serde = { version = "1.0.103", default-features = false, features = ["derive"] }
-thiserror = { version = "1.0.21" }
-abstract-os = { version = "0.1.0", path = "../../../../packages/abstract-os" }
-abstract-sdk = { version = "0.1.0", path = "../../../../packages/abstract-sdk" }
-abstract-api = { version = "0.1.0", path = "../../../../packages/abstract-api", features = ["library"] }
-cw-asset = {version = "2.2.0"}
+cosmwasm-std = {workspace = true}
+schemars = {workspace = true}
+serde = {workspace = true}
+thiserror = {workspace = true}
+abstract-os = {workspace = true}
+abstract-sdk = {workspace = true}
+abstract-api = {workspace = true}
+cw-asset= {workspace = true}
 
 # Juno dexes
 cw20_junoswap = {package = "cw20", version = "0.10.0", optional = true}
@@ -42,10 +42,10 @@ wasmswap = {git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.0.
 
 # Terra dexes
 terraswap = {version = "2.8.0", optional = true}
-cw20 = "0.14.0"
+cw20 = {workspace = true}
 
 # Osmosis
 osmosis-std = {version = "0.12.0", optional = true}
 
 [dev-dependencies]
-cosmwasm-schema = { version = "1.0" }
+cosmwasm-schema = { workspace = true }

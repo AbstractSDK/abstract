@@ -1,6 +1,6 @@
 {
   "contract_name": "manager",
-  "contract_version": "0.1.0",
+  "contract_version": "0.2.0-beta.1",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -774,7 +774,8 @@
               "description": "version is any string that this implementation knows. It may be simple counter \"1\", \"2\". or semantic version on release tags \"v0.7.0\", or some custom feature flag list. the only code that needs to understand the version parsing is code that knows how to migrate from the given contract (and is tied to it's implementation somehow)",
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         "ManagerModuleInfo": {
           "type": "object",
@@ -830,7 +831,8 @@
               "description": "version is any string that this implementation knows. It may be simple counter \"1\", \"2\". or semantic version on release tags \"v0.7.0\", or some custom feature flag list. the only code that needs to understand the version parsing is code that knows how to migrate from the given contract (and is tied to it's implementation somehow)",
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         }
       }
     }

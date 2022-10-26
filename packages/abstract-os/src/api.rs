@@ -7,10 +7,10 @@
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
 //! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
+use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use serde::Serialize;
-use simple_ica::IbcResponseMsg;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
