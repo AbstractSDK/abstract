@@ -2,9 +2,7 @@ use std::vec;
 
 use abstract_add_on::AddOnContract;
 
-use abstract_os::add_on::{
-    ExecuteMsg as AddOnExecuteMsg, InstantiateMsg as AddOnInstantiateMsg, QueryMsg as AddOnQueryMsg,
-};
+use abstract_os::add_on::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use abstract_sdk::AbstractExecute;
 use cosmwasm_std::{
     entry_point, to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
@@ -16,7 +14,7 @@ use cw20::{Cw20ReceiveMsg, MinterResponse};
 use protobuf::Message;
 use semver::Version;
 
-use abstract_os::etf::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg, StateResponse};
+use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, MigrateMsg, StateResponse};
 use abstract_os::objects::fee::Fee;
 use abstract_os::ETF;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
@@ -33,13 +31,13 @@ const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type VaultAddOn<'a> = AddOnContract<'a, ExecuteMsg, VaultError, Cw20ReceiveMsg>;
-pub type VaultResult = Result<Response, VaultError>;
+pub type EtfAddOn<'a> = AddOnContract<'a, EtfExecuteMsg, VaultError, Cw20ReceiveMsg>;
+pub type EtfResult = Result<Response, VaultError>;
 
-const VAULT: VaultAddOn<'static> = VaultAddOn::new().with_receive(receive_cw20);
+const ETF_ADDON: EtfAddOn<'static> = EtfAddOn::new().with_receive(receive_cw20);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VaultResult {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> EtfResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
@@ -53,9 +51,9 @@ pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: AddOnInstantiateMsg<InstantiateMsg>,
-) -> VaultResult {
-    VaultAddOn::instantiate(
+    msg: InstantiateMsg<EtfInstantiateMsg>,
+) -> EtfResult {
+    EtfAddOn::instantiate(
         deps.branch(),
         env.clone(),
         info,
@@ -111,34 +109,34 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: AddOnExecuteMsg<ExecuteMsg, Cw20ReceiveMsg>,
-) -> VaultResult {
-    VAULT.execute(deps, env, info, msg, request_handler)
+    msg: ExecuteMsg<EtfExecuteMsg, Cw20ReceiveMsg>,
+) -> EtfResult {
+    ETF_ADDON.execute(deps, env, info, msg, request_handler)
 }
 
 fn request_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    vault: VaultAddOn,
-    msg: ExecuteMsg,
-) -> VaultResult {
+    vault: EtfAddOn,
+    msg: EtfExecuteMsg,
+) -> EtfResult {
     match msg {
-        ExecuteMsg::ProvideLiquidity { asset } => {
+        EtfExecuteMsg::ProvideLiquidity { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
             commands::try_provide_liquidity(deps, info, vault, asset, None)
         }
-        ExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, vault, fee),
+        EtfExecuteMsg::SetFee { fee } => commands::set_fee(deps, info, vault, fee),
     }
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<EtfQueryMsg>) -> StdResult<Binary> {
     match msg {
-        AddOnQueryMsg::Base(dapp_msg) => VAULT.query(deps, env, dapp_msg),
+        QueryMsg::Base(dapp_msg) => ETF_ADDON.query(deps, env, dapp_msg),
         // handle dapp-specific queries here
-        AddOnQueryMsg::AddOn(QueryMsg::State {}) => {
+        QueryMsg::AddOn(EtfQueryMsg::State {}) => {
             let fee = FEE.load(deps.storage)?;
             to_binary(&StateResponse {
                 liquidity_token: STATE.load(deps.storage)?.liquidity_token_addr.to_string(),

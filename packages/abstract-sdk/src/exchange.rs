@@ -6,7 +6,7 @@ use abstract_os::{
 use cosmwasm_std::{CosmosMsg, Deps, StdResult};
 
 use crate::Dependency;
-use abstract_os::dex::RequestMsg;
+use abstract_os::dex::DexRequestMsg;
 
 /// Perform actions on an exchange API.
 /// WIP
@@ -21,7 +21,7 @@ pub trait Exchange: Dependency {
         self.call_api_dependency(
             deps,
             EXCHANGE,
-            &RequestMsg {
+            &DexRequestMsg {
                 dex,
                 action: DexAction::Swap {
                     offer_asset,
@@ -44,7 +44,7 @@ pub trait Exchange: Dependency {
         self.call_api_dependency(
             deps,
             EXCHANGE,
-            &RequestMsg {
+            &DexRequestMsg {
                 dex,
                 action: DexAction::CustomSwap {
                     offer_assets,

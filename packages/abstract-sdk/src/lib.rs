@@ -1,4 +1,3 @@
-#![feature(generic_associated_types)]
 //! # Abstract SDK
 //!
 //! An SDK for writing Abstract OS smart-contracts.

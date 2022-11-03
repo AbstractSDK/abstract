@@ -14,7 +14,7 @@ use abstract_os::objects::fee::Fee;
 use abstract_sdk::cw20::query_supply;
 use abstract_sdk::proxy::{os_module_action, query_enabled_asset_names, query_total_value};
 
-use crate::contract::{VaultAddOn, VaultResult};
+use crate::contract::{EtfAddOn, EtfResult};
 use crate::error::VaultError;
 use crate::state::{State, FEE, STATE};
 
@@ -25,9 +25,9 @@ pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
-    dapp: VaultAddOn,
+    dapp: EtfAddOn,
     cw20_msg: Cw20ReceiveMsg,
-) -> VaultResult {
+) -> EtfResult {
     match from_binary(&cw20_msg.msg)? {
         DepositHookMsg::WithdrawLiquidity {} => {
             let state: State = STATE.load(deps.storage)?;
@@ -54,10 +54,10 @@ pub fn receive_cw20(
 pub fn try_provide_liquidity(
     deps: DepsMut,
     msg_info: MessageInfo,
-    dapp: VaultAddOn,
+    dapp: EtfAddOn,
     asset: Asset,
     sender: Option<String>,
-) -> VaultResult {
+) -> EtfResult {
     // Load all needed states
     let base_state = dapp.base_state.load(deps.storage)?;
     let state = STATE.load(deps.storage)?;
@@ -152,10 +152,10 @@ pub fn try_provide_liquidity(
 pub fn try_withdraw_liquidity(
     deps: DepsMut,
     _env: Env,
-    dapp: VaultAddOn,
+    dapp: EtfAddOn,
     sender: String,
     amount: Uint128,
-) -> VaultResult {
+) -> EtfResult {
     let state: State = STATE.load(deps.storage)?;
     let base_state: AddOnState = dapp.base_state.load(deps.storage)?;
     let memory = base_state.memory;
@@ -251,9 +251,9 @@ pub fn try_withdraw_liquidity(
 pub fn set_fee(
     deps: DepsMut,
     msg_info: MessageInfo,
-    dapp: VaultAddOn,
+    dapp: EtfAddOn,
     new_fee: Decimal,
-) -> VaultResult {
+) -> EtfResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 

@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, DexName, RequestMsg, IBC_DEX_ID},
+    dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
@@ -21,7 +21,7 @@ use crate::{
 };
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
+pub type DexApi<'a> = ApiContract<'a, DexRequestMsg, DexError>;
 pub type DexResult = Result<Response, DexError>;
 pub const DEX_API: DexApi<'static> = DexApi::new();
 
@@ -90,7 +90,7 @@ pub fn execute(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: ExecuteMsg<RequestMsg>,
+    msg: ExecuteMsg<DexRequestMsg>,
 ) -> DexResult {
     DEX_API.execute(deps, env, info, msg, handle_api_request)
 }
@@ -100,9 +100,9 @@ pub fn handle_api_request(
     env: Env,
     info: MessageInfo,
     api: DexApi,
-    msg: RequestMsg,
+    msg: DexRequestMsg,
 ) -> DexResult {
-    let RequestMsg {
+    let DexRequestMsg {
         dex: dex_name,
         action,
     } = msg;
@@ -163,13 +163,13 @@ fn handle_ibc_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<ApiQueryMsg>) -> Result<Binary, DexError> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<DexQueryMsg>) -> Result<Binary, DexError> {
     DEX_API.handle_query(deps, env, msg, Some(query_handler))
 }
 
-fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexError> {
+fn query_handler(deps: Deps, env: Env, msg: DexQueryMsg) -> Result<Binary, DexError> {
     match msg {
-        ApiQueryMsg::SimulateSwap {
+        DexQueryMsg::SimulateSwap {
             offer_asset,
             ask_asset,
             dex,

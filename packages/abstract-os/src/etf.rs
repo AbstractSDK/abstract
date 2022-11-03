@@ -65,7 +65,7 @@ pub struct MigrateMsg {}
 
 /// Init msg
 #[cosmwasm_schema::cw_serde]
-pub struct InstantiateMsg {
+pub struct EtfInstantiateMsg {
     /// Code-id used to create the LP token
     pub token_code_id: u64,
     /// Fee charged on withdrawal
@@ -79,7 +79,7 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg {
+pub enum EtfExecuteMsg {
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
     /// Set the withdraw fee
@@ -87,7 +87,7 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum QueryMsg {
+pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
     State {},

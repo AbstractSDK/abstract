@@ -11,7 +11,7 @@
       ],
       "properties": {
         "request": {
-          "$ref": "#/definitions/ApiRequestMsg_for_RequestMsg"
+          "$ref": "#/definitions/ApiRequestMsg_for_DexRequestMsg"
         }
       },
       "additionalProperties": false
@@ -57,7 +57,7 @@
     }
   ],
   "definitions": {
-    "ApiRequestMsg_for_RequestMsg": {
+    "ApiRequestMsg_for_DexRequestMsg": {
       "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
       "type": "object",
       "required": [
@@ -74,7 +74,7 @@
           "description": "The actual request",
           "allOf": [
             {
-              "$ref": "#/definitions/RequestMsg"
+              "$ref": "#/definitions/DexRequestMsg"
             }
           ]
         }
@@ -392,6 +392,23 @@
         }
       ]
     },
+    "DexRequestMsg": {
+      "description": "Dex Execute msg",
+      "type": "object",
+      "required": [
+        "action",
+        "dex"
+      ],
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/DexAction"
+        },
+        "dex": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
     "Empty": {
       "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
       "type": "object"
@@ -410,23 +427,6 @@
         },
         "msg": {
           "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
-    },
-    "RequestMsg": {
-      "description": "Dex Execute msg",
-      "type": "object",
-      "required": [
-        "action",
-        "dex"
-      ],
-      "properties": {
-        "action": {
-          "$ref": "#/definitions/DexAction"
-        },
-        "dex": {
-          "type": "string"
         }
       },
       "additionalProperties": false

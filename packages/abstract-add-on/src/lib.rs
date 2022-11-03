@@ -1,4 +1,3 @@
-#![feature(generic_associated_types)]
 // #[cfg(test)]
 // mod mock_querier;
 use cosmwasm_std::{Empty, Response};

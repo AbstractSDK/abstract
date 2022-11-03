@@ -61,14 +61,14 @@ pub enum SwapRouter {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-pub struct RequestMsg {
+pub struct DexRequestMsg {
     pub dex: DexName,
     pub action: DexAction,
 }
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-pub enum ApiQueryMsg {
+pub enum DexQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
         offer_asset: OfferAsset,

@@ -1,4 +1,3 @@
-#![feature(generic_associated_types)]
 //! # Abstract API
 //!
 //! Basis for an interfacing contract to an external service.
