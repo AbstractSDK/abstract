@@ -238,9 +238,9 @@ pub fn claim_subscriber_emissions(
     };
 
     if !asset.amount.is_zero() {
-        add_on
-            .os_execute(deps, vec![asset.transfer_msg(subscriber_proxy_address)?])
-            .map_err(From::from)
+        Ok(Response::new().add_submessage(
+            add_on.os_execute(deps, vec![asset.transfer_msg(subscriber_proxy_address)?])?,
+        ))
     } else {
         Ok(Response::new())
     }
@@ -468,8 +468,8 @@ pub fn try_claim_compensation(
     if msgs.is_empty() {
         Err(SubscriptionError::NoAssetsToSend)
     } else {
-        Ok(add_on
-            .os_execute(deps.as_ref(), msgs)?
+        Ok(Response::new()
+            .add_submessage(add_on.os_execute(deps.as_ref(), msgs)?)
             .add_attribute("action", "claim_contribution"))
     }
 }

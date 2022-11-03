@@ -31,7 +31,7 @@ impl<
         module_name: &str,
         module_version: &str,
     ) -> StdResult<Self> {
-        let add_on = Self::default();
+        let add_on = Self::new();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };
@@ -61,6 +61,6 @@ impl<
         add_on.base_state.save(deps.storage, &state)?;
         add_on.admin.set(deps, Some(core.manager))?;
 
-        Ok(AddOnContract::default())
+        Ok(add_on)
     }
 }

@@ -1,4 +1,4 @@
-use crate::{error::DexError, DEX};
+use crate::{dex_trait::Identify, error::DexError, DEX};
 
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
@@ -10,13 +10,16 @@ use terraswap::pair::{PoolResponse, SimulationResponse};
 pub const LOOP: &str = "loop";
 pub struct Loop {}
 
-impl DEX for Loop {
+impl Identify for Loop {
     fn name(&self) -> &'static str {
         LOOP
     }
     fn over_ibc(&self) -> bool {
         false
     }
+}
+
+impl DEX for Loop {
     fn swap(
         &self,
         _deps: Deps,

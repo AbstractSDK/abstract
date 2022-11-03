@@ -10,15 +10,15 @@
 //! This crate provides the key utilities that are required to integrate with or write Abstract contracts.
 //!
 //! ## Messages
-//! All interfacing message structs are defined here so they can be imported.  
+//! All interfacing message structs are defined here so they can be imported.
 //! ```no_run
 //! use abstract_os::manager::ExecuteMsg;
-//! ```  
+//! ```
 //! ### Assets
 //! [`cw-asset`](https://crates.io/crates/cw-asset) is used for asset-management.
-//! If a message requests a String value for an Asset field then you need to provide the human-readable memory key.  
-//! The full list of supported assets and contracts is given [here](https://github.com/Abstract-OS/scripts/tree/main/resources/memory).  
-//! The contract will handel address retrieval internally.  
+//! If a message requests a String value for an Asset field then you need to provide the human-readable memory key.
+//! The full list of supported assets and contracts is given [here](https://github.com/Abstract-OS/scripts/tree/main/resources/memory).
+//! The contract will handel address retrieval internally.
 //!
 //! ## State
 //! The internal state for each contract is also contained within this crate. This ensures that breaking changes to the internal state are easily spotted.
@@ -41,7 +41,6 @@ pub mod ibc_client;
 pub mod ibc_host;
 
 pub use registry::*;
-
 pub mod abstract_token;
 pub mod add_on;
 pub mod api;

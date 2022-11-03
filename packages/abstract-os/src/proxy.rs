@@ -77,6 +77,13 @@ pub enum QueryMsg {
     /// [`TotalValueResponse`]
     #[returns(TotalValueResponse)]
     TotalValue {},
+    /// Returns the value of amount OR one token of a specific asset
+    /// [`TokenValueResponse`]
+    #[returns(TokenValueResponse)]
+    TokenValue {
+        identifier: String,
+        amount: Option<Uint128>,
+    },
     /// Returns the value of one specific asset
     /// [`HoldingValueResponse`]
     #[returns(HoldingValueResponse)]
@@ -110,6 +117,11 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct TotalValueResponse {
+    pub value: Uint128,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TokenValueResponse {
     pub value: Uint128,
 }
 

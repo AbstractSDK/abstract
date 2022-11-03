@@ -65,12 +65,13 @@ pub mod env {
             let mut last_module: Option<String> = None;
             for ManagerModuleInfo {
                 address,
-                name,
+                id,
                 version: _,
+                ..
             } in resp.module_infos
             {
-                last_module = Some(name.clone());
-                state.insert(name, Addr::unchecked(address));
+                last_module = Some(id.clone());
+                state.insert(id, Addr::unchecked(address));
             }
             resp = app.wrap().query_wasm_smart(
                 &manager_addr,

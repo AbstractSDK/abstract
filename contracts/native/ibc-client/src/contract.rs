@@ -116,7 +116,7 @@ pub fn execute_send_packet(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-    mut action: HostAction,
+    action: HostAction,
     callback_info: Option<CallbackInfo>,
     mut retries: u8,
 ) -> Result<Response, ClientError> {
@@ -128,10 +128,6 @@ pub fn execute_send_packet(
     if let HostAction::Internal(_) = action {
         return Err(ClientError::ForbiddenInternalCall {});
     }
-    // fill proxy address on send-all-back
-    if let HostAction::SendAllBack { os_proxy_address } = &mut action {
-        *os_proxy_address = Some(core.proxy.into_string())
-    };
     // Set max retries
     retries = retries.min(MAX_RETRIES);
 
@@ -178,7 +174,9 @@ pub fn execute_register_os(
         client_chain: cfg.chain,
         os_id,
         callback_info: None,
-        action: HostAction::Internal(InternalAction::Register),
+        action: HostAction::Internal(InternalAction::Register {
+            os_proxy_address: core.proxy.into_string(),
+        }),
     };
 
     // save a default value to account

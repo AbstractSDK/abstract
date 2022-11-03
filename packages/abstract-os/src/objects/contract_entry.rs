@@ -71,7 +71,7 @@ impl ContractEntry {
 
 impl Display for ContractEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.protocol, self.contract)
+        write!(f, "{}:{}", self.protocol, self.contract)
     }
 }
 

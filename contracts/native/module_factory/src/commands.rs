@@ -5,10 +5,7 @@ use cosmwasm_std::{
 
 use abstract_os::{
     manager::ExecuteMsg as ManagerMsg,
-    objects::{
-        module::{ModuleInfo, ModuleInitMsg},
-        module_reference::ModuleReference,
-    },
+    objects::{module::ModuleInfo, module_reference::ModuleReference},
 };
 use abstract_sdk::{get_module, verify_os_manager};
 
@@ -37,12 +34,12 @@ pub fn execute_create_module(
 
     // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
-    let init_msg = ModuleInitMsg {
-        fixed_init: fixed_binary,
-        root_init: root_init_msg,
-    }
-    .format()?;
+    // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
+    // let init_msg = ModuleInitMsg {
+    //     fixed_init: fixed_binary,
+    //     root_init: root_init_msg,
+    // }
+    // .format()?;
 
     // Set context for after init
     CONTEXT.save(
@@ -57,7 +54,7 @@ pub fn execute_create_module(
         ModuleReference::App(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            init_msg,
+            root_init_msg.unwrap(),
             Some(core.manager),
             CREATE_ADD_ON_RESPONSE_ID,
             new_module.info,
@@ -65,7 +62,7 @@ pub fn execute_create_module(
         ModuleReference::Perk(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            init_msg,
+            root_init_msg.unwrap(),
             None,
             CREATE_PERK_RESPONSE_ID,
             new_module.info,
@@ -73,7 +70,7 @@ pub fn execute_create_module(
         ModuleReference::Service(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            init_msg,
+            root_init_msg.unwrap(),
             Some(core.manager),
             CREATE_SERVICE_RESPONSE_ID,
             new_module.info,

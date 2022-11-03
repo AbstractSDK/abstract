@@ -53,7 +53,7 @@ pub fn handle_api_request(
     api: TendermintStakeApi,
     msg: RequestMsg,
 ) -> TendermintStakeResult {
-    match msg {
+    let msg = match msg {
         RequestMsg::Delegate { validator, amount } => api.os_execute(
             deps.as_ref(),
             vec![delegate_to(&deps.querier, &validator, amount.u128())?],
@@ -103,8 +103,8 @@ pub fn handle_api_request(
             deps.as_ref(),
             withdraw_all_rewards(&deps.querier, api.target()?)?,
         ),
-    }
-    .map_err(From::from)
+    }?;
+    Ok(Response::new().add_submessage(msg))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

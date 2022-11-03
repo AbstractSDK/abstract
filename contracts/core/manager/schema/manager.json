@@ -527,10 +527,10 @@
           "module_versions": {
             "type": "object",
             "required": [
-              "names"
+              "ids"
             ],
             "properties": {
-              "names": {
+              "ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -552,10 +552,10 @@
           "module_addresses": {
             "type": "object",
             "required": [
-              "names"
+              "ids"
             ],
             "properties": {
-              "names": {
+              "ids": {
                 "type": "array",
                 "items": {
                   "type": "string"
@@ -781,14 +781,14 @@
           "type": "object",
           "required": [
             "address",
-            "name",
+            "id",
             "version"
           ],
           "properties": {
             "address": {
               "type": "string"
             },
-            "name": {
+            "id": {
               "type": "string"
             },
             "version": {

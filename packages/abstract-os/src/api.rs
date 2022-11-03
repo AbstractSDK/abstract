@@ -34,7 +34,6 @@ pub struct BaseInstantiateMsg {
 
 /// Interface to the API.
 #[cosmwasm_schema::cw_serde]
-#[serde(tag = "type")]
 pub enum ExecuteMsg<T: Serialize, R: Serialize = Empty> {
     /// An API request.
     Request(ApiRequestMsg<T>),
@@ -89,7 +88,6 @@ pub enum BaseExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[serde(tag = "type")]
 pub enum QueryMsg<Q: Serialize> {
     /// An API query message. Forwards the msg to the associated proxy.
     Api(Q),

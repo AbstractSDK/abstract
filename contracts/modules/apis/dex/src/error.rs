@@ -25,6 +25,15 @@ pub enum DexError {
     #[error("Provided asset {0} not in pool with assets {1:?}.")]
     ArgumentMismatch(String, Vec<String>),
 
+    #[error("Balancer pool not supported for dex {0}.")]
+    BalancerNotSupported(String),
+
     #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
     DexMismatch(String, String, String),
+
+    #[error("Not implemented for dex {0}")]
+    NotImplemented(String),
+
+    #[error("Maximum spread {0} exceeded for dex {1}")]
+    MaxSlippageAssertion(String, String),
 }

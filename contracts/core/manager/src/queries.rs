@@ -10,8 +10,8 @@ use cw_storage_plus::Bound;
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 10;
 
-pub fn handle_module_address_query(deps: Deps, env: Env, names: Vec<String>) -> StdResult<Binary> {
-    let contracts = query_module_addresses(deps, &env.contract.address, &names)?;
+pub fn handle_module_address_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
+    let contracts = query_module_addresses(deps, &env.contract.address, &ids)?;
     let vector = contracts
         .into_iter()
         .map(|(v, k)| (v, k.to_string()))
@@ -19,12 +19,8 @@ pub fn handle_module_address_query(deps: Deps, env: Env, names: Vec<String>) -> 
     to_binary(&ModuleAddressesResponse { modules: vector })
 }
 
-pub fn handle_contract_versions_query(
-    deps: Deps,
-    env: Env,
-    names: Vec<String>,
-) -> StdResult<Binary> {
-    let response = query_module_versions(deps, &env.contract.address, &names)?;
+pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) -> StdResult<Binary> {
+    let response = query_module_versions(deps, &env.contract.address, &ids)?;
     let versions = response.into_values().collect();
     to_binary(&ModuleVersionsResponse { versions })
 }
@@ -50,23 +46,23 @@ pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
 }
 pub fn handle_module_info_query(
     deps: Deps,
-    last_module_name: Option<String>,
+    last_module_id: Option<String>,
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_module_name.as_deref().map(Bound::exclusive);
+    let start_bound = last_module_id.as_deref().map(Bound::exclusive);
 
     let res: Result<Vec<(String, Addr)>, _> = OS_MODULES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
 
-    let names_and_addr = res?;
+    let ids_and_addr = res?;
     let mut resp_vec: Vec<ManagerModuleInfo> = vec![];
-    for (name, address) in names_and_addr.into_iter() {
+    for (id, address) in ids_and_addr.into_iter() {
         let version = query_module_version(&deps, address.clone())?;
         resp_vec.push(ManagerModuleInfo {
-            name,
+            id,
             version,
             address: address.to_string(),
         })

@@ -559,7 +559,6 @@
           "additionalProperties": false
         },
         {
-          "description": "Fill with [`Option::None`] on call. Gets filled by IBC client.",
           "type": "object",
           "required": [
             "send_all_back"
@@ -567,14 +566,6 @@
           "properties": {
             "send_all_back": {
               "type": "object",
-              "properties": {
-                "os_proxy_address": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                }
-              },
               "additionalProperties": false
             }
           },
@@ -828,10 +819,34 @@
       }
     },
     "InternalAction": {
-      "type": "string",
-      "enum": [
-        "register",
-        "who_am_i"
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "who_am_i"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "register"
+          ],
+          "properties": {
+            "register": {
+              "type": "object",
+              "required": [
+                "os_proxy_address"
+              ],
+              "properties": {
+                "os_proxy_address": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
       ]
     },
     "QueryRequest_for_Empty": {

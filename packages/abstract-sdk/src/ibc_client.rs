@@ -24,7 +24,7 @@ pub fn host_ibc_action(
         proxy_address,
     )
 }
-/// Transfer the provided coins from the OS to it's proxy on the `receiving_chain`.
+/// Transfer the provided coins from the OS to its proxy on the `receiving_chain`.
 pub fn ics20_transfer(
     proxy_address: &Addr,
     receiving_chain: String,

@@ -3,7 +3,7 @@ use std::{collections::HashSet, marker::PhantomData};
 use abstract_os::version_control::Core;
 use abstract_sdk::{memory::Memory, IbcCallbackHandlerFn, ReceiveHandlerFn, BASE_STATE};
 
-use cosmwasm_std::{Addr, Empty, StdResult, Storage};
+use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
@@ -100,7 +100,7 @@ impl<
         Ok(&self
             .target_os
             .as_ref()
-            .ok_or(ApiError::NoTargetOS {})?
+            .ok_or_else(|| StdError::generic_err("No target OS specified to execute on."))?
             .proxy)
     }
 }

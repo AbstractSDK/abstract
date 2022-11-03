@@ -22,7 +22,7 @@ library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:terraswap"]
 terra = ["dep:terraswap"]
-osmosis = ["library","dep:osmosis-std", "cosmwasm-std/stargate"]
+osmosis = ["library","dep:osmosis-std"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]

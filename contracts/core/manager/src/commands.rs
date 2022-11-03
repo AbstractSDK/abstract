@@ -30,22 +30,22 @@ pub fn update_module_addresses(
     to_remove: Option<Vec<String>>,
 ) -> ManagerResult {
     if let Some(modules_to_add) = to_add {
-        for (name, new_address) in modules_to_add.into_iter() {
-            if name.is_empty() {
+        for (id, new_address) in modules_to_add.into_iter() {
+            if id.is_empty() {
                 return Err(ManagerError::InvalidModuleName {});
             };
             // validate addr
             OS_MODULES.save(
                 deps.storage,
-                name.as_str(),
+                id.as_str(),
                 &deps.api.addr_validate(&new_address)?,
             )?;
         }
     }
 
     if let Some(modules_to_remove) = to_remove {
-        for name in modules_to_remove.into_iter() {
-            OS_MODULES.remove(deps.storage, name.as_str());
+        for id in modules_to_remove.into_iter() {
+            OS_MODULES.remove(deps.storage, id.as_str());
         }
     }
 
@@ -64,7 +64,7 @@ pub fn create_module(
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
-    if OS_MODULES.may_load(deps.storage, &module.name)?.is_some() {
+    if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
         return Err(ManagerError::ModuleAlreadyAdded {});
     }
 
@@ -131,12 +131,12 @@ pub fn register_module(
 pub fn exec_on_module(
     deps: DepsMut,
     msg_info: MessageInfo,
-    module_name: String,
+    module_id: String,
     exec_msg: Binary,
 ) -> ManagerResult {
     // Only root can update module configs
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let module_addr = OS_MODULES.load(deps.storage, &module_name)?;
+    let module_addr = OS_MODULES.load(deps.storage, &module_id)?;
 
     let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: module_addr.into(),

@@ -7,8 +7,61 @@
       "description": "An API request.",
       "type": "object",
       "required": [
-        "request",
-        "type"
+        "request"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/ApiRequestMsg_for_RequestMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "A configuration message to whitelist traders.",
+      "type": "object",
+      "required": [
+        "configure"
+      ],
+      "properties": {
+        "configure": {
+          "$ref": "#/definitions/BaseExecuteMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "IbcReceive to process callbacks",
+      "type": "object",
+      "required": [
+        "ibc_callback"
+      ],
+      "properties": {
+        "ibc_callback": {
+          "$ref": "#/definitions/IbcResponseMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Receive endpoint for CW20 / external service integrations",
+      "type": "object",
+      "required": [
+        "receive"
+      ],
+      "properties": {
+        "receive": {
+          "$ref": "#/definitions/Empty"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "ApiRequestMsg_for_RequestMsg": {
+      "description": "An API request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
       ],
       "properties": {
         "proxy_address": {
@@ -24,19 +77,16 @@
               "$ref": "#/definitions/RequestMsg"
             }
           ]
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "request"
-          ]
         }
       },
       "additionalProperties": false
     },
-    {
-      "description": "A configuration message to whitelist traders.",
-      "type": "object",
+    "AssetEntry": {
+      "description": "May key to retrieve information on an asset",
+      "type": "string"
+    },
+    "BaseExecuteMsg": {
+      "description": "Configuration message for the API",
       "oneOf": [
         {
           "description": "Add or remove traders If a trader is both in to_add and to_remove, it will be removed.",
@@ -86,65 +136,7 @@
           },
           "additionalProperties": false
         }
-      ],
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "configure"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "IbcReceive to process callbacks",
-      "type": "object",
-      "required": [
-        "id",
-        "msg",
-        "type"
-      ],
-      "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_id`",
-          "type": "string"
-        },
-        "msg": {
-          "$ref": "#/definitions/StdAck"
-        },
-        "type": {
-          "type": "string",
-          "enum": [
-            "ibc_callback"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "description": "Receive endpoint for CW20 / external service integrations",
-      "type": "object",
-      "required": [
-        "type"
-      ],
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "receive"
-          ]
-        }
-      }
-    }
-  ],
-  "definitions": {
-    "AssetEntry": {
-      "description": "May key to retrieve information on an asset",
-      "type": "string"
+      ]
     },
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
@@ -158,6 +150,7 @@
       "description": "Possible actions to perform on the DEX",
       "oneOf": [
         {
+          "description": "Provide arbitrary liquidity",
           "type": "object",
           "required": [
             "provide_liquidity"
@@ -203,6 +196,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Provide liquidity equally between assets to a pool",
           "type": "object",
           "required": [
             "provide_liquidity_symmetric"
@@ -242,6 +236,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Withdraw liquidity from a pool",
           "type": "object",
           "required": [
             "withdraw_liquidity"
@@ -267,6 +262,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Standard swap between one asset to another",
           "type": "object",
           "required": [
             "swap"
@@ -320,8 +316,103 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "description": "Allow alternative swap routers and methods",
+          "type": "object",
+          "required": [
+            "custom_swap"
+          ],
+          "properties": {
+            "custom_swap": {
+              "type": "object",
+              "required": [
+                "ask_assets",
+                "offer_assets"
+              ],
+              "properties": {
+                "ask_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "max_spread": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Decimal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offer_assets": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "$ref": "#/definitions/AssetEntry"
+                      },
+                      {
+                        "$ref": "#/definitions/Uint128"
+                      }
+                    ],
+                    "maxItems": 2,
+                    "minItems": 2
+                  }
+                },
+                "router": {
+                  "description": "Optionally supply a router to use",
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/SwapRouter"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
         }
       ]
+    },
+    "Empty": {
+      "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+      "type": "object"
+    },
+    "IbcResponseMsg": {
+      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "type": "object",
+      "required": [
+        "id",
+        "msg"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        }
+      },
+      "additionalProperties": false
     },
     "RequestMsg": {
       "description": "Dex Execute msg",
@@ -362,6 +453,29 @@
           ],
           "properties": {
             "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SwapRouter": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "matrix"
+          ]
+        },
+        {
+          "description": "Use a custom router (using String type for cross-chain compatibility)",
+          "type": "object",
+          "required": [
+            "custom"
+          ],
+          "properties": {
+            "custom": {
               "type": "string"
             }
           },

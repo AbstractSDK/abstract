@@ -24,7 +24,7 @@ impl<'a, T: Serialize + DeserializeOwned, E: From<cosmwasm_std::StdError> + From
         module_version: &str,
         _api_dependencies: Vec<String>,
     ) -> StdResult<Self> {
-        let api = Self::default();
+        let api = Self::new();
         let memory = Memory {
             address: deps.api.addr_validate(&msg.memory_address)?,
         };

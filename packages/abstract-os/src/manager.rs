@@ -21,6 +21,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     pub type Subscribed = bool;
+    /// ID of the module
     pub type ModuleId<'a> = &'a str;
 
     /// Manager configuration
@@ -140,10 +141,10 @@ pub enum ExecuteMsg {
 pub enum QueryMsg {
     /// Returns [`ModuleVersionsResponse`]
     #[returns(ModuleVersionsResponse)]
-    ModuleVersions { names: Vec<String> },
+    ModuleVersions { ids: Vec<String> },
     /// Returns [`ModuleAddressesResponse`]
     #[returns(ModuleAddressesResponse)]
-    ModuleAddresses { names: Vec<String> },
+    ModuleAddresses { ids: Vec<String> },
     /// Returns [`ModuleInfosResponse`]
     #[returns(ModuleInfosResponse)]
     ModuleInfos {
@@ -183,7 +184,7 @@ pub struct InfoResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
-    pub name: String,
+    pub id: String,
     pub version: ContractVersion,
     pub address: String,
 }

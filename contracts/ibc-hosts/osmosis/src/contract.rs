@@ -1,25 +1,31 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
-use abstract_ibc_host::HostError;
-use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::{dex::RequestMsg, OSMOSIS_HOST};
 
+use abstract_os::abstract_ica::StdAck;
+use abstract_os::dex::DexAction;
+use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::OSMOSIS_HOST;
+
+use abstract_sdk::ReplyEndpoint;
+use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
+
+use dex::host_exchange::Osmosis;
+use dex::LocalDex;
 use semver::Version;
 
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type OsmoHost<'a> = Host<'a, RequestMsg>;
+pub type OsmoHost<'a> = Host<'a, DexAction>;
 pub type OsmoResult = Result<Response, OsmoError>;
-const OSMO_HOST: OsmoHost<'static> = OsmoHost::new(&[]);
+pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
-// Supported exchanges on XXX
-// ...
+const OSMO_HOST: OsmoHost = OsmoHost::new(&[]);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -44,88 +50,28 @@ pub fn instantiate(
 /// We cannot return any meaningful response value as we do not know the response value
 /// of execution. We just return ok if we dispatched, error if we failed to dispatch
 #[entry_point]
-pub fn ibc_packet_receive(
-    deps: DepsMut,
-    env: Env,
-    msg: IbcPacketReceiveMsg,
-) -> Result<IbcReceiveResponse, HostError> {
-    OSMO_HOST.handle_packet(deps, env, msg, handle_packet)
+pub fn ibc_packet_receive(deps: DepsMut, env: Env, msg: IbcPacketReceiveMsg) -> IbcOsmoResult {
+    OSMO_HOST.handle_packet(deps, env, msg, handle_app_action)
 }
 
-fn handle_packet(
-    _deps: DepsMut,
-    _env: Env,
-    _caller_channel: String,
-    _host: OsmoHost,
-    _packet: RequestMsg,
-) -> Result<IbcReceiveResponse, HostError> {
-    todo!()
-    // match packet {
-    //     RequestMsg::ProvideLiquidity {
-    //         assets,
-    //         dex,
-    //         max_spread,
-    //     } => {
-    //         todo!()
-    //         // let dex_name = dex.unwrap();
-    //         // if assets.len() < 2 {
-    //         //     return Err(DexError::TooFewAssets {});
-    //         // }
-    //         // provide_liquidity(deps.as_ref(), env, info, api, assets, dex_name, max_spread)
-    //     }
-    //     RequestMsg::ProvideLiquiditySymmetric {
-    //         offer_asset,
-    //         paired_assets,
-    //         dex,
-    //     } => {
-    //         todo!()
-    //         // let dex_name = dex.unwrap();
-    //         // if paired_assets.is_empty() {
-    //         //     return Err(DexError::TooFewAssets {});
-    //         // }
-    //         // provide_liquidity_symmetric(
-    //         //     deps.as_ref(),
-    //         //     env,
-    //         //     info,
-    //         //     api,
-    //         //     offer_asset,
-    //         //     paired_assets,
-    //         //     dex_name,
-    //         // )
-    //     }
-    //     RequestMsg::WithdrawLiquidity {
-    //         lp_token,
-    //         amount,
-    //         dex,
-    //     } => {
-    //         todo!()
-    //         // let dex_name = dex.unwrap();
-    //         // withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), dex_name)
-    //     }
+fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction) -> IbcOsmoResult {
+    let exchange = Osmosis {
+        local_proxy_addr: host.proxy_address.clone(),
+    };
+    let action = packet;
+    let acknowledgement = StdAck::fail(format!("action {:?} failed", action));
 
-    //     RequestMsg::Swap {
-    //         offer_asset,
-    //         ask_asset,
-    //         dex,
-    //         max_spread,
-    //         belief_price,
-    //     } => {
-    //         todo!()
-    //         // add default dex in future (osmosis??)
-    //         // let dex_name = dex.unwrap();
-    //         // swap(
-    //         //     deps.as_ref(),
-    //         //     env,
-    //         //     info,
-    //         //     api,
-    //         //     offer_asset,
-    //         //     ask_asset,
-    //         //     dex_name,
-    //         //     max_spread,
-    //         //     belief_price,
-    //         // )
-    //     }
-    // }
+    // execute and expect reply after execution
+    let proxy_msg = host.resolve_dex_action(deps, action, &exchange, true)?;
+    Ok(IbcReceiveResponse::new()
+        .set_ack(acknowledgement)
+        .add_submessage(proxy_msg)
+        .add_attribute("action", "handle_app_action"))
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
+    OSMO_HOST.handle_reply(deps, env, reply).map_err(Into::into)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

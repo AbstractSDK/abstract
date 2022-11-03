@@ -1,4 +1,4 @@
-use crate::{error::DexError, DEX};
+use crate::{dex_trait::Identify, error::DexError, DEX};
 
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, QueryRequest,
@@ -11,13 +11,16 @@ pub const JUNOSWAP: &str = "junoswap";
 // Source https://github.com/wasmswap/wasmswap-contracts
 pub struct JunoSwap {}
 
-impl DEX for JunoSwap {
+impl Identify for JunoSwap {
     fn name(&self) -> &'static str {
         JUNOSWAP
     }
     fn over_ibc(&self) -> bool {
         false
     }
+}
+
+impl DEX for JunoSwap {
     fn swap(
         &self,
         deps: Deps,

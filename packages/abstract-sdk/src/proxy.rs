@@ -2,7 +2,10 @@
 use abstract_os::{
     ibc_client,
     objects::{proxy_asset::ProxyAsset, AssetEntry},
-    proxy::{state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, QueryMsg, TotalValueResponse},
+    proxy::{
+        state::VAULT_ASSETS, AssetsResponse, ExecuteMsg, HoldingValueResponse, QueryMsg,
+        TotalValueResponse,
+    },
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, QueryRequest, StdError, StdResult, Uint128,
@@ -64,6 +67,44 @@ pub fn query_proxy_asset_raw(
             asset
         ))
     })
+}
+
+/// Query the holding value denominated in the base asset
+/// The provided address must implement the HoldingValue Query
+pub fn query_holding_value(
+    deps: Deps,
+    proxy_address: &Addr,
+    identifier: &String,
+) -> StdResult<Uint128> {
+    let response: HoldingValueResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: proxy_address.to_string(),
+            msg: to_binary(&QueryMsg::HoldingValue {
+                identifier: identifier.to_string(),
+            })?,
+        }))?;
+
+    Ok(response.value)
+}
+
+/// Query the token amount of a specific asset
+/// The asset must be registered in the proxy contract
+pub fn query_token_value(
+    deps: Deps,
+    proxy_address: &Addr,
+    identifier: &String,
+    amount: Option<Uint128>,
+) -> StdResult<Uint128> {
+    let response: TotalValueResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: proxy_address.to_string(),
+            msg: to_binary(&QueryMsg::TokenValue {
+                identifier: identifier.to_string(),
+                amount,
+            })?,
+        }))?;
+
+    Ok(response.value)
 }
 
 /// List ProxyAssets raw

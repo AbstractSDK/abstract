@@ -5,23 +5,10 @@ use abstract_sdk::{
     proxy::{os_ibc_action, os_module_action},
     Dependency, MemoryOperation, OsExecute,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Response, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, StdError, StdResult, Storage, SubMsg};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{ApiContract, ApiError};
-
-// Default constructor
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > Default for ApiContract<'a, T, E, C>
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
 
 impl<
         T: Serialize + DeserializeOwned,
@@ -41,28 +28,30 @@ impl<
         E: From<cosmwasm_std::StdError> + From<ApiError>,
     > OsExecute for ApiContract<'_, T, E, C>
 {
-    type Err = ApiError;
-
     fn os_execute(
         &self,
         _deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
-    ) -> Result<Response, Self::Err> {
+    ) -> Result<SubMsg, StdError> {
         if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(os_module_action(msgs, &target.proxy)?))
+            Ok(SubMsg::new(os_module_action(msgs, &target.proxy)?))
         } else {
-            Err(ApiError::NoTargetOS {})
+            Err(StdError::generic_err(
+                "No target OS specified to execute on.",
+            ))
         }
     }
     fn os_ibc_execute(
         &self,
         _deps: Deps,
         msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
-    ) -> Result<Response, Self::Err> {
+    ) -> Result<SubMsg, StdError> {
         if let Some(target) = &self.target_os {
-            Ok(Response::new().add_message(os_ibc_action(msgs, &target.proxy)?))
+            Ok(SubMsg::new(os_ibc_action(msgs, &target.proxy)?))
         } else {
-            Err(ApiError::NoTargetOS {})
+            Err(StdError::generic_err(
+                "No target OS specified to execute on.",
+            ))
         }
     }
 }
@@ -85,7 +74,7 @@ impl<
         let manager_addr = &self
             .target_os
             .as_ref()
-            .ok_or_else(|| StdError::generic_err(ApiError::NoTargetOS {}.to_string()))?
+            .ok_or_else(|| StdError::generic_err("No target OS specified to execute on."))?
             .manager;
         query_module_address(deps, manager_addr, dependency_name)
     }

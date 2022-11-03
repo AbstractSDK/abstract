@@ -1,30 +1,35 @@
 use abstract_os::objects::{AssetEntry, ContractEntry};
-use abstract_sdk::MemoryOperation;
+use abstract_sdk::memory::Memory;
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Deps, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
-use crate::{contract::DexApi, error::DexError};
+use crate::error::DexError;
 
 pub type Return = Uint128;
 pub type Spread = Uint128;
 pub type Fee = Uint128;
 pub type FeeOnInput = bool;
-/// DEX trait resolves asset names and dex to pair and lp address and ensures supported dexes support swaps and liquidity provisioning.
-pub trait DEX {
+
+pub trait Identify {
+    fn over_ibc(&self) -> bool;
+    fn name(&self) -> &'static str;
+}
+
+/// DEX ensures supported dexes support the expected functionality.
+/// Trait that implements the actual dex interaction.
+pub trait DEX: Identify {
     fn pair_address(
         &self,
         deps: Deps,
-        api: &DexApi,
+        memory: &Memory,
         assets: &mut Vec<&AssetEntry>,
     ) -> StdResult<Addr> {
         let dex_pair = self.pair_contract(assets);
-        api.resolve(deps, &dex_pair)
+        memory.query_contract(deps, &dex_pair)
     }
     fn pair_contract(&self, assets: &mut Vec<&AssetEntry>) -> ContractEntry {
         ContractEntry::construct_dex_entry(self.name(), assets)
     }
-    fn over_ibc(&self) -> bool;
-    fn name(&self) -> &'static str;
     #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,
@@ -35,6 +40,16 @@ pub trait DEX {
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
+    fn custom_swap(
+        &self,
+        _deps: Deps,
+        _offer_assets: Vec<Asset>,
+        _ask_assets: Vec<Asset>,
+        _max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        // Must be implemented in the base to be available
+        Err(DexError::NotImplemented(self.name().to_string()))
+    }
     fn provide_liquidity(
         &self,
         deps: Deps,

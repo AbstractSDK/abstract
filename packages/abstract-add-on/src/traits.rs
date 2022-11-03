@@ -5,7 +5,7 @@ use abstract_sdk::{
     proxy::{os_ibc_action, os_module_action},
     Dependency, MemoryOperation, OsExecute,
 };
-use cosmwasm_std::{Addr, Deps, Response, StdError, StdResult, Storage};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult, Storage, SubMsg};
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
@@ -27,22 +27,21 @@ impl<
         E: From<cosmwasm_std::StdError> + From<AddOnError>,
     > OsExecute for AddOnContract<'_, T, E, C>
 {
-    type Err = AddOnError;
     fn os_execute(
         &self,
         deps: Deps,
         msgs: Vec<cosmwasm_std::CosmosMsg>,
-    ) -> Result<Response, Self::Err> {
+    ) -> Result<SubMsg, StdError> {
         let proxy = self.base_state.load(deps.storage)?.proxy_address;
-        Ok(Response::new().add_message(os_module_action(msgs, &proxy)?))
+        Ok(SubMsg::new(os_module_action(msgs, &proxy)?))
     }
     fn os_ibc_execute(
         &self,
         deps: Deps,
         msgs: Vec<abstract_os::ibc_client::ExecuteMsg>,
-    ) -> Result<Response, Self::Err> {
+    ) -> Result<SubMsg, StdError> {
         let proxy = self.base_state.load(deps.storage)?.proxy_address;
-        Ok(Response::new().add_message(os_ibc_action(msgs, &proxy)?))
+        Ok(SubMsg::new(os_ibc_action(msgs, &proxy)?))
     }
 }
 

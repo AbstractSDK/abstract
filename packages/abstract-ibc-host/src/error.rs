@@ -29,4 +29,10 @@ pub enum HostError {
 
     #[error("A valid proxy address must be provided.")]
     MissingProxyAddress,
+
+    #[error("Missing target proxy to send messages to.")]
+    NoTarget,
+
+    #[error("Ibc hopping not supported")]
+    IbcHopping,
 }

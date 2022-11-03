@@ -136,7 +136,7 @@ fn request_handler(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: AddOnQueryMsg<QueryMsg>) -> StdResult<Binary> {
     match msg {
-        AddOnQueryMsg::Base(dapp_msg) => VaultAddOn::default().query(deps, env, dapp_msg),
+        AddOnQueryMsg::Base(dapp_msg) => VAULT.query(deps, env, dapp_msg),
         // handle dapp-specific queries here
         AddOnQueryMsg::AddOn(QueryMsg::State {}) => {
             let fee = FEE.load(deps.storage)?;

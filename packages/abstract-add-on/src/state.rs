@@ -41,18 +41,6 @@ pub struct AddOnContract<
     _phantom_data_callbacks: PhantomData<Receive>,
 }
 
-impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        C: Serialize + DeserializeOwned,
-    > Default for AddOnContract<'a, T, E, C>
-{
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Constructor
 impl<
         'a,

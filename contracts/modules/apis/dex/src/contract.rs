@@ -1,7 +1,7 @@
 use abstract_api::{ApiContract, ApiResult};
 use abstract_os::{
     api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
-    dex::{ApiQueryMsg, DexAction, RequestMsg, IBC_DEX_ID},
+    dex::{ApiQueryMsg, DexAction, DexName, RequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
@@ -16,13 +16,61 @@ use cosmwasm_std::{
 };
 use cw_asset::Asset;
 
-use crate::{commands::*, error::DexError, queries::simulate_swap};
+use crate::{
+    commands::LocalDex, dex_trait::Identify, error::DexError, queries::simulate_swap, DEX,
+};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexApi<'a> = ApiContract<'a, RequestMsg, DexError>;
 pub type DexResult = Result<Response, DexError>;
-const DEX_API: DexApi<'static> = DexApi::new();
+pub const DEX_API: DexApi<'static> = DexApi::new();
+
 const ACTION_RETRIES: u8 = 3;
+
+// Supported exchanges on Juno
+#[cfg(feature = "juno")]
+pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+
+#[cfg(any(feature = "juno", feature = "terra"))]
+pub use crate::exchanges::loop_dex::{Loop, LOOP};
+
+#[cfg(feature = "terra")]
+pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
+
+#[cfg(any(feature = "juno", feature = "osmosis"))]
+pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
+
+pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
+    match value {
+        #[cfg(feature = "juno")]
+        JUNOSWAP => Ok(&JunoSwap {}),
+        #[cfg(feature = "juno")]
+        OSMOSIS => Ok(&Osmosis {
+            local_proxy_addr: None,
+        }),
+        #[cfg(any(feature = "juno", feature = "terra"))]
+        LOOP => Ok(&Loop {}),
+        #[cfg(feature = "terra")]
+        TERRASWAP => Ok(&Terraswap {}),
+        _ => Err(DexError::UnknownDex(value.to_owned())),
+    }
+}
+
+pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+    match value {
+        #[cfg(feature = "juno")]
+        JUNOSWAP => Ok(&JunoSwap {}),
+        // #[cfg(feature = "osmosis")]
+        // OSMOSIS => Ok(&Osmosis {
+        //     local_proxy_addr: None,
+        // }),
+        #[cfg(any(feature = "juno", feature = "terra"))]
+        LOOP => Ok(&Loop {}),
+        #[cfg(feature = "terra")]
+        TERRASWAP => Ok(&Terraswap {}),
+        _ => Err(DexError::UnknownDex(value.to_owned())),
+    }
+}
 
 // Supported exchanges on XXX
 // ...
@@ -58,78 +106,60 @@ pub fn handle_api_request(
         dex: dex_name,
         action,
     } = msg;
-    let exchange = resolve_exchange(&dex_name)?;
-    // if exchange is on an app-chain,
+    let exchange = identify_exchange(&dex_name)?;
+    // if exchange is on an app-chain, execute the action on the app-chain
     if exchange.over_ibc() {
-        let host_chain = dex_name;
-        let memory = api.load_memory(deps.storage)?;
-        // get the to-be-sent assets from the action
-        let coins = assets_to_transfer(deps.as_ref(), &action, &memory)?;
-        // construct the ics20 call(s)
-        let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
-        // construct the action to be called on the host
-        let action = abstract_os::ibc_host::HostAction::App {
-            msg: to_binary(&action)?,
-        };
-        let ibc_action_msg = host_ibc_action(
-            api.target()?,
-            host_chain,
-            action,
-            Some(CallbackInfo {
-                id: IBC_DEX_ID.to_string(),
-                receiver: env.contract.address.to_string(),
-            }),
-            ACTION_RETRIES,
-        )?;
-        // call both messages on the proxy
-        Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
+        handle_ibc_api_request(&deps, info, &api, dex_name, &action)
     } else {
         // the action can be executed on the local chain
-        match action {
-            DexAction::ProvideLiquidity { assets, max_spread } => {
-                if assets.len() < 2 {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity(deps.as_ref(), env, info, api, assets, exchange, max_spread)
-            }
-            DexAction::ProvideLiquiditySymmetric {
-                offer_asset,
-                paired_assets,
-            } => {
-                if paired_assets.is_empty() {
-                    return Err(DexError::TooFewAssets {});
-                }
-                provide_liquidity_symmetric(
-                    deps.as_ref(),
-                    env,
-                    info,
-                    api,
-                    offer_asset,
-                    paired_assets,
-                    exchange,
-                )
-            }
-            DexAction::WithdrawLiquidity { lp_token, amount } => {
-                withdraw_liquidity(deps.as_ref(), env, info, api, (lp_token, amount), exchange)
-            }
-            DexAction::Swap {
-                offer_asset,
-                ask_asset,
-                max_spread,
-                belief_price,
-            } => swap(
-                deps.as_ref(),
-                env,
-                info,
-                api,
-                offer_asset,
-                ask_asset,
-                exchange,
-                max_spread,
-                belief_price,
-            ),
-        }
+        handle_local_api_request(deps, env, info, api, action, dex_name)
     }
+}
+
+/// Handle an API request that can be executed on the local chain
+fn handle_local_api_request(
+    deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    api: DexApi,
+    action: DexAction,
+    exchange: String,
+) -> DexResult {
+    let exchange = resolve_exchange(&exchange)?;
+    Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
+}
+
+fn handle_ibc_api_request(
+    deps: &DepsMut,
+    info: MessageInfo,
+    api: &DexApi,
+    dex_name: DexName,
+    action: &DexAction,
+) -> DexResult {
+    let host_chain = dex_name;
+    let memory = api.load_memory(deps.storage)?;
+    // get the to-be-sent assets from the action
+    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &memory)?;
+    // construct the ics20 call(s)
+    let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
+    // construct the action to be called on the host
+    let action = abstract_os::ibc_host::HostAction::App {
+        msg: to_binary(&action)?,
+    };
+    let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
+    let callback = if maybe_contract_info.is_err() {
+        None
+    } else {
+        Some(CallbackInfo {
+            id: IBC_DEX_ID.to_string(),
+            receiver: info.sender.into_string(),
+        })
+    };
+    let ibc_action_msg =
+        host_ibc_action(api.target()?, host_chain, action, callback, ACTION_RETRIES)?;
+
+    // call both messages on the proxy
+    Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -147,7 +177,11 @@ fn query_handler(deps: Deps, env: Env, msg: ApiQueryMsg) -> Result<Binary, DexEr
     }
 }
 
-fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> StdResult<Vec<Coin>> {
+fn resolve_assets_to_transfer(
+    deps: Deps,
+    dex_action: &DexAction,
+    memory: &Memory,
+) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {
@@ -170,5 +204,9 @@ fn assets_to_transfer(deps: Deps, dex_action: &DexAction, memory: &Memory) -> St
             amount.to_owned(),
         ))?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
+        DexAction::CustomSwap { offer_assets, .. } => {
+            let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();
+            coins
+        }
     }
 }

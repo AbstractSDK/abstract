@@ -133,12 +133,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::ModuleVersions { names } => {
-            queries::handle_contract_versions_query(deps, env, names)
-        }
-        QueryMsg::ModuleAddresses { names } => {
-            queries::handle_module_address_query(deps, env, names)
-        }
+        QueryMsg::ModuleVersions { ids } => queries::handle_contract_versions_query(deps, env, ids),
+        QueryMsg::ModuleAddresses { ids } => queries::handle_module_address_query(deps, env, ids),
         QueryMsg::ModuleInfos {
             page_token,
             page_size,

@@ -45,9 +45,9 @@ pub fn update_contract_addresses(
     for (key, new_address) in to_add.into_iter() {
         let key = key.check();
         // validate addr
-        let addr = deps.as_ref().api.addr_validate(&new_address)?;
+        // let addr = deps.as_ref().api.addr_validate(&new_address)?;
         // Update function for new or existing keys
-        let insert = |_| -> StdResult<Addr> { Ok(addr) };
+        let insert = |_| -> StdResult<Addr> { Ok(Addr::unchecked(new_address)) };
         CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
     }
 

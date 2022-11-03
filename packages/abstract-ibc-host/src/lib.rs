@@ -11,7 +11,9 @@ pub mod error;
 mod execute;
 pub(crate) mod host_commands;
 pub mod instantiate;
+pub mod os_commands;
 mod query;
+mod reply;
 pub mod state;
 /// Abstract SDK trait implementations
 pub mod traits;

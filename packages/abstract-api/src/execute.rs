@@ -119,7 +119,8 @@ impl<
                 funds: vec![],
             }));
         }
-        self.os_execute(deps, msgs)
+        let msg = self.os_execute(deps, msgs)?;
+        Ok(Response::new().add_submessage(msg))
     }
 
     pub(crate) fn verify_sender_is_manager(

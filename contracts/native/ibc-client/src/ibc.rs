@@ -145,7 +145,7 @@ pub fn ibc_packet_ack(
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
         }
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
-        HostAction::Internal(InternalAction::Register) => {
+        HostAction::Internal(InternalAction::Register { .. }) => {
             acknowledge_register(deps, channel_id, os_id, res)
         }
     }
@@ -248,7 +248,7 @@ fn acknowledge_register(
         StdAck::Result(res) => from_slice(&res)?,
         StdAck::Error(e) => {
             return Ok(IbcBasicResponse::new()
-                .add_attribute("action", "acknowledge_who_am_i")
+                .add_attribute("action", "acknowledge_register")
                 .add_attribute("error", e))
         }
     };
