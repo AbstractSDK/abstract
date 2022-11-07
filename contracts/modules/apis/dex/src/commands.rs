@@ -7,6 +7,7 @@ use abstract_os::{
     dex::{DexAction, OfferAsset, SwapRouter},
     objects::{AssetEntry, UncheckedContractEntry},
 };
+use abstract_os::dex::AskAsset;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
@@ -133,7 +134,7 @@ pub trait LocalDex: MemoryOperation + OsExecute {
         &self,
         _deps: Deps,
         _offer_assets: Vec<OfferAsset>,
-        _ask_assets: Vec<OfferAsset>,
+        _ask_assets: Vec<AskAsset>,
         _exchange: &dyn DEX,
         _max_spread: Option<Decimal>,
         _router: Option<SwapRouter>,

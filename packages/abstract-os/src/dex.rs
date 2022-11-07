@@ -9,6 +9,7 @@ use crate::objects::{AssetEntry, ContractEntry};
 
 pub type DexName = String;
 pub type OfferAsset = (AssetEntry, Uint128);
+pub type AskAsset = OfferAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
 
@@ -44,7 +45,7 @@ pub enum DexAction {
     /// Allow alternative swap routers and methods
     CustomSwap {
         offer_assets: Vec<OfferAsset>,
-        ask_assets: Vec<OfferAsset>,
+        ask_assets: Vec<AskAsset>,
         max_spread: Option<Decimal>,
         /// Optionally supply a router to use
         router: Option<SwapRouter>,
