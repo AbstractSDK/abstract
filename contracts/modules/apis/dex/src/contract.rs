@@ -12,7 +12,7 @@ use abstract_sdk::{
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128,
+    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, StdError,
 };
 use cw_asset::Asset;
 
@@ -196,8 +196,8 @@ fn resolve_assets_to_transfer(
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexAction::ProvideLiquiditySymmetric { offer_asset, .. } => {
-            Ok(vec![offer_to_coin(offer_asset)?])
+        DexAction::ProvideLiquiditySymmetric { .. } => {
+            Err(StdError::generic_err("Cross-chain symmetric provide liquidity not supported."))
         }
         DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&(
             lp_token.to_owned(),
