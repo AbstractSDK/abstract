@@ -1,9 +1,11 @@
-use abstract_os::ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg};
+use abstract_os::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg};
 
+use abstract_sdk::{ExecuteEndpoint, Handler};
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdError,
 };
+use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
@@ -13,7 +15,45 @@ use crate::{
 };
 
 /// The host contract base implementation.
-impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg: Serialize + JsonSchema,
+    > ExecuteEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
+
+    fn execute(
+        self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        msg: Self::ExecuteMsg,
+    ) -> Result<Response, Self::Error> {
+        match msg {
+            ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Base(exec_msg) => self
+                .base_execute(deps, env, info, exec_msg)
+                .map_err(From::from),
+            _ => Err(StdError::generic_err("Unsupported Host execute message variant").into()),
+        }
+    }
+}
+
+/// The host contract base implementation.
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg: DeserializeOwned,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
     pub fn handle_packet<RequestError: From<cosmwasm_std::StdError> + From<HostError>>(
@@ -24,8 +64,8 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         packet_handler: impl FnOnce(
             DepsMut,
             Env,
-            Host<T>,
-            T,
+            Self,
+            CustomExecMsg,
         ) -> Result<IbcReceiveResponse, RequestError>,
     ) -> Result<IbcReceiveResponse, RequestError> {
         let packet = packet.packet;
@@ -62,20 +102,21 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
         }
         .map_err(Into::into)
     }
-    pub fn execute(
-        &mut self,
+
+    pub fn base_execute(
+        self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        message: ExecuteMsg,
+        message: BaseExecuteMsg,
     ) -> Result<Response, HostError> {
         match message {
-            ExecuteMsg::UpdateConfig {
+            BaseExecuteMsg::UpdateConfig {
                 memory_address,
                 cw1_code_id,
                 admin,
             } => self.update_config(deps, info, memory_address, cw1_code_id, admin),
-            ExecuteMsg::ClearAccount {
+            BaseExecuteMsg::ClearAccount {
                 closed_channel,
                 os_id,
             } => {
@@ -117,6 +158,7 @@ impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
             // validate address format
             state.admin = deps.api.addr_validate(&admin)?;
         }
+        self.base_state.save(deps.storage, &state)?;
         Ok(Response::new())
     }
 }

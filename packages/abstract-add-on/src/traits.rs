@@ -6,15 +6,25 @@ use abstract_sdk::{
     Dependency, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult, Storage, SubMsg};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{AddOnContract, AddOnError};
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > MemoryOperation for AddOnContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > MemoryOperation
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
 {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
@@ -22,10 +32,21 @@ impl<
 }
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > OsExecute for AddOnContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > OsExecute
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
 {
     fn os_execute(
         &self,
@@ -46,10 +67,21 @@ impl<
 }
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > Dependency for AddOnContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > Dependency
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
 {
     fn dependency_address(&self, deps: Deps, dependency_name: &str) -> StdResult<Addr> {
         let manager_addr = &self
@@ -66,7 +98,7 @@ impl<
         funds: Vec<cosmwasm_std::Coin>,
     ) -> StdResult<cosmwasm_std::CosmosMsg> {
         let dep_addr = self.dependency_address(deps, dependency_name)?;
-        let proxy_addr = self.state(deps.storage)?.proxy_address;
+        let proxy_addr = self.base_state.load(deps.storage)?.proxy_address;
         let api_request_msg = ApiRequestMsg {
             proxy_address: Some(proxy_addr.to_string()),
             request: request_msg,

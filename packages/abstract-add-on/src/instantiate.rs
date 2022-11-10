@@ -1,39 +1,49 @@
 use abstract_os::{
-    add_on::BaseInstantiateMsg,
+    add_on::{BaseInstantiateMsg, InstantiateMsg},
     module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, StdError, StdResult, WasmQuery,
+    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
 };
 
-use abstract_sdk::memory::Memory;
-use serde::{de::DeserializeOwned, Serialize};
+use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::{
     state::{AddOnContract, AddOnState},
     AddOnError,
 };
-
 use cw2::set_contract_version;
 
 impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg: Serialize + JsonSchema,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > InstantiateEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
 {
-    pub fn instantiate(
-        deps: DepsMut,
-        _env: Env,
+    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
+    fn instantiate(
+        self,
+        mut deps: DepsMut,
+        env: Env,
         info: MessageInfo,
-        msg: BaseInstantiateMsg,
-        module_name: &str,
-        module_version: &str,
-    ) -> StdResult<Self> {
-        let add_on = Self::new();
+        msg: Self::InstantiateMsg,
+    ) -> Result<Response, Error> {
+        let BaseInstantiateMsg { memory_address } = msg.base;
         let memory = Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+            address: deps.api.addr_validate(&memory_address)?,
         };
 
         // Caller is factory so get proxy and manager (admin) from there
@@ -45,9 +55,9 @@ impl<
         let core = match resp.core {
             Some(core) => core,
             None => {
-                return Err(StdError::generic_err(
-                    "context of module factory not properly set.",
-                ))
+                return Err(
+                    StdError::generic_err("context of module factory not properly set.").into(),
+                )
             }
         };
 
@@ -56,11 +66,13 @@ impl<
             proxy_address: core.proxy.clone(),
             memory,
         };
-
-        set_contract_version(deps.storage, module_name, module_version)?;
-        add_on.base_state.save(deps.storage, &state)?;
-        add_on.admin.set(deps, Some(core.manager))?;
-
-        Ok(add_on)
+        let (name, version) = self.info();
+        set_contract_version(deps.storage, name, version)?;
+        self.base_state.save(deps.storage, &state)?;
+        self.admin.set(deps.branch(), Some(core.manager))?;
+        let Some(handler) = self.maybe_instantiate_handler() else {
+            return Ok(Response::new())
+        };
+        handler(deps, env, info, self, msg.app)
     }
 }

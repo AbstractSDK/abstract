@@ -60,7 +60,7 @@ pub fn try_pay(
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let base_state = add_on.base_state.load(deps.storage)?;
+    let base_state = add_on.load_state(deps.storage)?;
     // Construct deposit info
     let deposit_info = config.payment_asset;
 

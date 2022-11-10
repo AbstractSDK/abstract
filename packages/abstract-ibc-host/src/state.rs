@@ -1,10 +1,11 @@
-use std::marker::PhantomData;
-
 use abstract_os::ibc_host::PacketMsg;
-use abstract_sdk::{memory::Memory, ReplyHandlerFn, BASE_STATE};
+use abstract_sdk::{
+    memory::Memory, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn,
+    ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
+};
 
-use cosmwasm_std::{Addr, Binary, StdResult, Storage};
-use cw2::{ContractVersion, CONTRACT};
+use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
+
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -31,57 +32,105 @@ pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");
 pub const RESULTS: Item<Vec<Binary>> = Item::new("results");
 
 /// The state variables for our host contract.
-pub struct Host<'a, T> {
-    // Every DApp should use the provided memory contract for token/contract address resolution
-    pub base_state: Item<'a, HostState>,
-    /// Stores the API version
-    pub version: Item<'a, ContractVersion>,
-    /// Store the reflect address to use
+pub struct Host<
+    Error: From<cosmwasm_std::StdError> + From<HostError> + 'static,
+    CustomExecMsg: 'static = Empty,
+    CustomInitMsg: 'static = Empty,
+    CustomQueryMsg: 'static = Empty,
+    CustomMigrateMsg: 'static = Empty,
+    Receive: 'static = Empty,
+> {
+    // Scaffolding contract that handles type safety and provides helper methods
+    pub(crate) contract: AbstractContract<
+        Self,
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        Receive,
+    >,
+    // pub admin: Admin<'static>,
+    // Custom state for every Host
     pub proxy_address: Option<Addr>,
-    /// Reply handlers, map reply_id to reply function
-    pub(crate) reply_handlers: [&'a [(u64, ReplyHandlerFn<Self, HostError>)]; 2],
-    /// Signal the expected execute message struct
-    _phantom_data: PhantomData<T>,
+    pub(crate) base_state: Item<'static, HostState>,
+    pub(crate) chain: &'static str,
 }
-/// Constructor
-impl<'a, T> Host<'a, T> {
-    pub const fn new(reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)]) -> Self {
+
+// Constructor
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+    pub const fn new(name: &'static str, version: &'static str, chain: &'static str) -> Self {
+        let contract = AbstractContract::new(name, version).with_replies([
+            &[
+                // add reply handlers we want to support by default
+                (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
+                (INIT_CALLBACK_ID, reply_init_callback),
+            ],
+            &[],
+        ]);
         Self {
-            version: CONTRACT,
+            contract,
+            chain,
             base_state: Item::new(BASE_STATE),
             proxy_address: None,
-            reply_handlers: [
-                &[
-                    // add reply handlers we want to support by default
-                    (RECEIVE_DISPATCH_ID, reply_dispatch_callback),
-                    (INIT_CALLBACK_ID, reply_init_callback),
-                ],
-                reply_handlers,
-            ],
-            _phantom_data: PhantomData,
         }
     }
 
-    /// add IBC callback handler to contract
-    // pub const fn with_reply_handlers(
-    //     mut self,
-    //     reply_handlers: &'a [(u64, ReplyHandlerFn<Self, HostError>)],
-    // ) -> Self {
-    //     // update this to store static iterators
-    //     self.reply_handlers = reply_handlers;
-    //     self
-    // }
+    /// add reply handler to contract
+    pub const fn with_replies(
+        mut self,
+        reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
+    ) -> Self {
+        // update this to store static iterators
+        let mut new_reply_handlers = self.contract.reply_handlers;
+        new_reply_handlers[1] = reply_handlers;
+        self.contract = self.contract.with_replies(new_reply_handlers);
+        self
+    }
 
     pub fn state(&self, store: &dyn Storage) -> StdResult<HostState> {
         self.base_state.load(store)
     }
 
-    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
-        self.version.load(store)
-    }
-
     pub fn target(&self) -> Result<&Addr, HostError> {
         self.proxy_address.as_ref().ok_or(HostError::NoTarget)
+    }
+
+    pub const fn with_instantiate(
+        mut self,
+        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_instantiate(instantiate_handler);
+        self
+    }
+
+    pub const fn with_receive(
+        mut self,
+        receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_receive(receive_handler);
+        self
+    }
+
+    pub const fn with_execute(
+        mut self,
+        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_execute(execute_handler);
+        self
+    }
+
+    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+        self.contract = self.contract.with_query(query_handler);
+        self
     }
 }
 

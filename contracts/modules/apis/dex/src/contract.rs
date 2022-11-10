@@ -1,18 +1,20 @@
-use abstract_api::{ApiContract, ApiResult};
+use abstract_api::ApiContract;
 use abstract_os::{
-    api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg},
+    api::{ExecuteMsg, InstantiateMsg, QueryMsg},
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     ibc_client::CallbackInfo,
     objects::AssetEntry,
     EXCHANGE,
 };
 use abstract_sdk::{
-    host_ibc_action, ics20_transfer, memory::Memory, AbstractExecute, MemoryOperation, Resolve,
+    host_ibc_action, ics20_transfer, memory::Memory, ExecuteEndpoint, InstantiateEndpoint,
+    MemoryOperation, QueryEndpoint, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, StdError,
+    to_binary, Binary, Coin, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult,
+    Uint128,
 };
 use cw_asset::Asset;
 
@@ -21,9 +23,12 @@ use crate::{
 };
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexApi<'a> = ApiContract<'a, DexRequestMsg, DexError>;
+pub type DexApi = ApiContract<DexError, DexRequestMsg, Empty, DexQueryMsg>;
 pub type DexResult = Result<Response, DexError>;
-pub const DEX_API: DexApi<'static> = DexApi::new();
+
+pub const DEX_API: DexApi = DexApi::new(EXCHANGE, CONTRACT_VERSION)
+    .with_execute(handle_request)
+    .with_query(query_handler);
 
 const ACTION_RETRIES: u8 = 3;
 
@@ -68,21 +73,15 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
-        _ => Err(DexError::UnknownDex(value.to_owned())),
+        _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
 
 // Supported exchanges on XXX
 // ...
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: BaseInstantiateMsg,
-) -> ApiResult {
-    DexApi::instantiate(deps, env, info, msg, EXCHANGE, CONTRACT_VERSION, vec![])?;
-    Ok(Response::default())
+pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> DexResult {
+    DEX_API.instantiate(deps, env, info, msg)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -92,10 +91,10 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<DexRequestMsg>,
 ) -> DexResult {
-    DEX_API.execute(deps, env, info, msg, handle_api_request)
+    DEX_API.execute(deps, env, info, msg)
 }
 
-pub fn handle_api_request(
+pub fn handle_request(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -163,17 +162,17 @@ fn handle_ibc_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<DexQueryMsg>) -> Result<Binary, DexError> {
-    DEX_API.handle_query(deps, env, msg, Some(query_handler))
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<DexQueryMsg>) -> StdResult<Binary> {
+    DEX_API.query(deps, env, msg)
 }
 
-fn query_handler(deps: Deps, env: Env, msg: DexQueryMsg) -> Result<Binary, DexError> {
+fn query_handler(deps: Deps, env: Env, _app: &DexApi, msg: DexQueryMsg) -> StdResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwap {
             offer_asset,
             ask_asset,
             dex,
-        } => simulate_swap(deps, env, offer_asset, ask_asset, dex.unwrap()),
+        } => simulate_swap(deps, env, offer_asset, ask_asset, dex.unwrap()).map_err(Into::into),
     }
 }
 
@@ -196,9 +195,9 @@ fn resolve_assets_to_transfer(
             let coins: Result<Vec<Coin>, _> = assets.iter().map(offer_to_coin).collect();
             coins
         }
-        DexAction::ProvideLiquiditySymmetric { .. } => {
-            Err(StdError::generic_err("Cross-chain symmetric provide liquidity not supported."))
-        }
+        DexAction::ProvideLiquiditySymmetric { .. } => Err(StdError::generic_err(
+            "Cross-chain symmetric provide liquidity not supported.",
+        )),
         DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&(
             lp_token.to_owned(),
             amount.to_owned(),

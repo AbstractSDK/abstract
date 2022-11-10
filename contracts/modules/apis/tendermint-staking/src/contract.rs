@@ -1,39 +1,31 @@
-use abstract_api::{ApiContract, ApiResult};
-use abstract_os::api::{BaseInstantiateMsg, ExecuteMsg, QueryMsg};
-use cosmwasm_std::Empty;
+use abstract_api::ApiContract;
+use abstract_os::api::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{Empty, StdResult};
 
 use abstract_os::tendermint_staking::RequestMsg;
-use abstract_sdk::OsExecute;
-use abstract_sdk::{tendermint_staking::*, AbstractExecute};
+use abstract_sdk::{tendermint_staking::*, ExecuteEndpoint};
+use abstract_sdk::{InstantiateEndpoint, OsExecute, QueryEndpoint};
 
 use crate::error::TendermintStakeError;
 
 use abstract_os::TENDERMINT_STAKING;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type TendermintStakeApi<'a> = ApiContract<'a, RequestMsg, TendermintStakeError>;
+pub type TendermintStakeApi<'a> = ApiContract<TendermintStakeError, RequestMsg>;
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
-const STAKING_API: TendermintStakeApi<'static> = TendermintStakeApi::new();
+
+const STAKING_API: TendermintStakeApi<'static> =
+    TendermintStakeApi::new(TENDERMINT_STAKING, CONTRACT_VERSION).with_execute(handle_request);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    msg: BaseInstantiateMsg,
-) -> ApiResult {
-    TendermintStakeApi::instantiate(
-        deps,
-        env,
-        info,
-        msg,
-        TENDERMINT_STAKING,
-        CONTRACT_VERSION,
-        vec![],
-    )?;
-
-    Ok(Response::default())
+    msg: InstantiateMsg,
+) -> TendermintStakeResult {
+    STAKING_API.instantiate(deps, env, info, msg)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -43,10 +35,10 @@ pub fn execute(
     info: MessageInfo,
     msg: ExecuteMsg<RequestMsg>,
 ) -> TendermintStakeResult {
-    STAKING_API.execute(deps, env, info, msg, handle_api_request)
+    STAKING_API.execute(deps, env, info, msg)
 }
 
-pub fn handle_api_request(
+pub fn handle_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
@@ -108,6 +100,6 @@ pub fn handle_api_request(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg<Empty>) -> Result<Binary, TendermintStakeError> {
-    STAKING_API.handle_query(deps, env, msg, None)
+pub fn query(deps: Deps, env: Env, msg: QueryMsg<Empty>) -> StdResult<Binary> {
+    STAKING_API.query(deps, env, msg)
 }

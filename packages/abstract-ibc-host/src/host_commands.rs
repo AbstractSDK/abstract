@@ -9,9 +9,6 @@ use cosmwasm_std::{
     WasmMsg,
 };
 
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-
 use crate::reply::INIT_CALLBACK_ID;
 use crate::state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING};
 use crate::{Host, HostError};
@@ -139,10 +136,17 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote OS
-pub fn receive_register<T: Serialize + DeserializeOwned>(
+pub fn receive_register<
+    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    CustomExecMsg,
+    CustomInitMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+>(
     deps: DepsMut,
     env: Env,
-    host: Host<T>,
+    host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
     os_id: u32,
     os_proxy_address: String,

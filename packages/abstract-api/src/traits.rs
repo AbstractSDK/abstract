@@ -3,18 +3,21 @@ use abstract_sdk::{
     api_request,
     manager::query_module_address,
     proxy::{os_ibc_action, os_module_action},
-    Dependency, MemoryOperation, OsExecute,
+    Dependency, Handler, MemoryOperation, OsExecute,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdError, StdResult, Storage, SubMsg};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::Serialize;
 
 use crate::{ApiContract, ApiError};
 
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > MemoryOperation for ApiContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > MemoryOperation
+    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
@@ -23,10 +26,12 @@ impl<
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > OsExecute for ApiContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > OsExecute for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn os_execute(
         &self,
@@ -58,17 +63,19 @@ impl<
 
 /// Implement the dependency functions for an API contract
 impl<
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<ApiError>,
-    > Dependency for ApiContract<'_, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        ReceiveMsg,
+    > Dependency for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn dependency_address(
         &self,
         deps: Deps,
         dependency_name: &str,
     ) -> cosmwasm_std::StdResult<Addr> {
-        if !self.dependencies.contains(&dependency_name) {
+        if !self.dependencies().contains(&dependency_name) {
             return Err(StdError::generic_err("dependency not enabled on OS"));
         }
         let manager_addr = &self

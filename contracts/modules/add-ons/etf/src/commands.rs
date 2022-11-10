@@ -59,7 +59,7 @@ pub fn try_provide_liquidity(
     sender: Option<String>,
 ) -> EtfResult {
     // Load all needed states
-    let base_state = dapp.base_state.load(deps.storage)?;
+    let base_state = dapp.load_state(deps.storage)?;
     let state = STATE.load(deps.storage)?;
     // Get the liquidity provider address
     let liq_provider = match sender {
@@ -157,7 +157,7 @@ pub fn try_withdraw_liquidity(
     amount: Uint128,
 ) -> EtfResult {
     let state: State = STATE.load(deps.storage)?;
-    let base_state: AddOnState = dapp.base_state.load(deps.storage)?;
+    let base_state: AddOnState = dapp.load_state(deps.storage)?;
     let memory = base_state.memory;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets

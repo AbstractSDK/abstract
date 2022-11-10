@@ -3,10 +3,10 @@ use abstract_os::{
     objects::AssetEntry,
 };
 use abstract_sdk::{MemoryOperation, Resolve};
-use cosmwasm_std::{to_binary, Binary, Deps, Env};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_asset::Asset;
 
-use crate::{contract::resolve_exchange, contract::DEX_API, error::DexError};
+use crate::{contract::resolve_exchange, contract::DEX_API};
 
 pub fn simulate_swap(
     deps: Deps,
@@ -14,8 +14,8 @@ pub fn simulate_swap(
     offer_asset: OfferAsset,
     mut ask_asset: AssetEntry,
     dex: String,
-) -> Result<Binary, DexError> {
-    let exchange = resolve_exchange(&dex)?;
+) -> StdResult<Binary> {
+    let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let api = DEX_API;
     let mem = api.load_memory(deps.storage)?;
     // format input
@@ -29,8 +29,9 @@ pub fn simulate_swap(
     let pool_info = exchange.pair_contract(&mut vec![&offer_asset, &ask_asset]);
     // create offer asset
     let swap_offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
-    let (return_amount, spread_amount, commission_amount, fee_on_input) =
-        exchange.simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)?;
+    let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
+        .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
     let commission_asset = if fee_on_input { ask_asset } else { offer_asset };
     let resp = SimulateSwapResponse {
         pool: pool_info,

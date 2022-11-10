@@ -21,6 +21,7 @@ library = []
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
+cosmwasm-schema = {workspace = true}
 cw-utils = { workspace = true }
 cw1-whitelist = { version = "0.16.0", features = ["library"]}
 cw-storage-plus = {workspace = true}
@@ -29,6 +30,7 @@ schemars = {workspace = true}
 cw-controllers = {workspace = true}
 thiserror = {workspace = true}
 cw2 = {workspace = true}
+semver = {workspace = true}
 
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}

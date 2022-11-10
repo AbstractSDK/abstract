@@ -3,11 +3,11 @@ use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
 use cw_asset::{Asset, AssetInfo};
 
 use crate::{error::DexError, DEX};
+use abstract_os::dex::AskAsset;
 use abstract_os::{
     dex::{DexAction, OfferAsset, SwapRouter},
     objects::{AssetEntry, UncheckedContractEntry},
 };
-use abstract_os::dex::AskAsset;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;

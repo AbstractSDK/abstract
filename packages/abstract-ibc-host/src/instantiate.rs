@@ -1,42 +1,57 @@
-use abstract_os::ibc_host::BaseInstantiateMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, StdResult};
-use serde::{de::DeserializeOwned, Serialize};
+use abstract_os::ibc_host::InstantiateMsg;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use abstract_sdk::memory::Memory;
+use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use schemars::JsonSchema;
+use serde::Serialize;
 
-use crate::state::{Host, HostState, CLOSED_CHANNELS};
+use crate::{
+    state::{Host, HostState, CLOSED_CHANNELS},
+    HostError,
+};
 
 use cw2::set_contract_version;
 
-impl<'a, T: Serialize + DeserializeOwned> Host<'a, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg: Serialize + JsonSchema,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > InstantiateEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     /// Instantiate the API
-    pub fn instantiate(
+    type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
+    fn instantiate(
+        self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
-        msg: BaseInstantiateMsg,
-        module_name: &str,
-        module_version: &str,
-        chain: &str,
-    ) -> StdResult<Self> {
-        let api = Self::new(&[]);
+        msg: Self::InstantiateMsg,
+    ) -> Result<Response, Error> {
         let memory = Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+            address: deps.api.addr_validate(&msg.base.memory_address)?,
         };
 
         // Base state
         let state = HostState {
-            chain: chain.to_string(),
+            chain: self.chain.to_string(),
             memory,
-            cw1_code_id: msg.cw1_code_id,
-            admin: info.sender,
+            cw1_code_id: msg.base.cw1_code_id,
+            admin: info.sender.clone(),
         };
+        let (name, version) = self.info();
         // Keep track of all the closed channels, allows for fund recovery if channel closes.
         let closed_channels = vec![];
         CLOSED_CHANNELS.save(deps.storage, &closed_channels)?;
-        set_contract_version(deps.storage, module_name, module_version)?;
-        api.base_state.save(deps.storage, &state)?;
+        set_contract_version(deps.storage, name, version)?;
+        self.base_state.save(deps.storage, &state)?;
 
-        Ok(api)
+        let Some(handler) = self.maybe_instantiate_handler() else {
+            return Ok(Response::new())
+        };
+        handler(deps, env, info, self, msg.app)
     }
 }

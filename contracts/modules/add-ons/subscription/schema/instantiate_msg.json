@@ -3,25 +3,25 @@
   "title": "InstantiateMsg",
   "type": "object",
   "required": [
-    "base",
-    "subscription"
+    "app",
+    "base"
   ],
   "properties": {
-    "base": {
-      "$ref": "#/definitions/BaseInstantiateMsg"
-    },
-    "contribution": {
-      "anyOf": [
+    "app": {
+      "description": "custom instantiate msg attributes",
+      "allOf": [
         {
-          "$ref": "#/definitions/ContributionInstantiateMsg"
-        },
-        {
-          "type": "null"
+          "$ref": "#/definitions/InstantiateMsg"
         }
       ]
     },
-    "subscription": {
-      "$ref": "#/definitions/SubscriptionInstantiateMsg"
+    "base": {
+      "description": "base instantiate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseInstantiateMsg"
+        }
+      ]
     }
   },
   "additionalProperties": false,
@@ -129,6 +129,32 @@
     "Decimal": {
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
       "type": "string"
+    },
+    "InstantiateMsg": {
+      "type": "object",
+      "required": [
+        "base",
+        "subscription"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseInstantiateMsg"
+        },
+        "contribution": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ContributionInstantiateMsg"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "subscription": {
+          "$ref": "#/definitions/SubscriptionInstantiateMsg"
+        }
+      },
+      "additionalProperties": false
     },
     "SubscriptionInstantiateMsg": {
       "type": "object",

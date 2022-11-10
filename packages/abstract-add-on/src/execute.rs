@@ -1,50 +1,45 @@
-use abstract_os::{
-    abstract_ica::IbcResponseMsg,
-    add_on::{BaseExecuteMsg, ExecuteMsg},
-};
+use abstract_os::add_on::{BaseExecuteMsg, ExecuteMsg};
 
-use abstract_sdk::AbstractExecute;
+use abstract_sdk::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
-use serde::{de::DeserializeOwned, Serialize};
+use schemars::JsonSchema;
+use serde::Serialize;
 
 use crate::{state::AddOnContract, AddOnError, AddOnResult};
 
 impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-        C: Serialize + DeserializeOwned,
-    > AbstractExecute for AddOnContract<'a, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError> + 'static,
+        CustomExecMsg: Serialize + JsonSchema,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg: Serialize + JsonSchema,
+    > ExecuteEndpoint
+    for AddOnContract<
+        Error,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
 {
-    type RequestMsg = T;
-
-    type ExecuteMsg<P> = ExecuteMsg<T, C>;
-
-    type ContractError = E;
+    type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
     fn execute(
         self,
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        msg: Self::ExecuteMsg<Self::RequestMsg>,
-        request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
-    ) -> Result<Response, Self::ContractError> {
+        msg: Self::ExecuteMsg,
+        // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
+    ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::Request(request) => request_handler(deps, env, info, self, request),
-            ExecuteMsg::Configure(exec_msg) => self
+            ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
-            ExecuteMsg::IbcCallback(IbcResponseMsg { id, msg }) => {
-                for ibc_callback_handler in self.ibc_callbacks {
-                    if ibc_callback_handler.0 == id {
-                        return ibc_callback_handler.1(deps, env, info, self, id, msg);
-                    }
-                }
-                Ok(Response::new()
-                    .add_attribute("action", "ibc_response")
-                    .add_attribute("response_id", id))
-            }
+            ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported AddOn execute message variant").into()),
         }
@@ -52,11 +47,14 @@ impl<
 }
 
 impl<
-        'a,
-        T: Serialize + DeserializeOwned,
-        C: Serialize + DeserializeOwned,
-        E: From<cosmwasm_std::StdError> + From<AddOnError>,
-    > AddOnContract<'a, T, E, C>
+        Error: From<cosmwasm_std::StdError> + From<AddOnError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    >
+    AddOnContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_execute(
         &self,

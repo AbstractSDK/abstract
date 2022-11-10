@@ -21,8 +21,10 @@ library = []
 
 [dependencies]
 cosmwasm-std = { workspace = true }
+cosmwasm-schema = {workspace = true}
 cw-storage-plus = {workspace = true}
 serde = {workspace = true}
+semver = {workspace = true}
 schemars = {workspace = true}
 cw-controllers = {workspace = true}
 thiserror = {workspace = true}

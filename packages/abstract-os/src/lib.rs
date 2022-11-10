@@ -39,6 +39,7 @@
 pub extern crate abstract_ica;
 pub mod ibc_client;
 pub mod ibc_host;
+pub mod middleware;
 
 pub use registry::*;
 pub mod abstract_token;

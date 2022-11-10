@@ -59,10 +59,6 @@ pub mod state {
 
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
-/// Migrate msg
-#[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
-
 /// Init msg
 #[cosmwasm_schema::cw_serde]
 pub struct EtfInstantiateMsg {

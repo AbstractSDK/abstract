@@ -2,10 +2,9 @@ use abstract_os::{
     abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
     ibc_host::PacketMsg,
 };
-use abstract_sdk::ReplyEndpoint;
+use abstract_sdk::{Handler, ReplyEndpoint};
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{
     state::{ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
@@ -15,30 +14,19 @@ use crate::{
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
-impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
-    type ContractError = HostError;
-
-    fn reply_handler(
-        &self,
-        id: u64,
-    ) -> Option<abstract_sdk::ReplyHandlerFn<Self, Self::ContractError>> {
-        for reply_handlers in self.reply_handlers {
-            for handler in reply_handlers {
-                if handler.0 == id {
-                    return Some(handler.1);
-                }
-            }
-        }
-        None
-    }
-    fn handle_reply(
-        mut self,
-        deps: DepsMut,
-        env: Env,
-        msg: Reply,
-    ) -> Result<Response, Self::ContractError> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > ReplyEndpoint
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
+    fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
         let id = msg.id;
-        let maybe_handler = self.reply_handler(id);
+        let maybe_handler = self.maybe_reply_handler(id);
         if let Some(reply_fn) = maybe_handler {
             reply_fn(deps, env, self, msg)
         } else {
@@ -63,12 +51,19 @@ impl<T: Serialize + DeserializeOwned> ReplyEndpoint for Host<'_, T> {
     }
 }
 
-pub fn reply_dispatch_callback<T>(
+pub fn reply_dispatch_callback<
+    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    CustomExecMsg,
+    CustomInitMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+>(
     deps: DepsMut,
     _env: Env,
-    _host: Host<'_, T>,
+    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     reply: Reply,
-) -> Result<Response, HostError> {
+) -> Result<Response, Error> {
     // add the new result to the current tracker
     let mut results = RESULTS.load(deps.storage)?;
     results.push(reply.result.unwrap().data.unwrap_or_default());
@@ -79,25 +74,35 @@ pub fn reply_dispatch_callback<T>(
     Ok(Response::new().set_data(data))
 }
 
-pub fn reply_init_callback<T>(
+pub fn reply_init_callback<
+    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    CustomExecMsg,
+    CustomInitMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+>(
     deps: DepsMut,
     _env: Env,
-    _host: Host<'_, T>,
+    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+
     reply: Reply,
-) -> Result<Response, HostError> {
+) -> Result<Response, Error> {
     // we use storage to pass info from the caller to the reply
     let (channel, os_id) = PENDING.load(deps.storage)?;
     PENDING.remove(deps.storage);
 
     // parse contract info from data
-    let raw_addr = parse_reply_instantiate_data(reply)?.contract_address;
+    let raw_addr = parse_reply_instantiate_data(reply)
+        .map_err(HostError::from)?
+        .contract_address;
     let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
     if ACCOUNTS
         .may_load(deps.storage, (&channel, os_id))?
         .is_some()
     {
-        return Err(HostError::ChannelAlreadyRegistered);
+        return Err(HostError::ChannelAlreadyRegistered.into());
     }
     ACCOUNTS.save(deps.storage, (&channel, os_id), &contract_addr)?;
     let data = StdAck::success(&RegisterResponse {

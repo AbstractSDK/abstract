@@ -3,10 +3,10 @@ use abstract_ibc_host::Host;
 
 use abstract_os::abstract_ica::StdAck;
 use abstract_os::dex::DexAction;
-use abstract_os::ibc_host::{BaseInstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_os::OSMOSIS_HOST;
 
-use abstract_sdk::ReplyEndpoint;
+use abstract_sdk::{InstantiateEndpoint, QueryEndpoint, ReplyEndpoint};
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -21,28 +21,15 @@ use semver::Version;
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type OsmoHost<'a> = Host<'a, DexAction>;
+pub type OsmoHost = Host<OsmoError, DexAction>;
 pub type OsmoResult = Result<Response, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
-const OSMO_HOST: OsmoHost = OsmoHost::new(&[]);
+const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSIS);
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn instantiate(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: BaseInstantiateMsg,
-) -> OsmoResult {
-    OsmoHost::instantiate(
-        deps,
-        env,
-        info,
-        msg,
-        OSMOSIS_HOST,
-        CONTRACT_VERSION,
-        OSMOSIS,
-    )?;
+pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> OsmoResult {
+    OSMO_HOST.instantiate(deps, env, info, msg)?;
     Ok(Response::default())
 }
 
@@ -71,12 +58,12 @@ fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
-    OSMO_HOST.handle_reply(deps, env, reply).map_err(Into::into)
+    OSMO_HOST.reply(deps, env, reply)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, OsmoError> {
-    OSMO_HOST.handle_query(deps, env, msg, None)
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    OSMO_HOST.query(deps, env, msg)
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]

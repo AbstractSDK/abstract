@@ -5,10 +5,10 @@ use serde::Serialize;
 /// Construct an API request message.
 pub fn api_request<T: Serialize>(
     api_address: impl Into<String>,
-    message: impl Into<ExecuteMsg<T>>,
+    message: impl Into<ExecuteMsg<T, Empty>>,
     funds: Vec<Coin>,
 ) -> StdResult<CosmosMsg> {
-    let api_msg: ExecuteMsg<T> = message.into();
+    let api_msg: ExecuteMsg<T, Empty> = message.into();
     Ok(wasm_execute(api_address, &api_msg, funds)?.into())
 }
 
@@ -17,7 +17,7 @@ pub fn configure_api(
     api_address: impl Into<String>,
     message: BaseExecuteMsg,
 ) -> StdResult<CosmosMsg> {
-    let api_msg: ExecuteMsg<Empty> = message.into();
+    let api_msg: ExecuteMsg<Empty, Empty> = message.into();
     Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
 }
 

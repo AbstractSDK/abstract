@@ -3,8 +3,8 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use abstract_add_on::state::AddOnState;
-use abstract_os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, StateResponse};
+use abstract_os::etf::StateResponse;
+use etf::contract::EtfAddOn;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -12,9 +12,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    export_schema(&schema_for!(EtfInstantiateMsg), &out_dir);
-    export_schema(&schema_for!(EtfExecuteMsg), &out_dir);
-    export_schema(&schema_for!(EtfQueryMsg), &out_dir);
-    export_schema(&schema_for!(AddOnState), &out_dir);
+    EtfAddOn::export_schema(&out_dir);
     export_schema(&schema_for!(StateResponse), &out_dir);
 }

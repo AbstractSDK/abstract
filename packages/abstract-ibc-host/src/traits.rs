@@ -1,17 +1,34 @@
 use abstract_sdk::{MemoryOperation, OsExecute};
 use cosmwasm_std::{wasm_execute, Deps, StdError, StdResult, Storage, SubMsg};
-use serde::{de::DeserializeOwned, Serialize};
 
 use crate::{Host, HostError};
 
-impl<T: Serialize + DeserializeOwned> MemoryOperation for Host<'_, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > MemoryOperation
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
         Ok(self.base_state.load(store)?.memory)
     }
 }
 
 /// Execute a set of CosmosMsgs on the proxy contract of an OS.
-impl<T: Serialize + DeserializeOwned> OsExecute for Host<'_, T> {
+impl<
+        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        CustomExecMsg,
+        CustomInitMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+    > OsExecute
+    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+{
     fn os_execute(
         &self,
         _deps: Deps,

@@ -9,9 +9,17 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
-use serde::Serialize;
 
 use crate::ibc_client::CallbackInfo;
+
+use crate::middleware::{
+    ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
+    MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
+};
+pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
+pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
+pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
+pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
@@ -24,7 +32,7 @@ pub struct BaseInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
+pub struct BaseMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
@@ -83,7 +91,7 @@ pub struct PacketMsg {
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg {
+pub enum BaseExecuteMsg {
     UpdateConfig {
         memory_address: Option<String>,
         cw1_code_id: Option<u64>,
@@ -93,13 +101,6 @@ pub enum ExecuteMsg {
         closed_channel: String,
         os_id: u32,
     },
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum QueryMsg<Q: Serialize = Empty> {
-    App(Q),
-    /// A configuration message to whitelist traders.
-    Base(BaseQueryMsg),
 }
 
 /// Query Host message
