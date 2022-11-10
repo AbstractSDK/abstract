@@ -135,7 +135,7 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
     clear_context(deps)?;
 
     Ok(Response::new()
-        .add_attribute("new module:", &dapp_address.to_string())
+        .add_attribute("new module:", dapp_address.to_string())
         .add_message(register_msg))
 }
 

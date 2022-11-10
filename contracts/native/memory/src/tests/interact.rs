@@ -45,7 +45,7 @@ fn unauthorized_memory_update() {
         to_remove: vec![],
     };
 
-    let res = execute(deps.as_mut(), env.clone(), info, msg);
+    let res = execute(deps.as_mut(), env, info, msg);
 
     match res {
         Err(MemoryError::Admin(_)) => (),
@@ -100,7 +100,7 @@ fn authorized_memory_update() {
         to_remove: vec!["project/contract".to_string().try_into().unwrap()],
     };
 
-    let res = execute(deps.as_mut(), env.clone(), info, msg);
+    let res = execute(deps.as_mut(), env, info, msg);
 
     match res {
         Ok(_) => (),

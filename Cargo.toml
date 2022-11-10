@@ -15,39 +15,39 @@ members = [
 
 [workspace.package]
 version = "0.2.0-beta.1"
-authors = ["CyberHoward <cyberhoward@protonmail.com>","Abstract Money <contact@abstract.money>"]
+authors = ["CyberHoward <cyberhoward@protonmail.com>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
 repository = "https://github.com/Abstract-OS/contracts"
 license = "GPL-3.0-or-later"
-keywords = ["cosmos","cosmwasm", "framework"]
+keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
 cosmwasm-std = { version = "1.1" }
 cosmwasm-storage = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
-cw-controllers = { version ="0.16" }
-cw-utils = {version = "0.16"}
+cw-controllers = { version = "0.16" }
+cw-utils = { version = "0.16" }
 cw-storage-plus = "0.16"
-cw2 = {version = "0.16"}
+cw2 = { version = "0.16" }
 cw20 = { version = "0.16" }
 cw20-base = { version = "0.16", features = ["library"] }
-cw-asset = {version = "2.2"}
+cw-asset = { version = "2.2" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0"
 
-abstract-sdk = {version = "0.2.0-beta.1" ,path = "packages/abstract-sdk"}
-abstract-os = {version = "0.2.0-beta.1" ,path = "packages/abstract-os" }
-abstract-add-on = {version = "0.2.0-beta.1" , path = "packages/abstract-add-on", features = ["library"] }
-abstract-api = { version = "0.2.0-beta.1" ,path = "packages/abstract-api", features = ["library"] }
-abstract-ibc-host = { version = "0.2.0-beta.1" ,path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.2.0-beta.1" ,path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.2.0-beta.1", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.2.0-beta.1", path = "packages/abstract-os" }
+abstract-add-on = { version = "0.2.0-beta.1", path = "packages/abstract-add-on", features = ["library"] }
+abstract-api = { version = "0.2.0-beta.1", path = "packages/abstract-api", features = ["library"] }
+abstract-ibc-host = { version = "0.2.0-beta.1", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.2.0-beta.1", path = "packages/abstract-ica" }
 
-cw-multi-test = {git = "https://github.com/Abstract-OS/cw-plus.git", branch="main"}
+cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
 
 [profile.release]
 rpath = false

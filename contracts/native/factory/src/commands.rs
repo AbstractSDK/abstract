@@ -170,7 +170,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
 
     if let ModuleReference::App(proxy_code_id) = module_resp.module.reference {
         Ok(Response::new()
-            .add_attribute("manager_address", &manager_address.to_string())
+            .add_attribute("manager_address", manager_address.to_string())
             // Instantiate proxy contract
             .add_submessage(SubMsg {
                 id: CREATE_OS_PROXY_MSG_ID,

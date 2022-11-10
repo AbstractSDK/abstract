@@ -29,9 +29,9 @@ pub mod env {
             let (code_ids, native_contracts) = upload_base_contracts(app);
             let mut os_store: HashMap<u32, Core> = HashMap::new();
 
-            init_os(app, &sender, &native_contracts, &mut os_store).expect("created first os");
+            init_os(app, sender, &native_contracts, &mut os_store).expect("created first os");
 
-            init_primary_os(app, &sender, &native_contracts, &mut os_store).unwrap();
+            init_primary_os(app, sender, &native_contracts, &mut os_store).unwrap();
 
             app.update_block(|b| {
                 b.time = b.time.plus_seconds(6);

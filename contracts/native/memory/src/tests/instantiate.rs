@@ -32,7 +32,7 @@ fn successful_initialization() {
 
     let msg = instantiate_msg();
     let info = mock_info(TEST_CREATOR, &[]);
-    let res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
+    let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_eq!(0, res.messages.len());
 }
 

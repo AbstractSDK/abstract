@@ -66,8 +66,8 @@ pub fn init_os(
         &version_control::QueryMsg::OsCore { os_id },
     )?;
 
-    os_store.insert(os_id, core.os_core.clone());
-    assert!(os_store_as_expected(&app, &native_contracts, &os_store));
+    os_store.insert(os_id, core.os_core);
+    assert!(os_store_as_expected(app, native_contracts, os_store));
     Ok(())
 }
 

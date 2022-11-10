@@ -43,7 +43,7 @@ pub fn init_native_contracts(
 
     let token_instance = app
         .instantiate_contract(
-            code_ids.get("cw_plus:cw20").unwrap().clone(),
+            *code_ids.get("cw_plus:cw20").unwrap(),
             owner.clone(),
             &msg,
             &[],
@@ -57,7 +57,7 @@ pub fn init_native_contracts(
     // Memory contract
     let memory_instance = app
         .instantiate_contract(
-            code_ids.get(MEMORY).unwrap().clone(),
+            *code_ids.get(MEMORY).unwrap(),
             owner.clone(),
             &memory_instantiate_msg,
             &[],
@@ -70,7 +70,7 @@ pub fn init_native_contracts(
     // Instantiate VC Contract
     let version_control_instance = app
         .instantiate_contract(
-            code_ids.get(VERSION_CONTROL).unwrap().clone(),
+            *code_ids.get(VERSION_CONTROL).unwrap(),
             owner.clone(),
             &version_control_msg,
             &[],
@@ -86,7 +86,7 @@ pub fn init_native_contracts(
     // Instantiate module factory Contract
     let module_factory_instance = app
         .instantiate_contract(
-            code_ids.get(MODULE_FACTORY).unwrap().clone(),
+            *code_ids.get(MODULE_FACTORY).unwrap(),
             owner.clone(),
             &module_factory_msg,
             &[],
@@ -103,7 +103,7 @@ pub fn init_native_contracts(
     // Instantiate os factory Contract
     let os_factory_instance = app
         .instantiate_contract(
-            code_ids.get(OS_FACTORY).unwrap().clone(),
+            *code_ids.get(OS_FACTORY).unwrap(),
             owner.clone(),
             &os_factory_msg,
             &[],

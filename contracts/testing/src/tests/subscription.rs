@@ -44,7 +44,7 @@ pub fn register_subscription(
         )
         .with_migrate_empty(subscription::contract::migrate),
     );
-    register_app(app, &sender, &version_control, module, contract).unwrap();
+    register_app(app, sender, version_control, module, contract).unwrap();
     Ok(())
 }
 
@@ -86,7 +86,7 @@ fn proper_initialization() {
             payment_asset: cw_asset::AssetInfoBase::native("uusd"),
             subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
             subscription_per_block_emissions: EmissionType::IncomeBased(AssetInfoBase::Cw20(
-                env.native_contracts.token.clone()
+                env.native_contracts.token
             ))
         }
     );

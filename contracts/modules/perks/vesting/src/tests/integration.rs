@@ -114,10 +114,10 @@ fn mint_some_whale(
 ) {
     let msg = cw20::Cw20ExecuteMsg::Mint {
         recipient: to.clone(),
-        amount: amount,
+        amount,
     };
     let res = app
-        .execute_contract(owner.clone(), whale_token_instance.clone(), &msg, &[])
+        .execute_contract(owner, whale_token_instance, &msg, &[])
         .unwrap();
     assert_eq!(res.events[1].attributes[1], attr("action", "mint"));
     assert_eq!(res.events[1].attributes[2], attr("to", to));
@@ -208,7 +208,7 @@ fn test_create_allocations() {
         &mut app,
         Addr::unchecked(OWNER.clone()),
         whale_instance.clone(),
-        Uint128::new(1_000_000_000_000000),
+        Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
     );
 
@@ -216,7 +216,7 @@ fn test_create_allocations() {
     allocations.push((
         "investor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -230,7 +230,7 @@ fn test_create_allocations() {
     allocations.push((
         "advisor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -244,7 +244,7 @@ fn test_create_allocations() {
     allocations.push((
         "team_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -271,7 +271,7 @@ fn test_create_allocations() {
             Addr::unchecked("not_owner".to_string()),
             whale_instance.clone(),
             &cw20::Cw20ExecuteMsg::Send {
-                contract: vesting_instance.clone().to_string(),
+                contract: vesting_instance.to_string(),
                 amount: Uint128::from(1_000u64),
                 msg: to_binary(&ReceiveMsg::CreateAllocations {
                     allocations: allocations.clone(),
@@ -325,7 +325,7 @@ fn test_create_allocations() {
         not_whale_token_instance.clone(),
         &cw20::Cw20ExecuteMsg::Mint {
             recipient: OWNER.clone().to_string(),
-            amount: Uint128::from(15_000_000_000000u64),
+            amount: Uint128::from(15_000_000_000_000_u64),
         },
         &[],
     )
@@ -334,10 +334,10 @@ fn test_create_allocations() {
     err = app
         .execute_contract(
             Addr::unchecked(OWNER.clone()),
-            not_whale_token_instance.clone(),
+            not_whale_token_instance,
             &cw20::Cw20ExecuteMsg::Send {
-                contract: vesting_instance.clone().to_string(),
-                amount: Uint128::from(15_000_000_000000u64),
+                contract: vesting_instance.to_string(),
+                amount: Uint128::from(15_000_000_000_000_u64),
                 msg: to_binary(&ReceiveMsg::CreateAllocations {
                     allocations: allocations.clone(),
                 })
@@ -358,8 +358,8 @@ fn test_create_allocations() {
             Addr::unchecked(OWNER.clone()),
             whale_instance.clone(),
             &cw20::Cw20ExecuteMsg::Send {
-                contract: vesting_instance.clone().to_string(),
-                amount: Uint128::from(15_000_000_000001u64),
+                contract: vesting_instance.to_string(),
+                amount: Uint128::from(15_000_000_000_001_u64),
                 msg: to_binary(&ReceiveMsg::CreateAllocations {
                     allocations: allocations.clone(),
                 })
@@ -379,8 +379,8 @@ fn test_create_allocations() {
         Addr::unchecked(OWNER.clone()),
         whale_instance.clone(),
         &cw20::Cw20ExecuteMsg::Send {
-            contract: vesting_instance.clone().to_string(),
-            amount: Uint128::from(15_000_000_000000u64),
+            contract: vesting_instance.to_string(),
+            amount: Uint128::from(15_000_000_000_000_u64),
             msg: to_binary(&ReceiveMsg::CreateAllocations {
                 allocations: allocations.clone(),
             })
@@ -395,8 +395,8 @@ fn test_create_allocations() {
         .wrap()
         .query_wasm_smart(&vesting_instance, &QueryMsg::State {})
         .unwrap();
-    assert_eq!(resp.total_deposited, Uint128::from(15_000_000_000000u64));
-    assert_eq!(resp.remaining_tokens, Uint128::from(15_000_000_000000u64));
+    assert_eq!(resp.total_deposited, Uint128::from(15_000_000_000_000_u64));
+    assert_eq!(resp.remaining_tokens, Uint128::from(15_000_000_000_000_u64));
 
     let _resp: StateResponse = app
         .wrap()
@@ -413,7 +413,7 @@ fn test_create_allocations() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(0u64));
     assert_eq!(
         resp.vest_schedule,
@@ -435,7 +435,7 @@ fn test_create_allocations() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(0u64));
     assert_eq!(
         resp.vest_schedule,
@@ -457,7 +457,7 @@ fn test_create_allocations() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(0u64));
     assert_eq!(
         resp.vest_schedule,
@@ -476,8 +476,8 @@ fn test_create_allocations() {
             Addr::unchecked(OWNER.clone()),
             whale_instance.clone(),
             &cw20::Cw20ExecuteMsg::Send {
-                contract: vesting_instance.clone().to_string(),
-                amount: Uint128::from(5_000_000_000000u64),
+                contract: vesting_instance.to_string(),
+                amount: Uint128::from(5_000_000_000_000_u64),
                 msg: to_binary(&ReceiveMsg::CreateAllocations {
                     allocations: vec![allocations[0].clone()],
                 })
@@ -496,15 +496,15 @@ fn test_create_allocations() {
     err = app
         .execute_contract(
             Addr::unchecked(OWNER.clone()),
-            whale_instance.clone(),
+            whale_instance,
             &cw20::Cw20ExecuteMsg::Send {
-                contract: vesting_instance.clone().to_string(),
-                amount: Uint128::from(5_000_000_000000u64),
+                contract: vesting_instance.to_string(),
+                amount: Uint128::from(5_000_000_000_000_u64),
                 msg: to_binary(&ReceiveMsg::CreateAllocations {
                     allocations: vec![(
                         "team_2".to_string(),
                         AllocationInfo {
-                            total_amount: Uint128::from(5_000_000_000000u64),
+                            total_amount: Uint128::from(5_000_000_000_000_u64),
                             withdrawn_amount: Uint128::from(0u64),
                             vest_schedule: Schedule {
                                 start_time: 1642402274u64,
@@ -537,7 +537,7 @@ fn test_withdraw() {
         &mut app,
         Addr::unchecked(OWNER.clone()),
         whale_instance.clone(),
-        Uint128::new(1_000_000_000_000000),
+        Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
     );
 
@@ -545,7 +545,7 @@ fn test_withdraw() {
     allocations.push((
         "investor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -559,7 +559,7 @@ fn test_withdraw() {
     allocations.push((
         "advisor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -573,7 +573,7 @@ fn test_withdraw() {
     allocations.push((
         "team_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -592,10 +592,10 @@ fn test_withdraw() {
     // SUCCESSFULLY CREATES ALLOCATIONS
     app.execute_contract(
         Addr::unchecked(OWNER.clone()),
-        whale_instance.clone(),
+        whale_instance,
         &cw20::Cw20ExecuteMsg::Send {
-            contract: vesting_instance.clone().to_string(),
-            amount: Uint128::from(15_000_000_000000u64),
+            contract: vesting_instance.to_string(),
+            amount: Uint128::from(15_000_000_000_000_u64),
             msg: to_binary(&ReceiveMsg::CreateAllocations {
                 allocations: allocations.clone(),
             })
@@ -665,7 +665,7 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(158548u64));
 
     // ######    ERROR :: No unlocked WHALE to be withdrawn   ######
@@ -695,10 +695,10 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(
         resp.total_tokens_unlocked,
-        Uint128::from(5_000_000_000000u64)
+        Uint128::from(5_000_000_000_000_u64)
     );
     assert_eq!(resp.total_tokens_vested, Uint128::from(1744038u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(158548u64));
@@ -726,7 +726,7 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(1744038u64));
 
     // ######    ERROR :: No unlocked WHALE to be withdrawn   ######
@@ -761,7 +761,7 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.total_tokens_unlocked, Uint128::from(1231925577118u64));
     assert_eq!(resp.total_tokens_vested, Uint128::from(1231565036783u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(0u64));
@@ -782,7 +782,7 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.total_tokens_vested, Uint128::from(1232876870877u64));
     assert_eq!(resp.withdrawable_amount, Uint128::from(1232876870877u64));
 
@@ -803,7 +803,7 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000000u64));
+    assert_eq!(resp.total_amount, Uint128::from(5_000_000_000_000_u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(1232876870877u64));
 }
 
@@ -816,7 +816,7 @@ fn test_terminate() {
         &mut app,
         Addr::unchecked(OWNER.clone()),
         whale_instance.clone(),
-        Uint128::new(1_000_000_000_000000),
+        Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
     );
 
@@ -824,7 +824,7 @@ fn test_terminate() {
     allocations.push((
         "investor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -838,7 +838,7 @@ fn test_terminate() {
     allocations.push((
         "advisor_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -852,7 +852,7 @@ fn test_terminate() {
     allocations.push((
         "team_1".to_string(),
         AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000000u64),
+            total_amount: Uint128::from(5_000_000_000_000_u64),
             withdrawn_amount: Uint128::from(0u64),
             vest_schedule: Schedule {
                 start_time: 1642402274u64,
@@ -871,10 +871,10 @@ fn test_terminate() {
     // SUCCESSFULLY CREATES ALLOCATIONS
     app.execute_contract(
         Addr::unchecked(OWNER.clone()),
-        whale_instance.clone(),
+        whale_instance,
         &cw20::Cw20ExecuteMsg::Send {
-            contract: vesting_instance.clone().to_string(),
-            amount: Uint128::from(15_000_000_000000u64),
+            contract: vesting_instance.to_string(),
+            amount: Uint128::from(15_000_000_000_000_u64),
             msg: to_binary(&ReceiveMsg::CreateAllocations {
                 allocations: allocations.clone(),
             })

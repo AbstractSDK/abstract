@@ -41,7 +41,7 @@ pub fn register_and_create_dex_api(
     let api_addr = app
         .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
         .unwrap();
-    register_extension(app, &sender, &version_control, module, api_addr).unwrap();
+    register_extension(app, sender, version_control, module, api_addr).unwrap();
     Ok(())
 }
 
