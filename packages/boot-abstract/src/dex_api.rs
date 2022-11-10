@@ -20,18 +20,19 @@ pub type DexApi<Chain> = AbstractOS<
 >;
 
 impl<Chain: TxHandler + Clone> DexApi<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
+    where
+        TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("dex"), // .with_mock(Box::new(
-                                                              //     ContractWrapper::new_with_empty(
-                                                              //         ::contract::execute,
-                                                              //         ::contract::instantiate,
-                                                              //         ::contract::query,
-                                                              //     ),
-                                                              // ))
+            Contract::new(name, chain).with_wasm_path("dex"),
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
     }
 
@@ -46,15 +47,18 @@ where
         let ask_asset = AssetEntry::new(ask_asset);
         manager.execute_on_module(
             EXCHANGE,
-            ExecuteMsg::Request::<DexRequestMsg,Empty>(ApiRequestMsg {
+            ExecuteMsg::<DexRequestMsg>::App(ApiRequestMsg {
                 proxy_address: None,
-                request: DexRequestMsg { dex, action: DexAction::Swap {
-                    offer_asset: (asset, Uint128::new(offer_asset.1)),
-                    ask_asset,
-                    max_spread: None,
-                    belief_price: None,
+                request: DexRequestMsg {
+                    dex,
+                    action: DexAction::Swap {
+                        offer_asset: (asset, Uint128::new(offer_asset.1)),
+                        ask_asset,
+                        max_spread: None,
+                        belief_price: None,
+                    },
                 },
-    }}),
+            }),
         )?;
         Ok(())
     }
