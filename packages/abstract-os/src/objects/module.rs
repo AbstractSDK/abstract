@@ -6,6 +6,7 @@ use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
 use super::module_reference::ModuleReference;
 
+/// Stores the provider, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {
     /// Provider of the module

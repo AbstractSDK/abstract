@@ -10,7 +10,7 @@ use abstract_os::{
         module_reference::ModuleReference,
     },
     registry,
-    version_control::*,
+    version_control::*, middleware,
 };
 
 use crate::AbstractOS;
@@ -68,8 +68,8 @@ where
         V: Serialize + Debug,
     >(
         &self,
-        api: &mut Contract<Chain, R, BaseInstantiateMsg, T, V>,
-        api_init_msg: &BaseInstantiateMsg,
+        api: &mut Contract<Chain, R, middleware::InstantiateMsg<BaseInstantiateMsg>, T, V>,
+        api_init_msg: &middleware::InstantiateMsg<BaseInstantiateMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         api.upload()?;
