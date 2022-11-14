@@ -695,7 +695,10 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
+    assert_eq!(
+        resp.total_tokens_locked,
+        Uint128::from(5_000_000_000_000_u64)
+    );
     assert_eq!(
         resp.total_tokens_unlocked,
         Uint128::from(5_000_000_000_000_u64)
@@ -761,7 +764,10 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
+    assert_eq!(
+        resp.total_tokens_locked,
+        Uint128::from(5_000_000_000_000_u64)
+    );
     assert_eq!(resp.total_tokens_unlocked, Uint128::from(1231925577118u64));
     assert_eq!(resp.total_tokens_vested, Uint128::from(1231565036783u64));
     assert_eq!(resp.withdrawn_amount, Uint128::from(0u64));
@@ -782,7 +788,10 @@ fn test_withdraw() {
             },
         )
         .unwrap();
-    assert_eq!(resp.total_tokens_locked, Uint128::from(5_000_000_000_000_u64));
+    assert_eq!(
+        resp.total_tokens_locked,
+        Uint128::from(5_000_000_000_000_u64)
+    );
     assert_eq!(resp.total_tokens_vested, Uint128::from(1232876870877u64));
     assert_eq!(resp.withdrawable_amount, Uint128::from(1232876870877u64));
 

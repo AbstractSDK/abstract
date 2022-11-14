@@ -14,8 +14,8 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0-beta.1"
-authors = ["CyberHoward <cyberhoward@protonmail.com>", "Abstract Money <contact@abstract.money>"]
+version = "0.2.0-beta.2"
+authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"

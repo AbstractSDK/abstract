@@ -1,6 +1,6 @@
 {
   "contract_name": "proxy",
-  "contract_version": "0.2.0-beta.1",
+  "contract_version": "0.2.0-beta.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
