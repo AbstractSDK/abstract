@@ -23,7 +23,8 @@ cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
 
-boot-core = { git = "https://github.com/Abstract-OS/BOOT" }
+boot-core = { version = "0.1.1" }
+#boot-core = { git = "https://github.com/Abstract-OS/BOOT" }
 protobuf = { version = "2", features = ["with-bytes"] }
 tokio = { version = "1.4", features = ["full"] }
 secp256k1 = { version = "0.20.3", default-features = false }

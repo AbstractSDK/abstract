@@ -19,6 +19,8 @@ use boot_core::{
     state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse,
 };
 
+use cosmwasm_std::Addr;
+
 pub type VersionControl<Chain> =
     AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
 
@@ -26,15 +28,18 @@ impl<Chain: TxHandler + Clone> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: &Chain, address: Option<&Addr>) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("version_control"), // .with_mock(Box::new(
-                                                                          //     ContractWrapper::new_with_empty(
-                                                                          //         ::contract::execute,
-                                                                          //         ::contract::instantiate,
-                                                                          //         ::contract::query,
-                                                                          //     ),
-                                                                          // ))
+            Contract::new(name, chain)
+                .with_wasm_path("version_control")
+                .with_address(address),
+              // .with_mock(Box::new(
+              //     ContractWrapper::new_with_empty(
+              //         ::contract::execute,
+              //         ::contract::instantiate,
+              //         ::contract::query,
+              //     ),
+              // ))
         )
     }
     pub fn upload_and_register_module<
@@ -60,6 +65,7 @@ where
             },
             None,
         )?;
+        log::info!("Module {} uploaded and registered", module.id);
         Ok(())
     }
 
