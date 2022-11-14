@@ -5,12 +5,13 @@ use serde::Serialize;
 
 use abstract_os::{
     api::BaseInstantiateMsg,
+    middleware,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
     registry,
-    version_control::*, middleware,
+    version_control::*,
 };
 
 use crate::AbstractOS;
@@ -91,7 +92,7 @@ where
         let _addresses = self.chain().state().get_all_addresses()?;
         let mut modules = vec![];
         for app in registry::CORE {
-            let code_id = code_ids.get(app.clone()).unwrap();
+            let code_id = code_ids.get(*app).unwrap();
             modules.push((
                 ModuleInfo::from_id(app, ModuleVersion::Version(version.to_string()))?,
                 ModuleReference::App(*code_id),

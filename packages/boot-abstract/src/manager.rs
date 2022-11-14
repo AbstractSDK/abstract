@@ -1,8 +1,7 @@
 use std::fmt::Debug;
 
-
 use abstract_os::objects::module::ModuleInfo;
-use abstract_os::objects::module::{ModuleVersion};
+use abstract_os::objects::module::ModuleVersion;
 use boot_core::state::StateInterface;
 use cosmwasm_std::{to_binary, Addr, Binary};
 

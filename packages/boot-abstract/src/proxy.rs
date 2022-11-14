@@ -1,6 +1,6 @@
 use abstract_os::objects::proxy_asset::UncheckedProxyAsset;
+use abstract_os::proxy::*;
 use abstract_os::{MANAGER, PROXY};
-use abstract_os::{proxy::*};
 
 use crate::{manager::Manager, AbstractOS};
 use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
@@ -14,12 +14,12 @@ where
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("proxy"), // .with_mock(Box::new(
-                                                                            //     ContractWrapper::new_with_empty(
-                                                                            //         ::contract::execute,
-                                                                            //         ::contract::instantiate,
-                                                                            //         ::contract::query,
-                                                                            //     ),
-                                                                            // ))
+                                                                //     ContractWrapper::new_with_empty(
+                                                                //         ::contract::execute,
+                                                                //         ::contract::instantiate,
+                                                                //         ::contract::query,
+                                                                //     ),
+                                                                // ))
         )
     }
     pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {

@@ -21,8 +21,8 @@ pub type DexApi<Chain> = AbstractOS<
 >;
 
 impl<Chain: TxHandler + Clone> DexApi<Chain>
-    where
-        TxResponse<Chain>: IndexResponse,
+where
+    TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
