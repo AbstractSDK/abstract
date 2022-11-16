@@ -27,7 +27,7 @@ pub fn instantiate(
     let config = Config {
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-        memory_contract: deps.api.addr_validate(&msg.memory_address)?,
+        ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
         subscription_address: None,
         next_os_id: 0u32,
     };
@@ -45,7 +45,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
             admin,
-            memory_contract,
+            ans_host_contract,
             version_control_contract,
             subscription_address,
             module_factory_address,
@@ -54,7 +54,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
             env,
             info,
             admin,
-            memory_contract,
+            ans_host_contract,
             version_control_contract,
             module_factory_address,
             subscription_address,
@@ -108,7 +108,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
         owner: admin.into(),
         version_control_contract: state.version_control_contract.into(),
-        memory_contract: state.memory_contract.into(),
+        ans_host_contract: state.ans_host_contract.into(),
         subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
         next_os_id: state.next_os_id,

@@ -45,4 +45,4 @@ It accepts [`abstract_os::ibc_host::PacketMsg`] messages over IBC. A custom `pac
 > If a channel to the host is closed, it is added to a `closed_channels` list. Any proxy contracts instantiated under this channel are now locked. The `SendAllBack` action is allowed to be called freely, enabling users to get any funds that were left in the proxy back. 
 
 # ICS20 transfers 
-In order to easily perform token transfers between chains, a channel-id store was added to the Memory contract. This allows any contract to locally resolve which channel to use in order to transfer some token to a different chain. The store also allows for more channel entries in the future. 
+In order to easily perform token transfers between chains, a channel-id store was added to the AnsHost contract. This allows any contract to locally resolve which channel to use in order to transfer some token to a different chain. The store also allows for more channel entries in the future. 

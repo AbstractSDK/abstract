@@ -7,11 +7,11 @@
     "title": "InstantiateMsg",
     "type": "object",
     "required": [
-      "memory_address",
+      "ans_host_address",
       "os_id"
     ],
     "properties": {
-      "memory_address": {
+      "ans_host_address": {
         "type": "string"
       },
       "os_id": {
@@ -1323,7 +1323,7 @@
         "type": "string"
       },
       "UncheckedProxyAsset": {
-        "description": "A proxy asset with unchecked memory entry fields.",
+        "description": "A proxy asset with unchecked ans_host entry fields.",
         "type": "object",
         "required": [
           "asset"
@@ -1953,7 +1953,7 @@
           ],
           "properties": {
             "asset": {
-              "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
+              "description": "Asset entry that maps to an AssetInfo using raw-queries on ans_host",
               "allOf": [
                 {
                   "$ref": "#/definitions/AssetEntry"
@@ -2119,7 +2119,7 @@
           ],
           "properties": {
             "asset": {
-              "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
+              "description": "Asset entry that maps to an AssetInfo using raw-queries on ans_host",
               "allOf": [
                 {
                   "$ref": "#/definitions/AssetEntry"
@@ -2272,7 +2272,7 @@
           ],
           "properties": {
             "asset": {
-              "description": "Asset entry that maps to an AssetInfo using raw-queries on memory",
+              "description": "Asset entry that maps to an AssetInfo using raw-queries on ans_host",
               "allOf": [
                 {
                   "$ref": "#/definitions/AssetEntry"

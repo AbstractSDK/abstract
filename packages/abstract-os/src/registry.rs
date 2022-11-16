@@ -10,7 +10,7 @@ pub const VERSION_CONTROL: &str = "abstract:version_control";
 pub const OS_FACTORY: &str = "abstract:os_factory";
 pub const MODULE_FACTORY: &str = "abstract:module_factory";
 pub const PROXY: &str = "abstract:proxy";
-pub const MEMORY: &str = "abstract:memory";
+pub const ANS_HOST: &str = "abstract:ans_host";
 pub const ETF: &str = "abstract:etf";
 pub const SUBSCRIPTION: &str = "abstract:subscription";
 pub const EXCHANGE: &str = "abstract:dex";
@@ -24,8 +24,13 @@ pub const ICS20: &str = "ics-20";
 
 /// Useful when deploying version control
 #[allow(unused)]
-pub static NATIVE_CONTRACTS: &[&str] =
-    &[MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL, "cw20"];
+pub static NATIVE_CONTRACTS: &[&str] = &[
+    ANS_HOST,
+    MODULE_FACTORY,
+    OS_FACTORY,
+    VERSION_CONTROL,
+    "cw20",
+];
 pub static API_CONTRACTS: &[&str] = &[EXCHANGE, TENDERMINT_STAKING];
 pub static APPS: &[&str] = &[ETF];
 pub static CORE: &[&str] = &[MANAGER, PROXY];

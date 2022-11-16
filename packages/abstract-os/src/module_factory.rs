@@ -18,7 +18,7 @@ pub mod state {
     #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
     pub struct Config {
         pub version_control_address: Addr,
-        pub memory_address: Addr,
+        pub ans_host_address: Addr,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -44,8 +44,8 @@ use cosmwasm_std::Binary;
 pub struct InstantiateMsg {
     /// Version control address used to get code-ids and register OS
     pub version_control_address: String,
-    /// Memory address
-    pub memory_address: String,
+    /// AnsHost address
+    pub ans_host_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -53,7 +53,7 @@ pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
         admin: Option<String>,
-        memory_address: Option<String>,
+        ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
     /// Creates the core contracts for the OS
@@ -81,7 +81,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub owner: String,
-    pub memory_address: String,
+    pub ans_host_address: String,
     pub version_control_address: String,
 }
 

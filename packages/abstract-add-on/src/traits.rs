@@ -3,7 +3,7 @@ use abstract_sdk::{
     api_request,
     manager::query_module_address,
     proxy::{os_ibc_action, os_module_action},
-    Dependency, MemoryOperation, OsExecute,
+    AnsHostOperation, Dependency, OsExecute,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult, Storage, SubMsg};
 
@@ -16,7 +16,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > MemoryOperation
+    > AnsHostOperation
     for AddOnContract<
         Error,
         CustomExecMsg,
@@ -26,8 +26,8 @@ impl<
         ReceiveMsg,
     >
 {
-    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
-        Ok(self.base_state.load(store)?.memory)
+    fn load_ans_host(&self, store: &dyn Storage) -> StdResult<abstract_sdk::ans_host::AnsHost> {
+        Ok(self.base_state.load(store)?.ans_host)
     }
 }
 

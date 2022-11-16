@@ -3,19 +3,19 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
+    "ans_host_address",
     "dependencies",
-    "memory_address",
     "version_control_address"
   ],
   "properties": {
+    "ans_host_address": {
+      "$ref": "#/definitions/Addr"
+    },
     "dependencies": {
       "type": "array",
       "items": {
         "type": "string"
       }
-    },
-    "memory_address": {
-      "$ref": "#/definitions/Addr"
     },
     "version_control_address": {
       "$ref": "#/definitions/Addr"

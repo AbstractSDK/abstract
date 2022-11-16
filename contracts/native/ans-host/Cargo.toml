@@ -1,5 +1,5 @@
 [package]
-name = "memory"
+name = "ans_host"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}

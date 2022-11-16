@@ -6,7 +6,7 @@ use crate::contract::{execute, instantiate};
 use crate::tests::common::TEST_CREATOR;
 
 use crate::tests::mock_querier::mock_dependencies;
-use abstract_os::memory::*;
+use abstract_os::ans_host::*;
 
 pub(crate) fn instantiate_msg() -> InstantiateMsg {
     InstantiateMsg {}

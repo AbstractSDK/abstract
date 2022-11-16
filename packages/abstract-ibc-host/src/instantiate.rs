@@ -1,7 +1,7 @@
 use abstract_os::ibc_host::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use abstract_sdk::{ans_host::AnsHost, Handler, InstantiateEndpoint};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -31,14 +31,14 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let memory = Memory {
-            address: deps.api.addr_validate(&msg.base.memory_address)?,
+        let ans_host = AnsHost {
+            address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };
 
         // Base state
         let state = HostState {
             chain: self.chain.to_string(),
-            memory,
+            ans_host,
             cw1_code_id: msg.base.cw1_code_id,
             admin: info.sender.clone(),
         };

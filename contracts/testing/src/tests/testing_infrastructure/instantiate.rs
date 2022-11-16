@@ -5,14 +5,14 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 use cosmwasm_std::{Addr, Timestamp};
 
 use abstract_os::{
-    memory as MemoryMsg, module_factory as ModuleFactoryMsg,
+    ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
     os_factory as OSFactoryMsg,
     version_control::{self as VCMsg, ModulesResponse},
-    MEMORY, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
+    ANS_HOST, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
 };
 
 use cw_multi_test::{App, Executor};
@@ -52,16 +52,16 @@ pub fn init_native_contracts(
         )
         .unwrap();
 
-    let memory_instantiate_msg = MemoryMsg::InstantiateMsg {};
+    let ans_host_instantiate_msg = AnsHostMsg::InstantiateMsg {};
 
-    // Memory contract
-    let memory_instance = app
+    // AnsHost contract
+    let ans_host_instance = app
         .instantiate_contract(
-            *code_ids.get(MEMORY).unwrap(),
+            *code_ids.get(ANS_HOST).unwrap(),
             owner.clone(),
-            &memory_instantiate_msg,
+            &ans_host_instantiate_msg,
             &[],
-            "Memory",
+            "AnsHost",
             None,
         )
         .unwrap();
@@ -80,7 +80,7 @@ pub fn init_native_contracts(
         .unwrap();
 
     let module_factory_msg = ModuleFactoryMsg::InstantiateMsg {
-        memory_address: memory_instance.to_string(),
+        ans_host_address: ans_host_instance.to_string(),
         version_control_address: version_control_instance.to_string(),
     };
     // Instantiate module factory Contract
@@ -96,7 +96,7 @@ pub fn init_native_contracts(
         .unwrap();
 
     let os_factory_msg = OSFactoryMsg::InstantiateMsg {
-        memory_address: memory_instance.to_string(),
+        ans_host_address: ans_host_instance.to_string(),
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),
     };
@@ -133,7 +133,7 @@ pub fn init_native_contracts(
 
     NativeContracts {
         token: token_instance,
-        memory: memory_instance,
+        ans_host: ans_host_instance,
         version_control: version_control_instance,
         os_factory: os_factory_instance,
         module_factory: module_factory_instance,

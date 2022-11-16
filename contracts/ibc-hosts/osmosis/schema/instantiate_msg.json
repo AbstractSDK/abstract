@@ -30,19 +30,19 @@
       "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].",
       "type": "object",
       "required": [
-        "cw1_code_id",
-        "memory_address"
+        "ans_host_address",
+        "cw1_code_id"
       ],
       "properties": {
+        "ans_host_address": {
+          "description": "Used to easily perform address translation on the app chain",
+          "type": "string"
+        },
         "cw1_code_id": {
           "description": "Code-id for cw1 proxy contract",
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
-        },
-        "memory_address": {
-          "description": "Used to easily perform address translation on the app chain",
-          "type": "string"
         }
       },
       "additionalProperties": false

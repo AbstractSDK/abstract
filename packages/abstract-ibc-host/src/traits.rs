@@ -1,4 +1,4 @@
-use abstract_sdk::{MemoryOperation, OsExecute};
+use abstract_sdk::{AnsHostOperation, OsExecute};
 use cosmwasm_std::{wasm_execute, Deps, StdError, StdResult, Storage, SubMsg};
 
 use crate::{Host, HostError};
@@ -10,11 +10,11 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > MemoryOperation
+    > AnsHostOperation
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
-        Ok(self.base_state.load(store)?.memory)
+    fn load_ans_host(&self, store: &dyn Storage) -> StdResult<abstract_sdk::ans_host::AnsHost> {
+        Ok(self.base_state.load(store)?.ans_host)
     }
 }
 

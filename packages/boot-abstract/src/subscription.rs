@@ -26,12 +26,12 @@ where
     pub fn init_msg(
         payment_denom: String,
         token_addr: String,
-        memory_address: String,
+        ans_host_address: String,
         factory_addr: String,
         version_control_addr: String,
     ) -> InstantiateMsg {
         InstantiateMsg {
-            base: BaseInstantiateMsg { memory_address },
+            base: BaseInstantiateMsg { ans_host_address },
             subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
                 factory_addr,
                 payment_asset: AssetInfoUnchecked::native(payment_denom),

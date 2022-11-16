@@ -182,7 +182,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
                     label: format!("Proxy of OS: {}", config.next_os_id),
                     msg: to_binary(&ProxyInstantiateMsg {
                         os_id: config.next_os_id,
-                        memory_address: config.memory_contract.to_string(),
+                        ans_host_address: config.ans_host_contract.to_string(),
                     })?,
                 }
                 .into(),
@@ -276,7 +276,7 @@ pub fn execute_update_config(
     _env: Env,
     info: MessageInfo,
     admin: Option<String>,
-    memory_contract: Option<String>,
+    ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
     subscription_address: Option<String>,
@@ -285,9 +285,9 @@ pub fn execute_update_config(
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
-    if let Some(memory_contract) = memory_contract {
+    if let Some(ans_host_contract) = ans_host_contract {
         // validate address format
-        config.memory_contract = deps.api.addr_validate(&memory_contract)?;
+        config.ans_host_contract = deps.api.addr_validate(&ans_host_contract)?;
     }
 
     if let Some(version_control_contract) = version_control_contract {

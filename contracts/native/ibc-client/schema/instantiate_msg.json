@@ -4,15 +4,15 @@
   "description": "This needs no info. Owner of the contract is whoever signed the InstantiateMsg.",
   "type": "object",
   "required": [
+    "ans_host_address",
     "chain",
-    "memory_address",
     "version_control_address"
   ],
   "properties": {
-    "chain": {
+    "ans_host_address": {
       "type": "string"
     },
-    "memory_address": {
+    "chain": {
       "type": "string"
     },
     "version_control_address": {

@@ -19,7 +19,7 @@ pub fn register_and_create_dex_api(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
-    memory: &Addr,
+    ans_host: &Addr,
     version: Option<String>,
 ) -> AnyResult<()> {
     let module = ModuleInfo::from_id(
@@ -35,7 +35,7 @@ pub fn register_and_create_dex_api(
     ));
     let code_id = app.store_code(contract);
     let msg = BaseInstantiateMsg {
-        memory_address: memory.to_string(),
+        ans_host_address: ans_host.to_string(),
         version_control_address: version_control.to_string(),
     };
     let api_addr = app
@@ -61,7 +61,7 @@ fn proper_initialization() {
         &mut app,
         &sender,
         &env.native_contracts.version_control,
-        &env.native_contracts.memory,
+        &env.native_contracts.ans_host,
         None,
     )
     .unwrap();
@@ -72,7 +72,7 @@ fn proper_initialization() {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
                 api_init_msg(
-                    &env.native_contracts.memory,
+                    &env.native_contracts.ans_host,
                     &env.native_contracts.version_control,
                 )
                 .unwrap(),
@@ -86,7 +86,7 @@ fn proper_initialization() {
         &mut app,
         &sender,
         &env.native_contracts.version_control,
-        &env.native_contracts.memory,
+        &env.native_contracts.ans_host,
         Some("0.1.1".into()),
     )
     .unwrap();
@@ -120,7 +120,7 @@ fn proper_initialization() {
         &mut app,
         &sender,
         &env.native_contracts.version_control,
-        &env.native_contracts.memory,
+        &env.native_contracts.ans_host,
         Some("0.0.1".into()),
     )
     .unwrap();

@@ -7,8 +7,8 @@ use abstract_os::{
     EXCHANGE,
 };
 use abstract_sdk::{
-    host_ibc_action, ics20_transfer, memory::Memory, ExecuteEndpoint, InstantiateEndpoint,
-    MemoryOperation, QueryEndpoint, Resolve,
+    ans_host::AnsHost, host_ibc_action, ics20_transfer, AnsHostOperation, ExecuteEndpoint,
+    InstantiateEndpoint, QueryEndpoint, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -136,9 +136,9 @@ fn handle_ibc_api_request(
     action: &DexAction,
 ) -> DexResult {
     let host_chain = dex_name;
-    let memory = api.load_memory(deps.storage)?;
+    let ans_host = api.load_ans_host(deps.storage)?;
     // get the to-be-sent assets from the action
-    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &memory)?;
+    let coins = resolve_assets_to_transfer(deps.as_ref(), action, &ans_host)?;
     // construct the ics20 call(s)
     let ics20_transfer_msg = ics20_transfer(api.target()?, host_chain.clone(), coins)?;
     // construct the action to be called on the host
@@ -179,12 +179,12 @@ fn query_handler(deps: Deps, env: Env, _app: &DexApi, msg: DexQueryMsg) -> StdRe
 fn resolve_assets_to_transfer(
     deps: Deps,
     dex_action: &DexAction,
-    memory: &Memory,
+    ans_host: &AnsHost,
 ) -> StdResult<Vec<Coin>> {
     // resolve asset to native asset
     let offer_to_coin = |offer: &(AssetEntry, Uint128)| {
         Asset {
-            info: offer.0.resolve(deps, memory)?,
+            info: offer.0.resolve(deps, ans_host)?,
             amount: offer.1,
         }
         .try_into()

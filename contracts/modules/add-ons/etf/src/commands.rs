@@ -1,6 +1,6 @@
 use abstract_add_on::state::AddOnState;
 
-use abstract_sdk::MemoryOperation;
+use abstract_sdk::AnsHostOperation;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
     WasmMsg,
@@ -87,7 +87,7 @@ pub fn try_provide_liquidity(
         }
     };
 
-    // Get all the required asset information from the memory contract
+    // Get all the required asset information from the ans_host contract
     let (_, base_asset) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
     let deposit_asset = dapp.resolve(deps.as_ref(), &base_asset)?;
     // Construct deposit info
@@ -158,11 +158,11 @@ pub fn try_withdraw_liquidity(
 ) -> EtfResult {
     let state: State = STATE.load(deps.storage)?;
     let base_state: AddOnState = dapp.load_state(deps.storage)?;
-    let memory = base_state.memory;
+    let ans_host = base_state.ans_host;
     let fee: Fee = FEE.load(deps.storage)?;
     // Get assets
     let (assets, _) = query_enabled_asset_names(deps.as_ref(), &base_state.proxy_address)?;
-    let assets = memory.query_assets(deps.as_ref(), assets)?;
+    let assets = ans_host.query_assets(deps.as_ref(), assets)?;
 
     // Logging var
     let mut attrs = vec![

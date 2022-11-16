@@ -53,7 +53,7 @@ where
         self.execute(
             &ExecuteMsg::UpdateConfig {
                 admin: None,
-                memory_contract: None,
+                ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: None,
                 subscription_address: Some(addr),

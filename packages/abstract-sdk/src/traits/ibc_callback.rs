@@ -1,9 +1,9 @@
 use abstract_os::{abstract_ica::IbcResponseMsg, objects::UncheckedContractEntry, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 
-use crate::{Handler, MemoryOperation};
+use crate::{AnsHostOperation, Handler};
 
-pub trait IbcCallbackEndpoint: Handler + MemoryOperation {
+pub trait IbcCallbackEndpoint: Handler + AnsHostOperation {
     /// Takes request, sets destination and executes request handler
     /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
     fn handle_ibc_callback(

@@ -24,7 +24,7 @@ pub fn instantiate(
 ) -> ModuleFactoryResult {
     let config = Config {
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-        memory_address: deps.api.addr_validate(&msg.memory_address)?,
+        ans_host_address: deps.api.addr_validate(&msg.ans_host_address)?,
     };
 
     set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
@@ -47,14 +47,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     match msg {
         ExecuteMsg::UpdateConfig {
             admin,
-            memory_address,
+            ans_host_address,
             version_control_address,
         } => commands::execute_update_config(
             deps,
             env,
             info,
             admin,
-            memory_address,
+            ans_host_address,
             version_control_address,
         ),
         ExecuteMsg::CreateModule { module, init_msg } => {
@@ -100,7 +100,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let resp = ConfigResponse {
         owner: admin.into(),
         version_control_address: state.version_control_address.into(),
-        memory_address: state.memory_address.into(),
+        ans_host_address: state.ans_host_address.into(),
     };
 
     Ok(resp)

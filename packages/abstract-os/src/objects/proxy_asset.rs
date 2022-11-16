@@ -29,12 +29,12 @@ use crate::{
 };
 
 use super::{
+    ans_host::AnsHost,
     asset_entry::AssetEntry,
     contract_entry::{ContractEntry, UncheckedContractEntry},
-    memory::Memory,
 };
 
-/// A proxy asset with unchecked memory entry fields.
+/// A proxy asset with unchecked ans_host entry fields.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct UncheckedProxyAsset {
     /// The asset that's held by the proxy
@@ -47,13 +47,13 @@ pub struct UncheckedProxyAsset {
 }
 
 impl UncheckedProxyAsset {
-    /// Perform checks on the proxy asset to ensure it can be resolved by the Memory
-    pub fn check(self, deps: Deps, memory: &Memory) -> StdResult<ProxyAsset> {
+    /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
+    pub fn check(self, deps: Deps, ans_host: &AnsHost) -> StdResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
-        memory.query_asset(deps, &entry)?;
+        ans_host.query_asset(deps, &entry)?;
         let value_reference = self
             .value_reference
-            .map(|val| val.check(deps, memory, &entry));
+            .map(|val| val.check(deps, ans_host, &entry));
         Ok(ProxyAsset {
             asset: entry,
             value_reference: value_reference.transpose()?,
@@ -86,7 +86,7 @@ pub enum UncheckedValueRef {
 }
 
 impl UncheckedValueRef {
-    pub fn check(self, deps: Deps, memory: &Memory, entry: &AssetEntry) -> StdResult<ValueRef> {
+    pub fn check(self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> StdResult<ValueRef> {
         match self {
             UncheckedValueRef::Pool { pair, exchange } => {
                 let lowercase = pair.to_ascii_lowercase();
@@ -101,7 +101,7 @@ impl UncheckedValueRef {
                 // verify pair is available
                 let pair_contract: ContractEntry =
                     UncheckedContractEntry::new(&exchange, &pair_name).check();
-                memory.query_contract(deps, &pair_contract)?;
+                ans_host.query_contract(deps, &pair_contract)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,
                 })
@@ -109,12 +109,12 @@ impl UncheckedValueRef {
             UncheckedValueRef::LiquidityToken {} => {
                 let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
                 // Ensure lp pair is registered
-                memory.query_contract(deps, &maybe_pair.check())?;
+                ans_host.query_contract(deps, &maybe_pair.check())?;
                 Ok(ValueRef::LiquidityToken {})
             }
             UncheckedValueRef::ValueAs { asset, multiplier } => {
                 let replacement_asset: AssetEntry = asset.into();
-                memory.query_asset(deps, &replacement_asset)?;
+                ans_host.query_asset(deps, &replacement_asset)?;
                 Ok(ValueRef::ValueAs {
                     asset: replacement_asset,
                     multiplier,
@@ -129,7 +129,7 @@ impl UncheckedValueRef {
 /// a base asset.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct ProxyAsset {
-    /// Asset entry that maps to an AssetInfo using raw-queries on memory
+    /// Asset entry that maps to an AssetInfo using raw-queries on ans_host
     pub asset: AssetEntry,
     /// The value reference provides the tooling to get the value of the asset
     /// relative to the base asset.
@@ -163,11 +163,11 @@ impl ProxyAsset {
         &mut self,
         deps: Deps,
         env: &Env,
-        memory: &Memory,
+        ans_host: &AnsHost,
         set_holding: Option<Uint128>,
     ) -> StdResult<Uint128> {
         // Query how many of these tokens are held in the contract if not set.
-        let asset_info = memory.query_asset(deps, &self.asset)?;
+        let asset_info = ans_host.query_asset(deps, &self.asset)?;
         let holding: Uint128 = match set_holding {
             Some(setter) => setter,
             None => asset_info.query_balance(&deps.querier, env.contract.address.clone())?,
@@ -180,7 +180,7 @@ impl ProxyAsset {
             match value_reference {
                 // A Pool refers to a swap pair that recursively leads to an asset/base_asset pool.
                 ValueRef::Pool { pair } => {
-                    return self.trade_pair_value(deps, env, memory, valued_asset, pair)
+                    return self.trade_pair_value(deps, env, ans_host, valued_asset, pair)
                 }
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
                 ValueRef::LiquidityToken {} => {
@@ -189,11 +189,11 @@ impl ProxyAsset {
                     // pairs are stored as ContractEntry{protocol: dex, contract: asset1_asset2} in the contract store.
                     let maybe_pair: UncheckedContractEntry = self.asset.to_string().try_into()?;
                     let pair = maybe_pair.check();
-                    return self.lp_value(deps, env, memory, valued_asset, pair);
+                    return self.lp_value(deps, env, ans_host, valued_asset, pair);
                 }
                 // A proxy asset is used instead
                 ValueRef::ValueAs { asset, multiplier } => {
-                    return value_as_value(deps, env, memory, asset, multiplier, holding)
+                    return value_as_value(deps, env, ans_host, asset, multiplier, holding)
                 }
                 ValueRef::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
@@ -226,15 +226,15 @@ impl ProxyAsset {
         &self,
         deps: Deps,
         env: &Env,
-        memory: &Memory,
+        ans_host: &AnsHost,
         valued_asset: Asset,
         pair: ContractEntry,
     ) -> StdResult<Uint128> {
         let other_pool_asset: AssetEntry =
             other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
-        let pair_address = memory.query_contract(deps, &pair)?;
-        let other_asset_info = memory.query_asset(deps, &other_pool_asset)?;
+        let pair_address = ans_host.query_contract(deps, &pair)?;
+        let other_asset_info = ans_host.query_asset(deps, &other_pool_asset)?;
 
         // query assets held in pool, gives price
         let pool_info = (
@@ -253,7 +253,7 @@ impl ProxyAsset {
         // #other = #this * (pool_other/pool_this)
         let amount_in_other_denom = valued_asset.amount * ratio;
         // Call value on this other asset.
-        recursive_vault_asset.value(deps, env, memory, Some(amount_in_other_denom))
+        recursive_vault_asset.value(deps, env, ans_host, Some(amount_in_other_denom))
     }
 
     /// Calculate the value of an LP token
@@ -262,7 +262,7 @@ impl ProxyAsset {
         &self,
         deps: Deps,
         env: &Env,
-        memory: &Memory,
+        ans_host: &AnsHost,
         lp_asset: Asset,
         pair: ContractEntry,
     ) -> StdResult<Uint128> {
@@ -285,10 +285,10 @@ impl ProxyAsset {
             )));
         }
 
-        let pair_address = memory.query_contract(deps, &pair)?;
+        let pair_address = ans_host.query_contract(deps, &pair)?;
 
-        let asset_1 = memory.query_asset(deps, &other_pool_asset_names[0].into())?;
-        let asset_2 = memory.query_asset(deps, &other_pool_asset_names[1].into())?;
+        let asset_1 = ans_host.query_asset(deps, &other_pool_asset_names[0].into())?;
+        let asset_2 = ans_host.query_asset(deps, &other_pool_asset_names[1].into())?;
         // query assets held in pool, gives price
         let (amount1, amount2) = (
             asset_1.query_balance(&deps.querier, &pair_address)?,
@@ -306,8 +306,8 @@ impl ProxyAsset {
         let vault_asset_2_amount = share * Uint128::new(amount2.u128());
         // Call value on these assets.
         Ok(
-            vault_asset_1.value(deps, env, memory, Some(vault_asset_1_amount))?
-                + vault_asset_2.value(deps, env, memory, Some(vault_asset_2_amount))?,
+            vault_asset_1.value(deps, env, ans_host, Some(vault_asset_1_amount))?
+                + vault_asset_2.value(deps, env, ans_host, Some(vault_asset_2_amount))?,
         )
     }
 }
@@ -315,7 +315,7 @@ impl ProxyAsset {
 pub fn value_as_value(
     deps: Deps,
     env: &Env,
-    memory: &Memory,
+    ans_host: &AnsHost,
     replacement_asset: AssetEntry,
     multiplier: Decimal,
     holding: Uint128,
@@ -324,7 +324,7 @@ pub fn value_as_value(
     let mut replacement_vault_asset: ProxyAsset =
         VAULT_ASSETS.load(deps.storage, replacement_asset)?;
     // call value on proxy asset with adjusted multiplier.
-    replacement_vault_asset.value(deps, env, memory, Some(holding * multiplier))
+    replacement_vault_asset.value(deps, env, ans_host, Some(holding * multiplier))
 }
 /// Get the other asset's name from a composite name
 /// ex: asset= "btc" composite = "btc_eth"

@@ -8,7 +8,7 @@ use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_os::ibc_client::ExecuteMsg as IbcClientMsg;
 use abstract_os::objects::proxy_asset::UncheckedProxyAsset;
-use abstract_os::proxy::state::{ADMIN, MEMORY, STATE, VAULT_ASSETS};
+use abstract_os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -69,7 +69,7 @@ pub fn update_assets(
 ) -> ProxyResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let memory = &MEMORY.load(deps.storage)?;
+    let ans_host = &ANS_HOST.load(deps.storage)?;
     // Check the vault size to be within the size limit to prevent running out of gas when doing lookups
     let current_vault_size = VAULT_ASSETS
         .keys(deps.storage, None, None, Order::Ascending)
@@ -80,7 +80,7 @@ pub fn update_assets(
     }
 
     for new_asset in to_add.into_iter() {
-        let checked_asset = new_asset.check(deps.as_ref(), memory)?;
+        let checked_asset = new_asset.check(deps.as_ref(), ans_host)?;
 
         VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), &checked_asset)?;
     }

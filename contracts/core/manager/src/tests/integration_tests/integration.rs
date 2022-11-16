@@ -69,12 +69,12 @@ fn proper_initialization() {
 
     init_os(&mut app, sender, &native_contracts);
 
-    // // Add whale and whale_ust token to the memory assets
+    // // Add whale and whale_ust token to the ans_host assets
     // // Is tested on unit-test level
     // app.execute_contract(
     //     sender.clone(),
-    //     base_contracts.memory.clone(),
-    //     &MemoryMsg::ExecuteMsg::UpdateAssetAddresses {
+    //     base_contracts.ans_host.clone(),
+    //     &AnsHostMsg::ExecuteMsg::UpdateAssetAddresses {
     //         to_add: vec![
     //             (
     //                 "whale".to_string(),
@@ -95,12 +95,12 @@ fn proper_initialization() {
     // )
     // .unwrap();
 
-    // // Check Memory
-    // let resp: MemoryMsg::AssetQueryResponse = app
+    // // Check AnsHost
+    // let resp: AnsHostMsg::AssetQueryResponse = app
     //     .wrap()
     //     .query_wasm_smart(
-    //         &base_contracts.memory,
-    //         &MemoryMsg::QueryMsg::QueryAssets {
+    //         &base_contracts.ans_host,
+    //         &AnsHostMsg::QueryMsg::QueryAssets {
     //             names: vec![
     //                 "whale".to_string(),
     //                 "whale_ust".to_string(),
@@ -115,12 +115,12 @@ fn proper_initialization() {
     // assert_eq!("whale".to_string(), resp.assets[1].0);
     // assert_eq!("whale_ust".to_string(), resp.assets[2].0);
 
-    // // Add whale_ust pair to the memory contracts
+    // // Add whale_ust pair to the ans_host contracts
     // // Is tested on unit-test level
     // app.execute_contract(
     //     sender.clone(),
-    //     base_contracts.memory.clone(),
-    //     &MemoryMsg::ExecuteMsg::UpdateContractAddresses {
+    //     base_contracts.ans_host.clone(),
+    //     &AnsHostMsg::ExecuteMsg::UpdateContractAddresses {
     //         to_add: vec![(
     //             "whale_ust_pair".to_string(),
     //             base_contracts.whale_ust_pair.to_string(),
@@ -131,12 +131,12 @@ fn proper_initialization() {
     // )
     // .unwrap();
 
-    // // Check Memory
-    // let resp: MemoryMsg::ContractQueryResponse = app
+    // // Check AnsHost
+    // let resp: AnsHostMsg::ContractQueryResponse = app
     //     .wrap()
     //     .query_wasm_smart(
-    //         &base_contracts.memory,
-    //         &MemoryMsg::QueryMsg::QueryContracts {
+    //         &base_contracts.ans_host,
+    //         &AnsHostMsg::QueryMsg::QueryContracts {
     //             names: vec!["whale_ust_pair".to_string()],
     //         },
     //     )

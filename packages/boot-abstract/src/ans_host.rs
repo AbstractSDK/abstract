@@ -1,7 +1,7 @@
 use std::{cmp::min, env, fs::File};
 
 use abstract_os::objects::UncheckedContractEntry;
-use abstract_os::{memory::*, objects::UncheckedChannelEntry};
+use abstract_os::{ans_host::*, objects::UncheckedChannelEntry};
 
 use cw_asset::AssetInfoUnchecked;
 
@@ -10,26 +10,26 @@ use serde_json::from_reader;
 use crate::AbstractOS;
 use boot_core::{BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse};
 
-pub type Memory<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+pub type AnsHost<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
 
-impl<Chain: TxHandler + Clone> Memory<Chain>
+impl<Chain: TxHandler + Clone> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("memory"), // .with_mock(Box::new(
-                                                                 //     ContractWrapper::new_with_empty(
-                                                                 //         ::contract::execute,
-                                                                 //         ::contract::instantiate,
-                                                                 //         ::contract::query,
-                                                                 //     ),
-                                                                 // ))
+            Contract::new(name, chain).with_wasm_path("ans_host"), // .with_mock(Box::new(
+                                                                   //     ContractWrapper::new_with_empty(
+                                                                   //         ::contract::execute,
+                                                                   //         ::contract::instantiate,
+                                                                   //         ::contract::query,
+                                                                   //     ),
+                                                                   // ))
         )
     }
 }
 
-impl Memory<Daemon> {
+impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
         self.update_assets()?;
         self.update_contracts()?;
@@ -37,7 +37,7 @@ impl Memory<Daemon> {
     }
 
     pub fn update_assets(&self) -> Result<(), BootError> {
-        let path = env::var("MEMORY_ASSETS")?;
+        let path = env::var("ANS_HOST_ASSETS")?;
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
@@ -76,7 +76,7 @@ impl Memory<Daemon> {
     }
 
     pub fn update_channels(&self) -> Result<(), BootError> {
-        let path = env::var("MEMORY_CHANNELS")?;
+        let path = env::var("ANS_HOST_CHANNELS")?;
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
@@ -115,7 +115,7 @@ impl Memory<Daemon> {
     }
 
     pub fn update_contracts(&self) -> Result<(), BootError> {
-        let path = env::var("MEMORY_CONTRACTS")?;
+        let path = env::var("ANS_HOST_CONTRACTS")?;
 
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));

@@ -15,7 +15,7 @@ use super::instantiate::init_native_contracts;
 /// - Manager
 ///
 /// -- Native --
-/// - Memory
+/// - AnsHost
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
@@ -43,15 +43,15 @@ pub fn upload_contracts(app: &mut App) -> (HashMap<&str, u64>, NativeContracts) 
     let proxy_code_id = app.store_code(proxy_contract);
     code_ids.insert(PROXY, proxy_code_id);
 
-    // Upload Memory Contract
-    let memory_contract = Box::new(ContractWrapper::new_with_empty(
-        memory::contract::execute,
-        memory::contract::instantiate,
-        memory::contract::query,
+    // Upload AnsHost Contract
+    let ans_host_contract = Box::new(ContractWrapper::new_with_empty(
+        ans_host::contract::execute,
+        ans_host::contract::instantiate,
+        ans_host::contract::query,
     ));
 
-    let memory_code_id = app.store_code(memory_contract);
-    code_ids.insert(MEMORY, memory_code_id);
+    let ans_host_code_id = app.store_code(ans_host_contract);
+    code_ids.insert(ANS_HOST, ans_host_code_id);
 
     // Upload vc Contract
     let version_control_contract = Box::new(

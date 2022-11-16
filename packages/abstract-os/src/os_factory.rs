@@ -17,7 +17,7 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_contract: Addr,
-        pub memory_contract: Addr,
+        pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
         pub next_os_id: u32,
@@ -42,9 +42,9 @@ use cw20::Cw20ReceiveMsg;
 pub struct InstantiateMsg {
     /// Version control contract used to get code-ids and register OS
     pub version_control_address: String,
-    /// Memory contract
-    pub memory_address: String,
-    /// Address of module factory. Used for instantiating manager.
+    /// AnsHost contract
+    pub ans_host_address: String,
+    /// AnsHosts of module factory. Used for instantiating manager.
     pub module_factory_address: String,
 }
 
@@ -57,8 +57,8 @@ pub enum ExecuteMsg {
     UpdateConfig {
         /// New admin
         admin: Option<String>,
-        /// New memory contract
-        memory_contract: Option<String>,
+        /// New ans_host contract
+        ans_host_contract: Option<String>,
         /// New version control contract
         version_control_contract: Option<String>,
         /// New module factory contract
@@ -90,7 +90,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub owner: String,
-    pub memory_contract: String,
+    pub ans_host_contract: String,
     pub version_control_contract: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,

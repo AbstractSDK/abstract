@@ -52,7 +52,7 @@ impl<
         let state = self.base_state.load(deps.storage)?;
         Ok(ApiConfigResponse {
             version_control_address: state.version_control,
-            memory_address: state.memory.address,
+            ans_host_address: state.ans_host.address,
             dependencies: self
                 .dependencies()
                 .iter()

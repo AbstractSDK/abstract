@@ -1,4 +1,4 @@
-use abstract_os::objects::memory::Memory;
+use abstract_os::objects::ans_host::AnsHost;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, ReplyOn, StdError, StdResult, Storage, SubMsg};
 use serde::Serialize;
 
@@ -26,15 +26,15 @@ pub trait OsExecute {
     }
 }
 
-/// easily retrieve the memory object from the contract to perform queries
-pub trait MemoryOperation {
-    /// Load the Memory object
-    fn load_memory(&self, store: &dyn Storage) -> StdResult<Memory>;
-    /// Resolve a query on the memory contract
+/// easily retrieve the ans_host object from the contract to perform queries
+pub trait AnsHostOperation {
+    /// Load the AnsHost object
+    fn load_ans_host(&self, store: &dyn Storage) -> StdResult<AnsHost>;
+    /// Resolve a query on the ans_host contract
     /// Use if only 1-2 queries are required
-    /// loads the Memory var every call
-    fn resolve<T: Resolve>(&self, deps: Deps, memory_entry: &T) -> StdResult<T::Output> {
-        memory_entry.resolve(deps, &self.load_memory(deps.storage)?)
+    /// loads the AnsHost var every call
+    fn resolve<T: Resolve>(&self, deps: Deps, ans_host_entry: &T) -> StdResult<T::Output> {
+        ans_host_entry.resolve(deps, &self.load_ans_host(deps.storage)?)
     }
 }
 

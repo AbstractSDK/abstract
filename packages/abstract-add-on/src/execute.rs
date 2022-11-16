@@ -64,8 +64,8 @@ impl<
         message: BaseExecuteMsg,
     ) -> AddOnResult {
         match message {
-            BaseExecuteMsg::UpdateConfig { memory_address } => {
-                self.update_config(deps, info, memory_address)
+            BaseExecuteMsg::UpdateConfig { ans_host_address } => {
+                self.update_config(deps, info, ans_host_address)
             }
         }
     }
@@ -74,20 +74,20 @@ impl<
         &self,
         deps: DepsMut,
         info: MessageInfo,
-        memory_address: Option<String>,
+        ans_host_address: Option<String>,
     ) -> AddOnResult {
-        // self._update_config(deps, info, memory_address)?;
+        // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
         self.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
         let mut state = self.base_state.load(deps.storage)?;
 
-        if let Some(memory_address) = memory_address {
-            state.memory.address = deps.api.addr_validate(memory_address.as_str())?;
+        if let Some(ans_host_address) = ans_host_address {
+            state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
         }
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default().add_attribute("action", "updated_memory_address"))
+        Ok(Response::default().add_attribute("action", "updated_ans_host_address"))
     }
 }

@@ -25,7 +25,7 @@ pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation
-    pub memory_address: String,
+    pub ans_host_address: String,
     /// Used to verify senders
     pub version_control_address: String,
 }
@@ -89,7 +89,7 @@ pub enum BaseQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ApiConfigResponse {
     pub version_control_address: Addr,
-    pub memory_address: Addr,
+    pub ans_host_address: Addr,
     pub dependencies: Vec<String>,
 }
 

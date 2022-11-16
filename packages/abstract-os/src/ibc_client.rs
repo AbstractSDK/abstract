@@ -9,7 +9,7 @@ use self::state::AccountData;
 pub mod state {
 
     use super::LatestQueryResponse;
-    use crate::{objects::memory::Memory, MEMORY as MEMORY_KEY};
+    use crate::{objects::ans_host::AnsHost, ANS_HOST as ANS_HOST_KEY};
     use cosmwasm_std::{Addr, Coin, Timestamp};
     use cw_storage_plus::{Item, Map};
 
@@ -42,13 +42,13 @@ pub mod state {
     pub const ACCOUNTS: Map<(&str, u32), AccountData> = Map::new("accounts");
     /// Todo: see if we can remove this
     pub const LATEST_QUERIES: Map<(&str, u32), LatestQueryResponse> = Map::new("queries");
-    pub const MEMORY: Item<Memory> = Item::new(MEMORY_KEY);
+    pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub memory_address: String,
+    pub ans_host_address: String,
     pub version_control_address: String,
     pub chain: String,
 }

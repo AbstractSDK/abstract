@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use abstract_os::{
-    objects::module_reference::ModuleReference, MANAGER, MEMORY, MODULE_FACTORY, OS_FACTORY, PROXY,
-    VERSION_CONTROL,
+    objects::module_reference::ModuleReference, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY,
+    PROXY, VERSION_CONTROL,
 };
 use cw_multi_test::{App, ContractWrapper};
 
@@ -16,7 +16,7 @@ use super::{common_integration::NativeContracts, instantiate::init_native_contra
 /// - Manager
 ///
 /// -- Native --
-/// - Memory
+/// - AnsHost
 /// - Module Factory
 /// - Version Control
 /// - Os Factory
@@ -46,15 +46,15 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
     code_ids.insert(PROXY.into(), proxy_code_id);
     modules.insert(PROXY.into(), ModuleReference::App(proxy_code_id));
 
-    // Upload Memory Contract
-    let memory_contract = Box::new(ContractWrapper::new_with_empty(
-        memory::contract::execute,
-        memory::contract::instantiate,
-        memory::contract::query,
+    // Upload AnsHost Contract
+    let ans_host_contract = Box::new(ContractWrapper::new_with_empty(
+        ans_host::contract::execute,
+        ans_host::contract::instantiate,
+        ans_host::contract::query,
     ));
 
-    let memory_code_id = app.store_code(memory_contract);
-    code_ids.insert(MEMORY.into(), memory_code_id);
+    let ans_host_code_id = app.store_code(ans_host_contract);
+    code_ids.insert(ANS_HOST.into(), ans_host_code_id);
 
     // Upload vc Contract
     let version_control_contract = Box::new(

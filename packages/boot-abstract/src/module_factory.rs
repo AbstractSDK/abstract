@@ -22,11 +22,11 @@ where
         )
     }
 
-    pub fn change_memory_addr(&self, mem_addr: String) -> Result<TxResponse<Chain>, BootError> {
+    pub fn change_ans_host_addr(&self, mem_addr: String) -> Result<TxResponse<Chain>, BootError> {
         self.execute(
             &ExecuteMsg::UpdateConfig {
                 admin: None,
-                memory_address: Some(mem_addr),
+                ans_host_address: Some(mem_addr),
                 version_control_address: None,
             },
             None,

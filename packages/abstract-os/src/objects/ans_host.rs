@@ -4,19 +4,19 @@ use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
-use crate::memory::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
+use crate::ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
-/// Struct that provides easy in-contract memory querying.
+/// Struct that provides easy in-contract ans_host querying.
 #[cosmwasm_schema::cw_serde]
-pub struct Memory {
-    /// Address of the memory contract
+pub struct AnsHost {
+    /// Address of the ans_host contract
     pub address: Addr,
 }
 
-impl Memory {
-    /// Raw Query to Memory contract
+impl AnsHost {
+    /// Raw Query to AnsHost contract
     pub fn query_contracts(
         &self,
         deps: Deps,
@@ -29,7 +29,7 @@ impl Memory {
             let result: Addr = CONTRACT_ADDRESSES
                 .query(&deps.querier, self.address.clone(), key.clone())?
                 .ok_or_else(|| {
-                    StdError::generic_err(format!("contract {} not found in memory", key))
+                    StdError::generic_err(format!("contract {} not found in ans_host", key))
                 })?;
             resolved_contracts.insert(key, result);
         }
@@ -41,13 +41,13 @@ impl Memory {
         let result: Addr = CONTRACT_ADDRESSES
             .query(&deps.querier, self.address.clone(), contract.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("contract {} not found in memory", contract))
+                StdError::generic_err(format!("contract {} not found in ans_host", contract))
             })?;
         // Addresses are checked when stored.
         Ok(Addr::unchecked(result))
     }
 
-    /// Raw Query to Memory contract
+    /// Raw Query to AnsHost contract
     pub fn query_assets(
         &self,
         deps: Deps,
@@ -59,7 +59,7 @@ impl Memory {
             let result = ASSET_ADDRESSES
                 .query(&deps.querier, self.address.clone(), asset.clone())?
                 .ok_or_else(|| {
-                    StdError::generic_err(format!("asset {} not found in memory", &asset))
+                    StdError::generic_err(format!("asset {} not found in ans_host", &asset))
                 })?;
             resolved_assets.insert(asset, result);
         }
@@ -71,7 +71,7 @@ impl Memory {
         let result = ASSET_ADDRESSES
             .query(&deps.querier, self.address.clone(), asset.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("asset {} not found in memory", &asset))
+                StdError::generic_err(format!("asset {} not found in ans_host", &asset))
             })?;
         Ok(result)
     }
@@ -81,7 +81,7 @@ impl Memory {
         let result: String = CHANNELS
             .query(&deps.querier, self.address.clone(), channel.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("channel {} not found in memory", channel))
+                StdError::generic_err(format!("channel {} not found in ans_host", channel))
             })?;
         // Addresses are checked when stored.
         Ok(result)

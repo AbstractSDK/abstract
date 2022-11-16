@@ -30,11 +30,11 @@
       "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].",
       "type": "object",
       "required": [
-        "memory_address",
+        "ans_host_address",
         "version_control_address"
       ],
       "properties": {
-        "memory_address": {
+        "ans_host_address": {
           "description": "Used to easily perform address translation",
           "type": "string"
         },

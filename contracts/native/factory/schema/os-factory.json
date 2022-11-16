@@ -8,17 +8,17 @@
     "description": "Msg used on instantiation",
     "type": "object",
     "required": [
-      "memory_address",
+      "ans_host_address",
       "module_factory_address",
       "version_control_address"
     ],
     "properties": {
-      "memory_address": {
-        "description": "Memory contract",
+      "ans_host_address": {
+        "description": "AnsHost contract",
         "type": "string"
       },
       "module_factory_address": {
-        "description": "Address of module factory. Used for instantiating manager.",
+        "description": "AnsHosts of module factory. Used for instantiating manager.",
         "type": "string"
       },
       "version_control_address": {
@@ -63,8 +63,8 @@
                   "null"
                 ]
               },
-              "memory_contract": {
-                "description": "New memory contract",
+              "ans_host_contract": {
+                "description": "New ans_host contract",
                 "type": [
                   "string",
                   "null"
@@ -260,14 +260,14 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "memory_contract",
+        "ans_host_contract",
         "module_factory_address",
         "next_os_id",
         "owner",
         "version_control_contract"
       ],
       "properties": {
-        "memory_contract": {
+        "ans_host_contract": {
           "type": "string"
         },
         "module_factory_address": {

@@ -6,7 +6,7 @@ use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
 };
 
-use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use abstract_sdk::{ans_host::AnsHost, Handler, InstantiateEndpoint};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -41,9 +41,9 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let BaseInstantiateMsg { memory_address } = msg.base;
-        let memory = Memory {
-            address: deps.api.addr_validate(&memory_address)?,
+        let BaseInstantiateMsg { ans_host_address } = msg.base;
+        let ans_host = AnsHost {
+            address: deps.api.addr_validate(&ans_host_address)?,
         };
 
         // Caller is factory so get proxy and manager (admin) from there
@@ -64,7 +64,7 @@ impl<
         // Base state
         let state = AddOnState {
             proxy_address: core.proxy.clone(),
-            memory,
+            ans_host,
         };
         let (name, version) = self.info();
         set_contract_version(deps.storage, name, version)?;

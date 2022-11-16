@@ -1,6 +1,6 @@
 use abstract_os::ibc_host::PacketMsg;
 use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn,
+    ans_host::AnsHost, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn,
     ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
 };
 
@@ -137,8 +137,8 @@ impl<
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct HostState {
-    /// Memory contract struct (address)
-    pub memory: Memory,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
     /// code id for Stargate proxy contract
     pub cw1_code_id: u64,
     /// Chain identifier

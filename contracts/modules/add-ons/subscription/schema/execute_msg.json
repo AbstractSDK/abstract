@@ -120,7 +120,7 @@
             "update_config": {
               "type": "object",
               "properties": {
-                "memory_address": {
+                "ans_host_address": {
                   "type": [
                     "string",
                     "null"

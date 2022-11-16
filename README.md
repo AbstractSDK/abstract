@@ -51,7 +51,7 @@ The OS manager is Admin over all contracts.
 Deploying the basic infrastructure is done though the following steps:
 
 prerequisite:
-1. Memory contract is deployed and instantiated
+1. AnsHost contract is deployed and instantiated
 2. All required contracts have been uploaded and have a valid code-id
 
 - Instantiate the version-control contract
@@ -92,7 +92,7 @@ Migratable contracts are always a security risk. Therefore we'll outline all the
 - OS Factory (Abstract)
 - Module Factory (Abstract)
 - Version Control (Abstract)
-- Memory
+- AnsHost
 
 ## Not Migratable
 - APIs

@@ -14,7 +14,7 @@
 //! ```ignore
 //! let etf_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
-//!                base: BaseInstantiateMsg{memory_address: "juno1...".to_string()},
+//!                base: BaseInstantiateMsg{ans_host_address: "juno1...".to_string()},
 //!                fee: Decimal::percent(10),
 //!                provider_addr: "juno1...".to_string(),
 //!                token_code_id: 3,

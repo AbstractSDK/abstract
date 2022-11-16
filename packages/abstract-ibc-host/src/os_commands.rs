@@ -1,7 +1,7 @@
 use abstract_os::abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck};
 use abstract_os::objects::ChannelEntry;
 use abstract_os::ICS20;
-use abstract_sdk::{MemoryOperation, Resolve};
+use abstract_sdk::{AnsHostOperation, Resolve};
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
 };
@@ -93,7 +93,7 @@ impl<
         client_proxy_address: String,
         client_chain: String,
     ) -> Result<CosmosMsg, HostError> {
-        let mem = self.load_memory(deps.storage)?;
+        let mem = self.load_ans_host(deps.storage)?;
         let ics20_channel_entry = ChannelEntry {
             connected_chain: client_chain,
             protocol: ICS20.to_string(),

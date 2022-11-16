@@ -3,14 +3,14 @@ use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
 use crate::commands::*;
-use crate::error::MemoryError;
+use crate::error::AnsHostError;
 use crate::queries;
-use abstract_os::memory::state::ADMIN;
-use abstract_os::memory::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_os::ans_host::state::ADMIN;
+use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
-pub type MemoryResult = Result<Response, MemoryError>;
+pub type AnsHostResult = Result<Response, AnsHostError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use abstract_os::MEMORY;
+use abstract_os::ANS_HOST;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
@@ -18,8 +18,8 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     _msg: InstantiateMsg,
-) -> MemoryResult {
-    set_contract_version(deps.storage, MEMORY, CONTRACT_VERSION)?;
+) -> AnsHostResult {
+    set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
 
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;
@@ -28,7 +28,7 @@ pub fn instantiate(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> MemoryResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> AnsHostResult {
     handle_message(deps, info, env, msg)
 }
 
@@ -58,7 +58,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
-        set_contract_version(deps.storage, MEMORY, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
     }
     Ok(Response::default())
 }

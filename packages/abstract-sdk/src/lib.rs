@@ -7,26 +7,27 @@
 //! The functions provided by this SDK can be used to quickly write and test your unique CosmWasm application.
 pub type OsAction<T = Empty> = CosmosMsg<T>;
 
+mod ans_host_traits;
 pub mod api;
 mod base;
 pub mod cw20;
 mod exchange;
 mod ibc_client;
 pub mod manager;
-mod memory_traits;
 mod module_traits;
 pub mod proxy;
 pub mod tendermint_staking;
 mod traits;
 mod version_control;
-pub mod memory {
-    pub use abstract_os::objects::memory::Memory;
+pub mod ans_host {
+    pub use abstract_os::objects::ans_host::AnsHost;
 }
 
 pub use abstract_os::{
     objects::common_namespace::{ADMIN, BASE_STATE, CONTRACT_VERSION},
     registry::*,
 };
+pub use ans_host_traits::Resolve;
 pub use api::{api_request, configure_api};
 pub use base::{
     contract_base::{
@@ -39,8 +40,7 @@ use cosmwasm_std::{CosmosMsg, Empty};
 pub use exchange::Exchange;
 pub use ibc_client::{host_ibc_action, ics20_transfer};
 pub use manager::{query_module_address, query_module_version};
-pub use memory_traits::Resolve;
-pub use module_traits::{Dependency, MemoryOperation, OsExecute};
+pub use module_traits::{AnsHostOperation, Dependency, OsExecute};
 pub use proxy::{os_module_action, query_total_value};
 pub use traits::{
     execute::ExecuteEndpoint, ibc_callback::IbcCallbackEndpoint, instantiate::InstantiateEndpoint,

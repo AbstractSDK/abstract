@@ -81,10 +81,10 @@
       "description": "Used by Module Factory to instantiate AddOn",
       "type": "object",
       "required": [
-        "memory_address"
+        "ans_host_address"
       ],
       "properties": {
-        "memory_address": {
+        "ans_host_address": {
           "type": "string"
         }
       },

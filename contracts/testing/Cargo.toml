@@ -42,7 +42,7 @@ cw-multi-test = {workspace = true}
 anyhow = "1.0.57"
 proxy = { path = "../core/proxy" }
 manager = { path = "../core/manager" }
-memory = {path = "../native/memory" }
+ans_host = {path = "../native/ans-host" }
 os-factory = { path = "../native/factory" }
 module-factory = { path = "../native/module_factory" }
 version-control = { path = "../native/version_control" }

@@ -6,8 +6,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, ADMIN, BASE_STATE,
+    ans_host::AnsHost, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn,
+    InstantiateHandlerFn, MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+    ADMIN, BASE_STATE,
 };
 
 use crate::AddOnError;
@@ -17,8 +18,8 @@ use crate::AddOnError;
 pub struct AddOnState {
     /// Proxy contract address for relaying transactions
     pub proxy_address: Addr,
-    /// Memory contract struct (address)
-    pub memory: Memory,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
 }
 /// The state variables for our AddOnContract.
 pub struct AddOnContract<

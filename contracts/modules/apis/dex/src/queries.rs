@@ -2,7 +2,7 @@ use abstract_os::{
     dex::{OfferAsset, SimulateSwapResponse},
     objects::AssetEntry,
 };
-use abstract_sdk::{MemoryOperation, Resolve};
+use abstract_sdk::{AnsHostOperation, Resolve};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 use cw_asset::Asset;
 
@@ -17,7 +17,7 @@ pub fn simulate_swap(
 ) -> StdResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let api = DEX_API;
-    let mem = api.load_memory(deps.storage)?;
+    let mem = api.load_ans_host(deps.storage)?;
     // format input
     let (mut offer_asset, offer_amount) = offer_asset;
     offer_asset.format();

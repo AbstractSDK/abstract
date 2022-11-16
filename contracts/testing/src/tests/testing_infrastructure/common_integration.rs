@@ -9,7 +9,7 @@ use crate::tests::common::{RANDOM_USER, TEST_CREATOR};
 
 pub struct NativeContracts {
     pub token: Addr,
-    pub memory: Addr,
+    pub ans_host: Addr,
     pub version_control: Addr,
     pub os_factory: Addr,
     pub module_factory: Addr,

@@ -55,7 +55,7 @@ impl<
     fn dapp_config(&self, deps: Deps) -> StdResult<HostConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(HostConfigResponse {
-            memory_address: state.memory.address,
+            ans_host_address: state.ans_host.address,
         })
     }
 }

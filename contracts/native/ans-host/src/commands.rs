@@ -3,9 +3,9 @@ use cosmwasm_std::Env;
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::contract::MemoryResult;
-use abstract_os::memory::state::*;
-use abstract_os::memory::ExecuteMsg;
+use crate::contract::AnsHostResult;
+use abstract_os::ans_host::state::*;
+use abstract_os::ans_host::ExecuteMsg;
 
 /// Handles the common base execute messages
 pub fn handle_message(
@@ -13,7 +13,7 @@ pub fn handle_message(
     info: MessageInfo,
     _env: Env,
     message: ExecuteMsg,
-) -> MemoryResult {
+) -> AnsHostResult {
     match message {
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
         ExecuteMsg::UpdateContractAddresses { to_add, to_remove } => {
@@ -38,7 +38,7 @@ pub fn update_contract_addresses(
     msg_info: MessageInfo,
     to_add: Vec<(UncheckedContractEntry, String)>,
     to_remove: Vec<UncheckedContractEntry>,
-) -> MemoryResult {
+) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -65,7 +65,7 @@ pub fn update_asset_addresses(
     msg_info: MessageInfo,
     to_add: Vec<(String, AssetInfoUnchecked)>,
     to_remove: Vec<String>,
-) -> MemoryResult {
+) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -92,7 +92,7 @@ pub fn update_channels(
     msg_info: MessageInfo,
     to_add: Vec<(UncheckedChannelEntry, String)>,
     to_remove: Vec<UncheckedChannelEntry>,
-) -> MemoryResult {
+) -> AnsHostResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -111,7 +111,7 @@ pub fn update_channels(
     Ok(Response::new().add_attribute("action", "updated contract addresses"))
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> MemoryResult {
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let admin_addr = deps.api.addr_validate(&admin)?;

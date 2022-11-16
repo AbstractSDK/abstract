@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use abstract_os::version_control::Core;
 use abstract_sdk::{
-    memory::Memory, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
+    ans_host::AnsHost, AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn,
+    InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
 };
 
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
@@ -21,8 +21,8 @@ pub const TRADER_NAMESPACE: &str = "traders";
 pub struct ApiState {
     /// Used to verify requests
     pub version_control: Addr,
-    /// Memory contract struct (address)
-    pub memory: Memory,
+    /// AnsHost contract struct (address)
+    pub ans_host: AnsHost,
 }
 /// The state variables for our ApiContract.
 pub struct ApiContract<
@@ -37,7 +37,7 @@ pub struct ApiContract<
     pub(crate) base_state: Item<'static, ApiState>,
     // Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    // Every DApp should use the provided memory contract for token/contract address resolution
+    // Every DApp should use the provided ans_host contract for token/contract address resolution
     /// Stores the API version
     pub target_os: Option<Core>,
 }

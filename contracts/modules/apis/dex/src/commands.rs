@@ -1,4 +1,4 @@
-use abstract_sdk::{MemoryOperation, OsExecute, Resolve};
+use abstract_sdk::{AnsHostOperation, OsExecute, Resolve};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
 use cw_asset::{Asset, AssetInfo};
 
@@ -15,9 +15,9 @@ pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
 pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<T> LocalDex for T where T: MemoryOperation + OsExecute {}
+impl<T> LocalDex for T where T: AnsHostOperation + OsExecute {}
 
-pub trait LocalDex: MemoryOperation + OsExecute {
+pub trait LocalDex: AnsHostOperation + OsExecute {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,
@@ -111,12 +111,12 @@ pub trait LocalDex: MemoryOperation + OsExecute {
         offer_asset.format();
         ask_asset.format();
 
-        let memory = self.load_memory(deps.storage)?;
-        let offer_asset_info = offer_asset.resolve(deps, &memory)?;
-        let ask_asset_info = ask_asset.resolve(deps, &memory)?;
+        let ans_host = self.load_ans_host(deps.storage)?;
+        let offer_asset_info = offer_asset.resolve(deps, &ans_host)?;
+        let ask_asset_info = ask_asset.resolve(deps, &ans_host)?;
 
         let pair_address =
-            exchange.pair_address(deps, &memory, &mut vec![&offer_asset, &ask_asset])?;
+            exchange.pair_address(deps, &ans_host, &mut vec![&offer_asset, &ask_asset])?;
         let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
         exchange.swap(
@@ -141,7 +141,7 @@ pub trait LocalDex: MemoryOperation + OsExecute {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         todo!()
 
-        // let memory = api.load_memory(deps.storage)?;
+        // let ans_host = api.load_ans_host(deps.storage)?;
         //
         // // Resolve the asset information
         // let mut offer_asset_infos: Vec<AssetInfo> =
@@ -171,7 +171,7 @@ pub trait LocalDex: MemoryOperation + OsExecute {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let mut assets = vec![];
-        let mem = self.load_memory(deps.storage)?;
+        let mem = self.load_ans_host(deps.storage)?;
         for offer in &offer_assets {
             let info = offer.0.resolve(deps, &mem)?;
             let asset = Asset::new(info, offer.1);
@@ -196,7 +196,7 @@ pub trait LocalDex: MemoryOperation + OsExecute {
         mut paired_assets: Vec<AssetEntry>,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let mem = self.load_memory(deps.storage)?;
+        let mem = self.load_ans_host(deps.storage)?;
         let paired_asset_infos: Result<Vec<AssetInfo>, _> = paired_assets
             .iter()
             .map(|entry| entry.resolve(deps, &mem))
@@ -214,7 +214,7 @@ pub trait LocalDex: MemoryOperation + OsExecute {
         lp_token: OfferAsset,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let mem = self.load_memory(deps.storage)?;
+        let mem = self.load_ans_host(deps.storage)?;
         let info = lp_token.0.resolve(deps, &mem)?;
         let lp_asset = Asset::new(info, lp_token.1);
         let pair_entry = UncheckedContractEntry::new(exchange.name(), lp_token.0.as_str()).check();

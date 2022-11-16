@@ -9,7 +9,7 @@ use cw_storage_plus::Bound;
 use abstract_os::objects::proxy_asset::{
     get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
 };
-use abstract_os::proxy::state::{MEMORY, STATE, VAULT_ASSETS};
+use abstract_os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 20;
@@ -59,8 +59,8 @@ pub fn compute_token_value(
     amount: Option<Uint128>,
 ) -> StdResult<Uint128> {
     let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.into())?;
-    let memory = MEMORY.load(deps.storage)?;
-    let value = vault_asset.value(deps, env, &memory, amount)?;
+    let ans_host = ANS_HOST.load(deps.storage)?;
+    let value = vault_asset.value(deps, env, &ans_host, amount)?;
     Ok(value)
 }
 
@@ -72,10 +72,10 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
         .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
 
     let mut total_value = Uint128::zero();
-    let memory = MEMORY.load(deps.storage)?;
+    let ans_host = ANS_HOST.load(deps.storage)?;
     // Calculate their value iteratively
     for vault_asset_entry in all_assets.iter_mut() {
-        total_value += vault_asset_entry.1.value(deps, &env, &memory, None)?;
+        total_value += vault_asset_entry.1.value(deps, &env, &ans_host, None)?;
     }
     Ok(total_value)
 }

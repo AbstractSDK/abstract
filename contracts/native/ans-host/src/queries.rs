@@ -1,7 +1,7 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult};
 
 use abstract_os::{
-    memory::{
+    ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
         ContractListResponse, ContractsResponse,

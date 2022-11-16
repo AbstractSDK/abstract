@@ -64,7 +64,7 @@ fn proper_initialization() {
             },
             Some(vault_msg::InstantiateMsg {
                 base: abstract_os::add_on::BaseInstantiateMsg {
-                    memory_address: env.native_contracts.memory.to_string(),
+                    ans_host_address: env.native_contracts.ans_host.to_string(),
                 },
                 deposit_asset: "test".into(),
                 fee: Decimal::from_str("0.91").unwrap(),

@@ -55,7 +55,7 @@ impl<
         let admin = self.admin.get(deps)?.unwrap();
         Ok(AddOnConfigResponse {
             proxy_address: state.proxy_address,
-            memory_address: state.memory.address,
+            ans_host_address: state.ans_host.address,
             manager_address: admin,
         })
     }

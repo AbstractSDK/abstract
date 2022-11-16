@@ -3,7 +3,7 @@ use abstract_sdk::{
     api_request,
     manager::query_module_address,
     proxy::{os_ibc_action, os_module_action},
-    Dependency, Handler, MemoryOperation, OsExecute,
+    AnsHostOperation, Dependency, Handler, OsExecute,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdError, StdResult, Storage, SubMsg};
 use serde::Serialize;
@@ -16,11 +16,11 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > MemoryOperation
+    > AnsHostOperation
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn load_memory(&self, store: &dyn Storage) -> StdResult<abstract_sdk::memory::Memory> {
-        Ok(self.base_state.load(store)?.memory)
+    fn load_ans_host(&self, store: &dyn Storage) -> StdResult<abstract_sdk::ans_host::AnsHost> {
+        Ok(self.base_state.load(store)?.ans_host)
     }
 }
 

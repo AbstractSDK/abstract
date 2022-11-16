@@ -22,13 +22,13 @@ use cw_controllers::AdminResponse;
 /// Used by Module Factory to instantiate AddOn
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
-    pub memory_address: String,
+    pub ans_host_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Updates the base config
-    UpdateConfig { memory_address: Option<String> },
+    UpdateConfig { ans_host_address: Option<String> },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -45,7 +45,7 @@ pub enum BaseQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct AddOnConfigResponse {
     pub proxy_address: Addr,
-    pub memory_address: Addr,
+    pub ans_host_address: Addr,
     pub manager_address: Addr,
 }
 

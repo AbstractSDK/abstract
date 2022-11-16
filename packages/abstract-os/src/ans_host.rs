@@ -1,9 +1,9 @@
-//! # Memory
+//! # AnsHost
 //!
-//! `abstract_os::memory` stores chain-specific contract addresses.
+//! `abstract_os::ans_host` stores chain-specific contract addresses.
 //!
 //! ## Description
-//! Contract and asset addresses are stored on the memory contract and are retrievable trough smart or raw queries.
+//! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -14,7 +14,7 @@ use crate::objects::{
     ChannelEntry, UncheckedChannelEntry,
 };
 
-/// Memory state details
+/// AnsHost state details
 pub mod state {
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
@@ -38,11 +38,11 @@ pub mod state {
     pub const CHANNELS: Map<ChannelEntry, String> = Map::new("channels");
 }
 
-/// Memory Instantiate msg
+/// AnsHost Instantiate msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
-/// Memory Execute msg
+/// AnsHost Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
@@ -70,7 +70,7 @@ pub enum ExecuteMsg {
     SetAdmin { admin: String },
 }
 
-/// Memory smart-query
+/// AnsHost smart-query
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 pub enum QueryMsg {

@@ -40,7 +40,7 @@ cw-multi-test = { workspace = true}
 cw20 = {workspace = true}
 
 proxy = { path = "../proxy" }
-memory = { path = "../../native/memory" }
+ans_host = { path = "../../native/ans-host" }
 os-factory = { path = "../../native/factory" }
 module-factory = { path = "../../native/module_factory" }
 version-control = { path = "../../native/version_control" }

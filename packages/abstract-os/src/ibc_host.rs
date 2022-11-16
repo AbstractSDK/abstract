@@ -26,7 +26,7 @@ pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation on the app chain
-    pub memory_address: String,
+    pub ans_host_address: String,
     /// Code-id for cw1 proxy contract
     pub cw1_code_id: u64,
 }
@@ -93,7 +93,7 @@ pub struct PacketMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     UpdateConfig {
-        memory_address: Option<String>,
+        ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
         admin: Option<String>,
     },
@@ -122,7 +122,7 @@ pub enum BaseQueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct HostConfigResponse {
-    pub memory_address: Addr,
+    pub ans_host_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

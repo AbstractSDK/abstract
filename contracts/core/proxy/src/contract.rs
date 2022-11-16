@@ -1,6 +1,6 @@
 use abstract_os::objects::core::OS_ID;
 use abstract_os::objects::AssetEntry;
-use abstract_sdk::memory::Memory;
+use abstract_sdk::ans_host::AnsHost;
 use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -13,7 +13,7 @@ use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_os::objects::proxy_asset::ProxyAsset;
-use abstract_os::proxy::state::{State, ADMIN, MEMORY, STATE, VAULT_ASSETS};
+use abstract_os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
 use abstract_os::proxy::{
     AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
     HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
@@ -41,10 +41,10 @@ pub fn instantiate(
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
-    MEMORY.save(
+    ANS_HOST.save(
         deps.storage,
-        &Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+        &AnsHost {
+            address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
     )?;
     let admin_addr = Some(info.sender);
@@ -93,8 +93,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }),
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: AssetEntry = identifier.into();
-            let memory = MEMORY.load(deps.storage)?;
-            let asset_info = vault_asset.resolve(deps, &memory)?;
+            let ans_host = ANS_HOST.load(deps.storage)?;
+            let asset_info = vault_asset.resolve(deps, &ans_host)?;
             to_binary(&HoldingAmountResponse {
                 amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })

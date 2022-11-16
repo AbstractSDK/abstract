@@ -48,8 +48,8 @@ where
     }
 }
 
+pub mod ans_host;
 pub mod manager;
-pub mod memory;
 pub mod module_factory;
 pub mod os_factory;
 pub mod proxy;

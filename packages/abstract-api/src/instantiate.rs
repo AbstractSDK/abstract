@@ -1,7 +1,7 @@
 use abstract_os::api::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use abstract_sdk::{memory::Memory, Handler, InstantiateEndpoint};
+use abstract_sdk::{ans_host::AnsHost, Handler, InstantiateEndpoint};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -30,14 +30,14 @@ impl<
         info: MessageInfo,
         msg: Self::InstantiateMsg,
     ) -> Result<Response, Error> {
-        let memory = Memory {
-            address: deps.api.addr_validate(&msg.base.memory_address)?,
+        let ans_host = AnsHost {
+            address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };
 
         // Base state
         let state = ApiState {
             version_control: deps.api.addr_validate(&msg.base.version_control_address)?,
-            memory,
+            ans_host,
         };
         let (name, version) = self.info();
         set_contract_version(deps.storage, name, version)?;

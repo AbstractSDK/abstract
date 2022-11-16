@@ -85,7 +85,7 @@ pub fn init_primary_os(
 
     let init_msg = to_binary(&SubInitMsg {
         base: BaseInstantiateMsg {
-            memory_address: native_contracts.memory.to_string(),
+            ans_host_address: native_contracts.ans_host.to_string(),
         },
         contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {
             protocol_income_share: Decimal::percent(10),
@@ -119,7 +119,7 @@ pub fn init_primary_os(
 
     let msg = abstract_os::os_factory::ExecuteMsg::UpdateConfig {
         admin: None,
-        memory_contract: None,
+        ans_host_contract: None,
         version_control_contract: None,
         module_factory_address: None,
         subscription_address: Some(resp.events[4].attributes[1].value.clone()),

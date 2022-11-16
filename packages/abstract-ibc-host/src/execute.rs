@@ -112,10 +112,10 @@ impl<
     ) -> Result<Response, HostError> {
         match message {
             BaseExecuteMsg::UpdateConfig {
-                memory_address,
+                ans_host_address,
                 cw1_code_id,
                 admin,
-            } => self.update_config(deps, info, memory_address, cw1_code_id, admin),
+            } => self.update_config(deps, info, ans_host_address, cw1_code_id, admin),
             BaseExecuteMsg::ClearAccount {
                 closed_channel,
                 os_id,
@@ -136,7 +136,7 @@ impl<
         &self,
         deps: DepsMut,
         info: MessageInfo,
-        memory_address: Option<String>,
+        ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
         admin: Option<String>,
     ) -> Result<Response, HostError> {
@@ -146,9 +146,9 @@ impl<
             return Err(StdError::generic_err("Only admin can update config.").into());
         }
 
-        if let Some(memory_address) = memory_address {
+        if let Some(ans_host_address) = ans_host_address {
             // validate address format
-            state.memory.address = deps.api.addr_validate(&memory_address)?;
+            state.ans_host.address = deps.api.addr_validate(&ans_host_address)?;
         }
         if let Some(cw1_code_id) = cw1_code_id {
             // validate address format

@@ -1,5 +1,5 @@
 use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
-use abstract_os::objects::memory::Memory;
+use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::ChannelEntry;
 use abstract_os::{IBC_CLIENT, ICS20};
 use abstract_sdk::proxy::query_os_id;
@@ -15,7 +15,7 @@ use cw2::set_contract_version;
 use crate::error::ClientError;
 use crate::ibc::PACKET_LIFETIME;
 use abstract_os::ibc_client::state::{
-    AccountData, Config, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES, MEMORY,
+    AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
 };
 use abstract_os::ibc_client::{
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
@@ -37,10 +37,10 @@ pub fn instantiate(
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
     };
     CONFIG.save(deps.storage, &cfg)?;
-    MEMORY.save(
+    ANS_HOST.save(
         deps.storage,
-        &Memory {
-            address: deps.api.addr_validate(&msg.memory_address)?,
+        &AnsHost {
+            address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
     )?;
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
@@ -203,7 +203,7 @@ pub fn execute_send_funds(
     funds: Vec<Coin>,
 ) -> StdResult<Response> {
     let cfg = CONFIG.load(deps.storage)?;
-    let mem = MEMORY.load(deps.storage)?;
+    let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
     // get os_id of OS
@@ -332,7 +332,7 @@ mod tests {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
             chain: "test_chain".into(),
-            memory_address: "memory".into(),
+            ans_host_address: "ans_host".into(),
             version_control_address: "vc_addr".into(),
         };
         let info = mock_info(CREATOR, &[]);

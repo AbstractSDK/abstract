@@ -35,7 +35,7 @@ Moving wasm files ...
 Post-processing artifacts in workspace ...
 85e8f6fe28caa805799cfdb9c65f937f348ea783fc5ae4f2ff7619635853b0f6  anchor.wasm
 8e1e3ce3a03df1a14b5f2865845029ca0eefa705671f52d35ac4c504ea4d0d4f  manager.wasm
-df5d5f633a59ee5db6735c4756b3190c7d4a48000a2bd0741d1ce3e90e68b647  memory.wasm
+df5d5f633a59ee5db6735c4756b3190c7d4a48000a2bd0741d1ce3e90e68b647  ans_host.wasm
 70b9cd6e1abc758063151ed265a181c3de847bed55cc5f8e71c3054eff879820  module_factory.wasm
 5f3661f5a5530a485542296663267514c25a670f998d81c275dd72b96f9944d2  os_factory.wasm
 506c5cb684b87623e074249315503a111923bcec7e80a8c7eb7409774b6f6047  pandora_dapp_base.wasm
@@ -57,7 +57,7 @@ CODE_ID=$(junod query tx $TX --output json | jq -r '.logs[0].events[-1].attribut
 ```
 Our deployment order is as follows:
 1. Version Control
-2. Memory
+2. AnsHost
 
 
 ```bash

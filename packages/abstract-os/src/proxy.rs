@@ -28,12 +28,12 @@ pub mod state {
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{asset_entry::AssetEntry, memory::Memory, proxy_asset::ProxyAsset};
+    use crate::objects::{ans_host::AnsHost, asset_entry::AssetEntry, proxy_asset::ProxyAsset};
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
     }
-    pub const MEMORY: Item<Memory> = Item::new("\u{0}{6}memory");
+    pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new("admin");
     pub const VAULT_ASSETS: Map<AssetEntry, ProxyAsset> = Map::new("proxy_assets");
@@ -42,7 +42,7 @@ pub mod state {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub os_id: u32,
-    pub memory_address: String,
+    pub ans_host_address: String,
 }
 
 // hot fix

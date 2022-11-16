@@ -145,16 +145,16 @@ pub fn execute_update_config(
     _env: Env,
     info: MessageInfo,
     admin: Option<String>,
-    memory_address: Option<String>,
+    ans_host_address: Option<String>,
     version_control_address: Option<String>,
 ) -> ModuleFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
-    if let Some(memory_address) = memory_address {
+    if let Some(ans_host_address) = ans_host_address {
         // validate address format
-        config.memory_address = deps.api.addr_validate(&memory_address)?;
+        config.ans_host_address = deps.api.addr_validate(&ans_host_address)?;
     }
 
     if let Some(version_control_address) = version_control_address {
