@@ -33,13 +33,13 @@ where
             Contract::new(name, chain)
                 .with_wasm_path("version_control")
                 .with_address(address),
-              // .with_mock(Box::new(
-              //     ContractWrapper::new_with_empty(
-              //         ::contract::execute,
-              //         ::contract::instantiate,
-              //         ::contract::query,
-              //     ),
-              // ))
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
     }
     pub fn upload_and_register_module<
