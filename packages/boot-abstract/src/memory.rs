@@ -57,8 +57,8 @@ impl Memory<Daemon> {
                     })
                     .collect();
                 let mut i = 0;
-                while i != to_add.len() - 1 {
-                    let chunk = to_add.get(i..min(i + 25, to_add.len() - 1)).unwrap();
+                while i != to_add.len() {
+                    let chunk = to_add.get(i..min(i + 25, to_add.len())).unwrap();
                     i += chunk.len();
                     self.execute(
                         &ExecuteMsg::UpdateAssetAddresses {
