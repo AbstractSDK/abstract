@@ -93,8 +93,8 @@ pub enum ExecuteMsg {
         to_add: Option<Vec<(String, String)>>,
         to_remove: Option<Vec<String>>,
     },
-    /// Create module using module factory, callable by Root
-    CreateModule {
+    /// Install module using module factory, callable by Root
+    InstallModule {
         /// Module information.
         module: ModuleInfo,
         /// Instantiate message used to instantiate the contract.

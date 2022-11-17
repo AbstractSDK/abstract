@@ -57,7 +57,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             ans_host_address,
             version_control_address,
         ),
-        ExecuteMsg::CreateModule { module, init_msg } => {
+        ExecuteMsg::InstallModule { module, init_msg } => {
             commands::execute_create_module(deps, env, info, module, init_msg)
         }
         ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove } => {

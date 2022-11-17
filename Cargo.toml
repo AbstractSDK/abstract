@@ -14,7 +14,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0-beta.2"
+version = "0.2.0-beta.4"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -40,12 +40,12 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0"
 
-abstract-sdk = { version = "0.2.0-beta.2", path = "packages/abstract-sdk" }
-abstract-os = { version = "0.2.0-beta.2", path = "packages/abstract-os" }
-abstract-app = { version = "0.2.0-beta.2", path = "packages/abstract-app", features = ["library"] }
-abstract-extension = { version = "0.2.0-beta.2", path = "packages/abstract-extension", features = ["library"] }
-abstract-ibc-host = { version = "0.2.0-beta.2", path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.2.0-beta.2", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.2.0-beta.4", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.2.0-beta.4", path = "packages/abstract-os" }
+abstract-app = { version = "0.2.0-beta.4", path = "packages/abstract-app", features = ["library"] }
+abstract-extension = { version = "0.2.0-beta.4", path = "packages/abstract-extension", features = ["library"] }
+abstract-ibc-host = { version = "0.2.0-beta.4", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.2.0-beta.4", path = "packages/abstract-ica" }
 
 cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
 

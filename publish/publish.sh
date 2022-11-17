@@ -16,7 +16,7 @@ fi
 # these are imported by other packages
 BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-extension abstract-app abstract-ibc-host"
+ALL_PACKAGES="abstract-extension abstract-app abstract-ibc-host abstract-boot"
 
 SLEEP_TIME=30
 
@@ -25,6 +25,7 @@ for pack in $BASE_PACKAGES; do
     cd "packages/$pack"
     echo "Publishing $pack"
     cargo publish
+    sleep $SLEEP_TIME
   )
 done
 

@@ -78,7 +78,7 @@ pub fn create_module(
 
     let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: config.module_factory_address.into(),
-        msg: to_binary(&ModuleFactoryMsg::CreateModule { module, init_msg })?,
+        msg: to_binary(&ModuleFactoryMsg::InstallModule { module, init_msg })?,
         funds: vec![],
     }));
 

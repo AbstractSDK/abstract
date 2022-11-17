@@ -61,13 +61,13 @@
         "additionalProperties": false
       },
       {
-        "description": "Creates the core contracts for the OS",
+        "description": "Installs a module on the OS",
         "type": "object",
         "required": [
-          "create_module"
+          "install_module"
         ],
         "properties": {
-          "create_module": {
+          "install_module": {
             "type": "object",
             "required": [
               "module"

@@ -10,7 +10,7 @@
 //! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the etf's size.
 //!
 //! ## Creation
-//! The etf contract can be added on an OS by calling [`ExecuteMsg::CreateModule`](crate::manager::ExecuteMsg::CreateModule) on the manager of the os.
+//! The etf contract can be added on an OS by calling [`ExecuteMsg::InstallModule`](crate::manager::ExecuteMsg::InstallModule) on the manager of the os.
 //! ```ignore
 //! let etf_init_msg = InstantiateMsg{
 //!                deposit_asset: "juno".to_string(),
@@ -21,7 +21,7 @@
 //!                etf_lp_token_name: Some("demo_etf".to_string()),
 //!                etf_lp_token_symbol: Some("DEMO".to_string()),
 //!        };
-//! let create_module_msg = ExecuteMsg::CreateModule {
+//! let create_module_msg = ExecuteMsg::InstallModule {
 //!                 module: Module {
 //!                     info: ModuleInfo {
 //!                         name: ETF.into(),

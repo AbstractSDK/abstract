@@ -76,7 +76,7 @@ fn proper_initialization() {
     app.execute_contract(
         sender.clone(),
         manager.clone(),
-        &ManagerMsgs::ExecuteMsg::CreateModule {
+        &ManagerMsgs::ExecuteMsg::InstallModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
                 to_binary(&extension::InstantiateMsg {

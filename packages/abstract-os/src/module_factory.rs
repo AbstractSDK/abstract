@@ -59,8 +59,8 @@ pub enum ExecuteMsg {
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
-    /// Creates the core contracts for the OS
-    CreateModule {
+    /// Installs a module on the OS
+    InstallModule {
         /// Module details
         module: ModuleInfo,
         init_msg: Option<Binary>,

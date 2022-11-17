@@ -102,7 +102,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
                     update_module_addresses(deps, to_add, to_remove)
                 }
-                ExecuteMsg::CreateModule { module, init_msg } => {
+                ExecuteMsg::InstallModule { module, init_msg } => {
                     create_module(deps, info, env, module, init_msg)
                 }
                 ExecuteMsg::RegisterModule {

@@ -24,7 +24,7 @@ impl CoreActions for Core {
         module: Module,
         init_msg: Option<T>,
     ) -> AnyResult<()> {
-        let msg = manager_msg::ExecuteMsg::CreateModule {
+        let msg = manager_msg::ExecuteMsg::InstallModule {
             module,
             init_msg: init_msg.map(|msg| to_binary(&msg).unwrap()),
         };

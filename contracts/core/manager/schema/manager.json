@@ -132,13 +132,13 @@
         "additionalProperties": false
       },
       {
-        "description": "Create module using module factory, callable by Root",
+        "description": "Install module using module factory, callable by Root",
         "type": "object",
         "required": [
-          "create_module"
+          "install_module"
         ],
         "properties": {
-          "create_module": {
+          "install_module": {
             "type": "object",
             "required": [
               "module"

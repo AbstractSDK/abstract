@@ -10,25 +10,25 @@
   # Match all of extension folders
   - contracts/modules/extensions/**/*
 "service":
-  # Match all of extension folders
+  # Match all of service folders
   - contracts/modules/services/**/*
 "perk":
-  # Match all of extension folders
+  # Match all of perk folders
   - contracts/modules/perks/**/*
 "native":
   # Match all of native folders
   - contracts/native/**/*
 "breaking?":
-  # Match all of native folders
+  # Match all of abstract-os folders
   - packages/abstract-os/**/*
 "sdk":
-  # Match all of native folders
+  # Match all of sdk folders
   - packages/abstract-sdk/**/*
 "extension_base":
-  # Match all of native folders
+  # Match all of extension base folders
   - packages/abstract-extension/**/*
 "app_base":
-  # Match all of native folders
+  # Match all of app base folders
   - packages/abstract-app/**/*
 "build":
   - build_release.sh
@@ -39,4 +39,5 @@
   - README.md
   - contracts/**/*.md
   - contracts/**/*/*.md
-  
+"boot":
+  - packages/abstract-boot/**/*
