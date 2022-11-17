@@ -3,7 +3,7 @@
   "title": "QueryMsg",
   "oneOf": [
     {
-      "description": "A configuration message to the middleware.",
+      "description": "A configuration message to the base.",
       "type": "object",
       "required": [
         "base"

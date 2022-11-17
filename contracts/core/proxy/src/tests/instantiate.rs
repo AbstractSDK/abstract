@@ -1,12 +1,12 @@
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::Addr;
-use cosmwasm_std::{Api, Uint128};
+use cosmwasm_std::{Extension, Uint128};
 
 use crate::contract::{execute, instantiate};
 
-use abstract_os::proxy::*;
-use abstract_os::objects::proxy_assets::*;
-use abstract_os::proxy::state::*;
+use abstract_sdk::os::proxy::*;
+use abstract_sdk::os::objects::proxy_assets::*;
+use abstract_sdk::os::proxy::state::*;
 use cw_asset::{Asset, AssetInfo};
 
 use crate::tests::common::{DAPP, TEST_CREATOR};

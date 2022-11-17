@@ -1,7 +1,9 @@
 use std::{cmp::min, env, fs::File};
 
-use abstract_os::objects::UncheckedContractEntry;
-use abstract_os::{ans_host::*, objects::UncheckedChannelEntry};
+use abstract_sdk::os::{
+    ans_host::*,
+    objects::{UncheckedChannelEntry, UncheckedContractEntry},
+};
 
 use cw_asset::AssetInfoUnchecked;
 

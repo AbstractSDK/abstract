@@ -1,18 +1,18 @@
-//! # Abstract API Base
+//! # Abstract Extension Base
 //!
-//! `abstract_os::api` implements shared functionality that's useful for creating new Abstract APIs.
+//! `abstract_os::extension` implements shared functionality that's useful for creating new Abstract extensions.
 //!
 //! ## Description
-//! An Abstract API contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
+//! An Abstract extension contract is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract.
 //! It is not migratable and its functionality is shared between users, meaning that all users call the same contract address to perform operations on the OS.
-//! The API structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
+//! The extension structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
 
 use crate::ibc_client::CallbackInfo;
 
-use crate::middleware::{
+use crate::base::{
     ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
 };
@@ -22,7 +22,7 @@ pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg
 pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
+/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddExtension`].
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation on the app chain

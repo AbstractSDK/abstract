@@ -2,7 +2,7 @@
 use cosmwasm_std::entry_point;
 
 use crate::queries::*;
-use abstract_os::{
+use abstract_sdk::os::{
     vesting::{
         state::{Config, ALLOCATIONS, CONFIG, STATE},
         AllocationInfo, ExecuteMsg, InstantiateMsg, QueryMsg, ReceiveMsg, Schedule,

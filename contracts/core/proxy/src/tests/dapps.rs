@@ -1,6 +1,6 @@
 use crate::contract::{execute, instantiate, query};
 use crate::error::TreasuryError;
-use abstract_os::proxy::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_sdk::os::proxy::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cw_controllers::AdminError;

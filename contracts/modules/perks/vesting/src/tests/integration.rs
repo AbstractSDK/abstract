@@ -1,4 +1,4 @@
-use abstract_os::vesting::{
+use abstract_sdk::os::vesting::{
     AllocationInfo, AllocationResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg,
     ReceiveMsg, Schedule, SimulateWithdrawResponse, StateResponse,
 };
@@ -13,7 +13,7 @@ const OWNER: &str = "owner";
 
 pub fn mock_app() -> App {
     let env = mock_env();
-    let api = MockApi::default();
+    let extension = MockApi::default();
     let bank = BankKeeper::new();
     let storage = MockStorage::new();
 
@@ -21,7 +21,7 @@ pub fn mock_app() -> App {
     let funds = vec![Coin::new(1_000_000_000, "uusd")];
 
     AppBuilder::new()
-        .with_api(api)
+        .with_api(extension)
         .with_block(env.block)
         .with_bank(bank)
         .with_storage(storage)

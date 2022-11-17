@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use cosmwasm_std::Addr;
 
-use abstract_os::version_control::state::Core;
-use abstract_os::PROXY;
+use abstract_sdk::os::version_control::state::Core;
+use abstract_sdk::os::PROXY;
 
 use cw_multi_test::App;
 
@@ -12,9 +12,9 @@ use crate::tests::integration_tests::common_integration::mock_app;
 
 use crate::tests::integration_tests::upload::upload_contracts;
 
-use abstract_os::*;
+use abstract_sdk::os::*;
 
-use abstract_os::*;
+use abstract_sdk::os::*;
 use cw_multi_test::Executor;
 
 use super::common_integration::{NativeContracts, OsInstance};
@@ -25,8 +25,8 @@ fn init_os(app: &mut App, sender: Addr, native_contracts: &NativeContracts) -> O
         .execute_contract(
             sender.clone(),
             native_contracts.os_factory.clone(),
-            &abstract_os::os_factory::ExecuteMsg::CreateOs {
-                governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
+            &abstract_sdk::os::os_factory::ExecuteMsg::CreateOs {
+                governance: abstract_sdk::os::objects::gov_type::GovernanceDetails::Monarchy {
                     monarch: sender.into_string(),
                 },
             },

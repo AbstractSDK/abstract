@@ -1,15 +1,19 @@
-use abstract_os::abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck};
-use abstract_os::objects::ChannelEntry;
-use abstract_os::ICS20;
-use abstract_sdk::{AnsHostOperation, Resolve};
+use abstract_sdk::{
+    os::{
+        abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
+        objects::ChannelEntry,
+        ICS20,
+    },
+    AnsInterface,
+};
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
 };
 
-use crate::host_commands::PACKET_LIFETIME;
-use crate::reply::RECEIVE_DISPATCH_ID;
-use crate::state::RESULTS;
-use crate::{Host, HostError};
+use crate::{
+    endpoints::reply::RECEIVE_DISPATCH_ID, host_commands::PACKET_LIFETIME, state::RESULTS, Host,
+    HostError,
+};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,
@@ -93,13 +97,13 @@ impl<
         client_proxy_address: String,
         client_chain: String,
     ) -> Result<CosmosMsg, HostError> {
-        let mem = self.load_ans_host(deps.storage)?;
+        let ans = self.ans(deps);
         let ics20_channel_entry = ChannelEntry {
             connected_chain: client_chain,
             protocol: ICS20.to_string(),
         };
         // get the ics20 channel to send funds back to client
-        let ics20_channel_id = ics20_channel_entry.resolve(deps, &mem)?;
+        let ics20_channel_id = ans.query(&ics20_channel_entry)?;
 
         let reflect_addr = self.proxy_address.as_ref().unwrap();
         let coins = deps.querier.query_all_balances(reflect_addr)?;

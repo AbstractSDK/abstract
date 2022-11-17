@@ -1,6 +1,6 @@
 use cosmwasm_std::StdError;
 
-use abstract_os::abstract_ica::SimpleIcaError;
+use abstract_sdk::os::abstract_ica::SimpleIcaError;
 use cw_utils::ParseReplyError;
 use thiserror::Error;
 

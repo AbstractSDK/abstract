@@ -1,5 +1,5 @@
 use crate::AbstractOS;
-use abstract_os::ibc_host::*;
+use abstract_sdk::os::ibc_host::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
 

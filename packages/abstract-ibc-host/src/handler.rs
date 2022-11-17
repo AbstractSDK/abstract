@@ -1,4 +1,4 @@
-use abstract_sdk::Handler;
+use abstract_sdk::base::Handler;
 
 use crate::{Host, HostError};
 impl<
@@ -25,7 +25,7 @@ impl<
 
     fn contract(
         &self,
-    ) -> &abstract_sdk::AbstractContract<
+    ) -> &abstract_sdk::base::AbstractContract<
         Self,
         Self::Error,
         Self::CustomExecMsg,

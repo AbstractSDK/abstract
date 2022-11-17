@@ -1,4 +1,4 @@
-//! # Tendermint Staking API
+//! # Tendermint Staking Extension
 //!
 //! `abstract_os::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 

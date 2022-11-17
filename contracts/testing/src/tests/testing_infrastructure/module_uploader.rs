@@ -1,4 +1,4 @@
-use abstract_os::{
+use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control as VCMsg,
 };

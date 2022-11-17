@@ -226,7 +226,6 @@ pub mod state {
 
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 
-use crate::add_on::BaseInstantiateMsg;
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 use state::{
@@ -241,7 +240,6 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub base: BaseInstantiateMsg,
     pub subscription: SubscriptionInstantiateMsg,
     pub contribution: Option<ContributionInstantiateMsg>,
 }

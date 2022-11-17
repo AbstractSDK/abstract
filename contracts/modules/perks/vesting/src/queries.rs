@@ -1,4 +1,4 @@
-use abstract_os::vesting::{
+use abstract_sdk::os::vesting::{
     state::{ALLOCATIONS, CONFIG, STATE},
     AllocationResponse, ConfigResponse, SimulateWithdrawResponse, StateResponse,
 };

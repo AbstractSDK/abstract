@@ -1,9 +1,13 @@
-use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
-use abstract_os::objects::ans_host::AnsHost;
-use abstract_os::objects::ChannelEntry;
-use abstract_os::{IBC_CLIENT, ICS20};
-use abstract_sdk::proxy::query_os_id;
-use abstract_sdk::{os_module_action, verify_os_proxy, Resolve};
+use abstract_sdk::{
+    base::features::Identification,
+    feature_objects::VersionControlContract,
+    os::{
+        ibc_host::{HostAction, InternalAction, PacketMsg},
+        objects::{ans_host::AnsHost, ChannelEntry},
+        IBC_CLIENT, ICS20,
+    },
+    Execution, Resolve, Verification,
+};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -12,12 +16,9 @@ use cosmwasm_std::{
 };
 use cw2::set_contract_version;
 
-use crate::error::ClientError;
-use crate::ibc::PACKET_LIFETIME;
-use abstract_os::ibc_client::state::{
-    AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
-};
-use abstract_os::ibc_client::{
+use crate::{error::ClientError, ibc::PACKET_LIFETIME};
+use abstract_sdk::os::ibc_client::{
+    state::{AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
     AccountInfo, AccountResponse, CallbackInfo, ConfigResponse, ExecuteMsg, InstantiateMsg,
     LatestQueryResponse, ListAccountsResponse, ListChannelsResponse, MigrateMsg, QueryMsg,
 };
@@ -122,8 +123,13 @@ pub fn execute_send_packet(
 ) -> Result<Response, ClientError> {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract {
+        contract_address: cfg.version_control_address,
+    };
     // Verify that the sender is a proxy contract
-    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    let core = version_control
+        .os_register(deps.as_ref())
+        .assert_proxy(&info.sender)?;
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
         return Err(ClientError::ForbiddenInternalCall {});
@@ -132,7 +138,7 @@ pub fn execute_send_packet(
     retries = retries.min(MAX_RETRIES);
 
     // get os_id
-    let os_id = query_os_id(&deps.querier, &core.manager)?;
+    let os_id = core.os_id(deps.as_ref())?;
     // ensure the channel exists and loads it.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
@@ -163,10 +169,15 @@ pub fn execute_register_os(
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
-    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    let version_control = VersionControlContract {
+        contract_address: cfg.version_control_address,
+    };
+    let core = version_control
+        .os_register(deps.as_ref())
+        .assert_proxy(&info.sender)?;
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let os_id = query_os_id(&deps.querier, &core.manager)?;
+    let os_id = core.os_id(deps.as_ref())?;
 
     // construct a packet to send
     let packet = PacketMsg {
@@ -205,9 +216,14 @@ pub fn execute_send_funds(
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
-    let core = verify_os_proxy(&deps.querier, &info.sender, &cfg.version_control_address)?;
+    let version_control = VersionControlContract {
+        contract_address: cfg.version_control_address,
+    };
+    let core = version_control
+        .os_register(deps.as_ref())
+        .assert_proxy(&info.sender)?;
     // get os_id of OS
-    let os_id = query_os_id(&deps.querier, &core.manager)?;
+    let os_id = core.os_id(deps.as_ref())?;
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
@@ -225,7 +241,7 @@ pub fn execute_send_funds(
         connected_chain: host_chain,
         protocol: ICS20.to_string(),
     };
-    let ics20_channel_id = ics20_channel_entry.resolve(deps.as_ref(), &mem)?;
+    let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
     for amount in funds {
@@ -241,7 +257,8 @@ pub fn execute_send_funds(
         );
     }
     // let these messages be executed by proxy
-    let proxy_msg = os_module_action(transfers, &core.proxy)?;
+    let proxy_msg = core.executor(deps.as_ref()).execute(transfers)?;
+
     let res = Response::new()
         .add_message(proxy_msg)
         .add_attribute("action", "handle_send_funds");

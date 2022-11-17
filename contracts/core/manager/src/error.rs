@@ -1,4 +1,4 @@
-use abstract_os::objects::module::ModuleInfo;
+use abstract_sdk::os::objects::module::ModuleInfo;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;

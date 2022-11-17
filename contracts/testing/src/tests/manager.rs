@@ -1,21 +1,19 @@
-use abstract_os::{api::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::os::{extension, extension::BaseInstantiateMsg, manager as ManagerMsgs};
 
-use abstract_os::{objects::module::ModuleInfo, EXCHANGE};
+use abstract_sdk::os::{objects::module::ModuleInfo, EXCHANGE};
 
-use abstract_sdk::abstract_os::objects::module::ModuleVersion;
-use abstract_sdk::api::api_init_msg;
+use abstract_sdk::os::objects::module::ModuleVersion;
+
 use anyhow::Result as AnyResult;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{to_binary, Addr, Empty};
 use cw_multi_test::{App, ContractWrapper, Executor};
 
-use super::common::DEFAULT_VERSION;
-use super::testing_infrastructure::env::register_extension;
 use super::{
-    common::TEST_CREATOR,
-    testing_infrastructure::env::{get_os_state, mock_app, AbstractEnv},
+    common::{DEFAULT_VERSION, TEST_CREATOR},
+    testing_infrastructure::env::{get_os_state, mock_app, register_extension, AbstractEnv},
 };
 
-pub fn register_and_create_dex_api(
+pub fn register_and_create_dex_extension(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
@@ -24,7 +22,7 @@ pub fn register_and_create_dex_api(
 ) -> AnyResult<()> {
     let module = ModuleInfo::from_id(
         EXCHANGE,
-        abstract_os::objects::module::ModuleVersion::Version(
+        abstract_sdk::os::objects::module::ModuleVersion::Version(
             version.unwrap_or(DEFAULT_VERSION.to_string()),
         ),
     )?;
@@ -34,14 +32,24 @@ pub fn register_and_create_dex_api(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = BaseInstantiateMsg {
-        ans_host_address: ans_host.to_string(),
-        version_control_address: version_control.to_string(),
+    let msg = extension::InstantiateMsg {
+        base: BaseInstantiateMsg {
+            ans_host_address: ans_host.to_string(),
+            version_control_address: version_control.to_string(),
+        },
+        app: Empty {},
     };
-    let api_addr = app
-        .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
+    let extension_addr = app
+        .instantiate_contract(
+            code_id,
+            sender.clone(),
+            &msg,
+            &[],
+            "extension".to_owned(),
+            None,
+        )
         .unwrap();
-    register_extension(app, sender, version_control, module, api_addr).unwrap();
+    register_extension(app, sender, version_control, module, extension_addr).unwrap();
     Ok(())
 }
 
@@ -57,7 +65,7 @@ fn proper_initialization() {
     assert_eq!(os_state.len(), 2);
     let manager = env.os_store.get(&0u32).unwrap().manager.clone();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -71,10 +79,13 @@ fn proper_initialization() {
         &ManagerMsgs::ExecuteMsg::CreateModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
-                api_init_msg(
-                    &env.native_contracts.ans_host,
-                    &env.native_contracts.version_control,
-                )
+                to_binary(&extension::InstantiateMsg {
+                    base: BaseInstantiateMsg {
+                        ans_host_address: env.native_contracts.ans_host.to_string(),
+                        version_control_address: env.native_contracts.version_control.to_string(),
+                    },
+                    app: Empty {},
+                })
                 .unwrap(),
             ),
         },
@@ -82,7 +93,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -93,11 +104,11 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    let _resp: abstract_os::version_control::ModuleResponse = app
+    let _resp: abstract_sdk::os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::Module {
+            &abstract_sdk::os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )
@@ -116,7 +127,7 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    register_and_create_dex_api(
+    register_and_create_dex_extension(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -124,11 +135,11 @@ fn proper_initialization() {
         Some("0.0.1".into()),
     )
     .unwrap();
-    let _resp: abstract_os::version_control::ModuleResponse = app
+    let _resp: abstract_sdk::os::version_control::ModuleResponse = app
         .wrap()
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
-            &abstract_os::version_control::QueryMsg::Module {
+            &abstract_sdk::os::version_control::QueryMsg::Module {
                 module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             },
         )

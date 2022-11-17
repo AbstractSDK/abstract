@@ -5,7 +5,7 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 
-use crate::traits::migrate::{Name, VersionString};
+use super::endpoints::migrate::{Name, VersionString};
 
 use super::handler::Handler;
 
@@ -97,6 +97,7 @@ where
             query_handler: None,
         }
     }
+
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }

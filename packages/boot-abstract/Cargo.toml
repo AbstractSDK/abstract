@@ -21,6 +21,7 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-os = { workspace = true }
+abstract-sdk = { workspace = true }
 
 boot-core = {  version = "0.1.1" ,git = "https://github.com/Abstract-OS/BOOT" }
 tokio = { version = "1.4", features = ["full"] }

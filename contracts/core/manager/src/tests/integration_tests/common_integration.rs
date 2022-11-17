@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::modules::ModuleInfo;
+use abstract_sdk::os::modules::ModuleInfo;
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::Addr;
 
@@ -22,13 +22,13 @@ pub struct OsInstance {
 
 pub fn mock_app() -> App {
     let env = mock_env();
-    let api = MockApi::default();
+    let extension = MockApi::default();
     let bank = BankKeeper::new();
     let storage = MockStorage::new();
     let custom = TerraMock::luna_ust_case();
 
     AppBuilder::new()
-        .with_api(api)
+        .with_api(extension)
         .with_block(env.block)
         .with_bank(bank)
         .with_storage(storage)

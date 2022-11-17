@@ -1,4 +1,4 @@
-use abstract_os::objects::module::ModuleInfo;
+use abstract_sdk::os::objects::module::ModuleInfo;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -17,7 +17,7 @@ pub enum VCError {
     #[error("Module {0} does not have a stored module reference")]
     MissingModule(ModuleInfo),
 
-    #[error("Api {0} can not be updated")]
+    #[error("Extension {0} can not be updated")]
     ModuleUpdate(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]

@@ -39,7 +39,7 @@ fn unauthorized_ans_host_update() {
     // Try adding a contract to the ans_host
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![(
-            "project/contract".to_string().try_into().unwrap(),
+            "project:contract".to_string().try_into().unwrap(),
             "contract_address".to_string(),
         )],
         to_remove: vec![],
@@ -81,7 +81,7 @@ fn authorized_ans_host_update() {
     // Try adding a contract to the ans_host
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![(
-            "project/contract".to_string().try_into().unwrap(),
+            "project:contract".to_string().try_into().unwrap(),
             "contract_address".to_string(),
         )],
         to_remove: vec![],
@@ -97,7 +97,7 @@ fn authorized_ans_host_update() {
     // Try removing a contract from the ans_host
     let msg = ExecuteMsg::UpdateContractAddresses {
         to_add: vec![],
-        to_remove: vec!["project/contract".to_string().try_into().unwrap()],
+        to_remove: vec!["project:contract".to_string().try_into().unwrap()],
     };
 
     let res = execute(deps.as_mut(), env, info, msg);

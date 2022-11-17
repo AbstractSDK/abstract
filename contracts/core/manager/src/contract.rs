@@ -4,9 +4,9 @@ use semver::Version;
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validators::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
-use abstract_os::MANAGER;
-use abstract_os::{
+use abstract_sdk::os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
+use abstract_sdk::os::MANAGER;
+use abstract_sdk::os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     proxy::state::OS_ID,
 };

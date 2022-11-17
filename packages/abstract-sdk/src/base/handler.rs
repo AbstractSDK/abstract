@@ -1,8 +1,8 @@
 use cosmwasm_std::{StdError, StdResult, Storage};
 use cw2::ContractVersion;
 
-use crate::{
-    traits::migrate::{Name, VersionString},
+use crate::base::{
+    endpoints::migrate::{Name, VersionString},
     ReplyHandlerFn,
 };
 

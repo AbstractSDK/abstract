@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use abstract_os::version_control::{Core, OsCoreResponse};
+use abstract_sdk::os::version_control::{Core, OsCoreResponse};
 use cw_multi_test::App;
 
 use super::common_integration::NativeContracts;
-use abstract_os::*;
+use abstract_sdk::os::*;
 
 pub fn os_store_as_expected(
     app: &App,

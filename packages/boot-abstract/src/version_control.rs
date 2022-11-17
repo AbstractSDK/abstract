@@ -3,9 +3,9 @@ use std::fmt::Debug;
 use semver::Version;
 use serde::Serialize;
 
-use abstract_os::{
-    api::BaseInstantiateMsg,
-    middleware,
+use abstract_sdk::os::{
+    base,
+    extension::BaseInstantiateMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -69,23 +69,26 @@ where
         Ok(())
     }
 
-    pub fn upload_and_register_api<
+    pub fn upload_and_register_extension<
         R: Serialize + Debug,
         T: Serialize + Debug,
         V: Serialize + Debug,
     >(
         &self,
-        api: &mut Contract<Chain, R, middleware::InstantiateMsg<BaseInstantiateMsg>, T, V>,
-        api_init_msg: &middleware::InstantiateMsg<BaseInstantiateMsg>,
+        extension: &mut Contract<Chain, R, base::InstantiateMsg<BaseInstantiateMsg>, T, V>,
+        extension_init_msg: &base::InstantiateMsg<BaseInstantiateMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
-        api.upload()?;
-        api.instantiate(api_init_msg, None, None)?;
+        extension.upload()?;
+        extension.instantiate(extension_init_msg, None, None)?;
         self.execute(
             &ExecuteMsg::AddModules {
                 modules: vec![(
-                    ModuleInfo::from_id(&api.id, ModuleVersion::Version(new_version.to_string()))?,
-                    ModuleReference::Extension(api.address()?),
+                    ModuleInfo::from_id(
+                        &extension.id,
+                        ModuleVersion::Version(new_version.to_string()),
+                    )?,
+                    ModuleReference::Extension(extension.address()?),
                 )],
             },
             None,
@@ -108,9 +111,9 @@ where
         //     let code_id = code_ids.get(app.clone()).unwrap();
         //     modules.push((ModuleInfo::from_id(app, ModuleVersion::Version(version.to_string()))?,ModuleReference::App(code_id.clone())))
         // }
-        // for api in registry::API_CONTRACTS {
-        //     let address = addresses.get(api.clone()).unwrap();
-        //     modules.push((ModuleInfo::from_id(&api, ModuleVersion::Version(version.to_string()))?,ModuleReference::Extension(address.clone())))
+        // for extension in registry::EXTENSION_CONTRACTS {
+        //     let address = addresses.get(extension.clone()).unwrap();
+        //     modules.push((ModuleInfo::from_id(&extension, ModuleVersion::Version(version.to_string()))?,ModuleReference::Extension(address.clone())))
         // }
         self.execute(&ExecuteMsg::AddModules { modules }, None)?;
         Ok(())
@@ -168,9 +171,9 @@ impl VersionControl<Daemon> {
     //     Ok(())
     // }
 
-    // pub fn update_apis(&self) -> anyhow::Result<()> {
+    // pub fn update_extensions(&self) -> anyhow::Result<()> {
     //     for contract_name in chain_state.keys() {
-    //         if !API_CONTRACTS.contains(&contract_name.as_str()) {
+    //         if !EXTENSION_CONTRACTS.contains(&contract_name.as_str()) {
     //             continue;
     //         }
 
@@ -178,8 +181,8 @@ impl VersionControl<Daemon> {
     //         let address: String = chain_state[contract_name].as_str().unwrap().into();
 
     //         // Get latest addr
-    //         let resp: Result<QueryApiAddressResponse, BootError> =
-    //             self.query(&QueryMsg::ApiAddress {
+    //         let resp: Result<QueryExtensionAddressResponse, BootError> =
+    //             self.query(&QueryMsg::ExtensionAddress {
     //                 module: ModuleInfo {
     //                     name: contract_name.clone(),
     //                     version: None,
@@ -205,7 +208,7 @@ impl VersionControl<Daemon> {
     //         };
 
     //         self.execute(
-    //             &ExecuteMsg::AddApi {
+    //             &ExecuteMsg::AddExtension {
     //                 module: contract_name.to_string(),
     //                 version: version.to_string(),
     //                 address,

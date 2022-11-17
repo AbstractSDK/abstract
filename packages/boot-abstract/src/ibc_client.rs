@@ -1,7 +1,7 @@
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 
 use crate::AbstractOS;
-use abstract_os::ibc_client::*;
+use abstract_sdk::os::ibc_client::*;
 
 pub type IbcClient<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
 

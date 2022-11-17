@@ -1,4 +1,4 @@
-use abstract_os::IBC_CLIENT;
+use abstract_sdk::os::IBC_CLIENT;
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
 };
@@ -6,9 +6,9 @@ use cosmwasm_std::{
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_os::ibc_client::ExecuteMsg as IbcClientMsg;
-use abstract_os::objects::proxy_asset::UncheckedProxyAsset;
-use abstract_os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
+use abstract_sdk::os::ibc_client::ExecuteMsg as IbcClientMsg;
+use abstract_sdk::os::objects::proxy_asset::UncheckedProxyAsset;
+use abstract_sdk::os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -45,7 +45,7 @@ pub fn execute_ibc_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_os::manager::state::OS_MODULES
+    let ibc_client_address = abstract_sdk::os::manager::state::OS_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| StdError::GenericErr {
             msg: format!(

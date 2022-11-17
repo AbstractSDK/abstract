@@ -1,7 +1,7 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
 use crate::AbstractOS;
-use abstract_os::abstract_token::*;
+use abstract_sdk::os::abstract_token::*;
 use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
 
 pub type Idea<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;

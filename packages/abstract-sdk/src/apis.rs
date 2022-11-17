@@ -1,32 +1,10 @@
-use abstract_os::objects::ans_host::AnsHost;
+pub mod ans;
+pub mod applications;
+pub mod bank;
+pub mod execution;
+pub mod ibc;
+pub mod vault;
+pub mod verify;
+pub mod version_register;
 
-mod ans;
-mod applications;
-mod execute;
-mod ibc;
-mod staking;
-mod transfer;
-mod version_control;
-
-
-// Api's can be accessed through trait implementation
-
-
- 
-pub trait AbstractNameService<'a> {
-    fn ans(&self, ans_host: &AnsHost)-> Ans<'a> {
-        Ans { base: self }
-    }
-}
-
-impl<'a, T> AbstractNameService <'a> for T
-    where T: Sized
-{}
-
-pub struct Ans <'a> {
-    ans_host: &'a AnsHost
-}
-
-impl<'a> Ans<'a> {
-
-}
+pub(crate) use crate::base::features::*;

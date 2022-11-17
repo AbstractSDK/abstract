@@ -1,4 +1,4 @@
-use abstract_os::ibc_host::{HostAction, InternalAction, PacketMsg};
+use abstract_sdk::os::ibc_host::{HostAction, InternalAction, PacketMsg};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -7,13 +7,15 @@ use cosmwasm_std::{
     IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
 };
 
-use abstract_os::abstract_ica::{
+use abstract_sdk::os::abstract_ica::{
     check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
 
 use crate::error::ClientError;
-use abstract_os::ibc_client::state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES};
-use abstract_os::ibc_client::{CallbackInfo, LatestQueryResponse};
+use abstract_sdk::os::ibc_client::{
+    state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
+    CallbackInfo, LatestQueryResponse,
+};
 
 // TODO: make configurable?
 /// packets live one hour
@@ -320,9 +322,9 @@ pub fn ibc_packet_timeout(
 // mod tests {
 //     use super::*;
 //     use crate::contract::{execute, instantiate, query};
-//     use abstract_os::ibc_client::{AccountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+//     use abstract_sdk::os::ibc_client::{AccountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
-//     use abstract_os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
+//     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
 //     use cosmwasm_std::testing::{
 //         mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
 //         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,

@@ -1,5 +1,9 @@
-use abstract_os::{
-    api::{BaseExecuteMsg, BaseQueryMsg, QueryMsg as ApiQuery, TradersResponse},
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::os::{
+    extension::{
+        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ExtensionExecMsg, QueryMsg as ExtensionQuery,
+        TradersResponse,
+    },
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
     module_factory::ExecuteMsg as ModuleFactoryMsg,
     objects::{
@@ -7,19 +11,21 @@ use abstract_os::{
         module_reference::ModuleReference,
     },
     proxy::ExecuteMsg as TreasuryMsg,
-    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg as VersionQuery},
     IBC_CLIENT,
 };
+use abstract_sdk::*;
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo, QueryRequest,
-    Response, StdError, StdResult, WasmMsg, WasmQuery,
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
+    QueryRequest, Response, StdError, StdResult, WasmMsg, WasmQuery,
 };
 use cw2::{get_contract_version, ContractVersion};
 use semver::Version;
 
-use crate::{contract::ManagerResult, error::ManagerError, validators::validate_name_or_gov_type};
-use abstract_os::{MANAGER, PROXY};
-use abstract_sdk::{configure_api, manager::query_module_version};
+use crate::{
+    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    validators::validate_name_or_gov_type,
+};
+use abstract_sdk::os::{MANAGER, PROXY};
 
 /// Adds, updates or removes provided addresses.
 /// Should only be called by contract that adds/removes modules.
@@ -204,14 +210,14 @@ pub fn upgrade_module(
     let module_ref = get_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     match module_ref {
         ModuleReference::Extension(addr) => {
-            // Update the address of the API internally
+            // Update the address of the extension internally
             update_module_addresses(
                 deps.branch(),
                 Some(vec![(module_info.id(), addr.to_string())]),
                 None,
             )?;
             // replace it
-            replace_api(deps, addr, old_module_addr)
+            replace_extension(deps, addr, old_module_addr)
         }
         ModuleReference::App(code_id) => {
             migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
@@ -238,15 +244,19 @@ fn migrate_module(
     Ok(Response::new().add_message(migration_msg))
 }
 
-/// Replaces the current API with a different version
+/// Replaces the current extension with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
-pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> ManagerResult {
+pub fn replace_extension(
+    deps: DepsMut,
+    new_extension_addr: Addr,
+    old_extension_addr: Addr,
+) -> ManagerResult {
     let mut msgs = vec![];
-    // Makes sure we already have the API installed
+    // Makes sure we already have the extension installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: old_api_addr.to_string(),
-        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
+        contract_addr: old_extension_addr.to_string(),
+        msg: to_binary(&<ExtensionQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }))?,
     }))?;
@@ -256,37 +266,37 @@ pub fn replace_api(deps: DepsMut, new_api_addr: Addr, old_api_addr: Addr) -> Man
         .map(|addr| addr.into_string())
         .collect();
     // Remove traders from old
-    msgs.push(configure_api(
-        old_api_addr.to_string(),
+    msgs.push(configure_extension(
+        &old_extension_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: None,
             to_remove: Some(traders_to_migrate.clone()),
         },
     )?);
-    // Remove api as trader on dependencies
-    msgs.push(configure_api(
-        old_api_addr.to_string(),
+    // Remove extension as trader on dependencies
+    msgs.push(configure_extension(
+        &old_extension_addr,
         BaseExecuteMsg::Remove {},
     )?);
     // Add traders to new
-    msgs.push(configure_api(
-        new_api_addr.clone(),
+    msgs.push(configure_extension(
+        &new_extension_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: Some(traders_to_migrate),
             to_remove: None,
         },
     )?);
-    // Remove API permissions from proxy
+    // Remove extension permissions from proxy
     msgs.push(remove_dapp_from_proxy(
         deps.as_ref(),
         proxy_addr.to_string(),
-        old_api_addr.into_string(),
+        old_extension_addr.into_string(),
     )?);
-    // Add new API to proxy
+    // Add new extension to proxy
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
-        new_api_addr.to_string(),
+        new_extension_addr.into_string(),
     )?);
 
     Ok(Response::new().add_messages(msgs))
@@ -375,15 +385,18 @@ fn get_module(
     old_contract: Option<ContractVersion>,
 ) -> Result<ModuleReference, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
+    // Construct feature object to access registry functions
+    let binding = VersionControlContract {
+        contract_address: config.version_control_address,
+    };
+    let version_registry = binding.version_register(deps);
     match &module_info.version {
         ModuleVersion::Version(new_version) => {
             let old_contract = old_contract.unwrap();
             if new_version.parse::<Version>().unwrap()
                 >= old_contract.version.parse::<Version>().unwrap()
             {
-                Ok(MODULE_LIBRARY
-                    .query(&deps.querier, config.version_control_address, module_info)?
-                    .unwrap())
+                Ok(version_registry.get_module_reference_raw(module_info)?)
             } else {
                 Err(ManagerError::OlderVersion(
                     new_version.to_owned(),
@@ -393,14 +406,7 @@ fn get_module(
         }
         ModuleVersion::Latest {} => {
             // Query latest version of contract
-            let resp: ModuleResponse =
-                deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                    contract_addr: config.version_control_address.to_string(),
-                    msg: to_binary(&VersionQuery::Module {
-                        module: module_info,
-                    })?,
-                }))?;
-            Ok(resp.module.reference)
+            Ok(version_registry.get_module(module_info)?.reference)
         }
     }
 }
@@ -451,4 +457,12 @@ fn remove_dapp_from_proxy(
         })?,
         funds: vec![],
     }))
+}
+#[inline(always)]
+fn configure_extension(
+    extension_address: impl Into<String>,
+    message: BaseExecuteMsg,
+) -> StdResult<CosmosMsg> {
+    let extension_msg: ExtensionExecMsg<Empty> = message.into();
+    Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
 }

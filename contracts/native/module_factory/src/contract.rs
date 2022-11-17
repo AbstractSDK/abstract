@@ -4,11 +4,11 @@ use cosmwasm_std::{
 use semver::Version;
 
 use crate::error::ModuleFactoryError;
-use abstract_os::OS_FACTORY;
+use abstract_sdk::os::OS_FACTORY;
 use cw2::{get_contract_version, set_contract_version};
 
 use crate::{commands, state::*};
-use abstract_os::module_factory::*;
+use abstract_sdk::os::module_factory::*;
 
 pub type ModuleFactoryResult = Result<Response, ModuleFactoryError>;
 
@@ -71,7 +71,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_ADD_ON_RESPONSE_ID,
+            id: commands::CREATE_APP_RESPONSE_ID,
             result,
         } => commands::register_contract(deps, result),
         Reply {

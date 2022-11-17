@@ -10,7 +10,7 @@ pub mod env {
 
     pub use super::{common_integration::*, module_uploader::*, os_creation::init_os};
     use super::{os_creation::init_primary_os, upload::upload_base_contracts};
-    use abstract_os::{
+    use abstract_sdk::os::{
         manager::{self as ManagerMsgs, ManagerModuleInfo},
         version_control::Core,
     };
@@ -91,7 +91,7 @@ pub mod env {
         module_name: &str,
         encapsuled_msg: &T,
     ) -> AnyResult<AppResponse> {
-        let msg = abstract_os::manager::ExecuteMsg::ExecOnModule {
+        let msg = abstract_sdk::os::manager::ExecuteMsg::ExecOnModule {
             module_id: module_name.into(),
             exec_msg: to_binary(encapsuled_msg)?,
         };

@@ -1,17 +1,17 @@
-use abstract_os::objects::module::Module;
-use abstract_os::objects::module::ModuleInfo;
-use abstract_os::objects::module::ModuleVersion;
-use abstract_os::objects::module_reference::ModuleReference;
-use abstract_os::version_control::state::MODULE_LIBRARY;
-use abstract_os::version_control::ModuleResponse;
-use abstract_os::version_control::ModulesResponse;
-use abstract_os::version_control::OsCoreResponse;
+use abstract_sdk::os::objects::module::Module;
+use abstract_sdk::os::objects::module::ModuleInfo;
+use abstract_sdk::os::objects::module::ModuleVersion;
+use abstract_sdk::os::objects::module_reference::ModuleReference;
+use abstract_sdk::os::version_control::state::MODULE_LIBRARY;
+use abstract_sdk::os::version_control::ModuleResponse;
+use abstract_sdk::os::version_control::ModulesResponse;
+use abstract_sdk::os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::StdError;
 use cw_storage_plus::Bound;
 
 use crate::error::VCError;
-use abstract_os::version_control::state::OS_ADDRESSES;
+use abstract_sdk::os::version_control::state::OS_ADDRESSES;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};
 
 const DEFAULT_LIMIT: u8 = 10;

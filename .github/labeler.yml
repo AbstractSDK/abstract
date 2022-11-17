@@ -3,17 +3,17 @@
 "core":
   # Match all of core folders
   - contracts/core/**/*
-"add-on":
-  # Match all of add-on folders
-  - contracts/modules/add-ons/**/*
-"api":
-  # Match all of api folders
-  - contracts/modules/apis/**/*
+"app":
+  # Match all of app folders
+  - contracts/modules/apps/**/*
+"extension":
+  # Match all of extension folders
+  - contracts/modules/extensions/**/*
 "service":
-  # Match all of api folders
+  # Match all of extension folders
   - contracts/modules/services/**/*
 "perk":
-  # Match all of api folders
+  # Match all of extension folders
   - contracts/modules/perks/**/*
 "native":
   # Match all of native folders
@@ -24,12 +24,12 @@
 "sdk":
   # Match all of native folders
   - packages/abstract-sdk/**/*
-"api_base":
+"extension_base":
   # Match all of native folders
-  - packages/abstract-api/**/*
-"add-on_base":
+  - packages/abstract-extension/**/*
+"app_base":
   # Match all of native folders
-  - packages/abstract-add-on/**/*
+  - packages/abstract-app/**/*
 "build":
   - build_release.sh
 "CI":

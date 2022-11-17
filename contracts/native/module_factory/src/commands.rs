@@ -3,11 +3,14 @@ use cosmwasm_std::{
     StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 
-use abstract_os::{
-    manager::ExecuteMsg as ManagerMsg,
-    objects::{module::ModuleInfo, module_reference::ModuleReference},
+use abstract_sdk::{
+    feature_objects::VersionControlContract,
+    os::{
+        manager::ExecuteMsg as ManagerMsg,
+        objects::{module::ModuleInfo, module_reference::ModuleReference},
+    },
+    *,
 };
-use abstract_sdk::{get_module, verify_os_manager};
 
 use protobuf::Message;
 
@@ -15,7 +18,7 @@ use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
 
 use crate::{response::MsgInstantiateContractResponse, state::*};
 
-pub const CREATE_ADD_ON_RESPONSE_ID: u64 = 1u64;
+pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
 pub const CREATE_PERK_RESPONSE_ID: u64 = 4u64;
 
@@ -29,8 +32,14 @@ pub fn execute_create_module(
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active OS manager
-    let core = verify_os_manager(&deps.querier, &info.sender, &config.version_control_address)?;
-    let new_module = get_module(&deps.querier, module_info, &config.version_control_address)?;
+    // Construct feature object to access registry functions
+    let binding = VersionControlContract {
+        contract_address: config.version_control_address,
+    };
+    let version_registry = binding.version_register(deps.as_ref());
+    let os_registry = binding.os_register(deps.as_ref());
+    let new_module = version_registry.get_module(module_info)?;
+    let core = os_registry.assert_manager(&info.sender)?;
 
     // Todo: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
@@ -56,7 +65,7 @@ pub fn execute_create_module(
             *code_id,
             root_init_msg.unwrap(),
             Some(core.manager),
-            CREATE_ADD_ON_RESPONSE_ID,
+            CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
         ModuleReference::Perk(code_id) => instantiate_contract(
@@ -116,7 +125,7 @@ fn instantiate_contract(
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of add_on contract
+    // Get address of app contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")

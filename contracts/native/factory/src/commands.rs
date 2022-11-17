@@ -1,4 +1,5 @@
-use abstract_os::{
+use abstract_os::app;
+use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
@@ -24,17 +25,17 @@ use crate::contract::OsFactoryResult;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 
 use crate::state::*;
-use abstract_os::{
+use abstract_sdk::os::{
     manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
     proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
 };
 
-use abstract_os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
+use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
-use abstract_os::{MANAGER, PROXY};
+use abstract_sdk::os::{MANAGER, PROXY};
 
 pub fn receive_cw20(
     deps: DepsMut,
@@ -321,7 +322,7 @@ fn query_subscription_fee(
     let subscription_fee_response: SubscriptionFeeResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: subscription_address.to_string(),
-            msg: to_binary(&SubscriptionQuery::Fee {})?,
+            msg: to_binary(&app::QueryMsg::App(SubscriptionQuery::Fee {}))?,
         }))?;
     Ok(subscription_fee_response)
 }
@@ -345,9 +346,11 @@ fn forward_payment(
             )?,
             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: sub_addr.into(),
-                msg: to_binary(&SubscriptionExecMsg::Pay {
-                    os_id: config.next_os_id,
-                })?,
+                msg: to_binary::<app::ExecuteMsg<SubscriptionExecMsg>>(&app::ExecuteMsg::App(
+                    SubscriptionExecMsg::Pay {
+                        os_id: config.next_os_id,
+                    },
+                ))?,
                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
             }),
             AssetInfoBase::Cw1155(_, _) => {

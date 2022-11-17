@@ -1,0 +1,45 @@
+[package]
+name = "etf"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
+
+exclude = [
+  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
+  "contract.wasm",
+  "hash.txt",
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cw-controllers = {workspace = true}
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = {workspace = true}
+cw2 = {workspace = true}
+cw20 = {workspace = true}
+cw20-base = {workspace = true}
+schemars = {workspace = true}
+serde = {workspace = true}
+thiserror = {workspace = true}
+protobuf = {workspace = true}
+cw-asset= {workspace = true}
+semver = {workspace = true}
+
+abstract-os = {workspace = true}
+abstract-app = {workspace = true}
+abstract-sdk = {workspace = true}
+
+[dev-dependencies]
+ans_host = { path = "../../../native/ans-host" }
+cw-multi-test = {workspace = true}
+cw20 = {workspace = true}
+proxy = { path = "../../../core/proxy" }

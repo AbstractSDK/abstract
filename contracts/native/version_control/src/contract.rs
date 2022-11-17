@@ -1,5 +1,5 @@
 use crate::error::VCError;
-use abstract_os::VERSION_CONTROL;
+use abstract_sdk::os::VERSION_CONTROL;
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::get_contract_version;
@@ -11,8 +11,8 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use crate::commands::*;
 use crate::queries;
-use abstract_os::version_control::state::{ADMIN, FACTORY};
-use abstract_os::version_control::{
+use abstract_sdk::os::version_control::state::{ADMIN, FACTORY};
+use abstract_sdk::os::version_control::{
     ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 

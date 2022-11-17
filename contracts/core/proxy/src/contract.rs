@@ -1,6 +1,7 @@
-use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::AssetEntry;
-use abstract_sdk::ans_host::AnsHost;
+use abstract_sdk::os::objects::core::OS_ID;
+use abstract_sdk::os::objects::AssetEntry;
+
+use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -12,14 +13,14 @@ use cosmwasm_std::{
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_os::objects::proxy_asset::ProxyAsset;
-use abstract_os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_os::proxy::{
+use abstract_sdk::os::objects::proxy_asset::ProxyAsset;
+use abstract_sdk::os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
+use abstract_sdk::os::proxy::{
     AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
     HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
     TotalValueResponse,
 };
-use abstract_os::PROXY;
+use abstract_sdk::os::PROXY;
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 pub type ProxyResult = Result<Response, ProxyError>;
@@ -94,7 +95,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::HoldingAmount { identifier } => {
             let vault_asset: AssetEntry = identifier.into();
             let ans_host = ANS_HOST.load(deps.storage)?;
-            let asset_info = vault_asset.resolve(deps, &ans_host)?;
+            let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
             to_binary(&HoldingAmountResponse {
                 amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
             })

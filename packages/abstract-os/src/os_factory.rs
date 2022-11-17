@@ -14,6 +14,8 @@ pub mod state {
 
     use serde::{Deserialize, Serialize};
 
+    use crate::objects::common_namespace::ADMIN_NAMESPACE;
+
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_contract: Addr,
@@ -28,7 +30,7 @@ pub mod state {
         pub os_manager_address: Addr,
     }
 
-    pub const ADMIN: Admin = Admin::new("admin");
+    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
 }

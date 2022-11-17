@@ -1,5 +1,5 @@
 use crate::AbstractOS;
-use abstract_os::vesting::*;
+use abstract_sdk::os::vesting::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
 use cosmwasm_std::Empty;
 

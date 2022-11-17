@@ -5,10 +5,10 @@ members = [
     "contracts/core/*",
     "contracts/testing",
     "contracts/token",
-    "contracts/modules/add-ons/etf",
-    "contracts/modules/add-ons/subscription",
-    "contracts/modules/apis/tendermint-staking",
-    "contracts/modules/apis/dex",
+    "contracts/modules/apps/etf",
+    "contracts/modules/apps/subscription",
+    "contracts/modules/extensions/tendermint-staking",
+    "contracts/modules/extensions/dex",
     "contracts/modules/perks/vesting",
     "contracts/ibc-hosts/osmosis"
 ]
@@ -40,12 +40,12 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0"
 
-abstract-sdk = { version = "0.2.0-beta.1", path = "packages/abstract-sdk" }
-abstract-os = { version = "0.2.0-beta.1", path = "packages/abstract-os" }
-abstract-add-on = { version = "0.2.0-beta.1", path = "packages/abstract-add-on", features = ["library"] }
-abstract-api = { version = "0.2.0-beta.1", path = "packages/abstract-api", features = ["library"] }
-abstract-ibc-host = { version = "0.2.0-beta.1", path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.2.0-beta.1", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.2.0-beta.2", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.2.0-beta.2", path = "packages/abstract-os" }
+abstract-app = { version = "0.2.0-beta.2", path = "packages/abstract-app", features = ["library"] }
+abstract-extension = { version = "0.2.0-beta.2", path = "packages/abstract-extension", features = ["library"] }
+abstract-ibc-host = { version = "0.2.0-beta.2", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.2.0-beta.2", path = "packages/abstract-ica" }
 
 cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
 

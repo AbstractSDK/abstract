@@ -1,9 +1,9 @@
 use std::str::FromStr;
 
-use abstract_os::modules::Module;
-use abstract_os::vault as vault_msg;
-use abstract_os::ETF;
-use abstract_os::{modules::ModuleInfo, registry::SUBSCRIPTION};
+use abstract_sdk::os::modules::Module;
+use abstract_sdk::os::vault as vault_msg;
+use abstract_sdk::os::ETF;
+use abstract_sdk::os::{modules::ModuleInfo, registry::SUBSCRIPTION};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
 use cw_controllers::AdminError;
@@ -60,10 +60,10 @@ fn proper_initialization() {
                     name: ETF.into(),
                     version: None,
                 },
-                kind: abstract_os::modules::ModuleKind::App,
+                kind: abstract_sdk::os::modules::ModuleKind::App,
             },
             Some(vault_msg::InstantiateMsg {
-                base: abstract_os::add_on::BaseInstantiateMsg {
+                base: abstract_sdk::os::app::BaseInstantiateMsg {
                     ans_host_address: env.native_contracts.ans_host.to_string(),
                 },
                 deposit_asset: "test".into(),

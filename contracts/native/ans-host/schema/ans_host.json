@@ -1,5 +1,5 @@
 {
-  "contract_name": "memory",
+  "contract_name": "ans_host",
   "contract_version": "0.2.0-beta.2",
   "idl_version": "1.0.0",
   "instantiate": {

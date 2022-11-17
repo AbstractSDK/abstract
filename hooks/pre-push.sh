@@ -40,6 +40,7 @@ format_check() {
   cd $project_toplevel || exit;
   cargo fmt;
   cargo workspaces exec --no-bail cargo schema >/dev/null;
+  sleep 3; # Give git time to find changed files.
   not_staged_file=$(git diff --name-only)
     if [ "$not_staged_file" != "" ]; then # it means the file changed and it's not staged, i.e. rustfmt did the job.
       git add .
@@ -50,7 +51,6 @@ format_check() {
 # clippy checks
 lint_check() {
   printf "Starting clippy check...\n"
-  RUSTFLAGS="-Dwarnings"
   cargo clippy --quiet -- -D warnings
   clippy_exit_code=$?
   if [ $clippy_exit_code -ne 0 ]; then

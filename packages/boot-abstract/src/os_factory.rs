@@ -1,9 +1,8 @@
-use abstract_os::objects::gov_type::GovernanceDetails;
-use abstract_os::os_factory::*;
+use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*};
 use cosmwasm_std::Addr;
 
 use crate::AbstractOS;
-use abstract_os::{MANAGER, PROXY};
+use abstract_sdk::os::{MANAGER, PROXY};
 use boot_core::{state::StateInterface, BootError, Contract, IndexResponse, TxHandler, TxResponse};
 
 pub type OSFactory<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;

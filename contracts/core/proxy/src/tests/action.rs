@@ -3,7 +3,7 @@ use std::panic;
 use crate::contract::{execute, instantiate};
 use crate::error::*;
 use crate::tests::common::TEST_CREATOR;
-use abstract_os::proxy::{ExecuteMsg, InstantiateMsg};
+use abstract_sdk::os::proxy::{ExecuteMsg, InstantiateMsg};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::{to_binary, Addr, ReplyOn, SubMsg, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;

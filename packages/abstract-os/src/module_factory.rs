@@ -6,7 +6,10 @@
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
     use crate::{
-        objects::module::{Module, ModuleInfo},
+        objects::{
+            common_namespace::ADMIN_NAMESPACE,
+            module::{Module, ModuleInfo},
+        },
         version_control::Core,
     };
     use cosmwasm_std::{Addr, Binary};
@@ -27,7 +30,7 @@ pub mod state {
         pub module: Option<Module>,
     }
 
-    pub const ADMIN: Admin = Admin::new("admin");
+    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{7}context");
     pub const MODULE_INIT_BINARIES: Map<ModuleInfo, Binary> = Map::new("module_init_binaries");

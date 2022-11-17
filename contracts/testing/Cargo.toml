@@ -46,8 +46,8 @@ ans_host = {path = "../native/ans-host" }
 os-factory = { path = "../native/factory" }
 module-factory = { path = "../native/module_factory" }
 version-control = { path = "../native/version_control" }
-subscription = { path = "../modules/add-ons/subscription" }
-dex = { path = "../modules/apis/dex" }
+subscription = { path = "../modules/apps/subscription" }
+dex = { path = "../modules/extensions/dex" }
 
 
 # [package.metadata.scripts]

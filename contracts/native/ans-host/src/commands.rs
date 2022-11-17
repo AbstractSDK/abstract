@@ -71,10 +71,10 @@ pub fn update_asset_addresses(
 
     for (name, new_asset) in to_add.into_iter() {
         // Update function for new or existing keys
-        let api = deps.api;
+        let extension = deps.api;
         let insert = |_| -> StdResult<AssetInfo> {
             // use own check, cw_asset otherwise changes cases to lowercase
-            new_asset.check(api, None)
+            new_asset.check(extension, None)
         };
         ASSET_ADDRESSES.update(deps.storage, name.into(), insert)?;
     }

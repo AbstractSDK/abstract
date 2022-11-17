@@ -1,12 +1,13 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 
-use abstract_os::abstract_ica::StdAck;
-use abstract_os::dex::DexAction;
-use abstract_os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_os::OSMOSIS_HOST;
+use abstract_sdk::os::abstract_ica::StdAck;
+use abstract_sdk::os::dex::DexAction;
+use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_sdk::os::OSMOSIS_HOST;
 
-use abstract_sdk::{InstantiateEndpoint, QueryEndpoint, ReplyEndpoint};
+use abstract_sdk::base::{InstantiateEndpoint, QueryEndpoint, ReplyEndpoint};
+
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,

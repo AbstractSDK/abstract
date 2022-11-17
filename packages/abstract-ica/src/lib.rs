@@ -4,11 +4,13 @@ mod ibc_msg;
 
 use cosmwasm_std::IbcOrder;
 
-pub use crate::callback::IbcResponseMsg;
-pub use crate::checks::{check_order, check_version, SimpleIcaError};
-pub use crate::ibc_msg::{
-    BalancesResponse, DispatchResponse, IbcQueryResponse, RegisterResponse, SendAllBackResponse,
-    StdAck, WhoAmIResponse,
+pub use crate::{
+    callback::IbcResponseMsg,
+    checks::{check_order, check_version, SimpleIcaError},
+    ibc_msg::{
+        BalancesResponse, DispatchResponse, IbcQueryResponse, RegisterResponse,
+        SendAllBackResponse, StdAck, WhoAmIResponse,
+    },
 };
 
 pub const IBC_APP_VERSION: &str = "abstract-ica-v1";

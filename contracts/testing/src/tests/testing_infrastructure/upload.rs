@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use abstract_os::{
+use abstract_sdk::os::{
     objects::module_reference::ModuleReference, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY,
     PROXY, VERSION_CONTROL,
 };

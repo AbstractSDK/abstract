@@ -1,16 +1,16 @@
 use std::{collections::HashMap, str::FromStr};
 
-use abstract_os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
+use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
 use cosmwasm_std::Addr;
 
-use abstract_os::{
-    add_on::BaseInstantiateMsg, objects::module::ModuleInfo,
+use abstract_sdk::os::{
+    app::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
 use cw_asset::AssetInfoUnchecked;
 
-use abstract_os::SUBSCRIPTION;
+use abstract_sdk::os::SUBSCRIPTION;
 use cw_multi_test::App;
 
 use crate::tests::{
@@ -19,7 +19,7 @@ use crate::tests::{
     testing_infrastructure::common_integration::mock_app,
 };
 
-use abstract_os::*;
+use abstract_sdk::os::*;
 use anyhow::Result as AnyResult;
 
 use cw_multi_test::Executor;
@@ -43,8 +43,8 @@ pub fn init_os(
     let _resp = app.execute_contract(
         sender.clone(),
         native_contracts.os_factory.clone(),
-        &abstract_os::os_factory::ExecuteMsg::CreateOs {
-            governance: abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
+        &abstract_sdk::os::os_factory::ExecuteMsg::CreateOs {
+            governance: abstract_sdk::os::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
             name: OS_NAME.to_string(),
@@ -83,32 +83,34 @@ pub fn init_primary_os(
 
     let core = os_store.get(&0u32).unwrap();
 
-    let init_msg = to_binary(&SubInitMsg {
+    let init_msg = to_binary(&app::InstantiateMsg {
+        app: SubInitMsg {
+            contribution: Some(abstract_sdk::os::subscription::ContributionInstantiateMsg {
+                protocol_income_share: Decimal::percent(10),
+                emission_user_share: Decimal::percent(25),
+                max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
+                token_info: cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
+                emissions_amp_factor: Uint128::new(680000000),
+                emissions_offset: Uint128::new(52000),
+                income_averaging_period: Uint64::new(100),
+            }),
+            subscription: abstract_sdk::os::subscription::SubscriptionInstantiateMsg {
+                factory_addr: native_contracts.os_factory.to_string(),
+                payment_asset: AssetInfoUnchecked::native("uusd"),
+                subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
+                version_control_addr: native_contracts.version_control.to_string(),
+                subscription_per_block_emissions:
+                    subscription::state::UncheckedEmissionType::IncomeBased(
+                        cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
+                    ),
+            },
+        },
         base: BaseInstantiateMsg {
             ans_host_address: native_contracts.ans_host.to_string(),
         },
-        contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {
-            protocol_income_share: Decimal::percent(10),
-            emission_user_share: Decimal::percent(25),
-            max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
-            token_info: cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
-            emissions_amp_factor: Uint128::new(680000000),
-            emissions_offset: Uint128::new(52000),
-            income_averaging_period: Uint64::new(100),
-        }),
-        subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
-            factory_addr: native_contracts.os_factory.to_string(),
-            payment_asset: AssetInfoUnchecked::native("uusd"),
-            subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
-            version_control_addr: native_contracts.version_control.to_string(),
-            subscription_per_block_emissions:
-                subscription::state::UncheckedEmissionType::IncomeBased(
-                    cw_asset::AssetInfoBase::Cw20(native_contracts.token.to_string()),
-                ),
-        },
     })?;
 
-    let msg = abstract_os::manager::ExecuteMsg::CreateModule {
+    let msg = abstract_sdk::os::manager::ExecuteMsg::CreateModule {
         module: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest {})?,
         init_msg: Some(init_msg),
     };
@@ -117,7 +119,7 @@ pub fn init_primary_os(
         .execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
         .unwrap();
 
-    let msg = abstract_os::os_factory::ExecuteMsg::UpdateConfig {
+    let msg = abstract_sdk::os::os_factory::ExecuteMsg::UpdateConfig {
         admin: None,
         ans_host_contract: None,
         version_control_contract: None,

@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use abstract_os::vesting::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_sdk::os::vesting::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     write_api! {

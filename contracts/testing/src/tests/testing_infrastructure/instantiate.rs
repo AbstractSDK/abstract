@@ -4,7 +4,7 @@ use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 
 use cosmwasm_std::{Addr, Timestamp};
 
-use abstract_os::{
+use abstract_sdk::os::{
     ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},

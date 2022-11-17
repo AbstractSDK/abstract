@@ -1,7 +1,11 @@
-use abstract_os::ibc_host::PacketMsg;
 use abstract_sdk::{
-    ans_host::AnsHost, AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn,
-    ReceiveHandlerFn, ReplyHandlerFn, BASE_STATE,
+    base::{
+        AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+        ReplyHandlerFn,
+    },
+    feature_objects::AnsHost,
+    namespaces::BASE_STATE,
+    os::ibc_host::PacketMsg,
 };
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
@@ -11,7 +15,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    reply::{reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID},
+    endpoints::reply::{
+        reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID,
+    },
     HostError,
 };
 

@@ -1,16 +1,16 @@
 use std::collections::HashSet;
 use std::convert::TryInto;
 
-use abstract_os::objects::{AssetEntry, UncheckedContractEntry};
+use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
 
 use cosmwasm_std::{Addr, Deps, Env, Order, StdError, StdResult, Uint128};
 use cw_storage_plus::Bound;
 
-use abstract_os::objects::proxy_asset::{
+use abstract_sdk::os::objects::proxy_asset::{
     get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
 };
-use abstract_os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
+use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
+use abstract_sdk::os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 20;
 pub fn query_proxy_assets(
@@ -215,14 +215,14 @@ pub fn try_load_asset(
 
 pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<AssetEntry> {
     match value_reference {
-        abstract_os::objects::proxy_asset::ValueRef::Pool { pair } => {
+        abstract_sdk::os::objects::proxy_asset::ValueRef::Pool { pair } => {
             // Check if the other asset in the pool resolves
             let other_pool_asset: AssetEntry = other_asset_name(entry.as_str(), &pair.contract)
                 .unwrap()
                 .into();
             vec![other_pool_asset]
         }
-        abstract_os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
+        abstract_sdk::os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
             // check if both tokens of pool resolve
             let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
             let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
@@ -230,10 +230,10 @@ pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> 
             let asset2: AssetEntry = other_pool_asset_names[1].into();
             vec![asset1, asset2]
         }
-        abstract_os::objects::proxy_asset::ValueRef::ValueAs {
+        abstract_sdk::os::objects::proxy_asset::ValueRef::ValueAs {
             asset,
             multiplier: _,
         } => vec![asset.clone()],
-        abstract_os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
+        abstract_sdk::os::objects::proxy_asset::ValueRef::External { extension_name: _ } => todo!(),
     }
 }

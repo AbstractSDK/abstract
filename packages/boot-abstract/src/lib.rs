@@ -1,8 +1,10 @@
 use boot_core::{Contract, IndexResponse, TxHandler};
 
 use serde::Serialize;
-use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
+use std::{
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 // Update `MyProjectName` to your project name and export contract implementations here.
 // No need to touch anything else
@@ -56,12 +58,12 @@ pub mod proxy;
 pub mod subscription;
 // mod terraswap_dapp;
 // pub mod balancer;
-pub mod dex_api;
+pub mod dex_extension;
 pub mod etf;
 pub mod ibc_client;
 pub mod idea_token;
 pub mod osmosis_host;
-pub mod tendermint_staking_api;
+pub mod tendermint_staking_extension;
 pub mod version_control;
 pub mod vesting;
 // pub mod callback_capturer;
