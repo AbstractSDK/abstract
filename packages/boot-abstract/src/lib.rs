@@ -18,6 +18,7 @@ pub struct AbstractOS<
 >(Contract<Chain, ExecuteMsg, InitMsg, QueryMsg, M>)
 where
     <Chain as TxHandler>::Response: IndexResponse;
+
 impl<
         Chain: TxHandler,
         E: Serialize + Debug,

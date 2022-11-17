@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use abstract_os::VERSION_CONTROL;
 use semver::Version;
 use serde::Serialize;
 
@@ -28,11 +29,9 @@ impl<Chain: TxHandler + Clone> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: &Chain, address: Option<&Addr>) -> Self {
+    pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain)
-                .with_wasm_path("version_control")
-                .with_address(address),
+            Contract::new(name, chain).with_wasm_path("version_control"),
             // .with_mock(Box::new(
             //     ContractWrapper::new_with_empty(
             //         ::contract::execute,
@@ -42,6 +41,11 @@ where
             // ))
         )
     }
+
+    pub fn load(chain: &Chain, address: &Addr) -> Self {
+        Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+    }
+
     pub fn upload_and_register_module<
         R: Serialize + Debug,
         S: Serialize + Debug,
