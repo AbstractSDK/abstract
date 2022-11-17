@@ -26,7 +26,6 @@ schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
 cw-asset= {workspace = true}
-serde-cw-value = "0.7.0"
 abstract-os = {workspace = true}
 semver = {workspace = true}
 # abstract-os = {workspace = true}

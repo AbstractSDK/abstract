@@ -29,7 +29,6 @@ cw20 = {workspace = true}
 schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
-protobuf = {workspace = true}
 cw-asset= {workspace = true}
 semver = {workspace = true}
 

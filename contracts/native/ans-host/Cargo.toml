@@ -28,7 +28,6 @@ schemars = {workspace = true}
 serde = {workspace = true}
 semver = {workspace = true}
 thiserror = {workspace = true}
-abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
 cw-asset= {workspace = true}
 [dev-dependencies]
