@@ -28,15 +28,16 @@ pub fn add_modules(
     msg_info: MessageInfo,
     modules: Vec<(ModuleInfo, ModuleReference)>,
 ) -> VCResult {
-    // Only Admin can update modules
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     for (module, mod_ref) in modules {
         if MODULE_LIBRARY.has(deps.storage, module.clone()) {
             return Err(VCError::ModuleUpdate(module));
         }
         // version must be set in order to add the new version
         module.assert_version_variant()?;
-
+        if module.provider == "abstract" {
+            // Only Admin can update abstract contracts
+            ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+        }
         MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
     }
 
@@ -69,21 +70,3 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))
 }
-
-// Might be useful later to manage state bloat.
-
-// /// Remove OS from version control contract
-// pub fn remove_debtors(deps: DepsMut, msg_info: MessageInfo, os_ids: Vec<u32>) -> VCResult {
-//     // Only Admin can update code-ids
-//     SUBSCRIPTION.assert_admin(deps.as_ref(), &msg_info.sender)?;
-
-//     for os_id in os_ids {
-//         if OS_ADDRESSES.has(deps.storage, os_id) {
-//             OS_ADDRESSES.remove(deps.storage, os_id);
-//         } else {
-//             return Err(VCError::MissingOsId { id: os_id });
-//         }
-//     }
-
-//     Ok(Response::new())
-// }
