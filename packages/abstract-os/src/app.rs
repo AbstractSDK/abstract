@@ -17,6 +17,7 @@ pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
+#[allow(unused)]
 use cw_controllers::AdminResponse;
 
 /// Used by Module Factory to instantiate App

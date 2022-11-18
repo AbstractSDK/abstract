@@ -9,6 +9,7 @@ use std::convert::TryInto;
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
+#[allow(unused)]
 use cw20::{
     AllAccountsResponse, AllAllowancesResponse, AllowanceResponse, BalanceResponse,
     DownloadLogoResponse, MarketingInfoResponse, TokenInfoResponse,
