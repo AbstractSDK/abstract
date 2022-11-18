@@ -5,6 +5,8 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. v1.0, v20.15.10
       - "v[0-9]+.[0-9]+.[0-9]+-rc*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
       - "v[0-9]+.[0-9]+.[0-9]+-beta*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   release-artifacts:
@@ -27,7 +29,7 @@ jobs:
           docker run --rm -v "$(pwd)":/code \
           --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
           --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-          cosmwasm/rust-optimizer:0.12.9
+          abstract/workspace-optimizer:0.12.10
           tar -zcvf cosmwasm-artifacts.tar.gz artifacts
       - name: Create Release
         uses: softprops/action-gh-release@v1
