@@ -13,10 +13,10 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup | Rust
         id: rustup
-        uses: ATiltedTree/setup-rust@v1
+        uses: ATiltedTree/setup-rust@v2
         with:
           rust-version: stable
           components: clippy
@@ -26,7 +26,7 @@ jobs:
         if: ${{ steps.rustup.outcome }} != "success"
       - name: Setup Rust (again)
         if: ${{ steps.rustup.outcome }} != "success"
-        uses: ATiltedTree/setup-rust@v1
+        uses: ATiltedTree/setup-rust@v2
         with:
           rust-version: stable
           components: clippy
@@ -37,9 +37,9 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
+        uses: ATiltedTree/setup-rust@v2
         with:
           rust-version: stable
       - name: Dependencies | Compile
@@ -52,9 +52,9 @@ jobs:
     needs: [compile]
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
+        uses: ATiltedTree/setup-rust@v2
         with:
           rust-version: stable
       - name: Unit Test | Test
