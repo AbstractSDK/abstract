@@ -44,7 +44,7 @@ format_check() {
   not_staged_file=$(git diff --name-only)
     if [ "$not_staged_file" != "" ]; then # it means the file changed and it's not staged, i.e. rustfmt did the job.
       git add .
-      git commit -m "formatting and schema gen"
+      git commit -m "formatting"
     fi
 }
 
