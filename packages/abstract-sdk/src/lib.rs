@@ -15,21 +15,28 @@
 //! > - [IBC-host](https://crates.io/crates/abstract-ibc-host) ([Template (WIP)]())
 //!
 //! ```
-//!   # use crate::feature_objects::VersionControlContract;
-//!   #
+//!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameSystem}};
+//!   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
+//!   # use abstract_sdk::feature_objects::AnsHost;
+//! 
 //!   # pub struct MyContract {
 //!   #     
 //!   # }
 //!   #
 //!   # impl Identification for MyContract {
 //!   #     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
-//!   #         Ok(Addr::unchecked("just_an_example".into()))
+//!   #         Ok(Addr::unchecked("just_an_example"))
+//!   #     }
+//!   # }
+//!   # impl AbstractNameSystem for MyContract {
+//!   #     fn ans_host(&self, _deps: Deps) -> cosmwasm_std::StdResult<AnsHost> {
+//!   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
 //!   #     }
 //!   # }
 //!   use abstract_sdk::TransferInterface;
 //!
 //!   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> StdResult<CosmosMsg> {
-//!       let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds);
+//!       let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
 //!       Ok(send_deposit_to_vault_msg)
 //!   }
 //!   #
