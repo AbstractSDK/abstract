@@ -1,7 +1,6 @@
-mod commands;
 pub mod contract;
 pub mod error;
-pub mod replies;
+mod handlers;
 pub mod response;
 pub(crate) use abstract_sdk::os::etf::state;
 

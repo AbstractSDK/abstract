@@ -1,51 +1,36 @@
-use abstract_app::state::AppState;
-
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
-    WasmMsg,
+    to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
 };
-use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
+use cosmwasm_std::{QuerierWrapper, QueryRequest, StdResult, WasmQuery};
+use cw20::Cw20ExecuteMsg;
+use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_sdk::os::etf::DepositHookMsg;
+use abstract_app::state::AppState;
+use abstract_os::etf::EtfExecuteMsg;
+use abstract_sdk::*;
+
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
 use abstract_sdk::os::objects::fee::Fee;
 
 use crate::contract::{EtfApp, EtfResult};
-use crate::error::VaultError;
+use crate::error::EtfError;
 use crate::state::{State, FEE, STATE};
-use abstract_sdk::*;
-use cosmwasm_std::{QuerierWrapper, QueryRequest, StdResult, WasmQuery};
-use cw20::{Cw20QueryMsg, TokenInfoResponse};
 
-/// handler function invoked when the vault dapp contract receives
-/// a transaction. In this case it is triggered when either a LP tokens received
-/// by the contract or when the deposit asset is a cw20 asset.
-pub fn receive_cw20(
+pub fn execute_handler(
     deps: DepsMut,
-    env: Env,
-    msg_info: MessageInfo,
-    dapp: EtfApp,
-    cw20_msg: Cw20ReceiveMsg,
+    _env: Env,
+    info: MessageInfo,
+    vault: EtfApp,
+    msg: EtfExecuteMsg,
 ) -> EtfResult {
-    match from_binary(&cw20_msg.msg)? {
-        DepositHookMsg::WithdrawLiquidity {} => {
-            let state: State = STATE.load(deps.storage)?;
-            if msg_info.sender != state.liquidity_token_addr {
-                return Err(VaultError::NotLPToken {
-                    token: msg_info.sender.to_string(),
-                });
-            }
-            try_withdraw_liquidity(deps, env, dapp, cw20_msg.sender, cw20_msg.amount)
+    match msg {
+        EtfExecuteMsg::ProvideLiquidity { asset } => {
+            // Check asset
+            let asset = asset.check(deps.api, None)?;
+            try_provide_liquidity(deps, info, vault, asset, None)
         }
-        DepositHookMsg::ProvideLiquidity {} => {
-            // Construct deposit asset
-            let asset = Asset {
-                info: AssetInfo::Cw20(msg_info.sender.clone()),
-                amount: cw20_msg.amount,
-            };
-            try_provide_liquidity(deps, msg_info, dapp, asset, Some(cw20_msg.sender))
-        }
+        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, vault, fee),
     }
 }
 
@@ -71,17 +56,17 @@ pub fn try_provide_liquidity(
                     // If native token, assert claimed amount is correct
                     let coin = msg_info.funds.last();
                     if coin.is_none() {
-                        return Err(VaultError::WrongNative {});
+                        return Err(EtfError::WrongNative {});
                     }
 
                     let coin = coin.unwrap().clone();
                     if Asset::native(coin.denom, coin.amount) != asset {
-                        return Err(VaultError::WrongNative {});
+                        return Err(EtfError::WrongNative {});
                     }
                     msg_info.sender
                 }
-                AssetInfo::Cw20(_) => return Err(VaultError::NotUsingCW20Hook {}),
-                AssetInfo::Cw1155(_, _) => return Err(VaultError::NotUsingCW20Hook {}),
+                AssetInfo::Cw20(_) => return Err(EtfError::NotUsingCW20Hook {}),
+                AssetInfo::Cw1155(_, _) => return Err(EtfError::NotUsingCW20Hook {}),
                 _ => panic!("unsupported asset"),
             }
         }
@@ -247,7 +232,7 @@ pub fn try_withdraw_liquidity(
         .add_attributes(attrs))
 }
 
-pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
+fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
     // Only the admin should be able to call this
     dapp.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
@@ -257,7 +242,7 @@ pub fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Deci
     Ok(Response::new().add_attribute("Update:", "Successful"))
 }
 
-pub fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
+fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
     let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
         contract_addr: String::from(contract_addr),
         msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,

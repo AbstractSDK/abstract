@@ -2,10 +2,10 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_sdk::os::{
-    dex::{DexRequestMsg, SimulateSwapResponse},
-    extension::{ExecuteMsg, ExtensionConfigResponse, TradersResponse},
+    dex::SimulateSwapResponse,
+    extension::{ExtensionConfigResponse, TradersResponse},
 };
-use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
+use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
 use osmosis_host::contract::OsmoHost;
 
 fn main() {

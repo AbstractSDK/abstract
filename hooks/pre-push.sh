@@ -39,7 +39,7 @@ format_check() {
 
   cd $project_toplevel || exit;
   cargo fmt;
-  cargo workspaces exec --no-bail cargo schema >/dev/null;
+  # cargo workspaces exec --no-bail cargo schema >/dev/null;
   sleep 3; # Give git time to find changed files.
   not_staged_file=$(git diff --name-only)
     if [ "$not_staged_file" != "" ]; then # it means the file changed and it's not staged, i.e. rustfmt did the job.

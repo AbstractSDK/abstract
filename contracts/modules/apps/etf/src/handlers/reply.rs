@@ -1,8 +1,10 @@
-use crate::contract::{EtfApp, EtfResult};
-use crate::response::MsgInstantiateContractResponse;
-use abstract_sdk::os::etf::state::STATE;
 use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
 use protobuf::Message;
+
+use abstract_sdk::os::etf::state::STATE;
+
+use crate::contract::{EtfApp, EtfResult};
+use crate::response::MsgInstantiateContractResponse;
 
 pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfApp, reply: Reply) -> EtfResult {
     let data = reply.result.unwrap().data.unwrap();
@@ -20,5 +22,3 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfApp, reply: Reply) -
 
     Ok(Response::new().add_attribute("liquidity_token_addr", liquidity_token))
 }
-
-pub const INSTANTIATE_REPLY_ID: u64 = 1u64;

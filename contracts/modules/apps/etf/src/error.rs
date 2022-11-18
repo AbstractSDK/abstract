@@ -4,7 +4,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum VaultError {
+pub enum EtfError {
     #[error("{0}")]
     Std(#[from] StdError),
 
