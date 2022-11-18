@@ -28,7 +28,7 @@ jobs:
           docker run --rm -v "$(pwd)":/code \
           --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
           --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-          abstract/workspace-optimizer:0.12.10
+          abstractos/workspace-optimizer:0.12.10
           tar -zcvf cosmwasm-artifacts.tar.gz artifacts
       - name: Create Release
         uses: softprops/action-gh-release@v1
