@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup | Rust
         id: rustup
-        uses: ATiltedTree/setup-rust@v2
+        uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
           components: clippy
@@ -26,7 +26,7 @@ jobs:
         if: ${{ steps.rustup.outcome }} != "success"
       - name: Setup Rust (again)
         if: ${{ steps.rustup.outcome }} != "success"
-        uses: ATiltedTree/setup-rust@v2
+        uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
           components: clippy
@@ -39,7 +39,7 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v2
+        uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
       - name: Dependencies | Compile
@@ -54,7 +54,7 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v2
+        uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
       - name: Unit Test | Test
