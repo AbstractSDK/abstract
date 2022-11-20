@@ -1,3 +1,4 @@
+name: Clippy & Tests
 on:
   pull_request:
     branches:
