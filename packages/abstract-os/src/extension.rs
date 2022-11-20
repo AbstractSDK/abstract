@@ -16,9 +16,9 @@ use crate::base::{
     QueryMsg as MiddlewareQueryMsg,
 };
 
-pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, ExtensionRequestMsg<T>, R>;
-pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
-pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
+pub type ExecuteMsg<Request, ReceiveMsg = Empty> = MiddlewareExecMsg<BaseExecuteMsg, ExtensionRequestMsg<Request>, ReceiveMsg>;
+pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
+pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddExtension`].
@@ -30,14 +30,14 @@ pub struct BaseInstantiateMsg {
     pub version_control_address: String,
 }
 
-impl<T, R> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, T, R> {
+impl<RequestMsg, ReceiveMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, ReceiveMsg> {
     fn from(extension_msg: BaseExecuteMsg) -> Self {
         Self::Base(extension_msg)
     }
 }
 
-impl<T, R, Q> From<ExtensionRequestMsg<T>> for MiddlewareExecMsg<Q, ExtensionRequestMsg<T>, R> {
-    fn from(request_msg: ExtensionRequestMsg<T>) -> Self {
+impl<RequestMsg, Request, BaseExecMsg> From<ExtensionRequestMsg<RequestMsg>> for MiddlewareExecMsg<BaseExecMsg, ExtensionRequestMsg<RequestMsg>, Request> {
+    fn from(request_msg: ExtensionRequestMsg<RequestMsg>) -> Self {
         Self::App(request_msg)
     }
 }
@@ -45,14 +45,14 @@ impl<T, R, Q> From<ExtensionRequestMsg<T>> for MiddlewareExecMsg<Q, ExtensionReq
 /// An extension request.
 /// If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.
 #[cosmwasm_schema::cw_serde]
-pub struct ExtensionRequestMsg<T> {
+pub struct ExtensionRequestMsg<Request> {
     pub proxy_address: Option<String>,
     /// The actual request
-    pub request: T,
+    pub request: Request,
 }
 
-impl<T: Serialize> ExtensionRequestMsg<T> {
-    pub fn new(proxy_address: Option<String>, request: T) -> Self {
+impl<Request: Serialize> ExtensionRequestMsg<Request> {
+    pub fn new(proxy_address: Option<String>, request: Request) -> Self {
         Self {
             proxy_address,
             request,

@@ -5,8 +5,7 @@ use semver::Version;
 use serde::Serialize;
 
 use abstract_sdk::os::{
-    base,
-    extension::BaseInstantiateMsg,
+    extension,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -20,7 +19,7 @@ use boot_core::{
     state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse,
 };
 
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr};
 
 pub type VersionControl<Chain> =
     AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
@@ -47,13 +46,13 @@ where
     }
 
     pub fn upload_and_register_module<
-        R: Serialize + Debug,
-        S: Serialize + Debug,
-        T: Serialize + Debug,
-        V: Serialize + Debug,
+        E: Serialize + Debug,
+        I: Serialize + Debug,
+        Q: Serialize + Debug,
+        M: Serialize + Debug,
     >(
         &self,
-        module: &mut Contract<Chain, R, S, T, V>,
+        module: &mut Contract<Chain, E, I, Q, M>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         module.upload()?;
@@ -74,13 +73,14 @@ where
     }
 
     pub fn upload_and_register_extension<
-        R: Serialize + Debug,
-        T: Serialize + Debug,
-        V: Serialize + Debug,
+        E: Serialize + Debug,
+        Q: Serialize + Debug,
+        M: Serialize + Debug,
+        AppMsg: Serialize + Debug,
     >(
         &self,
-        extension: &mut Contract<Chain, R, base::InstantiateMsg<BaseInstantiateMsg>, T, V>,
-        extension_init_msg: &base::InstantiateMsg<BaseInstantiateMsg>,
+        extension: &mut Contract<Chain, E, extension::InstantiateMsg<AppMsg>, Q, M>,
+        extension_init_msg: &extension::InstantiateMsg<AppMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         extension.upload()?;

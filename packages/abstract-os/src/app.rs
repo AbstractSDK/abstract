@@ -10,10 +10,10 @@ use crate::base::{
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
 };
 
-pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
-pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
-pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
-pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
+pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> = MiddlewareExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
+pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
+pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
+pub type MigrateMsg<AppMsg = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, AppMsg>;
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
