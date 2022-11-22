@@ -1,14 +1,14 @@
 use std::fmt::Debug;
 
 use abstract_sdk::os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::state::StateInterface;
+use boot_core::{state::StateInterface, BootEnvironment};
 use cosmwasm_std::{to_binary, Addr, Binary};
 
 use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-use boot_core::{BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
+use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
@@ -92,12 +92,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Ok(())
     }
 
-    pub fn add_module<
-        I: Serialize + Debug,
-        H: Serialize + Debug,
-        N: Serialize + Debug,
-        S: Serialize + Debug,
-    >(
+    pub fn add_module<I: Serialize + Debug>(
         &self,
         module: &Contract<Chain>,
         init_msg: Option<&I>,

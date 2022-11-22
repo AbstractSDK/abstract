@@ -2,7 +2,6 @@ pub use abstract_sdk::os::balancer::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment};
 use cosmwasm_std::Empty;
 
-use crate::AbstractOS;
 
 use boot_core::prelude::boot_contract;
 

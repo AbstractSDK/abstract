@@ -2,7 +2,9 @@ use std::fmt::Debug;
 
 use boot_core::interface::{BootExecute, BootQuery, ContractInstance};
 use boot_core::prelude::boot_contract;
-use boot_core::{state::StateInterface, BootEnvironment, BootError, Contract, Daemon, TxResponse, IndexResponse};
+use boot_core::{
+    state::StateInterface, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
+};
 use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
@@ -21,7 +23,10 @@ use abstract_sdk::os::{
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
 
-impl<Chain: BootEnvironment> VersionControl<Chain> where TxResponse<Chain>: IndexResponse {
+impl<Chain: BootEnvironment> VersionControl<Chain>
+where
+    TxResponse<Chain>: IndexResponse,
+{
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("version_control"),
@@ -64,7 +69,6 @@ impl<Chain: BootEnvironment> VersionControl<Chain> where TxResponse<Chain>: Inde
     pub fn upload_and_register_extension<AppMsg: Serialize + Debug>(
         &self,
         extension: &mut Contract<Chain>,
-        // extension: &mut Contract<Chain, E, extension::InstantiateMsg<AppMsg>, Q, M>,
         extension_init_msg: &extension::InstantiateMsg<AppMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
@@ -116,7 +120,7 @@ impl<Chain: BootEnvironment> VersionControl<Chain> where TxResponse<Chain>: Inde
 
 impl VersionControl<Daemon> {
     // pub fn update_code_ids(&self, new_version: Version) -> anyhow::Result<()> {
-    //     let code_ids = self.chain().state().get_all_code_ids()?;
+    //     let code_ids = self.get_chain().state().get_all_code_ids()?;
     //     for (contract_id, code_id) in code_ids {
     //         if NATIVE_CONTRACTS.contains(&contract_id.as_str()) {
     //             continue;

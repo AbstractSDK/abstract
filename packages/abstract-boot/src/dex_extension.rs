@@ -4,7 +4,7 @@ use cosmwasm_std::Empty;
 
 use abstract_sdk::os::{
     dex::*,
-    extension::*,
+    extension,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
@@ -13,7 +13,7 @@ use crate::manager::Manager;
 use boot_core::interface::ContractInstance;
 
 type DexExtensionInstantiateMsg = abstract_sdk::os::extension::InstantiateMsg;
-type DexExtensionExecuteMsg = ExecuteMsg<DexRequestMsg>;
+type DexExtensionExecuteMsg = extension::ExecuteMsg<DexRequestMsg>;
 type DexExtensionQueryMsg =
     abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>;
 
@@ -28,14 +28,13 @@ pub struct DexExtension<Chain>;
 impl<Chain: BootEnvironment> DexExtension<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("dex"),
-            // .with_mock(Box::new(
-            //     ContractWrapper::new_with_empty(
-            //         ::contract::execute,
-            //         ::contract::instantiate,
-            //         ::contract::query,
-            //     ),
-            // ))
+            Contract::new(name, chain).with_wasm_path("dex"), // .with_mock(Box::new(
+                                                              //     ContractWrapper::new_with_empty(
+                                                              //         ::contract::execute,
+                                                              //         ::contract::instantiate,
+                                                              //         ::contract::query,
+                                                              //     ),
+                                                              // ))
         )
     }
 
@@ -50,7 +49,7 @@ impl<Chain: BootEnvironment> DexExtension<Chain> {
         let ask_asset = AssetEntry::new(ask_asset);
         manager.execute_on_module(
             EXCHANGE,
-            ExecuteMsg::<DexRequestMsg>::App(ExtensionRequestMsg {
+            extension::ExecuteMsg::<_>::App(extension::ExtensionRequestMsg {
                 proxy_address: None,
                 request: DexRequestMsg {
                     dex,

@@ -37,9 +37,6 @@ pub enum RequestMsg {
     WithdrawAllRewards {},
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct MigrateMsg {}
-
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`]. Helper function are exposed by [`abstract_sdk::tendermint_staking`]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
