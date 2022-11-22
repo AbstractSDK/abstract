@@ -1,14 +1,14 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
-use crate::{manager::Manager, AbstractOS};
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use crate::manager::Manager;
+use boot_core::interface::ContractInstance;
+use boot_core::prelude::boot_contract;
+use boot_core::{BootEnvironment, BootError, Contract};
 
-pub type Proxy<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct Proxy<Chain>;
 
-impl<Chain: TxHandler + Clone> Proxy<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> Proxy<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("proxy"), // .with_mock(Box::new(
@@ -20,8 +20,9 @@ where
                                                                 // ))
         )
     }
+
     pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, &self.chain());
+        let manager = Manager::new(MANAGER, &self.get_chain());
         manager.execute_on_module(
             PROXY,
             ExecuteMsg::UpdateAssets {

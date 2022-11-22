@@ -1,14 +1,13 @@
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootEnvironment, Contract};
 
-use crate::AbstractOS;
 use abstract_sdk::os::ibc_client::*;
 
-pub type IbcClient<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::prelude::boot_contract;
 
-impl<Chain: TxHandler + Clone> IbcClient<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct IbcClient<Chain>;
+
+impl<Chain: BootEnvironment> IbcClient<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("ibc_client"), // .with_mock(Box::new(

@@ -10,7 +10,8 @@ use crate::base::{
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
 };
 
-pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> = MiddlewareExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
+pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> =
+    MiddlewareExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
 pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
 pub type MigrateMsg<AppMsg = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, AppMsg>;

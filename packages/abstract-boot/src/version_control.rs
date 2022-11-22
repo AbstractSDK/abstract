@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use abstract_os::VERSION_CONTROL;
+use boot_core::interface::{BootExecute, BootQuery, ContractInstance};
+use boot_core::prelude::boot_contract;
+use boot_core::{state::StateInterface, BootEnvironment, BootError, Contract, Daemon, TxResponse, IndexResponse};
+use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 
@@ -12,22 +15,13 @@ use abstract_sdk::os::{
     },
     registry,
     version_control::*,
+    VERSION_CONTROL,
 };
 
-use crate::AbstractOS;
-use boot_core::{
-    state::StateInterface, BootError, Contract, Daemon, IndexResponse, TxHandler, TxResponse,
-};
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct VersionControl<Chain>;
 
-use cosmwasm_std::{Addr};
-
-pub type VersionControl<Chain> =
-    AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
-
-impl<Chain: TxHandler + Clone> VersionControl<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+impl<Chain: BootEnvironment> VersionControl<Chain> where TxResponse<Chain>: IndexResponse {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("version_control"),
@@ -45,14 +39,9 @@ where
         Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
     }
 
-    pub fn upload_and_register_module<
-        E: Serialize + Debug,
-        I: Serialize + Debug,
-        Q: Serialize + Debug,
-        M: Serialize + Debug,
-    >(
+    pub fn upload_and_register_module(
         &self,
-        module: &mut Contract<Chain, E, I, Q, M>,
+        module: &mut Contract<Chain>,
         new_version: &Version,
     ) -> Result<(), BootError> {
         module.upload()?;
@@ -72,14 +61,10 @@ where
         Ok(())
     }
 
-    pub fn upload_and_register_extension<
-        E: Serialize + Debug,
-        Q: Serialize + Debug,
-        M: Serialize + Debug,
-        AppMsg: Serialize + Debug,
-    >(
+    pub fn upload_and_register_extension<AppMsg: Serialize + Debug>(
         &self,
-        extension: &mut Contract<Chain, E, extension::InstantiateMsg<AppMsg>, Q, M>,
+        extension: &mut Contract<Chain>,
+        // extension: &mut Contract<Chain, E, extension::InstantiateMsg<AppMsg>, Q, M>,
         extension_init_msg: &extension::InstantiateMsg<AppMsg>,
         new_version: &Version,
     ) -> Result<(), BootError> {
@@ -101,8 +86,8 @@ where
     }
 
     pub fn add_code_ids(&self, version: Version) -> anyhow::Result<()> {
-        let code_ids = self.chain().state().get_all_code_ids()?;
-        let _addresses = self.chain().state().get_all_addresses()?;
+        let code_ids = self.get_chain().state().get_all_code_ids()?;
+        let _addresses = self.get_chain().state().get_all_addresses()?;
         let mut modules = vec![];
         for app in registry::CORE {
             let code_id = code_ids.get(*app).unwrap();

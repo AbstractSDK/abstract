@@ -16,7 +16,8 @@ use crate::base::{
     QueryMsg as MiddlewareQueryMsg,
 };
 
-pub type ExecuteMsg<Request, ReceiveMsg = Empty> = MiddlewareExecMsg<BaseExecuteMsg, ExtensionRequestMsg<Request>, ReceiveMsg>;
+pub type ExecuteMsg<Request, ReceiveMsg = Empty> =
+    MiddlewareExecMsg<BaseExecuteMsg, ExtensionRequestMsg<Request>, ReceiveMsg>;
 pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
 
@@ -30,13 +31,17 @@ pub struct BaseInstantiateMsg {
     pub version_control_address: String,
 }
 
-impl<RequestMsg, ReceiveMsg> From<BaseExecuteMsg> for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, ReceiveMsg> {
+impl<RequestMsg, ReceiveMsg> From<BaseExecuteMsg>
+    for MiddlewareExecMsg<BaseExecuteMsg, RequestMsg, ReceiveMsg>
+{
     fn from(extension_msg: BaseExecuteMsg) -> Self {
         Self::Base(extension_msg)
     }
 }
 
-impl<RequestMsg, Request, BaseExecMsg> From<ExtensionRequestMsg<RequestMsg>> for MiddlewareExecMsg<BaseExecMsg, ExtensionRequestMsg<RequestMsg>, Request> {
+impl<RequestMsg, Request, BaseExecMsg> From<ExtensionRequestMsg<RequestMsg>>
+    for MiddlewareExecMsg<BaseExecMsg, ExtensionRequestMsg<RequestMsg>, Request>
+{
     fn from(request_msg: ExtensionRequestMsg<RequestMsg>) -> Self {
         Self::App(request_msg)
     }

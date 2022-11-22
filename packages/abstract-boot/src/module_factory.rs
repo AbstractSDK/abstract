@@ -1,24 +1,25 @@
 use abstract_sdk::os::module_factory::*;
 
 // use crate::extension::get_extension_init_msgs;
-use crate::AbstractOS;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
 
-pub type ModuleFactory<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::interface::BootExecute;
+use boot_core::prelude::boot_contract;
 
-impl<Chain: TxHandler + Clone> ModuleFactory<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct ModuleFactory<Chain>;
+
+impl<Chain: BootEnvironment> ModuleFactory<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("module_factory"), // .with_mock(Box::new(
-                                                                         //     ContractWrapper::new_with_empty(
-                                                                         //         ::contract::execute,
-                                                                         //         ::contract::instantiate,
-                                                                         //         ::contract::query,
-                                                                         //     ),
-                                                                         // ))
+            Contract::new(name, chain).with_wasm_path("module_factory"),
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
     }
 

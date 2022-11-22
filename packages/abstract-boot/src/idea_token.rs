@@ -1,15 +1,16 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-use crate::AbstractOS;
 use abstract_sdk::os::abstract_token::*;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
 
-pub type Idea<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::interface::ContractInstance;
+use boot_core::interface::{BootExecute, BootInstantiate};
+use boot_core::prelude::boot_contract;
 
-impl<Chain: TxHandler + Clone> Idea<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct Idea<Chain>;
+
+impl<Chain: BootEnvironment> Idea<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("abstract_token"), // .with_mock(Box::new(
@@ -51,7 +52,7 @@ where
                 minter: minter.clone().into(),
             }),
             symbol: symbol.to_string(),
-            name: self.id.to_string(),
+            name: self.as_instance().id.to_string(),
             initial_balances: vec![Cw20Coin {
                 address: minter.clone().into(),
                 amount: balance.into(),

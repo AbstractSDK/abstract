@@ -8,24 +8,26 @@ use serde::Serialize;
 
 use abstract_sdk::os::manager::*;
 
-use crate::AbstractOS;
-use boot_core::{BootError, Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootEnvironment, BootError, Contract, IndexResponse, TxResponse};
 
-pub type Manager<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg>;
+use boot_core::interface::BootExecute;
+use boot_core::interface::ContractInstance;
+use boot_core::prelude::boot_contract;
 
-impl<Chain: TxHandler + Clone> Manager<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct Manager<Chain>;
+
+impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("manager"), // .with_mock(Box::new(
-                                                                  //     ContractWrapper::new_with_empty(
-                                                                  //         ::contract::execute,
-                                                                  //         ::contract::instantiate,
-                                                                  //         ::contract::query,
-                                                                  //     ),
-                                                                  // ))
+            Contract::new(name, chain).with_wasm_path("manager"),
+            // .with_mock(Box::new(
+            //     ContractWrapper::new_with_empty(
+            //         ::contract::execute,
+            //         ::contract::instantiate,
+            //         ::contract::query,
+            //     ),
+            // ))
         )
     }
 
@@ -97,7 +99,7 @@ where
         S: Serialize + Debug,
     >(
         &self,
-        module: &Contract<Chain, H, I, N, S>,
+        module: &Contract<Chain>,
         init_msg: Option<&I>,
         contract_id: &str,
         version: String,
@@ -115,7 +117,7 @@ where
         )?;
 
         let module_address = result.event_attr_value("wasm", "new module:")?;
-        self.chain()
+        self.get_chain()
             .state()
             .set_address(&module.id, &Addr::unchecked(module_address));
 

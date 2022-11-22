@@ -1,14 +1,13 @@
-use crate::AbstractOS;
 use abstract_sdk::os::vesting::*;
-use boot_core::{Contract, IndexResponse, TxHandler, TxResponse};
+use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
-pub type Vesting<Chain> = AbstractOS<Chain, ExecuteMsg, InstantiateMsg, QueryMsg, Empty>;
+use boot_core::prelude::boot_contract;
 
-impl<Chain: TxHandler + Clone> Vesting<Chain>
-where
-    TxResponse<Chain>: IndexResponse,
-{
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+pub struct Vesting<Chain>;
+
+impl<Chain: BootEnvironment> Vesting<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("cw20_vesting"), // .with_mock(Box::new(
