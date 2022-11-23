@@ -90,7 +90,7 @@ cargo
 ```bash
 SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
 VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/[\"]/, "", $2); printf("%s",$2) }' Cargo.toml) \
-  cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/$VERSION/${PWD##*/}"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
+  cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
 ```
 
 
