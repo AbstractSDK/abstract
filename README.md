@@ -82,6 +82,18 @@ When it is installed, run the following to generate schemas for each:
 cargo ws exec --no-bail cargo schema
 ```
 
+## Schema publishing
+To publish the schemas to the [schema repo](https://github.com/Abstract-OS/schemas), run the following command:
+```shell
+cargo 
+```
+```bash
+SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
+VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/[\"]/, "", $2); printf("%s",$2) }' Cargo.toml) \
+  cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/$VERSION/${PWD##*/}"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
+```
+
+
 # Contract Migrate Ability
 Migratable contracts are always a security risk. Therefore we'll outline all the migratable contracts and who's allowed to do it here. 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # Optimized builds
 docker run --rm -v "$(pwd)":/code \
