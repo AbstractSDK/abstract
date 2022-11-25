@@ -4,12 +4,13 @@ use abstract_sdk::{
         ReplyHandlerFn,
     },
     feature_objects::AnsHost,
-    namespaces::BASE_STATE,
+    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     os::ibc_host::PacketMsg,
 };
 
 use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
 
+use cw_controllers::Admin;
 use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -56,7 +57,7 @@ pub struct Host<
         CustomMigrateMsg,
         Receive,
     >,
-    // pub admin: Admin<'static>,
+    pub admin: Admin<'static>,
     // Custom state for every Host
     pub proxy_address: Option<Addr>,
     pub(crate) base_state: Item<'static, HostState>,
@@ -86,6 +87,7 @@ impl<
             contract,
             chain,
             base_state: Item::new(BASE_STATE),
+            admin: Admin::new(ADMIN_NAMESPACE),
             proxy_address: None,
         }
     }
@@ -149,5 +151,4 @@ pub struct HostState {
     pub cw1_code_id: u64,
     /// Chain identifier
     pub chain: String,
-    pub admin: Addr,
 }

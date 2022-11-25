@@ -113,11 +113,16 @@ impl<
         message: BaseExecuteMsg,
     ) -> Result<Response, HostError> {
         match message {
+            BaseExecuteMsg::UpdateAdmin { admin } => {
+                let new_admin = deps.api.addr_validate(&admin)?;
+                self.admin
+                    .execute_update_admin(deps, info, Some(new_admin))
+                    .map_err(Into::into)
+            }
             BaseExecuteMsg::UpdateConfig {
                 ans_host_address,
                 cw1_code_id,
-                admin,
-            } => self.update_config(deps, info, ans_host_address, cw1_code_id, admin),
+            } => self.update_config(deps, info, ans_host_address, cw1_code_id),
             BaseExecuteMsg::ClearAccount {
                 closed_channel,
                 os_id,
@@ -140,13 +145,10 @@ impl<
         info: MessageInfo,
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
-        admin: Option<String>,
     ) -> Result<Response, HostError> {
         let mut state = self.state(deps.storage)?;
 
-        if info.sender != state.admin {
-            return Err(StdError::generic_err("Only admin can update config.").into());
-        }
+        self.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
         if let Some(ans_host_address) = ans_host_address {
             // validate address format
@@ -155,10 +157,6 @@ impl<
         if let Some(cw1_code_id) = cw1_code_id {
             // validate address format
             state.cw1_code_id = cw1_code_id;
-        }
-        if let Some(admin) = admin {
-            // validate address format
-            state.admin = deps.api.addr_validate(&admin)?;
         }
         self.base_state.save(deps.storage, &state)?;
         Ok(Response::new())

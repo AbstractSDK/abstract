@@ -1,3 +1,4 @@
+use abstract_os::ibc_client::state::ADMIN;
 use abstract_sdk::{
     base::features::Identification,
     feature_objects::VersionControlContract,
@@ -12,7 +13,7 @@ use abstract_sdk::{
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse,
-    Response, StdError, StdResult,
+    Response, StdError, StdResult, Storage,
 };
 use cw2::set_contract_version;
 
@@ -33,7 +34,6 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
     let cfg = Config {
-        admin: info.sender,
         chain: msg.chain,
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
     };
@@ -46,6 +46,7 @@ pub fn instantiate(
     )?;
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
 
+    ADMIN.set(deps, Some(info.sender))?;
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
 
@@ -58,8 +59,15 @@ pub fn execute(
 ) -> Result<Response, ClientError> {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => {
-            execute_update_admin(deps, info, admin).map_err(Into::into)
+            let new_admin = deps.api.addr_validate(&admin)?;
+            ADMIN
+                .execute_update_admin(deps, info, Some(new_admin))
+                .map_err(Into::into)
         }
+        ExecuteMsg::UpdateConfig {
+            ans_host,
+            version_control,
+        } => execute_update_config(deps, info, ans_host, version_control).map_err(Into::into),
         ExecuteMsg::SendPacket {
             host_chain,
             action,
@@ -76,22 +84,33 @@ pub fn execute(
     }
 }
 
-pub fn execute_update_admin(
+pub fn execute_update_config(
     deps: DepsMut,
     info: MessageInfo,
-    new_admin: String,
-) -> StdResult<Response> {
+    new_ans_host: Option<String>,
+    new_version_control: Option<String>,
+) -> Result<Response, ClientError> {
     // auth check
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     let mut cfg = CONFIG.load(deps.storage)?;
-    if info.sender != cfg.admin {
-        return Err(StdError::generic_err("Only admin may set new admin"));
+
+    if let Some(ans_host) = new_ans_host {
+        ANS_HOST.save(
+            deps.storage,
+            &AnsHost {
+                address: deps.api.addr_validate(&ans_host)?,
+            },
+        )?;
     }
-    cfg.admin = deps.api.addr_validate(&new_admin)?;
+    if let Some(version_control) = new_version_control {
+        cfg.version_control_address = deps.api.addr_validate(&version_control)?;
+        // New version control address implies new accounts.
+        clear_accounts(deps.storage);
+    }
+
     CONFIG.save(deps.storage, &cfg)?;
 
-    Ok(Response::new()
-        .add_attribute("action", "handle_update_admin")
-        .add_attribute("new_admin", cfg.admin))
+    Ok(Response::new().add_attribute("action", "update_config"))
 }
 
 // allows admins to clear host if needed
@@ -99,17 +118,12 @@ pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
     host_chain: String,
-) -> StdResult<Response> {
+) -> Result<Response, ClientError> {
     // auth check
-    let cfg = CONFIG.load(deps.storage)?;
-    if info.sender != cfg.admin {
-        return Err(StdError::generic_err("Only admin may remove hosts"));
-    }
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     CHANNELS.remove(deps.storage, &host_chain);
 
-    Ok(Response::new()
-        .add_attribute("action", "handle_remove_host")
-        .add_attribute("new_admin", cfg.admin))
+    Ok(Response::new().add_attribute("action", "remove_host"))
 }
 
 pub fn execute_send_packet(
@@ -265,6 +279,11 @@ pub fn execute_send_funds(
     Ok(res)
 }
 
+fn clear_accounts(store: &mut dyn Storage) {
+    ACCOUNTS.clear(store);
+    LATEST_QUERIES.clear(store);
+}
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
@@ -314,10 +333,10 @@ fn query_list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
 
 fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let Config {
-        admin,
         chain,
         version_control_address,
     } = CONFIG.load(deps.storage)?;
+    let admin = ADMIN.get(deps)?.unwrap();
     Ok(ConfigResponse {
         admin: admin.into(),
         chain,
@@ -328,12 +347,14 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-
-    // let version: Version = CONTRACT_VERSION.parse().unwrap();
-    // let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    // if storage_version < version {
-    // set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
-    // }
+    // type migration
+    let config = old_abstract_os::ibc_client::state::CONFIG.load(deps.storage)?;
+    let new_config = Config {
+        chain: config.chain,
+        version_control_address: config.version_control_address,
+    };
+    CONFIG.save(deps.storage, &new_config)?;
+    ADMIN.set(deps, Some(config.admin))?;
     Ok(Response::default())
 }
 

@@ -181,7 +181,7 @@ pub fn receive_register<
         .add_attribute("action", "register"))
 }
 
-// processes PacketMsg::WhoAmI variant
+// processes InternalAction::WhoAmI variant
 pub fn receive_who_am_i(this_chain: String) -> Result<IbcReceiveResponse, HostError> {
     // let them know we're fine
     let response = WhoAmIResponse { chain: this_chain };

@@ -1,3 +1,4 @@
+use cw_controllers::AdminError;
 use thiserror::Error;
 
 use cosmwasm_std::StdError;
@@ -11,6 +12,9 @@ pub enum ClientError {
 
     #[error("{0}")]
     SimpleIca(#[from] SimpleIcaError),
+
+    #[error("{0}")]
+    AdminErr(#[from] AdminError),
 
     #[error("No account for channel {0}")]
     UnregisteredChannel(String),

@@ -29,7 +29,7 @@ impl<
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;
     fn instantiate(
         self,
-        deps: DepsMut,
+        mut deps: DepsMut,
         env: Env,
         info: MessageInfo,
         msg: Self::InstantiateMsg,
@@ -43,7 +43,6 @@ impl<
             chain: self.chain.to_string(),
             ans_host,
             cw1_code_id: msg.base.cw1_code_id,
-            admin: info.sender.clone(),
         };
         let (name, version) = self.info();
         // Keep track of all the closed channels, allows for fund recovery if channel closes.
@@ -55,6 +54,7 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
+        self.admin.set(deps.branch(), Some(info.sender.clone()))?;
         handler(deps, env, info, self, msg.app)
     }
 }
