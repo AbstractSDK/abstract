@@ -39,9 +39,6 @@ schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
 abstract-os = {workspace = true}
-# here for state migration to beta.6
-old-abstract-os = {package = "abstract-os", version = "0.2.0-beta.5"}
-
 abstract-sdk = {workspace = true}
 
 [dev-dependencies]

@@ -348,13 +348,6 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     // type migration
-    let config = old_abstract_os::ibc_client::state::CONFIG.load(deps.storage)?;
-    let new_config = Config {
-        chain: config.chain,
-        version_control_address: config.version_control_address,
-    };
-    CONFIG.save(deps.storage, &new_config)?;
-    ADMIN.set(deps, Some(config.admin))?;
     Ok(Response::default())
 }
 
