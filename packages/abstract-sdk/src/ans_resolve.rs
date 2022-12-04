@@ -6,7 +6,7 @@ use cw_asset::{Asset, AssetInfo};
 
 use abstract_os::objects::{ans_host::AnsHost, AnsAsset, AssetEntry, ChannelEntry, ContractEntry};
 
-/// Resolve an [`AbstractNameSystem`](crate::base::features::AbstractNameSystem) entry into its value.
+/// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
     type Output;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output>;

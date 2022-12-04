@@ -1,5 +1,5 @@
 use abstract_sdk::{
-    base::features::{AbstractNameSystem, Identification, RegisterAccess},
+    base::features::{AbstractNameService, Identification, RegisterAccess},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
@@ -12,7 +12,7 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > AbstractNameSystem
+    > AbstractNameService
     for ExtensionContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn ans_host(&self, deps: Deps) -> StdResult<AnsHost> {

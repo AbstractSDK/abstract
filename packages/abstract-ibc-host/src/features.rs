@@ -1,5 +1,5 @@
 use crate::{Host, HostError};
-use abstract_sdk::base::features::{AbstractNameSystem, Identification};
+use abstract_sdk::base::features::{AbstractNameService, Identification};
 use cosmwasm_std::{Deps, StdError, StdResult};
 
 impl<
@@ -9,7 +9,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > AbstractNameSystem
+    > AbstractNameService
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn ans_host(&self, deps: Deps) -> StdResult<abstract_sdk::feature_objects::AnsHost> {

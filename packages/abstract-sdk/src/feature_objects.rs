@@ -50,7 +50,7 @@ impl Identification for Core {
     }
 }
 
-impl crate::base::features::AbstractNameSystem for AnsHost {
+impl crate::base::features::AbstractNameService for AnsHost {
     fn ans_host(
         &self,
         _deps: Deps,

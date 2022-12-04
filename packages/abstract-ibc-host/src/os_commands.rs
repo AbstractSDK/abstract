@@ -1,10 +1,10 @@
 use abstract_sdk::{
+    base::features::AbstractNameService,
     os::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,
     },
-    AnsInterface,
 };
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
@@ -97,7 +97,7 @@ impl<
         client_proxy_address: String,
         client_chain: String,
     ) -> Result<CosmosMsg, HostError> {
-        let ans = self.ans(deps);
+        let ans = self.name_service(deps);
         let ics20_channel_entry = ChannelEntry {
             connected_chain: client_chain,
             protocol: ICS20.to_string(),

@@ -1,6 +1,6 @@
-use abstract_sdk::base::features::AbstractNameSystem;
+use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::os::objects::AnsAsset;
-use abstract_sdk::{AnsInterface, Execution};
+use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
 use cw_asset::Asset;
 
@@ -17,9 +17,9 @@ pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
 pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<T> LocalDex for T where T: AbstractNameSystem + Execution {}
+impl<T> LocalDex for T where T: AbstractNameService + Execution {}
 
-pub trait LocalDex: AbstractNameSystem + Execution {
+pub trait LocalDex: AbstractNameService + Execution {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,
@@ -121,7 +121,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         offer_asset.format();
         ask_asset.format();
 
-        let ans = self.ans(deps);
+        let ans = self.name_service(deps);
         let offer_asset_info = ans.query(&offer_asset)?;
         let ask_asset_info = ans.query(&ask_asset)?;
 
@@ -180,7 +180,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         exchange: &dyn DEX,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.name_service(deps);
         let assets = ans.query(&offer_assets)?;
         let pair_address = exchange.pair_address(
             deps,
@@ -201,7 +201,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         paired_assets: Vec<AssetEntry>,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.name_service(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
         let pair_address =
             exchange.pair_address(deps, ans.host(), &mut paired_assets.iter().collect())?;
@@ -215,7 +215,7 @@ pub trait LocalDex: AbstractNameSystem + Execution {
         lp_token: OfferAsset,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        let ans = self.ans(deps);
+        let ans = self.name_service(deps);
         let lp_asset = ans.query(&lp_token)?;
         let pair_entry =
             UncheckedContractEntry::new(exchange.name(), lp_token.info.as_str()).check();

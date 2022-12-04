@@ -1,8 +1,8 @@
+use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::os::{
     dex::{OfferAsset, SimulateSwapResponse},
     objects::AssetEntry,
 };
-use abstract_sdk::AnsInterface;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
 use crate::{contract::resolve_exchange, contract::DEX_EXTENSION};
@@ -16,7 +16,7 @@ pub fn simulate_swap(
 ) -> StdResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let extension = DEX_EXTENSION;
-    let ans = extension.ans(deps);
+    let ans = extension.name_service(deps);
     // format input
     offer_asset.info.format();
     ask_asset.format();

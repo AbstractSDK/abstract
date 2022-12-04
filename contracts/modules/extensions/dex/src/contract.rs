@@ -1,4 +1,5 @@
 use abstract_extension::ExtensionContract;
+use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::os::{
     dex::{DexAction, DexName, DexQueryMsg, DexRequestMsg, IBC_DEX_ID},
     extension::{ExecuteMsg, InstantiateMsg, QueryMsg},
@@ -9,7 +10,7 @@ use abstract_sdk::os::{
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     feature_objects::AnsHost,
-    AnsInterface, IbcInterface, Resolve,
+    IbcInterface, Resolve,
 };
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
@@ -138,7 +139,7 @@ fn handle_ibc_extension_request(
     action: &DexAction,
 ) -> DexResult {
     let host_chain = dex_name;
-    let ans = extension.ans(deps.as_ref());
+    let ans = extension.name_service(deps.as_ref());
     let ibc_client = extension.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
