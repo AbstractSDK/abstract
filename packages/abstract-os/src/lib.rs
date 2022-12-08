@@ -38,23 +38,20 @@
 //! ```
 pub extern crate abstract_ica;
 pub mod base;
-pub mod ibc_client;
 pub mod ibc_host;
 
 pub use registry::*;
 pub mod abstract_token;
-pub mod ans_host;
 pub mod app;
-pub mod dex;
-pub mod etf;
 pub mod extension;
-pub mod manager;
-pub mod module_factory;
 pub mod objects;
-pub mod os_factory;
-pub mod proxy;
 pub mod registry;
-pub mod subscription;
-pub mod tendermint_staking;
-pub mod version_control;
-pub mod vesting;
+
+mod core;
+pub use crate::core::*;
+
+mod native;
+pub use crate::native::*;
+
+mod modules;
+pub use crate::modules::*;

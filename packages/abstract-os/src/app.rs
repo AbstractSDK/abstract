@@ -1,4 +1,4 @@
-//! # Abstract Add-On
+//! # Abstract App
 //!
 //! `abstract_os::app` implements shared functionality that's useful for creating new Abstract apps.
 //!
