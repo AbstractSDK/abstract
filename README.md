@@ -1,4 +1,8 @@
-# Abstract OS Architecture
+# Abstract OS 
+
+<a href="https://codecov.io/gh/Abstract-OS/contracts" > 
+ <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
+ </a>
 
 <!-- ![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true) -->
 ## Core
