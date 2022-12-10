@@ -617,7 +617,7 @@ fn test_withdraw() {
         .unwrap_err();
     assert_eq!(
         err.root_cause().to_string(),
-        "abstract_os::vesting::AllocationInfo not found"
+        "abstract_os::modules::perks::vesting::AllocationInfo not found"
     );
 
     // ######    ERROR :: Withdrawals not allowed yet   ######
