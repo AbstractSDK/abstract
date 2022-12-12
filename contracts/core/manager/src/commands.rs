@@ -222,7 +222,7 @@ pub fn upgrade_module(
         ModuleReference::App(code_id) => {
             migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
         }
-        ModuleReference::Service(code_id) => {
+        ModuleReference::Standalone(code_id) => {
             migrate_module(deps, env, old_module_addr, code_id, migrate_msg.unwrap())
         }
         _ => Err(ManagerError::NotUpgradeable(module_info)),

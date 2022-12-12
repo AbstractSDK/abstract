@@ -8,7 +8,7 @@ env:
 jobs:
   test:
     name:                       coverage
-    runs-on:                    ubuntu-latest
+    runs-on:                    self-hosted
     container:
       image:                    xd009642/tarpaulin:develop-nightly
       options:                  --security-opt seccomp=unconfined

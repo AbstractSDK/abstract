@@ -68,22 +68,6 @@ pub fn execute_create_module(
             CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
-        ModuleReference::Perk(code_id) => instantiate_contract(
-            block_height,
-            *code_id,
-            root_init_msg.unwrap(),
-            None,
-            CREATE_PERK_RESPONSE_ID,
-            new_module.info,
-        ),
-        ModuleReference::Service(code_id) => instantiate_contract(
-            block_height,
-            *code_id,
-            root_init_msg.unwrap(),
-            Some(core.manager),
-            CREATE_SERVICE_RESPONSE_ID,
-            new_module.info,
-        ),
         ModuleReference::Extension(addr) => {
             let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: core.manager.into_string(),
@@ -95,6 +79,14 @@ pub fn execute_create_module(
             });
             Ok(Response::new().add_message(register_msg))
         }
+        ModuleReference::Standalone(code_id) => instantiate_contract(
+            block_height,
+            *code_id,
+            root_init_msg.unwrap(),
+            Some(core.manager),
+            CREATE_PERK_RESPONSE_ID,
+            new_module.info,
+        ),
         _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
     }
 }
