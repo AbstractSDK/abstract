@@ -101,7 +101,7 @@ pub fn execute_create_os(
             })?,
         }))?;
 
-    if let ModuleReference::App(manager_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(manager_code_id) = module_resp.module.reference {
         Ok(Response::new()
             .add_attributes(vec![
                 ("action", "create os"),
@@ -169,7 +169,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
             })?,
         }))?;
 
-    if let ModuleReference::App(proxy_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(proxy_code_id) = module_resp.module.reference {
         Ok(Response::new()
             .add_attribute("manager_address", manager_address.to_string())
             // Instantiate proxy contract

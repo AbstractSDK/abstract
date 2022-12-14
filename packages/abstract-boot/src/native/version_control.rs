@@ -1,24 +1,21 @@
-use std::fmt::Debug;
-
-use boot_core::interface::{BootExecute, BootQuery, ContractInstance};
-use boot_core::prelude::boot_contract;
 use boot_core::{
-    state::StateInterface, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
+    interface::{BootExecute, BootQuery, ContractInstance},
+    prelude::boot_contract,
+    BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use semver::Version;
-use serde::Serialize;
 
 use abstract_sdk::os::{
-    extension,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
-    registry,
     version_control::*,
     VERSION_CONTROL,
 };
+
+use crate::deployment::{self, OS};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
@@ -44,71 +41,99 @@ where
         Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
     }
 
-    pub fn upload_and_register_module(
-        &self,
-        module: &mut Contract<Chain>,
-        new_version: &Version,
-    ) -> Result<(), BootError> {
-        module.upload()?;
+    pub fn register_core(&self, os: &OS<Chain>, version: &str) -> Result<(), BootError> {
+        let manager = os.manager.as_instance();
         self.execute(
             &ExecuteMsg::AddModules {
                 modules: vec![(
-                    ModuleInfo::from_id(
-                        &module.id,
-                        ModuleVersion::Version(new_version.to_string()),
-                    )?,
-                    ModuleReference::App(module.code_id()?),
+                    ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
+                    ModuleReference::Core(manager.code_id()?),
                 )],
             },
             None,
         )?;
-        log::info!("Module {} uploaded and registered", module.id);
-        Ok(())
-    }
+        log::info!("Module {} registered", manager.id);
 
-    pub fn upload_and_register_extension<AppMsg: Serialize + Debug>(
-        &self,
-        extension: &mut Contract<Chain>,
-        extension_init_msg: &extension::InstantiateMsg<AppMsg>,
-        new_version: &Version,
-    ) -> Result<(), BootError> {
-        extension.upload()?;
-        extension.instantiate(extension_init_msg, None, None)?;
+        let proxy = os.proxy.as_instance();
         self.execute(
             &ExecuteMsg::AddModules {
                 modules: vec![(
-                    ModuleInfo::from_id(
-                        &extension.id,
-                        ModuleVersion::Version(new_version.to_string()),
-                    )?,
-                    ModuleReference::Extension(extension.address()?),
+                    ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
+                    ModuleReference::Core(proxy.code_id()?),
                 )],
+            },
+            None,
+        )?;
+        log::info!("Module {} registered", proxy.id);
+        Ok(())
+    }
+
+    pub fn register_apps(
+        &self,
+        modules: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let apps_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = modules
+            .iter()
+            .map(|app| {
+                Ok((
+                    ModuleInfo::from_id(&app.id, ModuleVersion::Version(version.to_string()))?,
+                    ModuleReference::App(app.code_id()?),
+                ))
+            })
+            .collect();
+        self.execute(
+            &ExecuteMsg::AddModules {
+                modules: apps_to_register?,
             },
             None,
         )?;
         Ok(())
     }
 
-    pub fn add_code_ids(&self, version: Version) -> anyhow::Result<()> {
-        let code_ids = self.get_chain().state().get_all_code_ids()?;
-        let _addresses = self.get_chain().state().get_all_addresses()?;
-        let mut modules = vec![];
-        for app in registry::CORE {
-            let code_id = code_ids.get(*app).unwrap();
-            modules.push((
-                ModuleInfo::from_id(app, ModuleVersion::Version(version.to_string()))?,
-                ModuleReference::App(*code_id),
-            ))
-        }
-        // for app in registry::APPS {
-        //     let code_id = code_ids.get(app.clone()).unwrap();
-        //     modules.push((ModuleInfo::from_id(app, ModuleVersion::Version(version.to_string()))?,ModuleReference::App(code_id.clone())))
-        // }
-        // for extension in registry::EXTENSION_CONTRACTS {
-        //     let address = addresses.get(extension.clone()).unwrap();
-        //     modules.push((ModuleInfo::from_id(&extension, ModuleVersion::Version(version.to_string()))?,ModuleReference::Extension(address.clone())))
-        // }
-        self.execute(&ExecuteMsg::AddModules { modules }, None)?;
+    pub fn register_extensions(
+        &self,
+        extensions: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let extensions_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> =
+            extensions
+                .iter()
+                .map(|ex| {
+                    Ok((
+                        ModuleInfo::from_id(&ex.id, ModuleVersion::Version(version.to_string()))?,
+                        ModuleReference::Extension(ex.address()?),
+                    ))
+                })
+                .collect();
+        self.execute(
+            &ExecuteMsg::AddModules {
+                modules: extensions_to_register?,
+            },
+            None,
+        )?;
+        Ok(())
+    }
+
+    pub fn register_native(
+        &self,
+        deployment: &deployment::Deployment<Chain>,
+    ) -> Result<(), BootError> {
+        let modules: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = deployment
+            .contracts()
+            .iter()
+            .map(|contr| {
+                Ok((
+                    ModuleInfo::from_id(
+                        &contr.id,
+                        ModuleVersion::Version(deployment.version.to_string()),
+                    )?,
+                    ModuleReference::Native(contr.address()?),
+                ))
+            })
+            .collect();
+
+        self.execute(&ExecuteMsg::AddModules { modules: modules? }, None)?;
         Ok(())
     }
 

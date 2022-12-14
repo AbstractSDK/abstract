@@ -10,9 +10,10 @@ use abstract_sdk::os::manager::*;
 
 use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 
-use boot_core::interface::BootExecute;
-use boot_core::interface::ContractInstance;
-use boot_core::prelude::boot_contract;
+use boot_core::{
+    interface::{BootExecute, ContractInstance},
+    prelude::boot_contract,
+};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;

@@ -9,8 +9,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 use serde_json::from_reader;
-use std::fs::File;
-use std::{cmp::min, env};
+use std::{cmp::min, env, fs::File};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct AnsHost<Chain>;

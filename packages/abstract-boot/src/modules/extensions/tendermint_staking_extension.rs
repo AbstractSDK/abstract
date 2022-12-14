@@ -1,9 +1,7 @@
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 
-use abstract_sdk::os::tendermint_staking::*;
-use abstract_sdk::os::{extension, tendermint_staking};
+use abstract_sdk::os::{extension, tendermint_staking, tendermint_staking::*};
 
 type TMintStakingInstantiateMsg = extension::InstantiateMsg;
 type TMintStakingExecuteMsg = extension::ExecuteMsg<RequestMsg>;

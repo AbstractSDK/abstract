@@ -1,9 +1,9 @@
 use abstract_sdk::os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 
-use crate::manager::Manager;
-use boot_core::interface::ContractInstance;
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, BootError, Contract};
+use crate::Manager;
+use boot_core::{
+    interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
+};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;

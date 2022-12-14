@@ -44,7 +44,7 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
     );
     let proxy_code_id = app.store_code(proxy_contract);
     code_ids.insert(PROXY.into(), proxy_code_id);
-    modules.insert(PROXY.into(), ModuleReference::App(proxy_code_id));
+    modules.insert(PROXY.into(), ModuleReference::Core(proxy_code_id));
 
     // Upload AnsHost Contract
     let ans_host_contract = Box::new(ContractWrapper::new_with_empty(
@@ -107,7 +107,7 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
 
     let manager_code_id = app.store_code(manager_contract);
     code_ids.insert(MANAGER.into(), manager_code_id);
-    modules.insert(MANAGER.into(), ModuleReference::App(manager_code_id));
+    modules.insert(MANAGER.into(), ModuleReference::Core(manager_code_id));
 
     let native_contracts = init_native_contracts(app, &code_ids, &modules);
     (code_ids, native_contracts)

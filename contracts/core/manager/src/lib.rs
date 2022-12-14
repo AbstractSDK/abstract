@@ -2,7 +2,6 @@ mod commands;
 pub mod contract;
 pub mod error;
 mod queries;
-mod response;
 mod validators;
 
 // #[cfg(test)]

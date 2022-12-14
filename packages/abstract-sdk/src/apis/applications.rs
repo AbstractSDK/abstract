@@ -49,20 +49,24 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
     }
 
     /// Construct an API request message.
-    pub fn api_request<M: Serialize>(
+    pub fn extension_request<M: Serialize>(
         &self,
-        api_id: ModuleId,
+        extension_id: ModuleId,
         message: impl Into<ExecuteMsg<M, Empty>>,
     ) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<M, Empty> = message.into();
-        let api_address = self.app_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+        let extension_msg: ExecuteMsg<M, Empty> = message.into();
+        let extension_address = self.app_address(extension_id)?;
+        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
     }
 
     /// Construct an API configure message
-    pub fn configure_api(&self, api_id: ModuleId, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
-        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.app_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+    pub fn configure_extension(
+        &self,
+        extension_id: ModuleId,
+        message: BaseExecuteMsg,
+    ) -> StdResult<CosmosMsg> {
+        let extension_msg: ExecuteMsg<Empty, Empty> = message.into();
+        let extension_address = self.app_address(extension_id)?;
+        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
     }
 }

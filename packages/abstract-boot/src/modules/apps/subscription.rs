@@ -1,11 +1,10 @@
 use std::str::FromStr;
 
 use abstract_sdk::os::{
-    app::BaseInstantiateMsg, app::InstantiateMsg as AppInitMsg, subscription::*,
+    app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
+    subscription::*,
 };
-use boot_core::interface::BootExecute;
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, Contract};
+use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 

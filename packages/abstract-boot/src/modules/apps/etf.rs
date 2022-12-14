@@ -1,6 +1,5 @@
 use abstract_sdk::os::{app::MigrateMsg, etf::*};
-use boot_core::prelude::boot_contract;
-use boot_core::{BootEnvironment, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 
 #[boot_contract(EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, MigrateMsg)]
 pub struct ETF<Chain>;
