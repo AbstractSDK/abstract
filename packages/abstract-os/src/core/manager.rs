@@ -15,6 +15,8 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
+    use std::collections::HashSet;
+
     pub use crate::objects::core::OS_ID;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -52,6 +54,9 @@ pub mod state {
     pub const ROOT: Admin = Admin::new("root");
     /// Enabled Abstract modules
     pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
+    /// Stores the dependency relationship between modules
+    /// map module -> modules that depend on module.
+    pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
 }
 
 use cosmwasm_schema::QueryResponses;
@@ -77,6 +82,9 @@ pub struct InstantiateMsg {
     pub description: Option<String>,
     pub link: Option<String>,
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct CallbackMsg {}
 
 /// Execute messages
 #[cosmwasm_schema::cw_serde]
@@ -113,8 +121,7 @@ pub enum ExecuteMsg {
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
-        module: ModuleInfo,
-        migrate_msg: Option<Binary>,
+        modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Update info
     UpdateInfo {
@@ -134,6 +141,7 @@ pub enum ExecuteMsg {
     EnableIBC {
         new_status: bool,
     },
+    Callback(CallbackMsg),
 }
 
 #[cosmwasm_schema::cw_serde]

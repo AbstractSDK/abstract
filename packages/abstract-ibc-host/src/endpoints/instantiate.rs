@@ -1,3 +1,4 @@
+use abstract_os::objects::module_version::set_module_data;
 use abstract_sdk::os::ibc_host::InstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
@@ -5,6 +6,7 @@ use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,
 };
+use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -12,8 +14,6 @@ use crate::{
     state::{Host, HostState, CLOSED_CHANNELS},
     HostError,
 };
-
-use cw2::set_contract_version;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,
@@ -44,11 +44,13 @@ impl<
             ans_host,
             cw1_code_id: msg.base.cw1_code_id,
         };
-        let (name, version) = self.info();
+        let (name, version, metadata) = self.info();
         // Keep track of all the closed channels, allows for fund recovery if channel closes.
         let closed_channels = vec![];
         CLOSED_CHANNELS.save(deps.storage, &closed_channels)?;
+        set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
+
         self.base_state.save(deps.storage, &state)?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {

@@ -27,11 +27,12 @@ pub type SubscriptionApp = AppContract<
     MigrateMsg,
     Cw20ReceiveMsg,
 >;
-const SUBSCRIPTION_MODULE: SubscriptionApp = SubscriptionApp::new(SUBSCRIPTION, CONTRACT_VERSION)
-    .with_execute(request_handler)
-    .with_instantiate(instantiate_handler)
-    .with_query(query_handler)
-    .with_receive(receive_cw20);
+const SUBSCRIPTION_MODULE: SubscriptionApp =
+    SubscriptionApp::new(SUBSCRIPTION, CONTRACT_VERSION, None)
+        .with_execute(request_handler)
+        .with_instantiate(instantiate_handler)
+        .with_query(query_handler)
+        .with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg(not(feature = "library"))]

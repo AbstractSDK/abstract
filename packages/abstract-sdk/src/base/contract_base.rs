@@ -5,7 +5,9 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 
-use super::endpoints::migrate::{Name, VersionString};
+use os::objects::dependency::StaticDependency;
+
+use super::endpoints::migrate::{Metadata, Name, VersionString};
 
 use super::handler::Handler;
 
@@ -40,11 +42,11 @@ pub struct AbstractContract<
     ReceiveMsg = Empty,
 > {
     /// static info about the contract, used for migration
-    pub(crate) info: (Name, VersionString),
+    pub(crate) info: (Name, VersionString, Metadata),
     /// On-chain storage of the same info
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
-    pub(crate) dependencies: &'static [&'static str],
+    pub(crate) dependencies: &'static [StaticDependency],
     /// Expected callbacks following an IBC action
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
@@ -83,9 +85,9 @@ impl<
 where
     Module: Handler,
 {
-    pub const fn new(name: Name, version: VersionString) -> Self {
+    pub const fn new(name: Name, version: VersionString, metadata: Metadata) -> Self {
         Self {
-            info: (name, version),
+            info: (name, version, metadata),
             version: CONTRACT,
             ibc_callback_handlers: &[],
             reply_handlers: [&[], &[]],
@@ -101,11 +103,11 @@ where
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
-    pub fn info(&self) -> (&str, &str) {
+    pub fn info(&self) -> (Name, VersionString, Metadata) {
         self.info
     }
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.dependencies = dependencies;
         self
     }

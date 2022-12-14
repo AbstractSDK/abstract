@@ -14,6 +14,9 @@ pub enum ManagerError {
     #[error("Cannot add two modules of the same kind")]
     ModuleAlreadyAdded {},
 
+    #[error("Cannot remove module because {0:?} depend(s) on it.")]
+    ModuleHasDependents(Vec<String>),
+
     #[error("Contract got an unexpected Reply")]
     UnexpectedReply(),
 

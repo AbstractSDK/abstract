@@ -13,7 +13,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type DexExtension = ExtensionContract<DexError, DexRequestMsg, Empty, DexQueryMsg>;
 pub type DexResult = Result<Response, DexError>;
 
-pub const DEX_EXTENSION: DexExtension = DexExtension::new(EXCHANGE, CONTRACT_VERSION)
+pub const DEX_EXTENSION: DexExtension = DexExtension::new(EXCHANGE, CONTRACT_VERSION, None)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
 

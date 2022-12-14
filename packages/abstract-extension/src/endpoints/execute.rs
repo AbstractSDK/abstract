@@ -108,7 +108,7 @@ impl<
         let mut msgs: Vec<CosmosMsg> = vec![];
         let applications = self.applications(deps);
         for dep in dependencies {
-            let extension_addr = applications.app_address(dep);
+            let extension_addr = applications.app_address(dep.id);
             // just skip if dep is already removed. This means all the traders are already removed.
             if extension_addr.is_err() {
                 continue;

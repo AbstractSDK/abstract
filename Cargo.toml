@@ -38,7 +38,7 @@ schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
-semver = "1.0"
+semver = {version = "1.0", git = "https://github.com/Abstract-OS/semver.git"}
 
 boot-core = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
 

@@ -26,6 +26,7 @@ schemars = {workspace = true}
 cw-controllers = {workspace = true}
 cw-storage-plus = {workspace = true}
 serde = {workspace = true}
+semver = {git = "https://github.com/Abstract-OS/semver.git", features = ["serde"]}
 cw-asset= {workspace = true}
 cw2 = {workspace = true}
 cw20 = {workspace = true}

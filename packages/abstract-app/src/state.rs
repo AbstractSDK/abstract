@@ -1,3 +1,4 @@
+use abstract_os::objects::dependency::StaticDependency;
 use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
@@ -59,11 +60,15 @@ impl<
     >
     AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    pub const fn new(name: &'static str, version: &'static str) -> Self {
+    pub const fn new(
+        name: &'static str,
+        version: &'static str,
+        metadata: Option<&'static str>,
+    ) -> Self {
         Self {
             base_state: Item::new(BASE_STATE),
             admin: Admin::new(ADMIN_NAMESPACE),
-            contract: AbstractContract::new(name, version),
+            contract: AbstractContract::new(name, version, metadata),
         }
     }
 
@@ -72,7 +77,7 @@ impl<
     }
 
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }

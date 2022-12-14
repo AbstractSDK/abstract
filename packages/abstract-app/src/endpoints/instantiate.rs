@@ -1,3 +1,4 @@
+use abstract_os::objects::module_version::set_module_data;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
@@ -8,6 +9,7 @@ use abstract_sdk::{
 use cosmwasm_std::{
     to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
 };
+use cw2::set_contract_version;
 
 use crate::{Handler, InstantiateEndpoint};
 
@@ -18,7 +20,6 @@ use crate::{
     state::{AppContract, AppState},
     AppError,
 };
-use cw2::set_contract_version;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError>,
@@ -70,10 +71,12 @@ impl<
             proxy_address: core.proxy.clone(),
             ans_host,
         };
-        let (name, version) = self.info();
+        let (name, version, metadata) = self.info();
+        set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
         self.admin.set(deps.branch(), Some(core.manager))?;
+
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };

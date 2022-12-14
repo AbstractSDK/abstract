@@ -58,7 +58,7 @@ impl<
             dependencies: self
                 .dependencies()
                 .iter()
-                .map(|dep| dep.to_string())
+                .map(|dep| dep.id.to_string())
                 .collect(),
         })
     }

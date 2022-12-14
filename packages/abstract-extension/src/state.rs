@@ -1,5 +1,6 @@
 use std::{collections::HashSet, fmt::Debug};
 
+use abstract_os::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
@@ -55,9 +56,13 @@ impl<
         ReceiveMsg,
     > ExtensionContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    pub const fn new(name: &'static str, version: &'static str) -> Self {
+    pub const fn new(
+        name: &'static str,
+        version: &'static str,
+        metadata: Option<&'static str>,
+    ) -> Self {
         Self {
-            contract: AbstractContract::new(name, version),
+            contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
             traders: Map::new(TRADER_NAMESPACE),
             target_os: None,
@@ -65,7 +70,7 @@ impl<
     }
 
     /// add dependencies to the contract
-    pub const fn with_dependencies(mut self, dependencies: &'static [&'static str]) -> Self {
+    pub const fn with_dependencies(mut self, dependencies: &'static [StaticDependency]) -> Self {
         self.contract = self.contract.with_dependencies(dependencies);
         self
     }

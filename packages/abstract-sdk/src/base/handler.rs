@@ -6,9 +6,14 @@ use crate::base::{
     ReplyHandlerFn,
 };
 
-use super::contract_base::{
-    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+use abstract_os::objects::dependency::StaticDependency;
+
+use super::{
+    contract_base::{
+        AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+        MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+    },
+    endpoints::migrate::Metadata,
 };
 pub trait Handler
 where
@@ -38,12 +43,12 @@ where
         contract.version.load(store)
     }
 
-    fn info(&self) -> (Name, VersionString) {
+    fn info(&self) -> (Name, VersionString, Metadata) {
         let contract = self.contract();
         contract.info
     }
 
-    fn dependencies(&self) -> &'static [&'static str] {
+    fn dependencies(&self) -> &'static [StaticDependency] {
         let contract = self.contract();
         contract.dependencies
     }

@@ -74,8 +74,13 @@ impl<
         ReceiveMsg,
     > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
-    pub const fn new(name: &'static str, version: &'static str, chain: &'static str) -> Self {
-        let contract = AbstractContract::new(name, version).with_replies([
+    pub const fn new(
+        name: &'static str,
+        version: &'static str,
+        chain: &'static str,
+        metadata: Option<&'static str>,
+    ) -> Self {
+        let contract = AbstractContract::new(name, version, metadata).with_replies([
             &[
                 // add reply handlers we want to support by default
                 (RECEIVE_DISPATCH_ID, reply_dispatch_callback),

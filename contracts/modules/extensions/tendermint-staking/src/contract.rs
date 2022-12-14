@@ -15,7 +15,7 @@ pub type TendermintStakeExtension = ExtensionContract<TendermintStakeError, Requ
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 const STAKING_EXTENSION: TendermintStakeExtension =
-    TendermintStakeExtension::new(TENDERMINT_STAKING, CONTRACT_VERSION)
+    TendermintStakeExtension::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
         .with_execute(handle_request);
 
 // Export handlers

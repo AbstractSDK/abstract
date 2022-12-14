@@ -58,8 +58,10 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::Upgrade {
-                module: ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
-                migrate_msg: Some(to_binary(migrate_msg)?),
+                modules: vec![(
+                    ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
+                    Some(to_binary(migrate_msg)?),
+                )],
             },
             None,
         )?;

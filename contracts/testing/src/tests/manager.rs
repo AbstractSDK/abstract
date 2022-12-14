@@ -118,8 +118,10 @@ fn proper_initialization() {
         sender.clone(),
         manager,
         &ManagerMsgs::ExecuteMsg::Upgrade {
-            module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
-            migrate_msg: None,
+            modules: vec![(
+                ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+                None,
+            )],
         },
         &[],
     )
