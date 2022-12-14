@@ -20,10 +20,9 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
-abstract-os = { workspace = true }
-abstract-sdk = { workspace = true }
+abstract-os = { workspace = true, features = ["boot"] }
 
-boot-core = { version = "0.1.3" }
+boot-core = {  workspace = true  }
 tokio = { version = "1.4", features = ["full"] }
 secp256k1 = { version = "0.20.3", default-features = false }
 log = "0.4.14"

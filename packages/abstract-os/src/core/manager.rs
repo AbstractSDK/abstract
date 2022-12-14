@@ -80,7 +80,7 @@ pub struct InstantiateMsg {
 
 /// Execute messages
 #[cosmwasm_schema::cw_serde]
-
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
     ExecOnModule {
@@ -95,9 +95,9 @@ pub enum ExecuteMsg {
     },
     /// Install module using module factory, callable by Root
     InstallModule {
-        /// Module information.
+        // Module information.
         module: ModuleInfo,
-        /// Instantiate message used to instantiate the contract.
+        // Instantiate message used to instantiate the contract.
         init_msg: Option<Binary>,
     },
     /// Registers a module after creation.
@@ -138,6 +138,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     /// Returns [`ModuleVersionsResponse`]
     #[returns(ModuleVersionsResponse)]

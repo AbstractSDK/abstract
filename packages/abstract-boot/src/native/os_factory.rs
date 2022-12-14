@@ -4,8 +4,10 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 
-use abstract_sdk::os::{objects::gov_type::GovernanceDetails, os_factory::*, MANAGER, PROXY};
-use boot_core::interface::{BootExecute, ContractInstance};
+use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*};
+use abstract_os::{MANAGER, PROXY};
+use boot_core::interface::BootExecute;
+use boot_core::interface::ContractInstance;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;

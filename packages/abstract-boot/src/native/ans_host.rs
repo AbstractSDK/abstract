@@ -1,5 +1,5 @@
+use abstract_os::ans_host::*;
 use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
-use abstract_sdk::os::ans_host::*;
 use boot_core::prelude::{BootExecute, ContractInstance};
 use cw_asset::AssetInfoUnchecked;
 
@@ -49,7 +49,7 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain.chain_id;
+        let chain_id = self.get_chain().state.chain.chain_id.clone();
         let network_id = self.get_chain().state.id.clone();
         let maybe_assets = json.get(chain_id).unwrap().get(network_id);
 
@@ -88,8 +88,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.get_chain().state.chain.chain_id;
-        let network_id = self.0.get_chain().state.id.clone();
+        let chain_id = self.get_chain().state.chain.chain_id.clone();
+        let network_id = self.get_chain().state.id.clone();
         let maybe_channels = json.get(chain_id).unwrap().get(network_id);
 
         match maybe_channels {
@@ -128,7 +128,7 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.0.get_chain().state.chain.chain_id;
+        let chain_id = self.get_chain().state.chain.chain_id.clone();
         let network_id = self.0.get_chain().state.id.clone();
         let maybe_contracts = json.get(chain_id).unwrap().get(network_id);
 

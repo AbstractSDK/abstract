@@ -1,6 +1,6 @@
 use cosmwasm_std::{Addr, Binary, Uint128};
 
-use abstract_sdk::os::abstract_token::*;
+use abstract_os::abstract_token::*;
 use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
 
 use boot_core::{

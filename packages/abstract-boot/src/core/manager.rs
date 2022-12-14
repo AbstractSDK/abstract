@@ -1,12 +1,11 @@
 use std::fmt::Debug;
 
-use abstract_sdk::os::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use boot_core::{state::StateInterface, BootEnvironment};
 use cosmwasm_std::{to_binary, Addr, Binary};
-
 use serde::Serialize;
 
-use abstract_sdk::os::manager::*;
+use abstract_os::manager::*;
 
 use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 

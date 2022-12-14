@@ -40,6 +40,8 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 semver = "1.0"
 
+boot-core = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
+
 abstract-sdk = { version = "0.2.0-beta.7", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.2.0-beta.7", path = "packages/abstract-os" }
 abstract-app = { version = "0.2.0-beta.7", path = "packages/abstract-app", features = ["library"] }

@@ -50,6 +50,7 @@ pub struct InstantiateMsg {
 
 // hot fix
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
@@ -72,6 +73,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]

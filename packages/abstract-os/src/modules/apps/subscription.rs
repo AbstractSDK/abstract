@@ -305,7 +305,6 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-// Add dapp-specific queries here
 pub enum QueryMsg {
     State {},
     Config {},

@@ -1,6 +1,6 @@
-use crate::DEX;
 use crate::dex_trait::Identify;
 use crate::error::DexError;
+use crate::DEX;
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]

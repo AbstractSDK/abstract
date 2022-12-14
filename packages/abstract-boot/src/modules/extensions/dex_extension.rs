@@ -1,7 +1,7 @@
 use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
 use cosmwasm_std::Empty;
 
-use abstract_sdk::os::{
+use abstract_os::{
     dex::*,
     extension,
     objects::{AnsAsset, AssetEntry},
@@ -11,10 +11,9 @@ use abstract_sdk::os::{
 use crate::Manager;
 use boot_core::interface::ContractInstance;
 
-type DexExtensionInstantiateMsg = abstract_sdk::os::extension::InstantiateMsg;
+type DexExtensionInstantiateMsg = abstract_os::extension::InstantiateMsg;
 type DexExtensionExecuteMsg = extension::ExecuteMsg<DexRequestMsg>;
-type DexExtensionQueryMsg =
-    abstract_sdk::os::extension::QueryMsg<abstract_sdk::os::dex::DexQueryMsg>;
+type DexExtensionQueryMsg = abstract_os::extension::QueryMsg<abstract_os::dex::DexQueryMsg>;
 
 #[boot_contract(
     DexExtensionInstantiateMsg,

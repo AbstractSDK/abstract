@@ -46,6 +46,7 @@ pub struct Core {
 pub struct InstantiateMsg {}
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Remove some version of a module
     RemoveModule { module: ModuleInfo },
@@ -64,6 +65,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     /// Query Core of an OS
     /// Returns [`OsCoreResponse`]

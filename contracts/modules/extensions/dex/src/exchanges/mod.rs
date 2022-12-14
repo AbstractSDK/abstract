@@ -8,5 +8,4 @@ pub mod terraswap;
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod osmosis;
 
-
 pub(crate) mod exchange_resolver;

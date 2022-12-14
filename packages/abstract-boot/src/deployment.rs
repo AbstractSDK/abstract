@@ -161,7 +161,7 @@ impl<'a> Deployment<'a, Daemon> {
             &abstract_os::ibc_client::InstantiateMsg {
                 ans_host_address: self.ans_host.address()?.into_string(),
                 version_control_address: self.version_control.address()?.into_string(),
-                chain: self.chain.state.chain.chain_id.into(),
+                chain: self.chain.state.chain.chain_id.clone(),
             },
             Some(sender),
             None,

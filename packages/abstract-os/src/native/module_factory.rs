@@ -52,6 +52,7 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
@@ -61,7 +62,7 @@ pub enum ExecuteMsg {
     },
     /// Installs a module on the OS
     InstallModule {
-        /// Module details
+        // Module details
         module: ModuleInfo,
         init_msg: Option<Binary>,
     },
@@ -73,6 +74,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},

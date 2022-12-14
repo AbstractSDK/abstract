@@ -47,26 +47,27 @@ pub struct InstantiateMsg {}
 
 /// AnsHost Execute msg
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
-        /// Contracts to update or add
+        // Contracts to update or add
         to_add: Vec<(UncheckedContractEntry, String)>,
-        /// Contracts to remove
+        // Contracts to remove
         to_remove: Vec<UncheckedContractEntry>,
     },
     /// Updates the Asset addressbook
     UpdateAssetAddresses {
-        /// Assets to update or add
+        // Assets to update or add
         to_add: Vec<(String, AssetInfoUnchecked)>,
-        /// Assets to remove
+        // Assets to remove
         to_remove: Vec<String>,
     },
     /// Updates the Asset addressbook
     UpdateChannels {
-        /// Assets to update or add
+        // Assets to update or add
         to_add: Vec<(UncheckedChannelEntry, String)>,
-        /// Assets to remove
+        // Assets to remove
         to_remove: Vec<UncheckedChannelEntry>,
     },
     /// Sets a new Admin
@@ -76,12 +77,13 @@ pub enum ExecuteMsg {
 /// AnsHost smart-query
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     /// Queries assets based on name
     /// returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
     Assets {
-        /// Names of assets to query
+        // Names of assets to query
         names: Vec<String>,
     },
     /// Page over assets
@@ -95,7 +97,7 @@ pub enum QueryMsg {
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
     Contracts {
-        /// Project and contract names of contracts to query
+        // Project and contract names of contracts to query
         names: Vec<ContractEntry>,
     },
     /// Page over contracts
@@ -109,7 +111,7 @@ pub enum QueryMsg {
     /// returns [`ChannelsResponse`]
     #[returns(ChannelsResponse)]
     Channels {
-        /// Project and contract names of contracts to query
+        // Project and contract names of contracts to query
         names: Vec<ChannelEntry>,
     },
     /// Page over contracts

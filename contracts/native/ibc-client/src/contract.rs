@@ -287,7 +287,7 @@ fn clear_accounts(store: &mut dyn Storage) {
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
-        QueryMsg::Admin {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::Account { chain, os_id } => to_binary(&query_account(deps, chain, os_id)?),
         QueryMsg::ListAccounts {} => to_binary(&query_list_accounts(deps)?),
         QueryMsg::LatestQueryResult { chain, os_id } => {

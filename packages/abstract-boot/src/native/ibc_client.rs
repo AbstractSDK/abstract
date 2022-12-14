@@ -1,6 +1,6 @@
 use boot_core::{BootEnvironment, Contract};
 
-use abstract_sdk::os::ibc_client::*;
+use abstract_os::ibc_client::*;
 
 use boot_core::prelude::boot_contract;
 

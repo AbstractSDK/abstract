@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use abstract_sdk::os::{
+use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
     subscription::*,
 };
@@ -33,7 +33,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
         AppInitMsg::<InstantiateMsg> {
             base: BaseInstantiateMsg { ans_host_address },
             app: InstantiateMsg {
-                subscription: abstract_sdk::os::subscription::SubscriptionInstantiateMsg {
+                subscription: abstract_os::subscription::SubscriptionInstantiateMsg {
                     factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
                     subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
@@ -42,7 +42,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
                         AssetInfoUnchecked::cw20(token_addr.clone()),
                     ),
                 },
-                contribution: Some(abstract_sdk::os::subscription::ContributionInstantiateMsg {
+                contribution: Some(abstract_os::subscription::ContributionInstantiateMsg {
                     protocol_income_share: Decimal::percent(10),
                     emission_user_share: Decimal::percent(50),
                     max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),

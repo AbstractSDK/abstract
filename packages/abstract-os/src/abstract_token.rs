@@ -96,6 +96,7 @@ fn is_valid_symbol(symbol: &str) -> bool {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     UpdateWhitelist {
         to_add: Vec<String>,
@@ -167,11 +168,11 @@ pub enum ExecuteMsg {
     /// Setting None/null for any of these will leave it unchanged.
     /// Setting Some("") will clear this field on the contract storage
     UpdateMarketing {
-        /// A URL pointing to the project behind this token.
+        // A URL pointing to the project behind this token.
         project: Option<String>,
-        /// A longer description of the token and it's utility. Designed for tooltips or such
+        // A longer description of the token and it's utility. Designed for tooltips or such
         description: Option<String>,
-        /// The address (if any) who can update this data structure
+        // The address (if any) who can update this data structure
         marketing: Option<String>,
     },
     /// If set as the "marketing" role on the contract, upload a new URL, SVG, or PNG for the token
@@ -263,6 +264,7 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
 }
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},

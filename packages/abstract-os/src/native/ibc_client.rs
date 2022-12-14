@@ -73,6 +73,7 @@ impl CallbackInfo {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update the Admin
     UpdateAdmin {
@@ -96,14 +97,14 @@ pub enum ExecuteMsg {
         host_chain: String,
     },
     SendPacket {
-        /// host chain to be executed on
-        /// Example: "osmosis"
+        // host chain to be executed on
+        // Example: "osmosis"
         host_chain: String,
-        /// execute the custom host function
+        // execute the custom host function
         action: HostAction,
-        /// optional callback info
+        // optional callback info
         callback_info: Option<CallbackInfo>,
-        /// Number of retries if packet errors
+        // Number of retries if packet errors
         retries: u8,
     },
     RemoveHost {
@@ -112,16 +113,22 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
-    // Returns current admin
-    Admin {},
+    // Returns config
+    #[returns(ConfigResponse)]
+    Config {},
     // Shows all open channels (incl. remote info)
+    #[returns(ListAccountsResponse)]
     ListAccounts {},
     // Get channel info for one chain
+    #[returns(AccountResponse)]
     Account { chain: String, os_id: u32 },
     // Get remote account info for a chain + OS
+    #[returns(LatestQueryResponse)]
     LatestQueryResult { chain: String, os_id: u32 },
     // get the channels
+    #[returns(ListChannelsResponse)]
     ListChannels {},
 }
 

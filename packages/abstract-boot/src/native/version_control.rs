@@ -6,7 +6,7 @@ use boot_core::{
 use cosmwasm_std::Addr;
 use semver::Version;
 
-use abstract_sdk::os::{
+use abstract_os::{
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,

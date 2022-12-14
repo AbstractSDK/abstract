@@ -1,4 +1,4 @@
-pub use abstract_sdk::os::balancer::*;
+pub use abstract_os::balancer::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment};
 use cosmwasm_std::Empty;
 

@@ -52,28 +52,29 @@ pub struct InstantiateMsg {
 
 /// Execute function entrypoint.
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Handler called by the CW-20 contract on a send-call
     Receive(Cw20ReceiveMsg),
     /// Update config
     UpdateConfig {
-        /// New admin
+        // New admin
         admin: Option<String>,
-        /// New ans_host contract
+        // New ans_host contract
         ans_host_contract: Option<String>,
-        /// New version control contract
+        // New version control contract
         version_control_contract: Option<String>,
-        /// New module factory contract
+        // New module factory contract
         module_factory_address: Option<String>,
-        /// New subscription contract
+        // New subscription contract
         subscription_address: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
     CreateOs {
-        /// Governance details
-        /// Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal.
-        /// TODO: add support for other types of gov.
+        // Governance details
+        // Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal.
+        // TODO: add support for other types of gov.
         governance: GovernanceDetails,
         name: String,
         description: Option<String>,
@@ -83,6 +84,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},

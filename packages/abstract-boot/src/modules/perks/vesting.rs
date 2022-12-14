@@ -1,4 +1,4 @@
-use abstract_sdk::os::vesting::*;
+use abstract_os::vesting::*;
 use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 

@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    Empty, Response,
-};
+use cosmwasm_std::{Empty, Response};
 
 use abstract_extension::{export_endpoints, ExtensionContract};
 use abstract_sdk::os::{

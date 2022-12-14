@@ -1,4 +1,4 @@
-use abstract_sdk::os::{app::MigrateMsg, etf::*};
+use abstract_os::{app::MigrateMsg, etf::*};
 use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 
 #[boot_contract(EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, MigrateMsg)]

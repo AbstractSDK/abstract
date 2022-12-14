@@ -1,13 +1,15 @@
-use cosmwasm_std::{Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, to_binary};
+use crate::contract::{DexExtension, DexResult};
+use crate::exchanges::exchange_resolver;
+use crate::LocalDex;
 use abstract_os::dex::{DexAction, DexName, DexRequestMsg, IBC_DEX_ID};
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
 use abstract_sdk::base::features::AbstractNameService;
 use abstract_sdk::{IbcInterface, Resolve};
-use crate::{LocalDex};
-use crate::contract::{DexExtension, DexResult};
-use crate::exchanges::exchange_resolver;
+use cosmwasm_std::{
+    to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+};
 
 const ACTION_RETRIES: u8 = 3;
 

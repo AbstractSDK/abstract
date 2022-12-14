@@ -14,10 +14,10 @@ repository = "https://github.com/Abstract-OS/contracts/tree/main/packages/abstra
 
 [features]
 default = []
+boot = ["boot-core"]
 # for quicker tests, cargo test --lib
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
-# ibc = ["dep:abstract-ica"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }
@@ -31,3 +31,5 @@ cw2 = {workspace = true}
 cw20 = {workspace = true}
 cw20-base = {workspace = true}
 abstract-ica = {workspace = true}
+
+boot-core = { workspace = true, optional = true}
