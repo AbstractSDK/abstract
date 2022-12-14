@@ -1,4 +1,5 @@
 use crate::abstract_ica::StdAck;
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
 
 use abstract_ica::IbcResponseMsg;
@@ -114,6 +115,7 @@ pub enum ExecuteMsg {
 
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[derive(QueryResponses)]
 pub enum QueryMsg {
     // Returns config
     #[returns(ConfigResponse)]
