@@ -1,7 +1,7 @@
 use cosmwasm_std::{StdError, Uint128};
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum ProxyError {
     #[error("{0}")]
     Std(#[from] StdError),
@@ -9,14 +9,11 @@ pub enum ProxyError {
     #[error(transparent)]
     Admin(#[from] ::cw_controllers::AdminError),
 
-    #[error(transparent)]
-    SemVer(#[from] ::semver::Error),
+    #[error("Module with address {0} is already whitelisted")]
+    AlreadyWhitelisted(String),
 
-    #[error("DApp is already whitelisted")]
-    AlreadyInList {},
-
-    #[error("DApp not found in whitelist")]
-    NotInList {},
+    #[error("Module with address {0} not found in whitelist")]
+    NotWhitelisted(String),
 
     #[error("Sender is not whitelisted")]
     SenderNotWhitelisted {},

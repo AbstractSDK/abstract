@@ -12,18 +12,21 @@ use cw_asset::{Asset, AssetInfo};
 const NOT_ALLOWED: &str = "some_other_contract";
 
 fn init_msg(os_id: u32) -> InstantiateMsg {
-    InstantiateMsg { os_id }
+    InstantiateMsg {
+        os_id,
+        ans_host_address: "".into(),
+    }
 }
 
 #[test]
 fn test_non_whitelisted() {
-    let mut deps = mock_dependencies(&[]);
+    let mut deps = mock_dependencies();
     let msg = init_msg(0);
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     let msg = ExecuteMsg::AddModule {
-        dapp: TEST_CREATOR.to_string(),
+        module: TEST_CREATOR.to_string(),
     };
 
     match execute(deps.as_mut(), mock_env(), info.clone(), msg) {
@@ -47,7 +50,7 @@ fn test_non_whitelisted() {
     match execute(deps.as_mut(), mock_env(), info.clone(), msg) {
         Ok(_) => panic!("Sender should not be allowed to do this action"),
         Err(e) => match e {
-            TreasuryError::SenderNotWhitelisted {} => (),
+            ProxyError::SenderNotWhitelisted {} => (),
             _ => panic!("Unknown error: {}", e),
         },
     }
@@ -55,13 +58,13 @@ fn test_non_whitelisted() {
 
 #[test]
 fn test_whitelisted() {
-    let mut deps = mock_dependencies(&[]);
+    let mut deps = mock_dependencies();
     let msg = init_msg(0);
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps.as_mut(), mock_env(), info.clone(), msg).unwrap();
 
     let msg = ExecuteMsg::AddModule {
-        dapp: TEST_CREATOR.to_string(),
+        module: TEST_CREATOR.to_string(),
     };
 
     match execute(deps.as_mut(), mock_env(), info.clone(), msg) {
