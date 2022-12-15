@@ -46,8 +46,7 @@ impl<
         };
         let (name, version, metadata) = self.info();
         // Keep track of all the closed channels, allows for fund recovery if channel closes.
-        let closed_channels = vec![];
-        CLOSED_CHANNELS.save(deps.storage, &closed_channels)?;
+        CLOSED_CHANNELS.save(deps.storage, &vec![])?;
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
 

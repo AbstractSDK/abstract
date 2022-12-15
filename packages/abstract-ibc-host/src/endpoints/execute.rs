@@ -1,6 +1,7 @@
 use abstract_sdk::os::ibc_host::{
     BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg,
 };
+use abstract_sdk::Execution;
 
 use abstract_sdk::base::{ExecuteEndpoint, Handler};
 use cosmwasm_std::{
@@ -106,7 +107,7 @@ impl<
     }
 
     pub fn base_execute(
-        self,
+        mut self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
@@ -123,18 +124,22 @@ impl<
                 ans_host_address,
                 cw1_code_id,
             } => self.update_config(deps, info, ans_host_address, cw1_code_id),
-            BaseExecuteMsg::ClearAccount {
+            BaseExecuteMsg::RecoverAccount {
                 closed_channel,
                 os_id,
+                msgs,
             } => {
                 let closed_channels = CLOSED_CHANNELS.load(deps.storage)?;
                 if !closed_channels.contains(&closed_channel) {
                     return Err(HostError::ChannelNotClosed {});
                 }
-                // call send_all_back here
-                // clean up state
+                self.admin.assert_admin(deps.as_ref(), &info.sender)?;
+                self.proxy_address = ACCOUNTS.may_load(deps.storage, (&closed_channel, os_id))?;
                 ACCOUNTS.remove(deps.storage, (&closed_channel, os_id));
-                todo!();
+                // Execute provided msgs on proxy.
+                self.executor(deps.as_ref())
+                    .execute_response(msgs, "recover_account")
+                    .map_err(Into::into)
             }
         }
     }

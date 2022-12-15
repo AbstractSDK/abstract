@@ -51,6 +51,14 @@ pub fn ibc_channel_connect(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let chan_id = &channel.endpoint.channel_id;
+    // re-open channel if it was closed previously.
+    let re_open_channel = |mut closed_channels: Vec<String>| -> StdResult<Vec<String>> {
+        Ok(closed_channels
+            .into_iter()
+            .filter(|c| c != chan_id)
+            .collect())
+    };
+    CLOSED_CHANNELS.update(deps.storage, re_open_channel)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("action", "ibc_connect")
@@ -59,8 +67,6 @@ pub fn ibc_channel_connect(
 }
 
 #[entry_point]
-/// On closed channel we remove the entries and allow anyone to transfer all tokens back to the client chain.
-/// We also delete the channel entry from accounts.
 #[allow(unused)]
 pub fn ibc_channel_close(
     deps: DepsMut,
@@ -74,24 +80,6 @@ pub fn ibc_channel_close(
         channels.push(channel_id);
         Ok::<_, StdError>(channels)
     })?;
-
-    // // transfer current balance if any to this host contract
-    // let amount = deps.querier.query_all_balances(&reflect_addr)?;
-    // let messages: Vec<SubMsg<Empty>> = if !amount.is_empty() {
-    //     let bank_msg = BankMsg::Send {
-    //         to_address: env.contract.address.into(),
-    //         amount,
-    //     };
-
-    //     let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute::<Empty> {
-    //         msgs: vec![bank_msg.into()],
-    //     };
-    //     let wasm_msg = wasm_execute(reflect_addr, &reflect_msg, vec![])?;
-    //     vec![SubMsg::new(wasm_msg)]
-    // } else {
-    //     vec![]
-    // };
-    // let rescue_funds = !messages.is_empty();
 
     Ok(
         IbcBasicResponse::new()

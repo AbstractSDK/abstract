@@ -12,8 +12,9 @@ jobs:
   lint:
     name: Clippy Linter
     runs-on: self-hosted
+    container:
+        image: rust:latest
     steps:
-      - uses: AutoModality/action-clean@v1
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -37,8 +38,9 @@ jobs:
   compile:
     name: Compile
     runs-on: self-hosted
+    container:
+        image: rust:latest
     steps:
-      - uses: AutoModality/action-clean@v1
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust
@@ -52,9 +54,10 @@ jobs:
   test:
     name: Test
     runs-on:  self-hosted
+    container:
+        image: rust:latest
     needs: [compile]
     steps:
-      - uses: AutoModality/action-clean@v1
       - name: Setup | Checkout
         uses: actions/checkout@v3
       - name: Setup | Rust

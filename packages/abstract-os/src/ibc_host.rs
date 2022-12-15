@@ -93,16 +93,16 @@ pub struct PacketMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum BaseExecuteMsg {
     /// Update the Admin
-    UpdateAdmin {
-        admin: String,
-    },
+    UpdateAdmin { admin: String },
     UpdateConfig {
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
     },
-    ClearAccount {
+    /// Allow for fund recovery through the Admin
+    RecoverAccount {
         closed_channel: String,
         os_id: u32,
+        msgs: Vec<CosmosMsg>,
     },
 }
 
