@@ -10,7 +10,7 @@ use abstract_os::{
 
 use crate::Manager;
 use boot_core::interface::ContractInstance;
-#[boot_contract(InstantiateMsg, DexExecuteMsg, DexQueryMsg, Empty)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
 pub struct DexExtension<Chain>;
 
 impl<Chain: BootEnvironment> DexExtension<Chain> {
