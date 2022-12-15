@@ -6,14 +6,14 @@ use super::AssetEntry;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct AnsAsset {
-    pub info: AssetEntry,
+    pub name: AssetEntry,
     pub amount: Uint128,
 }
 
 impl AnsAsset {
-    pub fn new(info: impl Into<AssetEntry>, amount: impl Into<Uint128>) -> Self {
+    pub fn new(name: impl Into<AssetEntry>, amount: impl Into<Uint128>) -> Self {
         AnsAsset {
-            info: info.into(),
+            name: name.into(),
             amount: amount.into(),
         }
     }

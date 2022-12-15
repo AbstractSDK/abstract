@@ -38,7 +38,7 @@ impl Resolve for AnsAsset {
 
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
         Ok(Asset::new(
-            ans_host.query_asset(querier, &self.info)?,
+            ans_host.query_asset(querier, &self.name)?,
             self.amount,
         ))
     }

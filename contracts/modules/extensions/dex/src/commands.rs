@@ -115,7 +115,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         belief_price: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let AnsAsset {
-            info: mut offer_asset,
+            name: mut offer_asset,
             amount: offer_amount,
         } = offer_asset;
         offer_asset.format();
@@ -187,7 +187,7 @@ pub trait LocalDex: AbstractNameService + Execution {
             ans.host(),
             offer_assets
                 .iter()
-                .map(|a| &a.info)
+                .map(|a| &a.name)
                 .collect::<Vec<&AssetEntry>>()
                 .as_mut(),
         )?;
@@ -218,7 +218,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         let ans = self.name_service(deps);
         let lp_asset = ans.query(&lp_token)?;
         let pair_entry =
-            UncheckedContractEntry::new(exchange.name(), lp_token.info.as_str()).check();
+            UncheckedContractEntry::new(exchange.name(), lp_token.name.as_str()).check();
         let pair_address = ans.query(&pair_entry)?;
         exchange.withdraw_liquidity(deps, pair_address, lp_asset)
     }

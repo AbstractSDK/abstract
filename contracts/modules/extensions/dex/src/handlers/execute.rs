@@ -100,7 +100,7 @@ pub(crate) fn resolve_assets_to_transfer(
             "Cross-chain symmetric provide liquidity not supported.",
         )),
         DexAction::WithdrawLiquidity { lp_token, amount } => Ok(vec![offer_to_coin(&AnsAsset {
-            info: lp_token.to_owned(),
+            name: lp_token.to_owned(),
             amount: amount.to_owned(),
         })?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),

@@ -33,14 +33,14 @@ pub fn simulate_swap(
     let extension = DEX_EXTENSION;
     let ans = extension.name_service(deps);
     // format input
-    offer_asset.info.format();
+    offer_asset.name.format();
     ask_asset.format();
     // get addresses
     let swap_offer_asset = ans.query(&offer_asset)?;
     let ask_asset_info = ans.query(&ask_asset)?;
     let pair_address =
-        exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset.info, &ask_asset])?;
-    let pool_info = exchange.pair_contract(&mut vec![&offer_asset.info, &ask_asset]);
+        exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset.name, &ask_asset])?;
+    let pool_info = exchange.pair_contract(&mut vec![&offer_asset.name, &ask_asset]);
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
         .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)
@@ -48,7 +48,7 @@ pub fn simulate_swap(
     let commission_asset = if fee_on_input {
         ask_asset
     } else {
-        offer_asset.info
+        offer_asset.name
     };
     let resp = SimulateSwapResponse {
         pool: pool_info,
