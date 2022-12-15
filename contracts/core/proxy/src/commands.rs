@@ -145,6 +145,15 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
     Ok(Response::new().add_attribute("Removed contract from whitelist: ", module))
 }
 
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> Result<Response, ProxyError> {
+    let admin_addr = deps.api.addr_validate(admin)?;
+    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
+    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
+    Ok(Response::default()
+        .add_attribute("previous admin", previous_admin)
+        .add_attribute("admin", admin))
+}
+
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::mock_dependencies;
@@ -391,13 +400,4 @@ mod test {
             Ok(())
         }
     }
-}
-
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> Result<Response, ProxyError> {
-    let admin_addr = deps.api.addr_validate(admin)?;
-    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(Response::default()
-        .add_attribute("previous admin", previous_admin)
-        .add_attribute("admin", admin))
 }
