@@ -66,7 +66,7 @@ fn proper_initialization() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::Config {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::Config {}),
         )
         .unwrap();
 
@@ -99,7 +99,7 @@ fn proper_initialization() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::State {}),
         )
         .unwrap();
 
@@ -170,7 +170,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::State {}),
         )
         .unwrap();
 
@@ -184,7 +184,7 @@ fn add_and_remove_contributors() {
         }
     );
 
-    let msg = app::ExecuteMsg::<_>::App(msgs::ExecuteMsg::UpdateContributor {
+    let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::UpdateContributor {
         contributor_os_id: contributing_os2,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(200u64.into()),
@@ -197,7 +197,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::ContributorState {
+            &app::QueryMsg::App(msgs::SubscriptionQueryMsg::ContributorState {
                 os_id: contributing_os2,
             }),
         )
@@ -213,7 +213,7 @@ fn add_and_remove_contributors() {
         }
     );
 
-    let msg = app::ExecuteMsg::<_>::App(msgs::ExecuteMsg::RemoveContributor {
+    let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::RemoveContributor {
         os_id: contributing_os1,
     });
 
@@ -231,7 +231,7 @@ fn add_and_remove_contributors() {
         .wrap()
         .query_wasm_smart(
             subscription_addr,
-            &app::QueryMsg::App(msgs::QueryMsg::State {}),
+            &msgs::SubscriptionQueryMsg::State {}.into(),
         )
         .unwrap();
 

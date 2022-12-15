@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use crate::{ExtensionContract, ExtensionError};
+use abstract_os::extension::{ExtensionExecuteMsg, ExtensionQueryMsg};
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     os::extension::{ExtensionConfigResponse, TradersResponse},
@@ -11,9 +12,9 @@ use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ExtensionError>,
-        CustomExecMsg: Serialize + JsonSchema,
+        CustomExecMsg: Serialize + JsonSchema + ExtensionExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
-        CustomQueryMsg: Serialize + JsonSchema,
+        CustomQueryMsg: Serialize + JsonSchema + ExtensionQueryMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExtensionContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {

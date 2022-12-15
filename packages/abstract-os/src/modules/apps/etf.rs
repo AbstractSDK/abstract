@@ -59,6 +59,14 @@ pub mod state {
 
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
+
+use crate::app::{self};
+
+pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
+pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;
+impl app::AppExecuteMsg for EtfExecuteMsg {}
+impl app::AppQueryMsg for EtfQueryMsg {}
+
 /// Init msg
 #[cosmwasm_schema::cw_serde]
 pub struct EtfInstantiateMsg {
@@ -75,6 +83,8 @@ pub struct EtfInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum EtfExecuteMsg {
     /// Provide liquidity to the attached proxy using a native token.
     ProvideLiquidity { asset: AssetUnchecked },
@@ -83,9 +93,12 @@ pub enum EtfExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
 pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]
+    #[returns(StateResponse)]
     State {},
 }
 

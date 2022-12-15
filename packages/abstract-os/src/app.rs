@@ -18,8 +18,29 @@ pub type MigrateMsg<AppMsg = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, AppMs
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
-#[allow(unused)]
 use cw_controllers::AdminResponse;
+use serde::Serialize;
+
+/// Trait indicates that the type is used as an app message
+/// in the [`ExecuteMsg`] enum.
+/// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
+pub trait AppExecuteMsg: Serialize {}
+impl<T: AppExecuteMsg> From<T> for ExecuteMsg<T> {
+    fn from(app: T) -> Self {
+        Self::App(app)
+    }
+}
+
+/// Trait indicates that the type is used as an app message
+/// in the [`QueryMsg`] enum.
+/// Enables [`Into<QueryMsg>`] for BOOT fn-generation support.
+pub trait AppQueryMsg: Serialize {}
+impl<T: AppQueryMsg> From<T> for QueryMsg<T> {
+    fn from(app: T) -> Self {
+        Self::App(app)
+    }
+}
+impl AppQueryMsg for Empty {}
 
 /// Used by Module Factory to instantiate App
 #[cosmwasm_schema::cw_serde]
@@ -28,13 +49,23 @@ pub struct BaseInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg<T>))]
 pub enum BaseExecuteMsg {
     /// Updates the base config
     UpdateConfig { ans_host_address: Option<String> },
 }
 
+impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
+    fn from(base: BaseExecuteMsg) -> Self {
+        Self::Base(base)
+    }
+}
+
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg<AppMsg>))]
 pub enum BaseQueryMsg {
     /// Returns [`AppConfigResponse`]
     #[returns(AppConfigResponse)]
@@ -42,6 +73,12 @@ pub enum BaseQueryMsg {
     /// Returns the admin.
     #[returns(AdminResponse)]
     Admin {},
+}
+
+impl<T> From<BaseQueryMsg> for QueryMsg<T> {
+    fn from(base: BaseQueryMsg) -> Self {
+        Self::Base(base)
+    }
 }
 
 #[cosmwasm_schema::cw_serde]

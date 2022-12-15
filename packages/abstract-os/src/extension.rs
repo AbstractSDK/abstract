@@ -20,6 +20,29 @@ pub type ExecuteMsg<Request, ReceiveMsg = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, ExtensionRequestMsg<Request>, ReceiveMsg>;
 pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
+/// Trait indicates that the type is used as an app message
+/// in the [`ExecuteMsg`] enum.
+/// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
+pub trait ExtensionExecuteMsg: Serialize {}
+impl<T: ExtensionExecuteMsg> From<T> for ExecuteMsg<T> {
+    fn from(extension_msg: T) -> Self {
+        Self::App(ExtensionRequestMsg {
+            proxy_address: None,
+            request: extension_msg,
+        })
+    }
+}
+
+/// Trait indicates that the type is used as an extension message
+/// in the [`QueryMsg`] enum.
+/// Enables [`Into<QueryMsg>`] for BOOT fn-generation support.
+pub trait ExtensionQueryMsg: Serialize {}
+impl<T: ExtensionQueryMsg> From<T> for QueryMsg<T> {
+    fn from(app: T) -> Self {
+        Self::App(app)
+    }
+}
+impl ExtensionQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddExtension`].

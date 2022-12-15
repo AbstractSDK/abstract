@@ -1,29 +1,26 @@
-use abstract_app::{export_endpoints, AppContract};
-
 use crate::commands::get_os_core;
-use abstract_sdk::os::SUBSCRIPTION;
-use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
-
-use cw20::Cw20ReceiveMsg;
-use cw_asset::Asset;
-
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
-use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-
+use abstract_app::{export_endpoints, AppContract};
+use abstract_os::subscription::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use abstract_sdk::os::subscription::state::*;
 use abstract_sdk::os::subscription::{
-    ConfigResponse, ContributorStateResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-    StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
+    ConfigResponse, ContributorStateResponse, InstantiateMsg, MigrateMsg, StateResponse,
+    SubscriberStateResponse, SubscriptionFeeResponse,
 };
+use abstract_sdk::os::SUBSCRIPTION;
+use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
+use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw20::Cw20ReceiveMsg;
+use cw_asset::Asset;
 
 pub type SubscriptionResult = Result<Response, SubscriptionError>;
 pub type SubscriptionApp = AppContract<
     SubscriptionError,
-    ExecuteMsg,
+    SubscriptionExecuteMsg,
     InstantiateMsg,
-    QueryMsg,
+    SubscriptionQueryMsg,
     MigrateMsg,
     Cw20ReceiveMsg,
 >;
@@ -94,10 +91,10 @@ fn request_handler(
     env: Env,
     info: MessageInfo,
     app: SubscriptionApp,
-    msg: ExecuteMsg,
+    msg: SubscriptionExecuteMsg,
 ) -> SubscriptionResult {
     match msg {
-        ExecuteMsg::Pay { os_id } => {
+        SubscriptionExecuteMsg::Pay { os_id } => {
             let maybe_received_coin = info.funds.last();
             if let Some(coin) = maybe_received_coin.cloned() {
                 commands::try_pay(app, deps, env, info, Asset::from(coin), os_id)
@@ -105,14 +102,16 @@ fn request_handler(
                 Err(SubscriptionError::NotUsingCW20Hook {})
             }
         }
-        ExecuteMsg::Unsubscribe { os_ids } => commands::unsubscribe(deps, env, app, os_ids),
-        ExecuteMsg::ClaimCompensation { os_id } => {
+        SubscriptionExecuteMsg::Unsubscribe { os_ids } => {
+            commands::unsubscribe(deps, env, app, os_ids)
+        }
+        SubscriptionExecuteMsg::ClaimCompensation { os_id } => {
             commands::try_claim_compensation(app, deps, env, os_id)
         }
-        ExecuteMsg::ClaimEmissions { os_id } => {
+        SubscriptionExecuteMsg::ClaimEmissions { os_id } => {
             commands::claim_subscriber_emissions(&app, deps.as_ref(), &env, os_id)
         }
-        ExecuteMsg::UpdateContributor {
+        SubscriptionExecuteMsg::UpdateContributor {
             contributor_os_id,
             base_per_block,
             weight,
@@ -127,8 +126,10 @@ fn request_handler(
             weight.map(|w| w.u64() as u32),
             expiration_block.map(|w| w.u64()),
         ),
-        ExecuteMsg::RemoveContributor { os_id } => commands::remove_contributor(deps, info, os_id),
-        ExecuteMsg::UpdateSubscriptionConfig {
+        SubscriptionExecuteMsg::RemoveContributor { os_id } => {
+            commands::remove_contributor(deps, info, os_id)
+        }
+        SubscriptionExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
             version_control_address,
             factory_address,
@@ -142,7 +143,7 @@ fn request_handler(
             factory_address,
             subscription_cost,
         ),
-        ExecuteMsg::UpdateContributionConfig {
+        SubscriptionExecuteMsg::UpdateContributionConfig {
             protocol_income_share,
             emission_user_share,
             max_emissions_multiple,
@@ -167,11 +168,11 @@ pub fn query_handler(
     deps: Deps,
     _env: Env,
     _app: &SubscriptionApp,
-    msg: QueryMsg,
+    msg: SubscriptionQueryMsg,
 ) -> StdResult<Binary> {
     match msg {
         // handle dapp-specific queries here
-        QueryMsg::State {} => {
+        SubscriptionQueryMsg::State {} => {
             let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
             let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
             to_binary(&StateResponse {
@@ -179,7 +180,7 @@ pub fn query_handler(
                 subscription: subscription_state,
             })
         }
-        QueryMsg::Fee {} => {
+        SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             let minimal_cost = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
             to_binary(&SubscriptionFeeResponse {
@@ -189,7 +190,7 @@ pub fn query_handler(
                 },
             })
         }
-        QueryMsg::Config {} => {
+        SubscriptionQueryMsg::Config {} => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
             to_binary(&ConfigResponse {
@@ -197,7 +198,7 @@ pub fn query_handler(
                 subscription: subscription_config,
             })
         }
-        QueryMsg::SubscriberState { os_id } => {
+        SubscriptionQueryMsg::SubscriberState { os_id } => {
             let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
             let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
             let subscription_state = if let Some(sub) = maybe_sub {
@@ -215,7 +216,7 @@ pub fn query_handler(
             };
             Ok(subscription_state)
         }
-        QueryMsg::ContributorState { os_id } => {
+        SubscriptionQueryMsg::ContributorState { os_id } => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             let contributor_addr = get_os_core(
                 &deps.querier,

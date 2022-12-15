@@ -1,4 +1,12 @@
+use crate::contract::OsFactoryResult;
+use crate::state::*;
+use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_os::app;
+use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
+use abstract_sdk::os::{
+    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+};
 use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
@@ -7,8 +15,8 @@ use abstract_sdk::os::{
     },
     os_factory::ExecuteMsg,
     subscription::{
-        DepositHookMsg as SubDepositHook, ExecuteMsg as SubscriptionExecMsg,
-        QueryMsg as SubscriptionQuery, SubscriptionFeeResponse,
+        DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
+        SubscriptionQueryMsg,
     },
     version_control::{Core, ModuleResponse},
 };
@@ -18,20 +26,8 @@ use cosmwasm_std::{
     WasmMsg, WasmQuery,
 };
 use cw20::Cw20ReceiveMsg;
-use protobuf::Message;
-
-use crate::contract::OsFactoryResult;
-
-use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
-
-use crate::state::*;
-use abstract_sdk::os::{
-    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
-    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
-};
-
-use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
+use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
@@ -326,7 +322,7 @@ fn query_subscription_fee(
     let subscription_fee_response: SubscriptionFeeResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: subscription_address.to_string(),
-            msg: to_binary(&app::QueryMsg::App(SubscriptionQuery::Fee {}))?,
+            msg: to_binary(&app::QueryMsg::App(SubscriptionQueryMsg::Fee {}))?,
         }))?;
     Ok(subscription_fee_response)
 }
@@ -350,8 +346,8 @@ fn forward_payment(
             )?,
             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: sub_addr.into(),
-                msg: to_binary::<app::ExecuteMsg<SubscriptionExecMsg>>(&app::ExecuteMsg::App(
-                    SubscriptionExecMsg::Pay {
+                msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
+                    SubscriptionExecuteMsg::Pay {
                         os_id: config.next_os_id,
                     },
                 ))?,

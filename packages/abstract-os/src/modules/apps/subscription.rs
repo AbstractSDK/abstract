@@ -224,16 +224,20 @@ pub mod state {
     }
 }
 
+use self::state::UncheckedEmissionType;
+use crate::app::{self};
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128, Uint64};
-
 use cw_asset::{Asset, AssetInfoUnchecked};
-
 use state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     SubscriptionState,
 };
 
-use self::state::UncheckedEmissionType;
+pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
+pub type QueryMsg = app::QueryMsg<SubscriptionQueryMsg>;
+impl app::AppExecuteMsg for SubscriptionExecuteMsg {}
+impl app::AppQueryMsg for SubscriptionQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
@@ -265,7 +269,9 @@ pub struct ContributionInstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum ExecuteMsg {
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
+pub enum SubscriptionExecuteMsg {
     Pay {
         os_id: u32,
     },
@@ -305,11 +311,19 @@ pub enum ExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum QueryMsg {
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
+#[derive(QueryResponses)]
+pub enum SubscriptionQueryMsg {
+    #[returns(StateResponse)]
     State {},
+    #[returns(ConfigResponse)]
     Config {},
+    #[returns(SubscriptionFeeResponse)]
     Fee {},
+    #[returns(SubscriberStateResponse)]
     SubscriberState { os_id: u32 },
+    #[returns(ContributorStateResponse)]
     ContributorState { os_id: u32 },
 }
 

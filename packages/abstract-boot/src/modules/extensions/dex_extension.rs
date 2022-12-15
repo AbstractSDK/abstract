@@ -3,24 +3,14 @@ use cosmwasm_std::Empty;
 
 use abstract_os::{
     dex::*,
-    extension,
+    extension::{self, InstantiateMsg},
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
 
 use crate::Manager;
 use boot_core::interface::ContractInstance;
-
-type DexExtensionInstantiateMsg = abstract_os::extension::InstantiateMsg;
-type DexExtensionExecuteMsg = extension::ExecuteMsg<DexRequestMsg>;
-type DexExtensionQueryMsg = abstract_os::extension::QueryMsg<abstract_os::dex::DexQueryMsg>;
-
-#[boot_contract(
-    DexExtensionInstantiateMsg,
-    DexExtensionExecuteMsg,
-    DexExtensionQueryMsg,
-    Empty
-)]
+#[boot_contract(InstantiateMsg, DexExecuteMsg, DexQueryMsg, Empty)]
 pub struct DexExtension<Chain>;
 
 impl<Chain: BootEnvironment> DexExtension<Chain> {
@@ -49,7 +39,7 @@ impl<Chain: BootEnvironment> DexExtension<Chain> {
             EXCHANGE,
             extension::ExecuteMsg::<_>::App(extension::ExtensionRequestMsg {
                 proxy_address: None,
-                request: DexRequestMsg {
+                request: DexExecuteMsg {
                     dex,
                     action: DexAction::Swap {
                         offer_asset: AnsAsset::new(asset, offer_asset.1),

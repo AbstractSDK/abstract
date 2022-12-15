@@ -1,7 +1,7 @@
 use crate::contract::{DexExtension, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::LocalDex;
-use abstract_os::dex::{DexAction, DexName, DexRequestMsg, IBC_DEX_ID};
+use abstract_os::dex::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
@@ -18,9 +18,9 @@ pub fn execute_handler(
     env: Env,
     info: MessageInfo,
     extension: DexExtension,
-    msg: DexRequestMsg,
+    msg: DexExecuteMsg,
 ) -> DexResult {
-    let DexRequestMsg {
+    let DexExecuteMsg {
         dex: dex_name,
         action,
     } = msg;

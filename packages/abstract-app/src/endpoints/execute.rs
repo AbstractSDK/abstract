@@ -1,3 +1,4 @@
+use abstract_os::app::AppExecuteMsg;
 use abstract_sdk::os::app::{BaseExecuteMsg, ExecuteMsg};
 
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
@@ -9,7 +10,7 @@ use crate::{state::AppContract, AppError, AppResult};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
-        CustomExecMsg: Serialize + JsonSchema,
+        CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,

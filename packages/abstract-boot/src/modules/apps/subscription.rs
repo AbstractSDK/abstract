@@ -67,12 +67,19 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
     // }
 
     pub fn claim_contribution(&self, os_id: u32) -> anyhow::Result<()> {
-        self.execute(&ExecuteMsg::ClaimCompensation { os_id }, None)?;
+        self.claim_compensation(os_id)?;
+        self.execute(
+            &SubscriptionExecuteMsg::ClaimCompensation { os_id }.into(),
+            None,
+        )?;
         Ok(())
     }
 
     pub fn claim_emissions(&self, os_id: u32) -> anyhow::Result<()> {
-        self.execute(&ExecuteMsg::ClaimEmissions { os_id }, None)?;
+        self.execute(
+            &SubscriptionExecuteMsg::ClaimEmissions { os_id }.into(),
+            None,
+        )?;
         Ok(())
     }
 }

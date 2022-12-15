@@ -2,7 +2,7 @@ use cosmwasm_std::{Empty, Response};
 
 use abstract_extension::{export_endpoints, ExtensionContract};
 use abstract_sdk::os::{
-    dex::{DexQueryMsg, DexRequestMsg},
+    dex::{DexExecuteMsg, DexQueryMsg},
     EXCHANGE,
 };
 
@@ -10,7 +10,7 @@ use crate::{error::DexError, handlers};
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type DexExtension = ExtensionContract<DexError, DexRequestMsg, Empty, DexQueryMsg>;
+pub type DexExtension = ExtensionContract<DexError, DexExecuteMsg, Empty, DexQueryMsg>;
 pub type DexResult = Result<Response, DexError>;
 
 pub const DEX_EXTENSION: DexExtension = DexExtension::new(EXCHANGE, CONTRACT_VERSION, None)

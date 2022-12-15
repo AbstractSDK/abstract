@@ -1,3 +1,4 @@
+use abstract_os::extension::ExtensionQueryMsg;
 use abstract_sdk::base::{endpoints::QueryEndpoint, Handler};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
@@ -13,7 +14,7 @@ impl<
         Error: From<cosmwasm_std::StdError> + From<ExtensionError>,
         CustomExecMsg,
         CustomInitMsg,
-        CustomQueryMsg,
+        CustomQueryMsg: ExtensionQueryMsg,
         ReceiveMsg,
     > QueryEndpoint
     for ExtensionContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>

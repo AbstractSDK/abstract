@@ -1,4 +1,5 @@
 use crate::{error::ExtensionError, state::ExtensionContract, ExtensionResult};
+use abstract_os::extension::ExtensionExecuteMsg;
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
@@ -15,7 +16,7 @@ use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ExtensionError>,
-        CustomExecMsg: Serialize + JsonSchema,
+        CustomExecMsg: Serialize + JsonSchema + ExtensionExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg: Serialize + JsonSchema,
