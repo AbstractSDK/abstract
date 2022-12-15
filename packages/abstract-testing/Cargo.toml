@@ -1,0 +1,19 @@
+[package]
+name = "abstract-testing"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["iterator"] }
+cosmwasm-schema = { workspace = true }
+schemars = {workspace = true}
+cw-controllers = {workspace = true}
+cw-storage-plus = {workspace = true}
+serde = {workspace = true}
+cw-asset= {workspace = true}
+cw2 = {workspace = true}
+cw20 = {workspace = true}
+cw20-base = {workspace = true}
+derive_builder = "0.12.0"

@@ -33,6 +33,15 @@ impl UncheckedContractEntry {
     }
 }
 
+impl From<ContractEntry> for UncheckedContractEntry {
+    fn from(contract_entry: ContractEntry) -> Self {
+        Self {
+            protocol: contract_entry.protocol,
+            contract: contract_entry.contract,
+        }
+    }
+}
+
 impl TryFrom<String> for UncheckedContractEntry {
     type Error = StdError;
     fn try_from(entry: String) -> Result<Self, Self::Error> {
@@ -66,6 +75,12 @@ impl ContractEntry {
             protocol: dex_name.to_ascii_lowercase(),
             contract: contract_name,
         }
+    }
+}
+
+impl From<UncheckedContractEntry> for ContractEntry {
+    fn from(entry: UncheckedContractEntry) -> Self {
+        entry.check()
     }
 }
 

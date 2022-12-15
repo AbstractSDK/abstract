@@ -4,7 +4,10 @@ use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
 
 use cw_asset::AssetInfo;
 
-use crate::ans_host::state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES};
+use crate::ans_host::state::{
+    ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+};
+use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
 
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 
@@ -97,6 +100,39 @@ impl AnsHost {
                 StdError::generic_err(format!("channel {} not found in ans_host", channel))
             })?;
         // Addresses are checked when stored.
+        Ok(result)
+    }
+
+    /// Raw query of a single asset pairing
+    pub fn query_asset_pairing(
+        &self,
+        querier: &QuerierWrapper,
+        dex_asset_pairing: &DexAssetPairing,
+    ) -> StdResult<Vec<PoolReference>> {
+        let result: Vec<PoolReference> = ASSET_PAIRINGS
+            .query(querier, self.address.clone(), dex_asset_pairing.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!(
+                    "asset pairing {} not found in ans_host",
+                    dex_asset_pairing
+                ))
+            })?;
+        Ok(result)
+    }
+
+    pub fn query_pool_metadata(
+        &self,
+        querier: &QuerierWrapper,
+        pool_id: &UniquePoolId,
+    ) -> StdResult<PoolMetadata> {
+        let result: PoolMetadata = POOL_METADATA
+            .query(querier, self.address.clone(), *pool_id)?
+            .ok_or_else(|| {
+                StdError::generic_err(format!(
+                    "pool metadata for pool {} not found in ans_host",
+                    pool_id.as_u64()
+                ))
+            })?;
         Ok(result)
     }
 

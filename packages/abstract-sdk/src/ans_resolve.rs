@@ -4,7 +4,12 @@
 use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
-use abstract_os::objects::{ans_host::AnsHost, AnsAsset, AssetEntry, ChannelEntry, ContractEntry};
+use abstract_os::objects::{
+    ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry,
+    ContractEntry, DexAssetPairing,
+};
+use os::objects::pool_info::PoolMetadata;
+use os::objects::unique_pool_id::UniquePoolId;
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -30,6 +35,20 @@ impl Resolve for ChannelEntry {
     type Output = String;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
         ans_host.query_channel(querier, self)
+    }
+}
+
+impl Resolve for DexAssetPairing {
+    type Output = Vec<PoolReference>;
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        ans_host.query_asset_pairing(querier, self)
+    }
+}
+
+impl Resolve for UniquePoolId {
+    type Output = PoolMetadata;
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        ans_host.query_pool_metadata(querier, self)
     }
 }
 

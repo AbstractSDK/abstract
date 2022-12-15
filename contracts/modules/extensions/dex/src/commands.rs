@@ -104,6 +104,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         }
         .map_err(Into::into)
     }
+
     #[allow(clippy::too_many_arguments)]
     fn resolve_swap(
         &self,

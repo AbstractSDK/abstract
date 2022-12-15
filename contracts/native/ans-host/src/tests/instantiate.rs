@@ -37,7 +37,7 @@ fn successful_initialization() {
 }
 
 #[test]
-fn successfull_set_admin() {
+fn successful_set_admin() {
     let mut deps = mock_dependencies(&[]);
     mock_instantiate(deps.as_mut());
 

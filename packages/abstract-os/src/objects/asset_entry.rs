@@ -29,9 +29,16 @@ impl From<&str> for AssetEntry {
         Self::new(entry)
     }
 }
+
 impl From<String> for AssetEntry {
     fn from(entry: String) -> Self {
         Self::new(&entry)
+    }
+}
+
+impl From<&String> for AssetEntry {
+    fn from(entry: &String) -> Self {
+        Self::new(entry)
     }
 }
 

@@ -5,7 +5,7 @@ use semver::Version;
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_os::ans_host::state::ADMIN;
+use abstract_os::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
 use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
@@ -20,6 +20,17 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
+
+    // Initialize the config
+    CONFIG.save(
+        deps.storage,
+        &Config {
+            next_unique_pool_id: 1.into(),
+        },
+    )?;
+
+    // Initialize the dexes
+    REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
     // Setup the admin as the creator of the contract
     ADMIN.set(deps, Some(info.sender))?;
@@ -50,6 +61,20 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_channel_list(deps, page_token, page_size),
+        QueryMsg::RegisteredDexes {} => queries::query_registered_dexes(deps, env),
+        QueryMsg::PoolList {
+            filter,
+            page_token,
+            page_size,
+        } => queries::list_pool_entries(deps, filter, page_token, page_size),
+
+        QueryMsg::Pools { keys } => queries::query_pool_entries(deps, keys),
+        QueryMsg::PoolMetadatas { keys } => queries::query_pool_metadatas(deps, keys),
+        QueryMsg::PoolMetadataList {
+            filter,
+            page_token,
+            page_size,
+        } => queries::list_pool_metadata_entries(deps, filter, page_token, page_size),
     }
 }
 

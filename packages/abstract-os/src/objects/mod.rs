@@ -7,6 +7,11 @@ pub(crate) mod asset_entry;
 pub(crate) mod channel_entry;
 pub mod common_namespace;
 pub(crate) mod contract_entry;
+pub(crate) mod dex_asset_pairing;
+
+pub mod pool;
+
+pub use pool::*;
 
 pub mod core;
 pub mod dependency;
@@ -25,3 +30,4 @@ pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};
+pub use dex_asset_pairing::DexAssetPairing;
