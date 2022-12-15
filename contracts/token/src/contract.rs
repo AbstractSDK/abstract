@@ -183,7 +183,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
         return Ok(());
     }
     let verify_feature = VersionControlContract {
-        contract_address: config.version_control_address,
+        address: config.version_control_address,
     };
     verify_feature
         .os_register(deps)

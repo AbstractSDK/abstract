@@ -27,7 +27,10 @@ pub struct VersionRegister<'a, T: VersionRegisterInterface> {
 }
 
 impl<'a, T: VersionRegisterInterface> VersionRegister<'a, T> {
-    pub fn get_module_reference_raw(&self, module_info: ModuleInfo) -> StdResult<ModuleReference> {
+    pub fn query_module_reference_raw(
+        &self,
+        module_info: ModuleInfo,
+    ) -> StdResult<ModuleReference> {
         let registry_addr = self.base.registry(self.deps)?;
         MODULE_LIBRARY
             .query(
@@ -43,7 +46,7 @@ impl<'a, T: VersionRegisterInterface> VersionRegister<'a, T> {
             })
     }
     /// Smart query
-    pub fn get_module(&self, module_info: ModuleInfo) -> StdResult<Module> {
+    pub fn query_module(&self, module_info: ModuleInfo) -> StdResult<Module> {
         let registry_addr = self.base.registry(self.deps)?;
         let resp: ModuleResponse =
             self.deps

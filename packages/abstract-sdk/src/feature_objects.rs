@@ -14,12 +14,12 @@ use crate::base::features::{Identification, RegisterAccess};
 /// Store the Version Control contract.
 /// Implements [`RegisterAccess`]
 pub struct VersionControlContract {
-    pub contract_address: Addr,
+    pub address: Addr,
 }
 
 impl RegisterAccess for VersionControlContract {
     fn registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
-        Ok(self.contract_address.clone())
+        Ok(self.address.clone())
     }
 }
 

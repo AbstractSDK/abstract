@@ -2,7 +2,7 @@ use abstract_os::app;
 use abstract_sdk::os::{
     objects::{
         gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
+        module::{ModuleInfo},
         module_reference::ModuleReference,
     },
     os_factory::ExecuteMsg,
@@ -94,12 +94,7 @@ pub fn execute_create_os(
 
     // Query version_control for code_id of Manager contract
     let module_resp: ModuleResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::Module {
-                module: ModuleInfo::from_id(MANAGER, ModuleVersion::Latest {})?,
-            })?,
-        }))?;
+        query_code_id(&deps.querier, &config.version_control_contract, MANAGER)?;
 
     if let ModuleReference::Core(manager_code_id) = module_resp.module.reference {
         Ok(Response::new()
@@ -162,12 +157,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
 
     // Query version_control for code_id of proxy
     let module_resp: ModuleResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: config.version_control_contract.to_string(),
-            msg: to_binary(&VCQuery::Module {
-                module: ModuleInfo::from_id(PROXY, ModuleVersion::Latest {})?,
-            })?,
-        }))?;
+        query_code_id(&deps.querier, &config.version_control_contract, PROXY)?;
 
     if let ModuleReference::Core(proxy_code_id) = module_resp.module.reference {
         Ok(Response::new()
@@ -196,6 +186,20 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         ))
     }
 }
+
+fn query_code_id(
+    querier: &QuerierWrapper,
+    version_control_addr: &Addr,
+    module_id: &str,
+) -> StdResult<ModuleResponse> {
+    querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+        contract_addr: version_control_addr.to_string(),
+        msg: to_binary(&VCQuery::Module {
+            module: ModuleInfo::from_id_latest(module_id)?,
+        })?,
+    }))
+}
+
 /// Registers the DAO on the version_control contract and
 /// adds proxy contract address to Manager
 pub fn after_proxy_add_to_manager_and_set_admin(

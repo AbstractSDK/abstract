@@ -34,11 +34,11 @@ pub fn execute_create_module(
     // Verify sender is active OS manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract {
-        contract_address: config.version_control_address,
+        address: config.version_control_address,
     };
     let version_registry = binding.version_register(deps.as_ref());
     let os_registry = binding.os_register(deps.as_ref());
-    let new_module = version_registry.get_module(module_info)?;
+    let new_module = version_registry.query_module(module_info)?;
     let core = os_registry.assert_manager(&info.sender)?;
 
     // Todo: check if this can be generalized for some contracts

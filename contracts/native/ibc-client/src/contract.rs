@@ -138,7 +138,7 @@ pub fn execute_send_packet(
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     // Verify that the sender is a proxy contract
     let core = version_control
@@ -184,7 +184,7 @@ pub fn execute_register_os(
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     let core = version_control
         .os_register(deps.as_ref())
@@ -231,7 +231,7 @@ pub fn execute_send_funds(
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract {
-        contract_address: cfg.version_control_address,
+        address: cfg.version_control_address,
     };
     let core = version_control
         .os_register(deps.as_ref())

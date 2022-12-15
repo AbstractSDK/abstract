@@ -1,3 +1,4 @@
+use abstract_os::PROXY;
 use core::result::Result::{Err, Ok};
 
 use crate::contract::{
@@ -48,4 +49,11 @@ pub fn validate_description(maybe_description: &Option<String>) -> Result<(), Ma
         }
     }
     Ok(())
+}
+
+pub fn validate_not_proxy(module_id: &str) -> Result<(), ManagerError> {
+    match module_id {
+        PROXY => Err(ManagerError::CannotRemoveProxy {}),
+        _ => Ok(()),
+    }
 }

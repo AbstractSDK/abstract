@@ -36,6 +36,10 @@ impl ModuleInfo {
         })
     }
 
+    pub fn from_id_latest(id: &str) -> StdResult<Self> {
+        Self::from_id(id, ModuleVersion::Latest {})
+    }
+
     pub fn assert_version_variant(&self) -> StdResult<()> {
         match self.version {
             ModuleVersion::Latest {} => Err(StdError::generic_err(
