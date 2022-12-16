@@ -6,18 +6,16 @@ use abstract_sdk::os::dex::DexAction;
 use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_sdk::os::OSMOSIS_HOST;
 
-use abstract_sdk::base::{InstantiateEndpoint, QueryEndpoint, ReplyEndpoint};
+use abstract_sdk::base::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint};
 
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
 
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
-use semver::Version;
 
 use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -68,11 +66,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, OSMOSIS_HOST, CONTRACT_VERSION)?;
-    }
-    Ok(Response::default())
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> OsmoResult {
+    OSMO_HOST.migrate(deps, env, msg)
 }

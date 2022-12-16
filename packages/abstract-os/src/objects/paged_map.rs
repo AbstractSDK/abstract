@@ -262,10 +262,6 @@ mod tests {
     use serde::{Deserialize, Serialize};
 
     use cosmwasm_std::testing::{mock_dependencies, MockStorage};
-    #[cfg(feature = "iterator")]
-    use cosmwasm_std::{Order, StdResult};
-    #[cfg(feature = "iterator")]
-    use cosmwasm_storage::iter_helpers::to_length_prefixed;
 
     #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
     struct Data {

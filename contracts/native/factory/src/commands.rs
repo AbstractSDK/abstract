@@ -8,11 +8,7 @@ use abstract_sdk::os::{
     proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
 };
 use abstract_sdk::os::{
-    objects::{
-        gov_type::GovernanceDetails,
-        module::{ModuleInfo},
-        module_reference::ModuleReference,
-    },
+    objects::{gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference},
     os_factory::ExecuteMsg,
     subscription::{
         DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,

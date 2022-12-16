@@ -6,8 +6,8 @@ use abstract_sdk::Resolve;
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError,
-    StdResult, Uint128,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
+    Uint128,
 };
 
 use crate::commands::*;

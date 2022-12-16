@@ -6,27 +6,12 @@ edition = {workspace = true}
 publish = false
 license = "Apache-2.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-opt-level = 3
-debug = false
-rpath = false
-lto = true
-debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
-overflow-checks = true
-
 [features]
-# for quicker tests, cargo test --lib
-# for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
-# use library feature to disable all instantiate/execute/query exports
 library = []
 
 [dependencies]
@@ -35,11 +20,10 @@ cw-storage-plus = {workspace = true}
 cw-controllers = {workspace = true}
 cw-utils = {workspace = true}
 cw2 = {workspace = true}
-schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
 abstract-os = {workspace = true}
 abstract-sdk = {workspace = true}
 
 [dev-dependencies]
-cosmwasm-schema = {workspace = true}
+cosmwasm-schema = { workspace = true}

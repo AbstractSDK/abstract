@@ -74,9 +74,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
-fn authorized_set_admin<
-    C: std::clone::Clone + std::fmt::Debug + std::cmp::PartialEq + schemars::JsonSchema,
->(
+fn authorized_set_admin<C: std::clone::Clone + std::fmt::Debug + std::cmp::PartialEq>(
     deps: DepsMut,
     info: MessageInfo,
     authorized_user: &Admin,

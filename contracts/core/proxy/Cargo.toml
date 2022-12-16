@@ -5,23 +5,19 @@ authors = {workspace = true}
 edition = {workspace = true}
 
 exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
   "contract.wasm",
   "hash.txt",
 ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cosmwasm-storage = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-controllers = {workspace = true}
 cw-storage-plus = {workspace = true}
@@ -38,5 +34,6 @@ abstract-os = {workspace = true}
 [dev-dependencies]
 cw20 = { workspace = true }
 cw-multi-test = { workspace = true }
-rstest = "0.16.0"
-speculoos = "0.11.0"
+rstest = { workspace = true }
+speculoos = { workspace = true }
+

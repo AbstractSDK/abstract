@@ -4,7 +4,9 @@ use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
     subscription::*,
 };
-use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract};
+use boot_core::{
+    interface::BootExecute, prelude::boot_contract, BootEnvironment, BootError, Contract,
+};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 
@@ -66,7 +68,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
     //     self.execute(&ExecuteMsg::Pay {  os_id: os_id }, Some(&[Coin::create("uusd", asset.amount.u128().into())]))
     // }
 
-    pub fn claim_contribution(&self, os_id: u32) -> anyhow::Result<()> {
+    pub fn claim_contribution(&self, os_id: u32) -> Result<(), BootError> {
         self.claim_compensation(os_id)?;
         self.execute(
             &SubscriptionExecuteMsg::ClaimCompensation { os_id }.into(),
@@ -75,7 +77,7 @@ impl<Chain: BootEnvironment> Subscription<Chain> {
         Ok(())
     }
 
-    pub fn claim_emissions(&self, os_id: u32) -> anyhow::Result<()> {
+    pub fn claim_emissions(&self, os_id: u32) -> Result<(), BootError> {
         self.execute(
             &SubscriptionExecuteMsg::ClaimEmissions { os_id }.into(),
             None,

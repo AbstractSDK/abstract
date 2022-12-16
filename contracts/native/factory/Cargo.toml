@@ -7,19 +7,16 @@ description = "A CosmWasm DAO factory contract - Generates the initial DAO infra
 license = "MIT"
 
 exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
   "contract.wasm",
   "hash.txt",
 ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
 # for quicker tests, cargo test --lib
-# for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
@@ -31,11 +28,8 @@ cw2 = {workspace = true}
 cw20 = {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
-schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
 protobuf = {workspace = true}
 cw-asset= {workspace = true}
 semver = {workspace = true}
-[dev-dependencies]
-cosmwasm-storage = { workspace = true }

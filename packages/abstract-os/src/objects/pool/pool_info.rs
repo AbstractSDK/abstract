@@ -1,7 +1,6 @@
 use crate::objects::pool_type::PoolType;
 use cosmwasm_std::StdError;
 
-
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -66,8 +65,6 @@ impl fmt::Display for PoolMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
-    
 
     #[test]
     fn test_pool_metadata_from_str() {

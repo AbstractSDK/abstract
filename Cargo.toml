@@ -26,7 +26,6 @@ keywords = ["cosmos", "cosmwasm", "framework"]
 
 [workspace.dependencies]
 cosmwasm-std = { version = "1.1" }
-cosmwasm-storage = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version = "0.16" }
 cw-utils = { version = "0.16" }
@@ -39,9 +38,10 @@ schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
-semver = {version = "1.0", git = "https://github.com/Abstract-OS/semver.git"}
 
+semver = {version = "1.0", git = "https://github.com/Abstract-OS/semver.git"}
 boot-core = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
+boot-cw-plus = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"}
 
 abstract-sdk = { version = "0.2.0-beta.7", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.2.0-beta.7", path = "packages/abstract-os" }
@@ -49,12 +49,12 @@ abstract-app = { version = "0.2.0-beta.7", path = "packages/abstract-app", featu
 abstract-api = { version = "0.2.0-beta.7", path = "packages/abstract-api", features = ["library"] }
 abstract-ibc-host = { version = "0.2.0-beta.7", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.2.0-beta.7", path = "packages/abstract-ica" }
+abstract-testing = { path = "packages/abstract-testing" }
 
+## Testing
 cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
-
-[workspace.dev-dependencies]
 rstest = "0.16.0"
-
+speculoos = "0.11.0"
 
 [profile.release]
 rpath = false

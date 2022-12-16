@@ -164,7 +164,7 @@ mod test {
     use super::*;
     use speculoos::prelude::*;
 
-    use cosmwasm_std::testing::{mock_dependencies};
+    use cosmwasm_std::testing::mock_dependencies;
 
     use std::collections::HashSet;
 
@@ -184,12 +184,7 @@ mod test {
                 version_req: vec![],
             }];
 
-            set_as_dependent(
-                &mut deps.storage,
-                new_module_id.to_string(),
-                dependencies,
-            )
-            .unwrap();
+            set_as_dependent(&mut deps.storage, new_module_id.to_string(), dependencies).unwrap();
 
             let dependents = DEPENDENTS.load(&deps.storage, dependency).unwrap();
 

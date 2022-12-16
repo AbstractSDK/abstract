@@ -5,26 +5,19 @@ authors = {workspace = true}
 edition = {workspace = true}
 
 exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
   "contract.wasm",
   "hash.txt",
 ]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-# cosmwasm-storage = { workspace = true }
-# terraswap = "2.4.0"
-# thiserror = {workspace = true}
-# protobuf = {workspace = true}
-# semver = {workspace = true}
+
 [dev-dependencies]
 cw-controllers = {workspace = true}
 schemars = {workspace = true}
@@ -48,13 +41,3 @@ module-factory = { path = "../native/module_factory" }
 version-control = { path = "../native/version_control" }
 subscription = { path = "../modules/apps/subscription" }
 dex = { path = "../modules/apis/dex" }
-
-
-# [package.metadata.scripts]
-# optimize = """docker run --rm -v "$(pwd)":/code \
-#           --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-#             --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-#               cosmwasm/rust-optimizer:0.12.5"""
-# store = """terra-rust code store test-owner ..\\..\\artifacts\\xxx.wasm"""
-# instantiate = """terra-rust code instantiate test-owner ..\\..\\artifacts\\xxx.wasm .\\pool_init.json --admin same"""
-# migrate = """terra-rust code migrate test-owner ..\\..\\artifacts\\xxx.wasm """

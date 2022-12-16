@@ -5,33 +5,21 @@ authors = {workspace = true}
 edition = {workspace = true}
 
 exclude = [
-  # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
   "contract.wasm",
   "hash.txt",
 ]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 
-# Keep as is until TendermintStake updates.
 [dependencies]
 cosmwasm-std = { version =  "1.1", features = ["stargate"]}
-schemars = {workspace = true}
-serde = {workspace = true}
 thiserror = {workspace = true}
-# Osmosis feature also enables library feature
 dex = { path = "../../modules/apis/dex", features = ["osmosis", "library"] }
 abstract-os = { workspace = true }
 abstract-ibc-host = { workspace = true}
 abstract-sdk = {workspace = true}
-cw2 = {workspace = true}
-semver = {workspace = true}
-cw-asset= {workspace = true}
 cosmwasm-schema = { workspace = true }
-osmosis-std = "0.12.0"

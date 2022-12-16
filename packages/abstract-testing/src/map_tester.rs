@@ -292,7 +292,5 @@ mod test {
         }
     }
 
-    mod sort_expected {
-        
-    }
+    mod sort_expected {}
 }
