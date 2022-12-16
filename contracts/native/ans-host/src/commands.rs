@@ -1085,8 +1085,8 @@ mod test {
         use abstract_os::ans_host::{AssetPairingMapEntry, PoolMetadataMapEntry};
         use abstract_os::objects::PoolType;
 
-        use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::{Api, Order, OwnedDeps};
+        
+        use cosmwasm_std::{Api, Order};
         use speculoos::assert_that;
 
         type UncheckedPoolMapEntry = (UncheckedPoolId, PoolMetadata);
@@ -1208,9 +1208,9 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+            let _pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
 
-            let (unchecked_pool_id, _) = new_entry.clone();
+            let (unchecked_pool_id, _) = new_entry;
 
             let expected_pairings = vec![
                 asset_pairing(&deps.api, "junoswap", ("juno", "osmo"), &unchecked_pool_id)?,
@@ -1254,9 +1254,9 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+            let _pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
 
-            let (unchecked_pool_id, _) = new_entry.clone();
+            let (unchecked_pool_id, _) = new_entry;
 
             // asset_count * (asset_count - 1)
             // Total pairs = 5 * (5 - 1) = 20
@@ -1265,7 +1265,7 @@ mod test {
             let actual_pairings = load_asset_pairings(&deps.storage)?;
             assert_that(&actual_pairings).has_length(expected_pairing_count);
 
-            for (pairing, ref_vec) in actual_pairings {
+            for (_pairing, ref_vec) in actual_pairings {
                 assert_that(&ref_vec).has_length(1);
                 // check the pool id is correct
                 assert_that(&UncheckedPoolId::from(&ref_vec[0].pool_id))

@@ -1,0 +1,45 @@
+[package]
+name = "abstract-boot-scripts"
+version = "0.1.0-alpha1"
+edition = "2021"
+
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+serde = { workspace = true }
+semver = { workspace = true, default-features = false }
+cw-controllers = { workspace = true }
+thiserror = { workspace = true }
+cw-asset = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+
+abstract-boot = { path = "../packages/abstract-boot" }
+#boot-core = { path = "../../BOOT/boot-core" }
+# git = "https://github.com/Abstract-OS/BOOT"
+#boot-cw-plus = { path = "../../BOOT/boot-cw-plus" } # git = "https://github.com/Abstract-OS/BOOT"
+boot-core = { git = "https://github.com/Abstract-OS/BOOT", version = "0.2.0" }
+boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT", version = "0.2.0" }
+abstract-os = { path = "../packages/abstract-os", features = ["boot"] }
+# simple-ica- = { path = "../packages/simple-ica"}
+protobuf = { workspace = true }
+tokio = { version = "1.4", features = ["full"] }
+secp256k1 = { version = "0.25.0", default-features = false }
+log = "0.4.14"
+anyhow = "1.0"
+serde_json = "1.0.79"
+#serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+reqwest = { version = "0.11.9" }
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+base64 = "0.20.0"
+rust_decimal = "1.12.2"
+rust_decimal_macros = "1.12.2"
+
+cosmwasm-storage = "1.1"
+cosmos-sdk-proto = { version = "0.14.0", features = ["grpc-transport", "cosmwasm"] }
+serde-cw-value = "0.7.0"
+sha256 = "1.1.1"
+
+

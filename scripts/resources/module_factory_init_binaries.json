@@ -1,0 +1,14 @@
+{
+    "bombay-12": {
+        "pandora:terraswap": {
+            "v0.1.0": "ewogICAgIm1lbW9yeV9hZGRyIjogdGVycmExNmR2dXFzeW1jd25zbXJkMGx4OTBrNXJ2Y3pnY3RmdXYya2t5eDcsCn0="
+        }
+    },
+    "columbus-5": {
+    },
+    "localterra": {
+        "pandora:terraswap": {
+            "v0.1.0": "ewogICAgIm1lbW9yeV9hZGRyIjogInRlcnJhMTBkNnZ3YzJja2Rzems2ejZ1NmhhZnk5bXJoc3NtdmZoZTBzMzMwIiwKfQ=="
+        }
+    }
+}

@@ -62,9 +62,13 @@ use cw_asset::AssetUnchecked;
 
 use crate::app::{self};
 
+use cosmwasm_schema::QueryResponses;
+
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;
+
 impl app::AppExecuteMsg for EtfExecuteMsg {}
+
 impl app::AppQueryMsg for EtfQueryMsg {}
 
 /// Init msg
@@ -95,6 +99,7 @@ pub enum EtfExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 #[cfg_attr(feature = "boot", impl_into(QueryMsg))]
+#[derive(QueryResponses)]
 pub enum EtfQueryMsg {
     // Add dapp-specific queries here
     /// Returns [`StateResponse`]

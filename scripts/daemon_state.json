@@ -1,0 +1,70 @@
+{
+  "juno": {
+    "juno-1": {
+      "addresses": {
+        "abstract:ans_host": "juno1t799uvztv2cqngk2w47zd6g20d62fcgznjftyu3f7vxdc2pnq39q88a9uh",
+        "abstract:dex": "juno16ws0uknmxwl86c2a2x6hsf6vcg4gdzn5g4az05h5qjcx87kqwmfswnjvvv",
+        "abstract:idea": "juno1xmszc4u9f7hgghcmf0lgkjyq9j22zqpyqqeu4fa7jda2eyfnc2uqq925gk",
+        "abstract:manager": "juno1hnn6mu6tp9qzura99m286jdpqgkv0jucdkmkznjnwu8v4lx859nql5nu2y",
+        "abstract:module_factory": "juno13hqga309sp2e3ffhqkk5s4py8h9zf42kl0srgxcxqyv8y6azqmgs3c5dwh",
+        "abstract:os_factory": "juno1qfx94jjjuagkx0n8yc9q69035nnjck6t579mnacgy2tfkwr30r2s6q5qmt",
+        "abstract:proxy": "juno18cuhhmyghl0juhrhlnnca2d23mnxykd52v6ds06ew4hdvmtfj40qlgtqjn",
+        "abstract:subscription": "juno1afuwke6dq62t4km2t80kt36ep5gnza5xtgkfzzzzq2k0h6zz258qpxtw76",
+        "abstract:tendermint_staking": "juno1l4tcujd4cruakjg5g4ekywcxfp02cula9fx7vmcm6r87srngkfuqz4uhfa",
+        "abstract:version_control": "juno18jmslrz9qhwg3p6wnchrtjldw9c5ut5leuz5pzg8lrdd8nmxn4gqgpk6d2"
+      },
+      "code_ids": {
+        "abstract:ans_host": 862,
+        "abstract:cw20_vesting": 873,
+        "abstract:dex": 898,
+        "abstract:etf": 894,
+        "abstract:idea": 870,
+        "abstract:manager": 891,
+        "abstract:module_factory": 865,
+        "abstract:os_factory": 864,
+        "abstract:proxy": 867,
+        "abstract:subscription": 869,
+        "abstract:tendermint_staking": 872,
+        "abstract:version_control": 863
+      }
+    },
+    "uni-5": {
+      "code_ids": {
+        "abstract:ans_host": 2659,
+        "abstract:dex": 2730,
+        "abstract:etf": 2732,
+        "abstract:ibc_client": 2734,
+        "abstract:manager": 2663,
+        "abstract:module_factory": 2662,
+        "abstract:os_factory": 2661,
+        "abstract:proxy": 2664,
+        "abstract:subscription": 2733,
+        "abstract:tendermint_staking": 2731,
+        "abstract:version_control": 2660,
+        "ibc_client": 1530
+      },
+      "default": {
+        "abstract:ans_host": "juno1da869gukqdhdrufcewjvu0cq7nt9djgvayuhwsgjfgx7kasgaw6q4dghws",
+        "abstract:dex": "juno166zn83c8d65klkac6lnw4x7trhwe9sj5tkrfzk4pnjsy9d3rd9gqplk28e",
+        "abstract:ibc_client": "juno12z9ydzhxmzpmryzj2065kntfg238cc6aa4sj8e6taf9vmlfdfe6q0k2qz3",
+        "abstract:module_factory": "juno1tjktnhjkuwancwft5msrt4srrj5unld5hpw5fxwtjdchtdqc9twqhaxavv",
+        "abstract:os_factory": "juno1j557rwa53sy70jwvgg9umhustzl68k2l7nqvr8y6ll853fjykqhq3xxtmm",
+        "abstract:tendermint_staking": "juno1zcz56zyrjdmn7rkf9wlx837r9llhkh4y0l6g8s8hahwnx0nzgqrqnf7fz3",
+        "abstract:version_control": "juno16enwrxhdtsdk8mkkcaj37fgp37wz0r3err4hxfz52lcdyayexnxs4468mu"
+      }
+    }
+  },
+  "osmosis": {
+    "osmo-test-4": {
+      "default": {
+        "abstract:ans_host": "osmo1jn49qkanxfwfwhsrdxqh0yneqfs4uhudk8n066fjrleer5ueg9dsyhkse4",
+        "abstract:osmosis_host": "osmo1fct9ha4stcjysk0e89kfzmg4f9nva9jgpa60lh9mmjshtdgu5tuqkp9vtg"
+      },
+      "code_ids": {
+        "abstract:ans_host": 3357,
+        "abstract:cw1_proxy": 3048,
+        "abstract:osmosis_host": 3395
+      }
+    }
+  }
+}

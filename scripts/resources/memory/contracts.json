@@ -1,0 +1,64 @@
+{
+  "juno": {
+    "juno-1": {
+      "junoswap:akt_juno": "juno1tmxx3rdnnrcckkh7pjde924lftjs724rzd44sqte5xh8xax0yf2sc7v7dk",
+      "junoswap:arto_juno": "juno1fpphzkkq5uyezm7amk6sslyz8r94wl658zg2ku47v8mtslueyx5q29rkzq",
+      "junoswap:atom_juno": "juno1sg6chmktuhyj4lsrxrrdflem7gsnk4ejv6zkcc4d3vcqulzp55wsf4l4gl",
+      "junoswap:atom_sejuno": "juno1v842hl5mtn2kjeu4sscr4e3y9jmv7tf0h7cy4wm6nusyf4v8j6ssh8gkgp",
+      "junoswap:bcna_juno": "juno1gv2gswtan8wsk54h663waefffywnuc9wcxr7xl5pnnxvjaqunpgs20t39g",
+      "junoswap:bfot_juno": "juno19859m5x8kgepwafc3h0n36kz545ngc2vlqnqxx7gx3t2kguv6fws93cu25",
+      "junoswap:bjuno_juno": "juno1maj5xlggctfwm6ct6x2e3456zxm8chadq9prqxl9kjxzzs9edalsk5wzwh",
+      "junoswap:btsg_juno": "juno1j7pdtemw0qvl6rmnl0sf324409gz2p4sdt6rv659482x9rqqz6mqd653dg",
+      "junoswap:canlab_juno": "juno1acs6q36t6qje5k82h5g74plr258y2q90cjf9z4wnktt7caln0mhsx8mt7z",
+      "junoswap:cmdx_juno": "juno152lfpmadpxh2xha5wmlh2np5rj8fuy06sk72j55v686wd4q4c9jsvwj0gm",
+      "junoswap:coin_juno": "juno14nak8v6xeawstrq7r7qmpa67qqfc9xzzymfdfpnp0luycv8knyuq5a6w2m",
+      "junoswap:daisy_juno": "juno14p3wvpeezqueenfu9jy29s96xuk0hp38k5d5k4ysyzk789v032sqp8uvh3",
+      "junoswap:dig_juno": "juno1gpa5ardzal22el6czj4j0d2pwy0m9qj06lr20t2l8fca3gkws63qfnx8eq",
+      "junoswap:eeur_juno": "juno1z698dxy9gj4fnrs76xwmtqwh84lamav9xl0w35pd35vnfx7987nqudxyge",
+      "junoswap:future_juno": "juno1fzl79pekf8wtd0y37q92dmz5h9dxtfpl97w3kguyc59m7ufnlzvsf46vf8",
+      "junoswap:glto_juno": "juno1cugrrrryrpl383kfca0w5swywffa08zwqshrsfre82059vxjlx6syhf73y",
+      "junoswap:hope_juno": "juno18nflutunkth2smnh257sxtxn9p5tq6632kqgsw6h0c02wzpnq9rq927heu",
+      "junoswap:huahua_juno": "juno1730cx75d8uevqvrkcwxpy9trhqqfksu5u9xwqss0qe4tn7x0tt3shakhk8",
+      "junoswap:hulc_juno": "juno16zn96yf3vnxengke3vcf6mg9x7qyppgsdh3dnnmvdd8hvtpw58wsrjuu56",
+      "junoswap:joe_juno": "juno1rft4xp5e6ffta5a8aqwtu4kgdfjqw4jhnleu8agmmedzrxsat7pqxfgfrs",
+      "junoswap:juno_lunc": "juno10mrlcttkwt99wxnqfyk6327lq3ac9yhfle2fd0c5s4rp8dzqy9ps3sjzyf",
+      "junoswap:juno_marble": "juno1cvjuc66rdg34guugmxpz6w59rw6ghrun5m33z3hpvx6q60f40knqglhzzx",
+      "junoswap:juno_mntl": "juno1qsmywlded2sdggud5wft44gq2u6c3epl3qhzr4qv7psj536t8yhsfvrcf6",
+      "junoswap:juno_neta": "juno1e8n6ch7msks487ecznyeagmzd5ml2pq9tgedqt2u63vra0q0r9mqrjy6ys",
+      "junoswap:juno_ngm": "juno1653nhx2330rnhmzk2qe9w74kwwa3jtxe4lrfs5cfq8szfms8pqzsra5fvq",
+      "junoswap:juno_nmn": "juno1w7l7hetsm4x6hxa55dsjwszqh9elzwqrd6cud2qkqhafrd6u9vrqc2zh48",
+      "junoswap:juno_osmo": "juno1el6rfmz6h9pwpdlf6k2qf4dwt3y5wqd7k3xpyvytklsnkt9uv2aqe8aq4v",
+      "junoswap:juno_phmn": "juno1xkm8tmm7jlqdh8kua9y7wst8fwcxpdnk6gglndfckj6rsjg4xc5q8aaawn",
+      "junoswap:juno_primo": "juno1enl842z00cklnathpv8f3t3w2u70dkrq22crz3gxg38we7xjfq5s8lktmg",
+      "junoswap:juno_punk": "juno150vj5jusg4g8n82q40nd9cmq3unc255u3hf5qh6pud4dexkgyp0ss7yvwq",
+      "junoswap:juno_rac": "juno1m08vn7klzxh9tmqwajuux202xms2qz3uckle7zvtturcq7vk2yaqpcwxlz",
+      "junoswap:juno_raw": "juno124d0zymrkdxv72ccyuqrquur8dkesmxmx2unfn7dej95yqx5yn8s70x3yj",
+      "junoswap:juno_scrt": "juno1hkz5dhn59w6l29k8w8ceuramqx2f35qpen7xtlx6ezketwh8ndxq8rwq2a",
+      "junoswap:juno_sgnl": "juno1jz50fj5zkcv3h6hmcfr3nr6eer7rj5pmsry5qj5jc8rfvpeavyzsgknm83",
+      "junoswap:juno_stars": "juno1z5vukf037r6acgln3n37tr8a5rv7wafqzhcq29ddn9etwwtfrytsn6xvux",
+      "junoswap:juno_tuck": "juno133xa84qnue3uy0mj9emvauddxzw554rfl9rr6eadhfau50ws7gvs4ynm79",
+      "junoswap:juno_usdc": "juno1ctsmp54v79x7ea970zejlyws50cj9pkrmw49x46085fn80znjmpqz2n642",
+      "junoswap:juno_ustc": "juno1hue3dnrtgf9ly2frnnvf8z5u7e224ctc4hk7wks2xumeu3arj6rs9vgzec",
+      "junoswap:juno_xprt": "juno1yaff0t6tfheqcdep24euu7w0xhnhs2yjwwv7r2c280vlns8trghq5d72pd",
+      "junoswap:osmo_raw": "juno17h4sgpaksygdnswpx74szv98hggddc08ny4zv5ca63jv53qptxrshacvku",
+      "junoswap:raw_sejuno": "juno1ytntasjjyzpdfhsw60yp7rt3ww57nqth45lfaek9ae65ylm0xpkqsp47fz",
+      "loop:juno_sejuno": "juno1aagw3m89ze94v6e56k0eeemldrk8ajmtccmwer9ffrzduw3zuwds0w58xk",
+      "loop:juno_loop": "juno1qc8mrs3hmxm0genzrd92akja5r0v7mfm6uuwhktvzphhz9ygkp8ssl4q07",
+      "loop:loop_usdc": "juno1utkr0ep06rkxgsesq6uryug93daklyd6wneesmtvxjkz0xjlte9qdj2s8q",
+      "loop:atom_loop": "juno1dl8zdygs57lcwm3e9tnq4pdmmp8nhhf08jcne72nsjkf7qntfz3s0e99x3",
+      "loop:bjuno_juno": "juno1e4gxx99ufal40jkrl90ucjlvuvns942xqg3ycu9gmw4nwgyrap8sk52ua8"
+    },
+    "uni-5": {
+      "abstract:ibc_client": "juno12z9ydzhxmzpmryzj2065kntfg238cc6aa4sj8e6taf9vmlfdfe6q0k2qz3"
+    }
+  },
+  "osmosis": {
+    "osmo-test-4": {
+      "osmosis:junox_osmo": "699"
+    }
+  },
+  "archway": {
+    "junoswap:juno_akt": "archway13fv9hf087p44xn9kw34fzp0sqlhqpzm73t90e3pvg3wz2rc65ezqj00aly",
+    "junoswap:juno_arto": "archway13fv9hf087p44xn9kw34fzp0sqlhqpzm73t90e3pvg3wz2rc65ezqj00aly"
+  }
+}

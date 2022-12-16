@@ -1,0 +1,14 @@
+{
+  "juno": {
+    "juno-1": {
+    },
+    "uni-5": {
+      "osmosis/ics-20": "channel-56"
+    }
+  },
+  "osmosis": {
+    "osmo-test-4": {
+      "juno/ics-20": "channel-1256"
+    }
+  }
+}

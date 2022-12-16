@@ -10,7 +10,8 @@ members = [
     "contracts/modules/extensions/tendermint-staking",
     "contracts/modules/extensions/dex",
     "contracts/modules/perks/vesting",
-    "contracts/ibc-hosts/osmosis"
+    "contracts/ibc-hosts/osmosis",
+    "scripts"
 ]
 
 [workspace.package]
