@@ -22,7 +22,7 @@ pub fn register_app(
     Ok(())
 }
 
-pub fn register_extension(
+pub fn register_api(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
@@ -30,7 +30,7 @@ pub fn register_extension(
     address: Addr,
 ) -> AnyResult<()> {
     let msg = VCMsg::ExecuteMsg::AddModules {
-        modules: vec![(module, ModuleReference::Extension(address))],
+        modules: vec![(module, ModuleReference::Api(address))],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
     Ok(())

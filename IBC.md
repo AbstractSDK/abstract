@@ -3,13 +3,15 @@
 The Abstract IBC architecture aims to provide developers with a set of Abstract-SDK supported actions to simplify IBC usage. 
 
 # Message flow
-IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed extension/app. They result in a call to the OS's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint. 
+IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed api/app. They result
+in a call to the OS's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
 
-These `IbcClientMsg` messages are then called on the OS's client contract. Note that the client contract must be enabled on the OS's manager. This ensures that the user/developer is aware of enabling IBC on their OS. 
+These `IbcClientMsg` messages are then called on the OS's client contract. Note that the client contract must be enabled
+on the OS's manager. This ensures that the user/developer is aware of enabling IBC on their OS.
 
 > By calling the client through the OS's proxy we can ensure the calling contract has sufficient permission to perform action on the local and remote OS.
-> The IBC functionality can be enabled on the OS by calling `EnableIbc` on the manager contract. 
-The client contract will check the caller's identity and packet destination. It will then construct the packet and send it over IBC. 
+> The IBC functionality can be enabled on the OS by calling `EnableIbc` on the manager contract.
+> The client contract will check the caller's identity and packet destination. It will then construct the packet and send it over IBC. 
 
 > The channel over which these packets are relayed is maintained by Abstract. Nonetheless we advise users to also relay the channel using their own relayer.  
 
@@ -29,8 +31,10 @@ pub struct IbcResponseMsg {
     pub msg: StdAck,
 }
 ```
-The response ID can then be matched in the receiving contract to identify the action that has finished, along with parsing the Binary response for successful actions.
-This functionality is already provided by the app and extension contract implementations. 
+
+The response ID can then be matched in the receiving contract to identify the action that has finished, along with
+parsing the Binary response for successful actions.
+This functionality is already provided by the app and api contract implementations.
 
 > Abstract's packages provide an easy entrypoint to this functionality. 
 

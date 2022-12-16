@@ -208,13 +208,13 @@
             "additionalProperties": false
           },
           {
-            "description": "Installable extensions",
+            "description": "Installable apis",
             "type": "object",
             "required": [
-              "extension"
+              "api"
             ],
             "properties": {
-              "extension": {
+              "api": {
                 "$ref": "#/definitions/Addr"
               }
             },
@@ -327,7 +327,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Queries extension addresses Returns [`ModuleResponse`]",
+        "description": "Queries api addresses Returns [`ModuleResponse`]",
         "type": "object",
         "required": [
           "module"
@@ -561,13 +561,13 @@
               "additionalProperties": false
             },
             {
-              "description": "Installable extensions",
+              "description": "Installable apis",
               "type": "object",
               "required": [
-                "extension"
+                "api"
               ],
               "properties": {
-                "extension": {
+                "api": {
                   "$ref": "#/definitions/Addr"
                 }
               },
@@ -726,13 +726,13 @@
               "additionalProperties": false
             },
             {
-              "description": "Installable extensions",
+              "description": "Installable apis",
               "type": "object",
               "required": [
-                "extension"
+                "api"
               ],
               "properties": {
-                "extension": {
+                "api": {
                   "$ref": "#/definitions/Addr"
                 }
               },

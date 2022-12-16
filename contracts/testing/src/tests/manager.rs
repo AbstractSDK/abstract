@@ -1,4 +1,4 @@
-use abstract_sdk::os::{extension, extension::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::os::{api, api::BaseInstantiateMsg, manager as ManagerMsgs};
 
 use abstract_sdk::os::{objects::module::ModuleInfo, EXCHANGE};
 
@@ -10,10 +10,10 @@ use cw_multi_test::{App, ContractWrapper, Executor};
 
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, mock_app, register_extension, AbstractEnv},
+    testing_infrastructure::env::{get_os_state, mock_app, register_api, AbstractEnv},
 };
 
-pub fn register_and_create_dex_extension(
+pub fn register_and_create_dex_api(
     app: &mut App,
     sender: &Addr,
     version_control: &Addr,
@@ -32,24 +32,17 @@ pub fn register_and_create_dex_extension(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = extension::InstantiateMsg {
+    let msg = api::InstantiateMsg {
         base: BaseInstantiateMsg {
             ans_host_address: ans_host.to_string(),
             version_control_address: version_control.to_string(),
         },
         app: Empty {},
     };
-    let extension_addr = app
-        .instantiate_contract(
-            code_id,
-            sender.clone(),
-            &msg,
-            &[],
-            "extension".to_owned(),
-            None,
-        )
+    let api_addr = app
+        .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
         .unwrap();
-    register_extension(app, sender, version_control, module, extension_addr).unwrap();
+    register_api(app, sender, version_control, module, api_addr).unwrap();
     Ok(())
 }
 
@@ -65,7 +58,7 @@ fn proper_initialization() {
     assert_eq!(os_state.len(), 2);
     let manager = env.os_store.get(&0u32).unwrap().manager.clone();
 
-    register_and_create_dex_extension(
+    register_and_create_dex_api(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -79,7 +72,7 @@ fn proper_initialization() {
         &ManagerMsgs::ExecuteMsg::InstallModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
             init_msg: Some(
-                to_binary(&extension::InstantiateMsg {
+                to_binary(&api::InstantiateMsg {
                     base: BaseInstantiateMsg {
                         ans_host_address: env.native_contracts.ans_host.to_string(),
                         version_control_address: env.native_contracts.version_control.to_string(),
@@ -93,7 +86,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    register_and_create_dex_extension(
+    register_and_create_dex_api(
         &mut app,
         &sender,
         &env.native_contracts.version_control,
@@ -129,7 +122,7 @@ fn proper_initialization() {
 
     let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    register_and_create_dex_extension(
+    register_and_create_dex_api(
         &mut app,
         &sender,
         &env.native_contracts.version_control,

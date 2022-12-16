@@ -27,7 +27,7 @@
   "additionalProperties": false,
   "definitions": {
     "BaseInstantiateMsg": {
-      "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddExtension`].",
+      "description": "Used by Abstract to instantiate the contract The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].",
       "type": "object",
       "required": [
         "ans_host_address",

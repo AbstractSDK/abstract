@@ -47,7 +47,7 @@ os-factory = { path = "../native/factory" }
 module-factory = { path = "../native/module_factory" }
 version-control = { path = "../native/version_control" }
 subscription = { path = "../modules/apps/subscription" }
-dex = { path = "../modules/extensions/dex" }
+dex = { path = "../modules/apis/dex" }
 
 
 # [package.metadata.scripts]

@@ -22,13 +22,13 @@ pub struct OsInstance {
 
 pub fn mock_app() -> App {
     let env = mock_env();
-    let extension = MockApi::default();
+    let api = MockApi::default();
     let bank = BankKeeper::new();
     let storage = MockStorage::new();
     let custom = TerraMock::luna_ust_case();
 
     AppBuilder::new()
-        .with_api(extension)
+        .with_api(api)
         .with_block(env.block)
         .with_bank(bank)
         .with_storage(storage)

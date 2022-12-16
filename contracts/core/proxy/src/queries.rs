@@ -234,6 +234,6 @@ pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> 
             asset,
             multiplier: _,
         } => vec![asset.clone()],
-        abstract_sdk::os::objects::proxy_asset::ValueRef::External { extension_name: _ } => todo!(),
+        abstract_sdk::os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
     }
 }

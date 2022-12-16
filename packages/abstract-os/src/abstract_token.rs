@@ -122,7 +122,7 @@ pub enum ExecuteMsg {
         amount: Uint128,
         msg: Binary,
     },
-    /// Only with "approval" extension. Allows spender to access an additional amount tokens
+    /// Only with "approval" api. Allows spender to access an additional amount tokens
     /// from the owner's (env.sender) account. If expires is Some(), overwrites current allowance
     /// expiration with this one.
     IncreaseAllowance {
@@ -130,7 +130,7 @@ pub enum ExecuteMsg {
         amount: Uint128,
         expires: Option<Expiration>,
     },
-    /// Only with "approval" extension. Lowers the spender's access of tokens
+    /// Only with "approval" api. Lowers the spender's access of tokens
     /// from the owner's (env.sender) account by amount. If expires is Some(), overwrites current
     /// allowance expiration with this one.
     DecreaseAllowance {
@@ -138,14 +138,14 @@ pub enum ExecuteMsg {
         amount: Uint128,
         expires: Option<Expiration>,
     },
-    /// Only with "approval" extension. Transfers amount tokens from owner -> recipient
+    /// Only with "approval" api. Transfers amount tokens from owner -> recipient
     /// if `env.sender` has sufficient pre-approval.
     TransferFrom {
         owner: String,
         recipient: String,
         amount: Uint128,
     },
-    /// Only with "approval" extension. Sends amount tokens from owner -> contract
+    /// Only with "approval" api. Sends amount tokens from owner -> contract
     /// if `env.sender` has sufficient pre-approval.
     SendFrom {
         owner: String,
@@ -153,18 +153,18 @@ pub enum ExecuteMsg {
         amount: Uint128,
         msg: Binary,
     },
-    /// Only with "approval" extension. Destroys tokens forever
+    /// Only with "approval" api. Destroys tokens forever
     BurnFrom {
         owner: String,
         amount: Uint128,
     },
-    /// Only with the "mintable" extension. If authorized, creates amount new tokens
+    /// Only with the "mintable" api. If authorized, creates amount new tokens
     /// and adds to the recipient balance.
     Mint {
         recipient: String,
         amount: Uint128,
     },
-    /// Only with the "marketing" extension. If authorized, updates marketing metadata.
+    /// Only with the "marketing" api. If authorized, updates marketing metadata.
     /// Setting None/null for any of these will leave it unchanged.
     /// Setting Some("") will clear this field on the contract storage
     UpdateMarketing {
@@ -276,17 +276,17 @@ pub enum QueryMsg {
     /// Return type: TokenInfoResponse.
     #[returns(TokenInfoResponse)]
     TokenInfo {},
-    /// Only with "mintable" extension.
+    /// Only with "mintable" api.
     /// Returns who can mint and the hard cap on maximum tokens after minting.
     /// Return type: MinterResponse.
     #[returns(MinterResponse)]
     Minter {},
-    /// Only with "allowance" extension.
+    /// Only with "allowance" api.
     /// Returns how much spender can use from owner account, 0 if unset.
     /// Return type: AllowanceResponse.
     #[returns(AllowanceResponse)]
     Allowance { owner: String, spender: String },
-    /// Only with "enumerable" extension (and "allowances")
+    /// Only with "enumerable" api (and "allowances")
     /// Returns all allowances this owner has approved. Supports pagination.
     /// Return type: AllAllowancesResponse.
     #[returns(AllAllowancesResponse)]
@@ -295,7 +295,7 @@ pub enum QueryMsg {
         start_after: Option<String>,
         limit: Option<u32>,
     },
-    /// Only with "enumerable" extension
+    /// Only with "enumerable" api
     /// Returns all accounts that have balances. Supports pagination.
     /// Return type: AllAccountsResponse.
     #[returns(AllAccountsResponse)]
@@ -303,13 +303,13 @@ pub enum QueryMsg {
         start_after: Option<String>,
         limit: Option<u32>,
     },
-    /// Only with "marketing" extension
+    /// Only with "marketing" api
     /// Returns more metadata on the contract to display in the client:
     /// - description, logo, project url, etc.
     /// Return type: MarketingInfoResponse
     #[returns(MarketingInfoResponse)]
     MarketingInfo {},
-    /// Only with "marketing" extension
+    /// Only with "marketing" api
     /// Downloads the embedded logo data (if stored on chain). Errors if no logo data is stored for this
     /// contract.
     /// Return type: DownloadLogoResponse.

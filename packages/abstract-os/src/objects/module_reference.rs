@@ -7,8 +7,8 @@ pub enum ModuleReference {
     Core(u64),
     /// Native Abstract Contracts
     Native(Addr),
-    /// Installable extensions
-    Extension(Addr),
+    /// Installable apis
+    Api(Addr),
     /// Installable apps
     App(u64),
     /// A stand-alone contract
@@ -30,10 +30,10 @@ impl ModuleReference {
         }
     }
 
-    pub fn unwrap_extension(&self) -> StdResult<Addr> {
+    pub fn unwrap_api(&self) -> StdResult<Addr> {
         match self {
-            ModuleReference::Extension(addr) => Ok(addr.clone()),
-            _ => Err(StdError::generic_err("Not an extension module.")),
+            ModuleReference::Api(addr) => Ok(addr.clone()),
+            _ => Err(StdError::generic_err("Not an api module.")),
         }
     }
 
@@ -61,7 +61,7 @@ mod test {
         let core = ModuleReference::Core(1);
         assert_eq!(core.unwrap_core().unwrap(), 1);
         assert!(core.unwrap_native().is_err());
-        assert!(core.unwrap_extension().is_err());
+        assert!(core.unwrap_api().is_err());
         assert!(core.unwrap_app().is_err());
         assert!(core.unwrap_standalone().is_err());
     }
@@ -70,22 +70,19 @@ mod test {
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert!(native.unwrap_core().is_err());
         assert_eq!(native.unwrap_native().unwrap(), Addr::unchecked("addr"));
-        assert!(native.unwrap_extension().is_err());
+        assert!(native.unwrap_api().is_err());
         assert!(native.unwrap_app().is_err());
         assert!(native.unwrap_standalone().is_err());
     }
 
     #[test]
-    fn extension() {
-        let extension = ModuleReference::Extension(Addr::unchecked("addr"));
-        assert!(extension.unwrap_core().is_err());
-        assert!(extension.unwrap_native().is_err());
-        assert_eq!(
-            extension.unwrap_extension().unwrap(),
-            Addr::unchecked("addr")
-        );
-        assert!(extension.unwrap_app().is_err());
-        assert!(extension.unwrap_standalone().is_err());
+    fn api() {
+        let api = ModuleReference::Api(Addr::unchecked("addr"));
+        assert!(api.unwrap_core().is_err());
+        assert!(api.unwrap_native().is_err());
+        assert_eq!(api.unwrap_api().unwrap(), Addr::unchecked("addr"));
+        assert!(api.unwrap_app().is_err());
+        assert!(api.unwrap_standalone().is_err());
     }
 
     #[test]
@@ -93,7 +90,7 @@ mod test {
         let app = ModuleReference::App(1);
         assert!(app.unwrap_core().is_err());
         assert!(app.unwrap_native().is_err());
-        assert!(app.unwrap_extension().is_err());
+        assert!(app.unwrap_api().is_err());
         assert_eq!(app.unwrap_app().unwrap(), 1);
         assert!(app.unwrap_standalone().is_err());
     }
@@ -103,7 +100,7 @@ mod test {
         let standalone = ModuleReference::Standalone(1);
         assert!(standalone.unwrap_core().is_err());
         assert!(standalone.unwrap_native().is_err());
-        assert!(standalone.unwrap_extension().is_err());
+        assert!(standalone.unwrap_api().is_err());
         assert!(standalone.unwrap_app().is_err());
         assert_eq!(standalone.unwrap_standalone().unwrap(), 1);
     }

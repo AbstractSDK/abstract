@@ -14,9 +14,9 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfApp, reply: Reply) -
         })?;
     let liquidity_token = res.get_contract_address();
 
-    let extension = deps.api;
+    let api = deps.api;
     STATE.update(deps.storage, |mut meta| -> StdResult<_> {
-        meta.liquidity_token_addr = extension.addr_validate(liquidity_token)?;
+        meta.liquidity_token_addr = api.addr_validate(liquidity_token)?;
         Ok(meta)
     })?;
 

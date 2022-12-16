@@ -1,6 +1,6 @@
 use abstract_os::module_factory::*;
 
-// use crate::extension::get_extension_init_msgs;
+// use crate::api::get_api_init_msgs;
 use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
 
 use boot_core::{interface::BootExecute, prelude::boot_contract};
@@ -34,7 +34,7 @@ impl<Chain: BootEnvironment> ModuleFactory<Chain> {
     }
 
     // pub  fn save_init_binaries(&self, mem_addr: String, version_control_addr: String) -> Result<(), BootError> {
-    //     let msgs = get_extension_init_msgs(mem_addr,version_control_addr);
+    //     let msgs = get_api_init_msgs(mem_addr,version_control_addr);
     //     // TODO: Add version management support
     //     let binaries = msgs
     //         .iter()

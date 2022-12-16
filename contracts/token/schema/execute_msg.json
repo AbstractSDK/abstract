@@ -139,7 +139,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"approval\" extension. Allows spender to access an additional amount tokens from the owner's (env.sender) account. If expires is Some(), overwrites current allowance expiration with this one.",
+      "description": "Only with \"approval\" api. Allows spender to access an additional amount tokens from the owner's (env.sender) account. If expires is Some(), overwrites current allowance expiration with this one.",
       "type": "object",
       "required": [
         "increase_allowance"
@@ -175,7 +175,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"approval\" extension. Lowers the spender's access of tokens from the owner's (env.sender) account by amount. If expires is Some(), overwrites current allowance expiration with this one.",
+      "description": "Only with \"approval\" api. Lowers the spender's access of tokens from the owner's (env.sender) account by amount. If expires is Some(), overwrites current allowance expiration with this one.",
       "type": "object",
       "required": [
         "decrease_allowance"
@@ -211,7 +211,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"approval\" extension. Transfers amount tokens from owner -> recipient if `env.sender` has sufficient pre-approval.",
+      "description": "Only with \"approval\" api. Transfers amount tokens from owner -> recipient if `env.sender` has sufficient pre-approval.",
       "type": "object",
       "required": [
         "transfer_from"
@@ -241,7 +241,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"approval\" extension. Sends amount tokens from owner -> contract if `env.sender` has sufficient pre-approval.",
+      "description": "Only with \"approval\" api. Sends amount tokens from owner -> contract if `env.sender` has sufficient pre-approval.",
       "type": "object",
       "required": [
         "send_from"
@@ -275,7 +275,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with \"approval\" extension. Destroys tokens forever",
+      "description": "Only with \"approval\" api. Destroys tokens forever",
       "type": "object",
       "required": [
         "burn_from"
@@ -301,7 +301,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with the \"mintable\" extension. If authorized, creates amount new tokens and adds to the recipient balance.",
+      "description": "Only with the \"mintable\" api. If authorized, creates amount new tokens and adds to the recipient balance.",
       "type": "object",
       "required": [
         "mint"
@@ -327,7 +327,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Only with the \"marketing\" extension. If authorized, updates marketing metadata. Setting None/null for any of these will leave it unchanged. Setting Some(\"\") will clear this field on the contract storage",
+      "description": "Only with the \"marketing\" api. If authorized, updates marketing metadata. Setting None/null for any of these will leave it unchanged. Setting Some(\"\") will clear this field on the contract storage",
       "type": "object",
       "required": [
         "update_marketing"

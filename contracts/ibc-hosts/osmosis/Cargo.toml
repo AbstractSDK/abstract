@@ -26,8 +26,8 @@ schemars = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
 # Osmosis feature also enables library feature
-dex = { path = "../../modules/extensions/dex", features = ["osmosis", "library"] }
-abstract-os = {workspace = true}
+dex = { path = "../../modules/apis/dex", features = ["osmosis", "library"] }
+abstract-os = { workspace = true }
 abstract-ibc-host = { workspace = true}
 abstract-sdk = {workspace = true}
 cw2 = {workspace = true}

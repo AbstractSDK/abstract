@@ -68,7 +68,7 @@ pub fn execute_create_module(
             CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
-        ModuleReference::Extension(addr) => {
+        ModuleReference::Api(addr) => {
             let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: core.manager.into_string(),
                 funds: vec![],

@@ -16,7 +16,7 @@ The governance contract determines how the decision making withing the dao is ha
 
 ## Modules
 DApps are extentions to be installed on top of the core contracts.
-### Extension's
+### Api's
 These contracts handle the construction of messages and relaying of price information related to some external contract / service. Some examples are
 - Junoswap
 - Loop
@@ -134,4 +134,5 @@ to do it here.
 - AnsHost
 
 ## Not Migratable
-- Extensions
+
+- Apis

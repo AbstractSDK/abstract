@@ -8,8 +8,8 @@ use semver::Version;
 
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::os::{
-    extension::{
-        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ExtensionExecMsg, QueryMsg as ExtensionQuery,
+    api::{
+        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
         TradersResponse,
     },
     manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
@@ -133,7 +133,7 @@ pub fn register_module(
             )?)
         }
         Module {
-            reference: ModuleReference::Extension(_),
+            reference: ModuleReference::Api(_),
             info,
         } => {
             let id = info.id();
@@ -278,15 +278,15 @@ pub fn set_migrate_msgs_and_context(
     let id = module_info.id();
 
     match module.reference {
-        // upgrading an extension is done by moving the traders to the new contract address and updating the permissions on the proxy.
-        ModuleReference::Extension(addr) => {
+        // upgrading an api is done by moving the traders to the new contract address and updating the permissions on the proxy.
+        ModuleReference::Api(addr) => {
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
                 &id,
                 module.info.version.to_string().parse().unwrap(),
             )?;
             let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
-            // Update the address of the extension internally
+            // Update the address of the api internally
             update_module_addresses(
                 deps.branch(),
                 Some(vec![(id.clone(), addr.to_string())]),
@@ -300,7 +300,7 @@ pub fn set_migrate_msgs_and_context(
             };
             MIGRATE_CONTEXT.update(deps.storage, update_context)?;
 
-            msgs.append(replace_extension(deps, addr, old_module_addr)?.as_mut());
+            msgs.append(replace_api(deps, addr, old_module_addr)?.as_mut());
         }
         ModuleReference::App(code_id) => {
             versioning::assert_migrate_requirements(
@@ -343,19 +343,19 @@ fn get_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> 
     migration_msg
 }
 
-/// Replaces the current extension with a different version
+/// Replaces the current api with a different version
 /// Also moves all the trader permissions to the new contract and removes them from the old
-pub fn replace_extension(
+pub fn replace_api(
     deps: DepsMut,
-    new_extension_addr: Addr,
-    old_extension_addr: Addr,
+    new_api_addr: Addr,
+    old_api_addr: Addr,
 ) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
-    // Makes sure we already have the extension installed
+    // Makes sure we already have the api installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
     let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: old_extension_addr.to_string(),
-        msg: to_binary(&<ExtensionQuery<Empty>>::Base(BaseQueryMsg::Traders {
+        contract_addr: old_api_addr.to_string(),
+        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }))?,
     }))?;
@@ -365,37 +365,34 @@ pub fn replace_extension(
         .map(|addr| addr.into_string())
         .collect();
     // Remove traders from old
-    msgs.push(configure_extension(
-        &old_extension_addr,
+    msgs.push(configure_api(
+        &old_api_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: None,
             to_remove: Some(traders_to_migrate.clone()),
         },
     )?);
-    // Remove extension as trader on dependencies
-    msgs.push(configure_extension(
-        &old_extension_addr,
-        BaseExecuteMsg::Remove {},
-    )?);
+    // Remove api as trader on dependencies
+    msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
     // Add traders to new
-    msgs.push(configure_extension(
-        &new_extension_addr,
+    msgs.push(configure_api(
+        &new_api_addr,
         BaseExecuteMsg::UpdateTraders {
             to_add: Some(traders_to_migrate),
             to_remove: None,
         },
     )?);
-    // Remove extension permissions from proxy
+    // Remove api permissions from proxy
     msgs.push(remove_dapp_from_proxy_msg(
         deps.as_ref(),
         proxy_addr.to_string(),
-        old_extension_addr.into_string(),
+        old_api_addr.into_string(),
     )?);
-    // Add new extension to proxy
+    // Add new api to proxy
     msgs.push(whitelist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
-        new_extension_addr.into_string(),
+        new_api_addr.into_string(),
     )?);
 
     Ok(msgs)
@@ -581,12 +578,9 @@ fn remove_dapp_from_proxy_msg(
 }
 
 #[inline(always)]
-fn configure_extension(
-    extension_address: impl Into<String>,
-    message: BaseExecuteMsg,
-) -> StdResult<CosmosMsg> {
-    let extension_msg: ExtensionExecMsg<Empty> = message.into();
-    Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
+fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
+    let api_msg: ApiExecMsg<Empty> = message.into();
+    Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
 }
 
 #[cfg(test)]

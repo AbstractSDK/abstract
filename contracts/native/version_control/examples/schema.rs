@@ -22,14 +22,14 @@ fn main() {
     // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
     // export_schema_with_title(&schema_for!(ConfigResponse), &out_dir, "ConfigResponse");
     // export_schema_with_title(
-    //     &schema_for!(ExtensionAddressesResponse),
+    //     &schema_for!(ApiAddressesResponse),
     //     &out_dir,
-    //     "ExtensionAddressesResponse",
+    //     "ApiAddressesResponse",
     // );
     // export_schema_with_title(
-    //     &schema_for!(ExtensionAddressResponse),
+    //     &schema_for!(ApiAddressResponse),
     //     &out_dir,
-    //     "ExtensionAddressResponse",
+    //     "ApiAddressResponse",
     // );
     // export_schema_with_title(&schema_for!(CodeIdResponse), &out_dir, "CodeIdResponse");
     // export_schema_with_title(&schema_for!(CodeIdsResponse), &out_dir, "CodeIdsResponse");

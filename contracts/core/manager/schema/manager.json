@@ -424,13 +424,13 @@
             "additionalProperties": false
           },
           {
-            "description": "Installable extensions",
+            "description": "Installable apis",
             "type": "object",
             "required": [
-              "extension"
+              "api"
             ],
             "properties": {
-              "extension": {
+              "api": {
                 "$ref": "#/definitions/Addr"
               }
             },

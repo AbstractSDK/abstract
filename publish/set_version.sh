@@ -60,8 +60,8 @@ for contract_dir in contracts/core/*/; do
   FILES_MODIFIED+=("$CARGO_TOML")
 done
 
-# extensions
-for contract_dir in contracts/modules/extensions/*/; do
+# apis
+for contract_dir in contracts/modules/apis/*/; do
   CARGO_TOML="$contract_dir/Cargo.toml"
   sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
   FILES_MODIFIED+=("$CARGO_TOML")

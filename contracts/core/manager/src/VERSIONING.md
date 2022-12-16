@@ -4,7 +4,7 @@ A document detailing the Abstract module versioning.
 
 ## Module version dependencies
 
-Every module (App/Extension) has a set of dependencies it can declare. The dependencies ensure a couple things:
+Every module (App/Api) has a set of dependencies it can declare. The dependencies ensure a couple things:
 
 - A module can only be installed when it's dependencies are installed.
 - A module can not be un-installed as long as some other module depends on it.

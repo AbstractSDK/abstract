@@ -6,7 +6,7 @@ use boot_core::prelude::*;
 use semver::Version;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Deployment, DexExtension};
+use abstract_boot::{Deployment, DexApi};
 
 pub fn script() -> anyhow::Result<()> {
     let abstract_os_version: Version = "0.1.0-rc.3".parse().unwrap();
@@ -20,7 +20,7 @@ pub fn script() -> anyhow::Result<()> {
 
     deployment.deploy()?;
 
-    let _dex = DexExtension::new("dex", &chain);
+    let _dex = DexApi::new("dex", &chain);
     // dex.simulate_swap()
 
     // let remote_network = boot_core::networks::OSMO_4;
@@ -32,9 +32,9 @@ pub fn script() -> anyhow::Result<()> {
     // // deploy_abstract(&chain, abstract_os_version)?;
     // manager.add_module(
     //     staking_api.as_instance(),
-    //     Some(&extension::InstantiateMsg {
+    //     Some(&api::InstantiateMsg {
     //         app: Empty {},
-    //         base: extension::BaseInstantiateMsg {
+    //         base: api::BaseInstantiateMsg {
     //             ans_host_address: ans_host.address()?.into(),
     //             version_control_address: version_control.address()?.into(),
     //         },

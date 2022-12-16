@@ -2,7 +2,7 @@
 //! The Application interface provides helper functions to execute functions on other applications installed on the OS.
 
 use abstract_os::{
-    extension::{BaseExecuteMsg, ExecuteMsg},
+    api::{BaseExecuteMsg, ExecuteMsg},
     manager::state::{ModuleId, OS_MODULES},
 };
 use cosmwasm_std::{
@@ -30,8 +30,8 @@ pub struct Applications<'a, T: ApplicationInterface> {
 
 impl<'a, T: ApplicationInterface> Applications<'a, T> {
     /// Retrieve the address of an application in this OS.
-    /// This should **not** be used to execute messages on an `Extension`.
-    /// Use `Applications::extension_request(..)` instead.
+    /// This should **not** be used to execute messages on an `Api`.
+    /// Use `Applications::api_request(..)` instead.
     pub fn app_address(&self, module_id: ModuleId) -> StdResult<Addr> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
@@ -51,27 +51,23 @@ impl<'a, T: ApplicationInterface> Applications<'a, T> {
         self.deps.querier.query::<ContractVersion>(&req)
     }
 
-    /// Construct an extension request message.
-    pub fn extension_request<M: Serialize>(
+    /// Construct an api request message.
+    pub fn api_request<M: Serialize>(
         &self,
-        extension_id: ModuleId,
+        api_id: ModuleId,
         message: impl Into<ExecuteMsg<M, Empty>>,
     ) -> StdResult<CosmosMsg> {
-        self.assert_app_is_dependency(extension_id)?;
-        let extension_msg: ExecuteMsg<M, Empty> = message.into();
-        let extension_address = self.app_address(extension_id)?;
-        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
+        self.assert_app_is_dependency(api_id)?;
+        let api_msg: ExecuteMsg<M, Empty> = message.into();
+        let api_address = self.app_address(api_id)?;
+        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
 
     /// Construct an API configure message
-    pub fn configure_extension(
-        &self,
-        extension_id: ModuleId,
-        message: BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let extension_msg: ExecuteMsg<Empty, Empty> = message.into();
-        let extension_address = self.app_address(extension_id)?;
-        Ok(wasm_execute(extension_address, &extension_msg, vec![])?.into())
+    pub fn configure_api(&self, api_id: ModuleId, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
+        let api_msg: ExecuteMsg<Empty, Empty> = message.into();
+        let api_address = self.app_address(api_id)?;
+        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
 
     fn assert_app_is_dependency(&self, app: ModuleId) -> StdResult<()> {

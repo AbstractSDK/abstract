@@ -31,6 +31,6 @@ pub static NATIVE_CONTRACTS: &[&str] = &[
     VERSION_CONTROL,
     "cw20",
 ];
-pub static EXTENSION_CONTRACTS: &[&str] = &[EXCHANGE, TENDERMINT_STAKING];
+pub static API_CONTRACTS: &[&str] = &[EXCHANGE, TENDERMINT_STAKING];
 pub static APPS: &[&str] = &[ETF];
 pub static CORE: &[&str] = &[MANAGER, PROXY];

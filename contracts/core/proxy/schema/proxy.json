@@ -1419,10 +1419,10 @@
               "External": {
                 "type": "object",
                 "required": [
-                  "extension_name"
+                  "api_name"
                 ],
                 "properties": {
-                  "extension_name": {
+                  "api_name": {
                     "type": "string"
                   }
                 }
@@ -2045,10 +2045,10 @@
                 "External": {
                   "type": "object",
                   "required": [
-                    "extension_name"
+                    "api_name"
                   ],
                   "properties": {
-                    "extension_name": {
+                    "api_name": {
                       "type": "string"
                     }
                   }
@@ -2211,10 +2211,10 @@
                 "External": {
                   "type": "object",
                   "required": [
-                    "extension_name"
+                    "api_name"
                   ],
                   "properties": {
-                    "extension_name": {
+                    "api_name": {
                       "type": "string"
                     }
                   }
@@ -2364,10 +2364,10 @@
                 "External": {
                   "type": "object",
                   "required": [
-                    "extension_name"
+                    "api_name"
                   ],
                   "properties": {
-                    "extension_name": {
+                    "api_name": {
                       "type": "string"
                     }
                   }

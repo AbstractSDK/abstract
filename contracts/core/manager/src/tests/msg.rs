@@ -9,7 +9,7 @@ use crate::tests::base_mocks::mocks::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
 use abstract_sdk::os::dapps::terraswap::ExecuteMsg;
 
-use abstract_sdk::os::modules::extensions::terraswap::ExecuteMsg;
+use abstract_sdk::os::modules::apis::terraswap::ExecuteMsg;
 
 /**
  * ExecuteMsg::ProvideLiquidity

@@ -2,8 +2,8 @@ use std::env::current_dir;
 use std::fs::create_dir_all;
 
 use abstract_sdk::os::{
+    api::{ApiConfigResponse, TradersResponse},
     dex::SimulateSwapResponse,
-    extension::{ExtensionConfigResponse, TradersResponse},
 };
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
 use osmosis_host::contract::OsmoHost;
@@ -16,19 +16,11 @@ fn main() {
 
     OsmoHost::export_schema(&out_dir);
 
-    export_schema_with_title(
-        &schema_for!(SimulateSwapResponse),
-        &out_dir,
-        "ExtensionResponse",
-    );
+    export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 
     // export_schema_with_title(&schema_for!(ExecuteMsg<DexRequestMsg>), &out_dir, "ExecuteMsg");
     export_schema_with_title(&schema_for!(TradersResponse), &out_dir, "TradersResponse");
-    export_schema_with_title(
-        &schema_for!(ExtensionConfigResponse),
-        &out_dir,
-        "ConfigResponse",
-    );
+    export_schema_with_title(&schema_for!(ApiConfigResponse), &out_dir, "ConfigResponse");
 
-    // export_schema_with_title(&schema_for!(ExtensionQueryMsg), &out_dir, "QueryMsg");
+    // export_schema_with_title(&schema_for!(ApiQueryMsg), &out_dir, "QueryMsg");
 }

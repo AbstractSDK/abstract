@@ -1,8 +1,8 @@
 use abstract_os::IBC_CLIENT;
 
 use crate::{
-    AnsHost, DexExtension, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
-    TMintStakingExtension, VersionControl, ETF as EtfBoot,
+    AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
+    TMintStakingApi, VersionControl, ETF as EtfBoot,
 };
 use abstract_os::{
     ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
@@ -68,13 +68,11 @@ where
     (liquidity_interface, subscription)
 }
 
-pub fn get_extensions<Chain: BootEnvironment>(
-    chain: &Chain,
-) -> (DexExtension<Chain>, TMintStakingExtension<Chain>)
+pub fn get_apis<Chain: BootEnvironment>(chain: &Chain) -> (DexApi<Chain>, TMintStakingApi<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,
 {
-    let dex_extension = DexExtension::new(EXCHANGE, chain);
-    let staking_extension = TMintStakingExtension::new(TENDERMINT_STAKING, chain);
-    (dex_extension, staking_extension)
+    let dex_api = DexApi::new(EXCHANGE, chain);
+    let staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
+    (dex_api, staking_api)
 }

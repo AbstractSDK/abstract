@@ -7,8 +7,8 @@ members = [
     "contracts/token",
     "contracts/modules/apps/etf",
     "contracts/modules/apps/subscription",
-    "contracts/modules/extensions/tendermint-staking",
-    "contracts/modules/extensions/dex",
+    "contracts/modules/apis/tendermint-staking",
+    "contracts/modules/apis/dex",
     "contracts/modules/perks/vesting",
     "contracts/ibc-hosts/osmosis",
     "scripts"
@@ -46,7 +46,7 @@ boot-core = {version = "0.2.0", git =  "https://github.com/Abstract-OS/BOOT.git"
 abstract-sdk = { version = "0.2.0-beta.7", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.2.0-beta.7", path = "packages/abstract-os" }
 abstract-app = { version = "0.2.0-beta.7", path = "packages/abstract-app", features = ["library"] }
-abstract-extension = { version = "0.2.0-beta.7", path = "packages/abstract-extension", features = ["library"] }
+abstract-api = { version = "0.2.0-beta.7", path = "packages/abstract-api", features = ["library"] }
 abstract-ibc-host = { version = "0.2.0-beta.7", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.2.0-beta.7", path = "packages/abstract-ica" }
 

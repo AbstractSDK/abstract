@@ -91,24 +91,23 @@ where
         Ok(())
     }
 
-    pub fn register_extensions(
+    pub fn register_apis(
         &self,
-        extensions: Vec<&Contract<Chain>>,
+        apis: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), BootError> {
-        let extensions_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> =
-            extensions
-                .iter()
-                .map(|ex| {
-                    Ok((
-                        ModuleInfo::from_id(&ex.id, ModuleVersion::Version(version.to_string()))?,
-                        ModuleReference::Extension(ex.address()?),
-                    ))
-                })
-                .collect();
+        let apis_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = apis
+            .iter()
+            .map(|ex| {
+                Ok((
+                    ModuleInfo::from_id(&ex.id, ModuleVersion::Version(version.to_string()))?,
+                    ModuleReference::Api(ex.address()?),
+                ))
+            })
+            .collect();
         self.execute(
             &ExecuteMsg::AddModules {
-                modules: extensions_to_register?,
+                modules: apis_to_register?,
             },
             None,
         )?;
@@ -189,9 +188,9 @@ impl VersionControl<Daemon> {
     //     Ok(())
     // }
 
-    // pub fn update_extensions(&self) -> anyhow::Result<()> {
+    // pub fn update_apis(&self) -> anyhow::Result<()> {
     //     for contract_name in chain_state.keys() {
-    //         if !EXTENSION_CONTRACTS.contains(&contract_name.as_str()) {
+    //         if !API_CONTRACTS.contains(&contract_name.as_str()) {
     //             continue;
     //         }
 
@@ -199,8 +198,8 @@ impl VersionControl<Daemon> {
     //         let address: String = chain_state[contract_name].as_str().unwrap().into();
 
     //         // Get latest addr
-    //         let resp: Result<QueryExtensionAddressResponse, BootError> =
-    //             self.query(&QueryMsg::ExtensionAddress {
+    //         let resp: Result<QueryApiAddressResponse, BootError> =
+    //             self.query(&QueryMsg::ApiAddress {
     //                 module: ModuleInfo {
     //                     name: contract_name.clone(),
     //                     version: None,
@@ -226,7 +225,7 @@ impl VersionControl<Daemon> {
     //         };
 
     //         self.execute(
-    //             &ExecuteMsg::AddExtension {
+    //             &ExecuteMsg::AddApi {
     //                 module: contract_name.to_string(),
     //                 version: version.to_string(),
     //                 address,
