@@ -31,6 +31,8 @@ pub type ReceiveHandlerFn<App, Msg, Error> =
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 
+const MAX_REPLY_COUNT: usize = 2;
+
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
@@ -51,7 +53,7 @@ pub struct AbstractContract<
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
     /// Expected replies
-    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+    pub reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     /// Handler of execute messages
     pub(crate) execute_handler: Option<ExecuteHandlerFn<Module, CustomExecMsg, Error>>,
     /// Handler of instantiate messages
@@ -114,7 +116,7 @@ where
 
     pub const fn with_replies(
         mut self,
-        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; 2],
+        reply_handlers: [&'static [(u64, ReplyHandlerFn<Module, Error>)]; MAX_REPLY_COUNT],
     ) -> Self {
         self.reply_handlers = reply_handlers;
         self

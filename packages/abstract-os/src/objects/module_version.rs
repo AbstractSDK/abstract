@@ -97,13 +97,7 @@ mod tests {
         let contract_name = "crate:cw20-base";
         let contract_version = "0.2.0";
         let metadata = Some("https://example.com");
-        const REQUIREMENT: [Comparator; 1] = [Comparator {
-            major: 1,
-            minor: None,
-            op: semver::Op::GreaterEq,
-            patch: None,
-            pre: Prerelease::EMPTY,
-        }];
+        const REQUIREMENT: [&str; 1] = [">1"];
 
         const DEPENDENCIES: &[StaticDependency; 1] = &[StaticDependency {
             id: "abstact::dex",

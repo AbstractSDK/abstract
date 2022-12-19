@@ -9,13 +9,13 @@ use crate::manager::state::ModuleId;
 #[derive(Debug, Clone)]
 pub struct StaticDependency {
     pub id: ModuleId<'static>,
-    pub version_req: &'static [Comparator],
+    pub version_req: &'static [&'static str],
 }
 
 impl StaticDependency {
     pub const fn new(
         module_id: ModuleId<'static>,
-        version_requirement: &'static [Comparator],
+        version_requirement: &'static [&'static str],
     ) -> Self {
         Self {
             id: module_id,
@@ -35,7 +35,7 @@ impl From<&StaticDependency> for Dependency {
     fn from(dep: &StaticDependency) -> Self {
         Self {
             id: dep.id.to_string(),
-            version_req: dep.version_req.into(),
+            version_req: dep.version_req.iter().map(|s| s.parse().unwrap()).collect(),
         }
     }
 }
