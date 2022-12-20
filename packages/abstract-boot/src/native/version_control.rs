@@ -16,6 +16,7 @@ use abstract_os::{
 };
 
 use crate::deployment::{self, OS};
+pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;
@@ -25,16 +26,9 @@ where
     TxResponse<Chain>: IndexResponse,
 {
     pub fn new(name: &str, chain: &Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("version_control"),
-            // .with_mock(Box::new(
-            //     ContractWrapper::new_with_empty(
-            //         ::contract::execute,
-            //         ::contract::instantiate,
-            //         ::contract::query,
-            //     ),
-            // ))
-        )
+        let mut contract = Contract::new(name, chain);
+        contract = contract.with_wasm_path("version_control");
+        Self(contract)
     }
 
     pub fn load(chain: &Chain, address: &Addr) -> Self {

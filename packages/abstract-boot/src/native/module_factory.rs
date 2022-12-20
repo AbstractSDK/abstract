@@ -3,6 +3,9 @@ use abstract_os::module_factory::*;
 // use crate::api::get_api_init_msgs;
 use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
 
+pub use abstract_os::module_factory::{
+    ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
+};
 use boot_core::{interface::BootExecute, prelude::boot_contract};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -10,16 +13,9 @@ pub struct ModuleFactory<Chain>;
 
 impl<Chain: BootEnvironment> ModuleFactory<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("module_factory"),
-            // .with_mock(Box::new(
-            //     ContractWrapper::new_with_empty(
-            //         ::contract::execute,
-            //         ::contract::instantiate,
-            //         ::contract::query,
-            //     ),
-            // ))
-        )
+        let mut contract = Contract::new(name, chain);
+        contract = contract.with_wasm_path("module_factory");
+        Self(contract)
     }
 
     pub fn change_ans_host_addr(&self, mem_addr: String) -> Result<TxResponse<Chain>, BootError> {

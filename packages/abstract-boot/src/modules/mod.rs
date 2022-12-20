@@ -2,6 +2,6 @@ mod apis;
 mod apps;
 mod perks;
 
-pub use apis::*;
-pub use apps::*;
-pub use perks::*;
+pub use self::apis::*;
+pub use self::apps::*;
+pub use self::perks::*;

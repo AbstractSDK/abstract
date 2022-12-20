@@ -15,15 +15,9 @@ pub struct Subscription<Chain>;
 
 impl<Chain: BootEnvironment> Subscription<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("subscription"), // .with_mock(Box::new(
-                                                                       //     ContractWrapper::new_with_empty(
-                                                                       //         ::contract::execute,
-                                                                       //         ::contract::instantiate,
-                                                                       //         ::contract::query,
-                                                                       //     ),
-                                                                       // ))
-        )
+        let mut contract = Contract::new(name, chain);
+        contract = contract.with_wasm_path("subscription");
+        Self(contract)
     }
     pub fn init_msg(
         payment_denom: String,

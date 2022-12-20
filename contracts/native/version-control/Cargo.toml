@@ -1,10 +1,8 @@
 [package]
-name = "module-factory"
+name = "version-control"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}
-description = ""
-license = "MIT"
 
 exclude = [
   "contract.wasm",
@@ -16,17 +14,19 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# for quicker tests, cargo test --lib
+library = []
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-controllers = {workspace = true}
-cosmwasm-schema = { workspace = true }
 cw-storage-plus = {workspace = true}
 cw2 = {workspace = true}
+serde = {workspace = true}
 thiserror = {workspace = true}
 semver = {workspace = true}
-protobuf = {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true }

@@ -1,6 +1,6 @@
 use abstract_os::manager::CallbackMsg;
 use cosmwasm_std::{
-    ensure_eq, entry_point, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use semver::Version;
 

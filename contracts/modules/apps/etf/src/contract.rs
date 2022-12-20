@@ -28,5 +28,4 @@ const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION, None)
     .with_replies(&[(INSTANTIATE_REPLY_ID, handlers::instantiate_reply)]);
 
 // Export handlers
-#[cfg(not(feature = "library"))]
 export_endpoints!(ETF_ADDON, EtfApp);

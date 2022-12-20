@@ -115,10 +115,7 @@ pub fn query_module_addresses(
     for module in module_names.iter() {
         let result: StdResult<Addr> = OS_MODULES
             .query(&deps.querier, manager_addr.clone(), module)?
-            .ok_or_else(|| StdError::generic_err(format!(
-                "Module {} not present in OS",
-                module
-            )));
+            .ok_or_else(|| StdError::generic_err(format!("Module {} not present in OS", module)));
         // Add to map if present, skip otherwise. Allows version control to check what modules are present.
         match result {
             Ok(address) => modules.insert(module.clone(), address),

@@ -1,9 +1,9 @@
-use boot_core::{prelude::*, BootEnvironment, BootError, TxHandler};
+use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::Empty;
 use semver::Version;
 
 use crate::{
-    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, IbcClient, Manager,
+    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
     ModuleFactory, OSFactory, Proxy, VersionControl,
 };
 
@@ -14,25 +14,23 @@ pub struct Deployment<'a, Chain: BootEnvironment> {
     pub version_control: VersionControl<Chain>,
     pub os_factory: OSFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
-    pub ibc_client: IbcClient<Chain>,
 }
 
 impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
     pub fn new(chain: &'a Chain, version: Version) -> Self {
-        let (ans_host, os_factory, version_control, module_factory, ibc_client) =
+        let (ans_host, os_factory, version_control, module_factory, _ibc_client) =
             get_native_contracts(chain);
         Self {
             chain,
             ans_host,
             version_control,
-            ibc_client,
             os_factory,
             module_factory,
             version,
         }
     }
 
-    pub fn deploy(&mut self) -> Result<(), BootError> {
+    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), BootError> {
         let sender = &self.chain.sender();
 
         // ########### Upload ##############
@@ -42,7 +40,6 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
         self.os_factory.upload()?;
         self.module_factory.upload()?;
 
-        let mut os_core = OS::new(self.chain, None);
         os_core.upload()?;
 
         // ########### Instantiate ##############
@@ -89,7 +86,7 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
         // ########### upload modules and token ##############
 
         self.version_control
-            .register_core(&os_core, &self.version.to_string())?;
+            .register_core(os_core, &self.version.to_string())?;
 
         self.version_control.register_native(self)?;
 
@@ -109,7 +106,6 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
             self.version_control.as_instance(),
             self.os_factory.as_instance(),
             self.module_factory.as_instance(),
-            self.ibc_client.as_instance(),
         ]
     }
 
@@ -154,20 +150,20 @@ impl<'a, Chain: BootEnvironment> Deployment<'a, Chain> {
 }
 
 impl<'a> Deployment<'a, Daemon> {
-    pub fn deploy_with_ibc_client(&mut self) -> Result<(), BootError> {
-        let sender = &self.chain.sender();
-        self.ibc_client.upload()?;
-        self.ibc_client.instantiate(
-            &abstract_os::ibc_client::InstantiateMsg {
-                ans_host_address: self.ans_host.address()?.into_string(),
-                version_control_address: self.version_control.address()?.into_string(),
-                chain: self.chain.state.chain.chain_id.clone(),
-            },
-            Some(sender),
-            None,
-        )?;
-        self.deploy()
-    }
+    // pub fn deploy_with_ibc_client(&mut self) -> Result<(), BootError> {
+    //     let sender = &self.chain.sender();
+    //     self.ibc_client.upload()?;
+    //     self.ibc_client.instantiate(
+    //         &abstract_os::ibc_client::InstantiateMsg {
+    //             ans_host_address: self.ans_host.address()?.into_string(),
+    //             version_control_address: self.version_control.address()?.into_string(),
+    //             chain: self.chain.state.chain.chain_id.clone(),
+    //         },
+    //         Some(sender),
+    //         None,
+    //     )?;
+    //     self.deploy()
+    // }
 }
 
 pub struct OS<Chain: BootEnvironment> {

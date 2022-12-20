@@ -13,6 +13,7 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
+library = []
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]

@@ -1,12 +1,15 @@
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 
+use abstract_os::ibc_host::ExecuteMsg;
 use abstract_sdk::os::abstract_ica::StdAck;
 use abstract_sdk::os::dex::DexAction;
 use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_sdk::os::OSMOSIS_HOST;
 
-use abstract_sdk::base::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint};
+use abstract_sdk::base::{
+    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
+};
 
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
@@ -30,6 +33,17 @@ const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSI
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> OsmoResult {
     OSMO_HOST.instantiate(deps, env, info, msg)?;
     Ok(Response::default())
+}
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg<DexAction>,
+) -> OsmoResult {
+    // will only process base requests as there is no exec handler set.
+    OSMO_HOST.execute(deps, env, info, msg)
 }
 
 /// we look for a the proper reflect contract to relay to and send the message

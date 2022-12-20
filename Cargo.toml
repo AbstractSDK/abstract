@@ -50,11 +50,27 @@ abstract-api = { version = "0.3.0-beta.1", path = "packages/abstract-api", featu
 abstract-ibc-host = { version = "0.3.0-beta.1", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.3.0-beta.1", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
+abstract-boot = { path = "packages/abstract-boot" }
+
+
+module-factory = {path = "contracts/native/module-factory",features = ["library"]}
+os-factory = {path = "contracts/native/os-factory",features = ["library"]}
+ans-host = {path = "contracts/native/ans-host",features = ["library"]}
+version-control = {path = "contracts/native/version-control",features = ["library"]}
+osmosis-host = {path = "contracts/ibc-hosts/osmosis",features = ["library"]}
+proxy = {path = "contracts/core/proxy",features = ["library"]}
+manager = {path = "contracts/core/manager",features = ["library"]}
+ibc-client = {path = "contracts/native/ibc-client",features = ["library"]}
+etf = {path = "contracts/modules/apps/etf",features = ["library"]}
+subscription = {path = "contracts/modules/apps/subscription",features = ["library"]}
+
 
 ## Testing
-cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
+# cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
+cw-multi-test = { version = "0.16.2" }
 rstest = "0.16.0"
 speculoos = "0.11.0"
+anyhow = "1"
 
 [profile.release]
 rpath = false

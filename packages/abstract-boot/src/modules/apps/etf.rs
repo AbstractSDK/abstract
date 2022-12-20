@@ -6,14 +6,8 @@ pub struct ETF<Chain>;
 
 impl<Chain: BootEnvironment> ETF<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("etf"), // .with_mock(Box::new(
-                                                              //     ContractWrapper::new_with_empty(
-                                                              //         ::contract::execute,
-                                                              //         ::contract::instantiate,
-                                                              //         ::contract::query,
-                                                              //     ),
-                                                              // ))
-        )
+        let mut contract = Contract::new(name, chain);
+        contract = contract.with_wasm_path("etf");
+        Self(contract)
     }
 }

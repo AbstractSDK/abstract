@@ -1,5 +1,5 @@
 [package]
-name = "ans_host"
+name = "ans-host"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}
@@ -13,6 +13,7 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
+library = []
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]

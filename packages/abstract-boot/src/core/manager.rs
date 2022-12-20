@@ -6,6 +6,7 @@ use cosmwasm_std::{to_binary, Addr, Binary};
 use serde::Serialize;
 
 use abstract_os::manager::*;
+pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 
 use boot_core::{BootError, Contract, IndexResponse, TxResponse};
 
@@ -19,16 +20,9 @@ pub struct Manager<Chain>;
 
 impl<Chain: BootEnvironment> Manager<Chain> {
     pub fn new(name: &str, chain: &Chain) -> Self {
-        Self(
-            Contract::new(name, chain).with_wasm_path("manager"),
-            // .with_mock(Box::new(
-            //     ContractWrapper::new_with_empty(
-            //         ::contract::execute,
-            //         ::contract::instantiate,
-            //         ::contract::query,
-            //     ),
-            // ))
-        )
+        let mut contract = Contract::new(name, chain);
+        contract = contract.with_wasm_path("manager");
+        Self(contract)
     }
 
     // pub fn update_terraswap_trader(

@@ -16,9 +16,9 @@ pub fn script() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let mut deployment = Deployment::new(&chain, abstract_os_version);
+    let _deployment = Deployment::new(&chain, abstract_os_version);
 
-    deployment.deploy()?;
+    // deployment.deploy()?;
 
     let _dex = DexApi::new("dex", &chain);
     // dex.simulate_swap()

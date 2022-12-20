@@ -32,7 +32,7 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
         .with_receive(receive_cw20);
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-#[cfg(not(feature = "library"))]
+// export endpoints
 export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
 pub fn instantiate_handler(
