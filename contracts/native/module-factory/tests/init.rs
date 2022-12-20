@@ -1,5 +1,5 @@
 use abstract_boot::{
-    os_factory::OSFactory, AnsHost, Deployment, Manager, ModuleFactory, Proxy, VersionControl, OS,
+    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
 
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
@@ -7,7 +7,7 @@ use boot_core::{prelude::ContractInstance, Mock};
 
 use cw_multi_test::ContractWrapper;
 
-pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
+pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
     let mut os_factory = OSFactory::new(OS_FACTORY, chain);
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain);

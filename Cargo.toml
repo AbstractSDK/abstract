@@ -51,7 +51,7 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 semver = { package = "cw-semver", version = "1.0.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.3.0", git = "https://github.com/Abstract-OS/BOOT.git" }
+boot-core = { version = "0.3.0", git = "https://github.com/Abstract-OS/BOOT.git", branch = "add/mock-test-helpers" }
 boot-cw-plus = { version = "0.2.0", git = "https://github.com/Abstract-OS/BOOT.git" }
 
 abstract-sdk = { version = "0.3.0-beta.2", path = "packages/abstract-sdk" }

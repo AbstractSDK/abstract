@@ -18,7 +18,7 @@ impl<Chain: BootEnvironment> Proxy<Chain> {
     }
 
     pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, &self.get_chain());
+        let manager = Manager::new(MANAGER, self.get_chain());
         manager.execute_on_module(
             PROXY,
             ExecuteMsg::UpdateAssets {

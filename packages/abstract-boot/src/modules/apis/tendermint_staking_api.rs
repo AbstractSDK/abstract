@@ -4,12 +4,7 @@ use cosmwasm_std::Empty;
 
 use abstract_os::tendermint_staking::*;
 
-#[boot_contract(
-    InstantiateMsg,
-    TendermintStakingExecuteMsg,
-    TendermintStakingQueryMsg,
-    Empty
-)]
+#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
 pub struct TMintStakingApi<Chain>;
 
 impl<Chain: BootEnvironment> TMintStakingApi<Chain> {

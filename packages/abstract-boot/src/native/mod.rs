@@ -1,8 +1,8 @@
-pub mod ans_host;
-pub mod ibc_client;
-pub mod module_factory;
-pub mod os_factory;
-pub mod version_control;
+mod ans_host;
+mod ibc_client;
+mod module_factory;
+mod os_factory;
+mod version_control;
 
 pub use self::ans_host::*;
 pub use self::ibc_client::*;

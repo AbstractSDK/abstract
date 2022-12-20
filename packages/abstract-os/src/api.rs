@@ -94,6 +94,8 @@ impl<Request: Serialize> ApiRequestMsg<Request> {
 
 /// Configuration message for the api
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg<T>))]
 pub enum BaseExecuteMsg {
     /// Add or remove traders
     /// If a trader is both in to_add and to_remove, it will be removed.
@@ -108,6 +110,8 @@ pub enum BaseExecuteMsg {
 /// Query api message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "boot", impl_into(QueryMsg<AppMsg>))]
 pub enum BaseQueryMsg {
     /// Returns [`ApiConfigResponse`].
     #[returns(ApiConfigResponse)]
@@ -118,6 +122,11 @@ pub enum BaseQueryMsg {
     Traders { proxy_address: String },
 }
 
+impl<T> From<BaseQueryMsg> for QueryMsg<T> {
+    fn from(base: BaseQueryMsg) -> Self {
+        Self::Base(base)
+    }
+}
 #[cosmwasm_schema::cw_serde]
 pub struct ApiConfigResponse {
     pub version_control_address: Addr,

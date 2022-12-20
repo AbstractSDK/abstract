@@ -12,6 +12,8 @@ use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
 
+use crate::{Manager, Proxy, OS};
+
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;
 
@@ -25,7 +27,7 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
     pub fn create_default_os(
         &self,
         governance_details: GovernanceDetails,
-    ) -> Result<(), BootError> {
+    ) -> Result<OS<Chain>, BootError> {
         let result = self.execute(
             &ExecuteMsg::CreateOs {
                 governance: governance_details,
@@ -40,12 +42,14 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         self.get_chain()
             .state()
             .set_address(MANAGER, &Addr::unchecked(manager_address));
-        let treasury_address = &result.event_attr_value("wasm", "proxy_address")?;
+        let proxy_address = &result.event_attr_value("wasm", "proxy_address")?;
         self.get_chain()
             .state()
-            .set_address(PROXY, &Addr::unchecked(treasury_address));
-
-        Ok(())
+            .set_address(PROXY, &Addr::unchecked(proxy_address));
+        Ok(OS {
+            manager: Manager::new(MANAGER, self.get_chain()),
+            proxy: Proxy::new(PROXY, self.get_chain()),
+        })
     }
 
     pub fn set_subscription_contract(&self, addr: String) -> Result<TxResponse<Chain>, BootError> {

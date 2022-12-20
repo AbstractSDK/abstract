@@ -1,13 +1,10 @@
 mod common;
 
+use abstract_boot::*;
+use abstract_os::{module_factory, objects::module::ModuleInfo};
+use boot_core::prelude::{instantiate_default_mock_env, ContractInstance};
 use common::init_test_env;
-use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
-use abstract_os::{objects::{gov_type::GovernanceDetails, module::ModuleInfo}, module_factory, version_control::Core};
-use boot_core::{
-    prelude::{instantiate_default_mock_env, ContractInstance},
-    IndexResponse,
-};
-use cosmwasm_std::{Addr, Uint64};
+use cosmwasm_std::Addr;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -32,7 +29,7 @@ fn instantiate() -> AResult {
 }
 
 #[test]
-fn caller_must_be_manager () -> AResult {
+fn caller_must_be_manager() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
@@ -40,10 +37,13 @@ fn caller_must_be_manager () -> AResult {
     deployment.deploy(&mut core)?;
 
     let factory = &deployment.module_factory;
-    let test_module = ModuleInfo::from_id("publisher:test", abstract_os::objects::module::ModuleVersion::Latest {  })?;
+    let test_module = ModuleInfo::from_id(
+        "publisher:test",
+        abstract_os::objects::module::ModuleVersion::Latest {},
+    )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();
-    assert_that(&res.to_string()).contains("Must be as OS manager");
+    assert_that(&res.root().to_string()).contains("Caller must be an OS manager");
 
     Ok(())
 }

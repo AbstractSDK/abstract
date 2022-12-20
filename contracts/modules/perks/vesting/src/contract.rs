@@ -1,5 +1,3 @@
-
-
 use crate::queries::*;
 use abstract_sdk::os::{
     vesting::{

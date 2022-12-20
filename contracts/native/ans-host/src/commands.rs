@@ -1101,7 +1101,7 @@ mod test {
             }
         }
 
-        fn mock_pool_metadata() -> PoolMetadata {
+        fn _mock_pool_metadata() -> PoolMetadata {
             pool_metadata(
                 "junoswap",
                 PoolType::Weighted,
@@ -1117,8 +1117,8 @@ mod test {
             (pool_id, metadata)
         }
 
-        fn mock_unchecked_pool_map_entry() -> UncheckedPoolMapEntry {
-            unchecked_pool_map_entry("junoxxxxx", mock_pool_metadata())
+        fn _mock_unchecked_pool_map_entry() -> UncheckedPoolMapEntry {
+            unchecked_pool_map_entry("junoxxxxx", _mock_pool_metadata())
         }
 
         fn build_update_msg(
@@ -1160,11 +1160,6 @@ mod test {
             ASSET_PAIRINGS
                 .range(storage, None, None, Order::Ascending)
                 .collect()
-        }
-
-        struct UncheckedTestPoolReference {
-            pub id: u64,
-            pub pool_id: String,
         }
 
         fn asset_pairing(

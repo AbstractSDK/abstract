@@ -33,7 +33,7 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
         ask_asset: &str,
         dex: String,
     ) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, &self.get_chain());
+        let manager = Manager::new(MANAGER, self.get_chain());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);
         manager.execute_on_module(

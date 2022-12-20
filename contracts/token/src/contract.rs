@@ -2,8 +2,8 @@ use std::convert::TryInto;
 
 use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{
-    to_binary, Addr, Api, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response,
-    StdError, StdResult,
+    to_binary, Addr, Api, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError,
+    StdResult,
 };
 
 use cw2::set_contract_version;

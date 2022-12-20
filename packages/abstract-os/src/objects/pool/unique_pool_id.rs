@@ -87,7 +87,7 @@ mod test {
         UniquePoolId::new(1)
     }
 
-    fn mock_keys() -> (UniquePoolId, UniquePoolId, UniquePoolId) {
+    fn _mock_keys() -> (UniquePoolId, UniquePoolId, UniquePoolId) {
         (
             UniquePoolId::new(1),
             UniquePoolId::new(2),

@@ -6,9 +6,8 @@ use boot_core::prelude::*;
 use semver::Version;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Deployment};
+use abstract_boot::Deployment;
 use abstract_os::objects::gov_type::GovernanceDetails;
-
 
 /// Script that registers the first OS in abstract (our OS)
 pub fn first_os() -> anyhow::Result<()> {

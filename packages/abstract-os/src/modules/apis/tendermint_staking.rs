@@ -11,10 +11,11 @@ pub type ExecuteMsg = api::ExecuteMsg<TendermintStakingExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<TendermintStakingQueryMsg>;
 
 impl api::ApiExecuteMsg for TendermintStakingExecuteMsg {}
-
 impl api::ApiQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum TendermintStakingExecuteMsg {
     Delegate {
         /// Validator address

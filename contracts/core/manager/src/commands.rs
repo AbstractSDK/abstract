@@ -638,7 +638,7 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
+    fn _execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
         execute_as(deps, TEST_OS_FACTORY, msg)
     }
 
@@ -677,8 +677,6 @@ mod test {
 
     mod set_root_and_gov_type {
         use super::*;
-
-        use cosmwasm_std::Storage;
 
         #[test]
         fn only_root() -> ManagerTestResult {
@@ -1024,7 +1022,7 @@ mod test {
     mod register_module {
         use super::*;
 
-        fn execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
+        fn _execute_as_module_factory(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
             execute_as(deps, TEST_MODULE_FACTORY, msg)
         }
 

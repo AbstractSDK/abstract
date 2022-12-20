@@ -118,7 +118,7 @@ pub mod env {
         assert_eq!(res.events[1].attributes[3], attr("amount", amount));
     }
 
-    pub fn token_balance(app: &App, token_instance: &Addr, owner: &Addr) -> u128 {
+    pub fn _token_balance(app: &App, token_instance: &Addr, owner: &Addr) -> u128 {
         let balance: cw20::BalanceResponse = app
             .wrap()
             .query_wasm_smart(

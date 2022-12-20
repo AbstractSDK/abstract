@@ -1,2 +1,2 @@
-pub mod vesting;
+mod vesting;
 pub use vesting::*;
