@@ -26,7 +26,7 @@ reqwest = { version = "0.11.9" }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 
-cosmos-sdk-proto = { version = "0.14.0", features = ["grpc-transport", "cosmwasm"] }
+cosmos-sdk-proto = { version = "0.16.0", features = ["grpc-transport", "cosmwasm"] }
 serde-cw-value = "0.7.0"
 sha256 = "1.1.1"
 
