@@ -34,13 +34,13 @@
       "type": "object",
       "required": [
         "amount",
-        "info"
+        "name"
       ],
       "properties": {
         "amount": {
           "$ref": "#/definitions/Uint128"
         },
-        "info": {
+        "name": {
           "$ref": "#/definitions/AssetEntry"
         }
       }

@@ -4,7 +4,7 @@
  <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-<!-- ![alt text](https://github.com/Pandora-OS/contracts/blob/main/architecture.png?raw=true) -->
+<!-- ![alt text](https://github.com/Abstract-OS/contracts/blob/main/architecture.png?raw=true) -->
 ## Core
 Every OS start off with the core contracts. These contracts handle the most important business logic of the DAO, including fund management.
 
@@ -114,9 +114,9 @@ cargo
 
 ```bash
 SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
-VERSION=$(awk -F ' = ' '$1 ~ /version/ { gsub(/[\"]/, "", $2); printf("%s",$2) }' Cargo.toml) \
+VERSION=0.3.0-beta.2 \
   cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
-```
+  ```
 
 # Contract Migrate Ability
 

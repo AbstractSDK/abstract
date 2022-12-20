@@ -1,6 +1,6 @@
 {
   "contract_name": "os-factory",
-  "contract_version": "0.2.0-beta.5",
+  "contract_version": "0.3.0-beta.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -57,35 +57,30 @@
             "type": "object",
             "properties": {
               "admin": {
-                "description": "New admin",
                 "type": [
                   "string",
                   "null"
                 ]
               },
               "ans_host_contract": {
-                "description": "New ans_host contract",
                 "type": [
                   "string",
                   "null"
                 ]
               },
               "module_factory_address": {
-                "description": "New module factory contract",
                 "type": [
                   "string",
                   "null"
                 ]
               },
               "subscription_address": {
-                "description": "New subscription contract",
                 "type": [
                   "string",
                   "null"
                 ]
               },
               "version_control_contract": {
-                "description": "New version control contract",
                 "type": [
                   "string",
                   "null"
@@ -118,12 +113,7 @@
                 ]
               },
               "governance": {
-                "description": "Governance details Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal. TODO: add support for other types of gov.",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/GovernanceDetails"
-                  }
-                ]
+                "$ref": "#/definitions/GovernanceDetails"
               },
               "link": {
                 "type": [

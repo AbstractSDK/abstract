@@ -9,8 +9,7 @@ use abstract_sdk::{
     },
     Execution, Resolve, Verification,
 };
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
+
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse,
     Response, StdError, StdResult, Storage,
@@ -26,7 +25,7 @@ use abstract_sdk::os::ibc_client::{
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_RETRIES: u8 = 5;
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
@@ -50,7 +49,7 @@ pub fn instantiate(
     Ok(Response::new().add_attribute("action", "instantiate"))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
     deps: DepsMut,
     env: Env,
@@ -284,7 +283,7 @@ fn clear_accounts(store: &mut dyn Storage) {
     LATEST_QUERIES.clear(store);
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
@@ -344,7 +343,7 @@ fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     // type migration

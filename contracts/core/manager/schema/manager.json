@@ -1,6 +1,6 @@
 {
   "contract_name": "manager",
-  "contract_version": "0.2.0-beta.5",
+  "contract_version": "0.3.0-beta.2",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -145,7 +145,6 @@
             ],
             "properties": {
               "init_msg": {
-                "description": "Instantiate message used to instantiate the contract.",
                 "anyOf": [
                   {
                     "$ref": "#/definitions/Binary"
@@ -156,12 +155,7 @@
                 ]
               },
               "module": {
-                "description": "Module information.",
-                "allOf": [
-                  {
-                    "$ref": "#/definitions/ModuleInfo"
-                  }
-                ]
+                "$ref": "#/definitions/ModuleInfo"
               }
             },
             "additionalProperties": false
@@ -227,21 +221,31 @@
           "upgrade": {
             "type": "object",
             "required": [
-              "module"
+              "modules"
             ],
             "properties": {
-              "migrate_msg": {
-                "anyOf": [
-                  {
-                    "$ref": "#/definitions/Binary"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "module": {
-                "$ref": "#/definitions/ModuleInfo"
+              "modules": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": [
+                    {
+                      "$ref": "#/definitions/ModuleInfo"
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "$ref": "#/definitions/Binary"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
               }
             },
             "additionalProperties": false
@@ -353,6 +357,18 @@
           }
         },
         "additionalProperties": false
+      },
+      {
+        "type": "object",
+        "required": [
+          "callback"
+        ],
+        "properties": {
+          "callback": {
+            "$ref": "#/definitions/CallbackMsg"
+          }
+        },
+        "additionalProperties": false
       }
     ],
     "definitions": {
@@ -363,6 +379,10 @@
       "Binary": {
         "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.",
         "type": "string"
+      },
+      "CallbackMsg": {
+        "type": "object",
+        "additionalProperties": false
       },
       "Module": {
         "type": "object",
@@ -411,6 +431,21 @@
       "ModuleReference": {
         "oneOf": [
           {
+            "description": "Core Abstract Contracts",
+            "type": "object",
+            "required": [
+              "core"
+            ],
+            "properties": {
+              "core": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          },
+          {
             "description": "Native Abstract Contracts",
             "type": "object",
             "required": [
@@ -452,28 +487,13 @@
             "additionalProperties": false
           },
           {
-            "description": "Usable perks",
+            "description": "A stand-alone contract",
             "type": "object",
             "required": [
-              "perk"
+              "standalone"
             ],
             "properties": {
-              "perk": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "usable services",
-            "type": "object",
-            "required": [
-              "service"
-            ],
-            "properties": {
-              "service": {
+              "standalone": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0

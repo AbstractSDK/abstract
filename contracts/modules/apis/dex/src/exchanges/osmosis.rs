@@ -1,22 +1,27 @@
-use crate::{
-    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
-    error::DexError,
-    DEX,
-};
+use crate::dex_trait::Identify;
+use cosmwasm_std::Addr;
 
-use cosmwasm_std::{
-    Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
-};
-use cw_asset::{Asset, AssetInfo};
 #[cfg(feature = "osmosis")]
-use osmosis_std::types::osmosis::gamm::v1beta1::{
-    MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, QuerySwapExactAmountInRequest,
-    SwapAmountInRoute,
-};
-#[cfg(feature = "osmosis")]
-use osmosis_std::types::{
-    cosmos::base::v1beta1::Coin as OsmoCoin,
-    osmosis::gamm::v1beta1::{Pool, QueryPoolRequest},
+use ::{
+    crate::{
+        dex_trait::{Fee, FeeOnInput, Return, Spread},
+        error::DexError,
+        DEX,
+    },
+    cosmwasm_std::{
+        Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
+    },
+    cw_asset::{Asset, AssetInfo},
+    osmosis_std::{
+        types::osmosis::gamm::v1beta1::{
+            MsgExitPool, MsgJoinPool, MsgSwapExactAmountIn, QuerySwapExactAmountInRequest,
+            SwapAmountInRoute,
+        },
+        types::{
+            cosmos::base::v1beta1::Coin as OsmoCoin,
+            osmosis::gamm::v1beta1::{Pool, QueryPoolRequest},
+        },
+    },
 };
 
 pub const OSMOSIS: &str = "osmosis";

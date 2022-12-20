@@ -1,0 +1,27 @@
+{
+  "juno": {
+    "uni-5": [
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/crab,junox"
+        },
+        "juno1vhxnvu0zh6p707auf0ltq6scse3d2fxvp4804s54q45z29vtjleqghne5g"
+      ],
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/dao,junox"
+        },
+        "juno1paazsk7v2sx8tdjgw9ud22mg6hrawqwd27tjrv4nex9v529yzphsglem68"
+      ],
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/junox,pood"
+        },
+        "juno1rnftahwja0xf3xrng33h9hyqs5s270rga92a999ynd8a4wj5c0nsgvevgg"
+      ]
+    ]
+  }
+}

@@ -25,7 +25,8 @@ pub(crate) const MIN_LINK_LENGTH: usize = 11;
 pub(crate) const MAX_LINK_LENGTH: usize = 128;
 pub(crate) const MIN_TITLE_LENGTH: usize = 4;
 pub(crate) const MAX_TITLE_LENGTH: usize = 64;
-#[cfg_attr(not(feature = "library"), entry_point)]
+
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
@@ -35,7 +36,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
     env: Env,
@@ -83,7 +84,7 @@ pub fn instantiate(
     Ok(Response::new())
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
         ExecuteMsg::SuspendOs { new_status } => update_subscription_status(deps, info, new_status),
@@ -133,7 +134,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     }
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::ModuleVersions { ids } => queries::handle_contract_versions_query(deps, env, ids),

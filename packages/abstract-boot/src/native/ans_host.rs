@@ -1,14 +1,18 @@
 use abstract_os::ans_host::*;
-use abstract_os::objects::{UncheckedChannelEntry, UncheckedContractEntry};
-use boot_core::prelude::{BootExecute, ContractInstance};
+use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry};
+use boot_core::prelude::ContractInstance;
 use cw_asset::AssetInfoUnchecked;
 
+use abstract_os::objects::pool_id::UncheckedPoolId;
 use abstract_os::ANS_HOST;
 use boot_core::{
     prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
+
 use serde_json::from_reader;
+use std::collections::HashSet;
+
 use std::{cmp::min, env, fs::File};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -34,6 +38,7 @@ impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
         self.update_assets()?;
         self.update_contracts()?;
+        self.update_pools()?;
         Ok(())
     }
 
@@ -44,36 +49,47 @@ impl AnsHost<Daemon> {
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
         let network_id = self.get_chain().state.id.clone();
-        let maybe_assets = json.get(chain_id).unwrap().get(network_id);
+        let maybe_assets = json
+            .get(chain_id)
+            .unwrap()
+            .get(network_id)
+            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
 
-        match maybe_assets {
-            Some(assets_value) => {
-                let assets = assets_value.as_object().unwrap();
-                let to_add: Vec<(String, AssetInfoUnchecked)> = assets
-                    .iter()
-                    .map(|(name, value)| {
-                        let asset: AssetInfoUnchecked =
-                            serde_json::from_value(value.clone()).unwrap();
-                        (name.clone(), asset)
-                    })
-                    .collect();
-                let mut i = 0;
-                while i != to_add.len() {
-                    let chunk = to_add.get(i..min(i + 25, to_add.len())).unwrap();
-                    i += chunk.len();
-                    self.execute(
-                        &ExecuteMsg::UpdateAssetAddresses {
-                            to_add: chunk.to_vec(),
-                            to_remove: vec![],
-                        },
-                        None,
-                    )?;
-                }
+        /*
 
-                Ok(())
+        [[
+           "junox",
+           {
+             "native": "ujunox"
+           }
+         ],
+         [
+           "crab",
+           {
+             "cw20": "juno12wwfatmpqnxdqk0ka8rpd4ud4frc97srtv55mmlf7xunux6led8s8wtgx2"
+           }
+         ]]
+            */
+
+        let assets = maybe_assets.as_array().unwrap();
+
+        let assets_to_add: Vec<(String, AssetInfoUnchecked)> = assets
+            .iter()
+            .map(|value| {
+                let asset: (String, AssetInfoUnchecked) =
+                    serde_json::from_value(value.clone()).unwrap();
+                asset
+            })
+            .collect();
+
+        self.execute_chunked(&assets_to_add, 25, |chunk| {
+            ExecuteMsg::UpdateAssetAddresses {
+                to_add: chunk.to_vec(),
+                to_remove: vec![],
             }
-            None => Err(BootError::StdErr("network not found".into())),
-        }
+        })?;
+
+        Ok(())
     }
 
     pub fn update_channels(&self) -> Result<(), BootError> {
@@ -83,36 +99,28 @@ impl AnsHost<Daemon> {
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
         let network_id = self.get_chain().state.id.clone();
-        let maybe_channels = json.get(chain_id).unwrap().get(network_id);
+        let channels = json
+            .get(chain_id)
+            .unwrap()
+            .get(network_id)
+            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
 
-        match maybe_channels {
-            Some(channels_value) => {
-                let channels = channels_value.as_object().unwrap();
-                let to_add: Vec<(UncheckedChannelEntry, String)> = channels
-                    .iter()
-                    .map(|(name, value)| {
-                        let id = value.as_str().unwrap().to_owned();
-                        let key = UncheckedChannelEntry::try_from(name.clone()).unwrap();
-                        (key, id)
-                    })
-                    .collect();
-                let mut i = 0;
-                while i < to_add.len() {
-                    let chunk = to_add.get(i..min(i + 25, to_add.len())).unwrap();
-                    i += chunk.len();
-                    self.execute(
-                        &ExecuteMsg::UpdateChannels {
-                            to_add: chunk.to_vec(),
-                            to_remove: vec![],
-                        },
-                        None,
-                    )?;
-                }
+        let channels = channels.as_object().unwrap();
+        let channels_to_add: Vec<(UncheckedChannelEntry, String)> = channels
+            .iter()
+            .map(|(name, value)| {
+                let id = value.as_str().unwrap().to_owned();
+                let key = UncheckedChannelEntry::try_from(name.clone()).unwrap();
+                (key, id)
+            })
+            .collect();
 
-                Ok(())
-            }
-            None => Err(BootError::StdErr("network not found".into())),
-        }
+        self.execute_chunked(&channels_to_add, 25, |chunk| ExecuteMsg::UpdateChannels {
+            to_add: chunk.to_vec(),
+            to_remove: vec![],
+        })?;
+
+        Ok(())
     }
 
     pub fn update_contracts(&self) -> Result<(), BootError> {
@@ -123,35 +131,104 @@ impl AnsHost<Daemon> {
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
         let network_id = self.0.get_chain().state.id.clone();
-        let maybe_contracts = json.get(chain_id).unwrap().get(network_id);
+        let contracts = json
+            .get(chain_id)
+            .unwrap()
+            .get(network_id)
+            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
 
-        match maybe_contracts {
-            Some(contracts_value) => {
-                let contracts = contracts_value.as_object().unwrap();
-                let to_add: Vec<(UncheckedContractEntry, String)> = contracts
-                    .iter()
-                    .map(|(name, value)| {
-                        let id = value.as_str().unwrap().to_owned();
-                        let key = UncheckedContractEntry::try_from(name.clone()).unwrap();
-                        (key, id)
-                    })
-                    .collect();
-                let mut i = 0;
-                while i < to_add.len() {
-                    let chunk = to_add.get(i..min(i + 25, to_add.len())).unwrap();
-                    i += chunk.len();
-                    self.0.execute(
-                        &ExecuteMsg::UpdateContractAddresses {
-                            to_add: chunk.to_vec(),
-                            to_remove: vec![],
-                        },
-                        None,
-                    )?;
-                }
+        /*
+          [
+        [
+          {
+            "protocol": "junoswap",
+            "contract": "staking/crab,junox"
+          },
+          "juno1vhxnvu0zh6p707auf0ltq6scse3d2fxvp4804s54q45z29vtjleqghne5g"
+        ]
+        ]
+           */
 
-                Ok(())
+        let contracts = contracts.as_array().unwrap();
+        let contracts_to_add: Vec<(UncheckedContractEntry, String)> = contracts
+            .iter()
+            .map(|value| {
+                let contract: (UncheckedContractEntry, String) =
+                    serde_json::from_value(value.clone()).unwrap();
+                contract
+            })
+            .collect();
+
+        self.execute_chunked(&contracts_to_add, 25, |chunk| {
+            ExecuteMsg::UpdateContractAddresses {
+                to_add: chunk.to_vec(),
+                to_remove: vec![],
             }
-            None => Err(BootError::StdErr("network not found".into())),
+        })?;
+
+        Ok(())
+    }
+
+    pub fn update_pools(&self) -> Result<(), BootError> {
+        let path = env::var("ANS_HOST_POOLS")?;
+        let file =
+            File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
+        let json: serde_json::Value = from_reader(file)?;
+        let chain_id = self.get_chain().state.chain.chain_id.clone();
+        let network_id = self.0.get_chain().state.id.clone();
+        let pools = json
+            .get(chain_id)
+            .unwrap()
+            .get(network_id)
+            .ok_or_else(|| BootError::StdErr("network not found".into()))?;
+
+        let mut dexes_to_register: HashSet<String> = HashSet::new();
+
+        let pools = pools.as_array().unwrap();
+        let pools_to_add: Vec<(UncheckedPoolId, PoolMetadata)> = pools
+            .iter()
+            .map(|value| {
+                let pool: (UncheckedPoolId, PoolMetadata) =
+                    serde_json::from_value(value.clone()).unwrap();
+
+                dexes_to_register.insert(pool.1.dex.clone());
+
+                pool
+            })
+            .collect();
+
+        // Register the dexes
+        self.0.execute(
+            &ExecuteMsg::UpdateDexes {
+                to_add: Vec::from_iter(dexes_to_register),
+                to_remove: vec![],
+            },
+            None,
+        )?;
+
+        self.execute_chunked(&pools_to_add, 25, |chunk| ExecuteMsg::UpdatePools {
+            to_add: chunk.to_vec(),
+            to_remove: vec![],
+        })?;
+
+        Ok(())
+    }
+
+    fn execute_chunked<T, F>(
+        &self,
+        items: &[T],
+        chunk_size: usize,
+        mut msg_builder: F,
+    ) -> Result<(), BootError>
+    where
+        F: FnMut(&[T]) -> ExecuteMsg,
+    {
+        let mut i = 0;
+        while i < items.len() {
+            let chunk = &items[i..min(i + chunk_size, items.len())];
+            i += chunk.len();
+            self.0.execute(&msg_builder(chunk), None)?;
         }
+        Ok(())
     }
 }

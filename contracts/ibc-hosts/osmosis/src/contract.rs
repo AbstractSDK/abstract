@@ -29,13 +29,13 @@ pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
 const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSIS, None);
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> OsmoResult {
     OSMO_HOST.instantiate(deps, env, info, msg)?;
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn execute(
     deps: DepsMut,
     env: Env,
@@ -69,17 +69,17 @@ fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction
         .add_attribute("action", "handle_app_action"))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
     OSMO_HOST.reply(deps, env, reply)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     OSMO_HOST.query(deps, env, msg)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> OsmoResult {
     OSMO_HOST.migrate(deps, env, msg)
 }

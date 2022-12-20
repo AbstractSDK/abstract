@@ -84,7 +84,7 @@ pub fn query_module_data<Q: Querier, T: Into<String>>(
 mod tests {
     use super::*;
     use cosmwasm_std::testing::MockStorage;
-    use semver::{Comparator, Prerelease};
+    
 
     #[test]
     fn get_and_set_work() {

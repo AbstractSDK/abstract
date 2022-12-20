@@ -1,6 +1,5 @@
 use abstract_sdk::os::ibc_host::{HostAction, InternalAction, PacketMsg};
-#[cfg(not(feature = "library"))]
-use cosmwasm_std::entry_point;
+
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
@@ -21,7 +20,7 @@ use abstract_sdk::os::ibc_client::{
 /// packets live one hour
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 /// enforces ordering and versioing constraints
 pub fn ibc_channel_open(
     _deps: DepsMut,
@@ -38,7 +37,7 @@ pub fn ibc_channel_open(
     Ok(None)
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn ibc_channel_connect(
     deps: DepsMut,
     env: Env,
@@ -72,7 +71,7 @@ pub fn ibc_channel_connect(
         .add_attribute("channel_id", channel_id))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 /// On closed channel, simply delete the account from our local store
 pub fn ibc_channel_close(
     _deps: DepsMut,
@@ -89,7 +88,7 @@ pub fn ibc_channel_close(
         .add_attribute("channel_id", channel_id))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 /// never should be called as the other side never sends packets
 pub fn ibc_packet_receive(
     _deps: DepsMut,
@@ -101,7 +100,7 @@ pub fn ibc_packet_receive(
         .add_attribute("action", "ibc_packet_ack"))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn ibc_packet_ack(
     deps: DepsMut,
     env: Env,
@@ -308,7 +307,7 @@ fn acknowledge_balances(
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
 }
 
-#[cfg_attr(not(feature = "library"), entry_point)]
+#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 /// we just ignore these now. shall we store some info?
 pub fn ibc_packet_timeout(
     _deps: DepsMut,

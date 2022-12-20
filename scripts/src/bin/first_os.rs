@@ -6,26 +6,30 @@ use boot_core::prelude::*;
 use semver::Version;
 use tokio::runtime::Runtime;
 
-use abstract_boot::{Deployment, DexApi, OS};
+use abstract_boot::{Deployment};
+use abstract_os::objects::gov_type::GovernanceDetails;
 
-pub fn full_deploy() -> anyhow::Result<()> {
+
+/// Script that registers the first OS in abstract (our OS)
+pub fn first_os() -> anyhow::Result<()> {
     let abstract_os_version: Version = "0.1.0-rc.3".parse().unwrap();
     let network = UNI_5;
     // let network = LOCAL_JUNO;
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let mut os_core = OS::new(&chain, None);
+    let deployment = Deployment::new(&chain, abstract_os_version);
 
-    let mut deployment = Deployment::new(&chain, abstract_os_version);
+    // NOTE: this assumes that the deployment has been deployed
 
-    deployment.deploy(&mut os_core)?;
+    deployment
+        .os_factory
+        .create_default_os(GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        })?;
 
-    let _dex = DexApi::new("dex", &chain);
-
-    let ans_host = deployment.ans_host;
-    ans_host.update_all()?;
+    deployment.ans_host.update_all()?;
 
     Ok(())
 }
@@ -36,7 +40,7 @@ fn main() {
 
     use dotenv::dotenv;
 
-    if let Err(ref err) = full_deploy() {
+    if let Err(ref err) = first_os() {
         log::error!("{}", err);
         err.chain()
             .skip(1)

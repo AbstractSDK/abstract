@@ -24,7 +24,7 @@
       ],
       "properties": {
         "app": {
-          "$ref": "#/definitions/ExecuteMsg"
+          "$ref": "#/definitions/SubscriptionExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -163,7 +163,54 @@
       "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
       "type": "string"
     },
-    "ExecuteMsg": {
+    "IbcResponseMsg": {
+      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "type": "object",
+      "required": [
+        "id",
+        "msg"
+      ],
+      "properties": {
+        "id": {
+          "description": "The ID chosen by the caller in the `callback_id`",
+          "type": "string"
+        },
+        "msg": {
+          "$ref": "#/definitions/StdAck"
+        }
+      },
+      "additionalProperties": false
+    },
+    "StdAck": {
+      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "$ref": "#/definitions/Binary"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "SubscriptionExecuteMsg": {
       "oneOf": [
         {
           "type": "object",
@@ -454,53 +501,6 @@
                 }
               },
               "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "IbcResponseMsg": {
-      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
-      "type": "object",
-      "required": [
-        "id",
-        "msg"
-      ],
-      "properties": {
-        "id": {
-          "description": "The ID chosen by the caller in the `callback_id`",
-          "type": "string"
-        },
-        "msg": {
-          "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
-    },
-    "StdAck": {
-      "description": "This is a generic ICS acknowledgement format. Proto defined here: https://github.com/cosmos/cosmos-sdk/blob/v0.42.0/proto/ibc/core/channel/v1/channel.proto#L141-L147 If ibc_receive_packet returns Err(), then x/wasm runtime will rollback the state and return an error message in this format",
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "result"
-          ],
-          "properties": {
-            "result": {
-              "$ref": "#/definitions/Binary"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "error"
-          ],
-          "properties": {
-            "error": {
-              "type": "string"
             }
           },
           "additionalProperties": false

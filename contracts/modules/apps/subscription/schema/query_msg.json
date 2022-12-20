@@ -23,7 +23,7 @@
       ],
       "properties": {
         "app": {
-          "$ref": "#/definitions/QueryMsg"
+          "$ref": "#/definitions/SubscriptionQueryMsg"
         }
       },
       "additionalProperties": false
@@ -62,7 +62,7 @@
         }
       ]
     },
-    "QueryMsg": {
+    "SubscriptionQueryMsg": {
       "oneOf": [
         {
           "type": "object",

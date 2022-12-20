@@ -24,7 +24,7 @@
       ],
       "properties": {
         "app": {
-          "$ref": "#/definitions/ApiRequestMsg_for_DexRequestMsg"
+          "$ref": "#/definitions/ApiRequestMsg_for_DexExecuteMsg"
         }
       },
       "additionalProperties": false
@@ -61,16 +61,40 @@
       "type": "object",
       "required": [
         "amount",
-        "info"
+        "name"
       ],
       "properties": {
         "amount": {
           "$ref": "#/definitions/Uint128"
         },
-        "info": {
+        "name": {
           "$ref": "#/definitions/AssetEntry"
         }
       }
+    },
+    "ApiRequestMsg_for_DexExecuteMsg": {
+      "description": "An api request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
+      "type": "object",
+      "required": [
+        "request"
+      ],
+      "properties": {
+        "proxy_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "request": {
+          "description": "The actual request",
+          "allOf": [
+            {
+              "$ref": "#/definitions/DexExecuteMsg"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     "AssetEntry": {
       "description": "May key to retrieve information on an asset",
@@ -333,7 +357,7 @@
         }
       ]
     },
-    "DexRequestMsg": {
+    "DexExecuteMsg": {
       "description": "Dex Execute msg",
       "type": "object",
       "required": [
@@ -353,30 +377,6 @@
     "Empty": {
       "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
       "type": "object"
-    },
-    "ApiRequestMsg_for_DexRequestMsg": {
-      "description": "An api request. If proxy is None, then the sender must be an OS manager and the proxy address is extrapolated from the OS id.",
-      "type": "object",
-      "required": [
-        "request"
-      ],
-      "properties": {
-        "proxy_address": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "request": {
-          "description": "The actual request",
-          "allOf": [
-            {
-              "$ref": "#/definitions/DexRequestMsg"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false
     },
     "IbcResponseMsg": {
       "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
@@ -428,6 +428,7 @@
     "SwapRouter": {
       "oneOf": [
         {
+          "description": "Matrix router",
           "type": "string",
           "enum": [
             "matrix"

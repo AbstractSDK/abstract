@@ -21,19 +21,19 @@ library = []
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-cosmwasm-std = { workspace = true }
-cw-controllers = {workspace = true}
-cw-storage-plus = {workspace = true}
+abstract-os = { workspace = true }
+abstract-sdk = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cw2 = {workspace = true}
-cw20 = {workspace = true}
-abstract-sdk = {workspace = true}
-abstract-os = {workspace = true}
-serde = {workspace = true}
-thiserror = {workspace = true}
-protobuf = {workspace = true}
-cw-asset= {workspace = true}
-semver = {workspace = true}
+cosmwasm-std = { workspace = true }
+cw-asset = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+protobuf = { workspace = true }
+semver = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 abstract-boot = {workspace = true}
