@@ -25,11 +25,11 @@ pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock
 
     os_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
-            crate::contract::execute,
-            crate::contract::instantiate,
-            crate::contract::query,
+            ::os_factory::contract::execute,
+            ::os_factory::contract::instantiate,
+            ::os_factory::contract::query,
         )
-        .with_reply_empty(crate::contract::reply),
+        .with_reply_empty(::os_factory::contract::reply),
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
@@ -68,7 +68,7 @@ pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock
     // do as above for the rest of the contracts
 
     let deployment = Deployment {
-        chain,
+        chain: chain,
         version: "1.0.0".parse()?,
         ans_host,
         os_factory,

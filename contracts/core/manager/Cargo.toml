@@ -40,6 +40,6 @@ speculoos = {workspace = true }
 
 proxy = { path = "../proxy" }
 ans-host = { path = "../../native/ans-host" }
-os-factory = { path = "../../native/factory" }
+os-factory = { path = "../../native/os-factory" }
 module-factory = { path = "../../native/module-factory" }
 version-control = { path = "../../native/version-control" }

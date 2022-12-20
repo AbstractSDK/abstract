@@ -29,7 +29,7 @@ pub struct OsRegister<'a, T: Verification> {
 impl<'a, T: Verification> OsRegister<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID.query(&self.deps.querier, maybe_manager.clone())?;
+        let os_id = OS_ID.query(&self.deps.querier, maybe_manager.clone()).map_err(|_| StdError::generic_err("Caller must be an OS manager."))?;
         let maybe_os =
             OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
@@ -51,7 +51,7 @@ impl<'a, T: Verification> OsRegister<'a, T> {
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> StdResult<Core> {
-        let os_id = OS_ID.query(&self.deps.querier, maybe_proxy.clone())?;
+        let os_id = OS_ID.query(&self.deps.querier, maybe_proxy.clone()).map_err(|_| StdError::generic_err("Caller must be an OS proxy."))?;
         let maybe_os =
             OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {

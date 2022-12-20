@@ -1,5 +1,6 @@
-use super::init::init_test_env;
-use crate::tests::common;
+mod common;
+
+use common::init_test_env;
 use abstract_boot::{os_factory::OsFactoryQueryFns, OsFactoryExecFns, VCQueryFns, OS, *};
 use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
 use boot_core::{

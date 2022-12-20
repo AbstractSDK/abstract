@@ -38,10 +38,12 @@ pub fn execute_create_module(
     };
     let version_registry = binding.version_register(deps.as_ref());
     let os_registry = binding.os_register(deps.as_ref());
-    let new_module = version_registry.query_module(module_info)?;
+    // assert that sender is manager
     let core = os_registry.assert_manager(&info.sender)?;
-
-    // Todo: check if this can be generalized for some contracts
+    
+    let new_module = version_registry.query_module(module_info)?;
+    
+    // TODO: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
     // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
     // let init_msg = ModuleInitMsg {

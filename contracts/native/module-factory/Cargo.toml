@@ -31,3 +31,17 @@ semver = {workspace = true}
 protobuf = {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
+
+[dev-dependencies]
+abstract-boot = {workspace = true}
+boot-core = { workspace = true}
+anyhow = {workspace = true}
+cw-multi-test = {workspace = true}
+
+os-factory = { workspace = true }
+ans-host = { workspace = true }
+version-control = { workspace = true }
+proxy = { workspace = true }
+manager = { workspace = true }
+
+speculoos = { workspace = true }

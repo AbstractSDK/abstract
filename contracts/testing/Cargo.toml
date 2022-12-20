@@ -36,7 +36,7 @@ anyhow = {workspace = true}
 proxy = { path = "../core/proxy" }
 manager = { path = "../core/manager" }
 ans-host = {path = "../native/ans-host" }
-os-factory = { path = "../native/factory" }
+os-factory = { path = "../native/os-factory" }
 module-factory = { path = "../native/module-factory" }
 version-control = { path = "../native/version-control" }
 subscription = { path = "../modules/apps/subscription" }
