@@ -70,7 +70,7 @@ pub fn init_test_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock
     // do as above for the rest of the contracts
 
     let deployment = Deployment {
-        chain: chain,
+        chain,
         version: "1.0.0".parse()?,
         ans_host,
         os_factory,

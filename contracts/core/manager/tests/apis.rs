@@ -149,7 +149,7 @@ fn manager_api_exec() -> AResult {
 
     os.manager.execute_on_module(
         TENDERMINT_STAKING,
-        &Into::<tendermint_staking::ExecuteMsg>::into(TendermintStakingExecuteMsg::Delegate {
+        Into::<tendermint_staking::ExecuteMsg>::into(TendermintStakingExecuteMsg::Delegate {
             validator: VALIDATOR.into(),
             amount: 100u128.into(),
         }),

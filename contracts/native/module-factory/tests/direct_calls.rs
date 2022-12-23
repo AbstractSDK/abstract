@@ -19,7 +19,7 @@ fn instantiate() -> AResult {
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
     let expected = module_factory::ConfigResponse {
-        owner: sender.clone().into_string(),
+        owner: sender.into_string(),
         ans_host_address: deployment.ans_host.address()?.into(),
         version_control_address: deployment.version_control.address()?.into_string(),
     };

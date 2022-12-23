@@ -6,7 +6,7 @@ use abstract_sdk::{
         Handler,
     },
     os::api::{BaseExecuteMsg, ExecuteMsg},
-    ApplicationInterface, Execution, Verification,
+    Execution, ModuleInterface, Verification,
 };
 use cosmwasm_std::{
     to_binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError, WasmMsg,
@@ -105,9 +105,9 @@ impl<
         self.target_os = Some(core);
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
-        let applications = self.applications(deps);
+        let applications = self.modules(deps);
         for dep in dependencies {
-            let api_addr = applications.app_address(dep.id);
+            let api_addr = applications.module_address(dep.id);
             // just skip if dep is already removed. This means all the traders are already removed.
             if api_addr.is_err() {
                 continue;

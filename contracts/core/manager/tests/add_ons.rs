@@ -24,7 +24,7 @@ fn execute_on_proxy_through_manager() -> AResult {
         .app
         .borrow()
         .wrap()
-        .query_all_balances(&os.proxy.address()?)?;
+        .query_all_balances(os.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000, TEST_COIN)]);
 
     let burn_amount: Vec<Coin> = vec![Coin::new(10_000, TEST_COIN)];
@@ -42,7 +42,7 @@ fn execute_on_proxy_through_manager() -> AResult {
         .app
         .borrow()
         .wrap()
-        .query_all_balances(&os.proxy.address()?)?;
+        .query_all_balances(os.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
 
     Ok(())
