@@ -7,7 +7,9 @@ use boot_core::{prelude::ContractInstance, Mock};
 
 use cw_multi_test::ContractWrapper;
 
-pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
+pub const ROOT_USER: &str = "root_user";
+
+pub fn init_test_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
     let mut os_factory = OSFactory::new(OS_FACTORY, chain);
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain);

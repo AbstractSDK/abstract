@@ -1,6 +1,6 @@
 use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 
-use crate::contract::VCResult;
+use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
@@ -34,7 +34,7 @@ pub fn add_modules(
         }
         // version must be set in order to add the new version
         module.assert_version_variant()?;
-        if module.provider == "abstract" {
+        if module.provider == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         }
@@ -69,4 +69,331 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     Ok(Response::default()
         .add_attribute("previous admin", previous_admin)
         .add_attribute("admin", admin))
+}
+
+#[cfg(test)]
+mod test {
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{Addr, StdError, Storage};
+
+    use abstract_os::version_control::*;
+
+    use crate::contract;
+    use speculoos::prelude::*;
+
+    use super::*;
+
+    type VersionControlTestResult = Result<(), VCError>;
+
+    const TEST_OS_FACTORY: &str = "os_factory";
+    const TEST_ADMIN: &str = "testadmin";
+    const TEST_OTHER: &str = "test_other";
+    const TEST_MODULE: &str = "provider:test";
+    const TEST_VERSION: &str = "1.1.0";
+
+    const TEST_VERSION_CONTROL: &str = "version_control";
+
+    const TEST_PROXY_ADDR: &str = "proxy";
+    const TEST_MANAGER_ADDR: &str = "manager";
+
+    /// Initialize the version_control with admin as creator and factory
+    fn mock_init(mut deps: DepsMut) -> VCResult {
+        let info = mock_info(TEST_ADMIN, &[]);
+        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+    }
+
+    /// Initialize the version_control with admin and updated os_factory
+    fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
+        let info = mock_info(TEST_ADMIN, &[]);
+        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
+        execute_as_admin(
+            deps,
+            ExecuteMsg::SetFactory {
+                new_factory: TEST_OS_FACTORY.to_string(),
+            },
+        )
+    }
+
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> VCResult {
+        contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
+
+    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
+        execute_as(deps, TEST_ADMIN, msg)
+    }
+
+    fn test_only_admin(msg: ExecuteMsg) -> VersionControlTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut())?;
+
+        let res = execute_as(deps.as_mut(), "not_admin", msg);
+        assert_that!(&res)
+            .is_err()
+            .is_equal_to(VCError::Admin(AdminError::NotAdmin {}));
+
+        Ok(())
+    }
+    use cw_controllers::AdminError;
+
+    mod set_admin_and_factory {
+        use super::*;
+
+        #[test]
+        fn only_admin_admin() -> VersionControlTestResult {
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: "new_admin".to_string(),
+            };
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn only_admin_factory() -> VersionControlTestResult {
+            let msg = ExecuteMsg::SetFactory {
+                new_factory: "new_factory".to_string(),
+            };
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn updates_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_admin = "new_admin";
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: new_admin.to_string(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            let actual_admin = ADMIN.get(deps.as_ref())?.unwrap();
+
+            assert_that!(&actual_admin).is_equal_to(Addr::unchecked(new_admin));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_factory() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_factory = "new_factory";
+            let msg = ExecuteMsg::SetFactory {
+                new_factory: new_factory.to_string(),
+            };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            let actual_factory = FACTORY.get(deps.as_ref())?.unwrap();
+
+            assert_that!(&actual_factory).is_equal_to(Addr::unchecked(new_factory));
+            Ok(())
+        }
+    }
+
+    mod update_modules {
+        use super::*;
+        use abstract_os::objects::{module::*, module_reference::ModuleReference};
+
+        fn test_module() -> ModuleInfo {
+            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
+        }
+
+        fn test_module_latest() -> ModuleInfo {
+            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
+        }
+
+        // - Query latest
+
+        #[test]
+        fn add_module() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let new_module = test_module();
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res).is_ok();
+            let module = MODULE_LIBRARY.load(&deps.storage, new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            Ok(())
+        }
+
+        #[test]
+        fn remove_module() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let rm_module = test_module();
+
+            // first add module
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(rm_module.clone(), ModuleReference::App(0))],
+            };
+            execute_as(deps.as_mut(), TEST_OTHER, msg)?;
+            let module = MODULE_LIBRARY.load(&deps.storage, rm_module.clone())?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+
+            // then remove
+            let msg = ExecuteMsg::RemoveModule {
+                module: rm_module.clone(),
+            };
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // as admin
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+
+            let module = MODULE_LIBRARY.load(&deps.storage, rm_module);
+            assert_that!(&module).is_err();
+            Ok(())
+        }
+
+        #[test]
+        fn bad_version() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let bad_version_module = ModuleInfo::from_id(
+                TEST_MODULE,
+                ModuleVersion::Version("non_compliant_version".into()),
+            )?;
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(bad_version_module, ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res).is_err().is_equal_to(
+                &StdError::generic_err(
+                    "unexpected character 'n' while parsing major version number",
+                )
+                .into(),
+            );
+
+            let latest_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Latest)?;
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(latest_version_module, ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res).is_err().is_equal_to(
+                &StdError::generic_err("Module version must be set for this action.").into(),
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn abstract_namespace() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test_module");
+            mock_init(deps.as_mut())?;
+            let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
+            let msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+
+            // execute as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // execute as admin
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            let module = MODULE_LIBRARY.load(&deps.storage, new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            Ok(())
+        }
+    }
+
+    mod register_os {
+        use super::*;
+
+        #[test]
+        fn add_os() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init_with_factory(deps.as_mut())?;
+
+            let test_core: Core = Core {
+                manager: Addr::unchecked(TEST_MANAGER_ADDR),
+                proxy: Addr::unchecked(TEST_PROXY_ADDR),
+            };
+            let msg = ExecuteMsg::AddOs {
+                os_id: 0,
+                core: test_core.clone(),
+            };
+
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // as admin
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // as factory
+            execute_as(deps.as_mut(), TEST_OS_FACTORY, msg)?;
+
+            let os = OS_ADDRESSES.load(&deps.storage, 0)?;
+            assert_that!(&os).is_equal_to(&test_core);
+            Ok(())
+        }
+    }
+
+    mod configure {
+
+        use super::*;
+
+        #[test]
+        fn set_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SetAdmin {
+                new_admin: TEST_OTHER.into(),
+            };
+
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // as admin
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            let new_admin = ADMIN.query_admin(deps.as_ref())?.admin;
+            assert_that!(new_admin).is_equal_to(&Some(TEST_OTHER.into()));
+            Ok(())
+        }
+
+        #[test]
+        fn set_factory() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::SetFactory {
+                new_factory: TEST_OS_FACTORY.into(),
+            };
+
+            // as other
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+
+            // as admin
+            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
+            assert_that!(new_factory).is_equal_to(&Some(TEST_OS_FACTORY.into()));
+            Ok(())
+        }
+    }
 }

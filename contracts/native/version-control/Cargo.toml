@@ -29,4 +29,15 @@ abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
 
 [dev-dependencies]
-cosmwasm-schema = { workspace = true }
+cosmwasm-schema = {workspace = true}
+abstract-boot = {workspace = true}
+boot-core = { workspace = true}
+anyhow = {workspace = true}
+cw-multi-test = {workspace = true}
+module-factory = { workspace = true }
+ans-host = { workspace = true }
+os-factory = { workspace = true }
+proxy = { workspace = true }
+manager = { workspace = true }
+
+speculoos = { workspace = true }

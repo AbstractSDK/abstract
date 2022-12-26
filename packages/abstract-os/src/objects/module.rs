@@ -37,15 +37,19 @@ impl ModuleInfo {
     }
 
     pub fn from_id_latest(id: &str) -> StdResult<Self> {
-        Self::from_id(id, ModuleVersion::Latest {})
+        Self::from_id(id, ModuleVersion::Latest)
     }
 
     pub fn assert_version_variant(&self) -> StdResult<()> {
-        match self.version {
-            ModuleVersion::Latest {} => Err(StdError::generic_err(
+        match &self.version {
+            ModuleVersion::Latest => Err(StdError::generic_err(
                 "Module version must be set for this action.",
             )),
-            ModuleVersion::Version(_) => Ok(()),
+            ModuleVersion::Version(ver) => {
+                // assert version parses correctly
+                semver::Version::parse(ver).map_err(|e|StdError::generic_err(e.to_string()))?;
+                Ok(())
+            },
         }
     }
 }
@@ -64,7 +68,7 @@ impl<'a> PrimaryKey<'a> for ModuleInfo {
         let mut keys = self.provider.key();
         keys.extend(self.name.key());
         let temp = match &self.version {
-            ModuleVersion::Latest {} => "latest".key(),
+            ModuleVersion::Latest => "latest".key(),
             ModuleVersion::Version(ver) => ver.key(),
         };
         keys.extend(temp);
@@ -84,7 +88,7 @@ impl<'a> Prefixer<'a> for ModuleInfo {
 impl<'a> Prefixer<'a> for ModuleVersion {
     fn prefix(&self) -> Vec<Key> {
         let self_as_bytes = match &self {
-            ModuleVersion::Latest {} => "latest".as_bytes(),
+            ModuleVersion::Latest => "latest".as_bytes(),
             ModuleVersion::Version(ver) => ver.as_bytes(),
         };
         vec![Key::Ref(self_as_bytes)]
@@ -119,7 +123,7 @@ impl KeyDeserialize for ModuleVersion {
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
         let val = String::from_utf8(value).map_err(StdError::invalid_utf8)?;
         if &val == "latest" {
-            Ok(Self::Latest {})
+            Ok(Self::Latest)
         } else {
             Ok(Self::Version(val))
         }
@@ -138,7 +142,7 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 
 #[cosmwasm_schema::cw_serde]
 pub enum ModuleVersion {
-    Latest {},
+    Latest,
     Version(String),
 }
 
@@ -146,16 +150,16 @@ pub enum ModuleVersion {
 impl Display for ModuleVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let print_str = match self {
-            ModuleVersion::Latest {} => "latest".to_string(),
+            ModuleVersion::Latest => "latest".to_string(),
             ModuleVersion::Version(ver) => ver.to_owned(),
         };
         f.write_str(&print_str)
     }
 }
 
-impl From<Option<String>> for ModuleVersion {
-    fn from(value: Option<String>) -> Self {
-        value.map_or(ModuleVersion::Latest {}, ModuleVersion::Version)
+impl<T> From<T> for ModuleVersion where T: Into<String>{
+    fn from(ver: T) -> Self {
+        Self::Version(ver.into())
     }
 }
 
@@ -271,7 +275,7 @@ mod test {
             ModuleInfo {
                 provider: "astroport".to_string(),
                 name: "liquidity_pool".to_string(),
-                version: ModuleVersion::Latest {},
+                version: ModuleVersion::Latest,
             },
         )
     }

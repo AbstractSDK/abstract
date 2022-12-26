@@ -111,7 +111,7 @@ pub fn init_primary_os(
     })?;
 
     let msg = abstract_os::manager::ExecuteMsg::InstallModule {
-        module: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest {})?,
+        module: ModuleInfo::from_id(SUBSCRIPTION, ModuleVersion::Latest)?,
         init_msg: Some(init_msg),
     };
 

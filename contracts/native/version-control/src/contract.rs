@@ -18,6 +18,8 @@ use abstract_sdk::os::version_control::{
 
 pub type VCResult = Result<Response, VCError>;
 
+pub const ABSTRACT_NAMESPACE: &str = "abstract";
+
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let version: Version = CONTRACT_VERSION.parse()?;

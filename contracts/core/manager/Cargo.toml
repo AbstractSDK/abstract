@@ -35,7 +35,6 @@ semver = {workspace = true}
 [dev-dependencies]
 cw-multi-test = { workspace = true , features = ["staking"]}
 cw20 = { workspace = true }
-rstest = {workspace = true }
 abstract-boot = {workspace = true}
 boot-core = { workspace = true, features = ["staking"]}
 anyhow = {workspace = true}
@@ -45,6 +44,7 @@ ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
+rstest = {workspace = true }
 speculoos = { workspace = true }
 
 tendermint-staking = {path = "../../modules/apis/tendermint-staking"}

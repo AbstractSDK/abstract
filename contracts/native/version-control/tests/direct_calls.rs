@@ -43,7 +43,7 @@ fn caller_must_be_manager() -> AResult {
     )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();
-    assert_that(&res.root().to_string()).contains("Caller must be an OS manager");
+    assert_that!(&res.root().to_string()).contains("Caller must be an OS manager");
 
     Ok(())
 }

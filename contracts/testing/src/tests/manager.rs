@@ -70,7 +70,7 @@ fn proper_initialization() {
         sender.clone(),
         manager.clone(),
         &ManagerMsgs::ExecuteMsg::InstallModule {
-            module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+            module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest).unwrap(),
             init_msg: Some(
                 to_binary(&api::InstantiateMsg {
                     base: BaseInstantiateMsg {
@@ -102,7 +102,7 @@ fn proper_initialization() {
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
             &abstract_sdk::os::version_control::QueryMsg::Module {
-                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest).unwrap(),
             },
         )
         .unwrap();
@@ -112,7 +112,7 @@ fn proper_initialization() {
         manager,
         &ManagerMsgs::ExecuteMsg::Upgrade {
             modules: vec![(
-                ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+                ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest).unwrap(),
                 None,
             )],
         },
@@ -135,7 +135,7 @@ fn proper_initialization() {
         .query_wasm_smart(
             env.native_contracts.version_control.clone(),
             &abstract_sdk::os::version_control::QueryMsg::Module {
-                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest {}).unwrap(),
+                module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest).unwrap(),
             },
         )
         .unwrap();

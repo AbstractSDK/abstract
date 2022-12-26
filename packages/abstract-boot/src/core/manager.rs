@@ -53,7 +53,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         self.execute(
             &ExecuteMsg::Upgrade {
                 modules: vec![(
-                    ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
+                    ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
                     Some(to_binary(migrate_msg)?),
                 )],
             },
@@ -69,7 +69,7 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id(module_id, ModuleVersion::Latest {})?,
+                module: ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
                 init_msg: init_msg.map(to_binary).transpose()?,
             },
             None,
