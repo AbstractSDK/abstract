@@ -5,9 +5,7 @@ use abstract_os::{
     },
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg},
 };
-use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, WasmQuery};
-
-use cosmwasm_std::StdResult;
+use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, StdResult, WasmQuery};
 
 use super::RegisterAccess;
 

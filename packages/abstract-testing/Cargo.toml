@@ -6,7 +6,7 @@ edition = { workspace = true }
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }
-schemars = {workspace = true}
-cw-storage-plus = {workspace = true}
-serde = {workspace = true}
+schemars = { workspace = true }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
 derive_builder = "0.12.0"

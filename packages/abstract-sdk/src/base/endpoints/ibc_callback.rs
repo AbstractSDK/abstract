@@ -16,16 +16,17 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         // Todo: Change to use version control instead?
         let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
         if info.sender.ne(&ibc_client) {
-            return Err(StdError::GenericErr {
-                msg: format! {"ibc callback can only be called by local ibc client {}",ibc_client },
-            }
+            return Err(StdError::generic_err(format!(
+                "ibc callback can only be called by local ibc client {}",
+                ibc_client
+            ))
             .into());
-        }
+        };
         let IbcResponseMsg { id, msg: ack } = msg;
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
             || Ok(Response::new()),
-            |f| f(deps, env, info, self, id, ack),
+            |handler| handler(deps, env, info, self, id, ack),
         )
     }
 }

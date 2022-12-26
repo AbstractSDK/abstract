@@ -122,7 +122,7 @@ impl<
             }));
         }
         self.executor(deps)
-            .execute_response(msgs, "remove api from dependencies")
+            .execute_with_response(msgs, "remove api from dependencies")
             .map_err(Into::into)
     }
 
