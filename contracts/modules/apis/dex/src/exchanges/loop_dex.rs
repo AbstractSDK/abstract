@@ -1,14 +1,18 @@
 use crate::{dex_trait::Identify, error::DexError, DEX};
 
+use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
+use abstract_os::objects::PoolId;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult,
+    WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
 
 pub const LOOP: &str = "loop";
+
 pub struct Loop {}
 
 impl Identify for Loop {
@@ -24,12 +28,14 @@ impl DEX for Loop {
     fn swap(
         &self,
         _deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_asset: Asset,
         _ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_contract()?;
+
         let msg = if let AssetInfoBase::Cw20(token_addr) = &offer_asset.info {
             let hook_msg = terraswap::pair::Cw20HookMsg::Swap {
                 belief_price,
@@ -59,10 +65,11 @@ impl DEX for Loop {
     fn provide_liquidity(
         &self,
         _deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_contract()?;
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
@@ -93,11 +100,12 @@ impl DEX for Loop {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_asset: Asset,
-        other_assets: Vec<AssetInfo>,
+        paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
-        if other_assets.len() > 1 {
+        let pair_address = pool_id.expect_contract()?;
+        if paired_assets.len() > 1 {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
@@ -113,7 +121,7 @@ impl DEX for Loop {
             let other_token_amount = price * offer_asset.amount;
             Asset {
                 amount: other_token_amount,
-                info: other_assets[0].clone(),
+                info: paired_assets[0].clone(),
             }
         } else if pair_config.assets[1].info == ts_offer_asset.info {
             let price =
@@ -121,7 +129,7 @@ impl DEX for Loop {
             let other_token_amount = price * offer_asset.amount;
             Asset {
                 amount: other_token_amount,
-                info: other_assets[0].clone(),
+                info: paired_assets[0].clone(),
             }
         } else {
             return Err(DexError::ArgumentMismatch(
@@ -151,11 +159,7 @@ impl DEX for Loop {
             receiver: None,
         };
         // actual call to pair
-        let liquidity_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: pair_address.into_string(),
-            msg: to_binary(&msg)?,
-            funds: coins,
-        });
+        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
         msgs.push(liquidity_msg);
         Ok(msgs)
     }
@@ -163,9 +167,10 @@ impl DEX for Loop {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_contract()?;
         let hook_msg = terraswap::pair::Cw20HookMsg::WithdrawLiquidity {};
         // Call swap on pair through cw20 Send
         Ok(vec![lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?])
@@ -174,10 +179,12 @@ impl DEX for Loop {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_asset: Asset,
         _ask_asset: AssetInfo,
-    ) -> Result<(Uint128, Uint128, Uint128, bool), DexError> {
+    ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
+        let pair_address = pool_id.expect_contract()?;
+
         // Do simulation
         let SimulationResponse {
             return_amount,

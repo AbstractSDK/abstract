@@ -1,19 +1,14 @@
-use std::fmt::Debug;
-
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::{state::StateInterface, BootEnvironment};
-use cosmwasm_std::{to_binary, Addr, Binary};
+use boot_core::BootEnvironment;
+use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
 use abstract_os::manager::*;
 pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 
-use boot_core::{BootError, Contract, IndexResponse, TxResponse};
+use boot_core::{BootError, Contract};
 
-use boot_core::{
-    interface::{BootExecute, ContractInstance},
-    prelude::boot_contract,
-};
+use boot_core::{interface::BootExecute, prelude::boot_contract};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
@@ -62,15 +57,31 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Ok(())
     }
 
-    pub fn install_module<M: Serialize>(
+    pub fn replace_api(&self, module_id: &str) -> Result<(), BootError> {
+        self.uninstall_module(module_id)?;
+
+        self.install_module::<Empty>(module_id, None)
+    }
+
+    pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: Option<&M>,
+        init_msg: Option<&TInitMsg>,
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id(module_id, ModuleVersion::Latest)?,
+                module: ModuleInfo::from_id_latest(module_id)?,
                 init_msg: init_msg.map(to_binary).transpose()?,
+            },
+            None,
+        )?;
+        Ok(())
+    }
+
+    pub fn uninstall_module(&self, module_id: impl Into<String>) -> Result<(), BootError> {
+        self.execute(
+            &ExecuteMsg::RemoveModule {
+                module_id: module_id.into(),
             },
             None,
         )?;
@@ -86,33 +97,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
             None,
         )?;
         Ok(())
-    }
-
-    pub fn add_module<I: Serialize + Debug>(
-        &self,
-        module: &Contract<Chain>,
-        init_msg: Option<&I>,
-        contract_id: &str,
-        version: String,
-    ) -> Result<TxResponse<Chain>, BootError> {
-        let mut msg: Option<Binary> = None;
-        if init_msg.is_some() {
-            msg = init_msg.map(|msg| to_binary(msg).unwrap());
-        }
-        let result = self.execute(
-            &ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id(contract_id, ModuleVersion::Version(version))?,
-                init_msg: msg,
-            },
-            None,
-        )?;
-
-        let module_address = result.event_attr_value("wasm", "new module:")?;
-        self.get_chain()
-            .state()
-            .set_address(&module.id, &Addr::unchecked(module_address));
-
-        Ok(result)
     }
 }
 

@@ -8,6 +8,7 @@ pub(crate) mod channel_entry;
 pub mod common_namespace;
 pub(crate) mod contract_entry;
 pub(crate) mod dex_asset_pairing;
+pub(crate) mod lp_token;
 
 pub mod pool;
 
@@ -31,3 +32,4 @@ pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};
 pub use dex_asset_pairing::DexAssetPairing;
+pub use lp_token::LpToken;

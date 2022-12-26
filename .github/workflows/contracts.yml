@@ -50,7 +50,7 @@ jobs:
       - name: Dependencies | Compile
         run: cargo update
       - name: Build | Compile
-        run: cargo check
+        run: cargo check --features all
   test:
     name: Test
     runs-on:  self-hosted

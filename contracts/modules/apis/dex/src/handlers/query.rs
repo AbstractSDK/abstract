@@ -5,6 +5,7 @@ use abstract_os::objects::AssetEntry;
 use abstract_sdk::base::features::AbstractNameService;
 
 use crate::contract::{DexApi, DEX_API};
+
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
 pub fn query_handler(deps: Deps, env: Env, _app: &DexApi, msg: DexQueryMsg) -> StdResult<Binary> {
@@ -33,9 +34,15 @@ pub fn simulate_swap(
     // get addresses
     let swap_offer_asset = ans.query(&offer_asset)?;
     let ask_asset_info = ans.query(&ask_asset)?;
-    let pair_address =
-        exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset.name, &ask_asset])?;
-    let pool_info = exchange.pair_contract(&mut vec![&offer_asset.name, &ask_asset]);
+    let pair_address = exchange
+        .pair_address(deps, ans.host(), &mut vec![&offer_asset.name, &ask_asset])
+        .map_err(|e| {
+            StdError::generic_err(format!(
+                "Failed to get pair address for {:?} and {:?}: {}",
+                offer_asset, ask_asset, e
+            ))
+        })?;
+    let pool_info = exchange.asset_pairing(&mut [&offer_asset.name, &ask_asset]);
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
         .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)

@@ -31,3 +31,6 @@ cw20-base = { workspace = true }
 abstract-ica = { workspace = true }
 
 boot-core = { workspace = true, optional = true }
+
+[dev-dependencies]
+speculoos = { workspace = true }

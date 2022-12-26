@@ -5,9 +5,10 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 
+use crate::objects::DexAssetPairing;
 use crate::{
     api::{self},
-    objects::{AnsAsset, AssetEntry, ContractEntry},
+    objects::{AnsAsset, AssetEntry},
 };
 
 pub type DexName = String;
@@ -94,7 +95,7 @@ pub enum DexQueryMsg {
 // LP/protocol fees could be withheld from either input or output so commission asset must be included.
 #[cosmwasm_schema::cw_serde]
 pub struct SimulateSwapResponse {
-    pub pool: ContractEntry,
+    pub pool: DexAssetPairing,
     /// Amount you would receive when performing the swap.
     pub return_amount: Uint128,
     /// Spread in ask_asset for this swap

@@ -1,4 +1,5 @@
 use abstract_api::ApiError;
+use abstract_os::objects::DexAssetPairing;
 use cosmwasm_std::StdError;
 use thiserror::Error;
 
@@ -39,4 +40,7 @@ pub enum DexError {
 
     #[error("Maximum spread {0} exceeded for dex {1}")]
     MaxSlippageAssertion(String, String),
+
+    #[error("Asset pairing {} not found.", asset_pairing)]
+    AssetPairingNotFound { asset_pairing: DexAssetPairing },
 }

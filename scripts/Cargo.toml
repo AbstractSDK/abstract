@@ -1,6 +1,6 @@
 [package]
 name = "abstract-boot-scripts"
-version = "0.1.0-alpha1"
+version = { workspace = true }
 edition = { workspace = true }
 
 

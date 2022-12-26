@@ -5,6 +5,7 @@ use std::{
 
 use cosmwasm_std::{StdError, StdResult};
 
+use crate::constants::ASSET_DELIMITER;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -64,13 +65,13 @@ pub struct ContractEntry {
 }
 
 impl ContractEntry {
-    pub fn construct_dex_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
+    pub fn construct_staking_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
         assets.sort();
         let contract_name = assets
             .iter()
             .map(|a| a.0.clone())
             .collect::<Vec<String>>()
-            .join("_");
+            .join(ASSET_DELIMITER);
         Self {
             protocol: dex_name.to_ascii_lowercase(),
             contract: contract_name,

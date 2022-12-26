@@ -12,9 +12,6 @@ pub enum PoolIdBase<T> {
 }
 
 impl<T> PoolIdBase<T> {
-    pub fn new<P: Into<PoolIdBase<T>>>(pool_id: P) -> Self {
-        pool_id.into()
-    }
     pub fn contract<C: Into<T>>(contract: C) -> Self {
         Self::Contract(contract.into())
     }
@@ -25,6 +22,22 @@ impl<T> PoolIdBase<T> {
 
 /// Actual instance of a PoolId with verified data
 pub type PoolId = PoolIdBase<Addr>;
+
+impl PoolId {
+    pub fn expect_contract(&self) -> StdResult<Addr> {
+        match self {
+            PoolId::Contract(addr) => Ok(addr.clone()),
+            _ => Err(StdError::generic_err("Not a contract address pool ID.")),
+        }
+    }
+
+    pub fn expect_id(&self) -> StdResult<u64> {
+        match self {
+            PoolId::Id(id) => Ok(*id),
+            _ => Err(StdError::generic_err("Not an numerical pool ID.")),
+        }
+    }
+}
 /// Instance of a PoolId passed around messages
 pub type UncheckedPoolId = PoolIdBase<String>;
 
@@ -38,7 +51,7 @@ impl FromStr for UncheckedPoolId {
             "contract" => {
                 if words.len() != 2 {
                     return Err(StdError::generic_err(
-                        format!("invalid pool id format `{}`; must be in format `Contract:{{contract_addr}}`", s)
+                        format!("invalid pool id format `{}`; must be in format `contract:{{contract_addr}}`", s)
                     ));
                 }
                 Ok(UncheckedPoolId::Contract(String::from(words[1])))
@@ -121,5 +134,61 @@ impl fmt::Display for PoolId {
             PoolId::Contract(contract_addr) => write!(f, "contract:{}", contract_addr),
             PoolId::Id(pool_id) => write!(f, "id:{}", pool_id),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::testing::MockApi;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_pool_id_from_str() {
+        let api = MockApi::default();
+        let pool_id_str = "contract:cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02";
+        let pool_id = UncheckedPoolId::from_str(pool_id_str).unwrap();
+        let pool_id = pool_id.check(&api).unwrap();
+        assert_that!(pool_id.to_string()).is_equal_to(pool_id_str.to_string());
+    }
+
+    #[test]
+    fn test_expect_contract_happy() {
+        let api = MockApi::default();
+        let pool_id = PoolId::Contract(
+            api.addr_validate("cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02")
+                .unwrap(),
+        );
+        let res = pool_id.expect_contract();
+        assert_that!(res).is_ok();
+        assert_that!(res.unwrap()).is_equal_to(Addr::unchecked(
+            "cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02",
+        ));
+    }
+
+    #[test]
+    fn test_expect_contract_sad() {
+        let pool_id = PoolId::Id(1);
+        let res = pool_id.expect_contract();
+        assert_that!(res).is_err();
+    }
+
+    #[test]
+    fn test_expect_id_happy() {
+        let pool_id = PoolId::Id(1);
+        let res = pool_id.expect_id();
+        assert_that!(res).is_ok();
+        assert_that!(res.unwrap()).is_equal_to(1);
+    }
+
+    #[test]
+    fn test_expect_id_sad() {
+        let api = MockApi::default();
+        let pool_id = PoolId::Contract(
+            api.addr_validate("cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02")
+                .unwrap(),
+        );
+        let res = pool_id.expect_id();
+        assert_that!(res).is_err();
     }
 }

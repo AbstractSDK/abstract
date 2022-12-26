@@ -2,6 +2,8 @@ use std::{convert::TryInto, fmt::Display};
 
 use cosmwasm_std::{StdError, StdResult};
 
+use crate::objects::lp_token::LpToken;
+use crate::objects::AssetEntry;
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -33,6 +35,28 @@ impl DexAssetPairing {
 
     pub fn dex(&self) -> &str {
         &self.0 .2
+    }
+
+    pub fn from_assets(dex_name: &str, assets: &mut [&AssetEntry; 2]) -> Self {
+        assets.sort();
+        Self::new(assets[0].as_str(), assets[1].as_str(), dex_name)
+    }
+}
+
+impl TryFrom<AssetEntry> for DexAssetPairing {
+    type Error = StdError;
+
+    fn try_from(asset_entry: AssetEntry) -> Result<Self, Self::Error> {
+        let lp_token: LpToken = asset_entry.try_into()?;
+        let mut assets = lp_token.assets;
+        // assets should already be sorted, but just in case
+        assets.sort();
+
+        Ok(Self::new(
+            assets[0].as_str(),
+            assets[1].as_str(),
+            lp_token.dex_name.as_str(),
+        ))
     }
 }
 
@@ -198,5 +222,14 @@ mod test {
         assert_eq!(items.len(), 2);
         assert_eq!(items[0], ("junoswap".to_string(), 42069));
         assert_eq!(items[1], ("osmosis".to_string(), 69420));
+    }
+
+    #[test]
+    fn try_from_lp_token() {
+        let lp_token = AssetEntry::new("junoswap/juno,osmo");
+
+        let key = DexAssetPairing::try_from(lp_token).unwrap();
+
+        assert_eq!(key, DexAssetPairing::new("juno", "osmo", "junoswap"));
     }
 }

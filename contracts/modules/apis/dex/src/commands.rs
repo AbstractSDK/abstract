@@ -1,14 +1,15 @@
+use abstract_os::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::os::objects::AnsAsset;
+use abstract_sdk::os::objects::{AnsAsset};
 use abstract_sdk::Execution;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, SubMsg};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
 use cw_asset::Asset;
 
 use crate::{error::DexError, DEX};
 use abstract_sdk::os::dex::AskAsset;
 use abstract_sdk::os::{
     dex::{DexAction, OfferAsset, SwapRouter},
-    objects::{AssetEntry, UncheckedContractEntry},
+    objects::{AssetEntry},
 };
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
@@ -210,6 +211,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
     }
 
+    /// @todo
     fn resolve_withdraw_liquidity(
         &self,
         deps: Deps,
@@ -217,10 +219,22 @@ pub trait LocalDex: AbstractNameService + Execution {
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
+
         let lp_asset = ans.query(&lp_token)?;
-        let pair_entry =
-            UncheckedContractEntry::new(exchange.name(), lp_token.name.as_str()).check();
-        let pair_address = ans.query(&pair_entry)?;
-        exchange.withdraw_liquidity(deps, pair_address, lp_asset)
+
+        let lp_pairing: DexAssetPairing = lp_token.name.try_into()?;
+
+        let mut pool_ids = ans.query(&lp_pairing)?;
+        // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
+        if pool_ids.len() != 1 {
+            return Err(StdError::generic_err(format!(
+                "There are {} pairings for the given LP token",
+                pool_ids.len()
+            ))
+            .into());
+        }
+
+        let PoolReference { pool_id, .. } = pool_ids.pop().unwrap();
+        exchange.withdraw_liquidity(deps, pool_id, lp_asset)
     }
 }

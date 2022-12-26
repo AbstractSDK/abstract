@@ -1,13 +1,16 @@
 use crate::dex_trait::Identify;
+
+#[cfg(feature = "osmosis")]
+use crate::{
+    dex_trait::{Fee, FeeOnInput, Return, Spread},
+    error::DexError,
+    DEX,
+};
 use cosmwasm_std::Addr;
 
 #[cfg(feature = "osmosis")]
 use ::{
-    crate::{
-        dex_trait::{Fee, FeeOnInput, Return, Spread},
-        error::DexError,
-        DEX,
-    },
+    abstract_os::objects::PoolId,
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },
@@ -25,6 +28,7 @@ use ::{
 };
 
 pub const OSMOSIS: &str = "osmosis";
+
 pub struct Osmosis {
     pub local_proxy_addr: Option<Addr>,
 }
@@ -44,12 +48,14 @@ impl DEX for Osmosis {
     fn swap(
         &self,
         _deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         _belief_price: Option<Decimal>,
         _max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let pair_address = pool_id.expect_id()?;
+
         let token_out_denom = match ask_asset {
             AssetInfo::Native(denom) => denom,
             _ => return Err(DexError::Cw1155Unsupported),
@@ -89,15 +95,15 @@ impl DEX for Osmosis {
     fn provide_liquidity(
         &self,
         deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let pool_id = pool_id.expect_id()?;
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
         }
 
-        let pool_id = pair_address.to_string().parse::<u64>().unwrap();
         let token_in_maxs: Vec<OsmoCoin> = offer_assets
             .iter()
             .map(|asset| Coin::try_from(asset).unwrap().into())
@@ -155,7 +161,7 @@ impl DEX for Osmosis {
     fn provide_liquidity_symmetric(
         &self,
         _deps: Deps,
-        _pair_address: Addr,
+        _pool_id: PoolId,
         _offer_asset: Asset,
         _paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
@@ -165,12 +171,13 @@ impl DEX for Osmosis {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
+        let pool_id = pool_id.expect_id()?;
         let osmo_msg: CosmosMsg = MsgExitPool {
             sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
-            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            pool_id,
             share_in_amount: lp_token.amount.to_string(),
             token_out_mins: vec![], // This is fine! see: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372
         }
@@ -182,12 +189,14 @@ impl DEX for Osmosis {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pair_address: Addr,
+        pool_id: PoolId,
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
+        let pool_id = pool_id.expect_id()?;
+
         let routes: Vec<SwapAmountInRoute> = vec![SwapAmountInRoute {
-            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            pool_id: pool_id.to_string().parse::<u64>().unwrap(),
             token_out_denom: match ask_asset {
                 AssetInfo::Native(denom) => denom,
                 _ => return Err(DexError::Cw1155Unsupported),
@@ -198,7 +207,7 @@ impl DEX for Osmosis {
 
         let swap_exact_amount_in_response = QuerySwapExactAmountInRequest {
             sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
-            pool_id: pair_address.to_string().parse::<u64>().unwrap(),
+            pool_id: pool_id.to_string().parse::<u64>().unwrap(),
             token_in,
             routes,
         }

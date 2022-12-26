@@ -700,7 +700,7 @@ mod test {
             };
 
             let res = execute_as_root(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(res)
                 .is_err()
                 .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
             Ok(())
