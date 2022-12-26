@@ -2,6 +2,7 @@ use crate::contract::OsFactoryResult;
 use crate::state::*;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_os::app;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
     manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
@@ -18,8 +19,7 @@ use abstract_sdk::os::{
 };
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, QueryRequest, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult,
-    WasmMsg, WasmQuery,
+    QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -184,12 +184,12 @@ fn query_code_id(
     version_control_addr: &Addr,
     module_id: &str,
 ) -> StdResult<ModuleResponse> {
-    querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: version_control_addr.to_string(),
-        msg: to_binary(&VCQuery::Module {
+    querier.query(&wasm_smart_query(
+        version_control_addr.to_string(),
+        &VCQuery::Module {
             module: ModuleInfo::from_id_latest(module_id)?,
-        })?,
-    }))
+        },
+    )?)
 }
 
 /// Registers the DAO on the version_control contract and
@@ -315,11 +315,10 @@ fn query_subscription_fee(
     querier: &QuerierWrapper,
     subscription_address: &Addr,
 ) -> StdResult<SubscriptionFeeResponse> {
-    let subscription_fee_response: SubscriptionFeeResponse =
-        querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: subscription_address.to_string(),
-            msg: to_binary(&app::QueryMsg::App(SubscriptionQueryMsg::Fee {}))?,
-        }))?;
+    let subscription_fee_response: SubscriptionFeeResponse = querier.query(&wasm_smart_query(
+        subscription_address.to_string(),
+        &app::QueryMsg::App(SubscriptionQueryMsg::Fee {}),
+    )?)?;
     Ok(subscription_fee_response)
 }
 

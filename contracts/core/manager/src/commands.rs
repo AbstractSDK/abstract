@@ -1,12 +1,13 @@
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    QueryRequest, Response, StdResult, Storage, WasmMsg, WasmQuery,
+    Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use semver::Version;
 
 use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::{
     api::{
         BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
@@ -353,12 +354,12 @@ pub fn replace_api(
     let mut msgs = vec![];
     // Makes sure we already have the api installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
-    let traders: TradersResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: old_api_addr.to_string(),
-        msg: to_binary(&<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
+    let traders: TradersResponse = deps.querier.query(&wasm_smart_query(
+        old_api_addr.to_string(),
+        &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
-        }))?,
-    }))?;
+        }),
+    )?)?;
     let traders_to_migrate: Vec<String> = traders
         .traders
         .into_iter()

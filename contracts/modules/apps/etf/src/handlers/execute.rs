@@ -1,7 +1,7 @@
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
 };
-use cosmwasm_std::{QuerierWrapper, QueryRequest, StdResult, WasmQuery};
+use cosmwasm_std::{QuerierWrapper, StdResult};
 use cw20::Cw20ExecuteMsg;
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
@@ -9,6 +9,7 @@ use cw_asset::{Asset, AssetInfo};
 use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
 use abstract_sdk::base::features::AbstractNameService;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::*;
 
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
@@ -244,10 +245,10 @@ fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal)
 }
 
 fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {
-    let res: TokenInfoResponse = querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-        contract_addr: String::from(contract_addr),
-        msg: to_binary(&Cw20QueryMsg::TokenInfo {})?,
-    }))?;
+    let res: TokenInfoResponse = querier.query(&wasm_smart_query(
+        String::from(contract_addr),
+        &Cw20QueryMsg::TokenInfo {},
+    )?)?;
 
     Ok(res.total_supply)
 }

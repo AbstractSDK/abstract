@@ -6,13 +6,12 @@ use abstract_sdk::{
         module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     },
 };
-use cosmwasm_std::{
-    to_binary, DepsMut, Env, MessageInfo, QueryRequest, Response, StdError, WasmQuery,
-};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
 
 use crate::{Handler, InstantiateEndpoint};
 
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -52,10 +51,10 @@ impl<
         };
 
         // Caller is factory so get proxy and manager (admin) from there
-        let resp: ContextResponse = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: info.sender.to_string(),
-            msg: to_binary(&FactoryQuery::Context {})?,
-        }))?;
+        let resp: ContextResponse = deps.querier.query(&wasm_smart_query(
+            info.sender.to_string(),
+            &FactoryQuery::Context {},
+        )?)?;
 
         let core = match resp.core {
             Some(core) => core,

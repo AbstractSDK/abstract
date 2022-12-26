@@ -49,6 +49,7 @@ mod ans_resolve;
 mod apis;
 pub mod base;
 pub mod feature_objects;
+pub mod helpers;
 
 pub use crate::apis::{
     bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,

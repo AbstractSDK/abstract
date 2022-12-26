@@ -1,13 +1,14 @@
 //! # Vault
 //! The Vault object provides function for querying balances and asset values for the OS.
 
+use crate::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
     proxy::{
         state::VAULT_ASSETS, AssetsResponse, HoldingValueResponse, QueryMsg, TotalValueResponse,
     },
 };
-use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, StdResult, Uint128, WasmQuery};
+use cosmwasm_std::{Deps, StdError, StdResult, Uint128};
 
 use super::{AbstractNameService, Identification};
 
@@ -33,11 +34,10 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     pub fn query_total_value(&self) -> StdResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: TotalValueResponse =
-            querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: proxy_address.to_string(),
-                msg: to_binary(&QueryMsg::TotalValue {})?,
-            }))?;
+        let response: TotalValueResponse = querier.query(&wasm_smart_query(
+            proxy_address.to_string(),
+            &QueryMsg::TotalValue {},
+        )?)?;
 
         Ok(response.value)
     }
@@ -60,13 +60,12 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
     pub fn balance_value(&self, asset_entry: &AssetEntry) -> StdResult<Uint128> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
-        let response: HoldingValueResponse =
-            querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: proxy_address.to_string(),
-                msg: to_binary(&QueryMsg::HoldingValue {
-                    identifier: asset_entry.to_string(),
-                })?,
-            }))?;
+        let response: HoldingValueResponse = querier.query(&wasm_smart_query(
+            proxy_address.to_string(),
+            &QueryMsg::HoldingValue {
+                identifier: asset_entry.to_string(),
+            },
+        )?)?;
 
         Ok(response.value)
     }
@@ -81,14 +80,13 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let querier = self.deps.querier;
         let proxy_address = self.base.proxy_address(self.deps)?;
 
-        let response: TotalValueResponse =
-            querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: proxy_address.to_string(),
-                msg: to_binary(&QueryMsg::TokenValue {
-                    identifier: asset_entry.to_string(),
-                    amount,
-                })?,
-            }))?;
+        let response: TotalValueResponse = querier.query(&wasm_smart_query(
+            proxy_address.to_string(),
+            &QueryMsg::TokenValue {
+                identifier: asset_entry.to_string(),
+                amount,
+            },
+        )?)?;
 
         Ok(response.value)
     }

@@ -4,14 +4,16 @@ use crate::{
     DEX,
 };
 
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::OsExecute;
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, QueryRequest, StdResult,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Empty, QueryRequest, StdResult,
     Uint128, WasmMsg, WasmQuery,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
+
 pub const TERRASWAP: &str = "terraswap";
 pub struct Terraswap {}
 
@@ -108,11 +110,10 @@ impl DEX for Terraswap {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: PoolResponse =
-            deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr: pair_address.to_string(),
-                msg: to_binary(&terraswap::pair::QueryMsg::Pool {})?,
-            }))?;
+        let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &terraswap::pair::QueryMsg::Pool {},
+        )?)?;
 
         let ts_offer_asset = cw_asset_to_terraswap(&offer_asset)?;
         let other_asset = if pair_config.assets[0].info == ts_offer_asset.info {
@@ -194,12 +195,12 @@ impl DEX for Terraswap {
             return_amount,
             spread_amount,
             commission_amount,
-        } = deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: pair_address.to_string(),
-            msg: to_binary(&terraswap::pair::QueryMsg::Simulation {
+        } = deps.querier.query(&wasm_smart_query(
+            pair_address.to_string(),
+            &terraswap::pair::QueryMsg::Simulation {
                 offer_asset: cw_asset_to_terraswap(&offer_asset)?,
-            })?,
-        }))?;
+            },
+        )?)?;
         // commission paid in result asset
         Ok((return_amount, spread_amount, commission_amount, false))
     }
