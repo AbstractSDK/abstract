@@ -114,7 +114,7 @@ cargo
 
 ```bash
 SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
-VERSION=0.3.0-beta.2 \
+VERSION=0.4.0 \
   cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
   ```
 

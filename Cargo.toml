@@ -26,7 +26,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.3.0-beta.2"
+version = "0.4.0"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -54,22 +54,22 @@ semver = { package = "cw-semver", version = "1.0.0", git = "https://github.com/A
 boot-core = { version = "0.3.0", git = "https://github.com/Abstract-OS/BOOT.git", branch = "add/mock-test-helpers" }
 boot-cw-plus = { version = "0.2.0", git = "https://github.com/Abstract-OS/BOOT.git" }
 
-abstract-sdk = { version = "0.3.0-beta.2", path = "packages/abstract-sdk" }
-abstract-os = { version = "0.3.0-beta.2", path = "packages/abstract-os" }
-abstract-app = { version = "0.3.0-beta.2", path = "packages/abstract-app", features = ["library"] }
-abstract-api = { version = "0.3.0-beta.2", path = "packages/abstract-api", features = ["library"] }
-abstract-ibc-host = { version = "0.3.0-beta.2", path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.3.0-beta.2", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.4.0", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.4.0", path = "packages/abstract-os" }
+abstract-app = { version = "0.4.0", path = "packages/abstract-app", features = ["library"] }
+abstract-api = { version = "0.4.0", path = "packages/abstract-api", features = ["library"] }
+abstract-ibc-host = { version = "0.4.0", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.4.0", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
 abstract-boot = { path = "packages/abstract-boot" }
 
 
-module-factory = {path = "contracts/native/module-factory",features = ["library"]}
-os-factory = {path = "contracts/native/os-factory",features = ["library"]}
-ans-host = {path = "contracts/native/ans-host",features = ["library"]}
-version-control = {path = "contracts/native/version-control",features = ["library"]}
-osmosis-host = {path = "contracts/ibc-hosts/osmosis",features = ["library"]}
-proxy = {path = "contracts/core/proxy",features = ["library"]}
+module-factory = { path = "contracts/native/module-factory", features = ["library"] }
+os-factory = { path = "contracts/native/os-factory", features = ["library"] }
+ans-host = { path = "contracts/native/ans-host", features = ["library"] }
+version-control = { path = "contracts/native/version-control", features = ["library"] }
+osmosis-host = { path = "contracts/ibc-hosts/osmosis", features = ["library"] }
+proxy = { path = "contracts/core/proxy", features = ["library"] }
 manager = {path = "contracts/core/manager",features = ["library"]}
 ibc-client = {path = "contracts/native/ibc-client",features = ["library"]}
 etf = {path = "contracts/modules/apps/etf",features = ["library"]}

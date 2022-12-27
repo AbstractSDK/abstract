@@ -1,6 +1,6 @@
 {
   "contract_name": "schema",
-  "contract_version": "0.3.0-beta.2",
+  "contract_version": "0.4.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
