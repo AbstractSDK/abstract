@@ -46,7 +46,7 @@
 pub extern crate abstract_os as os;
 
 mod ans_resolve;
-mod apis;
+pub mod apis;
 pub mod base;
 pub mod feature_objects;
 pub mod helpers;
