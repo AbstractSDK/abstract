@@ -81,3 +81,73 @@ pub struct BalancesResponse {
     pub account: String,
     pub balances: Vec<Coin>,
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use speculoos::prelude::*;
+
+    const TEST_DATA_STR: &str = "test data";
+
+    fn test_binary_data() -> Binary {
+        to_binary(TEST_DATA_STR).unwrap()
+    }
+
+    #[test]
+    fn success_should_wrap_in_result_with_binary_data() {
+        let expected = StdAck::Result(test_binary_data()).ack();
+        let actual = StdAck::success(TEST_DATA_STR);
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn fail_should_wrap_in_error() {
+        let err = "my-error";
+        let expected = to_binary(&StdAck::Error(err.to_string())).unwrap();
+        let actual = StdAck::fail(err.to_string());
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn ack_should_binary_contents() {
+        let actual: Binary = StdAck::Result(test_binary_data()).ack();
+        let expected = to_binary(&StdAck::Result(test_binary_data())).unwrap();
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn unwrap_with_result_should_return_binary_data() {
+        let expected_data = test_binary_data();
+        let actual = StdAck::Result(expected_data.clone()).unwrap();
+        let expected = expected_data;
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unwrap_with_error_should_panic() {
+        StdAck::Error("my-error".to_string()).unwrap();
+    }
+
+    #[test]
+    fn unwrap_into_should_return_deserialized_data() {
+        let actual = StdAck::Result(test_binary_data()).unwrap_into::<String>();
+        let expected = TEST_DATA_STR.to_string();
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn unwrap_err_with_err_should_return_error_message() {
+        let err = "my-error";
+        let actual = StdAck::Error(err.to_string()).unwrap_err();
+        let expected = err.to_string();
+        assert_that!(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    #[should_panic]
+    fn unwrap_err_with_result_should_panic() {
+        let _data = "my-data";
+        let _actual = StdAck::Result(Binary::default()).unwrap_err();
+    }
+}

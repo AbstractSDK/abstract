@@ -145,7 +145,7 @@ mod test {
         querier.update_wasm(|wasm| {
             match wasm {
                 WasmQuery::Raw { contract_addr, key } => {
-                    let os_mod_key = "os_modules";
+                    let _os_mod_key = "os_modules";
                     let string_key = String::from_utf8(key.to_vec()).unwrap();
                     let str_key = string_key.as_str();
 
@@ -162,7 +162,7 @@ mod test {
                         },
                         TEST_MANAGER => {
                             if let Some(value) = modules.get(key) {
-                                Ok(to_binary(&value.to_owned().clone()).unwrap())
+                                Ok(to_binary(&value.to_owned()).unwrap())
                             } else {
                                 // Debug print out what the key was
                                 // let into_binary: Binary = b"\ros_modulestest_module".into();
@@ -239,14 +239,14 @@ mod test {
         let deps = mock_dependencies_with_existing_module();
         let app = MockModule::new();
 
-        let mods = app.modules(deps.as_ref());
+        let _mods = app.modules(deps.as_ref());
 
         let res = modules_fn(&app, deps.as_ref());
 
         print!("res: {:?}", res);
 
         assert_that!(res).is_err().matches(|e| match e {
-            StdError::GenericErr { msg, .. } => msg.contains(&format!("{}", fake_module)),
+            StdError::GenericErr { msg, .. } => msg.contains(&fake_module.to_string()),
             _ => false,
         });
     }

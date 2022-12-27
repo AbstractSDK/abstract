@@ -1,6 +1,6 @@
 use schemars::JsonSchema;
 
-use cosmwasm_std::{to_binary, Binary, CosmosMsg, StdResult, WasmMsg};
+use cosmwasm_std::{to_binary, wasm_execute, Binary, CosmosMsg, StdResult};
 
 use crate::StdAck;
 
@@ -24,13 +24,7 @@ impl IbcResponseMsg {
     where
         C: Clone + std::fmt::Debug + PartialEq + JsonSchema,
     {
-        let msg = self.into_binary()?;
-        let execute = WasmMsg::Execute {
-            contract_addr: contract_addr.into(),
-            msg,
-            funds: vec![],
-        };
-        Ok(execute.into())
+        Ok(wasm_execute(contract_addr.into(), &self, vec![])?.into())
     }
 }
 
@@ -39,4 +33,42 @@ impl IbcResponseMsg {
 #[cosmwasm_schema::cw_serde]
 enum IbcCallbackMsg {
     IbcCallback(IbcResponseMsg),
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use cosmwasm_std::WasmMsg;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn into_binary_should_wrap_in_callback() {
+        let msg = IbcResponseMsg {
+            id: "my-id".to_string(),
+            msg: StdAck::Result(Binary::default()),
+        };
+
+        let actual = msg.clone().into_binary().unwrap();
+        let expected = to_binary(&IbcCallbackMsg::IbcCallback(msg)).unwrap();
+        assert_that(&actual).is_equal_to(&expected);
+    }
+
+    #[test]
+    fn into_cosmos_msg_should_build_wasm_execute() {
+        let msg = IbcResponseMsg {
+            id: "my-id".to_string(),
+            msg: StdAck::Result(Binary::default()),
+        };
+
+        let actual = msg.clone().into_cosmos_msg("my-addr").unwrap();
+        let funds = vec![];
+        let payload = to_binary(&msg).unwrap();
+        let expected: CosmosMsg = WasmMsg::Execute {
+            contract_addr: "my-addr".into(),
+            msg: payload,
+            funds,
+        }
+        .into();
+        assert_that(&actual).is_equal_to(&expected);
+    }
 }

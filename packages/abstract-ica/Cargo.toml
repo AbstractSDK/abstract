@@ -12,7 +12,10 @@ backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["ibc3"] }
-schemars = {workspace = true}
-serde = {workspace = true}
-thiserror = {workspace = true}
+schemars = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
 cosmwasm-schema = { workspace = true }
+
+[dev-dependencies]
+speculoos = { workspace = true }
