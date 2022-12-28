@@ -32,3 +32,23 @@ impl ToString for GovernanceDetails {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_to_string() {
+        let gov = GovernanceDetails::Monarchy {
+            monarch: "monarch".to_string(),
+        };
+        assert_that!(gov.to_string()).is_equal_to("monarchy".to_string());
+
+        let gov = GovernanceDetails::External {
+            governance_address: "gov_address".to_string(),
+            governance_type: "gov_type".to_string(),
+        };
+        assert_that!(gov.to_string()).is_equal_to("gov_type".to_string());
+    }
+}

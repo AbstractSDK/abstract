@@ -76,3 +76,52 @@ impl KeyDeserialize for AssetEntry {
         Ok(Self(String::from_vec(value)?))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_asset_entry() {
+        let mut entry = AssetEntry::new("CRAB");
+        assert_that!(entry.as_str()).is_equal_to("crab");
+        entry.format();
+        assert_that!(entry.as_str()).is_equal_to("crab");
+    }
+
+    #[test]
+    fn test_from_string() {
+        let entry = AssetEntry::from("CRAB".to_string());
+        assert_that!(entry.as_str()).is_equal_to("crab");
+    }
+
+    #[test]
+    fn test_from_str() {
+        let entry = AssetEntry::from("CRAB");
+        assert_that!(entry.as_str()).is_equal_to("crab");
+    }
+
+    #[test]
+    fn test_from_ref_string() {
+        let entry = AssetEntry::from(&"CRAB".to_string());
+        assert_that!(entry.as_str()).is_equal_to("crab");
+    }
+
+    #[test]
+    fn test_to_string() {
+        let entry = AssetEntry::new("CRAB");
+        assert_that!(entry.to_string()).is_equal_to("crab".to_string());
+    }
+
+    #[test]
+    fn string_key_works() {
+        let k = AssetEntry::new("CRAB");
+        let path = k.key();
+        assert_eq!(1, path.len());
+        assert_eq!(b"crab", path[0].as_ref());
+
+        let joined = k.joined_key();
+        assert_eq!(joined, b"crab")
+    }
+}

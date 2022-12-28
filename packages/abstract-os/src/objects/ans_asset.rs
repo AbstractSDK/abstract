@@ -25,3 +25,24 @@ impl fmt::Display for AnsAsset {
         write!(f, "{}:{}", self.name, self.amount)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_new() {
+        let AnsAsset { name, amount } = AnsAsset::new("crab", 100u128);
+
+        assert_that!(name).is_equal_to(AssetEntry::new("crab"));
+        assert_that!(amount).is_equal_to(Uint128::new(100));
+    }
+
+    #[test]
+    fn test_to_string() {
+        let asset = AnsAsset::new("crab", 100u128);
+
+        assert_that!(asset.to_string()).is_equal_to("crab:100".to_string());
+    }
+}
