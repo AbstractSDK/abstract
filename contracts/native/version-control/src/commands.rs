@@ -30,7 +30,7 @@ pub fn add_modules(
 ) -> VCResult {
     for (module, mod_ref) in modules {
         if MODULE_LIBRARY.has(deps.storage, module.clone()) {
-            return Err(VCError::ModuleUpdate(module));
+            return Err(VCError::NotUpdateableModule(module));
         }
         // version must be set in order to add the new version
         module.assert_version_variant()?;
@@ -52,7 +52,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     if MODULE_LIBRARY.has(deps.storage, module.clone()) {
         MODULE_LIBRARY.remove(deps.storage, module.clone());
     } else {
-        return Err(VCError::MissingModule(module));
+        return Err(VCError::ModuleNotInstalled(module));
     }
 
     Ok(Response::new().add_attributes(vec![

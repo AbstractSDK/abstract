@@ -29,3 +29,4 @@ semver = { workspace = true }
 [dev-dependencies]
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
+abstract-testing = { path = "../abstract-testing", default-features = false }

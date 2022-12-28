@@ -82,7 +82,7 @@ pub fn install_module(
 
     // Check if module is already enabled.
     if OS_MODULES.may_load(deps.storage, &module.id())?.is_some() {
-        return Err(ManagerError::ModuleAlreadyInstalled {});
+        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
     }
 
     let config = CONFIG.load(deps.storage)?;
@@ -448,7 +448,7 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
     let proxy_callback_msg = if enable_ibc {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
-            return Err(ManagerError::ModuleAlreadyInstalled {});
+            return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
         }
 
         install_ibc_client(deps, proxy)?
@@ -899,9 +899,10 @@ mod test {
             )?;
 
             let res = execute_as_root(deps.as_mut(), msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
+            assert_that(&res).is_err().matches(|e| {
+                let _module_id = String::from("test:module");
+                matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
+            });
 
             Ok(())
         }
@@ -1307,7 +1308,7 @@ mod test {
             let res = execute_as_root(deps.as_mut(), msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::ModuleAlreadyInstalled {});
+                .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
 
             Ok(())
         }

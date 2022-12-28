@@ -19,10 +19,11 @@ use abstract_boot::{
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 
 use cw_multi_test::ContractWrapper;
+use semver::Version;
 
 use manager::contract::CONTRACT_VERSION;
 
-pub fn init_abstract_env<'a>(chain: &'a Mock) -> anyhow::Result<(Deployment<'a, Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain);
     let mut os_factory = OSFactory::new(OS_FACTORY, chain);
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
@@ -113,6 +114,7 @@ pub(crate) fn create_default_os(
 pub(crate) fn init_staking_api(
     chain: &Mock,
     deployment: &Deployment<Mock>,
+    version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
     let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
     staking_api.as_instance_mut().set_mock(Box::new(
@@ -135,8 +137,10 @@ pub(crate) fn init_staking_api(
         None,
     )?;
 
+    let version: Version = version.unwrap_or(CONTRACT_VERSION.to_string()).parse()?;
+
     deployment
         .version_control
-        .register_apis(vec![staking_api.as_instance()], &CONTRACT_VERSION.parse()?)?;
+        .register_apis(vec![staking_api.as_instance()], &version)?;
     Ok(staking_api)
 }

@@ -20,7 +20,7 @@ fn instantiate() -> AResult {
     let modules = os.manager.module_infos(None, None)?.module_infos;
 
     // assert proxy module
-    assert_that(&modules.len()).is_equal_to(1);
+    assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
         address: os.proxy.address()?.into_string(),
         id: PROXY.to_string(),

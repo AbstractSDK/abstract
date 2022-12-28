@@ -40,7 +40,7 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
         let (latest_version, id) = versions?
             .first()
             .ok_or_else(|| StdError::GenericErr {
-                msg: VCError::MissingModule(module.clone()).to_string(),
+                msg: VCError::ModuleNotInstalled(module.clone()).to_string(),
             })?
             .clone();
         module.version = ModuleVersion::Version(latest_version);
@@ -49,7 +49,7 @@ pub fn handle_module_query(deps: Deps, mut module: ModuleInfo) -> StdResult<Bina
 
     match maybe_module {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingModule(module).to_string(),
+            VCError::ModuleNotInstalled(module).to_string(),
         )),
         Ok(mod_ref) => to_binary(&ModuleResponse {
             module: Module {
@@ -74,4 +74,133 @@ pub fn handle_modules_query(
         .collect();
 
     to_binary(&ModulesResponse { modules: res? })
+}
+
+#[cfg(test)]
+mod test {
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+    use cosmwasm_std::{DepsMut, StdError};
+
+    use abstract_os::version_control::*;
+
+    use crate::contract;
+    use crate::contract::VCResult;
+    use speculoos::prelude::*;
+
+    use super::*;
+
+    type VersionControlTestResult = Result<(), VCError>;
+
+    const TEST_ADMIN: &str = "testadmin";
+
+    /// Initialize the version_control with admin as creator and factory
+    fn mock_init(mut deps: DepsMut) -> VCResult {
+        let info = mock_info(TEST_ADMIN, &[]);
+        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+    }
+
+    fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
+        contract::execute(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
+    }
+
+    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+        contract::query(deps, mock_env(), msg)
+    }
+
+    mod module {
+        use super::*;
+        use abstract_os::objects::module::ModuleVersion::Latest;
+
+        use cosmwasm_std::from_binary;
+
+        fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
+            let add_msg = ExecuteMsg::AddModules {
+                modules: vec![(new_module_info, ModuleReference::App(0))],
+            };
+
+            let res = execute_helper(deps, add_msg);
+            assert_that!(&res).is_ok();
+        }
+
+        #[test]
+        fn get_module() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let new_module_info =
+                ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
+
+            let ModuleInfo { name, provider, .. } = new_module_info.clone();
+
+            add_module(deps.as_mut(), new_module_info.clone());
+
+            let query_msg = QueryMsg::Module {
+                module: ModuleInfo {
+                    provider,
+                    name,
+                    version: Latest {},
+                },
+            };
+
+            let module: ModuleResponse = from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            assert_that!(module.module.info).is_equal_to(&new_module_info);
+            Ok(())
+        }
+
+        #[test]
+        fn none_when_no_matching_version() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let new_module_info =
+                ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".into())).unwrap();
+
+            let ModuleInfo { name, provider, .. } = new_module_info.clone();
+
+            add_module(deps.as_mut(), new_module_info);
+
+            let query_msg = QueryMsg::Module {
+                module: ModuleInfo {
+                    provider,
+                    name,
+                    version: ModuleVersion::Version("024209.902.902".to_string()),
+                },
+            };
+
+            let res = query_helper(deps.as_ref(), query_msg);
+            assert_that!(res)
+                .is_err()
+                .matches(|e| matches!(e, StdError::GenericErr { .. }));
+            Ok(())
+        }
+
+        #[test]
+        fn get_latest_when_multiple_registered() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let module_id = "test:module";
+            let oldest_version =
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("0.1.2".into())).unwrap();
+
+            add_module(deps.as_mut(), oldest_version);
+            let newest_version =
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("100.1.2".into())).unwrap();
+            add_module(deps.as_mut(), newest_version.clone());
+
+            let another_version =
+                ModuleInfo::from_id(module_id, ModuleVersion::Version("1.1.2".into())).unwrap();
+            add_module(deps.as_mut(), another_version);
+
+            let query_msg = QueryMsg::Module {
+                module: ModuleInfo {
+                    provider: "test".to_string(),
+                    name: "module".to_string(),
+                    version: Latest {},
+                },
+            };
+
+            let module: ModuleResponse = from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
+            assert_that!(module.module.info).is_equal_to(&newest_version);
+            Ok(())
+        }
+    }
 }

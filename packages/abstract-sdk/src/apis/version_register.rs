@@ -5,7 +5,10 @@ use abstract_os::{
     },
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg},
 };
-use cosmwasm_std::{to_binary, Deps, QueryRequest, StdError, StdResult, WasmQuery};
+use cosmwasm_std::{Deps, StdError};
+
+use crate::helpers::cosmwasm_std::wasm_smart_query;
+use cosmwasm_std::StdResult;
 
 use super::RegisterAccess;
 
@@ -43,18 +46,16 @@ impl<'a, T: VersionRegisterInterface> VersionRegister<'a, T> {
                 ))
             })
     }
-    /// Smart query
+
+    /// Smart query for a module
     pub fn query_module(&self, module_info: ModuleInfo) -> StdResult<Module> {
         let registry_addr = self.base.registry(self.deps)?;
-        let resp: ModuleResponse =
-            self.deps
-                .querier
-                .query(&QueryRequest::Wasm(WasmQuery::Smart {
-                    contract_addr: registry_addr.into_string(),
-                    msg: to_binary(&QueryMsg::Module {
-                        module: module_info,
-                    })?,
-                }))?;
-        Ok(resp.module)
+        let ModuleResponse { module } = self.deps.querier.query(&wasm_smart_query(
+            registry_addr.into_string(),
+            &QueryMsg::Module {
+                module: module_info,
+            },
+        )?)?;
+        Ok(module)
     }
 }

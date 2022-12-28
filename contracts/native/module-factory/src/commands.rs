@@ -1,6 +1,6 @@
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, Response,
-    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
+    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 
 use abstract_sdk::{
@@ -19,8 +19,7 @@ use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
 use crate::{response::MsgInstantiateContractResponse, state::*};
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
-pub const CREATE_SERVICE_RESPONSE_ID: u64 = 3u64;
-pub const CREATE_PERK_RESPONSE_ID: u64 = 4u64;
+pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
 
 /// Function that starts the creation of the OS
 pub fn execute_create_module(
@@ -71,14 +70,15 @@ pub fn execute_create_module(
             new_module.info,
         ),
         ModuleReference::Api(addr) => {
-            let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: core.manager.into_string(),
-                funds: vec![],
-                msg: to_binary(&ManagerMsg::RegisterModule {
+            let register_msg: CosmosMsg<Empty> = wasm_execute(
+                core.manager.into_string(),
+                &ManagerMsg::RegisterModule {
                     module_addr: addr.to_string(),
                     module: new_module,
-                })?,
-            });
+                },
+                vec![],
+            )?
+            .into();
             Ok(Response::new().add_message(register_msg))
         }
         ModuleReference::Standalone(code_id) => instantiate_contract(
@@ -86,7 +86,7 @@ pub fn execute_create_module(
             *code_id,
             root_init_msg.unwrap(),
             Some(core.manager),
-            CREATE_PERK_RESPONSE_ID,
+            CREATE_STANDALONE_RESPONSE_ID,
             new_module.info,
         ),
         _ => Err(ModuleFactoryError::ModuleNotInstallable {}),

@@ -74,11 +74,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
             result,
         } => commands::register_contract(deps, result),
         Reply {
-            id: commands::CREATE_SERVICE_RESPONSE_ID,
-            result,
-        } => commands::register_contract(deps, result),
-        Reply {
-            id: commands::CREATE_PERK_RESPONSE_ID,
+            id: commands::CREATE_STANDALONE_RESPONSE_ID,
             result,
         } => commands::register_contract(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),

@@ -15,10 +15,10 @@ pub enum VCError {
     SemVer(String),
 
     #[error("Module {0} does not have a stored module reference")]
-    MissingModule(ModuleInfo),
+    ModuleNotInstalled(ModuleInfo),
 
-    #[error("Api {0} can not be updated")]
-    ModuleUpdate(ModuleInfo),
+    #[error("Api {0} cannot be updated")]
+    NotUpdateableModule(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },

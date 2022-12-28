@@ -109,7 +109,7 @@ pub enum ExecuteMsg {
         init_msg: Option<Binary>,
     },
     /// Registers a module after creation.
-    /// Only callable by module factory.
+    /// Used as a callback *only* by the Module Factory to register the module on the OS.
     RegisterModule {
         module_addr: String,
         module: Module,

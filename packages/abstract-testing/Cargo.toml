@@ -3,6 +3,9 @@ name = "abstract-testing"
 version = "0.1.0"
 edition = { workspace = true }
 
+[features]
+default = ["sdk"]
+sdk = ["dep:abstract-sdk"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }
@@ -11,4 +14,6 @@ cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 derive_builder = "0.12.0"
 abstract-os = { workspace = true }
+cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
+abstract-sdk = { workspace = true, optional = true }

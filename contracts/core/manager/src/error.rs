@@ -11,8 +11,8 @@ pub enum ManagerError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("Cannot add two modules of the same kind")]
-    ModuleAlreadyInstalled {},
+    #[error("Module with id: {0} is already installed")]
+    ModuleAlreadyInstalled(String),
 
     #[error("Cannot remove module because {0:?} depend(s) on it.")]
     ModuleHasDependents(Vec<String>),
