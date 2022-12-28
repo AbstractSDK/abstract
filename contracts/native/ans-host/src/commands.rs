@@ -6,7 +6,7 @@ use abstract_os::ans_host::state::*;
 use abstract_os::ans_host::{AssetPair, ExecuteMsg};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
-use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{
     DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,

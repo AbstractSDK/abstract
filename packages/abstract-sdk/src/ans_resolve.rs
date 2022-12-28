@@ -8,8 +8,9 @@ use abstract_os::objects::{
     ans_host::AnsHost, pool_reference::PoolReference, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing,
 };
-use os::objects::pool_info::PoolMetadata;
+use os::objects::pool_metadata::PoolMetadata;
 use os::objects::unique_pool_id::UniquePoolId;
+use os::objects::LpToken;
 
 /// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -21,6 +22,15 @@ impl Resolve for AssetEntry {
     type Output = AssetInfo;
     fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
         ans_host.query_asset(querier, self)
+    }
+}
+
+/// TODO: this should be moved into a more appropriate package (with the LP token)
+impl Resolve for LpToken {
+    type Output = AssetInfo;
+
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        ans_host.query_asset(querier, &self.to_owned().into())
     }
 }
 

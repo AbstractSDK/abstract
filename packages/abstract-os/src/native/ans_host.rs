@@ -36,7 +36,7 @@ pub mod state {
     use crate::objects::pool_reference::PoolReference;
     use crate::objects::{
         asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        pool_info::PoolMetadata, ChannelEntry,
+        pool_metadata::PoolMetadata, ChannelEntry,
     };
 
     /// Ans host configuration

@@ -7,7 +7,7 @@ use abstract_os::ans_host::{
     RegisteredDexesResponse,
 };
 use abstract_os::dex::DexName;
-use abstract_os::objects::pool_info::PoolMetadata;
+use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{DexAssetPairing, UniquePoolId};
 use abstract_os::{

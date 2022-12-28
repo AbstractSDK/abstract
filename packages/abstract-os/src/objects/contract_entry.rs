@@ -5,7 +5,7 @@ use std::{
 
 use cosmwasm_std::{StdError, StdResult};
 
-use crate::constants::ASSET_DELIMITER;
+use crate::constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER, TYPE_DELIMITER};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -45,8 +45,9 @@ impl From<ContractEntry> for UncheckedContractEntry {
 
 impl TryFrom<String> for UncheckedContractEntry {
     type Error = StdError;
+    /// Try from a string like "protocol:contract_name"
     fn try_from(entry: String) -> Result<Self, Self::Error> {
-        let composite: Vec<&str> = entry.split(':').collect();
+        let composite: Vec<&str> = entry.split(ATTRIBUTE_DELIMITER).collect();
         if composite.len() != 2 {
             return Err(StdError::generic_err(
                 "contract entry should be formatted as \"protocol:contract_name\".",
@@ -64,14 +65,21 @@ pub struct ContractEntry {
     pub contract: String,
 }
 
+const STAKING_CONTRACT_PREFIX: &str = "staking";
+
 impl ContractEntry {
+    /// Construct a staking contract entry from the **dex** (pool) and the pool's  **assets**
     pub fn construct_staking_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
         assets.sort();
-        let contract_name = assets
+        let joined_assets = assets
             .iter()
             .map(|a| a.0.clone())
             .collect::<Vec<String>>()
             .join(ASSET_DELIMITER);
+
+        // staking/asset1,asset2
+        let contract_name = vec![STAKING_CONTRACT_PREFIX, &joined_assets].join(TYPE_DELIMITER);
+
         Self {
             protocol: dex_name.to_ascii_lowercase(),
             contract: contract_name,
@@ -150,102 +158,148 @@ mod test {
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+    use speculoos::prelude::*;
 
-    fn mock_key() -> ContractEntry {
-        ContractEntry {
-            protocol: "abstract".to_string(),
-            contract: "rocket-ship".to_string(),
+    mod implementation {
+        use super::*;
+
+        #[test]
+        fn construct_staking_entry_should_join_assets_and_add_staking() {
+            let expected = String::from("staking/asset1,asset2");
+
+            let ContractEntry {
+                contract: actual, ..
+            } = ContractEntry::construct_staking_entry(
+                "protocol",
+                &mut [
+                    &AssetEntry("asset1".to_string()),
+                    &AssetEntry("asset2".to_string()),
+                ],
+            );
+
+            assert_that!(actual).is_equal_to(expected);
+        }
+
+        #[test]
+        fn construct_staking_entry_should_alpaebetize_assets() {
+            let expected = String::from("staking/a,b,c,d,e");
+
+            let ContractEntry {
+                contract: actual, ..
+            } = ContractEntry::construct_staking_entry(
+                "protocol",
+                &mut [
+                    &AssetEntry("d".to_string()),
+                    &AssetEntry("b".to_string()),
+                    &AssetEntry("e".to_string()),
+                    &AssetEntry("a".to_string()),
+                    &AssetEntry("c".to_string()),
+                ],
+            );
+
+            assert_that!(actual).is_equal_to(expected);
         }
     }
 
-    fn mock_keys() -> (ContractEntry, ContractEntry, ContractEntry) {
-        (
-            ContractEntry {
-                protocol: "abstract".to_string(),
-                contract: "sailing-ship".to_string(),
-            },
+    mod key {
+        use super::*;
+
+        fn mock_key() -> ContractEntry {
             ContractEntry {
                 protocol: "abstract".to_string(),
                 contract: "rocket-ship".to_string(),
-            },
-            ContractEntry {
-                protocol: "shitcoin".to_string(),
-                contract: "pump'n dump".to_string(),
-            },
-        )
-    }
+            }
+        }
 
-    #[test]
-    fn storage_key_works() {
-        let mut deps = mock_dependencies();
-        let key = mock_key();
-        let map: Map<ContractEntry, u64> = Map::new("map");
+        fn mock_keys() -> (ContractEntry, ContractEntry, ContractEntry) {
+            (
+                ContractEntry {
+                    protocol: "abstract".to_string(),
+                    contract: "sailing-ship".to_string(),
+                },
+                ContractEntry {
+                    protocol: "abstract".to_string(),
+                    contract: "rocket-ship".to_string(),
+                },
+                ContractEntry {
+                    protocol: "shitcoin".to_string(),
+                    contract: "pump'n dump".to_string(),
+                },
+            )
+        }
 
-        map.save(deps.as_mut().storage, key.clone(), &42069)
+        #[test]
+        fn storage_key_works() {
+            let mut deps = mock_dependencies();
+            let key = mock_key();
+            let map: Map<ContractEntry, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, key.clone(), &42069)
+                .unwrap();
+
+            assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+
+            let items = map
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 1);
+            assert_eq!(items[0], (key, 42069));
+        }
+
+        #[test]
+        fn composite_key_works() {
+            let mut deps = mock_dependencies();
+            let key = mock_key();
+            let map: Map<(ContractEntry, Addr), u64> = Map::new("map");
+
+            map.save(
+                deps.as_mut().storage,
+                (key.clone(), Addr::unchecked("larry")),
+                &42069,
+            )
             .unwrap();
 
-        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+            map.save(
+                deps.as_mut().storage,
+                (key.clone(), Addr::unchecked("jake")),
+                &69420,
+            )
+            .unwrap();
 
-        let items = map
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
+            let items = map
+                .prefix(key)
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
 
-        assert_eq!(items.len(), 1);
-        assert_eq!(items[0], (key, 42069));
-    }
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
+            assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
+        }
 
-    #[test]
-    fn composite_key_works() {
-        let mut deps = mock_dependencies();
-        let key = mock_key();
-        let map: Map<(ContractEntry, Addr), u64> = Map::new("map");
+        #[test]
+        fn partial_key_works() {
+            let mut deps = mock_dependencies();
+            let (key1, key2, key3) = mock_keys();
+            let map: Map<ContractEntry, u64> = Map::new("map");
 
-        map.save(
-            deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("larry")),
-            &42069,
-        )
-        .unwrap();
+            map.save(deps.as_mut().storage, key1, &42069).unwrap();
 
-        map.save(
-            deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("jake")),
-            &69420,
-        )
-        .unwrap();
+            map.save(deps.as_mut().storage, key2, &69420).unwrap();
 
-        let items = map
-            .prefix(key)
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
+            map.save(deps.as_mut().storage, key3, &999).unwrap();
 
-        assert_eq!(items.len(), 2);
-        assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
-        assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
-    }
+            let items = map
+                .prefix("abstract".to_string())
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
 
-    #[test]
-    fn partial_key_works() {
-        let mut deps = mock_dependencies();
-        let (key1, key2, key3) = mock_keys();
-        let map: Map<ContractEntry, u64> = Map::new("map");
-
-        map.save(deps.as_mut().storage, key1, &42069).unwrap();
-
-        map.save(deps.as_mut().storage, key2, &69420).unwrap();
-
-        map.save(deps.as_mut().storage, key3, &999).unwrap();
-
-        let items = map
-            .prefix("abstract".to_string())
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
-
-        assert_eq!(items.len(), 2);
-        assert_eq!(items[0], ("rocket-ship".to_string(), 69420));
-        assert_eq!(items[1], ("sailing-ship".to_string(), 42069));
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0], ("rocket-ship".to_string(), 69420));
+            assert_eq!(items[1], ("sailing-ship".to_string(), 42069));
+        }
     }
 }

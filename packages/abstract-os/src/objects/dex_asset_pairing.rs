@@ -55,7 +55,7 @@ impl TryFrom<AssetEntry> for DexAssetPairing {
         Ok(Self::new(
             assets[0].as_str(),
             assets[1].as_str(),
-            lp_token.dex_name.as_str(),
+            lp_token.dex.as_str(),
         ))
     }
 }
