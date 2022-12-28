@@ -28,12 +28,12 @@ use os::manager::state::DEPENDENTS;
 use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
 
-use crate::validators::{validate_description, validate_link};
+use crate::validation::{validate_description, validate_link};
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,
-    validators::validate_name_or_gov_type,
+    validation::validate_name_or_gov_type,
 };
-use crate::{validators, versioning};
+use crate::{validation, versioning};
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -61,7 +61,7 @@ pub fn update_module_addresses(
 
     if let Some(modules_to_remove) = to_remove {
         for id in modules_to_remove.into_iter() {
-            validators::validate_not_proxy(&id)?;
+            validation::validate_not_proxy(&id)?;
             OS_MODULES.remove(deps.storage, id.as_str());
         }
     }
@@ -184,7 +184,7 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     // Only root can uninstall modules
     ROOT.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    validators::validate_not_proxy(&module_id)?;
+    validation::validate_not_proxy(&module_id)?;
 
     // module can only be uninstalled if there are no dependencies on it
     let dependents = DEPENDENTS.may_load(deps.storage, &module_id)?;
