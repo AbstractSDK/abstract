@@ -170,17 +170,10 @@
       "ModuleVersion": {
         "oneOf": [
           {
-            "type": "object",
-            "required": [
+            "type": "string",
+            "enum": [
               "latest"
-            ],
-            "properties": {
-              "latest": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -432,17 +425,10 @@
         "ModuleVersion": {
           "oneOf": [
             {
-              "type": "object",
-              "required": [
+              "type": "string",
+              "enum": [
                 "latest"
-              ],
-              "properties": {
-                "latest": {
-                  "type": "object",
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
+              ]
             },
             {
               "type": "object",

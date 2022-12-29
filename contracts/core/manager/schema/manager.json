@@ -164,7 +164,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Registers a module after creation. Only callable by module factory.",
+        "description": "Registers a module after creation. Used as a callback *only* by the Module Factory to register the module on the OS.",
         "type": "object",
         "required": [
           "register_module"
@@ -506,17 +506,10 @@
       "ModuleVersion": {
         "oneOf": [
           {
-            "type": "object",
-            "required": [
+            "type": "string",
+            "enum": [
               "latest"
-            ],
-            "properties": {
-              "latest": {
-                "type": "object",
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
