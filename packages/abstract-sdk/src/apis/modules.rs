@@ -1,6 +1,7 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
+use crate::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
@@ -53,52 +54,6 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         self.deps.querier.query::<ContractVersion>(&req)
     }
 
-    /// Construct an api request message.
-    pub fn api_request<M: Serialize>(
-        &self,
-        api_id: ModuleId,
-        message: impl Into<api::ExecuteMsg<M, Empty>>,
-    ) -> StdResult<CosmosMsg> {
-        self.assert_module_dependency(api_id)?;
-        let api_msg: api::ExecuteMsg<M, Empty> = message.into();
-        let api_address = self.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
-    }
-
-    /// Construct an API configure message
-    pub fn configure_api(
-        &self,
-        api_id: ModuleId,
-        message: api::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: api::ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
-    }
-
-    /// Construct an api request message.
-    pub fn app_request<M: Serialize>(
-        &self,
-        app_id: ModuleId,
-        message: impl Into<app::ExecuteMsg<M, Empty>>,
-    ) -> StdResult<CosmosMsg> {
-        self.assert_module_dependency(app_id)?;
-        let app_msg: app::ExecuteMsg<M, Empty> = message.into();
-        let app_address = self.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
-    }
-
-    /// Construct an API configure message
-    pub fn configure_app(
-        &self,
-        app_id: ModuleId,
-        message: app::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let app_msg: app::ExecuteMsg<Empty, Empty> = message.into();
-        let app_address = self.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
-    }
-
     fn assert_module_dependency(&self, module_id: ModuleId) -> StdResult<()> {
         let is_dependency = Dependencies::dependencies(self.base)
             .iter()
@@ -113,6 +68,76 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
             ))),
         }
     }
+
+    /// Construct an app request message.
+    pub fn app_request<M: Serialize>(
+        &self,
+        app_id: ModuleId,
+        message: impl Into<app::ExecuteMsg<M, Empty>>,
+    ) -> StdResult<CosmosMsg> {
+        self.assert_module_dependency(app_id)?;
+        let app_msg: app::ExecuteMsg<M, Empty> = message.into();
+        let app_address = self.module_address(app_id)?;
+        Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
+    }
+
+    /// Construct an app configuation message
+    pub fn app_configure(
+        &self,
+        app_id: ModuleId,
+        message: app::BaseExecuteMsg,
+    ) -> StdResult<CosmosMsg> {
+        let app_msg: app::ExecuteMsg<Empty, Empty> = message.into();
+        let app_address = self.module_address(app_id)?;
+        Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
+    }
+
+    /// Smart query an app
+    pub fn app_query<Q: Serialize>(
+        &self,
+        app_id: ModuleId,
+        message: impl Into<app::QueryMsg<Q>>,
+    ) -> StdResult<QueryRequest<Empty>> {
+        let app_msg: app::QueryMsg<Q> = message.into();
+        let app_address = self.module_address(app_id)?;
+        wasm_smart_query(app_address, &app_msg)
+    }
+
+    /// Interactions with Abstract APIs
+    /// Construct an api request message.
+    pub fn api_request<M: Serialize>(
+        &self,
+        api_id: ModuleId,
+        message: impl Into<api::ExecuteMsg<M, Empty>>,
+    ) -> StdResult<CosmosMsg> {
+        self.assert_module_dependency(api_id)?;
+        let api_msg: api::ExecuteMsg<M, Empty> = message.into();
+        let api_address = self.module_address(api_id)?;
+        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+    }
+
+    /// Smart query an API
+    pub fn api_query<Q: Serialize>(
+        &self,
+        api_id: ModuleId,
+        message: impl Into<api::QueryMsg<Q>>,
+    ) -> StdResult<QueryRequest<Empty>> {
+        let api_msg: api::QueryMsg<Q> = message.into();
+        let api_address = self.module_address(api_id)?;
+        wasm_smart_query(api_address, &api_msg)
+    }
+
+    /// Construct an API configure message
+    /// Note: this method is only callabable by the OS manager.
+    pub fn api_configure(
+        &self,
+        api_id: ModuleId,
+        message: api::BaseExecuteMsg,
+    ) -> StdResult<CosmosMsg> {
+        let api_msg: api::ExecuteMsg<Empty, Empty> = message.into();
+        let api_address = self.module_address(api_id)?;
+        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+    }
 }
 
 #[cfg(test)]
@@ -120,6 +145,7 @@ mod test {
     use super::*;
     use os::objects::dependency::StaticDependency;
     use std::collections::HashMap;
+    use std::fmt::Debug;
     use std::marker::PhantomData;
 
     use crate::apis::test_common::*;
@@ -232,8 +258,8 @@ mod test {
     }
 
     /// Helper to check that the method is not callable when the module is not a dependency
-    fn fail_when_not_dependency_test(
-        modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<CosmosMsg>,
+    fn fail_when_not_dependency_test<T: Debug>(
+        modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<T>,
         fake_module: ModuleId,
     ) {
         let deps = mock_dependencies_with_existing_module();
@@ -242,8 +268,6 @@ mod test {
         let _mods = app.modules(deps.as_ref());
 
         let res = modules_fn(&app, deps.as_ref());
-
-        print!("res: {:?}", res);
 
         assert_that!(res).is_err().matches(|e| match e {
             StdError::GenericErr { msg, .. } => msg.contains(&fake_module.to_string()),
@@ -334,7 +358,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.configure_api(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
+                    mods.api_configure(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -370,7 +394,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.configure_app(
+                    mods.app_configure(
                         FAKE_MODULE_ID,
                         app::BaseExecuteMsg::UpdateConfig {
                             ans_host_address: None,
@@ -406,6 +430,81 @@ mod test {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
+                }));
+        }
+    }
+
+    mod api_query {
+        use super::*;
+        use os::dex::{DexQueryMsg, OfferAsset};
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.api_query(FAKE_MODULE_ID, Empty {})
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_api_query() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = MockModule::new();
+
+            let mods = app.modules(deps.as_ref());
+
+            let inner_msg = DexQueryMsg::SimulateSwap {
+                ask_asset: "juno".into(),
+                offer_asset: OfferAsset::new("some", 69u128),
+                dex: None,
+            };
+
+            let res = mods.api_query(TEST_MODULE_ID, inner_msg.clone());
+
+            let expected_msg: api::QueryMsg<DexQueryMsg> = api::QueryMsg::App(inner_msg);
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
+                }));
+        }
+    }
+
+    mod app_query {
+        use super::*;
+
+        #[test]
+        fn should_return_err_if_not_dependency() {
+            fail_when_not_dependency_test(
+                |app, deps| {
+                    let mods = app.modules(deps);
+                    mods.app_query(FAKE_MODULE_ID, Empty {})
+                },
+                FAKE_MODULE_ID,
+            );
+        }
+
+        #[test]
+        fn expected_app_query() {
+            let deps = mock_dependencies_with_existing_module();
+            let app = MockModule::new();
+
+            let mods = app.modules(deps.as_ref());
+
+            let res = mods.app_query(TEST_MODULE_ID, Empty {});
+
+            let expected_msg: app::QueryMsg<Empty> = app::QueryMsg::App(Empty {});
+
+            assert_that!(res)
+                .is_ok()
+                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
+                    contract_addr: TEST_MODULE_ADDRESS.into(),
+                    msg: to_binary(&expected_msg).unwrap(),
                 }));
         }
     }

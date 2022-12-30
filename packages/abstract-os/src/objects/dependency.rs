@@ -65,9 +65,9 @@ mod test {
     fn test_static_constructor() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        assert_that!(dep.id).is_equal_to(ModuleId::from("test"));
+        assert_that!(dep.id).is_equal_to("test");
         assert_that!(&dep.version_req.to_vec()).is_equal_to(VERSION_CONSTRAINT.to_vec());
     }
 
@@ -75,7 +75,7 @@ mod test {
     fn static_check_passes() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
         assert_that!(dep.check()).is_ok();
     }
@@ -84,7 +84,7 @@ mod test {
     fn static_check_fails() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1e.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
         assert_that!(dep.check()).is_err();
     }
@@ -93,7 +93,7 @@ mod test {
     fn matches_should_match_matching_versions() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
         assert_that!(dep.matches(&Version::parse("1.0.0").unwrap())).is_true();
         assert_that!(dep.matches(&Version::parse("1.1.0").unwrap())).is_true();
@@ -104,7 +104,7 @@ mod test {
     fn matches_should_not_match_non_matching_versions() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
         assert_that!(dep.matches(&Version::parse("2.0.0").unwrap())).is_false();
         assert_that!(dep.matches(&Version::parse("0.1.0").unwrap())).is_false();
@@ -115,7 +115,7 @@ mod test {
     fn test_dependency_from_static() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test".into(), &VERSION_CONSTRAINT);
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
 
         let dep: Dependency = dep.borrow().into();
 
