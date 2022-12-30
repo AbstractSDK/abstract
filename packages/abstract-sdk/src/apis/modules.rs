@@ -350,7 +350,7 @@ mod test {
         }
     }
 
-    mod configure_api {
+    mod api_configure {
         use super::*;
 
         #[test]
@@ -371,7 +371,7 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.configure_api(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {});
+            let res = mods.api_configure(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {});
 
             let expected_msg: api::ExecuteMsg<Empty, Empty> =
                 api::ExecuteMsg::Base(api::BaseExecuteMsg::Remove {});
@@ -386,7 +386,7 @@ mod test {
         }
     }
 
-    mod configure_app {
+    mod app_configure {
         use super::*;
 
         #[test]
@@ -412,7 +412,7 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.configure_app(
+            let res = mods.app_configure(
                 TEST_MODULE_ID,
                 app::BaseExecuteMsg::UpdateConfig {
                     ans_host_address: Some("new_ans_addr".to_string()),
