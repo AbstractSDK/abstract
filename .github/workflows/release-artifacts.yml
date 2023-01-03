@@ -10,7 +10,7 @@ on:
 
 jobs:
   release-artifacts:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
       - name: Install latest stable
@@ -36,4 +36,59 @@ jobs:
           files: cosmwasm-artifacts.tar.gz
           body_path: CHANGELOG.md
 
-     
+  publish-schemas:
+    runs-on: ubuntu-latest
+    #    container:
+    #      image: ubuntu:latest
+    env:
+      NAMESPACE: abstract
+    strategy:
+      matrix:
+        package: [ etf ]
+    #        package: [ etf, dex, proxy, tendermint-staking ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install latest stable
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Generate the schemas for ${{ matrix.package }}
+        run: |
+          cargo schema --package ${{ matrix.package }}
+
+      - name: Get latest tag
+        id: get-latest-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+        with:
+          fallback: 0.0.0
+      - uses: actions/github-script@v6
+        env:
+          LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
+        id: get-latest-without-v
+        with:
+          script: |
+            const tag = process.env.LATEST_TAG
+            const tagWithoutV = tag.replace('v', '')
+            return tagWithoutV
+          result-encoding: string
+
+      - name: Create pull request
+        uses: car-on-sale/action-pull-request-another-repo@v1.3.0
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
+        with:
+          source_folder: 'schema'
+          destination_repo: 'Abstract-OS/schemas'
+          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
+          destination_base_branch: mainline
+          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}/${{ github.sha }}
+          user_email: '32375605+adairrr@users.noreply.github.com'
+          user_name: 'adairrr'
+          pull_request_reviewers: 'adairrr'
+          commit_msg: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
+          pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'

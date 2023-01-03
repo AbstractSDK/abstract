@@ -6,21 +6,48 @@ env:
   CODECOV_TOKEN: 7f09ca79-34d7-4a5a-b6fd-b3b477a7b2e9
 
 jobs:
-  test:
-    name:                       coverage
-    runs-on:                    self-hosted
+  check-changes:
+    name: Check for Rust changes
+    runs-on: self-hosted
     container:
-      image:                    xd009642/tarpaulin:develop-nightly
-      options:                  --security-opt seccomp=unconfined
+      image: rust:latest
+    outputs:
+      rust-changes: ${{ steps.rust-changes.outputs.rust-changes }}
     steps:
-      - name:                   Checkout repository
-        uses:                   actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Check if any rust files have changed
+        id: changes
+        uses: tj-actions/changed-files@v35
+        with:
+          files: |
+            *.rs
+            Cargo.toml
+            Cargo.lock
+      - name: Check if any rust files have changed
+        if: steps.changes.outputs.any_changed == 'true'
+        id: rust-changes
+        run: |
+          echo "Rust files have changed"
+          echo "rust-changes=true" >> $GITHUB_OUTPUT
 
-      - name:                   Generate code coverage
+  test:
+    name: coverage
+    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
+    runs-on: self-hosted
+    container:
+      image: xd009642/tarpaulin:develop-nightly
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Generate code coverage
         run: |
           cargo +nightly tarpaulin --verbose --workspace --timeout 120 --out Xml
-  
-      - name:                   Upload to codecov.io
-        uses:                   codecov/codecov-action@v3
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3
         with:
-          fail_ci_if_error:     true
+          fail_ci_if_error: true

@@ -13,15 +13,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    // This is temporary until we can use the new cosmwasm-schema
-    write_api! {
-        name: "schema",
-        instantiate: EtfInstantiateMsg,
-        query: EtfQueryMsg,
-        execute: EtfExecuteMsg,
-        migrate: Empty,
-    };
-
     EtfApp::export_schema(&out_dir);
     export_schema(&schema_for!(StateResponse), &out_dir);
 }

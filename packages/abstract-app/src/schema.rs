@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_os::app::{AppExecuteMsg, AppQueryMsg};
 use abstract_sdk::os::app::AppConfigResponse;
-use cosmwasm_schema::{export_schema_with_title, schema_for};
+use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cw_controllers::AdminResponse;
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -14,13 +14,22 @@ impl<
         Error: From<cosmwasm_std::StdError> + From<AppError>,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
-        CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg,
+        CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
     >
     AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
+        // write out the module-specific schema
+        write_api! {
+            name: "module-schema",
+            instantiate: CustomInitMsg,
+            query: CustomQueryMsg,
+            execute: CustomExecMsg,
+            migrate: CustomMigrateMsg,
+        };
+
         export_schema_with_title(
             &schema_for!(<Self as ExecuteEndpoint>::ExecuteMsg),
             out_dir,

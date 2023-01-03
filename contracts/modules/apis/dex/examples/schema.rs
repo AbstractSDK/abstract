@@ -12,15 +12,6 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    // Write a modified entry point schema for the Dex API
-    write_api! {
-        name: "schema",
-        query: DexQueryMsg,
-        execute: DexExecuteMsg,
-        instantiate: Empty,
-        migrate: Empty,
-    };
-
     DexApi::export_schema(&out_dir);
     export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "ApiResponse");
 }
