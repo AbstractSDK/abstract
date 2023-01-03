@@ -2,14 +2,14 @@ use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use abstract_os::ans_host::state::*;
-use abstract_os::ans_host::{AssetPair, ExecuteMsg};
+use abstract_os::ans_host::ExecuteMsg;
+use abstract_os::ans_host::{state::*, AssetPair};
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_id::{PoolId, UncheckedPoolId};
 use abstract_os::objects::pool_metadata::PoolMetadata;
 use abstract_os::objects::pool_reference::PoolReference;
 use abstract_os::objects::{
-    DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
 };
 
 use crate::contract::AnsHostResult;
@@ -239,7 +239,7 @@ fn update_pools(
 
 /// Execute an action on every asset pairing in the list of assets
 /// Example: assets: [A, B, C] -> [A, B], [A, C], [B, C]
-fn exec_on_asset_pairings<T, A, E>(assets: &[String], mut action: A) -> StdResult<()>
+fn exec_on_asset_pairings<T, A, E>(assets: &[AssetEntry], mut action: A) -> StdResult<()>
 where
     A: FnMut(AssetPair) -> Result<T, E>,
     StdError: From<E>,
@@ -261,11 +261,11 @@ fn register_pool_pairings(
     storage: &mut dyn Storage,
     next_pool_id: UniquePoolId,
     pool_id: PoolId,
-    assets: &[String],
+    assets: &[AssetEntry],
     dex: &DexName,
 ) -> StdResult<()> {
     let register_pairing = |(asset_x, asset_y): AssetPair| {
-        let key = DexAssetPairing::new(&asset_x, &asset_y, dex);
+        let key = DexAssetPairing::new(asset_x, asset_y, dex);
 
         let compound_pool_id = PoolReference {
             id: next_pool_id,
@@ -300,10 +300,10 @@ fn remove_pool_pairings(
     storage: &mut dyn Storage,
     pool_id_to_remove: UniquePoolId,
     dex: &DexName,
-    assets: &[String],
+    assets: &[AssetEntry],
 ) -> StdResult<()> {
     let remove_pairing_action = |(asset_x, asset_y): AssetPair| -> Result<(), StdError> {
-        let key = DexAssetPairing::new(&asset_x, &asset_y, dex);
+        let key = DexAssetPairing::new(asset_x, asset_y, dex);
 
         // Action to remove the pool id from the list of pool ids for the asset pairing
         let remove_pool_id_action = |ids: Option<Vec<PoolReference>>| -> StdResult<_> {
@@ -325,10 +325,13 @@ fn remove_pool_pairings(
 }
 
 /// unsure
-fn validate_pool_assets(storage: &dyn Storage, assets: &mut [String]) -> Result<(), AnsHostError> {
+fn validate_pool_assets(
+    storage: &dyn Storage,
+    assets: &mut [AssetEntry],
+) -> Result<(), AnsHostError> {
     // convert all assets to lower
     for asset in assets.iter_mut() {
-        *asset = asset.to_ascii_lowercase();
+        asset.format();
     }
 
     if assets.len() < MIN_POOL_ASSETS || assets.len() > MAX_POOL_ASSETS {
@@ -341,9 +344,9 @@ fn validate_pool_assets(storage: &dyn Storage, assets: &mut [String]) -> Result<
 
     // Validate that each exists in the asset registry
     for asset in assets.iter() {
-        if ASSET_ADDRESSES.may_load(storage, asset.into())?.is_none() {
+        if ASSET_ADDRESSES.may_load(storage, asset.clone())?.is_none() {
             return Err(AnsHostError::UnregisteredAsset {
-                asset: asset.clone(),
+                asset: asset.to_string(),
             });
         }
     }
@@ -391,11 +394,11 @@ mod test {
         Ok(())
     }
 
-    fn register_assets_helper(deps: DepsMut, assets: Vec<String>) -> AnsHostTestResult {
+    fn register_assets_helper(deps: DepsMut, assets: Vec<AssetEntry>) -> AnsHostTestResult {
         let msg = ExecuteMsg::UpdateAssetAddresses {
             to_add: assets
                 .iter()
-                .map(|a| (a.clone(), AssetInfoUnchecked::native(a.clone())))
+                .map(|a| (a.to_string(), AssetInfoUnchecked::native(a.to_string())))
                 .collect(),
             to_remove: vec![],
         };
@@ -1093,7 +1096,7 @@ mod test {
         const INITIAL_UNIQUE_POOL_ID: u64 = 1;
 
         // Makes a stable
-        fn pool_metadata(dex: &str, pool_type: PoolType, assets: Vec<String>) -> PoolMetadata {
+        fn pool_metadata(dex: &str, pool_type: PoolType, assets: Vec<AssetEntry>) -> PoolMetadata {
             PoolMetadata {
                 dex: dex.to_string(),
                 pool_type,
@@ -1165,7 +1168,7 @@ mod test {
         fn asset_pairing(
             api: &dyn Api,
             dex: &str,
-            (asset_x, asset_y): (&str, &str),
+            (asset_x, asset_y): (AssetEntry, AssetEntry),
             unchecked_pool_id: &UncheckedPoolId,
         ) -> Result<(DexAssetPairing, Vec<PoolReference>), StdError> {
             Ok((
@@ -1202,13 +1205,23 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let _pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+            let _pairing = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
 
             let (unchecked_pool_id, _) = new_entry;
 
             let expected_pairings = vec![
-                asset_pairing(&deps.api, "junoswap", ("juno", "osmo"), &unchecked_pool_id)?,
-                asset_pairing(&deps.api, "junoswap", ("osmo", "juno"), &unchecked_pool_id)?,
+                asset_pairing(
+                    &deps.api,
+                    "junoswap",
+                    ("juno".into(), "osmo".into()),
+                    &unchecked_pool_id,
+                )?,
+                asset_pairing(
+                    &deps.api,
+                    "junoswap",
+                    ("osmo".into(), "juno".into()),
+                    &unchecked_pool_id,
+                )?,
             ];
             let actual_pairings: Result<Vec<AssetPairingMapEntry>, _> =
                 load_asset_pairings(&deps.storage);
@@ -1248,7 +1261,7 @@ mod test {
 
             assert_that(&actual_pools?).is_equal_to(&expected_pools);
 
-            let _pairing = DexAssetPairing::new("juno", "osmo", "junoswap");
+            let _pairing = DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap");
 
             let (unchecked_pool_id, _) = new_entry;
 
@@ -1402,7 +1415,7 @@ mod test {
                 }
             );
 
-            let assets = &mut ["a".to_string()];
+            let assets = &mut ["a".into()];
             let deps = mock_dependencies();
             let result = validate_pool_assets(&deps.storage, assets).unwrap_err();
             assert_eq!(
@@ -1417,7 +1430,7 @@ mod test {
 
         #[test]
         fn unregistered() {
-            let mut assets = vec!["a".to_string(), "b".to_string()];
+            let mut assets = vec!["a".into(), "b".into()];
             let deps = mock_dependencies();
             let res = validate_pool_assets(&deps.storage, &mut assets);
 
@@ -1430,7 +1443,7 @@ mod test {
 
         #[test]
         fn valid_amounts() {
-            let mut assets = vec!["a".to_string(), "b".to_string()];
+            let mut assets = vec!["a".into(), "b".into()];
             let mut deps = mock_dependencies();
 
             mock_init(deps.as_mut()).unwrap();
@@ -1440,9 +1453,9 @@ mod test {
 
             assert_that(&res).is_ok();
 
-            let mut assets: Vec<String> = vec!["a", "b", "c", "d", "e"]
-                .iter()
-                .map(|s| s.to_string())
+            let mut assets: Vec<AssetEntry> = vec!["a", "b", "c", "d", "e"]
+                .into_iter()
+                .map(|s| s.into())
                 .collect();
 
             register_assets_helper(deps.as_mut(), assets.clone()).unwrap();
@@ -1453,9 +1466,9 @@ mod test {
 
         #[test]
         fn too_many() {
-            let mut assets: Vec<String> = vec!["a", "b", "c", "d", "e", "f"]
-                .iter()
-                .map(|s| s.to_string())
+            let mut assets: Vec<AssetEntry> = vec!["a", "b", "c", "d", "e", "f"]
+                .into_iter()
+                .map(|s| s.into())
                 .collect();
             let deps = mock_dependencies();
             let result = validate_pool_assets(&deps.storage, &mut assets).unwrap_err();

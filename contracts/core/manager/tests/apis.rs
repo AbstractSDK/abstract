@@ -246,7 +246,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     os.expect_modules(vec![])?;
 
-    /// Register the new version
+    // Register the new version
     let new_version_num = "100.0.0";
 
     // We init the staking api with a new version to ensure that we get a new address

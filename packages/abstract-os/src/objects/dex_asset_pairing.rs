@@ -14,32 +14,23 @@ type DexName = String;
 /// Consists of the two assets and the dex name
 /// TODO: what if we made keys equal based on the two assets either way?
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
-pub struct DexAssetPairing((String, String, DexName));
+pub struct DexAssetPairing((AssetEntry, AssetEntry, DexName));
 
 impl DexAssetPairing {
-    pub fn new(asset_x: &str, asset_y: &str, dex_name: &str) -> Self {
-        Self((
-            str::to_ascii_lowercase(asset_x),
-            str::to_ascii_lowercase(asset_y),
-            str::to_ascii_lowercase(dex_name),
-        ))
+    pub fn new(asset_x: AssetEntry, asset_y: AssetEntry, dex_name: &str) -> Self {
+        Self((asset_x, asset_y, str::to_ascii_lowercase(dex_name)))
     }
 
-    pub fn asset_x(&self) -> &str {
+    pub fn asset_x(&self) -> &AssetEntry {
         &self.0 .0
     }
 
-    pub fn asset_y(&self) -> &str {
+    pub fn asset_y(&self) -> &AssetEntry {
         &self.0 .1
     }
 
     pub fn dex(&self) -> &str {
         &self.0 .2
-    }
-
-    pub fn from_assets(dex_name: &str, assets: &mut [&AssetEntry; 2]) -> Self {
-        assets.sort();
-        Self::new(assets[0].as_str(), assets[1].as_str(), dex_name)
     }
 }
 
@@ -51,18 +42,13 @@ impl TryFrom<AssetEntry> for DexAssetPairing {
         let mut assets = lp_token.assets;
         // assets should already be sorted, but just in case
         assets.sort();
+        assets.reverse();
 
         Ok(Self::new(
-            assets[0].as_str(),
-            assets[1].as_str(),
+            assets.pop().unwrap(),
+            assets.pop().unwrap(),
             lp_token.dex.as_str(),
         ))
-    }
-}
-
-impl From<(String, String, String)> for DexAssetPairing {
-    fn from((asset_x, asset_y, dex_name): (String, String, String)) -> Self {
-        Self::new(&asset_x, &asset_y, &dex_name)
     }
 }
 
@@ -73,10 +59,10 @@ impl Display for DexAssetPairing {
 }
 
 impl<'a> PrimaryKey<'a> for DexAssetPairing {
-    type Prefix = (String, String);
-    type SubPrefix = String;
+    type Prefix = (AssetEntry, AssetEntry);
+    type SubPrefix = AssetEntry;
     type Suffix = DexName;
-    type SuperSuffix = (String, DexName);
+    type SuperSuffix = (AssetEntry, DexName);
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
@@ -112,12 +98,11 @@ impl KeyDeserialize for DexAssetPairing {
         let u_len = parse_length(&len_uv)?;
         let v = uv.split_off(u_len);
 
-        Ok((
-            String::from_vec(tuv)?,
-            String::from_vec(uv)?,
-            String::from_vec(v)?,
-        )
-            .into())
+        Ok(DexAssetPairing::new(
+            String::from_vec(tuv)?.into(),
+            String::from_vec(uv)?.into(),
+            &String::from_vec(v)?,
+        ))
     }
 }
 
@@ -129,14 +114,14 @@ mod test {
     use cw_storage_plus::Map;
 
     fn mock_key() -> DexAssetPairing {
-        DexAssetPairing::new("juno", "osmo", "junoswap")
+        DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")
     }
 
     fn mock_keys() -> (DexAssetPairing, DexAssetPairing, DexAssetPairing) {
         (
-            DexAssetPairing::new("juno", "osmo", "junoswap"),
-            DexAssetPairing::new("juno", "osmo", "osmosis"),
-            DexAssetPairing::new("osmo", "usdt", "osmosis"),
+            DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap"),
+            DexAssetPairing::new("juno".into(), "osmo".into(), "osmosis"),
+            DexAssetPairing::new("osmo".into(), "usdt".into(), "osmosis"),
         )
     }
 
@@ -214,7 +199,7 @@ mod test {
         map.save(deps.as_mut().storage, key3, &999).unwrap();
 
         let items = map
-            .prefix(("juno".to_string(), "osmo".to_string()))
+            .prefix(("juno".into(), "osmo".into()))
             .range(deps.as_ref().storage, None, None, Order::Ascending)
             .map(|item| item.unwrap())
             .collect::<Vec<_>>();
@@ -230,6 +215,9 @@ mod test {
 
         let key = DexAssetPairing::try_from(lp_token).unwrap();
 
-        assert_eq!(key, DexAssetPairing::new("juno", "osmo", "junoswap"));
+        assert_eq!(
+            key,
+            DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")
+        );
     }
 }

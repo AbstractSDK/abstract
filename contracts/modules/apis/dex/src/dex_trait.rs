@@ -1,6 +1,6 @@
 use abstract_os::objects::{DexAssetPairing, PoolId, PoolReference};
 use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::os::objects::{AssetEntry};
+use abstract_sdk::os::objects::AssetEntry;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
@@ -23,21 +23,16 @@ pub trait DEX: Identify {
         &self,
         deps: Deps,
         ans_host: &AnsHost,
-        assets: &mut Vec<&AssetEntry>,
+        assets: (AssetEntry,AssetEntry),
     ) -> Result<PoolId, DexError> {
-        let mut pair: [&AssetEntry; 2] = [(assets[0]), &assets[1].clone()];
-        let dex_pair = self.asset_pairing(&mut pair);
-        let pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
-        if pool_ref.is_empty() {
-            return Err(DexError::AssetPairingNotFound {
-                asset_pairing: dex_pair,
-            });
-        }
-        let found: PoolReference = pool_ref[0].clone();
+        let dex_pair =
+            DexAssetPairing::new(assets.0, assets.1, self.name());
+        let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
+        // Currently takes the first pool found, but should be changed to take the best pool
+        let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
+            asset_pairing: dex_pair,
+        })?;
         Ok(found.pool_id)
-    }
-    fn asset_pairing(&self, assets: &mut [&AssetEntry; 2]) -> DexAssetPairing {
-        DexAssetPairing::from_assets(self.name(), assets)
     }
     #[allow(clippy::too_many_arguments)]
     fn swap(

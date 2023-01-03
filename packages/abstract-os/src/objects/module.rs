@@ -47,9 +47,9 @@ impl ModuleInfo {
             )),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
-                semver::Version::parse(ver).map_err(|e|StdError::generic_err(e.to_string()))?;
+                semver::Version::parse(ver).map_err(|e| StdError::generic_err(e.to_string()))?;
                 Ok(())
-            },
+            }
         }
     }
 }
@@ -157,7 +157,10 @@ impl Display for ModuleVersion {
     }
 }
 
-impl<T> From<T> for ModuleVersion where T: Into<String>{
+impl<T> From<T> for ModuleVersion
+where
+    T: Into<String>,
+{
     fn from(ver: T) -> Self {
         Self::Version(ver.into())
     }

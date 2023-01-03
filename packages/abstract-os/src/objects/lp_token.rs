@@ -15,20 +15,15 @@ use cosmwasm_std::StdError;
 )]
 pub struct LpToken {
     pub dex: DexName,
-    pub assets: Vec<String>,
+    pub assets: Vec<AssetEntry>,
 }
 
 impl LpToken {
-    pub fn new<T: ToString>(dex_name: T, assets: &[String]) -> Self {
+    pub fn new<T: ToString, U: Into<AssetEntry> + Clone>(dex_name: T, assets: Vec<U>) -> Self {
         Self {
             dex: dex_name.to_string(),
-            assets: assets.to_vec(),
+            assets: assets.into_iter().map(|a| Into::into(a)).collect(),
         }
-    }
-
-    /// Return a vector of the assets in the pool as [`AssetEntry`]s
-    pub fn assets(&self) -> Vec<AssetEntry> {
-        self.assets.iter().map(AssetEntry::from).collect()
     }
 }
 
@@ -50,9 +45,9 @@ impl TryFrom<AssetEntry> for LpToken {
         let dex_name = segments[0].to_string();
 
         // get the assets, like "crab,junox" and split them
-        let assets: Vec<String> = segments[1]
+        let assets: Vec<AssetEntry> = segments[1]
             .split(ASSET_DELIMITER)
-            .map(|s| s.to_string())
+            .map(AssetEntry::from)
             .collect();
 
         if assets.len() < 2 {
@@ -72,7 +67,12 @@ impl TryFrom<AssetEntry> for LpToken {
 /// Transform into a string formatted as "dex_name/asset1,asset2"
 impl Display for LpToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let assets = self.assets.join(ASSET_DELIMITER);
+        let assets = self
+            .assets
+            .iter()
+            .map(|a| a.as_str())
+            .collect::<Vec<&str>>()
+            .join(ASSET_DELIMITER);
 
         write!(f, "{}{}{}", self.dex, TYPE_DELIMITER, assets)
     }
@@ -105,8 +105,8 @@ mod test {
         #[test]
         fn new_works() {
             let dex_name = "junoswap";
-            let assets = vec!["crab".to_string(), "junox".to_string()];
-            let actual = LpToken::new(dex_name, assets.as_slice());
+            let assets = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
+            let actual = LpToken::new(dex_name, assets.clone());
 
             let expected = LpToken {
                 dex: dex_name.to_string(),
@@ -118,11 +118,11 @@ mod test {
         #[test]
         fn assets_returns_asset_entries() {
             let dex_name = "junoswap";
-            let assets = vec!["crab".to_string(), "junox".to_string()];
-            let lp_token = LpToken::new(dex_name, assets.as_slice());
+            let assets = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
+            let lp_token = LpToken::new(dex_name, assets);
             let expected = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
 
-            assert_that!(lp_token.assets()).is_equal_to(expected);
+            assert_that!(lp_token.assets).is_equal_to(expected);
         }
     }
 
@@ -134,7 +134,7 @@ mod test {
             let lp_token = LpToken::try_from(AssetEntry::new("junoswap/crab,junox")).unwrap();
             assert_that!(lp_token.dex).is_equal_to("junoswap".to_string());
             assert_that!(lp_token.assets)
-                .is_equal_to(vec!["crab".to_string(), "junox".to_string()]);
+                .is_equal_to(vec![AssetEntry::from("crab"), AssetEntry::from("junox")]);
         }
 
         #[test]
@@ -155,7 +155,7 @@ mod test {
 
         #[test]
         fn into_asset_entry_works() {
-            let lp_token = LpToken::new("junoswap", &["crab".to_string(), "junox".to_string()]);
+            let lp_token = LpToken::new("junoswap", vec!["crab".to_string(), "junox".to_string()]);
             let expected = AssetEntry::new("junoswap/crab,junox");
 
             assert_that!(lp_token.into()).is_equal_to(expected);
@@ -168,7 +168,7 @@ mod test {
 
         #[test]
         fn test_from_pool_metadata() {
-            let assets = vec!["crab".to_string(), "junox".to_string()];
+            let assets: Vec<AssetEntry> = vec!["crab".into(), "junox".into()];
             let dex = "junoswap".to_string();
 
             let pool = PoolMetadata {

@@ -17,7 +17,7 @@ use crate::objects::{
     ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
 
-pub type AssetPair = (String, String);
+pub type AssetPair = (AssetEntry, AssetEntry);
 type DexName = String;
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)

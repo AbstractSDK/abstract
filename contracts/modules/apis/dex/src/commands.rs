@@ -1,6 +1,6 @@
 use abstract_os::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::base::features::AbstractNameService;
-use abstract_sdk::os::objects::{AnsAsset};
+use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, DepsMut, ReplyOn, StdError, SubMsg};
 use cw_asset::Asset;
@@ -9,7 +9,7 @@ use crate::{error::DexError, DEX};
 use abstract_sdk::os::dex::AskAsset;
 use abstract_sdk::os::{
     dex::{DexAction, OfferAsset, SwapRouter},
-    objects::{AssetEntry},
+    objects::AssetEntry,
 };
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
@@ -128,7 +128,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         let ask_asset_info = ans.query(&ask_asset)?;
 
         let pair_address =
-            exchange.pair_address(deps, ans.host(), &mut vec![&offer_asset, &ask_asset])?;
+            exchange.pair_address(deps, ans.host(), (offer_asset.clone(), ask_asset))?;
         let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
 
         exchange.swap(
@@ -184,14 +184,16 @@ pub trait LocalDex: AbstractNameService + Execution {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
         let assets = ans.query(&offer_assets)?;
+
+        let mut pair_assets = offer_assets
+        .into_iter()
+        .map(|a| a.name)
+        .take(2).collect::<Vec<AssetEntry>>();
+
         let pair_address = exchange.pair_address(
             deps,
             ans.host(),
-            offer_assets
-                .iter()
-                .map(|a| &a.name)
-                .collect::<Vec<&AssetEntry>>()
-                .as_mut(),
+            (pair_assets.swap_remove(0), pair_assets.swap_remove(1)),
         )?;
         exchange.provide_liquidity(deps, pair_address, assets, max_spread)
     }
@@ -200,13 +202,12 @@ pub trait LocalDex: AbstractNameService + Execution {
         &self,
         deps: Deps,
         offer_asset: OfferAsset,
-        paired_assets: Vec<AssetEntry>,
+        mut paired_assets: Vec<AssetEntry>,
         exchange: &dyn DEX,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
-        let pair_address =
-            exchange.pair_address(deps, ans.host(), &mut paired_assets.iter().collect())?;
+        let pair_address = exchange.pair_address(deps, ans.host(), (paired_assets.swap_remove(0), paired_assets.swap_remove(1)))?;
         let offer_asset = ans.query(&offer_asset)?;
         exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
     }

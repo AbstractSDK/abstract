@@ -14,36 +14,39 @@ type DexName = String;
 pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,
-    pub assets: Vec<String>,
+    pub assets: Vec<AssetEntry>,
 }
 
 impl PoolMetadata {
-    pub fn new<T: ToString>(dex_name: T, pool_type: PoolType, assets: &[String]) -> Self {
+    pub fn new<T: ToString, U: Into<AssetEntry>>(
+        dex_name: T,
+        pool_type: PoolType,
+        assets: Vec<U>,
+    ) -> Self {
         Self {
             dex: dex_name.to_string(),
             pool_type,
-            assets: assets.to_vec(),
+            assets: assets.into_iter().map(|a| Into::into(a)).collect(),
         }
     }
 
-    pub fn stable<T: ToString>(dex_name: T, assets: &[String]) -> Self {
+    pub fn stable<T: ToString>(dex_name: T, assets: Vec<impl Into<AssetEntry>>) -> Self {
         Self::new(dex_name, PoolType::Stable, assets)
     }
 
-    pub fn weighted<T: ToString>(dex_name: T, assets: &[String]) -> Self {
+    pub fn weighted<T: ToString>(dex_name: T, assets: Vec<impl Into<AssetEntry>>) -> Self {
         Self::new(dex_name, PoolType::Weighted, assets)
     }
 
-    pub fn constant_product<T: ToString>(dex_name: T, assets: &[String]) -> Self {
+    pub fn constant_product<T: ToString>(dex_name: T, assets: Vec<impl Into<AssetEntry>>) -> Self {
         Self::new(dex_name, PoolType::ConstantProduct, assets)
     }
 
-    pub fn liquidity_bootstrap<T: ToString>(dex_name: T, assets: &[String]) -> Self {
+    pub fn liquidity_bootstrap<T: ToString>(
+        dex_name: T,
+        assets: Vec<impl Into<AssetEntry>>,
+    ) -> Self {
         Self::new(dex_name, PoolType::LiquidityBootstrap, assets)
-    }
-
-    pub fn assets(&self) -> Vec<AssetEntry> {
-        self.assets.iter().map(AssetEntry::from).collect()
     }
 }
 
@@ -64,17 +67,10 @@ impl FromStr for PoolMetadata {
         }
 
         let dex = String::from(attributes[0]);
-        let assets = String::from(attributes[1])
-            .split(ASSET_DELIMITER)
-            .map(String::from)
-            .collect();
+        let assets: Vec<&str> = attributes[1].split(ASSET_DELIMITER).collect();
         let pool_type = PoolType::from_str(attributes[2])?;
 
-        Ok(PoolMetadata {
-            dex,
-            pool_type,
-            assets,
-        })
+        Ok(PoolMetadata::new(dex, pool_type, assets))
     }
 }
 
@@ -82,7 +78,12 @@ impl FromStr for PoolMetadata {
 /// Ex: "junoswap:uusd,uust:stable"
 impl fmt::Display for PoolMetadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let assets_str = self.assets.join(ASSET_DELIMITER);
+        let assets_str = self
+            .assets
+            .iter()
+            .map(|a| a.as_str())
+            .collect::<Vec<&str>>()
+            .join(ASSET_DELIMITER);
         let pool_type_str = self.pool_type.to_string();
 
         write!(
@@ -106,12 +107,12 @@ mod tests {
             let dex = "junoswap";
             let pool_type = PoolType::Stable;
             let assets = vec!["uusd".to_string(), "uust".to_string()];
-            let actual = PoolMetadata::new(dex, pool_type.clone(), &assets);
+            let actual = PoolMetadata::new(dex, pool_type.clone(), assets.clone());
 
             let expected = PoolMetadata {
                 dex: dex.to_string(),
                 pool_type,
-                assets,
+                assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
         }
@@ -120,12 +121,12 @@ mod tests {
         fn stable_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
-            let actual = PoolMetadata::stable(dex, &assets);
+            let actual = PoolMetadata::stable(dex, assets.clone());
 
             let expected = PoolMetadata {
                 dex: dex.to_string(),
                 pool_type: PoolType::Stable,
-                assets,
+                assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
         }
@@ -134,12 +135,12 @@ mod tests {
         fn weighted_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
-            let actual = PoolMetadata::weighted(dex, &assets);
+            let actual = PoolMetadata::weighted(dex, assets.clone());
 
             let expected = PoolMetadata {
                 dex: dex.to_string(),
                 pool_type: PoolType::Weighted,
-                assets,
+                assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
         }
@@ -148,12 +149,12 @@ mod tests {
         fn constant_product_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
-            let actual = PoolMetadata::constant_product(dex, &assets);
+            let actual = PoolMetadata::constant_product(dex, assets.clone());
 
             let expected = PoolMetadata {
                 dex: dex.to_string(),
                 pool_type: PoolType::ConstantProduct,
-                assets,
+                assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
         }
@@ -162,12 +163,12 @@ mod tests {
         fn liquidity_bootstrap_works() {
             let dex = "junoswap";
             let assets = vec!["uusd".to_string(), "uust".to_string()];
-            let actual = PoolMetadata::liquidity_bootstrap(dex, &assets);
+            let actual = PoolMetadata::liquidity_bootstrap(dex, assets.clone());
 
             let expected = PoolMetadata {
                 dex: dex.to_string(),
                 pool_type: PoolType::LiquidityBootstrap,
-                assets,
+                assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
         }
@@ -179,7 +180,13 @@ mod tests {
         let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
 
         assert_eq!(pool_metadata.dex, "junoswap");
-        assert_eq!(pool_metadata.assets, vec!["uusd", "uust"]);
+        assert_eq!(
+            pool_metadata.assets,
+            vec!["uusd", "uust"]
+                .into_iter()
+                .map(|a| AssetEntry::from(a))
+                .collect::<Vec<AssetEntry>>()
+        );
         assert_eq!(pool_metadata.pool_type, PoolType::Stable);
     }
 

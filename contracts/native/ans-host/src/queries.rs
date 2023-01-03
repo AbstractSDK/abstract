@@ -128,7 +128,7 @@ pub fn list_pool_entries(
     let entry_list: Vec<AssetPairingMapEntry> = if full_key_provided {
         // We have the full key, so load the entry
         let (asset_x, asset_y) = asset_pair_filter.unwrap();
-        let key = DexAssetPairing::new(&asset_x, &asset_y, &dex_filter.unwrap());
+        let key = DexAssetPairing::new(asset_x, asset_y, &dex_filter.unwrap());
         let entry = load_asset_pairing_entry(deps.storage, key)?;
         // Add the result to a vec
         vec![entry]
@@ -145,7 +145,12 @@ pub fn list_pool_entries(
         // Re add the key prefix, since only the dex is returned as a key
         let matched: Vec<AssetPairingMapEntry> = res?
             .into_iter()
-            .map(|(dex, ids)| (DexAssetPairing::new(&asset_x, &asset_y, &dex), ids))
+            .map(|(dex, ids)| {
+                (
+                    DexAssetPairing::new(asset_x.clone(), asset_y.clone(), &dex),
+                    ids,
+                )
+            })
             .collect();
 
         matched
