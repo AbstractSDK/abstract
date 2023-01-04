@@ -3,7 +3,7 @@ use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContrac
 use boot_core::prelude::ContractInstance;
 use cw_asset::AssetInfoUnchecked;
 
-use abstract_os::objects::pool_id::UncheckedPoolId;
+use abstract_os::objects::pool_id::UncheckedPoolAddress;
 use abstract_os::ANS_HOST;
 use boot_core::{
     prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
@@ -185,10 +185,10 @@ impl AnsHost<Daemon> {
         let mut dexes_to_register: HashSet<String> = HashSet::new();
 
         let pools = pools.as_array().unwrap();
-        let pools_to_add: Vec<(UncheckedPoolId, PoolMetadata)> = pools
+        let pools_to_add: Vec<(UncheckedPoolAddress, PoolMetadata)> = pools
             .iter()
             .map(|value| {
-                let pool: (UncheckedPoolId, PoolMetadata) =
+                let pool: (UncheckedPoolAddress, PoolMetadata) =
                     serde_json::from_value(value.clone()).unwrap();
 
                 dexes_to_register.insert(pool.1.dex.clone());

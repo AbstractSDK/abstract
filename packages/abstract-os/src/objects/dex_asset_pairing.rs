@@ -127,8 +127,8 @@ mod test {
 
     fn mock_pool_ref(id: u64, name: &str) -> PoolReference {
         PoolReference {
-            id: UniquePoolId::new(id),
-            pool_id: Addr::unchecked(name).into(),
+            unique_id: UniquePoolId::new(id),
+            pool_address: Addr::unchecked(name).into(),
         }
     }
 

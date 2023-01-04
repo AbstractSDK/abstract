@@ -8,7 +8,7 @@
 use cosmwasm_schema::QueryResponses;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
-use crate::objects::pool_id::UncheckedPoolId;
+use crate::objects::pool_id::UncheckedPoolAddress;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
     asset_entry::AssetEntry,
@@ -110,7 +110,7 @@ pub enum ExecuteMsg {
     /// Update the pools
     UpdatePools {
         // Pools to update or add
-        to_add: Vec<(UncheckedPoolId, PoolMetadata)>,
+        to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
         // Pools to remove
         to_remove: Vec<UniquePoolId>,
     },
@@ -192,8 +192,8 @@ pub enum QueryMsg {
     #[returns(PoolsResponse)]
     Pools { keys: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
-    /// returns [`PoolIdListResponse`]
-    #[returns(PoolIdListResponse)]
+    /// returns [`PoolAddressListResponse`]
+    #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
         page_token: Option<DexAssetPairing>,
@@ -257,7 +257,7 @@ pub struct RegisteredDexesResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct PoolIdListResponse {
+pub struct PoolAddressListResponse {
     pub pools: Vec<AssetPairingMapEntry>,
 }
 

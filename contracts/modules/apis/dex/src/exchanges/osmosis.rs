@@ -10,7 +10,7 @@ use cosmwasm_std::Addr;
 
 #[cfg(feature = "osmosis")]
 use ::{
-    abstract_os::objects::PoolId,
+    abstract_os::objects::PoolAddress,
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },
@@ -48,7 +48,7 @@ impl DEX for Osmosis {
     fn swap(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         _belief_price: Option<Decimal>,
@@ -95,7 +95,7 @@ impl DEX for Osmosis {
     fn provide_liquidity(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
@@ -161,7 +161,7 @@ impl DEX for Osmosis {
     fn provide_liquidity_symmetric(
         &self,
         _deps: Deps,
-        _pool_id: PoolId,
+        _pool_id: PoolAddress,
         _offer_asset: Asset,
         _paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
@@ -171,7 +171,7 @@ impl DEX for Osmosis {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let pool_id = pool_id.expect_id()?;
@@ -189,7 +189,7 @@ impl DEX for Osmosis {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {

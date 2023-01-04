@@ -1,7 +1,7 @@
 use crate::{dex_trait::Identify, error::DexError, DEX};
 
 use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
-use abstract_os::objects::PoolId;
+use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, Fraction, StdResult, Uint128,
@@ -29,7 +29,7 @@ impl DEX for JunoSwap {
     fn swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
@@ -106,7 +106,7 @@ impl DEX for JunoSwap {
     fn provide_liquidity(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -158,7 +158,7 @@ impl DEX for JunoSwap {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -222,7 +222,7 @@ impl DEX for JunoSwap {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
@@ -246,7 +246,7 @@ impl DEX for JunoSwap {
     fn simulate_swap(
         &self,
         deps: Deps,
-        pool_id: PoolId,
+        pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {

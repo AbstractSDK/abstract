@@ -2,7 +2,7 @@ use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage
 
 use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
 use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, PoolIdListResponse, PoolMetadataFilter,
+    AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, PoolMetadataFilter,
     PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse,
     RegisteredDexesResponse,
 };
@@ -170,7 +170,7 @@ pub fn list_pool_entries(
         res?
     };
 
-    to_binary(&PoolIdListResponse { pools: entry_list })
+    to_binary(&PoolAddressListResponse { pools: entry_list })
 }
 
 /// Query the pool ids based on the actual keys

@@ -240,7 +240,7 @@ pub trait LocalDex: AbstractNameService + Execution {
             .into());
         }
 
-        let PoolReference { pool_id, .. } = pool_ids.pop().unwrap();
-        exchange.withdraw_liquidity(deps, pool_id, lp_asset)
+        let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
+        exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
 }

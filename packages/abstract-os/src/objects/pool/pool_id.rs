@@ -6,12 +6,12 @@ use std::str::FromStr;
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
-pub enum PoolIdBase<T> {
+pub enum PoolAddressBase<T> {
     Contract(T),
     Id(u64),
 }
 
-impl<T> PoolIdBase<T> {
+impl<T> PoolAddressBase<T> {
     pub fn contract<C: Into<T>>(contract: C) -> Self {
         Self::Contract(contract.into())
     }
@@ -20,28 +20,28 @@ impl<T> PoolIdBase<T> {
     }
 }
 
-/// Actual instance of a PoolId with verified data
-pub type PoolId = PoolIdBase<Addr>;
+/// Actual instance of a PoolAddress with verified data
+pub type PoolAddress = PoolAddressBase<Addr>;
 
-impl PoolId {
+impl PoolAddress {
     pub fn expect_contract(&self) -> StdResult<Addr> {
         match self {
-            PoolId::Contract(addr) => Ok(addr.clone()),
+            PoolAddress::Contract(addr) => Ok(addr.clone()),
             _ => Err(StdError::generic_err("Not a contract address pool ID.")),
         }
     }
 
     pub fn expect_id(&self) -> StdResult<u64> {
         match self {
-            PoolId::Id(id) => Ok(*id),
+            PoolAddress::Id(id) => Ok(*id),
             _ => Err(StdError::generic_err("Not an numerical pool ID.")),
         }
     }
 }
-/// Instance of a PoolId passed around messages
-pub type UncheckedPoolId = PoolIdBase<String>;
+/// Instance of a PoolAddress passed around messages
+pub type UncheckedPoolAddress = PoolAddressBase<String>;
 
-impl FromStr for UncheckedPoolId {
+impl FromStr for UncheckedPoolAddress {
     type Err = StdError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -54,7 +54,7 @@ impl FromStr for UncheckedPoolId {
                         format!("invalid pool id format `{}`; must be in format `contract:{{contract_addr}}`", s)
                     ));
                 }
-                Ok(UncheckedPoolId::Contract(String::from(words[1])))
+                Ok(UncheckedPoolAddress::Contract(String::from(words[1])))
             }
             "id" => {
                 if words.len() != 2 {
@@ -65,7 +65,7 @@ impl FromStr for UncheckedPoolId {
                 }
                 let parsed_id_res = words[1].parse::<u64>();
                 match parsed_id_res {
-                    Ok(id) => Ok(UncheckedPoolId::Id(id)),
+                    Ok(id) => Ok(UncheckedPoolAddress::Id(id)),
                     Err(err) => Err(StdError::generic_err(err.to_string())),
                 }
             }
@@ -77,31 +77,35 @@ impl FromStr for UncheckedPoolId {
     }
 }
 
-impl From<PoolId> for UncheckedPoolId {
-    fn from(pool_info: PoolId) -> Self {
+impl From<PoolAddress> for UncheckedPoolAddress {
+    fn from(pool_info: PoolAddress) -> Self {
         match pool_info {
-            PoolId::Contract(contract_addr) => UncheckedPoolId::Contract(contract_addr.into()),
-            PoolId::Id(denom) => UncheckedPoolId::Id(denom),
+            PoolAddress::Contract(contract_addr) => {
+                UncheckedPoolAddress::Contract(contract_addr.into())
+            }
+            PoolAddress::Id(denom) => UncheckedPoolAddress::Id(denom),
         }
     }
 }
 
-impl From<&PoolId> for UncheckedPoolId {
-    fn from(pool_id: &PoolId) -> Self {
+impl From<&PoolAddress> for UncheckedPoolAddress {
+    fn from(pool_id: &PoolAddress) -> Self {
         match pool_id {
-            PoolId::Contract(contract_addr) => UncheckedPoolId::Contract(contract_addr.into()),
-            PoolId::Id(denom) => UncheckedPoolId::Id(*denom),
+            PoolAddress::Contract(contract_addr) => {
+                UncheckedPoolAddress::Contract(contract_addr.into())
+            }
+            PoolAddress::Id(denom) => UncheckedPoolAddress::Id(*denom),
         }
     }
 }
 
-impl From<Addr> for PoolId {
+impl From<Addr> for PoolAddress {
     fn from(contract_addr: Addr) -> Self {
-        PoolId::Contract(contract_addr)
+        PoolAddress::Contract(contract_addr)
     }
 }
 
-impl UncheckedPoolId {
+impl UncheckedPoolAddress {
     /// Validate data contained in an _unchecked_ **pool id** instance; return a new _checked_
     /// **pool id** instance:
     /// * For Contract addresses, assert its address is valid
@@ -109,30 +113,30 @@ impl UncheckedPoolId {
     ///
     /// ```rust
     /// use cosmwasm_std::{Addr, Api, StdResult};
-    /// use abstract_os::objects::pool_id::UncheckedPoolId;
+    /// use abstract_os::objects::pool_id::UncheckedPoolAddress;
     ///
-    /// fn validate_pool_id(api: &dyn Api, pool_id_unchecked: &UncheckedPoolId) {
+    /// fn validate_pool_id(api: &dyn Api, pool_id_unchecked: &UncheckedPoolAddress) {
     ///     match pool_id_unchecked.check(api) {
     ///         Ok(info) => println!("pool id is valid: {}", info.to_string()),
     ///         Err(err) => println!("pool id is invalid! reason: {}", err),
     ///     }
     /// }
     /// ```
-    pub fn check(&self, api: &dyn Api) -> StdResult<PoolId> {
+    pub fn check(&self, api: &dyn Api) -> StdResult<PoolAddress> {
         Ok(match self {
-            UncheckedPoolId::Contract(contract_addr) => {
-                PoolId::Contract(api.addr_validate(contract_addr)?)
+            UncheckedPoolAddress::Contract(contract_addr) => {
+                PoolAddress::Contract(api.addr_validate(contract_addr)?)
             }
-            UncheckedPoolId::Id(pool_id) => PoolId::Id(*pool_id),
+            UncheckedPoolAddress::Id(pool_id) => PoolAddress::Id(*pool_id),
         })
     }
 }
 
-impl fmt::Display for PoolId {
+impl fmt::Display for PoolAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PoolId::Contract(contract_addr) => write!(f, "contract:{}", contract_addr),
-            PoolId::Id(pool_id) => write!(f, "id:{}", pool_id),
+            PoolAddress::Contract(contract_addr) => write!(f, "contract:{}", contract_addr),
+            PoolAddress::Id(pool_id) => write!(f, "id:{}", pool_id),
         }
     }
 }
@@ -147,7 +151,7 @@ mod test {
     fn test_pool_id_from_str() {
         let api = MockApi::default();
         let pool_id_str = "contract:cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02";
-        let pool_id = UncheckedPoolId::from_str(pool_id_str).unwrap();
+        let pool_id = UncheckedPoolAddress::from_str(pool_id_str).unwrap();
         let pool_id = pool_id.check(&api).unwrap();
         assert_that!(pool_id.to_string()).is_equal_to(pool_id_str.to_string());
     }
@@ -155,7 +159,7 @@ mod test {
     #[test]
     fn test_expect_contract_happy() {
         let api = MockApi::default();
-        let pool_id = PoolId::Contract(
+        let pool_id = PoolAddress::Contract(
             api.addr_validate("cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02")
                 .unwrap(),
         );
@@ -168,14 +172,14 @@ mod test {
 
     #[test]
     fn test_expect_contract_sad() {
-        let pool_id = PoolId::Id(1);
+        let pool_id = PoolAddress::Id(1);
         let res = pool_id.expect_contract();
         assert_that!(res).is_err();
     }
 
     #[test]
     fn test_expect_id_happy() {
-        let pool_id = PoolId::Id(1);
+        let pool_id = PoolAddress::Id(1);
         let res = pool_id.expect_id();
         assert_that!(res).is_ok();
         assert_that!(res.unwrap()).is_equal_to(1);
@@ -184,7 +188,7 @@ mod test {
     #[test]
     fn test_expect_id_sad() {
         let api = MockApi::default();
-        let pool_id = PoolId::Contract(
+        let pool_id = PoolAddress::Contract(
             api.addr_validate("cosmos1hsk6jryyqjfhp5dhc55tc9jtckygx0eph6dd02")
                 .unwrap(),
         );
