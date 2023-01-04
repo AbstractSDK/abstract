@@ -37,6 +37,7 @@ jobs:
 
   lint:
     name: Clippy Linter
+    needs: check-changes
     if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on: self-hosted
     container:
@@ -64,6 +65,7 @@ jobs:
         run: cargo clippy -- -D warnings
   compile:
     name: Compile
+    needs: check-changes
     if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on: self-hosted
     container:
@@ -82,6 +84,7 @@ jobs:
         run: cargo check --features all
   test:
     name: Test
+    needs: check-changes
     if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
     runs-on:  self-hosted
     container:
