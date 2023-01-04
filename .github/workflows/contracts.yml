@@ -2,8 +2,8 @@ name: Clippy & Tests
 on:
   pull_request:
     branches:
-     - main
-     - dev
+      - main
+      - dev
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -13,6 +13,11 @@ on:
         type: boolean
         default: false
         required: false
+
+# Cancel previous runs on the same PR.
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   check_changes:
@@ -26,12 +31,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Check if any rust files have changed
         id: changes
         uses: tj-actions/changed-files@v35
         with:
           files: |
-            *.rs
+            **/*.rs
             Cargo.toml
             Cargo.lock
       - name: Check if any rust files have changed

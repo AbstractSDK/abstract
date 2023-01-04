@@ -23,7 +23,7 @@ jobs:
         uses: tj-actions/changed-files@v35
         with:
           files: |
-            *.rs
+            **/*.rs
             Cargo.toml
             Cargo.lock
       - name: Check if any rust files have changed
