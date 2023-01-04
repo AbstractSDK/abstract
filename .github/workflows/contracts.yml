@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-changes:
+  check_changes:
     name: Check for Rust changes
     runs-on: self-hosted
     # TODO: different image?
     container:
       image: rust:latest
     outputs:
-      rust-changes: ${{ steps.rust-changes.outputs.rust-changes }}
+      rust_changes: ${{ steps.rust_changes.outputs.rust_changes }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -30,15 +30,15 @@ jobs:
             Cargo.lock
       - name: Check if any rust files have changed
         if: steps.changes.outputs.any_changed == 'true'
-        id: rust-changes
+        id: rust_changes
         run: |
           echo "Rust files have changed"
-          echo "rust-changes=true" >> $GITHUB_OUTPUT
+          echo "rust_changes=true" >> $GITHUB_OUTPUT
 
   lint:
     name: Clippy Linter
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on: self-hosted
     container:
       image: rust:latest
@@ -65,8 +65,8 @@ jobs:
         run: cargo clippy -- -D warnings
   compile:
     name: Compile
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
+    needs: check_changes
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on: self-hosted
     container:
         image: rust:latest
@@ -84,12 +84,11 @@ jobs:
         run: cargo check --features all
   test:
     name: Test
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.rust-changes == 'true' }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on:  self-hosted
     container:
         image: rust:latest
-    needs: [compile]
+    needs: [compile, check_changes]
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
