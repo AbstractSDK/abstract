@@ -3,6 +3,8 @@
 
 use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
+use cw_asset::Asset;
+use os::objects::AssetEntry;
 
 use super::{execution::Execution, AbstractNameService};
 use crate::ans_resolve::Resolve;
@@ -23,6 +25,21 @@ pub struct Bank<'a, T: TransferInterface> {
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
+    /// Get the balances of the provided **assets**.
+    pub fn balances(&self, assets: &[AssetEntry]) -> StdResult<Vec<Asset>> {
+        assets
+            .into_iter()
+            .map(|asset| self.balance(&asset))
+            .collect::<StdResult<Vec<Asset>>>()
+    }
+    /// Get the balance of the provided **asset**.
+    pub fn balance(&self, asset: &AssetEntry) -> StdResult<Asset> {
+        let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
+        let balance =
+            resolved_info.query_balance(&self.deps.querier, self.base.proxy_address(self.deps)?)?;
+        Ok(Asset::new(resolved_info, balance))
+    }
+
     /// Transfer the provided **funds** from the OS' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
     ///
