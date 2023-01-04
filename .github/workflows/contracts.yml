@@ -35,7 +35,7 @@ jobs:
             Cargo.toml
             Cargo.lock
       - name: Check if any rust files have changed
-        if: steps.changes.outputs.any_changed == 'true' || github.event.inputs.skip_check == true
+        if: steps.changes.outputs.any_changed == 'true' || github.event.inputs.skip_check == 'true'
         id: rust_changes
         run: |
           echo "Rust files have changed"
