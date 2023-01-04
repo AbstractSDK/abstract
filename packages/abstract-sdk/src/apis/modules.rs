@@ -1,7 +1,6 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
-use crate::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
@@ -10,7 +9,8 @@ use cosmwasm_std::{
     wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
-use serde::Serialize;
+use os::api::ApiRequestMsg;
+use serde::{de::DeserializeOwned, Serialize};
 
 use super::{Dependencies, Identification};
 
@@ -93,50 +93,41 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     }
 
     /// Smart query an app
-    pub fn app_query<Q: Serialize>(
+    pub fn query_app<Q: Serialize, R: DeserializeOwned>(
         &self,
         app_id: ModuleId,
         message: impl Into<app::QueryMsg<Q>>,
-    ) -> StdResult<QueryRequest<Empty>> {
+    ) -> StdResult<R> {
         let app_msg: app::QueryMsg<Q> = message.into();
         let app_address = self.module_address(app_id)?;
-        wasm_smart_query(app_address, &app_msg)
+        self.deps.querier.query_wasm_smart(app_address, &app_msg)
     }
 
     /// Interactions with Abstract APIs
     /// Construct an api request message.
-    pub fn api_request<M: Serialize>(
+    pub fn api_request<M: Serialize + Into<api::ExecuteMsg<M, Empty>>>(
         &self,
         api_id: ModuleId,
-        message: impl Into<api::ExecuteMsg<M, Empty>>,
+        message: M,
     ) -> StdResult<CosmosMsg> {
         self.assert_module_dependency(api_id)?;
-        let api_msg: api::ExecuteMsg<M, Empty> = message.into();
+        let api_msg = api::ExecuteMsg::<_>::App(ApiRequestMsg::new(
+            Some(self.base.proxy_address(self.deps)?.into_string()),
+            message,
+        ));
         let api_address = self.module_address(api_id)?;
         Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
     }
 
     /// Smart query an API
-    pub fn api_query<Q: Serialize>(
+    pub fn query_api<Q: Serialize, R: DeserializeOwned>(
         &self,
         api_id: ModuleId,
         message: impl Into<api::QueryMsg<Q>>,
-    ) -> StdResult<QueryRequest<Empty>> {
+    ) -> StdResult<R> {
         let api_msg: api::QueryMsg<Q> = message.into();
         let api_address = self.module_address(api_id)?;
-        wasm_smart_query(api_address, &api_msg)
-    }
-
-    /// Construct an API configure message
-    /// Note: this method is only callabable by the OS manager.
-    pub fn api_configure(
-        &self,
-        api_id: ModuleId,
-        message: api::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
-        let api_msg: api::ExecuteMsg<Empty, Empty> = message.into();
-        let api_address = self.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+        self.deps.querier.query_wasm_smart(api_address, &api_msg)
     }
 }
 
@@ -153,7 +144,7 @@ mod test {
     const TEST_MODULE_ID: ModuleId = "test_module";
     /// Nonexistent module
     const FAKE_MODULE_ID: ModuleId = "fake_module";
-
+    const TEST_MODULE_RESPONSE: &str = "test_module_response";
     const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 
     impl Dependencies for MockModule {
@@ -201,6 +192,19 @@ mod test {
                                 Ok(Binary::default())
                             }
                         }
+                        _ => Err("unexpected contract"),
+                    };
+
+                    match res {
+                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
+                    }
+                }
+                WasmQuery::Smart { contract_addr, msg } => {
+                    let res = match contract_addr.as_str() {
+                        TEST_MODULE_ADDRESS => match from_binary(msg).unwrap() {
+                            Empty {} => Ok(to_binary(TEST_MODULE_RESPONSE).unwrap()),
+                        },
                         _ => Err("unexpected contract"),
                     };
 
@@ -300,7 +304,7 @@ mod test {
             let res = mods.api_request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::App(ApiRequestMsg {
-                proxy_address: None,
+                proxy_address: Some(TEST_PROXY.into()),
                 request: MockModuleExecuteMsg {},
             });
 
@@ -339,42 +343,6 @@ mod test {
 
             let expected_msg: app::ExecuteMsg<_, Empty> =
                 app::ExecuteMsg::App(MockModuleExecuteMsg {});
-
-            assert_that!(res)
-                .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                    funds: vec![],
-                }));
-        }
-    }
-
-    mod api_configure {
-        use super::*;
-
-        #[test]
-        fn should_return_err_if_not_dependency() {
-            fail_when_not_dependency_test(
-                |app, deps| {
-                    let mods = app.modules(deps);
-                    mods.api_configure(FAKE_MODULE_ID, api::BaseExecuteMsg::Remove {})
-                },
-                FAKE_MODULE_ID,
-            );
-        }
-
-        #[test]
-        fn expected_configure_msg() {
-            let deps = mock_dependencies_with_existing_module();
-            let app = MockModule::new();
-
-            let mods = app.modules(deps.as_ref());
-
-            let res = mods.api_configure(TEST_MODULE_ID, api::BaseExecuteMsg::Remove {});
-
-            let expected_msg: api::ExecuteMsg<Empty, Empty> =
-                api::ExecuteMsg::Base(api::BaseExecuteMsg::Remove {});
 
             assert_that!(res)
                 .is_ok()
@@ -434,7 +402,7 @@ mod test {
         }
     }
 
-    mod api_query {
+    mod query_api {
         use super::*;
         use os::dex::{DexQueryMsg, OfferAsset};
 
@@ -443,7 +411,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.api_query(FAKE_MODULE_ID, Empty {})
+                    mods.query_api::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -462,20 +430,15 @@ mod test {
                 dex: None,
             };
 
-            let res = mods.api_query(TEST_MODULE_ID, inner_msg.clone());
-
-            let expected_msg: api::QueryMsg<DexQueryMsg> = api::QueryMsg::App(inner_msg);
+            let res = mods.query_api::<_, String>(TEST_MODULE_ID, inner_msg.clone());
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                }));
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 
-    mod app_query {
+    mod query_app {
         use super::*;
 
         #[test]
@@ -483,7 +446,7 @@ mod test {
             fail_when_not_dependency_test(
                 |app, deps| {
                     let mods = app.modules(deps);
-                    mods.app_query(FAKE_MODULE_ID, Empty {})
+                    mods.query_app::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
             );
@@ -496,16 +459,11 @@ mod test {
 
             let mods = app.modules(deps.as_ref());
 
-            let res = mods.app_query(TEST_MODULE_ID, Empty {});
-
-            let expected_msg: app::QueryMsg<Empty> = app::QueryMsg::App(Empty {});
+            let res = mods.query_app::<_, String>(TEST_MODULE_ID, Empty {});
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(QueryRequest::from(WasmQuery::Smart {
-                    contract_addr: TEST_MODULE_ADDRESS.into(),
-                    msg: to_binary(&expected_msg).unwrap(),
-                }));
+                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

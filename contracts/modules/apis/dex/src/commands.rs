@@ -186,9 +186,10 @@ pub trait LocalDex: AbstractNameService + Execution {
         let assets = ans.query(&offer_assets)?;
 
         let mut pair_assets = offer_assets
-        .into_iter()
-        .map(|a| a.name)
-        .take(2).collect::<Vec<AssetEntry>>();
+            .into_iter()
+            .map(|a| a.name)
+            .take(2)
+            .collect::<Vec<AssetEntry>>();
 
         let pair_address = exchange.pair_address(
             deps,
@@ -207,7 +208,11 @@ pub trait LocalDex: AbstractNameService + Execution {
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
-        let pair_address = exchange.pair_address(deps, ans.host(), (paired_assets.swap_remove(0), paired_assets.swap_remove(1)))?;
+        let pair_address = exchange.pair_address(
+            deps,
+            ans.host(),
+            (paired_assets.swap_remove(0), paired_assets.swap_remove(1)),
+        )?;
         let offer_asset = ans.query(&offer_asset)?;
         exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
     }

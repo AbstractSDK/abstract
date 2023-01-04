@@ -23,10 +23,9 @@ pub trait DEX: Identify {
         &self,
         deps: Deps,
         ans_host: &AnsHost,
-        assets: (AssetEntry,AssetEntry),
+        assets: (AssetEntry, AssetEntry),
     ) -> Result<PoolId, DexError> {
-        let dex_pair =
-            DexAssetPairing::new(assets.0, assets.1, self.name());
+        let dex_pair = DexAssetPairing::new(assets.0, assets.1, self.name());
         let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
         // Currently takes the first pool found, but should be changed to take the best pool
         let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
