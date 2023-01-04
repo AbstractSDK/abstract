@@ -7,11 +7,18 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      skip_check:
+        description: Skip Rust-file Changes Check
+        type: boolean
+        default: false
+        required: false
 
 jobs:
   check_changes:
     name: Check for Rust changes
     runs-on: self-hosted
+    if: "${{ github.event.inputs.skip_check == false }}"
     # TODO: different image?
     container:
       image: rust:latest
