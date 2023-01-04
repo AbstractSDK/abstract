@@ -45,7 +45,7 @@ jobs:
   lint:
     name: Clippy Linter
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true }}
     runs-on: self-hosted
     container:
       image: rust:latest
@@ -73,7 +73,7 @@ jobs:
   compile:
     name: Compile
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true}}
     runs-on: self-hosted
     container:
         image: rust:latest
@@ -91,7 +91,7 @@ jobs:
         run: cargo check --features all
   test:
     name: Test
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true}}
     runs-on:  self-hosted
     container:
         image: rust:latest
