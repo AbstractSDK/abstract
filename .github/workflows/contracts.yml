@@ -36,7 +36,7 @@ jobs:
             Cargo.toml
             Cargo.lock
       - name: Check if any rust files have changed
-        if: steps.changes.outputs.any_changed == 'true'
+        if: steps.changes.outputs.any_changed == 'true' || github.event.inputs.skip_check == true
         id: rust_changes
         run: |
           echo "Rust files have changed"
@@ -45,7 +45,7 @@ jobs:
   lint:
     name: Clippy Linter
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true'  }}
     runs-on: self-hosted
     container:
       image: rust:latest
@@ -73,7 +73,7 @@ jobs:
   compile:
     name: Compile
     needs: check_changes
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true}}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on: self-hosted
     container:
         image: rust:latest
@@ -91,7 +91,7 @@ jobs:
         run: cargo check --features all
   test:
     name: Test
-    if: ${{ needs.check_changes.outputs.rust_changes == 'true' || github.event.inputs.skip_check == true}}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on:  self-hosted
     container:
         image: rust:latest
