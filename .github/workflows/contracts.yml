@@ -18,7 +18,6 @@ jobs:
   check_changes:
     name: Check for Rust changes
     runs-on: self-hosted
-    if: "${{ github.event.inputs.skip_check == false }}"
     # TODO: different image?
     container:
       image: rust:latest
