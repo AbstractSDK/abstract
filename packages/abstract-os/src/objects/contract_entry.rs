@@ -5,12 +5,10 @@ use std::{
 
 use cosmwasm_std::{StdError, StdResult};
 
-use crate::constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER, TYPE_DELIMITER};
+use crate::constants::ATTRIBUTE_DELIMITER;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use super::AssetEntry;
 
 /// Key to get the Address of a contract
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
@@ -63,28 +61,6 @@ impl TryFrom<String> for UncheckedContractEntry {
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,
-}
-
-const STAKING_CONTRACT_PREFIX: &str = "staking";
-
-impl ContractEntry {
-    /// Construct a staking contract entry from the **dex** (pool) and the pool's  **assets**
-    pub fn construct_staking_entry(dex_name: &str, assets: &mut [&AssetEntry]) -> Self {
-        assets.sort();
-        let joined_assets = assets
-            .iter()
-            .map(|a| a.0.clone())
-            .collect::<Vec<String>>()
-            .join(ASSET_DELIMITER);
-
-        // staking/asset1,asset2
-        let contract_name = vec![STAKING_CONTRACT_PREFIX, &joined_assets].join(TYPE_DELIMITER);
-
-        Self {
-            protocol: dex_name.to_ascii_lowercase(),
-            contract: contract_name,
-        }
-    }
 }
 
 impl From<UncheckedContractEntry> for ContractEntry {
@@ -158,48 +134,6 @@ mod test {
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
-    use speculoos::prelude::*;
-
-    mod implementation {
-        use super::*;
-
-        #[test]
-        fn construct_staking_entry_should_join_assets_and_add_staking() {
-            let expected = String::from("staking/asset1,asset2");
-
-            let ContractEntry {
-                contract: actual, ..
-            } = ContractEntry::construct_staking_entry(
-                "protocol",
-                &mut [
-                    &AssetEntry("asset1".to_string()),
-                    &AssetEntry("asset2".to_string()),
-                ],
-            );
-
-            assert_that!(actual).is_equal_to(expected);
-        }
-
-        #[test]
-        fn construct_staking_entry_should_alpaebetize_assets() {
-            let expected = String::from("staking/a,b,c,d,e");
-
-            let ContractEntry {
-                contract: actual, ..
-            } = ContractEntry::construct_staking_entry(
-                "protocol",
-                &mut [
-                    &AssetEntry("d".to_string()),
-                    &AssetEntry("b".to_string()),
-                    &AssetEntry("e".to_string()),
-                    &AssetEntry("a".to_string()),
-                    &AssetEntry("c".to_string()),
-                ],
-            );
-
-            assert_that!(actual).is_equal_to(expected);
-        }
-    }
 
     mod key {
         use super::*;
