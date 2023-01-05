@@ -18,9 +18,6 @@ pub struct ModuleInfo {
 }
 
 impl ModuleInfo {
-    pub fn id(&self) -> String {
-        format!("{}:{}", self.provider, self.name)
-    }
     pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
@@ -35,9 +32,12 @@ impl ModuleInfo {
             version,
         })
     }
-
     pub fn from_id_latest(id: &str) -> StdResult<Self> {
         Self::from_id(id, ModuleVersion::Latest)
+    }
+
+    pub fn id(&self) -> String {
+        format!("{}:{}", self.provider, self.name)
     }
 
     pub fn assert_version_variant(&self) -> StdResult<()> {

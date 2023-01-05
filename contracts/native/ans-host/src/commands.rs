@@ -720,8 +720,8 @@ mod test {
 
             let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
 
-            assert_that!(res).is_err();
-            assert_that(&res.unwrap_err())
+            assert_that!(res)
+                .is_err()
                 .matches(|err| matches!(err, AnsHostError::Std(StdError::GenericErr { .. })));
 
             Ok(())

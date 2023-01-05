@@ -76,8 +76,12 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
+    /// Get the configuration for the module factory.
+    /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
+    /// Get the installation context of the module factory.
+    /// Returns [`ContextResponse`]
     #[returns(ContextResponse)]
     Context {},
 }

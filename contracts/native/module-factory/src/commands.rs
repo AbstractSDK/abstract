@@ -209,3 +209,223 @@ fn clear_context(deps: DepsMut) -> Result<(), StdError> {
         },
     )
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use speculoos::prelude::*;
+
+    use crate::contract::{execute, instantiate};
+    use abstract_os::module_factory::{ExecuteMsg, InstantiateMsg};
+    use abstract_testing::{map_tester, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+
+    type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
+
+    fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
+        execute(deps, mock_env(), mock_info("admin", &[]), msg)
+    }
+
+    fn mock_init(deps: DepsMut) -> ModuleFactoryResult {
+        instantiate(
+            deps,
+            mock_env(),
+            mock_info("admin", &[]),
+            InstantiateMsg {
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
+                ans_host_address: TEST_ANS_HOST.to_string(),
+            },
+        )
+    }
+
+    fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut())?;
+
+        let res = execute(deps.as_mut(), mock_env(), mock_info("not_admin", &[]), msg);
+        assert_that!(&res)
+            .is_err()
+            .matches(|e| matches!(e, ModuleFactoryError::Admin { .. }));
+
+        Ok(())
+    }
+
+    mod instantiate_contract {
+        use super::*;
+        use abstract_os::objects::module::ModuleVersion;
+        use cosmwasm_std::testing::mock_info;
+
+        #[test]
+        fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
+            let deps = mock_dependencies();
+            let info = mock_info("anyone", &vec![]);
+
+            let expected_module_init_msg = to_binary(&Empty {}).unwrap();
+            let expected_code_id = 10;
+            let expected_reply_id = 69;
+
+            let expected_module_info =
+                ModuleInfo::from_id("test:module", ModuleVersion::Version("1.2.3".to_string()))
+                    .unwrap();
+
+            let some_block_height = 500;
+            let actual = instantiate_contract(
+                some_block_height,
+                expected_code_id,
+                expected_module_init_msg.clone(),
+                None,
+                expected_reply_id,
+                expected_module_info.clone(),
+            );
+
+            let expected_init_msg = WasmMsg::Instantiate {
+                code_id: expected_code_id,
+                funds: vec![],
+                admin: None,
+                label: format!(
+                    "Module: {}, Height {}",
+                    expected_module_info, some_block_height
+                ),
+                msg: expected_module_init_msg,
+            };
+
+            assert_that!(actual).is_ok();
+
+            let actual_response = actual.unwrap();
+
+            assert_that!(actual_response.messages).has_length(1);
+            let actual_submsg = actual_response.messages[0].clone();
+
+            assert_that!(actual_submsg.id).is_equal_to(expected_reply_id);
+            assert_that!(actual_submsg.gas_limit).is_equal_to(None);
+            assert_that!(actual_submsg.reply_on).is_equal_to(ReplyOn::Success);
+
+            let actual_init_msg: CosmosMsg = actual_submsg.msg;
+
+            assert_that!(actual_init_msg).matches(|i| matches!(i, CosmosMsg::Wasm { .. }));
+            assert_that!(actual_init_msg).is_equal_to(CosmosMsg::from(expected_init_msg));
+
+            Ok(())
+        }
+    }
+
+    mod update_factory_binaries {
+        use super::*;
+        use abstract_os::objects::module::ModuleVersion;
+        use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
+        use abstract_testing::{TEST_ADMIN, TEST_MODULE_ID};
+
+        fn update_module_msgs_builder(
+            to_add: Vec<(ModuleInfo, Binary)>,
+            to_remove: Vec<ModuleInfo>,
+        ) -> ExecuteMsg {
+            ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove }
+        }
+
+        fn mock_entry() -> (ModuleInfo, Binary) {
+            (
+                ModuleInfo::from_id("test:module", ModuleVersion::Version("0.1.2".to_string()))
+                    .unwrap(),
+                to_binary(&"tasty pizza usually has pineapple").unwrap(),
+            )
+        }
+
+        fn setup_map_tester<'a>(
+        ) -> CwMapTester<'a, ExecuteMsg, ModuleFactoryError, ModuleInfo, Binary, ModuleInfo, Binary>
+        {
+            let info = mock_info(TEST_ADMIN, &[]);
+
+            let tester = CwMapTesterBuilder::default()
+                .info(info)
+                .map(MODULE_INIT_BINARIES)
+                .execute(execute)
+                .msg_builder(update_module_msgs_builder)
+                .mock_entry_builder(mock_entry)
+                .from_checked_entry(|(k, v)| (k, v))
+                .build()
+                .unwrap();
+
+            tester
+        }
+
+        #[test]
+        fn only_admin() -> ModuleFactoryTestResult {
+            let msg = ExecuteMsg::UpdateFactoryBinaryMsgs {
+                to_add: vec![],
+                to_remove: vec![],
+            };
+
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn test_map() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+            map_tester.test_all(&mut deps)
+        }
+
+        #[test]
+        fn should_reject_latest_versions() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut()).unwrap();
+
+            let mut map_tester = setup_map_tester();
+
+            let bad_entry = (
+                ModuleInfo::from_id("test:module", ModuleVersion::Latest).unwrap(),
+                Binary::default(),
+            );
+
+            let res = map_tester.execute_update(deps.as_mut(), (vec![bad_entry], vec![]));
+
+            assert_that!(res)
+                .is_err()
+                .matches(|err| matches!(err, ModuleFactoryError::Std(StdError::GenericErr { .. })));
+
+            Ok(())
+        }
+    }
+
+    mod update_config {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> ModuleFactoryTestResult {
+            let msg = ExecuteMsg::UpdateConfig {
+                admin: None,
+                ans_host_address: None,
+                version_control_address: None,
+            };
+
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn update_admin() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_admin = "new_admin";
+            let msg = ExecuteMsg::UpdateConfig {
+                admin: Some(new_admin.to_string()),
+                ans_host_address: None,
+                version_control_address: None,
+            };
+
+            let res = execute_helper(deps.as_mut(), msg);
+
+            assert_that!(res).is_ok();
+
+            assert_that!(ADMIN.get(deps.as_ref()))
+                .is_ok()
+                .is_some()
+                .is_equal_to(Addr::unchecked(new_admin.clone()));
+
+            Ok(())
+        }
+    }
+}

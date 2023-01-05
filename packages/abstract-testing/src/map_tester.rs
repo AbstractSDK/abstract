@@ -1,30 +1,26 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage};
+use cosmwasm_std::testing::mock_env;
+use cosmwasm_std::Order;
 use cosmwasm_std::{DepsMut, MessageInfo, Response};
 use cosmwasm_std::{Env, Storage};
-use cosmwasm_std::{Order, OwnedDeps};
 
 use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+use crate::MockDeps;
+use serde_json;
+use serde_json::json;
+use speculoos::prelude::*;
 
 #[derive(Builder)]
 #[builder(pattern = "owned")]
 pub struct CwMapTester<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
 where
-    // V: Serialize + DeserializeOwned + Clone + Debug,
     K: PrimaryKey<'a> + KeyDeserialize + Debug,
-    // (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
     K::Output: 'static,
-    // UncheckedK: From<<K as KeyDeserialize>::Output> + Clone + PartialEq + Debug + Ord,
-    // UncheckedV: From<V> + Clone + PartialEq + Debug + Ord,
-    // UncheckedK: Clone + PartialEq + Debug + Ord,
-    // UncheckedV: Clone + PartialEq + Debug,
-    // <K as KeyDeserialize>::Output: Debug,
 {
     info: MessageInfo,
     map: Map<'a, K, V>,
@@ -36,19 +32,19 @@ where
 }
 
 /// Sort the expected entries by *key*
-fn sort_expected<T, U>(expected: &mut [(T, U)])
+fn sort_expected<K, V>(expected: &mut [(K, V)])
 where
-    T: Clone + PartialEq + Debug + Ord,
-    U: Clone + PartialEq + Debug,
+    K: Clone + PartialEq + Debug + Serialize,
+    V: Clone + PartialEq + Debug,
 {
-    expected.sort_by(|a, b| a.0.cmp(&b.0));
+    expected.sort_by(|a, b| json!(a.0).to_string().cmp(&json!(&b.0).to_string()));
 }
 
 #[allow(clippy::ptr_arg)]
-pub fn determine_expected<T, U>(to_add: &Vec<(T, U)>, to_remove: &[T]) -> Vec<(T, U)>
+pub fn determine_expected<K, V>(to_add: &Vec<(K, V)>, to_remove: &[K]) -> Vec<(K, V)>
 where
-    T: Clone + PartialEq + Debug + Ord,
-    U: Clone + PartialEq + Debug,
+    K: Clone + PartialEq + Debug + Serialize,
+    V: Clone + PartialEq + Debug,
 {
     let mut expected = to_add.clone();
     expected.retain(|(k, _)| !to_remove.contains(k));
@@ -64,7 +60,7 @@ where
     K: PrimaryKey<'a> + KeyDeserialize + Debug,
     (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
     K::Output: 'static,
-    UncheckedK: Clone + PartialEq + Debug + Ord,
+    UncheckedK: Clone + PartialEq + Debug + Serialize,
     UncheckedV: Clone + PartialEq + Debug,
     <K as KeyDeserialize>::Output: Debug,
 {
@@ -146,7 +142,7 @@ where
         let mut expected = expected;
         sort_expected(&mut expected);
 
-        assert_eq!(actual, expected)
+        assert_that!(actual).is_equal_to(expected)
     }
 
     pub fn test_add_one(&mut self, deps: &mut MockDeps) -> Result<(), TError> {
@@ -218,6 +214,17 @@ where
         Ok(())
     }
 
+    /// Run through all the preconfigured test scenarios
+    pub fn test_all(&mut self, deps: &mut MockDeps) -> Result<(), TError> {
+        self.test_add_one(deps)?;
+        self.test_add_one_twice(deps)?;
+        self.test_add_two_same(deps)?;
+        self.test_add_and_remove_same(deps)?;
+        self.test_remove_nonexistent(deps)?;
+
+        Ok(())
+    }
+
     /// Test the manually provided arguments with the expected behavior, which is removing any duplicate entries that are within both add and remove
     pub fn test_update_auto_expect(
         &mut self,
@@ -268,7 +275,7 @@ mod test {
 
             let expected = vec![("b".to_string(), 2)];
 
-            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
         }
 
         #[test]
@@ -278,7 +285,7 @@ mod test {
 
             let expected: Vec<(String, i32)> = vec![];
 
-            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
         }
 
         #[test]
@@ -288,7 +295,7 @@ mod test {
 
             let expected: Vec<(String, i32)> = vec![];
 
-            assert_eq!(expected, determine_expected(&to_add, &to_remove));
+            assert_that!(determine_expected(&to_add, &to_remove)).is_equal_to(expected);
         }
     }
 

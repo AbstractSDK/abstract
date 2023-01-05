@@ -17,3 +17,4 @@ abstract-os = { workspace = true }
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
 abstract-sdk = { workspace = true, optional = true }
+serde_json = "1.0.79"

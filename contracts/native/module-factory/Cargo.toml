@@ -35,8 +35,8 @@ abstract-os = {workspace = true}
 [dev-dependencies]
 abstract-boot = {workspace = true}
 boot-core = { workspace = true}
-anyhow = {workspace = true}
-cw-multi-test = {workspace = true}
+anyhow = { workspace = true }
+cw-multi-test = { workspace = true }
 
 os-factory = { workspace = true }
 ans-host = { workspace = true }
@@ -45,3 +45,4 @@ proxy = { workspace = true }
 manager = { workspace = true }
 
 speculoos = { workspace = true }
+abstract-testing = { workspace = true }
