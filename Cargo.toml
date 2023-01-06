@@ -3,15 +3,14 @@ members = [
     "packages/*",
     "contracts/native/*",
     "contracts/core/*",
-    "contracts/testing",
+    # "contracts/testing",
     "contracts/token",
     "contracts/modules/apps/etf",
     "contracts/modules/apps/subscription",
     "contracts/modules/apis/tendermint-staking",
     "contracts/modules/apis/dex",
     "contracts/modules/perks/vesting",
-    # TEMPORARY TODO
-    #    "contracts/ibc-hosts/osmosis",
+    "contracts/ibc-hosts/osmosis",
     "scripts"
 ]
 
@@ -38,12 +37,12 @@ keywords = ["cosmos", "cosmwasm", "framework"]
 [workspace.dependencies]
 cosmwasm-std = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
-cw-controllers = { version = "0.16" }
+cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
-cw-storage-plus = "0.16"
-cw2 = { version = "0.16" }
-cw20 = { version = "0.16" }
-cw20-base = { version = "0.16", features = ["library"] }
+cw-storage-plus = "1.0.1"
+cw2 = { version = "1.0.1" }
+cw20 = { version = "1.0.1" }
+cw20-base = { version = "1.0.1", features = ["library"] }
 cw-asset = { version = "2.2" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
