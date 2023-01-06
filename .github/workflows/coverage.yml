@@ -34,7 +34,7 @@ jobs:
           echo "rust_changes=true" >> $GITHUB_OUTPUT
   test:
     name: coverage
-    if: ${{ needs.check_changes.outputs.rust-changes == 'true' }}
+    if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
     runs-on: self-hosted
     needs: check_changes
     container:
