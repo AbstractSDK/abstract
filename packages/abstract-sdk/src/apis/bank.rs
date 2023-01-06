@@ -28,8 +28,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// Get the balances of the provided **assets**.
     pub fn balances(&self, assets: &[AssetEntry]) -> StdResult<Vec<Asset>> {
         assets
-            .into_iter()
-            .map(|asset| self.balance(&asset))
+            .iter()
+            .map(|asset| self.balance(asset))
             .collect::<StdResult<Vec<Asset>>>()
     }
     /// Get the balance of the provided **asset**.

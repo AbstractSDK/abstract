@@ -1,9 +1,9 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use abstract_sdk::os::dex::{DexExecuteMsg, DexQueryMsg, SimulateSwapResponse};
-use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for, write_api};
-use cosmwasm_std::Empty;
+use abstract_sdk::os::dex::{SimulateSwapResponse};
+use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
+
 use dex::contract::DexApi;
 
 fn main() {

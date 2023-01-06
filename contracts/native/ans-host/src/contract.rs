@@ -46,6 +46,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> A
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
+        QueryMsg::Config {} => queries::query_config(deps),
         QueryMsg::Assets { names } => queries::query_assets(deps, env, names),
         QueryMsg::AssetList {
             page_token,

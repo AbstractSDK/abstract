@@ -430,7 +430,7 @@ mod test {
                 dex: None,
             };
 
-            let res = mods.query_api::<_, String>(TEST_MODULE_ID, inner_msg.clone());
+            let res = mods.query_api::<_, String>(TEST_MODULE_ID, inner_msg);
 
             assert_that!(res)
                 .is_ok()

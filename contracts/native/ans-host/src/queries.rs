@@ -1,10 +1,10 @@
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
 
-use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+use abstract_os::ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA};
 use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, PoolAddressListResponse, PoolMetadataFilter,
-    PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse,
-    RegisteredDexesResponse,
+    AssetPairingFilter, AssetPairingMapEntry, ConfigResponse, PoolAddressListResponse,
+    PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
+    PoolsResponse, RegisteredDexesResponse,
 };
 use abstract_os::dex::DexName;
 use abstract_os::objects::pool_metadata::PoolMetadata;
@@ -23,6 +23,21 @@ use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
+
+pub fn query_config(deps: Deps) -> StdResult<Binary> {
+    let Config {
+        next_unique_pool_id,
+    } = CONFIG.load(deps.storage)?;
+
+    let admin = ADMIN.get(deps)?.unwrap();
+
+    let res = ConfigResponse {
+        next_unique_pool_id,
+        admin,
+    };
+
+    to_binary(&res)
+}
 
 pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
     let assets: Vec<AssetEntry> = asset_names

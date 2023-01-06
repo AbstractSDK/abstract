@@ -184,7 +184,7 @@ mod tests {
             pool_metadata.assets,
             vec!["uusd", "uust"]
                 .into_iter()
-                .map(|a| AssetEntry::from(a))
+                .map(AssetEntry::from)
                 .collect::<Vec<AssetEntry>>()
         );
         assert_eq!(pool_metadata.pool_type, PoolType::Stable);

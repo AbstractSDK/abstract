@@ -217,7 +217,7 @@ mod test {
 
     use crate::contract::{execute, instantiate};
     use abstract_os::module_factory::{ExecuteMsg, InstantiateMsg};
-    use abstract_testing::{map_tester, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
@@ -257,8 +257,8 @@ mod test {
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
-            let deps = mock_dependencies();
-            let info = mock_info("anyone", &vec![]);
+            let _deps = mock_dependencies();
+            let _info = mock_info("anyone", &[]);
 
             let expected_module_init_msg = to_binary(&Empty {}).unwrap();
             let expected_code_id = 10;
@@ -313,7 +313,7 @@ mod test {
         use super::*;
         use abstract_os::objects::module::ModuleVersion;
         use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
-        use abstract_testing::{TEST_ADMIN, TEST_MODULE_ID};
+        use abstract_testing::{TEST_ADMIN};
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,
