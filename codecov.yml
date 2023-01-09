@@ -14,6 +14,6 @@ comment: # this is a top-level key
 
 ignore:
   - "scripts"
-  - "**/examples/schema.rs"
+  - "**/examples/*"
   - "packages/abstract-boot/*"
   - "packages/abstract-testing/*"
