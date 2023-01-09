@@ -62,7 +62,7 @@ mod test {
 
         let actual = msg.clone().into_cosmos_msg("my-addr").unwrap();
         let funds = vec![];
-        let payload = to_binary(&msg).unwrap();
+        let payload = to_binary(&IbcCallbackMsg::IbcCallback(msg)).unwrap();
         let expected: CosmosMsg = WasmMsg::Execute {
             contract_addr: "my-addr".into(),
             msg: payload,
