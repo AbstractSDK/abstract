@@ -4,7 +4,7 @@ use cosmwasm_std::{to_binary, wasm_execute, Binary, CosmosMsg, StdResult};
 
 use crate::StdAck;
 
-/// IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg
+/// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
 pub struct IbcResponseMsg {
     /// The ID chosen by the caller in the `callback_id`
@@ -24,7 +24,7 @@ impl IbcResponseMsg {
     where
         C: Clone + std::fmt::Debug + PartialEq + JsonSchema,
     {
-        Ok(wasm_execute(contract_addr.into(), &self, vec![])?.into())
+        Ok(wasm_execute(contract_addr.into(), &IbcCallbackMsg::IbcCallback(self), vec![])?.into())
     }
 }
 
