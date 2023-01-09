@@ -2,6 +2,7 @@
 wasm = "build --release --target wasm32-unknown-unknown"
 unit-test = "test --lib"
 schema = "run --example schema"
+deploy = "run --example deploy"
 optimize = "run-script optimize"
 optimize-w32 = "run-script optimize-w32"
 store = "run-script store"

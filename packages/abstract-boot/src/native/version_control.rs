@@ -134,6 +134,15 @@ where
         let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
         Ok(resp.os_core)
     }
+
+    /// Retrieves an API's address from version control given the module **id** and **version**.
+    pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
+        let resp: ModuleResponse = self.query(&QueryMsg::Module {
+            module: ModuleInfo::from_id(id, version)?,
+        })?;
+
+        Ok(resp.module.reference.unwrap_addr()?)
+    }
 }
 
 impl VersionControl<Daemon> {

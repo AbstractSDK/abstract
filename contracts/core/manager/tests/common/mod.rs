@@ -137,7 +137,9 @@ pub(crate) fn init_staking_api(
         None,
     )?;
 
-    let version: Version = version.unwrap_or(CONTRACT_VERSION.to_string()).parse()?;
+    let version: Version = version
+        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
+        .parse()?;
 
     deployment
         .version_control

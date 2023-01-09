@@ -50,6 +50,16 @@ impl ModuleReference {
             _ => Err(StdError::generic_err("Not a standalone module.")),
         }
     }
+
+    /// Unwraps the module reference and returns the address of the module.
+    /// Throws an error if the module reference is not an address.
+    pub fn unwrap_addr(&self) -> StdResult<Addr> {
+        match self {
+            ModuleReference::Native(addr) => Ok(addr.clone()),
+            ModuleReference::Api(addr) => Ok(addr.clone()),
+            _ => Err(StdError::generic_err("Not a native or api module.")),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -103,5 +113,16 @@ mod test {
         assert!(standalone.unwrap_api().is_err());
         assert!(standalone.unwrap_app().is_err());
         assert_eq!(standalone.unwrap_standalone().unwrap(), 1);
+    }
+
+    #[test]
+    fn unwrap_addr() {
+        let native = ModuleReference::Native(Addr::unchecked("addr"));
+        assert_eq!(native.unwrap_addr().unwrap(), Addr::unchecked("addr"));
+        let api = ModuleReference::Api(Addr::unchecked("addr"));
+        assert_eq!(api.unwrap_addr().unwrap(), Addr::unchecked("addr"));
+
+        let core = ModuleReference::Core(1);
+        assert!(core.unwrap_addr().is_err());
     }
 }

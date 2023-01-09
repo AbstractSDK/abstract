@@ -47,5 +47,11 @@ osmosis-std = { version = "0.13.2", optional = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
+abstract-boot = { workspace = true }
+boot-core = { workspace = true }
+tokio = { version = "1.4", features = ["full"] }
+semver = { workspace = true }
+anyhow = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.10.0"
 abstract-api = { workspace = true, features = ["schema"] }
-

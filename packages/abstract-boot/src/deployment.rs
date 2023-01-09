@@ -1,9 +1,10 @@
 use abstract_os::manager::ManagerModuleInfo;
+
 use abstract_os::{
     manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
 use boot_core::{prelude::*, BootEnvironment, BootError};
-use cosmwasm_std::Empty;
+use cosmwasm_std::{Empty};
 use semver::Version;
 use speculoos::prelude::*;
 use std::collections::HashSet;

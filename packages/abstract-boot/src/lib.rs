@@ -21,4 +21,8 @@ mod modules;
 pub use crate::modules::*;
 
 mod deployment;
+mod module_deployer;
+
+pub use crate::module_deployer::*;
+
 pub use crate::deployment::*;
