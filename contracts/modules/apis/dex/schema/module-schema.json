@@ -1,6 +1,6 @@
 {
-  "contract_name": "schema",
-  "contract_version": "0.4.2",
+  "contract_name": "module-schema",
+  "contract_version": "0.4.3",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -402,10 +402,10 @@
           "type": "array",
           "items": [
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
               "type": "string"

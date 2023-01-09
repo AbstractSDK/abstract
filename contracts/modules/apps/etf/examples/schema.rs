@@ -3,8 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-
-use abstract_sdk::os::etf::{StateResponse};
+use abstract_sdk::os::etf::StateResponse;
 use etf::contract::EtfApp;
 
 fn main() {

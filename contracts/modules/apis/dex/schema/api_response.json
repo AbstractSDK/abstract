@@ -54,10 +54,10 @@
       "type": "array",
       "items": [
         {
-          "type": "string"
+          "$ref": "#/definitions/AssetEntry"
         },
         {
-          "type": "string"
+          "$ref": "#/definitions/AssetEntry"
         },
         {
           "type": "string"

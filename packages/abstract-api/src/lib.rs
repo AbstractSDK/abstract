@@ -14,5 +14,7 @@ pub mod error;
 /// Abstract SDK trait implementations
 pub mod features;
 mod handler;
-mod schema;
 pub mod state;
+
+#[cfg(feature = "schema")]
+mod schema;
