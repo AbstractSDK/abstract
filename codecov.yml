@@ -2,7 +2,7 @@ coverage:
   status:
     project:
       default:
-        target: auto%
+        target: auto
         threshold: 1%
 
 comment: # this is a top-level key
