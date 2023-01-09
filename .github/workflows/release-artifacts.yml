@@ -7,6 +7,13 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-beta*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      manual_version:
+        description: Specify a version to release
+        type: string
+        default: "v0.0.0"
+        required: false
+
 
 jobs:
   release-artifacts:
@@ -42,6 +49,7 @@ jobs:
     #      image: ubuntu:latest
     env:
       NAMESPACE: abstract
+      GH_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
     strategy:
       matrix:
         package: [ etf ]
@@ -64,7 +72,7 @@ jobs:
         id: get-latest-tag
         uses: "WyriHaximus/github-action-get-previous-tag@v1"
         with:
-          fallback: 0.0.0
+          fallback: ${{ github.event.inputs.manual_version }}
       - uses: actions/github-script@v6
         env:
           LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
@@ -82,7 +90,7 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
           LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
         with:
-          source_folder: 'schema'
+          source_folder: 'schema/'
           destination_repo: 'Abstract-OS/schemas'
           destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
           destination_base_branch: mainline
