@@ -25,7 +25,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.5.0"
+version = "0.5.1"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -53,12 +53,12 @@ semver = { package = "cw-semver", version = "1.0.0", git = "https://github.com/A
 boot-core = { version = "0.3.0", git = "https://github.com/Abstract-OS/BOOT.git", branch = "add/mock-test-helpers" }
 boot-cw-plus = { version = "0.2.0", git = "https://github.com/Abstract-OS/BOOT.git" }
 
-abstract-sdk = { version = "0.5.0", path = "packages/abstract-sdk" }
-abstract-os = { version = "0.5.0", path = "packages/abstract-os" }
-abstract-app = { version = "0.5.0", path = "packages/abstract-app", features = ["library"] }
-abstract-api = { version = "0.5.0", path = "packages/abstract-api", features = ["library"] }
-abstract-ibc-host = { version = "0.5.0", path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.5.0", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.5.1", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.5.1", path = "packages/abstract-os" }
+abstract-app = { version = "0.5.1", path = "packages/abstract-app", features = ["library"] }
+abstract-api = { version = "0.5.1", path = "packages/abstract-api", features = ["library"] }
+abstract-ibc-host = { version = "0.5.1", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.5.1", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
 abstract-boot = { path = "packages/abstract-boot" }
 

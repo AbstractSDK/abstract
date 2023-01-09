@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.5.0] - yyyy-mm-dd
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fixed wasming with `write_api` error in the `abstract-api` and `abstract-app`
+
 ## [0.5.0] - 2022-01-08
 
 ### Added
