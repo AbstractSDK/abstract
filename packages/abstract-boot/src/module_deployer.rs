@@ -17,13 +17,13 @@ pub struct ModuleDeployer<Chain: BootEnvironment> {
     pub version_control: VersionControl<Chain>,
 }
 
-impl<'a, Chain: BootEnvironment> ModuleDeployer<Chain> {
+impl<Chain: BootEnvironment> ModuleDeployer<Chain> {
     /// Create a new instance of the module deployer, loaded from the STATE_FILE.
     pub fn new(chain: Chain, version: Version) -> Self {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         Self {
-            chain: chain.clone(),
+            chain,
             ans_host,
             version_control,
             version,

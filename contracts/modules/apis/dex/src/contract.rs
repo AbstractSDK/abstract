@@ -1,6 +1,6 @@
 use cosmwasm_std::{Empty, Response};
 
-use abstract_api::{export_endpoints, ApiContract};
+use abstract_api::{ApiContract};
 use abstract_sdk::os::{
     dex::{DexExecuteMsg, DexQueryMsg},
     EXCHANGE,

@@ -1,6 +1,6 @@
-use abstract_boot::{AnsHost, Deployment, DexApi, ModuleDeployer, VersionControl};
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::{version_control, ANS_HOST, VERSION_CONTROL};
+use abstract_boot::{DexApi, ModuleDeployer};
+
+
 use boot_core::networks::UNI_5;
 use boot_core::prelude::instantiate_daemon_env;
 use boot_core::prelude::*;
@@ -27,7 +27,7 @@ fn deploy_dex() -> anyhow::Result<()> {
         &Addr::unchecked("juno102k70cekzkwgex55en0zst5gy9x5h3gf8cegvn76w2uevqj4wdgs0q67mq"),
     )?;
 
-    let mut dex = DexApi::new("abstract:dex", chain.clone());
+    let mut dex = DexApi::new("abstract:dex", chain);
 
     deployer.deploy_api(dex.as_instance_mut(), version, Empty {})?;
 
