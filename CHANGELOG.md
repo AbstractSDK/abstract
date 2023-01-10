@@ -13,7 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-## [0.5.0] - yyyy-mm-dd
+## [0.5.2] - 2022-01-10
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fixed abstract-boot publishing
+
+## [0.5.0] - 2022-01-08
 
 ### Added
 
