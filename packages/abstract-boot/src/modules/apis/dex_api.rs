@@ -16,7 +16,7 @@ use log::info;
 pub struct DexApi<Chain>;
 
 impl<Chain: BootEnvironment> DexApi<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("dex"),
             // .with_mock(Box::new(
@@ -36,7 +36,7 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
         ask_asset: &str,
         dex: String,
     ) -> Result<(), BootError> {
-        let manager = Manager::new(MANAGER, self.get_chain());
+        let manager = Manager::new(MANAGER, self.get_chain().clone());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);
 

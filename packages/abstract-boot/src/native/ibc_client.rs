@@ -11,7 +11,7 @@ use boot_core::prelude::boot_contract;
 pub struct IbcClient<Chain>;
 
 impl<Chain: BootEnvironment> IbcClient<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("ibc_client");
         Self(contract)

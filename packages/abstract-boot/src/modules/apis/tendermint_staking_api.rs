@@ -8,7 +8,7 @@ use abstract_os::tendermint_staking::*;
 pub struct TMintStakingApi<Chain>;
 
 impl<Chain: BootEnvironment> TMintStakingApi<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("tendermint_staking"),
             // .with_mock(Box::new(

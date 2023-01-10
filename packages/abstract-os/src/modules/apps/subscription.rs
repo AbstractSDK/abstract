@@ -28,10 +28,8 @@
 
 pub mod state {
     use std::ops::Sub;
-
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
-
     use crate::objects::time_weighted_average::TimeWeightedAverage;
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};

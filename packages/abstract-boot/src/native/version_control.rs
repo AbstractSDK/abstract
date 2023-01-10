@@ -25,14 +25,14 @@ impl<Chain: BootEnvironment> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("version_control");
         Self(contract)
     }
 
     pub fn load(chain: &Chain, address: &Addr) -> Self {
-        Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+        Self(Contract::new(VERSION_CONTROL, chain.clone()).with_address(Some(address)))
     }
 
     pub fn register_core(&self, os: &OS<Chain>, version: &str) -> Result<(), BootError> {

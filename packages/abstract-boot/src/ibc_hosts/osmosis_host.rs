@@ -6,7 +6,7 @@ use cosmwasm_std::Empty;
 pub struct OsmosisHost<Chain>;
 
 impl<Chain: BootEnvironment> OsmosisHost<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("osmosis_host");
         Self(contract)

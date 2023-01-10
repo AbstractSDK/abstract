@@ -9,7 +9,7 @@ use boot_core::prelude::boot_contract;
 pub struct Balancer<Chain>;
 
 impl<Chain: BootEnvironment> Balancer<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("balancer"), // .with_mock(Box::new(
                                                                    //     ContractWrapper::new_with_empty(

@@ -8,7 +8,7 @@ use boot_core::prelude::boot_contract;
 pub struct Vesting<Chain>;
 
 impl<Chain: BootEnvironment> Vesting<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("cw20_vesting"), // .with_mock(Box::new(
                                                                        //     ContractWrapper::new_with_empty(

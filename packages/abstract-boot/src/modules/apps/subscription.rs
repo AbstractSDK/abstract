@@ -1,5 +1,4 @@
 use std::str::FromStr;
-
 use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
     subscription::*,
@@ -14,7 +13,7 @@ use cw_asset::AssetInfoUnchecked;
 pub struct Subscription<Chain>;
 
 impl<Chain: BootEnvironment> Subscription<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("subscription");
         Self(contract)

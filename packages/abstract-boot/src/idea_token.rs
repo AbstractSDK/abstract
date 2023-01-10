@@ -12,7 +12,7 @@ use boot_core::{
 pub struct Idea<Chain>;
 
 impl<Chain: BootEnvironment> Idea<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         Self(
             Contract::new(name, chain).with_wasm_path("abstract_token"), // .with_mock(Box::new(
                                                                          //     ContractWrapper::new_with_empty(

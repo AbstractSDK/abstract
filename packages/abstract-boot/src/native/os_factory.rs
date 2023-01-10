@@ -18,7 +18,7 @@ use crate::{Manager, Proxy, OS};
 pub struct OSFactory<Chain>;
 
 impl<Chain: BootEnvironment> OSFactory<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("os_factory");
         Self(contract)
@@ -47,8 +47,8 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));
         Ok(OS {
-            manager: Manager::new(MANAGER, self.get_chain()),
-            proxy: Proxy::new(PROXY, self.get_chain()),
+            manager: Manager::new(MANAGER, self.get_chain().clone()),
+            proxy: Proxy::new(PROXY, self.get_chain().clone()),
         })
     }
 

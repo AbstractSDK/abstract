@@ -22,14 +22,14 @@ impl<Chain: BootEnvironment> AnsHost<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("ans_host");
         Self(contract)
     }
 
     pub fn load(chain: &Chain, address: &Addr) -> Self {
-        Self(Contract::new(ANS_HOST, chain).with_address(Some(address)))
+        Self(Contract::new(ANS_HOST, chain.clone()).with_address(Some(address)))
     }
 }
 

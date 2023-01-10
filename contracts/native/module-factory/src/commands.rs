@@ -313,7 +313,7 @@ mod test {
         use super::*;
         use abstract_os::objects::module::ModuleVersion;
         use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
-        use abstract_testing::{TEST_ADMIN};
+        use abstract_testing::TEST_ADMIN;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

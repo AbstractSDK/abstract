@@ -22,7 +22,7 @@ pub fn full_deploy() -> anyhow::Result<()> {
 
     deployment.deploy(&mut os_core)?;
 
-    let _dex = DexApi::new("dex", &chain);
+    let _dex = DexApi::new("dex", chain.clone());
 
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;

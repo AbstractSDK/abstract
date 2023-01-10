@@ -24,7 +24,12 @@ impl IbcResponseMsg {
     where
         C: Clone + std::fmt::Debug + PartialEq + JsonSchema,
     {
-        Ok(wasm_execute(contract_addr.into(), &IbcCallbackMsg::IbcCallback(self), vec![])?.into())
+        Ok(wasm_execute(
+            contract_addr.into(),
+            &IbcCallbackMsg::IbcCallback(self),
+            vec![],
+        )?
+        .into())
     }
 }
 

@@ -12,7 +12,7 @@ use boot_core::{interface::BootExecute, prelude::boot_contract};
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: BootEnvironment> ModuleFactory<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("module_factory");
         Self(contract)

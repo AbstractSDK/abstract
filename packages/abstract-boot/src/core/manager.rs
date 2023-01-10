@@ -14,7 +14,7 @@ use boot_core::{interface::BootExecute, prelude::boot_contract};
 pub struct Manager<Chain>;
 
 impl<Chain: BootEnvironment> Manager<Chain> {
-    pub fn new(name: &str, chain: &Chain) -> Self {
+    pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("manager");
         Self(contract)

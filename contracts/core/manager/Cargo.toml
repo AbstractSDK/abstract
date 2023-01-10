@@ -36,7 +36,7 @@ semver = {workspace = true}
 cw-multi-test = { workspace = true , features = ["staking"]}
 cw20 = { workspace = true }
 abstract-boot = {workspace = true}
-boot-core = { workspace = true, features = ["staking"]}
+boot-core = { workspace = true}
 anyhow = {workspace = true}
 os-factory = { workspace = true }
 module-factory = { workspace = true }
