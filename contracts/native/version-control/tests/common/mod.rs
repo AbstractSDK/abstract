@@ -10,12 +10,12 @@ use cw_multi_test::ContractWrapper;
 pub const ROOT_USER: &str = "root_user";
 
 pub fn init_test_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
-    let mut ans_host = AnsHost::new(ANS_HOST, chain);
-    let mut os_factory = OSFactory::new(OS_FACTORY, chain);
-    let mut version_control = VersionControl::new(VERSION_CONTROL, chain);
-    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain);
-    let mut manager = Manager::new(MANAGER, chain);
-    let mut proxy = Proxy::new(PROXY, chain);
+    let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
+    let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
+    let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
+    let mut manager = Manager::new(MANAGER, chain.clone());
+    let mut proxy = Proxy::new(PROXY, chain.clone());
 
     ans_host
         .as_instance_mut()
