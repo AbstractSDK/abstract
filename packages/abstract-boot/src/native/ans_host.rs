@@ -28,8 +28,8 @@ where
         Self(contract)
     }
 
-    pub fn load(chain: &Chain, address: &Addr) -> Self {
-        Self(Contract::new(ANS_HOST, chain.clone()).with_address(Some(address)))
+    pub fn load(chain: Chain, address: &Addr) -> Self {
+        Self(Contract::new(ANS_HOST, chain).with_address(Some(address)))
     }
 }
 

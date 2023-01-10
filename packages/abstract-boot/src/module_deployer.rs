@@ -10,20 +10,20 @@ use std::fmt::Debug;
 use crate::{AnsHost, VersionControl};
 
 /// An Abstract module deployer that can deploy modules to a chain.
-pub struct ModuleDeployer<'a, Chain: BootEnvironment> {
-    pub chain: &'a Chain,
+pub struct ModuleDeployer<Chain: BootEnvironment> {
+    pub chain: Chain,
     pub version: Version,
     pub ans_host: AnsHost<Chain>,
     pub version_control: VersionControl<Chain>,
 }
 
-impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
+impl<'a, Chain: BootEnvironment> ModuleDeployer<Chain> {
     /// Create a new instance of the module deployer, loaded from the STATE_FILE.
-    pub fn new(chain: &'a Chain, version: Version) -> Self {
-        let ans_host = AnsHost::new(ANS_HOST, chain);
-        let version_control = VersionControl::new(VERSION_CONTROL, chain);
+    pub fn new(chain: Chain, version: Version) -> Self {
+        let ans_host = AnsHost::new(ANS_HOST, chain.clone());
+        let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         Self {
-            chain,
+            chain: chain.clone(),
             ans_host,
             version_control,
             version,
@@ -31,11 +31,11 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
     }
     /// Loads a deployment instance from a live chain given the **version_control_address**.
     pub fn load_from_version_control(
-        chain: &'a Chain,
+        chain: Chain,
         abstract_version: &Version,
         version_control_address: &Addr,
     ) -> Result<Self, BootError> {
-        let version_control = VersionControl::load(chain, version_control_address);
+        let version_control = VersionControl::load(chain.clone(), version_control_address);
 
         // TODO: get the version dynamically
         // let info = &self.chain.runtime.block_on(DaemonQuerier::contract_info(
@@ -45,7 +45,7 @@ impl<'a, Chain: BootEnvironment> ModuleDeployer<'a, Chain> {
 
         let result = version_control.get_api_addr(ANS_HOST, ModuleVersion::Latest);
 
-        let ans_host = AnsHost::load(chain, &result?);
+        let ans_host = AnsHost::load(chain.clone(), &result?);
 
         Ok(Self {
             chain,
