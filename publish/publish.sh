@@ -14,12 +14,9 @@ then
 fi
 
 # these are imported by other packages
-BASE_PACKAGES="abstract-ica"
-#BASE_PACKAGES="abstract-ica abstract-os"
+BASE_PACKAGES="abstract-ica abstract-os"
 UTILS_PACKAGES="abstract-sdk"
-ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host"
-# TODO: We are not publishing abstract-boot at the moment
-#ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
+ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
 
 SLEEP_TIME=30
 
