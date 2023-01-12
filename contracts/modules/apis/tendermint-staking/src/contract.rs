@@ -1,4 +1,4 @@
-use abstract_api::{export_endpoints, ApiContract};
+use abstract_api::ApiContract;
 
 use abstract_os::tendermint_staking::TendermintStakingQueryMsg;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
@@ -26,7 +26,7 @@ const STAKING_API: TendermintStakeApi =
 
 // Export handlers
 #[cfg(not(feature = "library"))]
-export_endpoints!(STAKING_API, TendermintStakeApi);
+abstract_api::export_endpoints!(STAKING_API, TendermintStakeApi);
 
 pub fn handle_request(
     deps: DepsMut,

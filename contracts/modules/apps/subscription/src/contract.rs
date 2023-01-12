@@ -2,7 +2,7 @@ use crate::commands::get_os_core;
 use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
-use abstract_app::{export_endpoints, AppContract};
+use abstract_app::AppContract;
 use abstract_os::subscription::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use abstract_sdk::os::subscription::state::*;
 use abstract_sdk::os::subscription::{
@@ -33,7 +33,8 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // export endpoints
-export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
+#[cfg(not(feature = "library"))]
+abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
 pub fn instantiate_handler(
     deps: DepsMut,
