@@ -18,7 +18,7 @@ pub struct UncheckedContractEntry {
 }
 
 impl UncheckedContractEntry {
-    pub fn new<T: ToString>(protocol: T, contract: T) -> Self {
+    pub fn new<T: ToString, R: ToString>(protocol: T, contract: R) -> Self {
         Self {
             protocol: protocol.to_string(),
             contract: contract.to_string(),
