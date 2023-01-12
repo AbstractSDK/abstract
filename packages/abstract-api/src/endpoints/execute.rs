@@ -38,20 +38,27 @@ impl<
                 let core = match request.proxy_address {
                     Some(addr) => {
                         let proxy_addr = deps.api.addr_validate(&addr)?;
-                        let traders = self.traders.load(deps.storage, proxy_addr)?;
+                        let traders =
+                            self.traders.load(deps.storage, proxy_addr).map_err(|_| {
+                                ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                            })?;
                         if traders.contains(sender) {
                             self.os_register(deps.as_ref())
                                 .assert_proxy(&deps.api.addr_validate(&addr)?)?
                         } else {
                             self.os_register(deps.as_ref())
                                 .assert_manager(sender)
-                                .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?
+                                .map_err(|_| {
+                                    ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                                })?
                         }
                     }
                     None => self
                         .os_register(deps.as_ref())
                         .assert_manager(sender)
-                        .map_err(|_| ApiError::UnauthorizedTraderApiRequest {})?,
+                        .map_err(|_| {
+                            ApiError::UnauthorizedTraderApiRequest(info.sender.to_string())
+                        })?,
                 };
                 self.target_os = Some(core);
                 self.execute_handler()?(deps, env, info, self, request.request)

@@ -10,8 +10,8 @@ pub enum ApiError {
     #[error("Sender of request is not a Manager")]
     UnauthorizedApiRequest {},
 
-    #[error("Sender of request is not a Manager or Trader")]
-    UnauthorizedTraderApiRequest {},
+    #[error("Sender of request with address {0} is not a Manager or Trader")]
+    UnauthorizedTraderApiRequest(String),
 
     #[error("The trader you wished to remove: {} was not present.", trader)]
     TraderNotPresent { trader: String },
