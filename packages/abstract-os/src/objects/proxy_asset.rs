@@ -107,7 +107,7 @@ impl UncheckedValueRef {
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
                 // verify pair is available
                 let pair_contract: ContractEntry =
-                    UncheckedContractEntry::new(&exchange, &pair_name).check();
+                    UncheckedContractEntry::new(exchange, pair_name).check();
                 ans_host.query_contract(&deps.querier, &pair_contract)?;
                 Ok(ValueRef::Pool {
                     pair: pair_contract,

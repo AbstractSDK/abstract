@@ -12,6 +12,9 @@ pub use crate::exchanges::loop_dex::{Loop, LOOP};
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
+#[cfg(feature = "terra")]
+pub use crate::exchanges::astroport::{Astroport, ASTROPORT};
+
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
 
@@ -27,6 +30,8 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
+        #[cfg(feature = "terra")]
+        ASTROPORT => Ok(&Astroport {}),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -43,6 +48,8 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
+        #[cfg(feature = "terra")]
+        ASTROPORT => Ok(&Astroport {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
