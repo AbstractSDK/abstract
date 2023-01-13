@@ -100,8 +100,8 @@ pub enum BaseExecuteMsg {
     /// Add or remove traders
     /// If a trader is both in to_add and to_remove, it will be removed.
     UpdateTraders {
-        to_add: Option<Vec<String>>,
-        to_remove: Option<Vec<String>>,
+        to_add: Vec<String>,
+        to_remove: Vec<String>,
     },
     /// Remove the api
     Remove {},

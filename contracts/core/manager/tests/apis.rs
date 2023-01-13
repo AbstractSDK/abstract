@@ -299,12 +299,12 @@ fn not_trader_exec() -> AResult {
         .call_as(&not_trader)
         .delegate(100u128.into(), VALIDATOR.into())
         .unwrap_err();
-    assert_that!(res.root().to_string()).contains("Sender of request is not a Manager or Trader");
+    assert_that!(res.root().to_string()).contains("Sender of request with address not_trader is not a Manager or Trader");
     // neither can the ROOT directly
     let res = staking_api
         .delegate(100u128.into(), VALIDATOR.into())
         .unwrap_err();
-    assert_that!(&res.root().to_string()).contains("Sender of request is not a Manager or Trader");
+    assert_that!(&res.root().to_string()).contains("Sender of request with address root_user is not a Manager or Trader");
     Ok(())
 }
 

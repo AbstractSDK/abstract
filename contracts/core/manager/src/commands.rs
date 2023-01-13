@@ -369,8 +369,8 @@ pub fn replace_api(
     msgs.push(configure_api(
         &old_api_addr,
         BaseExecuteMsg::UpdateTraders {
-            to_add: None,
-            to_remove: Some(traders_to_migrate.clone()),
+            to_add: vec![],
+            to_remove: traders_to_migrate.clone(),
         },
     )?);
     // Remove api as trader on dependencies
@@ -379,8 +379,8 @@ pub fn replace_api(
     msgs.push(configure_api(
         &new_api_addr,
         BaseExecuteMsg::UpdateTraders {
-            to_add: Some(traders_to_migrate),
-            to_remove: None,
+            to_add: traders_to_migrate,
+            to_remove: vec![],
         },
     )?);
     // Remove api permissions from proxy
