@@ -65,7 +65,7 @@ impl DEX for Astroport {
                     msg: to_binary(&astroport::pair::Cw20HookMsg::Swap {
                         ask_asset_info: None,
                         belief_price,
-                        max_spread: Some(Decimal::zero()),
+                        max_spread,
                         to: None,
                     })?,
                 },
