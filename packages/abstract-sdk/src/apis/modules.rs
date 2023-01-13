@@ -140,11 +140,10 @@ mod test {
     use std::marker::PhantomData;
 
     use crate::apis::test_common::*;
+    use abstract_testing::TEST_MODULE_ID;
 
-    const TEST_MODULE_ID: ModuleId = "test_module";
     /// Nonexistent module
     const FAKE_MODULE_ID: ModuleId = "fake_module";
-    const TEST_MODULE_RESPONSE: &str = "test_module_response";
     const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 
     impl Dependencies for MockModule {
@@ -154,81 +153,6 @@ mod test {
     }
 
     const TEST_MODULE_ADDRESS: &str = "test_module_address";
-
-    /// mock querier that has the os modules loaded
-    fn mock_querier_with_existing_module() -> MockQuerier {
-        let mut querier = MockQuerier::default();
-
-        querier.update_wasm(|wasm| {
-            match wasm {
-                WasmQuery::Raw { contract_addr, key } => {
-                    let _os_mod_key = "os_modules";
-                    let string_key = String::from_utf8(key.to_vec()).unwrap();
-                    let str_key = string_key.as_str();
-
-                    let mut modules = HashMap::<Binary, Addr>::default();
-
-                    // binary key is "os_modules<module_id>" (though with a \n or \r before)
-                    let binary = Binary::from_base64("AApvc19tb2R1bGVzdGVzdF9tb2R1bGU=").unwrap();
-                    modules.insert(binary, Addr::unchecked(TEST_MODULE_ADDRESS));
-
-                    let res = match contract_addr.as_str() {
-                        TEST_PROXY => match str_key {
-                            "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
-                            _ => Err("unexpected key"),
-                        },
-                        TEST_MANAGER => {
-                            if let Some(value) = modules.get(key) {
-                                Ok(to_binary(&value.to_owned()).unwrap())
-                            } else {
-                                // Debug print out what the key was
-                                // let into_binary: Binary = b"\ros_modulestest_module".into();
-                                // let to_binary_res =
-                                //     to_binary("os_modulestest_module".as_bytes()).unwrap();
-                                // panic!(
-                                //     "contract: {}, binary_key: {}, into_binary: {}, to_binary_res: {}",
-                                //     contract_addr, key, into_binary, to_binary_res
-                                // );
-                                Ok(Binary::default())
-                            }
-                        }
-                        _ => Err("unexpected contract"),
-                    };
-
-                    match res {
-                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
-                    }
-                }
-                WasmQuery::Smart { contract_addr, msg } => {
-                    let res = match contract_addr.as_str() {
-                        TEST_MODULE_ADDRESS => match from_binary(msg).unwrap() {
-                            Empty {} => Ok(to_binary(TEST_MODULE_RESPONSE).unwrap()),
-                        },
-                        _ => Err("unexpected contract"),
-                    };
-
-                    match res {
-                        Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
-                        Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
-                    }
-                }
-                _ => panic!("Unexpected smart query"),
-            }
-        });
-
-        querier
-    }
-
-    pub fn mock_dependencies_with_existing_module(
-    ) -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {
-        OwnedDeps {
-            storage: MockStorage::default(),
-            api: MockApi::default(),
-            querier: mock_querier_with_existing_module(),
-            custom_query_type: PhantomData,
-        }
-    }
 
     mod assert_module_dependency {
         use super::*;
@@ -266,7 +190,8 @@ mod test {
         modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<T>,
         fake_module: ModuleId,
     ) {
-        let deps = mock_dependencies_with_existing_module();
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
         let app = MockModule::new();
 
         let _mods = app.modules(deps.as_ref());
@@ -296,7 +221,8 @@ mod test {
 
         #[test]
         fn expected_api_request() {
-            let deps = mock_dependencies_with_existing_module();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -334,7 +260,8 @@ mod test {
 
         #[test]
         fn expected_app_request() {
-            let deps = mock_dependencies_with_existing_module();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -375,7 +302,8 @@ mod test {
 
         #[test]
         fn expected_configure_msg() {
-            let deps = mock_dependencies_with_existing_module();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -419,7 +347,8 @@ mod test {
 
         #[test]
         fn expected_api_query() {
-            let deps = mock_dependencies_with_existing_module();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -434,7 +363,7 @@ mod test {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(abstract_testing::TEST_MODULE_RESPONSE.to_string());
         }
     }
 
@@ -454,7 +383,8 @@ mod test {
 
         #[test]
         fn expected_app_query() {
-            let deps = mock_dependencies_with_existing_module();
+            let mut deps = mock_dependencies();
+            deps.querier = abstract_testing::querier();
             let app = MockModule::new();
 
             let mods = app.modules(deps.as_ref());
@@ -463,7 +393,7 @@ mod test {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(TEST_MODULE_RESPONSE.to_string());
+                .is_equal_to(abstract_testing::TEST_MODULE_RESPONSE.to_string());
         }
     }
 }

@@ -1,10 +1,14 @@
-use crate::{TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_PROXY, TEST_VERSION_CONTROL};
+use crate::{
+    TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_PROXY,
+    TEST_VERSION_CONTROL,
+};
 
 use abstract_os::version_control::Core;
 
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
-    to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult, WasmQuery,
+    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
+    WasmQuery,
 };
 use std::collections::HashMap;
 
@@ -56,6 +60,21 @@ pub fn querier() -> AbstractQuerier {
                 match res {
                     Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
                     Err(e) => SystemResult::Ok(ContractResult::Err(e)),
+                }
+            }
+            WasmQuery::Smart { contract_addr, msg } => {
+                // Mock existing module
+                let res = match contract_addr.as_str() {
+                    TEST_MODULE_ADDRESS => {
+                        let Empty {} = from_binary(msg).unwrap();
+                        Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
+                    }
+                    _ => Err("unexpected contract"),
+                };
+
+                match res {
+                    Ok(res) => SystemResult::Ok(ContractResult::Ok(res)),
+                    Err(e) => SystemResult::Ok(ContractResult::Err(e.to_string())),
                 }
             }
             _ => panic!("Unexpected smart query"),

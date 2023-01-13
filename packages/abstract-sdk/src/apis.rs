@@ -1,4 +1,5 @@
 pub mod bank;
+pub mod dex;
 pub mod execution;
 pub mod ibc;
 pub mod modules;

@@ -26,6 +26,8 @@ pub fn full_deploy() -> anyhow::Result<()> {
 
     let _dex = DexApi::new("dex", chain.clone());
 
+    deployment.deploy_modules()?;
+
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;
 
