@@ -23,9 +23,7 @@ use speculoos::prelude::*;
 const VALIDATOR: &str = "testvaloper1";
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
-    manager
-        .install_module(api, Some(&Empty {}))
-        .map_err(Into::into)
+    manager.install_module(api, &Empty {}).map_err(Into::into)
 }
 
 pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
@@ -133,10 +131,10 @@ fn install_non_existent_version_should_fail() -> AResult {
     let os = create_default_os(&chain, &deployment.os_factory)?;
     init_staking_api(&chain, &deployment, None)?;
 
-    let res = os.manager.install_module_version::<Empty>(
+    let res = os.manager.install_module_version(
         TENDERMINT_STAKING,
         ModuleVersion::Version("1.2.3".to_string()),
-        None,
+        &Empty {},
     );
 
     // testtodo: check error
@@ -349,10 +347,10 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let _staking_api_three = init_staking_api(&chain, &deployment, Some("3.4.5".to_string()))?;
 
     // install specific version
-    os.manager.install_module_version::<Empty>(
+    os.manager.install_module_version(
         TENDERMINT_STAKING,
         ModuleVersion::Version(expected_version),
-        None,
+        &Empty {},
     )?;
 
     let modules = os.expect_modules(vec![expected_staking_api_addr])?;

@@ -30,27 +30,20 @@
     },
     "uni-5": {
       "code_ids": {
-        "abstract:ans_host": 2659,
-        "abstract:dex": 2730,
-        "abstract:etf": 2732,
-        "abstract:ibc_client": 2734,
-        "abstract:manager": 2663,
-        "abstract:module_factory": 2662,
-        "abstract:os_factory": 2661,
-        "abstract:proxy": 2664,
-        "abstract:subscription": 2733,
-        "abstract:tendermint_staking": 2731,
-        "abstract:version_control": 2660,
-        "ibc_client": 1530
+        "abstract:ans_host": 4022,
+        "abstract:manager": 4026,
+        "abstract:dex": 4067,
+        "abstract:module_factory": 4025,
+        "abstract:os_factory": 4024,
+        "abstract:proxy": 4028,
+        "abstract:version_control": 4023
       },
       "default": {
-        "abstract:ans_host": "juno1da869gukqdhdrufcewjvu0cq7nt9djgvayuhwsgjfgx7kasgaw6q4dghws",
-        "abstract:dex": "juno166zn83c8d65klkac6lnw4x7trhwe9sj5tkrfzk4pnjsy9d3rd9gqplk28e",
-        "abstract:ibc_client": "juno12z9ydzhxmzpmryzj2065kntfg238cc6aa4sj8e6taf9vmlfdfe6q0k2qz3",
-        "abstract:module_factory": "juno1tjktnhjkuwancwft5msrt4srrj5unld5hpw5fxwtjdchtdqc9twqhaxavv",
-        "abstract:os_factory": "juno1j557rwa53sy70jwvgg9umhustzl68k2l7nqvr8y6ll853fjykqhq3xxtmm",
-        "abstract:tendermint_staking": "juno1zcz56zyrjdmn7rkf9wlx837r9llhkh4y0l6g8s8hahwnx0nzgqrqnf7fz3",
-        "abstract:version_control": "juno16enwrxhdtsdk8mkkcaj37fgp37wz0r3err4hxfz52lcdyayexnxs4468mu"
+        "abstract:dex": "juno1gsdv3m6czzurqqfvah4ejvwnhxaq3rk7u9zwmxqpq25vslutgl9qsh6dlg",
+        "abstract:ans_host": "juno1qyetxuhvmpgan5qyjq3julmzz9g3rhn3jfp2jlgy29ftjknv0c6s0xywpp",
+        "abstract:module_factory": "juno1vl4dqk6he88ygxmdxl5nl5q9jdpcu858ygfdkwds38ucntzvacaqgnyr0t",
+        "abstract:os_factory": "juno1fzelxmlq5sma803g089w3909m697uj8fxrd667lxdulgjjx6fsrsml5mk7",
+        "abstract:version_control": "juno1q8tuzav8y6aawhc4sddqnwj6q4gdvn7lyk3m9ks4uw69xp37j83ql3ck2q"
       }
     }
   },

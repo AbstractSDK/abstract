@@ -58,15 +58,16 @@ impl<Chain: BootEnvironment> Manager<Chain> {
     }
 
     pub fn replace_api(&self, module_id: &str) -> Result<(), BootError> {
+        // this should check if installed?
         self.uninstall_module(module_id)?;
 
-        self.install_module::<Empty>(module_id, None)
+        self.install_module(module_id, &Empty {})
     }
 
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
-        init_msg: Option<&TInitMsg>,
+        init_msg: &TInitMsg,
     ) -> Result<(), BootError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg)
     }
@@ -75,12 +76,13 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         &self,
         module_id: &str,
         version: ModuleVersion,
-        init_msg: Option<&M>,
+        // not option
+        init_msg: &M,
     ) -> Result<(), BootError> {
         self.execute(
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, version)?,
-                init_msg: init_msg.map(to_binary).transpose()?,
+                init_msg: Some(to_binary(init_msg)?),
             },
             None,
         )?;

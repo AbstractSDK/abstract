@@ -17,7 +17,7 @@ pub enum VCError {
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotInstalled(ModuleInfo),
 
-    #[error("Api {0} cannot be updated")]
+    #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]

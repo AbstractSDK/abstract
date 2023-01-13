@@ -6,6 +6,7 @@ use abstract_os::{
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::Empty;
 use semver::Version;
+use serde::Serialize;
 use speculoos::prelude::*;
 use std::collections::HashSet;
 
@@ -188,6 +189,14 @@ impl<Chain: BootEnvironment> OS<Chain> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+
+    pub fn install_module<TInitMsg: Serialize>(
+        &mut self,
+        module_id: &str,
+        init_msg: &TInitMsg,
+    ) -> Result<(), BootError> {
+        self.manager.install_module(module_id, init_msg)
     }
 
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.

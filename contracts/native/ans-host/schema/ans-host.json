@@ -1,6 +1,6 @@
 {
   "contract_name": "ans-host",
-  "contract_version": "0.4.2",
+  "contract_version": "0.5.3",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -192,7 +192,7 @@
                   "type": "array",
                   "items": [
                     {
-                      "$ref": "#/definitions/PoolIdBase_for_String"
+                      "$ref": "#/definitions/PoolAddressBase_for_String"
                     },
                     {
                       "$ref": "#/definitions/PoolMetadata"
@@ -238,6 +238,10 @@
       }
     ],
     "definitions": {
+      "AssetEntry": {
+        "description": "May key to retrieve information on an asset",
+        "type": "string"
+      },
       "AssetInfoBase_for_String": {
         "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
         "oneOf": [
@@ -289,7 +293,7 @@
           }
         ]
       },
-      "PoolIdBase_for_String": {
+      "PoolAddressBase_for_String": {
         "oneOf": [
           {
             "type": "object",
@@ -330,7 +334,7 @@
           "assets": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             }
           },
           "dex": {
@@ -394,6 +398,20 @@
     "title": "QueryMsg",
     "description": "AnsHost smart-query",
     "oneOf": [
+      {
+        "description": "Query the config Returns [`ConfigResponse`]",
+        "type": "object",
+        "required": [
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "type": "object",
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
       {
         "description": "Queries assets based on name returns [`AssetsResponse`]",
         "type": "object",
@@ -607,7 +625,7 @@
         "additionalProperties": false
       },
       {
-        "description": "Retrieve the (optionally-filtered) list of pools. returns [`PoolIdListResponse`]",
+        "description": "Retrieve the (optionally-filtered) list of pools. returns [`PoolAddressListResponse`]",
         "type": "object",
         "required": [
           "pool_list"
@@ -721,6 +739,10 @@
       }
     ],
     "definitions": {
+      "AssetEntry": {
+        "description": "May key to retrieve information on an asset",
+        "type": "string"
+      },
       "AssetPairingFilter": {
         "type": "object",
         "properties": {
@@ -732,10 +754,10 @@
             ],
             "items": [
               {
-                "type": "string"
+                "$ref": "#/definitions/AssetEntry"
               },
               {
-                "type": "string"
+                "$ref": "#/definitions/AssetEntry"
               }
             ],
             "maxItems": 2,
@@ -788,10 +810,10 @@
         "type": "array",
         "items": [
           {
-            "type": "string"
+            "$ref": "#/definitions/AssetEntry"
           },
           {
-            "type": "string"
+            "$ref": "#/definitions/AssetEntry"
           },
           {
             "type": "string"
@@ -1112,6 +1134,35 @@
         }
       }
     },
+    "config": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ConfigResponse",
+      "type": "object",
+      "required": [
+        "admin",
+        "next_unique_pool_id"
+      ],
+      "properties": {
+        "admin": {
+          "$ref": "#/definitions/Addr"
+        },
+        "next_unique_pool_id": {
+          "$ref": "#/definitions/UniquePoolId"
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Addr": {
+          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
+          "type": "string"
+        },
+        "UniquePoolId": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
     "contract_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ContractListResponse",
@@ -1206,7 +1257,7 @@
     },
     "pool_list": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PoolIdListResponse",
+      "title": "PoolAddressListResponse",
       "type": "object",
       "required": [
         "pools"
@@ -1238,15 +1289,19 @@
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
         },
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
         "DexAssetPairing": {
           "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
           "type": "array",
           "items": [
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
               "type": "string"
@@ -1255,7 +1310,7 @@
           "maxItems": 3,
           "minItems": 3
         },
-        "PoolIdBase_for_Addr": {
+        "PoolAddressBase_for_Addr": {
           "oneOf": [
             {
               "type": "object",
@@ -1288,15 +1343,15 @@
         "PoolReference": {
           "type": "object",
           "required": [
-            "id",
-            "pool_id"
+            "pool_address",
+            "unique_id"
           ],
           "properties": {
-            "id": {
-              "$ref": "#/definitions/UniquePoolId"
+            "pool_address": {
+              "$ref": "#/definitions/PoolAddressBase_for_Addr"
             },
-            "pool_id": {
-              "$ref": "#/definitions/PoolIdBase_for_Addr"
+            "unique_id": {
+              "$ref": "#/definitions/UniquePoolId"
             }
           },
           "additionalProperties": false
@@ -1335,6 +1390,10 @@
       },
       "additionalProperties": false,
       "definitions": {
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
         "PoolMetadata": {
           "type": "object",
           "required": [
@@ -1346,7 +1405,7 @@
             "assets": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/AssetEntry"
               }
             },
             "dex": {
@@ -1400,6 +1459,10 @@
       },
       "additionalProperties": false,
       "definitions": {
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
         "PoolMetadata": {
           "type": "object",
           "required": [
@@ -1411,7 +1474,7 @@
             "assets": {
               "type": "array",
               "items": {
-                "type": "string"
+                "$ref": "#/definitions/AssetEntry"
               }
             },
             "dex": {
@@ -1472,15 +1535,19 @@
           "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
           "type": "string"
         },
+        "AssetEntry": {
+          "description": "May key to retrieve information on an asset",
+          "type": "string"
+        },
         "DexAssetPairing": {
           "description": "The key for an asset pairing Consists of the two assets and the dex name TODO: what if we made keys equal based on the two assets either way?",
           "type": "array",
           "items": [
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
-              "type": "string"
+              "$ref": "#/definitions/AssetEntry"
             },
             {
               "type": "string"
@@ -1489,7 +1556,7 @@
           "maxItems": 3,
           "minItems": 3
         },
-        "PoolIdBase_for_Addr": {
+        "PoolAddressBase_for_Addr": {
           "oneOf": [
             {
               "type": "object",
@@ -1522,15 +1589,15 @@
         "PoolReference": {
           "type": "object",
           "required": [
-            "id",
-            "pool_id"
+            "pool_address",
+            "unique_id"
           ],
           "properties": {
-            "id": {
-              "$ref": "#/definitions/UniquePoolId"
+            "pool_address": {
+              "$ref": "#/definitions/PoolAddressBase_for_Addr"
             },
-            "pool_id": {
-              "$ref": "#/definitions/PoolIdBase_for_Addr"
+            "unique_id": {
+              "$ref": "#/definitions/UniquePoolId"
             }
           },
           "additionalProperties": false

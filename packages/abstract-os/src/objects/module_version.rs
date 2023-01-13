@@ -4,12 +4,12 @@ of the module. The APIs used for `ExecuteMsg` or `QueryMsg`.
 However, when we wish to migrate or inspect smart module info,
 we need some form of smart module information embedded on state.
 
-This is where CW2 comes in. It specifies a special Item to
+This is where ModuleData comes in. It specifies a special Item to
 be stored on disk by all contracts on `instantiate`.
 
 `ModuleInfo` must be stored under the `"module_info"` key which translates
 to `"636F6E74726163745F696E666F"` in hex format.
-Since the state is well defined, we do not need to support any "smart queries".
+Since the state is well-defined, we do not need to support any "smart queries".
 We do provide a helper to construct a "raw query" to read the ContractInfo
 of any CW2-compliant module.
 

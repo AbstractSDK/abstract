@@ -22,6 +22,7 @@ pub use crate::modules::*;
 
 mod deployment;
 mod module_deployer;
+mod traits;
 
 pub use crate::module_deployer::*;
 

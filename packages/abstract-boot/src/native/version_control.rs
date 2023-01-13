@@ -1,5 +1,5 @@
 use boot_core::{
-    interface::{BootExecute, BootQuery, ContractInstance},
+    interface::{BootQuery, ContractInstance},
     prelude::boot_contract,
     BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
@@ -37,51 +37,34 @@ where
 
     pub fn register_core(&self, os: &OS<Chain>, version: &str) -> Result<(), BootError> {
         let manager = os.manager.as_instance();
-        self.execute(
-            &ExecuteMsg::AddModules {
-                modules: vec![(
-                    ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
-                    ModuleReference::Core(manager.code_id()?),
-                )],
-            },
-            None,
-        )?;
+        let manager_module = (
+            ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
+            ModuleReference::Core(manager.code_id()?),
+        );
+        self.add_modules(vec![manager_module])?;
+
         log::info!("Module {} registered", manager.id);
 
         let proxy = os.proxy.as_instance();
-        self.execute(
-            &ExecuteMsg::AddModules {
-                modules: vec![(
-                    ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
-                    ModuleReference::Core(proxy.code_id()?),
-                )],
-            },
-            None,
-        )?;
+        let proxy_module = (
+            ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
+            ModuleReference::Core(proxy.code_id()?),
+        );
+        self.add_modules(vec![proxy_module])?;
+
         log::info!("Module {} registered", proxy.id);
         Ok(())
     }
 
     pub fn register_apps(
         &self,
-        modules: Vec<&Contract<Chain>>,
+        apps: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), BootError> {
-        let apps_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = modules
-            .iter()
-            .map(|app| {
-                Ok((
-                    ModuleInfo::from_id(&app.id, ModuleVersion::Version(version.to_string()))?,
-                    ModuleReference::App(app.code_id()?),
-                ))
-            })
-            .collect();
-        self.execute(
-            &ExecuteMsg::AddModules {
-                modules: apps_to_register?,
-            },
-            None,
-        )?;
+        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+            ModuleReference::App(c.code_id().unwrap())
+        })?;
+        self.add_modules(to_register)?;
         Ok(())
     }
 
@@ -90,21 +73,22 @@ where
         apis: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), BootError> {
-        let apis_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = apis
-            .iter()
-            .map(|ex| {
-                Ok((
-                    ModuleInfo::from_id(&ex.id, ModuleVersion::Version(version.to_string()))?,
-                    ModuleReference::Api(ex.address()?),
-                ))
-            })
-            .collect();
-        self.execute(
-            &ExecuteMsg::AddModules {
-                modules: apis_to_register?,
-            },
-            None,
-        )?;
+        let to_register = self.contracts_into_module_entries(apis, version, |c| {
+            ModuleReference::Api(c.address().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
+    pub fn register_standalones(
+        &self,
+        standalones: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let to_register = self.contracts_into_module_entries(standalones, version, |c| {
+            ModuleReference::Standalone(c.code_id().unwrap())
+        })?;
+        self.add_modules(to_register)?;
         Ok(())
     }
 
@@ -112,22 +96,33 @@ where
         &self,
         deployment: &deployment::Deployment<Chain>,
     ) -> Result<(), BootError> {
-        let modules: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = deployment
-            .contracts()
+        let to_register =
+            self.contracts_into_module_entries(deployment.contracts(), &deployment.version, |c| {
+                ModuleReference::Native(c.address().unwrap())
+            })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
+    fn contracts_into_module_entries<RefFn>(
+        &self,
+        modules: Vec<&Contract<Chain>>,
+        version: &Version,
+        ref_fn: RefFn,
+    ) -> Result<Vec<(ModuleInfo, ModuleReference)>, BootError>
+    where
+        RefFn: Fn(&&Contract<Chain>) -> ModuleReference,
+    {
+        let modules_to_register: Result<Vec<(ModuleInfo, ModuleReference)>, BootError> = modules
             .iter()
-            .map(|contr| {
+            .map(|contract| {
                 Ok((
-                    ModuleInfo::from_id(
-                        &contr.id,
-                        ModuleVersion::Version(deployment.version.to_string()),
-                    )?,
-                    ModuleReference::Native(contr.address()?),
+                    ModuleInfo::from_id(&contract.id, ModuleVersion::Version(version.to_string()))?,
+                    ref_fn(contract),
                 ))
             })
             .collect();
-
-        self.execute(&ExecuteMsg::AddModules { modules: modules? }, None)?;
-        Ok(())
+        modules_to_register
     }
 
     pub fn get_os_core(&self, os_id: u32) -> Result<Core, BootError> {
@@ -137,9 +132,7 @@ where
 
     /// Retrieves an API's address from version control given the module **id** and **version**.
     pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
-        let resp: ModuleResponse = self.query(&QueryMsg::Module {
-            module: ModuleInfo::from_id(id, version)?,
-        })?;
+        let resp: ModuleResponse = self.module(ModuleInfo::from_id(id, version)?)?;
 
         Ok(resp.module.reference.unwrap_addr()?)
     }
