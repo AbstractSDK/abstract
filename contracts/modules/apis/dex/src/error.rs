@@ -20,7 +20,7 @@ pub enum DexError {
     #[error("Cw1155 is unsupported.")]
     Cw1155Unsupported,
 
-    #[error("Can't provide liquidity less than two assets")]
+    #[error("Can't provide liquidity with less than two assets")]
     TooFewAssets {},
 
     #[error("Can't provide liquidity with more than {0} assets")]

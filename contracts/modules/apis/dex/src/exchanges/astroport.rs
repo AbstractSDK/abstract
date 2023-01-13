@@ -7,7 +7,7 @@ use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use astroport::pair::{PoolResponse, SimulationResponse};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
+    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -80,15 +80,59 @@ impl DEX for Astroport {
 
     fn provide_liquidity(
         &self,
-        _deps: Deps,
+        deps: Deps,
         pool_id: PoolAddress,
-        offer_assets: Vec<Asset>,
+        mut offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
+        let mut msgs = vec![];
 
+        // We know that (+)two assets were provided because it's a requirement to resolve the pool
+        // We don't know if one of the asset amounts is 0, which would require a simulation and swap before providing liquidity
         if offer_assets.len() > 2 {
             return Err(DexError::TooManyAssets(2));
+        } else if offer_assets.iter().any(|a| a.amount.is_zero()) {
+            // find 0 asset
+            let (index, non_zero_offer_asset) = offer_assets
+                .iter()
+                .enumerate()
+                .find(|(_, a)| !a.amount.is_zero())
+                .ok_or(DexError::TooFewAssets {})?;
+
+            // the other asset in offer_assets is the one with amount zero
+            let ask_asset = offer_assets.get((index + 1) % 2).unwrap().info.clone();
+
+            // we want to offer half of the non-zero asset to swap into the ask asset
+            let offer_asset = Asset::new(
+                non_zero_offer_asset.info.clone(),
+                non_zero_offer_asset
+                    .amount
+                    .checked_div(Uint128::from(2u128))
+                    .unwrap(),
+            );
+
+            // simulate swap to get the amount of ask asset we can provide after swapping
+            let simulated_received = self
+                .simulate_swap(
+                    deps,
+                    pool_id.clone(),
+                    offer_asset.clone(),
+                    ask_asset.clone(),
+                )?
+                .0;
+            let swap_msg = self.swap(
+                deps,
+                pool_id,
+                offer_asset.clone(),
+                ask_asset.clone(),
+                None,
+                max_spread,
+            )?;
+            // add swap msg
+            msgs.extend(swap_msg);
+            // update the offer assets for providing liquidity
+            offer_assets = vec![offer_asset, Asset::new(ask_asset, simulated_received)];
         }
 
         let astroport_assets = offer_assets
@@ -105,7 +149,7 @@ impl DEX for Astroport {
         };
 
         // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
+        msgs.extend(cw_approve_msgs(&offer_assets, &pair_address)?);
         let coins = coins_in_assets(&offer_assets);
 
         // actual call to pair
