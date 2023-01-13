@@ -20,7 +20,7 @@ library = []
 cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
 cosmwasm-schema = {workspace = true}
 cw-utils = { workspace = true }
-cw1-whitelist = { version = "0.16.0", features = ["library"]}
+cw1-whitelist = { version = "1.0.1", features = ["library"]}
 cw-storage-plus = {workspace = true}
 serde = {workspace = true}
 schemars = {workspace = true}
