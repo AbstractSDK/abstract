@@ -194,7 +194,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         let pair_address = exchange.pair_address(
             deps,
             ans.host(),
-            (pair_assets.swap_remove(0), pair_assets.swap_remove(1)),
+            (pair_assets.swap_remove(0), pair_assets.swap_remove(0)),
         )?;
         exchange.provide_liquidity(deps, pair_address, assets, max_spread)
     }
