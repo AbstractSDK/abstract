@@ -12,7 +12,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + 'static,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + ApiQueryMsg + QueryResponses,
