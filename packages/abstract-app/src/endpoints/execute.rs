@@ -1,5 +1,8 @@
 use abstract_os::app::AppExecuteMsg;
-use abstract_sdk::os::app::{BaseExecuteMsg, ExecuteMsg};
+use abstract_sdk::{
+    base::ReceiveEndpoint,
+    os::app::{BaseExecuteMsg, ExecuteMsg},
+};
 
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
@@ -41,6 +44,9 @@ impl<
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
+            abstract_os::base::ExecuteMsg::Receive(msg) => {
+                self.handle_receive(deps, env, info, msg)
+            }
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
         }
