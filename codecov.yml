@@ -14,6 +14,7 @@ comment: # this is a top-level key
 
 ignore:
   - "scripts"
-  - "**/examples/*"
-  - "packages/abstract-boot/*"
-  - "packages/abstract-testing/*"
+  - "**/examples"
+  - "packages/abstract-boot"
+  - "packages/abstract-testing"
+  - "**/*.json"
