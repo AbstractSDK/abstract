@@ -4,6 +4,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 
+use crate::{Manager, Proxy, OS};
 pub use abstract_os::os_factory::{
     ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
 };
@@ -11,7 +12,6 @@ use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*};
 use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
-use crate::{Manager, Proxy, OS};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;

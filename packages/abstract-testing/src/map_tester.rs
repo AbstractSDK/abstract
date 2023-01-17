@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use crate::MockDeps;
 use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::Order;
 use cosmwasm_std::{DepsMut, MessageInfo, Response};
@@ -7,10 +7,10 @@ use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use crate::MockDeps;
 use serde_json;
 use serde_json::json;
 use speculoos::prelude::*;
+use std::fmt::Debug;
 
 #[derive(Builder)]
 #[builder(pattern = "owned")]

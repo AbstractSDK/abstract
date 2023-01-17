@@ -57,10 +57,10 @@ pub mod state {
     pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
 }
 
-use cosmwasm_std::Decimal;
-use cw_asset::AssetUnchecked;
 use crate::app::{self};
 use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Decimal;
+use cw_asset::AssetUnchecked;
 
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;

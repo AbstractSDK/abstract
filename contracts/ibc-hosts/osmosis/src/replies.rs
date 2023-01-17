@@ -1,10 +1,10 @@
+use crate::contract::OsmoHost;
 use abstract_ibc_host::{
     state::{ACCOUNTS, CLIENT_PROXY, PROCESSING_PACKET},
     HostError,
 };
 use abstract_sdk::os::ibc_host::PacketMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Reply, Response};
-use crate::contract::OsmoHost;
 
 pub fn swap_reply(
     deps: DepsMut,

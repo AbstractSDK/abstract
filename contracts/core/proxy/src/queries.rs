@@ -1,13 +1,13 @@
-use std::collections::HashSet;
-use std::convert::TryInto;
-use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
-use cosmwasm_std::{Addr, Deps, Env, Order, StdError, StdResult, Uint128};
-use cw_storage_plus::Bound;
 use abstract_sdk::os::objects::proxy_asset::{
     get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
 };
+use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
 use abstract_sdk::os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
+use cosmwasm_std::{Addr, Deps, Env, Order, StdError, StdResult, Uint128};
+use cw_storage_plus::Bound;
+use std::collections::HashSet;
+use std::convert::TryInto;
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 20;
 pub fn query_proxy_assets(

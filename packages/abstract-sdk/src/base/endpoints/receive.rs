@@ -1,5 +1,5 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use crate::base::Handler;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 
 pub trait ReceiveEndpoint: Handler {
     fn handle_receive(

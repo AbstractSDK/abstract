@@ -27,12 +27,12 @@ pub mod state {
     pub const OS_ADDRESSES: Map<u32, Core> = Map::new("os_core");
 }
 
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
 use crate::objects::{
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
 };
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[cosmwasm_schema::cw_serde]

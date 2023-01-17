@@ -1,10 +1,10 @@
-use cosmwasm_std::{Empty, Response};
+use crate::{error::DexError, handlers};
 use abstract_api::ApiContract;
 use abstract_sdk::os::{
     dex::{DexExecuteMsg, DexQueryMsg},
     EXCHANGE,
 };
-use crate::{error::DexError, handlers};
+use cosmwasm_std::{Empty, Response};
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

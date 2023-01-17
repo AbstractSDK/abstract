@@ -1,9 +1,9 @@
+use crate::contract::compute_withdraw_amounts;
 use abstract_sdk::os::vesting::{
     state::{ALLOCATIONS, CONFIG, STATE},
     AllocationResponse, ConfigResponse, SimulateWithdrawResponse, StateResponse,
 };
 use cosmwasm_std::{Deps, Env, StdResult};
-use crate::contract::compute_withdraw_amounts;
 
 /// @dev Config Query
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {

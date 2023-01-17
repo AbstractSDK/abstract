@@ -1,12 +1,12 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
+use super::RegisterAccess;
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
-use cosmwasm_std::{Addr, Deps, StdError};
 use cosmwasm_std::StdResult;
-use super::RegisterAccess;
+use cosmwasm_std::{Addr, Deps, StdError};
 
 /// Verify if a sender's address is associated with an OS.
 pub trait Verification: RegisterAccess {

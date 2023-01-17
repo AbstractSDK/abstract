@@ -1,19 +1,19 @@
-use abstract_os::manager::CallbackMsg;
-use cosmwasm_std::{
-    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-};
-use semver::Version;
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validation::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::versioning;
 use crate::{commands::*, error::ManagerError, queries};
+use abstract_os::manager::CallbackMsg;
 use abstract_sdk::os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
 use abstract_sdk::os::MANAGER;
 use abstract_sdk::os::{
     manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     proxy::state::OS_ID,
 };
+use cosmwasm_std::{
+    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+};
 use cw2::{get_contract_version, set_contract_version};
+use semver::Version;
 
 pub type ManagerResult = Result<Response, ManagerError>;
 

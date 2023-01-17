@@ -1,8 +1,8 @@
-use std::ops::Mul;
 use cosmwasm_std::{Decimal, Env, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::ops::Mul;
 
 pub const DEFAULT_PRECISION: u8 = 6;
 

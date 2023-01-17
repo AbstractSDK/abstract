@@ -1,13 +1,13 @@
-use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
-use cosmwasm_std::Empty;
+use crate::Manager;
 use abstract_os::{
     api::{self, InstantiateMsg},
     dex::*,
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
-use crate::Manager;
 use boot_core::interface::ContractInstance;
+use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
+use cosmwasm_std::Empty;
 use log::info;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]

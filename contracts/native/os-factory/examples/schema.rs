@@ -1,5 +1,5 @@
-use cosmwasm_schema::write_api;
 use abstract_sdk::os::os_factory::*;
+use cosmwasm_schema::write_api;
 
 fn main() {
     write_api! {

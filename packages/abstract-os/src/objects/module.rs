@@ -1,8 +1,8 @@
-use std::fmt::{self, Display};
+use super::module_reference::ModuleReference;
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-use super::module_reference::ModuleReference;
+use std::fmt::{self, Display};
 
 /// Stores the provider, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]

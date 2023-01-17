@@ -6,8 +6,8 @@
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
 
-pub use abstract_os::objects::ans_host::AnsHost;
 use crate::base::features::{Identification, RegisterAccess};
+pub use abstract_os::objects::ans_host::AnsHost;
 
 #[derive(Clone)]
 /// Store the Version Control contract.

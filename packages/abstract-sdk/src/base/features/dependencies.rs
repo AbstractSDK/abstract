@@ -1,5 +1,5 @@
-use os::objects::dependency::StaticDependency;
 use crate::base::Handler;
+use os::objects::dependency::StaticDependency;
 
 pub trait Dependencies: Sized {
     fn dependencies(&self) -> &[StaticDependency];

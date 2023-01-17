@@ -1,3 +1,5 @@
+use super::endpoints::migrate::{Metadata, Name, VersionString};
+use super::handler::Handler;
 use abstract_os::abstract_ica::StdAck;
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult, Storage,
@@ -5,8 +7,6 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use os::objects::dependency::StaticDependency;
-use super::endpoints::migrate::{Metadata, Name, VersionString};
-use super::handler::Handler;
 
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;

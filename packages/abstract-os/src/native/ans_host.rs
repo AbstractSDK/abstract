@@ -5,9 +5,6 @@
 //! ## Description
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use crate::objects::pool_id::UncheckedPoolAddress;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{
@@ -16,6 +13,9 @@ use crate::objects::{
     dex_asset_pairing::DexAssetPairing,
     ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
 };
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Addr;
+use cw_asset::{AssetInfo, AssetInfoUnchecked};
 
 pub type AssetPair = (AssetEntry, AssetEntry);
 type DexName = String;

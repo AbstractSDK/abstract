@@ -9,14 +9,11 @@
 //! The base asset is the asset for which `value_reference` in `None`.
 //! **There should only be ONE base asset when configuring your proxy**
 
-use std::convert::TryInto;
-use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
-    Uint128, WasmQuery,
+use super::{
+    ans_host::AnsHost,
+    asset_entry::AssetEntry,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
 };
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use cw_asset::{Asset, AssetInfo};
 use crate::{
     manager::state::OS_MODULES,
     proxy::{
@@ -24,11 +21,14 @@ use crate::{
         ExternalValueResponse, ValueQueryMsg,
     },
 };
-use super::{
-    ans_host::AnsHost,
-    asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
+use cosmwasm_std::{
+    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
+    Uint128, WasmQuery,
 };
+use cw_asset::{Asset, AssetInfo};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use std::convert::TryInto;
 
 /// A proxy asset with unchecked ans_host entry fields.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

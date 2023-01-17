@@ -1,3 +1,4 @@
+use crate::{AnsHost, VersionControl};
 use abstract_os::objects::module::ModuleVersion;
 use abstract_os::{ANS_HOST, VERSION_CONTROL};
 use boot_core::BootError::StdErr;
@@ -6,7 +7,6 @@ use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 use std::fmt::Debug;
-use crate::{AnsHost, VersionControl};
 
 /// An Abstract module deployer that can deploy modules to a chain.
 pub struct ModuleDeployer<Chain: BootEnvironment> {

@@ -1,14 +1,14 @@
+use crate::contract::{EtfApp, EtfResult};
+use crate::error::EtfError;
+use crate::handlers::execute;
+use abstract_os::etf::state::{State, STATE};
+use abstract_os::etf::DepositHookMsg;
 use cosmwasm_std::from_binary;
 use cosmwasm_std::DepsMut;
 use cosmwasm_std::{Env, MessageInfo};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
 use cw_asset::AssetInfo;
-use abstract_os::etf::state::{State, STATE};
-use abstract_os::etf::DepositHookMsg;
-use crate::contract::{EtfApp, EtfResult};
-use crate::error::EtfError;
-use crate::handlers::execute;
 
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received

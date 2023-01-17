@@ -1,8 +1,8 @@
-use std::{env::current_dir, fs::create_dir_all};
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 use abstract_sdk::os::ibc_client::{
     AccountResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, ListAccountsResponse, QueryMsg,
 };
+use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use std::{env::current_dir, fs::create_dir_all};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

@@ -1,3 +1,5 @@
+use super::RegisterAccess;
+use crate::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_os::{
     objects::{
         module::{Module, ModuleInfo},
@@ -5,10 +7,8 @@ use abstract_os::{
     },
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg},
 };
-use cosmwasm_std::{Deps, StdError};
-use crate::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::StdResult;
-use super::RegisterAccess;
+use cosmwasm_std::{Deps, StdError};
 
 /// Access the Abstract Version Register to query module information.
 pub trait VersionRegisterInterface: RegisterAccess {

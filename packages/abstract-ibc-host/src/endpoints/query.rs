@@ -1,12 +1,12 @@
-use abstract_sdk::base::{Handler, QueryEndpoint};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
-use abstract_sdk::os::ibc_host::{
-    AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
-};
 use crate::{
     state::{Host, ACCOUNTS},
     HostError,
 };
+use abstract_sdk::base::{Handler, QueryEndpoint};
+use abstract_sdk::os::ibc_host::{
+    AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
+};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
 
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`

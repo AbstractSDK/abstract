@@ -1,5 +1,5 @@
-use crate::{dex_trait::Identify, error::DexError, DEX};
 use crate::dex_trait::{Fee, FeeOnInput, Return, Spread};
+use crate::{dex_trait::Identify, error::DexError, DEX};
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{

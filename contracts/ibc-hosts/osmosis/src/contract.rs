@@ -1,13 +1,14 @@
+use crate::error::OsmoError;
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_os::ibc_host::ExecuteMsg;
+use abstract_sdk::base::{
+    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
+};
 use abstract_sdk::os::abstract_ica::StdAck;
 use abstract_sdk::os::dex::DexAction;
 use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
 use abstract_sdk::os::OSMOSIS_HOST;
-use abstract_sdk::base::{
-    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
-};
 use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -15,7 +16,6 @@ use cosmwasm_std::{
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
-use crate::error::OsmoError;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type OsmoHost = Host<OsmoError, DexAction>;

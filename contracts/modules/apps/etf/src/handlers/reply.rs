@@ -1,8 +1,8 @@
-use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
-use protobuf::Message;
-use abstract_sdk::os::etf::state::STATE;
 use crate::contract::{EtfApp, EtfResult};
 use crate::response::MsgInstantiateContractResponse;
+use abstract_sdk::os::etf::state::STATE;
+use cosmwasm_std::{DepsMut, Env, Reply, Response, StdError, StdResult};
+use protobuf::Message;
 
 pub fn instantiate_reply(deps: DepsMut, _env: Env, _etf: EtfApp, reply: Reply) -> EtfResult {
     let data = reply.result.unwrap().data.unwrap();

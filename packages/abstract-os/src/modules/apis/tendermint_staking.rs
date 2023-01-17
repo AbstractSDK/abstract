@@ -2,9 +2,9 @@
 //!
 //! `abstract_os::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
+use crate::api::{self};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
-use crate::api::{self};
 
 pub type ExecuteMsg = api::ExecuteMsg<TendermintStakingExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<TendermintStakingQueryMsg>;

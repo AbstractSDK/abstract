@@ -1,10 +1,9 @@
-use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    Response, StdResult, Storage, WasmMsg,
+use crate::validation::{validate_description, validate_link};
+use crate::{
+    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    validation::validate_name_or_gov_type,
 };
-use cw2::{get_contract_version, ContractVersion};
-use cw_storage_plus::Item;
-use semver::Version;
+use crate::{validation, versioning};
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::{
@@ -23,15 +22,16 @@ use abstract_sdk::os::{
 };
 use abstract_sdk::os::{MANAGER, PROXY};
 use abstract_sdk::*;
+use cosmwasm_std::{
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
+    Response, StdResult, Storage, WasmMsg,
+};
+use cw2::{get_contract_version, ContractVersion};
+use cw_storage_plus::Item;
 use os::manager::state::DEPENDENTS;
 use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
-use crate::validation::{validate_description, validate_link};
-use crate::{
-    contract::ManagerResult, error::ManagerError, queries::query_module_version,
-    validation::validate_name_or_gov_type,
-};
-use crate::{validation, versioning};
+use semver::Version;
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 

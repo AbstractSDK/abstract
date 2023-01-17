@@ -1,3 +1,4 @@
+use crate::{Host, HostError};
 use abstract_os::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::{
     base::{Handler, MigrateEndpoint},
@@ -8,7 +9,6 @@ use cw2::set_contract_version;
 use schemars::JsonSchema;
 use semver::Version;
 use serde::Serialize;
-use crate::{Host, HostError};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,

@@ -1,10 +1,5 @@
-use boot_core::{
-    interface::{BootQuery, ContractInstance},
-    prelude::boot_contract,
-    BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
-};
-use cosmwasm_std::Addr;
-use semver::Version;
+use crate::deployment::{self, OS};
+pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -13,8 +8,13 @@ use abstract_os::{
     version_control::*,
     VERSION_CONTROL,
 };
-use crate::deployment::{self, OS};
-pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use boot_core::{
+    interface::{BootQuery, ContractInstance},
+    prelude::boot_contract,
+    BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
+};
+use cosmwasm_std::Addr;
+use semver::Version;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct VersionControl<Chain>;

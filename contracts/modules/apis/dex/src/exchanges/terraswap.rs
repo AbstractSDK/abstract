@@ -1,16 +1,16 @@
+use crate::{
+    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
+    error::DexError,
+    DEX,
+};
+use abstract_os::objects::PoolAddress;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
-use abstract_os::objects::PoolAddress;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use crate::{
-    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
-    error::DexError,
-    DEX,
-};
 
 pub const TERRASWAP: &str = "terraswap";
 

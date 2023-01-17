@@ -1,17 +1,17 @@
-use abstract_os::objects::module_version::set_module_data;
-use abstract_sdk::os::api::InstantiateMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use abstract_sdk::{
-    base::{endpoints::InstantiateEndpoint, Handler},
-    feature_objects::AnsHost,
-};
-use cw2::set_contract_version;
-use schemars::JsonSchema;
-use serde::Serialize;
 use crate::{
     state::{ApiContract, ApiState},
     ApiError,
 };
+use abstract_os::objects::module_version::set_module_data;
+use abstract_sdk::os::api::InstantiateMsg;
+use abstract_sdk::{
+    base::{endpoints::InstantiateEndpoint, Handler},
+    feature_objects::AnsHost,
+};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cw2::set_contract_version;
+use schemars::JsonSchema;
+use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,

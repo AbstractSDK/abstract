@@ -59,11 +59,11 @@ pub mod state {
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
 }
 
+use self::state::OsInfo;
+use crate::objects::module::{Module, ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
-use crate::objects::module::{Module, ModuleInfo};
-use self::state::OsInfo;
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}

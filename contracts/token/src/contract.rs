@@ -1,5 +1,9 @@
-use std::convert::TryInto;
+use crate::state::{Config, ADMIN, CONFIG};
 use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::{
+    os::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    *,
+};
 use cosmwasm_std::{
     to_binary, Addr, Api, Binary, Deps, DepsMut, Empty, Env, MessageInfo, Response, StdError,
     StdResult,
@@ -11,11 +15,7 @@ use cw20_base::{
     state::{MinterData, TokenInfo, TOKEN_INFO},
     ContractError,
 };
-use crate::state::{Config, ADMIN, CONFIG};
-use abstract_sdk::{
-    os::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
-    *,
-};
+use std::convert::TryInto;
 
 /// Contract name that is used for migration.
 const CONTRACT_NAME: &str = "pandora:token";

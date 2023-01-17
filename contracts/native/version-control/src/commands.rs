@@ -1,10 +1,10 @@
-use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
 };
+use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
 
 /// Add new OS to version control contract
 /// Only Factory can add OS

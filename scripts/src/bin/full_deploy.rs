@@ -1,9 +1,9 @@
-use std::sync::Arc;
+use abstract_boot::{Deployment, DexApi, OS};
 use boot_core::networks::{NetworkInfo, UNI_5};
 use boot_core::prelude::*;
 use semver::Version;
+use std::sync::Arc;
 use tokio::runtime::Runtime;
-use abstract_boot::{Deployment, DexApi, OS};
 
 const NETWORK: NetworkInfo = UNI_5;
 const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,4 +1,10 @@
+use crate::{
+    state::{AppContract, AppState},
+    AppError,
+};
+use crate::{Handler, InstantiateEndpoint};
 use abstract_os::objects::module_version::set_module_data;
+use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
@@ -8,14 +14,8 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
-use crate::{Handler, InstantiateEndpoint};
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use schemars::JsonSchema;
 use serde::Serialize;
-use crate::{
-    state::{AppContract, AppState},
-    AppError,
-};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError>,

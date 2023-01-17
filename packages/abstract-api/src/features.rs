@@ -1,9 +1,9 @@
+use crate::{ApiContract, ApiError};
 use abstract_sdk::{
     base::features::{AbstractNameService, Identification, RegisterAccess},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-use crate::{ApiContract, ApiError};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError>,

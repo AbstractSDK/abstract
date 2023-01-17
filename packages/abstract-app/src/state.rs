@@ -1,3 +1,8 @@
+use crate::AppError;
+use crate::{
+    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
+};
 use abstract_os::objects::dependency::StaticDependency;
 use abstract_sdk::{
     feature_objects::AnsHost,
@@ -8,11 +13,6 @@ use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use crate::{
-    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
-};
-use crate::AppError;
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

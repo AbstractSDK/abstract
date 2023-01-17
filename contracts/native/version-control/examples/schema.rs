@@ -1,5 +1,5 @@
-use cosmwasm_schema::write_api;
 use abstract_sdk::os::version_control::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use cosmwasm_schema::write_api;
 
 fn main() {
     write_api! {

@@ -1,10 +1,10 @@
-use abstract_os::PROXY;
-use core::result::Result::{Err, Ok};
 use crate::contract::{
     MAX_DESC_LENGTH, MAX_LINK_LENGTH, MAX_TITLE_LENGTH, MIN_DESC_LENGTH, MIN_LINK_LENGTH,
     MIN_TITLE_LENGTH,
 };
 use crate::error::ManagerError;
+use abstract_os::PROXY;
+use core::result::Result::{Err, Ok};
 
 /**
  * Validates that the link is valid when creating a os.

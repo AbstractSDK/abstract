@@ -1,11 +1,11 @@
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::{get_contract_version, set_contract_version};
-use semver::Version;
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
 use abstract_os::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
 use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw2::{get_contract_version, set_contract_version};
+use semver::Version;
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

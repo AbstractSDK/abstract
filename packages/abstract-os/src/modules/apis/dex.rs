@@ -2,13 +2,13 @@
 //!
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128};
 use crate::objects::DexAssetPairing;
 use crate::{
     api::{self},
     objects::{AnsAsset, AssetEntry},
 };
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Decimal, Uint128};
 
 pub type DexName = String;
 pub type OfferAsset = AnsAsset;

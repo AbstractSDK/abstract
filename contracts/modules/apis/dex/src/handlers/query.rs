@@ -1,9 +1,9 @@
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use crate::contract::DexApi;
+use crate::exchanges::exchange_resolver::resolve_exchange;
 use abstract_os::dex::{DexQueryMsg, OfferAsset, SimulateSwapResponse};
 use abstract_os::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::base::features::AbstractNameService;
-use crate::contract::DexApi;
-use crate::exchanges::exchange_resolver::resolve_exchange;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
 
 pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> StdResult<Binary> {
     match msg {

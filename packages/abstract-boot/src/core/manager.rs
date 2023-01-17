@@ -1,11 +1,11 @@
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::BootEnvironment;
-use cosmwasm_std::{to_binary, Empty};
-use serde::Serialize;
 use abstract_os::manager::*;
 pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-use boot_core::{BootError, Contract};
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
+use boot_core::BootEnvironment;
 use boot_core::{interface::BootExecute, prelude::boot_contract};
+use boot_core::{BootError, Contract};
+use cosmwasm_std::{to_binary, Empty};
+use serde::Serialize;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;

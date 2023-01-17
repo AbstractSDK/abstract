@@ -1,10 +1,10 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 use crate::constants::{ASSET_DELIMITER, TYPE_DELIMITER};
 use crate::dex::DexName;
 use crate::objects::{AssetEntry, PoolMetadata};
 use cosmwasm_std::StdError;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 /// A key for the token that represents Liquidity Pool shares on a dex
 /// @todo: move into dex package

@@ -1,5 +1,5 @@
-use cosmwasm_std::{DepsMut, Env, Reply, Response};
 use crate::base::Handler;
+use cosmwasm_std::{DepsMut, Env, Reply, Response};
 
 pub trait ReplyEndpoint: Handler {
     fn reply(self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {

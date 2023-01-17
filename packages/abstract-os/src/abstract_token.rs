@@ -5,7 +5,6 @@
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 //!
-use std::convert::TryInto;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
 #[allow(unused)]
@@ -15,6 +14,7 @@ use cw20::{
 };
 pub use cw20::{Cw20Coin, Cw20ExecuteMsg, Expiration, Logo, MinterResponse};
 pub use cw20_base::msg::QueryMsg as Cw20QueryMsg;
+use std::convert::TryInto;
 
 /// ## Description
 /// This structure describes the basic settings for creating a token contract.
