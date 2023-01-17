@@ -8,7 +8,6 @@ use cw_controllers::{Admin, AdminError};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 use crate::commands::*;
 use crate::queries;
 use abstract_sdk::os::version_control::state::{ADMIN, FACTORY};

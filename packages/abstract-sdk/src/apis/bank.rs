@@ -5,7 +5,6 @@ use abstract_os::objects::AnsAsset;
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, StdResult};
 use cw_asset::Asset;
 use os::objects::AssetEntry;
-
 use super::{execution::Execution, AbstractNameService};
 use crate::ans_resolve::Resolve;
 

@@ -1,11 +1,9 @@
 use std::collections::HashMap;
-
 use abstract_sdk::os::{
     objects::module_reference::ModuleReference, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY,
     PROXY, VERSION_CONTROL,
 };
 use cw_multi_test::{App, ContractWrapper};
-
 use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
 
 /// Uploads:

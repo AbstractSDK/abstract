@@ -4,10 +4,8 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use terraswap::pair::{PoolResponse, SimulationResponse};
-
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-
 use crate::{
     dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,

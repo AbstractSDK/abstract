@@ -5,9 +5,7 @@ use abstract_os::{
     version_control::{state::OS_ADDRESSES, Core},
 };
 use cosmwasm_std::{Addr, Deps, StdError};
-
 use cosmwasm_std::StdResult;
-
 use super::RegisterAccess;
 
 /// Verify if a sender's address is associated with an OS.

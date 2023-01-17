@@ -2,11 +2,9 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use semver::Version;
-
 use crate::error::ModuleFactoryError;
 use abstract_sdk::os::OS_FACTORY;
 use cw2::{get_contract_version, set_contract_version};
-
 use crate::{commands, state::*};
 use abstract_sdk::os::module_factory::*;
 

@@ -1,5 +1,4 @@
 use crate::{error::AppError, state::AppContract};
-
 use crate::ReceiveEndpoint;
 
 impl<

@@ -11,7 +11,6 @@ use abstract_os::{objects::gov_type::GovernanceDetails, os_factory::*};
 use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
-
 use crate::{Manager, Proxy, OS};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

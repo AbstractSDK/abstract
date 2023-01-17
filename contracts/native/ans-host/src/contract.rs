@@ -1,7 +1,6 @@
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
-
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;

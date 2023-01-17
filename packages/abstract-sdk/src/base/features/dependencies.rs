@@ -1,5 +1,4 @@
 use os::objects::dependency::StaticDependency;
-
 use crate::base::Handler;
 
 pub trait Dependencies: Sized {

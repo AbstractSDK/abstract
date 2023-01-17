@@ -1,5 +1,4 @@
 use cosmwasm_std::{from_slice, to_binary, Binary, Coin};
-
 use serde::{de::DeserializeOwned, Serialize};
 
 /// This is a generic ICS acknowledgement format.

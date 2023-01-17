@@ -9,7 +9,6 @@ use abstract_os::{
     },
 };
 use cosmwasm_std::{Deps, StdError, StdResult, Uint128};
-
 use super::{AbstractNameService, Identification};
 
 /// Retrieve asset-registration information from the OS.

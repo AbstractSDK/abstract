@@ -7,7 +7,6 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
-
 use crate::{
     state::{ACCOUNTS, CLIENT_PROXY, PENDING, PROCESSING_PACKET, RESULTS},
     Host, HostError,

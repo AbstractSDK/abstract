@@ -1,13 +1,10 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
-
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
-
 use abstract_sdk::os::subscription::{
     ConfigResponse, ContributorStateResponse, StateResponse, SubscriberStateResponse,
     SubscriptionFeeResponse,
 };
-
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use subscription::contract::SubscriptionApp;
 

@@ -1,6 +1,5 @@
 use cosmwasm_std::{DepsMut, Order, StdError, StdResult, Storage};
 use cw_storage_plus::{Bound, Item, Map, Path};
-
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 const DEFAULT_LIMIT: u32 = 10;

@@ -11,11 +11,8 @@
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 use crate::ibc_client::ExecuteMsg as IbcClientMsg;
-
 use cosmwasm_schema::QueryResponses;
-
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
-
 use crate::objects::{
     proxy_asset::{ProxyAsset, UncheckedProxyAsset},
     AssetEntry,

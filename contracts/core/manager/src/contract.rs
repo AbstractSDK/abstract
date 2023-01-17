@@ -3,7 +3,6 @@ use cosmwasm_std::{
     ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use semver::Version;
-
 use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
 use crate::validation::{validate_description, validate_link, validate_name_or_gov_type};
 use crate::versioning;

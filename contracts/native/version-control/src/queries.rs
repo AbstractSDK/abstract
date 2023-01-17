@@ -9,7 +9,6 @@ use abstract_sdk::os::version_control::OsCoreResponse;
 use cosmwasm_std::Order;
 use cosmwasm_std::StdError;
 use cw_storage_plus::Bound;
-
 use crate::error::VCError;
 use abstract_sdk::os::version_control::state::OS_ADDRESSES;
 use cosmwasm_std::{to_binary, Binary, Deps, StdResult};

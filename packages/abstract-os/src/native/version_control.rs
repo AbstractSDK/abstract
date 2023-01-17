@@ -29,7 +29,6 @@ pub mod state {
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
-
 use crate::objects::{
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,

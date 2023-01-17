@@ -1,9 +1,7 @@
 // Test binary mapping inside of CosmWasm contracts
 
 use std::str::FromStr;
-
 use cosmwasm_std::{from_binary, to_binary, Decimal};
-
 use serde::{Deserialize, Serialize};
 // Need to use wasm version of serde-value to exclude floating point operations
 use serde_cw_value::{self, Value};

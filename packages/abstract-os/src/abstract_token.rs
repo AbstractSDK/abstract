@@ -6,7 +6,6 @@
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
 //!
 use std::convert::TryInto;
-
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, StdError, StdResult, Uint128};
 #[allow(unused)]

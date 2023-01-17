@@ -1,5 +1,4 @@
 use std::str::FromStr;
-
 use abstract_sdk::os::modules::Module;
 use abstract_sdk::os::vault as vault_msg;
 use abstract_sdk::os::ETF;
@@ -8,10 +7,8 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, BlockInfo, Decimal, Uint128, Uint64};
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
-
 use crate::tests::common::RANDOM_USER;
 use crate::tests::testing_infrastructure::env::{exec_msg_on_manager, mint_tokens, token_balance};
-
 use super::common::CW20;
 use super::testing_infrastructure::env::{init_os, CoreActions};
 use super::{

@@ -1,7 +1,5 @@
 use std::fmt::Display;
-
 use cosmwasm_std::StdResult;
-
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

@@ -3,15 +3,12 @@ use cosmwasm_std::testing::{
 };
 use cosmwasm_std::{Addr, Api, DepsMut};
 use cosmwasm_std::{OwnedDeps, Uint128};
-
 use crate::contract::{execute, instantiate, ProxyResult};
-
 use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_sdk::os::proxy::state::*;
 use abstract_sdk::os::proxy::*;
 use cw_asset::{Asset, AssetInfo};
 use speculoos::prelude::*;
-
 use crate::tests::common::{DAPP, TEST_CREATOR};
 
 pub fn instantiate_msg(os_id: u32) -> InstantiateMsg {

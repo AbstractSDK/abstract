@@ -1,7 +1,6 @@
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, StdError, StdResult, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use cw_asset::Asset;
 
 /// A wrapper around Decimal to help handle fractional fees.

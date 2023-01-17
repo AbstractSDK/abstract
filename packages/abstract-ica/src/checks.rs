@@ -1,6 +1,5 @@
 pub use crate::{APP_ORDER, IBC_APP_VERSION};
 use cosmwasm_std::IbcOrder;
-
 use thiserror::Error;
 
 #[derive(Error, Debug, Eq, PartialEq)]

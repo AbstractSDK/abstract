@@ -1,5 +1,4 @@
 use crate::IbcCallbackEndpoint;
-
 use crate::{AppContract, AppError};
 
 impl<

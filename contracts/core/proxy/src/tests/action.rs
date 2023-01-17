@@ -1,5 +1,4 @@
 use std::panic;
-
 use crate::contract::{execute, instantiate};
 use crate::error::*;
 use crate::tests::common::TEST_CREATOR;

@@ -3,7 +3,6 @@
 //!
 use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg};
-
 use super::Identification;
 
 /// Execute an arbitrary `CosmosMsg` action on the OS.

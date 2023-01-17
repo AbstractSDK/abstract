@@ -5,7 +5,6 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
 use semver::Version;
-
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::{
@@ -27,7 +26,6 @@ use abstract_sdk::*;
 use os::manager::state::DEPENDENTS;
 use os::manager::{CallbackMsg, ExecuteMsg};
 use os::objects::dependency::Dependency;
-
 use crate::validation::{validate_description, validate_link};
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_version,

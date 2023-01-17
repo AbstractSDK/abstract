@@ -1,10 +1,8 @@
 use std::path::Path;
-
 use abstract_sdk::base::endpoints::{InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::{export_schema_with_title, schema_for};
 use schemars::JsonSchema;
 use serde::Serialize;
-
 use crate::{Host, HostError};
 
 impl<

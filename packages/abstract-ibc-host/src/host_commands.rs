@@ -8,7 +8,6 @@ use cosmwasm_std::{
     IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult, SubMsg, SystemResult,
     WasmMsg,
 };
-
 use crate::{
     endpoints::reply::INIT_CALLBACK_ID,
     state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},

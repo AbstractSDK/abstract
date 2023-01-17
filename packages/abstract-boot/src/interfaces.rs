@@ -1,5 +1,4 @@
 use abstract_os::IBC_CLIENT;
-
 use crate::{
     AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
     TMintStakingApi, VersionControl, ETF as EtfBoot,

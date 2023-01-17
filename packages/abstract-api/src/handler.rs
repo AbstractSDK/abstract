@@ -1,6 +1,5 @@
 use abstract_sdk::base::{AbstractContract, Handler};
 use cosmwasm_std::Empty;
-
 use crate::{ApiContract, ApiError};
 
 impl<Error: From<cosmwasm_std::StdError> + From<ApiError>, ExecMsg, InitMsg, QueryMsg, Receive>

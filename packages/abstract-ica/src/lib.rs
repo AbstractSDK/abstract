@@ -1,7 +1,6 @@
 mod callback;
 mod checks;
 mod ibc_msg;
-
 use cosmwasm_std::IbcOrder;
 
 pub use crate::{

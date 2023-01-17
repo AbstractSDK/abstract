@@ -1,5 +1,4 @@
 use cosmwasm_std::{DepsMut, Env, Reply, Response};
-
 use crate::base::Handler;
 
 pub trait ReplyEndpoint: Handler {

@@ -11,7 +11,6 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use os::api::ApiRequestMsg;
 use serde::{de::DeserializeOwned, Serialize};
-
 use super::{Dependencies, Identification};
 
 /// Interact with other modules on the OS.

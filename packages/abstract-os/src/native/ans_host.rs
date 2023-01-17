@@ -8,7 +8,6 @@
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
-
 use crate::objects::pool_id::UncheckedPoolAddress;
 use crate::objects::pool_reference::PoolReference;
 use crate::objects::{

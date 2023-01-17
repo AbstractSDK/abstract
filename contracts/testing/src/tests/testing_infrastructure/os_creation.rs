@@ -1,31 +1,23 @@
 use std::{collections::HashMap, str::FromStr};
-
 use abstract_sdk::os::{objects::module::ModuleVersion, version_control::OsCoreResponse};
 use cosmwasm_std::Addr;
-
 use abstract_sdk::os::{
     app::BaseInstantiateMsg, objects::module::ModuleInfo,
     subscription::InstantiateMsg as SubInitMsg, version_control::Core,
 };
 use cosmwasm_std::{to_binary, Coin, Decimal, Uint128, Uint64};
 use cw_asset::AssetInfoUnchecked;
-
 use abstract_sdk::os::SUBSCRIPTION;
 use cw_multi_test::App;
-
 use crate::tests::{
     common::{OS_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
     subscription::register_subscription,
     testing_infrastructure::common_integration::mock_app,
 };
-
 use abstract_sdk::os::*;
 use anyhow::Result as AnyResult;
-
 use cw_multi_test::Executor;
-
 use super::common_integration::NativeContracts;
-
 use super::{upload::upload_base_contracts, verify::os_store_as_expected};
 
 pub fn init_os(

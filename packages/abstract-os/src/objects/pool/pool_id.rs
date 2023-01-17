@@ -1,7 +1,5 @@
 use cosmwasm_std::{Addr, Api, StdError, StdResult};
-
 use std::fmt;
-
 use std::str::FromStr;
 
 #[cosmwasm_schema::cw_serde]

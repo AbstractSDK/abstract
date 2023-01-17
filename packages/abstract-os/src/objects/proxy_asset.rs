@@ -10,16 +10,13 @@
 //! **There should only be ONE base asset when configuring your proxy**
 
 use std::convert::TryInto;
-
 use cosmwasm_std::{
     to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
     Uint128, WasmQuery,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use cw_asset::{Asset, AssetInfo};
-
 use crate::{
     manager::state::OS_MODULES,
     proxy::{
@@ -27,7 +24,6 @@ use crate::{
         ExternalValueResponse, ValueQueryMsg,
     },
 };
-
 use super::{
     ans_host::AnsHost,
     asset_entry::AssetEntry,

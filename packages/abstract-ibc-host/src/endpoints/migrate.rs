@@ -4,12 +4,10 @@ use abstract_sdk::{
     os::ibc_host::MigrateMsg,
 };
 use cosmwasm_std::{Response, StdError};
-
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use semver::Version;
 use serde::Serialize;
-
 use crate::{Host, HostError};
 
 impl<

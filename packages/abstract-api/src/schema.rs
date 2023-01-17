@@ -1,5 +1,4 @@
 use std::path::Path;
-
 use crate::{ApiContract, ApiError};
 use abstract_os::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{

@@ -1,12 +1,10 @@
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
 };
-
 use abstract_sdk::os::ibc_client::ExecuteMsg as IbcClientMsg;
 use abstract_sdk::os::objects::proxy_asset::UncheckedProxyAsset;
 use abstract_sdk::os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
 use abstract_sdk::os::IBC_CLIENT;
-
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use crate::queries::*;

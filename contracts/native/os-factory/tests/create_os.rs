@@ -1,5 +1,4 @@
 mod common;
-
 use abstract_boot::{OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, OS, *};
 use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
 use boot_core::{

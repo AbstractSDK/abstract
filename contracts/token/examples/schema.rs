@@ -1,5 +1,4 @@
 use cosmwasm_schema::write_api;
-
 use abstract_sdk::os::abstract_token::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 fn main() {

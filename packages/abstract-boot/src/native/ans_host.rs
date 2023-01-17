@@ -2,17 +2,14 @@ use abstract_os::ans_host::*;
 use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry};
 use boot_core::prelude::ContractInstance;
 use cw_asset::AssetInfoUnchecked;
-
 use abstract_os::objects::pool_id::UncheckedPoolAddress;
 use abstract_os::ANS_HOST;
 use boot_core::{
     prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
-
 use serde_json::from_reader;
 use std::collections::HashSet;
-
 use std::{cmp::min, env, fs::File};
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]

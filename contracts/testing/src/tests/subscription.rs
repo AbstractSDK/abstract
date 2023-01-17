@@ -1,5 +1,4 @@
 use std::str::FromStr;
-
 use abstract_os::app;
 use abstract_sdk::os::{
     objects::module::{ModuleInfo, ModuleVersion},
@@ -15,12 +14,10 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
-
 use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
     testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
 };
-
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
     testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},

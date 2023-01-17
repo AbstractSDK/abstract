@@ -1,7 +1,5 @@
 use schemars::JsonSchema;
-
 use cosmwasm_std::{to_binary, wasm_execute, Binary, CosmosMsg, StdResult};
-
 use crate::StdAck;
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg

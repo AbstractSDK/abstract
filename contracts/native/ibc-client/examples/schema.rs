@@ -1,7 +1,5 @@
 use std::{env::current_dir, fs::create_dir_all};
-
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-
 use abstract_sdk::os::ibc_client::{
     AccountResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, ListAccountsResponse, QueryMsg,
 };

@@ -1,5 +1,4 @@
 use abstract_sdk::base::endpoints::IbcCallbackEndpoint;
-
 use crate::{ApiContract, ApiError};
 
 impl<

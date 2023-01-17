@@ -1,11 +1,8 @@
 use std::sync::Arc;
-
 use boot_core::networks::{NetworkInfo, UNI_5};
 use boot_core::prelude::*;
-
 use semver::Version;
 use tokio::runtime::Runtime;
-
 use abstract_boot::{Deployment, DexApi, OS};
 
 const NETWORK: NetworkInfo = UNI_5;

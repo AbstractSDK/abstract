@@ -9,9 +9,7 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
-
 use crate::ibc_client::CallbackInfo;
-
 use crate::base::{
     ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
     MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,

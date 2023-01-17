@@ -5,7 +5,6 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 use semver::Version;
-
 use abstract_os::{
     objects::{
         module::{ModuleInfo, ModuleVersion},
@@ -14,7 +13,6 @@ use abstract_os::{
     version_control::*,
     VERSION_CONTROL,
 };
-
 use crate::deployment::{self, OS};
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 

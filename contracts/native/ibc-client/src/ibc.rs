@@ -1,15 +1,12 @@
 use abstract_sdk::os::ibc_host::{HostAction, InternalAction, PacketMsg};
-
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
     IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
 };
-
 use abstract_sdk::os::abstract_ica::{
     check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
-
 use crate::error::ClientError;
 use abstract_sdk::os::ibc_client::{
     state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},

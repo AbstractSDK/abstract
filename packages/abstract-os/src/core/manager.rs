@@ -62,9 +62,7 @@ pub mod state {
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
-
 use crate::objects::module::{Module, ModuleInfo};
-
 use self::state::OsInfo;
 
 #[cosmwasm_schema::cw_serde]

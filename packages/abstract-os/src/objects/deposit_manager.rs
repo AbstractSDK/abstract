@@ -1,6 +1,5 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use cosmwasm_std::{StdError, StdResult, Storage, Uint64};
 use cw_storage_plus::{Item, Map};
 

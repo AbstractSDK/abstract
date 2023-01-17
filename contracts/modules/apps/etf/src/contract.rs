@@ -1,10 +1,8 @@
 use cosmwasm_std::{Empty, Response};
 use cw20::Cw20ReceiveMsg;
-
 use abstract_app::AppContract;
 use abstract_sdk::os::etf::{EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg};
 use abstract_sdk::os::ETF;
-
 use crate::error::EtfError;
 use crate::handlers::{self};
 

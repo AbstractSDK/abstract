@@ -1,8 +1,6 @@
 use abstract_os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
-
 use crate::Manager;
 pub use abstract_os::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
-
 use boot_core::{
     interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
 };

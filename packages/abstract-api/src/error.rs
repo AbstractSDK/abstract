@@ -1,5 +1,4 @@
 use cosmwasm_std::StdError;
-
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

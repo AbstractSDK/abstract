@@ -1,5 +1,4 @@
 use boot_core::{BootEnvironment, Contract};
-
 use abstract_os::ibc_client::*;
 
 pub use abstract_os::ibc_client::{

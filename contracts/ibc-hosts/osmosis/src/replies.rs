@@ -3,9 +3,7 @@ use abstract_ibc_host::{
     HostError,
 };
 use abstract_sdk::os::ibc_host::PacketMsg;
-
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Reply, Response};
-
 use crate::contract::OsmoHost;
 
 pub fn swap_reply(

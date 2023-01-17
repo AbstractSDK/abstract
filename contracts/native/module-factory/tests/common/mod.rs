@@ -1,10 +1,8 @@
 use abstract_boot::{
     AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
-
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::{prelude::ContractInstance, Mock};
-
 use cw_multi_test::ContractWrapper;
 
 pub const ROOT_USER: &str = "root_user";

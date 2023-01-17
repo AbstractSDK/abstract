@@ -4,17 +4,14 @@ use abstract_sdk::{
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
-
 use cw_controllers::Admin;
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use crate::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
-
 use crate::AppError;
 
 /// The BaseState contains the main addresses needed for sending and verifying messages

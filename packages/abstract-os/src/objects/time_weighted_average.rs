@@ -1,5 +1,4 @@
 use std::ops::Mul;
-
 use cosmwasm_std::{Decimal, Env, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;

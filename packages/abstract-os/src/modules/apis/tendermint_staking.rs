@@ -4,7 +4,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
-
 use crate::api::{self};
 
 pub type ExecuteMsg = api::ExecuteMsg<TendermintStakingExecuteMsg>;

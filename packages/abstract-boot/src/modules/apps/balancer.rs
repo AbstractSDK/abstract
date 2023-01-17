@@ -1,8 +1,6 @@
 pub use abstract_os::balancer::*;
 use boot_core::{Contract, IndexResponse, TxHandler, TxResponse, BootEnvironment};
 use cosmwasm_std::Empty;
-
-
 use boot_core::prelude::boot_contract;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]

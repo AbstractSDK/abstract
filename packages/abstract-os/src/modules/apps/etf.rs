@@ -59,9 +59,7 @@ pub mod state {
 
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
-
 use crate::app::{self};
-
 use cosmwasm_schema::QueryResponses;
 
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;

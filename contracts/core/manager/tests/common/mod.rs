@@ -1,26 +1,20 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
-
 use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
-
 use boot_core::{
     prelude::{BootInstantiate, BootUpload, ContractInstance},
     Mock,
 };
 use cosmwasm_std::{Addr, Empty};
-
 use abstract_boot::{
     AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl,
 };
-
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
-
 use cw_multi_test::ContractWrapper;
 use semver::Version;
-
 use manager::contract::CONTRACT_VERSION;
 
 pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {

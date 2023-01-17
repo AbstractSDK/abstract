@@ -1,7 +1,6 @@
 use abstract_os::vesting::*;
 use boot_core::{BootEnvironment, Contract};
 use cosmwasm_std::Empty;
-
 use boot_core::prelude::boot_contract;
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]

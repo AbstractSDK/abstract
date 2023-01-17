@@ -1,10 +1,8 @@
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
-
 use abstract_sdk::os::ibc_host::{
     AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
 };
-
 use crate::{
     state::{Host, ACCOUNTS},
     HostError,

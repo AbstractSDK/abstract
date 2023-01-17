@@ -1,7 +1,5 @@
 mod common;
-
 use ::manager::contract::CONTRACT_VERSION;
-
 use abstract_boot::*;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{
@@ -17,7 +15,6 @@ use boot_core::{
 use common::{create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
-
 use speculoos::prelude::*;
 
 const VALIDATOR: &str = "testvaloper1";

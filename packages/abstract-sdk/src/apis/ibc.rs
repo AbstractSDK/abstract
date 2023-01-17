@@ -8,7 +8,6 @@ use abstract_os::{
     proxy::ExecuteMsg,
 };
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, StdError};
-
 use super::Identification;
 
 /// Interact with other chains over IBC.

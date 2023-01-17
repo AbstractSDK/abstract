@@ -4,7 +4,6 @@ use abstract_sdk::os::{
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{Addr, Empty};
-
 use cw_multi_test::{App, Contract, Executor};
 
 pub fn register_app(

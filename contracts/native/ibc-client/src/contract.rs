@@ -9,13 +9,11 @@ use abstract_sdk::{
     },
     Execution, Resolve, Verification,
 };
-
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, Deps, DepsMut, Env, IbcMsg, MessageInfo, Order, QueryResponse,
     Response, StdError, StdResult, Storage,
 };
 use cw2::set_contract_version;
-
 use crate::{error::ClientError, ibc::PACKET_LIFETIME};
 use abstract_sdk::os::ibc_client::{
     state::{AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},

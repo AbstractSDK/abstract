@@ -3,11 +3,9 @@ use cosmwasm_std::{
 };
 use cw_asset::Asset;
 use semver::Version;
-
 use crate::error::OsFactoryError;
 use abstract_sdk::os::OS_FACTORY;
 use cw2::{get_contract_version, set_contract_version};
-
 use crate::{commands, state::*};
 use abstract_sdk::os::os_factory::*;
 

@@ -1,9 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-
 use crate::constants::{ASSET_DELIMITER, TYPE_DELIMITER};
-
 use crate::dex::DexName;
 use crate::objects::{AssetEntry, PoolMetadata};
 use cosmwasm_std::StdError;

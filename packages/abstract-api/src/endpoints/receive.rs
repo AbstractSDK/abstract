@@ -1,5 +1,4 @@
 use crate::{error::ApiError, state::ApiContract};
-
 use abstract_sdk::base::endpoints::ReceiveEndpoint;
 
 impl<

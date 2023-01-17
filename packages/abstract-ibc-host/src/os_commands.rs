@@ -9,7 +9,6 @@ use abstract_sdk::{
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, IbcReceiveResponse, SubMsg,
 };
-
 use crate::{
     endpoints::reply::RECEIVE_DISPATCH_ID, host_commands::PACKET_LIFETIME, state::RESULTS, Host,
     HostError,

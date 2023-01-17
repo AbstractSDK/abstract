@@ -3,7 +3,6 @@ use abstract_sdk::{
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
-
 use crate::{ApiContract, ApiError};
 
 impl<

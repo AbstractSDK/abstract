@@ -6,7 +6,6 @@ use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
 use std::fmt::Debug;
-
 use crate::{AnsHost, VersionControl};
 
 /// An Abstract module deployer that can deploy modules to a chain.

@@ -1,5 +1,4 @@
 use cosmwasm_std::{Addr, Deps, StdResult};
-
 use crate::{AppContract, AppError};
 use abstract_sdk::{
     base::features::{AbstractNameService, Identification},

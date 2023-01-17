@@ -6,7 +6,6 @@ use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cw_controllers::AdminError;
 use speculoos::prelude::*;
-
 use super::common::TEST_CREATOR;
 
 fn init_msg() -> InstantiateMsg {

@@ -1,7 +1,6 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use schemars::JsonSchema;
 use serde::Serialize;
-
 use crate::base::Handler;
 
 pub trait InstantiateEndpoint: Handler {

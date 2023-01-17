@@ -1,5 +1,4 @@
 use std::path::Path;
-
 use crate::{
     AppContract, AppError, ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint,
 };

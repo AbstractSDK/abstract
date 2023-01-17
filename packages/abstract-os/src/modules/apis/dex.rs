@@ -4,7 +4,6 @@
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
-
 use crate::objects::DexAssetPairing;
 use crate::{
     api::{self},

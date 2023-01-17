@@ -1,9 +1,7 @@
 use std::fmt::{self, Display};
-
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
-
 use super::module_reference::ModuleReference;
 
 /// Stores the provider, name, and version of an Abstract module.

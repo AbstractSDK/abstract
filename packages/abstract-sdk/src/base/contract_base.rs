@@ -4,11 +4,8 @@ use cosmwasm_std::{
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
-
 use os::objects::dependency::StaticDependency;
-
 use super::endpoints::migrate::{Metadata, Name, VersionString};
-
 use super::handler::Handler;
 
 pub type IbcCallbackHandlerFn<Module, Error> =

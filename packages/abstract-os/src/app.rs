@@ -15,7 +15,6 @@ pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> =
 pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
 pub type MigrateMsg<AppMsg = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, AppMsg>;
-
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use cw_controllers::AdminResponse;

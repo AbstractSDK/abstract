@@ -2,9 +2,7 @@ use crate::{
     TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_PROXY,
     TEST_VERSION_CONTROL,
 };
-
 use abstract_os::version_control::Core;
-
 use cosmwasm_std::testing::MockQuerier;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,

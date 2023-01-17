@@ -6,10 +6,8 @@ use abstract_os::{
     version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg},
 };
 use cosmwasm_std::{Deps, StdError};
-
 use crate::helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::StdResult;
-
 use super::RegisterAccess;
 
 /// Access the Abstract Version Register to query module information.

@@ -1,5 +1,4 @@
 use abstract_sdk::base::Handler;
-
 use crate::{Host, HostError};
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError>,

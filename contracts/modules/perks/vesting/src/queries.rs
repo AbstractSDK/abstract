@@ -3,7 +3,6 @@ use abstract_sdk::os::vesting::{
     AllocationResponse, ConfigResponse, SimulateWithdrawResponse, StateResponse,
 };
 use cosmwasm_std::{Deps, Env, StdResult};
-
 use crate::contract::compute_withdraw_amounts;
 
 /// @dev Config Query

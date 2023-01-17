@@ -2,7 +2,6 @@
 
 use semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
-
 use crate::manager::state::ModuleId;
 
 /// Statically defined dependency used in-contract
