@@ -66,7 +66,7 @@ pub fn try_pay(
     }
     // Init vector for logging
     let attrs = vec![
-        ("Action:", String::from("Deposit to subscription module")),
+        ("action", String::from("Deposit to subscription module")),
         ("Received funds:", asset.to_string()),
     ];
 
@@ -346,8 +346,8 @@ pub fn update_contributor_compensation(
 
     // Init vector for logging
     let attrs = vec![
-        ("Action:", String::from("Update Compensation")),
-        ("For:", contributor_addr.to_string()),
+        ("action", String::from("update_compensation")),
+        ("for", contributor_addr.to_string()),
     ];
 
     Ok(Response::new().add_attributes(attrs))
@@ -568,7 +568,7 @@ pub fn update_subscription_config(
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new().add_attribute("action", "update subscriber config"))
+    Ok(Response::new().add_attribute("action", "update_subscriber_config"))
 }
 
 // Only Admin can execute it

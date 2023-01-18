@@ -1,7 +1,8 @@
 use crate::contract::OsFactoryResult;
 use crate::state::*;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
-use abstract_os::app;
+use abstract_macros::abstract_response;
+use abstract_os::{app, OS_FACTORY};
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
@@ -18,8 +19,8 @@ use abstract_sdk::os::{
     version_control::{Core, ModuleResponse},
 };
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
@@ -27,7 +28,11 @@ use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
+
 use abstract_sdk::os::{MANAGER, PROXY};
+
+#[abstract_response(OS_FACTORY)]
+struct OsFactoryResponse;
 
 pub fn receive_cw20(
     deps: DepsMut,
@@ -89,38 +94,36 @@ pub fn execute_create_os(
         query_code_id(&deps.querier, &config.version_control_contract, MANAGER)?;
 
     if let ModuleReference::Core(manager_code_id) = module_resp.module.reference {
-        Ok(Response::new()
-            .add_attributes(vec![
-                ("action", "create os"),
-                ("os_id:", &config.next_os_id.to_string()),
-            ])
-            // Create manager
-            .add_submessage(SubMsg {
-                id: CREATE_OS_MANAGER_MSG_ID,
-                gas_limit: None,
-                msg: WasmMsg::Instantiate {
-                    code_id: manager_code_id,
-                    funds: vec![],
-                    // Currently set admin to self, update later when we know the contract's address.
-                    admin: Some(env.contract.address.to_string()),
-                    label: format!("Abstract OS: {}", config.next_os_id),
-                    msg: to_binary(&ManagerInstantiateMsg {
-                        os_id: config.next_os_id,
-                        root_user: root_user.to_string(),
-                        version_control_address: config.version_control_contract.to_string(),
-                        subscription_address: config.subscription_address.map(Addr::into),
-                        module_factory_address: config.module_factory_address.to_string(),
-                        name,
-                        description,
-                        link,
-                        governance_type: governance.to_string(),
-                    })?,
-                }
-                .into(),
-                reply_on: ReplyOn::Success,
-            })
-            // Add as subscription registration as last. Gets called after the reply sequence is done.
-            .add_messages(msgs))
+        Ok(
+            OsFactoryResponse::new("create_os", vec![("os_id", &config.next_os_id.to_string())])
+                // Create manager
+                .add_submessage(SubMsg {
+                    id: CREATE_OS_MANAGER_MSG_ID,
+                    gas_limit: None,
+                    msg: WasmMsg::Instantiate {
+                        code_id: manager_code_id,
+                        funds: vec![],
+                        // Currently set admin to self, update later when we know the contract's address.
+                        admin: Some(env.contract.address.to_string()),
+                        label: format!("Abstract OS: {}", config.next_os_id),
+                        msg: to_binary(&ManagerInstantiateMsg {
+                            os_id: config.next_os_id,
+                            root_user: root_user.to_string(),
+                            version_control_address: config.version_control_contract.to_string(),
+                            subscription_address: config.subscription_address.map(Addr::into),
+                            module_factory_address: config.module_factory_address.to_string(),
+                            name,
+                            description,
+                            link,
+                            governance_type: governance.to_string(),
+                        })?,
+                    }
+                    .into(),
+                    reply_on: ReplyOn::Success,
+                })
+                // Add as subscription registration as last. Gets called after the reply sequence is done.
+                .add_messages(msgs),
+        )
     } else {
         Err(OsFactoryError::WrongModuleKind(
             module_resp.module.info.to_string(),
@@ -152,25 +155,27 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         query_code_id(&deps.querier, &config.version_control_contract, PROXY)?;
 
     if let ModuleReference::Core(proxy_code_id) = module_resp.module.reference {
-        Ok(Response::new()
-            .add_attribute("manager_address", manager_address.to_string())
-            // Instantiate proxy contract
-            .add_submessage(SubMsg {
-                id: CREATE_OS_PROXY_MSG_ID,
-                gas_limit: None,
-                msg: WasmMsg::Instantiate {
-                    code_id: proxy_code_id,
-                    funds: vec![],
-                    admin: Some(manager_address.to_string()),
-                    label: format!("Proxy of OS: {}", config.next_os_id),
-                    msg: to_binary(&ProxyInstantiateMsg {
-                        os_id: config.next_os_id,
-                        ans_host_address: config.ans_host_contract.to_string(),
-                    })?,
-                }
-                .into(),
-                reply_on: ReplyOn::Success,
-            }))
+        Ok(OsFactoryResponse::new(
+            "create_manager",
+            vec![("manager_address", manager_address.to_string())],
+        )
+        // Instantiate proxy contract
+        .add_submessage(SubMsg {
+            id: CREATE_OS_PROXY_MSG_ID,
+            gas_limit: None,
+            msg: WasmMsg::Instantiate {
+                code_id: proxy_code_id,
+                funds: vec![],
+                admin: Some(manager_address.to_string()),
+                label: format!("Proxy of OS: {}", config.next_os_id),
+                msg: to_binary(&ProxyInstantiateMsg {
+                    os_id: config.next_os_id,
+                    ans_host_address: config.ans_host_contract.to_string(),
+                })?,
+            }
+            .into(),
+            reply_on: ReplyOn::Success,
+        }))
     } else {
         Err(OsFactoryError::WrongModuleKind(
             module_resp.module.info.to_string(),
@@ -250,20 +255,22 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     config.next_os_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(Response::new()
-        .add_message(add_os_core_to_version_control_msg)
-        .add_attribute("proxy_address", res.get_contract_address())
-        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: context.os_manager_address.to_string(),
-            msg: to_binary(&UpdateModuleAddresses {
-                to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
-                to_remove: None,
-            })?,
-            funds: vec![],
-        }))
-        .add_message(whitelist_manager)
-        .add_message(set_proxy_admin_msg)
-        .add_message(set_manager_admin_msg))
+    Ok(OsFactoryResponse::new(
+        "create_proxy",
+        vec![("proxy_address", res.get_contract_address())],
+    )
+    .add_message(add_os_core_to_version_control_msg)
+    .add_message(wasm_execute(
+        context.os_manager_address.to_string(),
+        &UpdateModuleAddresses {
+            to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
+            to_remove: None,
+        },
+        vec![],
+    )?)
+    .add_message(whitelist_manager)
+    .add_message(set_proxy_admin_msg)
+    .add_message(set_manager_admin_msg))
 }
 
 // Only owner can execute it
@@ -308,7 +315,7 @@ pub fn execute_update_config(
         ADMIN.set(deps, Some(addr))?;
     }
 
-    Ok(Response::new().add_attribute("action", "update_config"))
+    Ok(OsFactoryResponse::action("update_config"))
 }
 
 fn query_subscription_fee(

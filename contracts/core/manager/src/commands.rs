@@ -64,7 +64,7 @@ pub fn update_module_addresses(
         }
     }
 
-    Ok(Response::new().add_attribute("action", "update OS module addresses"))
+    Ok(Response::new().add_attribute("action", "update_module_addresses"))
 }
 
 // Attempts to install a new module through the Module Factory Contract

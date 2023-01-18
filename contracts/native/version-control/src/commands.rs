@@ -14,10 +14,10 @@ pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, core: Core) -> V
     OS_ADDRESSES.save(deps.storage, os_id, &core)?;
 
     Ok(Response::new().add_attributes(vec![
-        ("Action", "Add OS"),
-        ("ID:", &os_id.to_string()),
-        ("Manager:", core.manager.as_ref()),
-        ("Proxy", core.proxy.as_ref()),
+        ("action", "add_os"),
+        ("os_id", os_id.to_string().as_str()),
+        ("manager", core.manager.as_ref()),
+        ("proxy", core.proxy.as_ref()),
     ]))
 }
 

@@ -64,6 +64,7 @@ abstract-ibc-host = { version = "0.6.1", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.6.1", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
 abstract-boot = { path = "packages/abstract-boot" }
+abstract-macros = { path = "packages/abstract-macros" }
 
 
 module-factory = { path = "contracts/native/module-factory"}

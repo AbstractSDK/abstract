@@ -84,7 +84,7 @@ pub fn try_provide_liquidity(
 
     // Init vector for logging
     let attrs = vec![
-        ("Action:", String::from("Deposit to vault")),
+        ("action", String::from("deposit_to_vault")),
         ("Received funds:", asset.to_string()),
     ];
 
@@ -149,7 +149,7 @@ pub fn try_withdraw_liquidity(
 
     // Logging var
     let mut attrs = vec![
-        ("Action:", String::from("Withdraw from vault")),
+        ("action", String::from("Withdraw from vault")),
         ("Received liquidity tokens:", amount.to_string()),
     ];
 
@@ -223,7 +223,7 @@ pub fn try_withdraw_liquidity(
     });
 
     Ok(response
-        .add_attribute("Action:", "Withdraw Liquidity")
+        .add_attribute("action", "Withdraw Liquidity")
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner

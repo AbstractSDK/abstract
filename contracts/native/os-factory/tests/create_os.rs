@@ -1,6 +1,8 @@
 mod common;
 use abstract_boot::{OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, OS, *};
-use abstract_os::{objects::gov_type::GovernanceDetails, os_factory, version_control::Core};
+use abstract_os::{
+    objects::gov_type::GovernanceDetails, os_factory, version_control::Core, ABSTRACT_EVENT_NAME,
+};
 use boot_core::{
     prelude::{instantiate_default_mock_env, ContractInstance},
     IndexResponse,
@@ -53,8 +55,8 @@ fn create_one_os() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
 
-    let manager = os_creation.event_attr_value("wasm", "manager_address")?;
-    let proxy = os_creation.event_attr_value("wasm", "proxy_address")?;
+    let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
     let expected = os_factory::ConfigResponse {
@@ -115,11 +117,11 @@ fn create_two_os_s() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
 
-    let manager1 = os_1.event_attr_value("wasm", "manager_address")?;
-    let proxy1 = os_1.event_attr_value("wasm", "proxy_address")?;
+    let manager1 = os_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy1 = os_1.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let manager2 = os_2.event_attr_value("wasm", "manager_address")?;
-    let proxy2 = os_2.event_attr_value("wasm", "proxy_address")?;
+    let manager2 = os_2.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy2 = os_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
     let expected = os_factory::ConfigResponse {
@@ -175,8 +177,8 @@ fn sender_is_not_admin_monarchy() -> AResult {
         Some(String::from("os_link_of_at_least_11_char")),
     )?;
 
-    let manager = os_creation.event_attr_value("wasm", "manager_address")?;
-    let proxy = os_creation.event_attr_value("wasm", "proxy_address")?;
+    let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let os = version_control.os_core(0)?.os_core;
 

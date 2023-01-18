@@ -93,6 +93,6 @@ impl<
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default().add_attribute("action", "updated_ans_host_address"))
+        Ok(Response::default().add_attribute("action", "update_config"))
     }
 }

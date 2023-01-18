@@ -1,0 +1,18 @@
+[package]
+name = "abstract-macros"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1"
+syn = { version = "1", features = ["full", "extra-traits"] }
+
+[dev-dependencies]
+cosmwasm-std = { workspace = true }
+speculoos = { workspace = true }
