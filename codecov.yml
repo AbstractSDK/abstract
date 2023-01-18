@@ -18,3 +18,4 @@ ignore:
   - "packages/abstract-boot"
   - "packages/abstract-testing"
   - "**/*.json"
+  - "contracts/modules/apps/subscription"
