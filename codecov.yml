@@ -19,3 +19,6 @@ ignore:
   - "packages/abstract-testing"
   - "**/*.json"
   - "contracts/modules/apps/subscription"
+  - "contracts/modules/apps/etf/src/response.rs"
+  - "contracts/native/module-factory/src/response.rs"
+  - "contracts/native/os-factory/src/response.rs"
