@@ -255,3 +255,836 @@ fn load_pool_metadata_entry(
     let value = POOL_METADATA.load(storage, key)?;
     Ok((key, value))
 }
+#[cfg(test)]
+mod test {
+    use abstract_os::ans_host::*;
+    use abstract_os::objects::PoolType;
+    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
+    use cosmwasm_std::{from_binary, DepsMut};
+
+    use crate::contract;
+    use crate::contract::{instantiate, AnsHostResult};
+    use crate::error::AnsHostError;
+
+    use abstract_os::objects::pool_id::PoolAddressBase;
+    use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
+    use speculoos::prelude::*;
+
+    use super::*;
+
+    type AnsHostTestResult = Result<(), AnsHostError>;
+
+    const TEST_CREATOR: &str = "creator";
+
+    fn mock_init(mut deps: DepsMut) -> AnsHostResult {
+        let info = mock_info(TEST_CREATOR, &[]);
+
+        instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+    }
+
+    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {
+        let res = contract::query(deps, mock_env(), msg)?;
+        Ok(res)
+    }
+
+    fn query_asset_list_msg(token: String, size: usize) -> QueryMsg {
+        let msg = QueryMsg::AssetList {
+            page_token: (Some(token.to_string())),
+            page_size: (Some(size as u8)),
+        };
+        msg
+    }
+
+    fn create_test_assets(
+        input: Vec<(&str, &str)>,
+        api: MockApi,
+    ) -> Vec<(String, AssetInfoBase<Addr>)> {
+        let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    input.0.to_string().clone().into(),
+                    (AssetInfoUnchecked::native(input.1.to_string().clone()))
+                        .check(&api, None)
+                        .unwrap()
+                        .into(),
+                )
+            })
+            .collect();
+        test_assets
+    }
+
+    fn create_asset_response(test_assets: Vec<(String, AssetInfoBase<Addr>)>) -> AssetsResponse {
+        let expected = AssetsResponse {
+            assets: test_assets
+                .iter()
+                .map(|item| (item.0.clone().into(), item.1.clone().into()))
+                .collect(),
+        };
+        expected
+    }
+
+    fn create_asset_list_response(
+        test_assets: Vec<(String, AssetInfoBase<Addr>)>,
+    ) -> AssetListResponse {
+        let expected = AssetListResponse {
+            assets: test_assets
+                .iter()
+                .map(|item| (item.0.clone().into(), item.1.clone()))
+                .collect(),
+        };
+        expected
+    }
+
+    fn create_contract_entry_and_string(
+        input: Vec<(&str, &str, &str)>,
+    ) -> Vec<(ContractEntry, String)> {
+        let contract_entry: Vec<(ContractEntry, String)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    ContractEntry {
+                        protocol: input.0.to_string().to_ascii_lowercase().clone(),
+                        contract: input.1.to_string().to_ascii_lowercase().clone(),
+                    },
+                    input.2.to_string().clone(),
+                )
+            })
+            .collect();
+        contract_entry
+    }
+
+    fn create_contract_entry(input: Vec<(&str, &str)>) -> Vec<ContractEntry> {
+        let contract_entry: Vec<ContractEntry> = input
+            .into_iter()
+            .map(|input| ContractEntry {
+                protocol: input.0.to_string().to_ascii_lowercase().clone(),
+                contract: input.1.to_string().to_ascii_lowercase().clone(),
+            })
+            .collect();
+        contract_entry
+    }
+
+    fn create_channel_entry_and_string(
+        input: Vec<(&str, &str, &str)>,
+    ) -> Vec<(ChannelEntry, String)> {
+        let channel_entry: Vec<(ChannelEntry, String)> = input
+            .into_iter()
+            .map(|input| {
+                (
+                    ChannelEntry {
+                        connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
+                        protocol: input.1.to_string().to_ascii_lowercase().clone(),
+                    },
+                    input.2.to_string().clone(),
+                )
+            })
+            .collect();
+        channel_entry
+    }
+
+    fn create_channel_entry(input: Vec<(&str, &str)>) -> Vec<ChannelEntry> {
+        let channel_entry: Vec<ChannelEntry> = input
+            .into_iter()
+            .map(|input| ChannelEntry {
+                connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
+                protocol: input.1.to_string().to_ascii_lowercase().clone(),
+            })
+            .collect();
+        channel_entry
+    }
+
+    fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
+        let msg = QueryMsg::Channels {
+            names: create_channel_entry(input),
+        };
+        msg
+    }
+
+    fn update_asset_addresses(
+        deps: DepsMut<'_>,
+        to_add: Vec<(String, AssetInfoBase<Addr>)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
+            let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
+            ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_contract_addresses(
+        deps: DepsMut<'_>,
+        to_add: Vec<(ContractEntry, String)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (key, new_address) in to_add.into_iter() {
+            let addr = deps.as_ref().api.addr_validate(&new_address)?;
+            let insert = |_| -> StdResult<Addr> { Ok(addr) };
+            CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_channels(
+        deps: DepsMut<'_>,
+        to_add: Vec<(ChannelEntry, String)>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for (key, new_channel) in to_add.into_iter() {
+            // Update function for new or existing keys
+            let insert = |_| -> StdResult<String> { Ok(new_channel) };
+            CHANNELS.update(deps.storage, key, insert)?;
+        }
+        Ok(())
+    }
+
+    fn update_registered_dexes(
+        deps: DepsMut<'_>,
+        to_add: Vec<String>,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        for _dex in to_add.clone() {
+            let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
+                for _dex in to_add.clone() {
+                    if !dexes.contains(&_dex) {
+                        dexes.push(_dex.to_ascii_lowercase());
+                    }
+                }
+                Ok(dexes)
+            };
+            REGISTERED_DEXES.update(deps.storage, register_dex)?;
+        }
+        Ok(())
+    }
+
+    fn update_asset_pairing(
+        asset_x: &str,
+        asset_y: &str,
+        dex: &str,
+        id: u64,
+        deps: DepsMut<'_>,
+        api: MockApi,
+    ) -> Result<(), cosmwasm_std::StdError> {
+        let dex_asset_pairing =
+            DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex);
+        let _pool_ref = create_option_pool_ref(id, dex, api);
+        let insert = |pool_ref: Option<Vec<PoolReference>>| -> StdResult<_> {
+            let _pool_ref = pool_ref.unwrap_or_default();
+            Ok(_pool_ref)
+        };
+        ASSET_PAIRINGS.update(deps.storage, dex_asset_pairing, insert)?;
+        Ok(())
+    }
+
+    fn create_dex_asset_pairing(asset_x: &str, asset_y: &str, dex: &str) -> DexAssetPairing {
+        let dex_asset_pairing =
+            DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex);
+        dex_asset_pairing
+    }
+
+    fn create_asset_pairing_filter(
+        asset_x: &str,
+        asset_y: &str,
+        dex: Option<String>,
+    ) -> Result<AssetPairingFilter, cosmwasm_std::StdError> {
+        let filter = AssetPairingFilter {
+            asset_pair: Some((AssetEntry::new(asset_x), AssetEntry::new(asset_y))),
+            dex: dex,
+        };
+        Ok(filter)
+    }
+
+    fn create_pool_list_msg(
+        filter: Option<AssetPairingFilter>,
+        page_token: Option<DexAssetPairing>,
+        page_size: Option<u8>,
+    ) -> Result<QueryMsg, cosmwasm_std::StdError> {
+        let msg = QueryMsg::PoolList {
+            filter: filter,
+            page_token: page_token,
+            page_size: page_size,
+        };
+        Ok(msg)
+    }
+
+    fn load_asset_pairing_into_pools_response(
+        asset_x: &str,
+        asset_y: &str,
+        dex: &str,
+        deps: DepsMut<'_>,
+    ) -> Result<PoolsResponse, cosmwasm_std::StdError> {
+        let asset_pairing = ASSET_PAIRINGS
+            .load(
+                deps.storage,
+                create_dex_asset_pairing(asset_x, asset_y, dex),
+            )
+            .unwrap();
+        let asset_pairing = PoolsResponse {
+            pools: vec![(
+                create_dex_asset_pairing(asset_x, asset_y, dex),
+                asset_pairing,
+            )],
+        };
+        Ok(asset_pairing)
+    }
+
+    fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
+        let pool_ref = Some(vec![PoolReference {
+            unique_id: UniquePoolId::new(id),
+            pool_address: PoolAddressBase::contract(pool_id).check(&api).unwrap(),
+        }]);
+        pool_ref
+    }
+
+    fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
+        let pool_metadata = PoolMetadata::new(
+            dex,
+            abstract_os::objects::PoolType::Stable,
+            vec![asset_x.to_string(), asset_y.to_string()],
+        );
+        pool_metadata
+    }
+
+    #[test]
+    fn test_query_assets() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+
+        // create test query data
+        let test_assets = create_test_assets(vec![("bar", "bar"), ("foo", "foo")], api);
+        update_asset_addresses(deps.as_mut(), test_assets)?;
+        // create msg
+        let msg = QueryMsg::Assets {
+            names: vec!["bar".to_string(), "foo".to_string()],
+        };
+        // send query message
+        let res: AssetsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+        let expected = create_asset_response(create_test_assets(
+            vec![("bar", "bar"), ("foo", "foo")],
+            api,
+        ));
+        // Assert
+        assert_that!(&res).is_equal_to(&expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_contract() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+
+        // create test query data
+        let to_add = create_contract_entry_and_string(vec![("foo", "foo", "foo")]);
+        update_contract_addresses(deps.as_mut(), to_add)?;
+        // create, send and deserialise msg
+        let msg = QueryMsg::Contracts {
+            names: create_contract_entry(vec![("foo", "foo")]),
+        };
+        let res: ContractsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+        let expected = ContractsResponse {
+            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
+        };
+
+        // Assert
+        assert_that!(&res).is_equal_to(&expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_channels() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+
+        // create test query data
+        let to_add = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
+        update_channels(deps.as_mut(), to_add)?;
+        // create duplicate entry
+        let to_add1 = create_channel_entry_and_string(vec![("foo", "foo", "foo")]);
+        update_channels(deps.as_mut(), to_add1)?;
+
+        // create and send and deserialise msg
+        let msg = create_channel_msg(vec![("foo", "foo")]);
+        let res: ChannelsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+        let expected = ChannelsResponse {
+            channels: create_channel_entry_and_string(vec![("foo", "foo", "foo")]),
+        };
+        // Assert
+        assert_that!(&res).is_equal_to(&expected);
+        // Assert no duplication
+        assert!(res.channels.len() == 1 as usize);
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_asset_list() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+
+        // create test query data
+        let test_assets = create_test_assets(vec![("foo", "foo"), ("bar", "bar")], api);
+        update_asset_addresses(deps.as_mut(), test_assets)?;
+
+        // create second entry
+        let test_assets1 = create_test_assets(vec![("foobar", "foobar")], api);
+        update_asset_addresses(deps.as_mut(), test_assets1)?;
+
+        // create duplicate entry
+        let test_assets_duplicate = create_test_assets(vec![("foobar", "foobar")], api);
+        update_asset_addresses(deps.as_mut(), test_assets_duplicate)?;
+
+        // return all entries
+        let msg = query_asset_list_msg("".to_string(), 42);
+        let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // limit response to 1st result - entries are stored alphabetically
+        let msg = query_asset_list_msg("".to_string(), 1);
+        let res_first_entry: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // results after specified entry
+        let msg = query_asset_list_msg("foo".to_string(), 1);
+        let res_of_foobar: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+        let expected = create_asset_list_response(create_test_assets(
+            vec![("bar", "bar"), ("foo", "foo"), ("foobar", "foobar")],
+            api,
+        ));
+
+        let expected_foobar =
+            create_asset_list_response(create_test_assets(vec![("foobar", "foobar")], api));
+        let expected_bar =
+            create_asset_list_response(create_test_assets(vec![("bar", "bar")], api));
+
+        assert_that!(res).is_equal_to(&expected);
+        assert_that!(res_first_entry).is_equal_to(&expected_bar);
+        assert_that!(&res_of_foobar).is_equal_to(&expected_foobar);
+
+        Ok(())
+    }
+    #[test]
+    fn test_query_asset_list_above_max() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+
+        // create test query data
+        let generate_test_assets_large = |n: usize| -> Vec<(String, String)> {
+            let mut vector = vec![];
+            for i in 0..n {
+                let string1 = format!("foo{}", i);
+                let string2 = format!("foo{}", i);
+                vector.push((string1, string2));
+            }
+            vector
+        };
+        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(30)
+            .into_iter()
+            .map(|input| {
+                (
+                    input.0.clone().into(),
+                    (AssetInfoUnchecked::native(input.1.clone()))
+                        .check(&api, None)
+                        .unwrap()
+                        .into(),
+                )
+            })
+            .collect();
+        update_asset_addresses(deps.as_mut(), test_assets_large)?;
+
+        let msg = query_asset_list_msg("".to_string(), 42);
+        let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        assert!(res.assets.len() == 25 as usize);
+
+        // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
+        assert!(res.assets.len() == 25 as usize);
+        Ok(())
+    }
+    #[test]
+    fn test_query_contract_list() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+
+        // create test query data
+        let to_add = create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]);
+        update_contract_addresses(deps.as_mut(), to_add)?;
+
+        // create second entry
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        update_contract_addresses(deps.as_mut(), to_add1)?;
+
+        // create duplicate entry
+        let to_add1 = create_contract_entry_and_string(vec![("bar", "bar1", "bar2")]);
+        update_contract_addresses(deps.as_mut(), to_add1)?;
+
+        // create msgs
+        let msg = QueryMsg::ContractList {
+            page_token: None,
+            page_size: Some(42 as u8),
+        };
+        let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        let msg = QueryMsg::ContractList {
+            page_token: Some(ContractEntry {
+                protocol: "bar".to_string().to_ascii_lowercase(),
+                contract: "bar1".to_string().to_ascii_lowercase(),
+            }),
+            page_size: Some(42 as u8),
+        };
+        let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+        let expected = ContractListResponse {
+            contracts: create_contract_entry_and_string(vec![
+                ("bar", "bar1", "bar2"),
+                ("foo", "foo1", "foo2"),
+            ]),
+        };
+
+        let expected_foo = ContractListResponse {
+            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]),
+        };
+
+        // Assert
+        // Assert only returns unqiue data entries looping
+        assert_that!(&res).is_equal_to(&expected);
+        // Assert - sanity check for duplication
+        assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
+        assert!(res.contracts.len() == 2 as usize);
+
+        Ok(())
+    }
+    #[test]
+    fn test_query_channel_list() -> AnsHostTestResult {
+        // arrange mocks
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+
+        // create test query data
+        let to_add =
+            create_channel_entry_and_string(vec![("bar", "bar1", "bar2"), ("foo", "foo1", "foo2")]);
+        update_channels(deps.as_mut(), to_add)?;
+
+        // create second entry
+        let to_add1 = create_channel_entry_and_string(vec![("foobar", "foobar1", "foobar2")]);
+        update_channels(deps.as_mut(), to_add1)?;
+
+        // create msgs
+        // No token filter - should return up to `page_size` entries
+        let msg = QueryMsg::ChannelList {
+            page_token: None,
+            page_size: Some(42 as u8),
+        };
+        let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Filter for entries after `Foo` - Alphabetically
+        let msg = QueryMsg::ChannelList {
+            page_token: Some(ChannelEntry {
+                connected_chain: "foo".to_string(),
+                protocol: "foo1".to_string(),
+            }),
+            page_size: Some(42 as u8),
+        };
+        let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Return first entry - Alphabetically
+        let msg = QueryMsg::ChannelList {
+            page_token: None,
+            page_size: Some(1 as u8),
+        };
+        let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // Stage data for equality test
+
+        // Return all
+        let expected_all = ChannelListResponse {
+            channels: create_channel_entry_and_string(vec![
+                ("bar", "bar1", "bar2"),
+                ("foo", "foo1", "foo2"),
+                ("foobar", "foobar1", "foobar2"),
+            ]),
+        };
+        // Filter from `Foo`
+        let expected_foobar = ChannelListResponse {
+            channels: create_channel_entry_and_string(vec![("foobar", "foobar1", "foobar2")]),
+        };
+        // Return first entry (alphabetically)
+        let expected_bar = ChannelListResponse {
+            channels: create_channel_entry_and_string(vec![("bar", "bar1", "bar2")]),
+        };
+        // Assert
+        assert_that!(&res_all).is_equal_to(expected_all);
+        assert_that!(&res_foobar).is_equal_to(expected_foobar);
+        assert_that!(&res_bar).is_equal_to(expected_bar);
+        assert!(res_all.channels.len() == 3 as usize);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_registered_dexes() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+
+        // Create test data
+        let to_add: Vec<String> = vec!["foo".to_string(), "bar".to_string()];
+        update_registered_dexes(deps.as_mut(), to_add)?;
+
+        // create duplicate entry
+        let to_add1: Vec<String> = vec!["foo".to_string(), "foo".to_string()];
+        update_registered_dexes(deps.as_mut(), to_add1)?;
+
+        // create msg
+        let msg = QueryMsg::RegisteredDexes {};
+        // deserialize response
+        let res: RegisteredDexesResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+
+        // comparisons
+        let expected = RegisteredDexesResponse {
+            dexes: vec!["foo".to_string(), "bar".to_string()],
+        };
+        // tests
+        assert_that!(&res).is_equal_to(expected);
+        // assert no duplication
+        assert!(res.dexes.len() == 2 as usize);
+        assert!(res.dexes[0] == ("foo"));
+        assert!(res.dexes[1] == ("bar"));
+        Ok(())
+    }
+    #[test]
+    fn test_query_pools() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+
+        // create DexAssetPairing
+        update_asset_pairing("btc", "eth", "foo", 42, deps.as_mut(), api)?;
+
+        // create msg
+        let msg = QueryMsg::Pools {
+            keys: vec![create_dex_asset_pairing("btc", "eth", "foo")],
+        };
+        let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
+        //comparisons
+        let expected = ASSET_PAIRINGS
+            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "foo"))
+            .unwrap();
+        let expected = PoolsResponse {
+            pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
+        };
+        // assert
+        println!("{:?}", res);
+        assert_eq!(&res, &expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_pool_list() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        let api = deps.api;
+
+        // create first pool entry
+        update_asset_pairing("btc", "eth", "bar", 42, deps.as_mut(), api)?;
+
+        // create second pool entry
+        update_asset_pairing("juno", "atom", "foo", 69, deps.as_mut(), api)?;
+
+        // create duplicate pool entry
+        update_asset_pairing("juno", "atom", "foo", 69, deps.as_mut(), api)?;
+
+        // create msgs bar/ foo / foo using `page_token` as filter
+        let msg_bar = create_pool_list_msg(
+            Some(create_asset_pairing_filter("btc", "eth", None)?),
+            None,
+            None,
+        )?;
+        let res_bar: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+
+        let msg_foo = create_pool_list_msg(
+            Some(create_asset_pairing_filter("juno", "atom", None)?),
+            None,
+            Some(42),
+        )?;
+        let res_foo: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        let msg_foo_using_page_token = create_pool_list_msg(
+            Some(AssetPairingFilter {
+                asset_pair: None,
+                dex: None,
+            }),
+            Some(create_dex_asset_pairing("btc", "eth", "bar")),
+            Some(42),
+        )?;
+        let res_foo_using_page_token: PoolsResponse =
+            from_binary(&query_helper(deps.as_ref(), msg_foo_using_page_token)?)?;
+
+        // create comparisons - bar / foo / all
+        let expected_bar =
+            load_asset_pairing_into_pools_response("btc", "eth", "bar", deps.as_mut())?;
+        let expected_foo =
+            load_asset_pairing_into_pools_response("juno", "atom", "foo", deps.as_mut())?;
+        let expected_all_bar = ASSET_PAIRINGS
+            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
+            .unwrap();
+        let expected_all_foo = ASSET_PAIRINGS
+            .load(
+                &deps.storage,
+                create_dex_asset_pairing("juno", "atom", "foo"),
+            )
+            .unwrap();
+        let expected_all = PoolsResponse {
+            pools: vec![
+                (
+                    create_dex_asset_pairing("btc", "eth", "bar"),
+                    expected_all_bar,
+                ),
+                (
+                    create_dex_asset_pairing("juno", "atom", "foo"),
+                    expected_all_foo,
+                ),
+            ],
+        };
+        // comparison all
+        let msg_all = create_pool_list_msg(None, None, Some(42))?;
+        let res_all: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg_all)?)?;
+
+        // assert
+        assert_eq!(&res_bar, &expected_bar);
+        assert_eq!(&res_foo, &expected_foo);
+        assert!(&res_foo.pools.len() == &1usize);
+        assert_eq!(&res_foo_using_page_token, &expected_foo);
+        assert_eq!(&res_all, &expected_all);
+        Ok(())
+    }
+    #[test]
+    fn test_query_pool_metadata() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        // create metadata entries
+        let bar_key = UniquePoolId::new(42);
+        let bar_metadata = create_pool_metadata("bar", "btc", "eth");
+        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata) };
+        POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
+
+        let foo_key = UniquePoolId::new(69);
+        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
+
+        // create msgs
+        let msg_bar = QueryMsg::PoolMetadatas {
+            keys: vec![UniquePoolId::new(42)],
+        };
+        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+
+        let msg_foo = QueryMsg::PoolMetadatas {
+            keys: vec![UniquePoolId::new(69)],
+        };
+        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        // create comparisons
+        let expected_bar = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(42),
+                PoolMetadata::new(
+                    "bar",
+                    abstract_os::objects::PoolType::Stable,
+                    vec!["btc".to_string(), "eth".to_string()],
+                ),
+            )],
+        };
+        let expected_foo = PoolMetadatasResponse {
+            metadatas: vec![(
+                UniquePoolId::new(69),
+                PoolMetadata::new(
+                    "foo",
+                    abstract_os::objects::PoolType::Stable,
+                    vec!["juno".to_string(), "atom".to_string()],
+                ),
+            )],
+        };
+        assert_eq!(&res_bar, &expected_bar);
+        println!("res_foo:{:?} expected_foo:{:?}", res_foo, expected_foo);
+        // TO-DO : this test is failing - the dex updates but the assets do not.
+        assert_eq!(&res_foo, &expected_foo);
+
+        // assert
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_query_pool_metadata_list() -> AnsHostTestResult {
+        let mut deps = mock_dependencies();
+        mock_init(deps.as_mut()).unwrap();
+        // create metadata entries
+        let bar_key = UniquePoolId::new(42);
+        let bar_metadata = create_pool_metadata("bar", "btc", "eth");
+        let insert_bar = |_| -> StdResult<PoolMetadata> { Ok(bar_metadata.clone()) };
+        POOL_METADATA.update(&mut deps.storage, bar_key, insert_bar)?;
+
+        let msg_bar = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: None,
+            page_size: None,
+        };
+        let res_bar: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_bar)?)?;
+        let expected_bar = PoolMetadatasResponse {
+            metadatas: vec![(bar_key, bar_metadata.clone())],
+        };
+        assert_that!(res_bar).is_equal_to(expected_bar);
+
+        let foo_key = UniquePoolId::new(69);
+        let foo_metadata = create_pool_metadata("foo", "juno", "atom");
+        let insert_foo = |_| -> StdResult<PoolMetadata> { Ok(foo_metadata.clone()) };
+        POOL_METADATA.update(&mut deps.storage, foo_key, insert_foo)?;
+
+        let msg_both = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: None,
+            page_size: Some(42),
+        };
+        let res_both: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_both)?)?;
+
+        let expected_both = PoolMetadatasResponse {
+            metadatas: vec![
+                (bar_key, bar_metadata.clone()),
+                (foo_key.clone(), foo_metadata.clone()),
+            ],
+        };
+        println!("{:?} {:?}", res_both, expected_both);
+        assert_that!(res_both).is_equal_to(expected_both);
+
+        let msg_foo = QueryMsg::PoolMetadataList {
+            filter: Some(PoolMetadataFilter {
+                pool_type: Some(PoolType::Stable),
+            }),
+            page_token: Some(bar_key),
+            page_size: Some(42),
+        };
+        let res_foo: PoolMetadatasResponse = from_binary(&query_helper(deps.as_ref(), msg_foo)?)?;
+
+        let expected_foo = PoolMetadatasResponse {
+            metadatas: vec![(foo_key, foo_metadata)],
+        };
+
+        assert_that!(res_foo).is_equal_to(expected_foo);
+        Ok(())
+    }
+}
