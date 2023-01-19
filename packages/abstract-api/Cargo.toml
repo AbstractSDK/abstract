@@ -1,8 +1,8 @@
 [package]
 name = "abstract-api"
 version = { workspace = true }
-authors = {workspace = true}
-edition = {workspace = true}
+authors = { workspace = true }
+edition = { workspace = true }
 license = { workspace = true }
 description = "base api contract implementation"
 
@@ -31,3 +31,7 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
+
+[dev-dependencies]
+abstract-testing = { workspace = true }
+speculoos = { workspace = true }

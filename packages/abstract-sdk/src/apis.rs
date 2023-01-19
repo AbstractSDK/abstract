@@ -13,6 +13,7 @@ pub(crate) use crate::base::features::*;
 mod test_common {
     use crate::apis::{AbstractNameService, Identification};
     pub use abstract_testing::mock_module::*;
+    pub use abstract_testing::*;
     pub use cosmwasm_std::testing::*;
     pub use cosmwasm_std::*;
     use os::objects::ans_host::AnsHost;

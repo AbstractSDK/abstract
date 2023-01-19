@@ -133,26 +133,7 @@ impl<
             .map_err(Into::into)
     }
 
-    // pub(crate) fn verify_sender_is_manager(
-    //     &self,
-    //     deps: Deps,
-    //     maybe_manager: &Addr,
-    // ) -> Result<Core, ApiError> {
-    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-    //     let core = verify_os_manager(&deps.querier, maybe_manager, &version_control_addr)?;
-    //     Ok(core)
-    // }
-
-    // pub(crate) fn verify_sender_is_proxy(
-    //     &self,
-    //     deps: Deps,
-    //     maybe_proxy: &Addr,
-    // ) -> Result<Core, ApiError> {
-    //     let version_control_addr = self.base_state.load(deps.storage)?.version_control;
-    //     let core = verify_os_proxy(&deps.querier, maybe_proxy, &version_control_addr)?;
-    //     Ok(core)
-    // }
-
+    /// Remove traders from the api.
     fn update_traders(
         &self,
         deps: DepsMut,
@@ -192,5 +173,95 @@ impl<
 
         self.traders.save(deps.storage, proxy.clone(), &traders)?;
         Ok(Response::new().add_attribute("action", format!("update_{}_traders", proxy)))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use abstract_os::{
+        api::{BaseInstantiateMsg, InstantiateMsg},
+        objects::module_version::{ModuleData, MODULE},
+    };
+    use abstract_sdk::base::InstantiateEndpoint;
+    use abstract_testing::*;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr, Empty, StdError,
+    };
+    use cw2::{ContractVersion, CONTRACT};
+    use speculoos::prelude::*;
+    use thiserror::Error;
+
+    type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
+    type ApiMockResult = Result<(), MockError>;
+    const TEST_METADATA: &str = "test_metadata";
+    const TEST_TRADER: &str = "test_trader";
+
+    #[derive(Error, Debug, PartialEq)]
+    enum MockError {
+        #[error("{0}")]
+        Std(#[from] StdError),
+
+        #[error(transparent)]
+        Api(#[from] ApiError),
+    }
+
+    fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
+        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));
+        let info = mock_info(TEST_ADMIN, &[]);
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: TEST_VERSION_CONTROL.into(),
+            },
+            app: Empty {},
+        };
+        api.instantiate(deps, mock_env(), info, init_msg)
+    }
+
+    fn mock_exec_handler(
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        _api: MockApi,
+        _msg: Empty,
+    ) -> Result<Response, MockError> {
+        Ok(Response::new().set_data("mock_response".as_bytes()))
+    }
+
+    fn mock_api() -> MockApi {
+        MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+            .with_execute(mock_exec_handler)
+    }
+
+    #[test]
+    fn add_trader() -> ApiMockResult {
+        let env = mock_env();
+        let info = mock_info(TEST_MANAGER, &vec![]);
+        let mut deps = mock_dependencies();
+        deps.querier = abstract_testing::querier();
+
+        mock_init(deps.as_mut())?;
+
+        let mut api = mock_api();
+        let msg = BaseExecuteMsg::UpdateTraders {
+            to_add: vec![TEST_TRADER.into()],
+            to_remove: vec![],
+        };
+        // consumes api
+        api.base_execute(deps.as_mut(), env, info, msg)?;
+
+        let api = mock_api();
+        let no_traders_registered = api.traders.is_empty(&deps.storage);
+        assert_that!(no_traders_registered).is_false();
+
+        let test_proxy_traders = api
+            .traders
+            .load(&deps.storage, Addr::unchecked(TEST_PROXY))?;
+
+        assert_that!(test_proxy_traders).has_length(1);
+        assert_that!(test_proxy_traders).contains(Addr::unchecked(TEST_TRADER));
+        Ok(())
     }
 }
