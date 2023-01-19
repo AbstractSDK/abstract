@@ -149,7 +149,7 @@ where
 
     fn reply_handler(&self, id: u64) -> StdResult<ReplyHandlerFn<Self, Self::Error>> {
         let Some(handler) = self.maybe_reply_handler(id) else {
-            return Err(StdError::generic_err(format!{"expected reply handler for id: {id}"}))
+            return Err(StdError::generic_err(format! {"expected reply handler for id: {id}"}))
         };
         Ok(handler)
     }

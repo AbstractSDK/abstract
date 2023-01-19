@@ -5,7 +5,7 @@ use semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
 
 /// Statically defined dependency used in-contract
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StaticDependency {
     pub id: ModuleId<'static>,
     pub version_req: &'static [&'static str],

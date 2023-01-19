@@ -168,3 +168,186 @@ where
         self
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use speculoos::assert_that;
+
+    #[cosmwasm_schema::cw_serde]
+    struct MockInitMsg;
+
+    #[cosmwasm_schema::cw_serde]
+    struct MockExecMsg;
+
+    #[cosmwasm_schema::cw_serde]
+    struct MockQueryMsg;
+
+    #[cosmwasm_schema::cw_serde]
+    struct MockMigrateMsg;
+
+    #[cosmwasm_schema::cw_serde]
+    struct MockReceiveMsg;
+
+    use thiserror::Error;
+
+    #[derive(Error, Debug, PartialEq)]
+    pub enum MockError {
+        #[error("{0}")]
+        Std(#[from] StdError),
+    }
+
+    struct MockModule;
+
+    type MockAppContract = AbstractContract<
+        MockModule,
+        MockError,
+        MockExecMsg,
+        MockInitMsg,
+        MockQueryMsg,
+        MockMigrateMsg,
+        MockReceiveMsg,
+    >;
+
+    impl Handler for MockModule {
+        type Error = MockError;
+        type CustomExecMsg = MockExecMsg;
+        type CustomInitMsg = MockInitMsg;
+        type CustomQueryMsg = MockQueryMsg;
+        type CustomMigrateMsg = MockMigrateMsg;
+        type ReceiveMsg = MockReceiveMsg;
+
+        fn contract(
+            &self,
+        ) -> &AbstractContract<
+            Self,
+            Self::Error,
+            Self::CustomExecMsg,
+            Self::CustomInitMsg,
+            Self::CustomQueryMsg,
+            Self::CustomMigrateMsg,
+            Self::ReceiveMsg,
+        > {
+            unimplemented!()
+        }
+    }
+
+    use speculoos::prelude::*;
+
+    // #[test]
+    // fn test_version() {
+    //     let contract =
+    //         MockAppContract::new("test_contract".into(), "0.1.0".into(), Metadata::default());
+    //     let deps = mock_dependencies();
+    //     let version = contract.version(&deps.storage).unwrap();
+    //     let expected = ContractVersion {
+    //         contract: "test_contract".into(),
+    //         version: "0.1.0".into(),
+    //     };
+    //
+    //     assert_that!(version).is_equal_to(expected);
+    // }
+
+    #[test]
+    fn test_info() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default());
+        let (name, version, metadata) = contract.info();
+        assert_that!(&name).is_equal_to("test_contract");
+        assert_that!(&version).is_equal_to("0.1.0");
+        assert_that!(metadata).is_equal_to(Metadata::default());
+    }
+
+    #[test]
+    fn test_with_empty() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_dependencies(&[]);
+
+        assert!(contract.reply_handlers.iter().all(|x| x.is_empty()));
+
+        assert!(contract.dependencies.is_empty());
+        assert!(contract.ibc_callback_handlers.is_empty());
+        assert!(contract.instantiate_handler.is_none());
+        assert!(contract.receive_handler.is_none());
+        assert!(contract.execute_handler.is_none());
+        assert!(contract.query_handler.is_none());
+        assert!(contract.migrate_handler.is_none());
+    }
+
+    #[test]
+    fn test_with_dependencies() {
+        const verison: &str = "0.1.0";
+        const dependency: StaticDependency = StaticDependency::new("test", &[verison]);
+        const dependencies: &[StaticDependency] = &[dependency];
+
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_dependencies(dependencies);
+
+        assert_that!(contract.dependencies[0].clone()).is_equal_to(dependency);
+    }
+
+    #[test]
+    fn test_with_instantiate() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_instantiate(|_, _, _, _, _| {
+                Ok(Response::default().add_attribute("test", "instantiate"))
+            });
+
+        assert!(contract.instantiate_handler.is_some());
+    }
+
+    #[test]
+    fn test_with_receive() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
+
+        assert!(contract.receive_handler.is_some());
+    }
+
+    #[test]
+    fn test_with_execute() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
+
+        assert!(contract.execute_handler.is_some());
+    }
+
+    #[test]
+    fn test_with_query() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_query(|_, _, _, _| Ok(cosmwasm_std::to_binary(&Empty {}).unwrap()));
+
+        assert!(contract.query_handler.is_some());
+    }
+
+    #[test]
+    fn test_with_migrate() {
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
+
+        assert!(contract.migrate_handler.is_some());
+    }
+
+    #[test]
+    fn test_with_reply_handlers() {
+        const reply_id: u64 = 50u64;
+        const handler: ReplyHandlerFn<MockModule, MockError> =
+            |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_replies([&[(reply_id, handler)], &[]]);
+
+        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(reply_id);
+        assert!(contract.reply_handlers[1].is_empty());
+    }
+
+    #[test]
+    fn test_with_ibc_callback_handlers() {
+        const ibc_id: &str = "aoeu";
+        const handler: IbcCallbackHandlerFn<MockModule, MockError> =
+            |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
+        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+            .with_ibc_callbacks(&[(ibc_id, handler)]);
+
+        assert_that!(contract.ibc_callback_handlers[0].0).is_equal_to(ibc_id);
+    }
+}

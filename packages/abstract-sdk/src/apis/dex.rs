@@ -178,8 +178,8 @@ mod test {
             action: DexAction::Swap {
                 offer_asset: offer_asset.clone(),
                 ask_asset: ask_asset.clone(),
-                max_spread: max_spread,
-                belief_price: belief_price,
+                max_spread,
+                belief_price,
             },
         });
 
@@ -218,7 +218,7 @@ mod test {
             action: DexAction::CustomSwap {
                 offer_assets: offer_assets.clone(),
                 ask_assets: ask_assets.clone(),
-                max_spread: max_spread,
+                max_spread,
                 router: router.clone(),
             },
         });
@@ -255,7 +255,7 @@ mod test {
             dex: dex_name,
             action: DexAction::ProvideLiquidity {
                 assets: assets.clone(),
-                max_spread: max_spread,
+                max_spread,
             },
         });
 

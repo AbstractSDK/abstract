@@ -288,11 +288,11 @@ mod test {
     }
 
     fn query_asset_list_msg(token: String, size: usize) -> QueryMsg {
-        let msg = QueryMsg::AssetList {
-            page_token: (Some(token.to_string())),
+        
+        QueryMsg::AssetList {
+            page_token: (Some(token)),
             page_size: (Some(size as u8)),
-        };
-        msg
+        }
     }
 
     fn create_test_assets(
@@ -303,11 +303,10 @@ mod test {
             .into_iter()
             .map(|input| {
                 (
-                    input.0.to_string().clone().into(),
-                    (AssetInfoUnchecked::native(input.1.to_string().clone()))
+                    input.0.to_string(),
+                    (AssetInfoUnchecked::native(input.1.to_string()))
                         .check(&api, None)
-                        .unwrap()
-                        .into(),
+                        .unwrap(),
                 )
             })
             .collect();
@@ -318,7 +317,7 @@ mod test {
         let expected = AssetsResponse {
             assets: test_assets
                 .iter()
-                .map(|item| (item.0.clone().into(), item.1.clone().into()))
+                .map(|item| (item.0.clone().into(), item.1.clone()))
                 .collect(),
         };
         expected
@@ -344,10 +343,10 @@ mod test {
             .map(|input| {
                 (
                     ContractEntry {
-                        protocol: input.0.to_string().to_ascii_lowercase().clone(),
-                        contract: input.1.to_string().to_ascii_lowercase().clone(),
+                        protocol: input.0.to_string().to_ascii_lowercase(),
+                        contract: input.1.to_string().to_ascii_lowercase(),
                     },
-                    input.2.to_string().clone(),
+                    input.2.to_string(),
                 )
             })
             .collect();
@@ -358,8 +357,8 @@ mod test {
         let contract_entry: Vec<ContractEntry> = input
             .into_iter()
             .map(|input| ContractEntry {
-                protocol: input.0.to_string().to_ascii_lowercase().clone(),
-                contract: input.1.to_string().to_ascii_lowercase().clone(),
+                protocol: input.0.to_string().to_ascii_lowercase(),
+                contract: input.1.to_string().to_ascii_lowercase(),
             })
             .collect();
         contract_entry
@@ -373,10 +372,10 @@ mod test {
             .map(|input| {
                 (
                     ChannelEntry {
-                        connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
-                        protocol: input.1.to_string().to_ascii_lowercase().clone(),
+                        connected_chain: input.0.to_string().to_ascii_lowercase(),
+                        protocol: input.1.to_string().to_ascii_lowercase(),
                     },
-                    input.2.to_string().clone(),
+                    input.2.to_string(),
                 )
             })
             .collect();
@@ -387,25 +386,25 @@ mod test {
         let channel_entry: Vec<ChannelEntry> = input
             .into_iter()
             .map(|input| ChannelEntry {
-                connected_chain: input.0.to_string().to_ascii_lowercase().clone(),
-                protocol: input.1.to_string().to_ascii_lowercase().clone(),
+                connected_chain: input.0.to_string().to_ascii_lowercase(),
+                protocol: input.1.to_string().to_ascii_lowercase(),
             })
             .collect();
         channel_entry
     }
 
     fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
-        let msg = QueryMsg::Channels {
+        
+        QueryMsg::Channels {
             names: create_channel_entry(input),
-        };
-        msg
+        }
     }
 
     fn update_asset_addresses(
         deps: DepsMut<'_>,
         to_add: Vec<(String, AssetInfoBase<Addr>)>,
     ) -> Result<(), cosmwasm_std::StdError> {
-        for (test_asset_name, test_asset_info) in to_add.clone().into_iter() {
+        for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
             ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
         }
@@ -474,9 +473,8 @@ mod test {
     }
 
     fn create_dex_asset_pairing(asset_x: &str, asset_y: &str, dex: &str) -> DexAssetPairing {
-        let dex_asset_pairing =
-            DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex);
-        dex_asset_pairing
+        
+        DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex)
     }
 
     fn create_asset_pairing_filter(
@@ -486,7 +484,7 @@ mod test {
     ) -> Result<AssetPairingFilter, cosmwasm_std::StdError> {
         let filter = AssetPairingFilter {
             asset_pair: Some((AssetEntry::new(asset_x), AssetEntry::new(asset_y))),
-            dex: dex,
+            dex,
         };
         Ok(filter)
     }
@@ -497,9 +495,9 @@ mod test {
         page_size: Option<u8>,
     ) -> Result<QueryMsg, cosmwasm_std::StdError> {
         let msg = QueryMsg::PoolList {
-            filter: filter,
-            page_token: page_token,
-            page_size: page_size,
+            filter,
+            page_token,
+            page_size,
         };
         Ok(msg)
     }
@@ -526,20 +524,20 @@ mod test {
     }
 
     fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
-        let pool_ref = Some(vec![PoolReference {
+        
+        Some(vec![PoolReference {
             unique_id: UniquePoolId::new(id),
             pool_address: PoolAddressBase::contract(pool_id).check(&api).unwrap(),
-        }]);
-        pool_ref
+        }])
     }
 
     fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
-        let pool_metadata = PoolMetadata::new(
+        
+        PoolMetadata::new(
             dex,
             abstract_os::objects::PoolType::Stable,
             vec![asset_x.to_string(), asset_y.to_string()],
-        );
-        pool_metadata
+        )
     }
 
     #[test]
@@ -619,7 +617,7 @@ mod test {
         // Assert
         assert_that!(&res).is_equal_to(&expected);
         // Assert no duplication
-        assert!(res.channels.len() == 1 as usize);
+        assert!(res.channels.len() == 1_usize);
         Ok(())
     }
 
@@ -692,11 +690,10 @@ mod test {
             .into_iter()
             .map(|input| {
                 (
-                    input.0.clone().into(),
-                    (AssetInfoUnchecked::native(input.1.clone()))
+                    input.0.clone(),
+                    (AssetInfoUnchecked::native(input.1))
                         .check(&api, None)
-                        .unwrap()
-                        .into(),
+                        .unwrap(),
                 )
             })
             .collect();
@@ -704,10 +701,10 @@ mod test {
 
         let msg = query_asset_list_msg("".to_string(), 42);
         let res: AssetListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
-        assert!(res.assets.len() == 25 as usize);
+        assert!(res.assets.len() == 25_usize);
 
         // Assert that despite 30 entries the returned data is capped at the `MAX_LIMIT` of 25 results
-        assert!(res.assets.len() == 25 as usize);
+        assert!(res.assets.len() == 25_usize);
         Ok(())
     }
     #[test]
@@ -731,7 +728,7 @@ mod test {
         // create msgs
         let msg = QueryMsg::ContractList {
             page_token: None,
-            page_size: Some(42 as u8),
+            page_size: Some(42_u8),
         };
         let res: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -740,7 +737,7 @@ mod test {
                 protocol: "bar".to_string().to_ascii_lowercase(),
                 contract: "bar1".to_string().to_ascii_lowercase(),
             }),
-            page_size: Some(42 as u8),
+            page_size: Some(42_u8),
         };
         let res_expect_foo: ContractListResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -761,7 +758,7 @@ mod test {
         assert_that!(&res).is_equal_to(&expected);
         // Assert - sanity check for duplication
         assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
-        assert!(res.contracts.len() == 2 as usize);
+        assert!(res.contracts.len() == 2_usize);
 
         Ok(())
     }
@@ -784,7 +781,7 @@ mod test {
         // No token filter - should return up to `page_size` entries
         let msg = QueryMsg::ChannelList {
             page_token: None,
-            page_size: Some(42 as u8),
+            page_size: Some(42_u8),
         };
         let res_all = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -794,14 +791,14 @@ mod test {
                 connected_chain: "foo".to_string(),
                 protocol: "foo1".to_string(),
             }),
-            page_size: Some(42 as u8),
+            page_size: Some(42_u8),
         };
         let res_foobar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
         // Return first entry - Alphabetically
         let msg = QueryMsg::ChannelList {
             page_token: None,
-            page_size: Some(1 as u8),
+            page_size: Some(1_u8),
         };
         let res_bar = from_binary(&query_helper(deps.as_ref(), msg)?)?;
 
@@ -827,7 +824,7 @@ mod test {
         assert_that!(&res_all).is_equal_to(expected_all);
         assert_that!(&res_foobar).is_equal_to(expected_foobar);
         assert_that!(&res_bar).is_equal_to(expected_bar);
-        assert!(res_all.channels.len() == 3 as usize);
+        assert!(res_all.channels.len() == 3_usize);
 
         Ok(())
     }
@@ -857,7 +854,7 @@ mod test {
         // tests
         assert_that!(&res).is_equal_to(expected);
         // assert no duplication
-        assert!(res.dexes.len() == 2 as usize);
+        assert!(res.dexes.len() == 2_usize);
         assert!(res.dexes[0] == ("foo"));
         assert!(res.dexes[1] == ("bar"));
         Ok(())
@@ -1065,7 +1062,7 @@ mod test {
         let expected_both = PoolMetadatasResponse {
             metadatas: vec![
                 (bar_key, bar_metadata.clone()),
-                (foo_key.clone(), foo_metadata.clone()),
+                (foo_key, foo_metadata.clone()),
             ],
         };
         println!("{:?} {:?}", res_both, expected_both);
