@@ -6,18 +6,18 @@
 //! These fixed names can be used to provide name-addressable searches for complex logic.
 
 pub const MANAGER: &str = "abstract:manager";
-pub const VERSION_CONTROL: &str = "abstract:version_control";
-pub const OS_FACTORY: &str = "abstract:os_factory";
-pub const MODULE_FACTORY: &str = "abstract:module_factory";
+pub const VERSION_CONTROL: &str = "abstract:version-control";
+pub const OS_FACTORY: &str = "abstract:os-factory";
+pub const MODULE_FACTORY: &str = "abstract:module-factory";
 pub const PROXY: &str = "abstract:proxy";
-pub const ANS_HOST: &str = "abstract:ans_host";
+pub const ANS_HOST: &str = "abstract:ans-host";
 pub const ETF: &str = "abstract:etf";
 pub const SUBSCRIPTION: &str = "abstract:subscription";
 pub const EXCHANGE: &str = "abstract:dex";
-pub const TENDERMINT_STAKING: &str = "abstract:tendermint_staking";
-pub const CW20_VESTING: &str = "abstract:cw20_vesting";
-pub const IBC_CLIENT: &str = "abstract:ibc_client";
-pub const OSMOSIS_HOST: &str = "abstract:osmosis_host";
+pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
+pub const CW20_VESTING: &str = "abstract:cw20-vesting";
+pub const IBC_CLIENT: &str = "abstract:ibc-client";
+pub const OSMOSIS_HOST: &str = "abstract:osmosis-host";
 
 /// IBC protocols
 pub const ICS20: &str = "ics-20";

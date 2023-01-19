@@ -168,7 +168,7 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     let second_install_res = install_api(&os.manager, TENDERMINT_STAKING);
     assert_that!(second_install_res)
         .is_err()
-        .matches(|e| e.to_string().contains("tendermint_staking"));
+        .matches(|e| e.to_string().contains("tendermint-staking"));
 
     os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
