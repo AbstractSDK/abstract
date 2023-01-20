@@ -51,10 +51,10 @@ protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
 
-
-semver = { package = "cw-semver", version = "1.0.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.5.1" }
-boot-cw-plus = { version = "0.5.1" }
+semver = "1.0"
+cw-semver = {version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
+boot-core = { version = "0.5.1", git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait"}
+boot-cw-plus = { version = "0.5.1",  git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait" }
 
 abstract-sdk = { version = "0.6.2", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.6.2", path = "packages/abstract-os" }

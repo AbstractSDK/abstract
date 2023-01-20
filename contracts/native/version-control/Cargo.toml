@@ -24,7 +24,7 @@ cw-storage-plus = {workspace = true}
 cw2 = {workspace = true}
 serde = {workspace = true}
 thiserror = {workspace = true}
-semver = {workspace = true}
+cw-semver = {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
 

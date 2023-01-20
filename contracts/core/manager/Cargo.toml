@@ -31,6 +31,7 @@ thiserror = {workspace = true}
 abstract-sdk = {workspace = true}
 abstract-os = {workspace = true}
 semver = {workspace = true}
+cw-semver = {workspace = true}
 
 [dev-dependencies]
 cw-multi-test = { workspace = true , features = ["staking"]}

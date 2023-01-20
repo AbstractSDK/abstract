@@ -3,7 +3,7 @@ use abstract_os::{
     objects::{dependency::Dependency, module_version::MODULE},
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, StdResult, Storage};
-use semver::{Comparator, Version};
+use cw_semver::{Comparator, Version};
 
 /// Assert the dependencies that this app relies on are installed.
 pub fn assert_install_requirements(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {

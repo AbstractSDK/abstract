@@ -92,7 +92,7 @@ where
 
     pub fn register_native(
         &self,
-        deployment: &deployment::Deployment<Chain>,
+        deployment: &deployment::Abstract<Chain>,
     ) -> Result<(), BootError> {
         let to_register =
             self.contracts_into_module_entries(deployment.contracts(), &deployment.version, |c| {

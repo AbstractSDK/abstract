@@ -1,23 +1,23 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
-use abstract_boot::{
-    AnsHost, Deployment, Manager, ModuleFactory, OSFactory, Proxy, VersionControl,
-};
+use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::{
     prelude::{BootInstantiate, BootUpload, ContractInstance},
     Mock,
 };
 use cosmwasm_std::{Addr, Empty};
+
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
+
 use cw_multi_test::ContractWrapper;
 use manager::contract::CONTRACT_VERSION;
 use semver::Version;
 
-pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<Mock>)> {
+pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {
     let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
     let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
     let mut version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -77,7 +77,7 @@ pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<M
 
     // do as above for the rest of the contracts
 
-    let deployment = Deployment {
+    let deployment = Abstract {
         chain,
         version: "1.0.0".parse()?,
         ans_host,
@@ -93,10 +93,7 @@ pub fn init_abstract_env(chain: &Mock) -> anyhow::Result<(Deployment<Mock>, OS<M
 
 pub(crate) type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
-pub(crate) fn create_default_os(
-    _chain: &Mock,
-    factory: &OSFactory<Mock>,
-) -> anyhow::Result<OS<Mock>> {
+pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<Mock>> {
     let os = factory.create_default_os(GovernanceDetails::Monarchy {
         monarch: Addr::unchecked(ROOT_USER).to_string(),
     })?;
@@ -106,8 +103,8 @@ pub(crate) fn create_default_os(
 /// Instantiates the staking api and registers it with the version control
 #[allow(dead_code)]
 pub(crate) fn init_staking_api(
-    chain: &Mock,
-    deployment: &Deployment<Mock>,
+    chain: Mock,
+    deployment: &Abstract<Mock>,
     version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
     let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain.clone());

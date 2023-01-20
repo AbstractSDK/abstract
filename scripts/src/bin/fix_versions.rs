@@ -1,11 +1,14 @@
-use abstract_boot::Deployment;
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::version_control::{ExecuteMsgFns, ModulesResponse, QueryMsgFns};
+use std::sync::Arc;
+
 use boot_core::networks::{NetworkInfo, UNI_5};
 use boot_core::prelude::*;
+
 use semver::Version;
-use std::sync::Arc;
 use tokio::runtime::Runtime;
+
+use abstract_boot::Abstract;
+use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_os::version_control::{ExecuteMsgFns, ModulesResponse, QueryMsgFns};
 
 const NETWORK: NetworkInfo = UNI_5;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
@@ -19,7 +22,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(NETWORK).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Deployment::new(&chain, abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_os_version);
 
     let ModulesResponse { modules } = deployment.version_control.modules(None, None)?;
 

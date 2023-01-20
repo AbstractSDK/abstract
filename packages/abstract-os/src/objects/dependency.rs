@@ -1,7 +1,7 @@
 //! Dependency definitions for Abstract Modules
 
 use crate::manager::state::ModuleId;
-use semver::{Comparator, Version};
+use cw_semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
 
 /// Statically defined dependency used in-contract
@@ -23,7 +23,7 @@ impl StaticDependency {
     }
 
     /// Iterate through the (statically provided) version requirements and ensure that they are valid.
-    pub fn check(&self) -> Result<(), semver::Error> {
+    pub fn check(&self) -> Result<(), cw_semver::Error> {
         for req in self.version_req {
             Comparator::parse(req)?;
         }

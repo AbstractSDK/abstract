@@ -5,7 +5,7 @@ use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult}
 use cw2::get_contract_version;
 use cw2::set_contract_version;
 use cw_controllers::{Admin, AdminError};
-use semver::Version;
+use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 use crate::commands::*;

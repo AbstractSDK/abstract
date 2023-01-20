@@ -23,8 +23,8 @@ pub enum VCError {
     #[error("OS ID {} is not in version control register", id)]
     MissingOsId { id: u32 },
 }
-impl From<semver::Error> for VCError {
-    fn from(err: semver::Error) -> Self {
+impl From<cw_semver::Error> for VCError {
+    fn from(err: cw_semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }
 }
