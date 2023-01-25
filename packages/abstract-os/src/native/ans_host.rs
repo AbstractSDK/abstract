@@ -53,6 +53,7 @@ pub mod state {
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<AssetEntry, AssetInfo> = Map::new("assets");
+    pub const REV_ASSET_ADDRESSES: Map<AssetInfo, AssetEntry> = Map::new("rev_assets");
 
     /// Stores contract addresses
     pub const CONTRACT_ADDRESSES: Map<ContractEntry, Addr> = Map::new("contracts");

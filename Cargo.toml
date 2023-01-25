@@ -39,11 +39,12 @@ cosmwasm-std = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
-cw-storage-plus = "1.0.1"
-cw2 = { version = "1.0.1" }
+cw-storage-plus = "0.16.0"
+cw2 = { version = "0.16.0" }
 cw20 = { version = "1.0.1" }
 cw20-base = { version = "1.0.1", features = ["library"] }
-cw-asset = { version = "2.2" }
+# wait for my pr to be merged
+cw-asset = { git = "https://github.com/CyberHoward/cw-asset.git" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
@@ -53,8 +54,8 @@ clap = { version = "4.0.32", features = ["derive"] }
 
 semver = "1.0"
 cw-semver = {version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.5.1", git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait"}
-boot-cw-plus = { version = "0.5.1",  git =  "https://github.com/Abstract-OS/BOOT.git", branch = "feature/deployment_trait" }
+boot-core = { version = "0.5.1", git =  "https://github.com/Abstract-OS/BOOT.git"}
+boot-cw-plus = { version = "0.5.1",  git =  "https://github.com/Abstract-OS/BOOT.git"}
 
 abstract-sdk = { version = "0.6.2", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.6.2", path = "packages/abstract-os" }

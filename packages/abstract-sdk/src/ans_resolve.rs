@@ -72,6 +72,25 @@ impl Resolve for AnsAsset {
     }
 }
 
+impl Resolve for AssetInfo {
+    type Output = AssetEntry;
+
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        ans_host.query_asset_reverse(querier, self)
+    }
+}
+
+impl Resolve for Asset {
+    type Output = AnsAsset;
+
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        Ok(AnsAsset {
+            name: self.info.resolve(querier, ans_host)?,
+            amount: self.amount,
+        })
+    }
+}
+
 impl<T> Resolve for Vec<T>
 where
     T: Resolve,

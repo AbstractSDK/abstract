@@ -134,9 +134,8 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 mod test {
     use super::*;
     use os::objects::dependency::StaticDependency;
-    
+
     use std::fmt::Debug;
-    
 
     use crate::apis::test_common::*;
     use abstract_testing::TEST_MODULE_ID;

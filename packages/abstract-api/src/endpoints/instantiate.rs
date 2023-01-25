@@ -52,18 +52,20 @@ impl<
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use abstract_os::{api::{BaseInstantiateMsg, InstantiateMsg}, objects::module_version::{MODULE, ModuleData}};
+    use abstract_os::{
+        api::{BaseInstantiateMsg, InstantiateMsg},
+        objects::module_version::{ModuleData, MODULE},
+    };
     use abstract_sdk::base::InstantiateEndpoint;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Empty, StdError, Addr,
+        Addr, Empty, StdError,
     };
     use cw2::{ContractVersion, CONTRACT};
-    use thiserror::Error;
     use speculoos::prelude::*;
+    use thiserror::Error;
 
     use super::*;
     use abstract_testing::*;
@@ -81,17 +83,23 @@ mod tests {
         Api(#[from] ApiError),
     }
 
-    fn mock_init_handler(_deps: DepsMut, _env: Env, _info: MessageInfo,_api: MockApi, _msg: Empty) -> Result<Response, MockError> {
+    fn mock_init_handler(
+        _deps: DepsMut,
+        _env: Env,
+        _info: MessageInfo,
+        _api: MockApi,
+        _msg: Empty,
+    ) -> Result<Response, MockError> {
         Ok(Response::new().set_data("mock_response".as_bytes()))
     }
 
     fn mock_api() -> MockApi {
         MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-        .with_instantiate(mock_init_handler)
+            .with_instantiate(mock_init_handler)
     }
 
     #[test]
-    fn successful () -> ApiMockResult {
+    fn successful() -> ApiMockResult {
         let api = mock_api();
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
@@ -110,7 +118,7 @@ mod tests {
         assert_that!(&res.data).is_equal_to(Some("mock_response".as_bytes().into()));
 
         let module_data = MODULE.load(&deps.storage)?;
-        assert_that!(module_data).is_equal_to(ModuleData{
+        assert_that!(module_data).is_equal_to(ModuleData {
             module: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
             dependencies: vec![],
@@ -128,7 +136,7 @@ mod tests {
         assert!(no_traders_registered);
 
         let state = api.base_state.load(&deps.storage)?;
-        assert_that!(state).is_equal_to( ApiState {
+        assert_that!(state).is_equal_to(ApiState {
             version_control: Addr::unchecked(TEST_VERSION_CONTROL),
             ans_host: AnsHost {
                 address: Addr::unchecked(TEST_ANS_HOST),
@@ -138,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn invalid_ans_host () -> ApiMockResult {
+    fn invalid_ans_host() -> ApiMockResult {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
@@ -152,12 +160,14 @@ mod tests {
             app: Empty {},
         };
         let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
-        assert_that!(&res).is_err_containing(&StdError::generic_err("Invalid input: human address too short").into());
+        assert_that!(&res).is_err_containing(
+            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
+        );
         Ok(())
     }
 
     #[test]
-    fn invalid_version_control () -> ApiMockResult {
+    fn invalid_version_control() -> ApiMockResult {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &vec![]);
@@ -171,7 +181,9 @@ mod tests {
             app: Empty {},
         };
         let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
-        assert_that!(&res).is_err_containing(&StdError::generic_err("Invalid input: human address too short").into());
+        assert_that!(&res).is_err_containing(
+            &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
+        );
         Ok(())
     }
 }

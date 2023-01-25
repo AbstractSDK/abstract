@@ -4,7 +4,7 @@ use abstract_os::objects::{PoolMetadata, UncheckedChannelEntry, UncheckedContrac
 use abstract_os::ANS_HOST;
 use boot_core::prelude::ContractInstance;
 use boot_core::{
-    prelude::boot_contract, BootEnvironment, BootError, Contract, Daemon, IndexResponse, TxResponse,
+    prelude::boot_contract, BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
@@ -31,6 +31,9 @@ where
 }
 
 /// Implementation for the daemon, which maintains actual state
+#[cfg(feature = "daemon")]
+use boot_core::Daemon;
+#[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
         self.update_assets()?;
@@ -40,7 +43,7 @@ impl AnsHost<Daemon> {
     }
 
     pub fn update_assets(&self) -> Result<(), BootError> {
-        let path = env::var("ANS_HOST_ASSETS")?;
+        let path = env::var("ANS_HOST_ASSETS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
@@ -90,7 +93,7 @@ impl AnsHost<Daemon> {
     }
 
     pub fn update_channels(&self) -> Result<(), BootError> {
-        let path = env::var("ANS_HOST_CHANNELS")?;
+        let path = env::var("ANS_HOST_CHANNELS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
@@ -121,7 +124,7 @@ impl AnsHost<Daemon> {
     }
 
     pub fn update_contracts(&self) -> Result<(), BootError> {
-        let path = env::var("ANS_HOST_CONTRACTS")?;
+        let path = env::var("ANS_HOST_CONTRACTS").unwrap();
 
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -167,7 +170,7 @@ impl AnsHost<Daemon> {
     }
 
     pub fn update_pools(&self) -> Result<(), BootError> {
-        let path = env::var("ANS_HOST_POOLS")?;
+        let path = env::var("ANS_HOST_POOLS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;

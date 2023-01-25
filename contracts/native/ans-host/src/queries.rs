@@ -288,7 +288,6 @@ mod test {
     }
 
     fn query_asset_list_msg(token: String, size: usize) -> QueryMsg {
-        
         QueryMsg::AssetList {
             page_token: (Some(token)),
             page_size: (Some(size as u8)),
@@ -394,7 +393,6 @@ mod test {
     }
 
     fn create_channel_msg(input: Vec<(&str, &str)>) -> QueryMsg {
-        
         QueryMsg::Channels {
             names: create_channel_entry(input),
         }
@@ -473,7 +471,6 @@ mod test {
     }
 
     fn create_dex_asset_pairing(asset_x: &str, asset_y: &str, dex: &str) -> DexAssetPairing {
-        
         DexAssetPairing::new(AssetEntry::new(asset_x), AssetEntry::new(asset_y), dex)
     }
 
@@ -524,7 +521,6 @@ mod test {
     }
 
     fn create_option_pool_ref(id: u64, pool_id: &str, api: MockApi) -> Option<Vec<PoolReference>> {
-        
         Some(vec![PoolReference {
             unique_id: UniquePoolId::new(id),
             pool_address: PoolAddressBase::contract(pool_id).check(&api).unwrap(),
@@ -532,7 +528,6 @@ mod test {
     }
 
     fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
-        
         PoolMetadata::new(
             dex,
             abstract_os::objects::PoolType::Stable,

@@ -14,10 +14,10 @@ cw-asset = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
-boot-core = {workspace = true}
+boot-core = {workspace = true, features = ["daemon"]}
 abstract-os = { workspace = true, features = ["boot"] }
 
-abstract-boot = { workspace = true}
+abstract-boot = { workspace = true, features = ["daemon"] }
 tokio = { version = "1.4", features = ["full"] }
 log = "0.4.14"
 anyhow = { workspace = true}

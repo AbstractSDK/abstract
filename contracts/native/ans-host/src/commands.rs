@@ -12,7 +12,7 @@ use abstract_os::objects::{
 };
 use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cw_asset::AssetInfoUnchecked;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -87,17 +87,19 @@ pub fn update_asset_addresses(
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     for (name, new_asset) in to_add.into_iter() {
-        // Update function for new or existing keys
-        let api = deps.api;
-        let insert = |_| -> StdResult<AssetInfo> {
-            // use own check, cw_asset otherwise changes cases to lowercase
-            new_asset.check(api, None)
-        };
-        ASSET_ADDRESSES.update(deps.storage, name.into(), insert)?;
+        // validate asset
+        let asset = new_asset.check(deps.as_ref().api, None)?;
+
+        ASSET_ADDRESSES.save(deps.storage, name.clone().into(), &asset)?;
+        REV_ASSET_ADDRESSES.save(deps.storage, asset, &name.into())?;
     }
 
     for name in to_remove {
-        ASSET_ADDRESSES.remove(deps.storage, name.into());
+        let maybe_asset = ASSET_ADDRESSES.may_load(deps.storage, name.clone().into())?;
+        if let Some(asset) = maybe_asset {
+            ASSET_ADDRESSES.remove(deps.storage, name.into());
+            REV_ASSET_ADDRESSES.remove(deps.storage, asset);
+        }
     }
 
     Ok(Response::new().add_attribute("action", "updated asset addresses"))
@@ -730,7 +732,8 @@ mod test {
         use super::*;
         use abstract_os::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::AssetInfoBase;
+        use cw_asset::{AssetInfoBase, AssetInfo};
+        use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
             name: &str,
@@ -803,7 +806,11 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             let mut map_tester = setup_map_tester();
-            map_tester.test_add_one(&mut deps)
+            map_tester.test_add_one(&mut deps)?;
+            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let test_entry = reverse_map.load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
+            Ok(())
         }
 
         #[test]
@@ -830,7 +837,11 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
 
             let mut map_tester = setup_map_tester();
-            map_tester.test_add_and_remove_same(&mut deps)
+            map_tester.test_add_and_remove_same(&mut deps)?;
+            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let test_entry = reverse_map.may_load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            assert_that!(test_entry).is_equal_to(None);
+            Ok(())
         }
 
         #[test]

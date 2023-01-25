@@ -1,6 +1,7 @@
 use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
 use crate::ans_host::state::{
     ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,
+    REV_ASSET_ADDRESSES,
 };
 use crate::objects::{DexAssetPairing, PoolMetadata, PoolReference, UniquePoolId};
 use cosmwasm_std::{Addr, QuerierWrapper, StdError, StdResult};
@@ -84,6 +85,36 @@ impl AnsHost {
         Ok(result)
     }
 
+    /// Raw Query to AnsHost contract
+    pub fn query_assets_reverse(
+        &self,
+        querier: &QuerierWrapper,
+        assets: Vec<AssetInfo>,
+    ) -> StdResult<Vec<AssetEntry>> {
+        // AssetInfo does not implement PartialEq, so we can't use a BTreeMap
+        let mut resolved_assets = vec![];
+
+        for asset in assets.into_iter() {
+            let result = self.query_asset_reverse(querier, &asset)?;
+            resolved_assets.push(result);
+        }
+        Ok(resolved_assets)
+    }
+
+    /// Raw query of a single AssetEntry
+    pub fn query_asset_reverse(
+        &self,
+        querier: &QuerierWrapper,
+        asset: &AssetInfo,
+    ) -> StdResult<AssetEntry> {
+        let result = REV_ASSET_ADDRESSES
+            .query(querier, self.address.clone(), asset.clone())?
+            .ok_or_else(|| {
+                StdError::generic_err(format!("asset {} not found in ans_host", &asset))
+            })?;
+        Ok(result)
+    }
+
     /// Raw query of a single channel Addr
     pub fn query_channel(
         &self,
@@ -131,17 +162,4 @@ impl AnsHost {
             })?;
         Ok(result)
     }
-
-    // Query single pair address from mem
-    // pub fn query_pair_address(
-    //     &self,
-    //     deps: Deps,
-    //     asset_names: [String; 2],
-    //     dex: &str,
-    // ) -> StdResult<Addr> {
-    //     let mut lowercase = asset_names.map(|s| s.to_ascii_lowercase());
-    //     lowercase.sort();
-    //     let key = format!("{}_{}", lowercase[0], lowercase[1]);
-    //     query_contract_from_mem(deps, &self.address, &ContractEntry::new(dex, &key))
-    // }
 }

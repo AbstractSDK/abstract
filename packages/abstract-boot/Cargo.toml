@@ -7,6 +7,7 @@ description = "Abstract deployment helpers with BOOT"
 
 [features]
 default = ["integration"]
+daemon = ["boot-core/daemon"]
 integration = ["dep:ans-host", "dep:cw-multi-test", "dep:module-factory", "dep:os-factory", "dep:version-control", "dep:proxy", "dep:manager"]
 
 [dependencies]
