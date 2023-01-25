@@ -22,3 +22,5 @@ ignore:
   - "contracts/modules/apps/etf/src/response.rs"
   - "contracts/native/module-factory/src/response.rs"
   - "contracts/native/os-factory/src/response.rs"
+  # We also ignore the schema generators
+  - "**/schema.rs"
