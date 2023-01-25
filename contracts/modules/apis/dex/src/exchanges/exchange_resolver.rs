@@ -4,7 +4,7 @@ use crate::DEX;
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
-pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+pub use crate::exchanges::{junoswap::{JunoSwap, JUNOSWAP}, wyndex::{WynDex, WYNDEX}};
 
 #[cfg(any(feature = "juno", feature = "terra"))]
 pub use crate::exchanges::loop_dex::{Loop, LOOP};
@@ -23,6 +23,8 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
         #[cfg(feature = "juno")]
+        WYNDEX => Ok(&WynDex {}),
+        #[cfg(feature = "juno")]
         OSMOSIS => Ok(&Osmosis {
             local_proxy_addr: None,
         }),
@@ -40,6 +42,8 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
     match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),
+        #[cfg(feature = "juno")]
+        WYNDEX => Ok(&WynDex {}),
         // #[cfg(feature = "osmosis")]
         // OSMOSIS => Ok(&Osmosis {
         //     local_proxy_addr: None,

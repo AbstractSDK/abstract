@@ -1,5 +1,9 @@
 #[cfg(feature = "juno")]
 pub mod junoswap;
+
+#[cfg(feature = "juno")]
+pub mod wyndex;
+
 #[cfg(any(feature = "juno", feature = "terra"))]
 pub mod loop_dex;
 #[cfg(feature = "terra")]
