@@ -25,6 +25,7 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 abstract-os = { workspace = true }
 semver = { workspace = true }
+abstract-macros = { workspace = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

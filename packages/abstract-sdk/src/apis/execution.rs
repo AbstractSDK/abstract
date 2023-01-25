@@ -1,18 +1,19 @@
 //! # Executor
 //! The executor provides function for executing commands on the OS.
 //!
-use super::Identification;
+use super::{Identification, ModuleIdentification};
+use abstract_macros::with_abstract_event;
 use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, StdError, StdResult, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the OS.
-pub trait Execution: Identification {
+pub trait Execution: Identification + ModuleIdentification {
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
 }
 
-impl<T> Execution for T where T: Identification {}
+impl<T> Execution for T where T: Identification + ModuleIdentification {}
 
 #[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
@@ -56,9 +57,9 @@ impl<'a, T: Execution> Executor<'a, T> {
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(&self, msgs: Vec<CosmosMsg>, action: &str) -> StdResult<Response> {
         let msg = self.execute(msgs)?;
-        Ok(Response::new()
-            .add_message(msg)
-            .add_attribute("action", action))
+        let resp = Response::default();
+
+        Ok(with_abstract_event!(resp, self.base.module_id(), action).add_message(msg))
     }
 }
 
@@ -214,8 +215,12 @@ mod test {
             });
 
             let expected = Response::new()
-                .add_message(expected_msg)
-                .add_attribute("action", expected_action);
+                .add_event(
+                    Event::new("abstract")
+                        .add_attribute("contract", stub.module_id())
+                        .add_attribute("action", expected_action),
+                )
+                .add_message(expected_msg);
 
             assert_that!(actual_res).is_ok().is_equal_to(expected);
         }
@@ -239,8 +244,12 @@ mod test {
                 funds: vec![],
             });
             let expected = Response::new()
-                .add_message(expected_msg)
-                .add_attribute("action", expected_action);
+                .add_event(
+                    Event::new("abstract")
+                        .add_attribute("contract", stub.module_id())
+                        .add_attribute("action", expected_action),
+                )
+                .add_message(expected_msg);
             assert_that!(actual_res).is_ok().is_equal_to(expected);
         }
     }

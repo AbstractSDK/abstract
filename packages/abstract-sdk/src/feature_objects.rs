@@ -6,8 +6,10 @@
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
 
+use crate::apis::ModuleIdentification;
 use crate::base::features::{Identification, RegisterAccess};
 pub use abstract_os::objects::ans_host::AnsHost;
+use os::PROXY;
 
 #[derive(Clone)]
 /// Store the Version Control contract.
@@ -35,6 +37,12 @@ impl Identification for ProxyContract {
     }
 }
 
+impl ModuleIdentification for ProxyContract {
+    fn module_id(&self) -> &'static str {
+        PROXY
+    }
+}
+
 impl Identification for Core {
     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
         Ok(self.proxy.clone())
@@ -46,6 +54,13 @@ impl Identification for Core {
 
     fn os_core(&self, _deps: Deps) -> cosmwasm_std::StdResult<Core> {
         Ok(self.clone())
+    }
+}
+
+impl ModuleIdentification for Core {
+    // Any actions executed by the core will be by the proxy address
+    fn module_id(&self) -> &'static str {
+        PROXY
     }
 }
 

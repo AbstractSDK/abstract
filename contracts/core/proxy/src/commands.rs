@@ -1,15 +1,19 @@
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_sdk::os::ibc_client::ExecuteMsg as IbcClientMsg;
-use abstract_sdk::os::objects::proxy_asset::UncheckedProxyAsset;
-use abstract_sdk::os::proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_sdk::os::IBC_CLIENT;
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, Response, StdError,
+use abstract_macros::abstract_response;
+use abstract_sdk::os::{
+    ibc_client::ExecuteMsg as IbcClientMsg,
+    objects::proxy_asset::UncheckedProxyAsset,
+    proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
+    IBC_CLIENT, PROXY,
 };
+use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, StdError};
 
 const LIST_SIZE_LIMIT: usize = 15;
+
+#[abstract_response(PROXY)]
+struct ProxyResponse;
 
 /// Executes actions forwarded by whitelisted contracts
 /// This contracts acts as a proxy contract for the dApps
@@ -26,7 +30,7 @@ pub fn execute_module_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
 
-    Ok(Response::new().add_messages(msgs))
+    Ok(ProxyResponse::action("execute_module_action").add_messages(msgs))
 }
 
 /// Executes IBC actions forwarded by whitelisted contracts
@@ -56,7 +60,8 @@ pub fn execute_ibc_action(
         .into_iter()
         .map(|execute_msg| wasm_execute(&ibc_client_address, &execute_msg, vec![]))
         .collect();
-    Ok(Response::new().add_messages(client_msgs?))
+
+    Ok(ProxyResponse::action("execute_ibc_action").add_messages(client_msgs?))
 }
 
 /// Update the stored vault asset information
@@ -96,7 +101,7 @@ pub fn update_assets(
         return Err(ProxyError::BadUpdate(format!("{:?}", validity_result)));
     }
 
-    Ok(Response::new().add_attribute("action", "update_proxy_assets"))
+    Ok(ProxyResponse::action("update_proxy_assets"))
 }
 
 /// Add a contract to the whitelist
@@ -121,7 +126,7 @@ pub fn add_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Proxy
     STATE.save(deps.storage, &state)?;
 
     // Respond and note the change
-    Ok(Response::new().add_attribute("Added contract to whitelist: ", module))
+    Ok(ProxyResponse::new("add_module", vec![("module", module)]))
 }
 
 /// Remove a contract from the whitelist
@@ -140,16 +145,23 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: String) -> Pr
     })?;
 
     // Respond and note the change
-    Ok(Response::new().add_attribute("Removed contract from whitelist: ", module))
+    Ok(ProxyResponse::new(
+        "remove_module",
+        vec![("module", module)],
+    ))
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> Result<Response, ProxyError> {
+pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResult {
     let admin_addr = deps.api.addr_validate(admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(Response::default()
-        .add_attribute("previous admin", previous_admin)
-        .add_attribute("admin", admin))
+    Ok(ProxyResponse::new(
+        "set_admin",
+        vec![
+            ("previous_admin", previous_admin.to_string()),
+            ("admin", admin.to_string()),
+        ],
+    ))
 }
 
 #[cfg(test)]

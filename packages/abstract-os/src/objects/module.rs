@@ -1,6 +1,7 @@
 use super::module_reference::ModuleReference;
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
+use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use std::fmt::{self, Display};
 
@@ -36,6 +37,10 @@ impl ModuleInfo {
 
     pub fn id(&self) -> String {
         format!("{}:{}", self.provider, self.name)
+    }
+
+    pub fn id_with_version(&self) -> String {
+        format!("{}:{}", self.id(), self.version)
     }
 
     pub fn assert_version_variant(&self) -> StdResult<()> {
@@ -174,6 +179,23 @@ impl fmt::Display for ModuleInfo {
     }
 }
 
+impl TryInto<Version> for ModuleVersion {
+    type Error = StdError;
+
+    fn try_into(self) -> StdResult<Version> {
+        match self {
+            ModuleVersion::Latest => Err(StdError::generic_err(
+                "Module version must be set for this action.",
+            )),
+            ModuleVersion::Version(ver) => {
+                let version =
+                    Version::parse(&ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                Ok(version)
+            }
+        }
+    }
+}
+
 impl TryFrom<ContractVersion> for ModuleInfo {
     type Error = StdError;
 
@@ -244,9 +266,11 @@ impl ModuleInitMsg {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+    use speculoos::prelude::*;
 
     fn mock_key() -> ModuleInfo {
         ModuleInfo {
@@ -401,5 +425,59 @@ mod test {
         assert_eq!(items[0], ("1.0.0".to_string(), 69420));
 
         assert_eq!(items[1], ("2.0.0".to_string(), 999));
+    }
+
+    #[test]
+    fn id() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected = "provider:name".to_string();
+
+        assert_that!(info.id()).is_equal_to(expected);
+    }
+
+    #[test]
+    fn id_with_version() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected = "provider:name:1.0.0".to_string();
+
+        assert_that!(info.id_with_version()).is_equal_to(expected);
+    }
+
+    #[test]
+    fn try_into_version_happy_path() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Version("1.0.0".into()),
+        };
+
+        let expected: Version = "1.0.0".to_string().parse().unwrap();
+
+        let actual: Version = info.version.try_into().unwrap();
+
+        assert_that!(actual).is_equal_to(expected);
+    }
+
+    #[test]
+    fn try_into_version_with_latest() {
+        let info = ModuleInfo {
+            name: "name".to_string(),
+            provider: "provider".to_string(),
+            version: ModuleVersion::Latest,
+        };
+
+        let actual: Result<Version, _> = info.version.try_into();
+
+        assert_that!(actual).is_err();
     }
 }

@@ -3,17 +3,19 @@ use crate::{
     host_commands::{receive_query, receive_register, receive_who_am_i},
     state::{Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
 };
-use abstract_sdk::base::{ExecuteEndpoint, Handler};
-use abstract_sdk::os::ibc_host::{
-    BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg,
+use abstract_sdk::{
+    base::{ExecuteEndpoint, Handler},
+    os::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
+    Execution,
 };
-use abstract_sdk::Execution;
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
     Response, StdError,
 };
 use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
+
+type HostResult = Result<Response, HostError>;
 
 /// The host contract base implementation.
 impl<
@@ -110,7 +112,7 @@ impl<
         _env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> Result<Response, HostError> {
+    ) -> HostResult {
         match message {
             BaseExecuteMsg::UpdateAdmin { admin } => {
                 let new_admin = deps.api.addr_validate(&admin)?;
@@ -148,7 +150,7 @@ impl<
         info: MessageInfo,
         ans_host_address: Option<String>,
         cw1_code_id: Option<u64>,
-    ) -> Result<Response, HostError> {
+    ) -> HostResult {
         let mut state = self.state(deps.storage)?;
 
         self.admin.assert_admin(deps.as_ref(), &info.sender)?;

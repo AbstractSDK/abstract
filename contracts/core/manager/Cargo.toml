@@ -1,8 +1,8 @@
 [package]
 name = "manager"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
 
 exclude = [
   "contract.wasm",
@@ -20,32 +20,33 @@ backtraces = ["cosmwasm-std/backtraces"]
 [dependencies]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cw-controllers = {workspace = true}
-cw-storage-plus = {workspace = true}
-cw2 = {workspace = true}
-cw20 = {workspace = true}
-cw-asset= {workspace = true}
-schemars = {workspace = true}
-serde = {workspace = true}
-thiserror = {workspace = true}
-abstract-sdk = {workspace = true}
-abstract-os = {workspace = true}
-semver = {workspace = true}
-cw-semver = {workspace = true}
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw-asset = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-os = { workspace = true }
+semver = { workspace = true }
+cw-semver = { workspace = true }
+abstract-macros = { workspace = true }
 
 [dev-dependencies]
-cw-multi-test = { workspace = true , features = ["staking"]}
+cw-multi-test = { workspace = true, features = ["staking"] }
 cw20 = { workspace = true }
-abstract-boot = {workspace = true}
-boot-core = { workspace = true}
-anyhow = {workspace = true}
+abstract-boot = { workspace = true }
+boot-core = { workspace = true }
+anyhow = { workspace = true }
 os-factory = { workspace = true }
 module-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
-rstest = {workspace = true }
+rstest = { workspace = true }
 speculoos = { workspace = true }
 
-tendermint-staking = {path = "../../modules/apis/tendermint-staking"}
+tendermint-staking = { path = "../../modules/apis/tendermint-staking" }

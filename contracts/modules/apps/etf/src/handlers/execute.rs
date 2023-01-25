@@ -4,12 +4,14 @@ use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
 use abstract_os::etf::EtfExecuteMsg;
 use abstract_sdk::base::features::AbstractNameService;
+use abstract_sdk::base::features::AbstractResponse;
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::objects::deposit_info::DepositInfo;
 use abstract_sdk::os::objects::fee::Fee;
 use abstract_sdk::*;
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128, WasmMsg,
+    to_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
+    Uint128, WasmMsg,
 };
 use cosmwasm_std::{QuerierWrapper, StdResult};
 use cw20::Cw20ExecuteMsg;
@@ -121,8 +123,8 @@ pub fn try_provide_liquidity(
     // Send received asset to the vault.
     let send_to_vault = asset.transfer_msg(base_state.proxy_address)?;
 
-    let response = Response::new()
-        .add_attributes(attrs)
+    let response = dapp
+        .custom_tag_response(Response::default(), "provide_liquidity", attrs)
         .add_message(mint_lp)
         .add_message(send_to_vault);
 
@@ -148,10 +150,7 @@ pub fn try_withdraw_liquidity(
     let assets = dapp.name_service(deps.as_ref()).query(&assets)?;
 
     // Logging var
-    let mut attrs = vec![
-        ("action", String::from("Withdraw from vault")),
-        ("Received liquidity tokens:", amount.to_string()),
-    ];
+    let mut attrs = vec![("liquidity_tokens", amount.to_string())];
 
     // Calculate share of pool and requested pool value
     let total_share: Uint128 = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
@@ -162,9 +161,7 @@ pub fn try_withdraw_liquidity(
     // Share with fee deducted.
     let share_ratio: Decimal = Decimal::from_ratio(amount - provider_fee, total_share);
 
-    // Init response
-    let mut response = Response::new();
-
+    let mut msgs: Vec<CosmosMsg> = vec![];
     if !provider_fee.is_zero() {
         // LP token fee
         let lp_token_provider_fee = Asset {
@@ -176,9 +173,9 @@ pub fn try_withdraw_liquidity(
         let provider_fee_msg = fee.msg(lp_token_provider_fee, state.provider_addr.clone())?;
 
         // Transfer fee
-        response = response.add_message(provider_fee_msg);
+        msgs.push(provider_fee_msg);
     }
-    attrs.push(("Treasury fee:", provider_fee.to_string()));
+    attrs.push(("treasury_fee", provider_fee.to_string()));
 
     // Get asset holdings of vault and calculate amount to return
     let mut pay_back_assets: Vec<Asset> = vec![];
@@ -205,7 +202,7 @@ pub fn try_withdraw_liquidity(
                     .clone()
                     .transfer_msg(Addr::unchecked(sender.clone()))?,
             );
-            attrs.push(("Repaying:", asset.to_string()));
+            attrs.push(("repayment", asset.to_string()));
         }
     }
 
@@ -213,22 +210,22 @@ pub fn try_withdraw_liquidity(
     let vault_refund_msg = dapp.executor(deps.as_ref()).execute(refund_msgs)?;
 
     // LP burn msg
-    let burn_msg = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: state.liquidity_token_addr.into(),
+    let burn_msg: CosmosMsg = wasm_execute(
+        state.liquidity_token_addr,
         // Burn exludes fee
-        msg: to_binary(&Cw20ExecuteMsg::Burn {
+        &Cw20ExecuteMsg::Burn {
             amount: (amount - provider_fee),
-        })?,
-        funds: vec![],
-    });
+        },
+        vec![],
+    )?
+    .into();
 
-    Ok(response
-        .add_attribute("action", "Withdraw Liquidity")
+    Ok(dapp
+        .custom_tag_response(Response::default(), "withdraw_liquidity", attrs)
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner
-        .add_message(vault_refund_msg)
-        .add_attributes(attrs))
+        .add_message(vault_refund_msg))
 }
 
 fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal) -> EtfResult {
@@ -238,7 +235,11 @@ fn set_fee(deps: DepsMut, msg_info: MessageInfo, dapp: EtfApp, new_fee: Decimal)
     let fee = Fee::new(new_fee)?;
 
     FEE.save(deps.storage, &fee)?;
-    Ok(Response::new().add_attribute("Update:", "Successful"))
+    Ok(dapp.custom_tag_response(
+        Response::default(),
+        "set_fee",
+        vec![("fee", new_fee.to_string())],
+    ))
 }
 
 fn query_supply(querier: &QuerierWrapper, contract_addr: Addr) -> StdResult<Uint128> {

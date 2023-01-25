@@ -1,4 +1,5 @@
 use crate::{error::ClientError, ibc::PACKET_LIFETIME};
+use abstract_macros::abstract_response;
 use abstract_os::ibc_client::state::ADMIN;
 use abstract_sdk::os::ibc_client::{
     state::{AccountData, Config, ACCOUNTS, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
@@ -20,8 +21,14 @@ use cosmwasm_std::{
     Response, StdError, StdResult, Storage,
 };
 use cw2::set_contract_version;
+
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const MAX_RETRIES: u8 = 5;
+
+type IbcClientResult = Result<Response, ClientError>;
+
+#[abstract_response(IBC_CLIENT)]
+struct IbcClientResponse;
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -44,16 +51,11 @@ pub fn instantiate(
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
 
     ADMIN.set(deps, Some(info.sender))?;
-    Ok(Response::new().add_attribute("action", "instantiate"))
+    Ok(IbcClientResponse::action("instantiate"))
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn execute(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: ExecuteMsg,
-) -> Result<Response, ClientError> {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IbcClientResult {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => {
             let new_admin = deps.api.addr_validate(&admin)?;
@@ -86,7 +88,7 @@ pub fn execute_update_config(
     info: MessageInfo,
     new_ans_host: Option<String>,
     new_version_control: Option<String>,
-) -> Result<Response, ClientError> {
+) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     let mut cfg = CONFIG.load(deps.storage)?;
@@ -107,7 +109,7 @@ pub fn execute_update_config(
 
     CONFIG.save(deps.storage, &cfg)?;
 
-    Ok(Response::new().add_attribute("action", "update_config"))
+    Ok(IbcClientResponse::action("update_config"))
 }
 
 // allows admins to clear host if needed
@@ -115,12 +117,12 @@ pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
     host_chain: String,
-) -> Result<Response, ClientError> {
+) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
     CHANNELS.remove(deps.storage, &host_chain);
 
-    Ok(Response::new().add_attribute("action", "remove_host"))
+    Ok(IbcClientResponse::action("remove_host"))
 }
 
 pub fn execute_send_packet(
@@ -131,7 +133,7 @@ pub fn execute_send_packet(
     action: HostAction,
     callback_info: Option<CallbackInfo>,
     mut retries: u8,
-) -> Result<Response, ClientError> {
+) -> IbcClientResult {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract {
@@ -165,10 +167,7 @@ pub fn execute_send_packet(
         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
     };
 
-    let res = Response::new()
-        .add_message(msg)
-        .add_attribute("action", "handle_send_msgs");
-    Ok(res)
+    Ok(IbcClientResponse::action("handle_send_msgs").add_message(msg))
 }
 
 pub fn execute_register_os(
@@ -176,7 +175,7 @@ pub fn execute_register_os(
     env: Env,
     info: MessageInfo,
     host_chain: String,
-) -> Result<Response, ClientError> {
+) -> IbcClientResult {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
     // Verify that the sender is a proxy contract
@@ -211,10 +210,7 @@ pub fn execute_register_os(
         timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
     };
 
-    let res = Response::new()
-        .add_message(msg)
-        .add_attribute("action", "handle_register");
-    Ok(res)
+    Ok(IbcClientResponse::action("handle_register").add_message(msg))
 }
 
 pub fn execute_send_funds(
@@ -270,10 +266,7 @@ pub fn execute_send_funds(
     // let these messages be executed by proxy
     let proxy_msg = core.executor(deps.as_ref()).execute(transfers)?;
 
-    let res = Response::new()
-        .add_message(proxy_msg)
-        .add_attribute("action", "handle_send_funds");
-    Ok(res)
+    Ok(IbcClientResponse::action("handle_send_funds").add_message(proxy_msg))
 }
 
 fn clear_accounts(store: &mut dyn Storage) {

@@ -4,34 +4,39 @@ use crate::{
     validation::validate_name_or_gov_type,
 };
 use crate::{validation, versioning};
-use abstract_sdk::feature_objects::VersionControlContract;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use abstract_sdk::os::{
-    api::{
-        BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
-        TradersResponse,
+use abstract_macros::abstract_response;
+use abstract_sdk::{
+    feature_objects::VersionControlContract,
+    helpers::cosmwasm_std::wasm_smart_query,
+    os::{
+        api::{
+            BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
+            TradersResponse,
+        },
+        manager::state::DEPENDENTS,
+        manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
+        manager::{CallbackMsg, ExecuteMsg},
+        module_factory::ExecuteMsg as ModuleFactoryMsg,
+        objects::{
+            dependency::Dependency,
+            module::{Module, ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+        },
+        proxy::ExecuteMsg as ProxyMsg,
+        IBC_CLIENT, MANAGER, PROXY,
     },
-    manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
-    module_factory::ExecuteMsg as ModuleFactoryMsg,
-    objects::{
-        module::{Module, ModuleInfo, ModuleVersion},
-        module_reference::ModuleReference,
-    },
-    proxy::ExecuteMsg as ProxyMsg,
-    IBC_CLIENT,
+    VersionRegisterInterface,
 };
-use abstract_sdk::os::{MANAGER, PROXY};
-use abstract_sdk::*;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    Response, StdResult, Storage, WasmMsg,
+    StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
-use os::manager::state::DEPENDENTS;
-use os::manager::{CallbackMsg, ExecuteMsg};
-use os::objects::dependency::Dependency;
 use semver::Version;
+
+#[abstract_response(MANAGER)]
+pub struct ManagerResponse;
 
 pub(crate) const MIGRATE_CONTEXT: Item<Vec<(String, Vec<Dependency>)>> = Item::new("context");
 
@@ -64,7 +69,7 @@ pub fn update_module_addresses(
         }
     }
 
-    Ok(Response::new().add_attribute("action", "update_module_addresses"))
+    Ok(ManagerResponse::action("update_module_addresses"))
 }
 
 // Attempts to install a new module through the Module Factory Contract
@@ -85,11 +90,13 @@ pub fn install_module(
 
     let config = CONFIG.load(deps.storage)?;
 
-    let response = Response::new().add_message(wasm_execute(
-        config.module_factory_address,
-        &ModuleFactoryMsg::InstallModule { module, init_msg },
-        vec![],
-    )?);
+    let response =
+        ManagerResponse::new("install_module", vec![("module", module.id_with_version())])
+            .add_message(wasm_execute(
+                config.module_factory_address,
+                &ModuleFactoryMsg::InstallModule { module, init_msg },
+                vec![],
+            )?);
 
     Ok(response)
 }
@@ -162,11 +169,13 @@ pub fn exec_on_module(
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
-    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: module_addr.into(),
-        msg: exec_msg,
-        funds: vec![],
-    }));
+    let response = ManagerResponse::new("exec_on_module", vec![("module", module_id)]).add_message(
+        CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: module_addr.into(),
+            msg: exec_msg,
+            funds: vec![],
+        }),
+    );
 
     Ok(response)
 }
@@ -209,9 +218,10 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )?;
     OS_MODULES.remove(deps.storage, &module_id);
 
-    Ok(Response::new()
-        .add_message(remove_from_proxy_msg)
-        .add_attribute("Removed module", &module_id))
+    Ok(
+        ManagerResponse::new("uninstall_module", vec![("module", module_id)])
+            .add_message(remove_from_proxy_msg),
+    )
 }
 
 pub fn set_root_and_gov_type(
@@ -232,9 +242,10 @@ pub fn set_root_and_gov_type(
     }
 
     ROOT.execute_update_admin::<Empty, Empty>(deps, info, Some(root_addr))?;
-    Ok(Response::default()
-        .add_attribute("previous root", previous_root)
-        .add_attribute("root", root))
+    Ok(ManagerResponse::new(
+        "update_root",
+        vec![("previous_root", previous_root.to_string()), ("root", root)],
+    ))
 }
 
 /// Migrate modules through address updates or contract migrations
@@ -260,7 +271,7 @@ pub fn upgrade_modules(
         &ExecuteMsg::Callback(CallbackMsg {}),
         vec![],
     )?;
-    Ok(Response::new()
+    Ok(ManagerResponse::action("upgrade_modules")
         .add_messages(upgrade_msgs)
         .add_message(callback_msg))
 }
@@ -282,7 +293,7 @@ pub fn set_migrate_msgs_and_context(
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
                 &id,
-                module.info.version.to_string().parse().unwrap(),
+                module.info.version.try_into()?,
             )?;
             let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
             // Update the address of the api internally
@@ -305,7 +316,7 @@ pub fn set_migrate_msgs_and_context(
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
                 &module.info.id(),
-                module.info.version.to_string().parse().unwrap(),
+                module.info.version.try_into()?,
             )?;
             let old_deps = versioning::load_module_dependencies(deps.as_ref(), &id)?;
 
@@ -416,7 +427,8 @@ pub fn update_info(
     validate_link(&link)?;
     info.link = link;
     INFO.save(deps.storage, &info)?;
-    Ok(Response::new())
+
+    Ok(ManagerResponse::action("update_info"))
 }
 
 pub fn update_subscription_status(
@@ -430,7 +442,10 @@ pub fn update_subscription_status(
     if let Some(sub_addr) = config.subscription_address {
         if sub_addr.eq(&info.sender) {
             STATUS.save(deps.storage, &new_status)?;
-            return Ok(Response::new().add_attribute("new_status", new_status.to_string()));
+            return Ok(ManagerResponse::new(
+                "update_subscription_status",
+                vec![("new_status", new_status.to_string())],
+            ));
         }
     }
     Err(ManagerError::CallerNotSubscriptionContract {})
@@ -457,10 +472,10 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
         }
     };
 
-    Ok(Response::new()
-        .add_message(proxy_callback_msg)
-        .add_attribute("action", "enable_ibc")
-        .add_attribute("new_status", enable_ibc.to_string()))
+    Ok(
+        ManagerResponse::new("enable_ibc", vec![("new_status", enable_ibc.to_string())])
+            .add_message(proxy_callback_msg),
+    )
 }
 
 fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
@@ -540,7 +555,7 @@ fn upgrade_self(
             new_code_id: manager_code_id,
             msg: migrate_msg,
         });
-        Ok(Response::new().add_message(migration_msg))
+        Ok(ManagerResponse::action("upgrade_self").add_message(migration_msg))
     } else {
         Err(ManagerError::InvalidReference(module_info))
     }

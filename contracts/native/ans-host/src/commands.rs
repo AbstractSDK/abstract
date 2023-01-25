@@ -1,21 +1,28 @@
 use crate::contract::AnsHostResult;
 use crate::error::AnsHostError;
 use crate::error::AnsHostError::InvalidAssetCount;
-use abstract_os::ans_host::ExecuteMsg;
-use abstract_os::ans_host::{state::*, AssetPair};
-use abstract_os::dex::DexName;
-use abstract_os::objects::pool_id::{PoolAddress, UncheckedPoolAddress};
-use abstract_os::objects::pool_metadata::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{
-    AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+use abstract_macros::abstract_response;
+use abstract_os::{
+    ans_host::ExecuteMsg,
+    ans_host::{state::*, AssetPair},
+    dex::DexName,
+    objects::{
+        pool_id::{PoolAddress, UncheckedPoolAddress},
+        pool_metadata::PoolMetadata,
+        pool_reference::PoolReference,
+        AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+    },
+    ANS_HOST,
 };
-use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, StdResult};
 use cosmwasm_std::{Env, StdError, Storage};
 use cw_asset::AssetInfoUnchecked;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
+
+#[abstract_response(ANS_HOST)]
+pub struct AnsHostResponse;
 
 /// Handles the common base execute messages
 pub fn handle_message(
@@ -73,7 +80,7 @@ pub fn update_contract_addresses(
         CONTRACT_ADDRESSES.remove(deps.storage, key);
     }
 
-    Ok(Response::new().add_attribute("action", "updated contract addresses"))
+    Ok(AnsHostResponse::action("update_contract_addresses"))
 }
 
 /// Adds, updates or removes provided addresses.
@@ -102,7 +109,7 @@ pub fn update_asset_addresses(
         }
     }
 
-    Ok(Response::new().add_attribute("action", "updated asset addresses"))
+    Ok(AnsHostResponse::action("update_asset_addresses"))
 }
 
 /// Adds, updates or removes provided addresses.
@@ -127,7 +134,7 @@ pub fn update_channels(
         CHANNELS.remove(deps.storage, key);
     }
 
-    Ok(Response::new().add_attribute("action", "updated contract addresses"))
+    Ok(AnsHostResponse::action("update_channels"))
 }
 
 /// Updates the dex registry with additions and removals
@@ -163,7 +170,7 @@ fn update_dex_registry(
         REGISTERED_DEXES.update(deps.storage, deregister_dex)?;
     }
 
-    Ok(Response::new().add_attribute("action", "update dex registry"))
+    Ok(AnsHostResponse::action("update_dexes"))
 }
 
 fn update_pools(
@@ -234,7 +241,7 @@ fn update_pools(
         })?;
     }
 
-    Ok(Response::new().add_attribute("action", "updated pools"))
+    Ok(AnsHostResponse::action("update_pools"))
 }
 
 /// Execute an action on every asset pairing in the list of assets
@@ -359,9 +366,13 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResu
     let admin_addr = deps.api.addr_validate(&admin)?;
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(Response::default()
-        .add_attribute("previous admin", previous_admin)
-        .add_attribute("admin", admin))
+    Ok(AnsHostResponse::new(
+        "set_admin",
+        vec![
+            ("previous_admin", previous_admin.to_string()),
+            ("admin", admin),
+        ],
+    ))
 }
 
 #[cfg(test)]

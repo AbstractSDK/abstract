@@ -24,3 +24,4 @@ abstract-os = { workspace = true }
 abstract-ibc-host = { workspace = true}
 abstract-sdk = {workspace = true}
 cosmwasm-schema = { workspace = true }
+abstract-macros = { workspace = true }

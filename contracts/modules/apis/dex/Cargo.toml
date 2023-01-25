@@ -32,6 +32,7 @@ abstract-sdk = { workspace = true }
 abstract-api = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
+abstract-macros = { workspace = true }
 
 # Juno dexes
 cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }

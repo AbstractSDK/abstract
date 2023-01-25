@@ -26,6 +26,8 @@ semver = { workspace = true }
 thiserror = { workspace = true }
 abstract-os = { workspace = true }
 cw-asset = { workspace = true }
+abstract-macros = { workspace = true }
+
 
 [dev-dependencies]
 cw20 = { workspace = true }

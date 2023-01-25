@@ -31,6 +31,7 @@ schemars = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+abstract-macros = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true }

@@ -1,21 +1,26 @@
 use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
 use crate::{response::MsgInstantiateContractResponse, state::*};
+use abstract_macros::abstract_response;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
     os::{
         manager::ExecuteMsg as ManagerMsg,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
+        MODULE_FACTORY,
     },
     *,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
-    Response, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
+    StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
+
+#[abstract_response(MODULE_FACTORY)]
+struct ModuleFactoryResponse;
 
 /// Function that starts the creation of the OS
 pub fn execute_create_module(
@@ -66,6 +71,7 @@ pub fn execute_create_module(
             new_module.info,
         ),
         ModuleReference::Api(addr) => {
+            let module_id = new_module.info.id_with_version();
             let register_msg: CosmosMsg<Empty> = wasm_execute(
                 core.manager.into_string(),
                 &ManagerMsg::RegisterModule {
@@ -75,7 +81,10 @@ pub fn execute_create_module(
                 vec![],
             )?
             .into();
-            Ok(Response::new().add_message(register_msg))
+            Ok(
+                ModuleFactoryResponse::new("execute_create_module", vec![("module", &module_id)])
+                    .add_message(register_msg),
+            )
         }
         ModuleReference::Standalone(code_id) => instantiate_contract(
             block_height,
@@ -97,7 +106,10 @@ fn instantiate_contract(
     reply_id: u64,
     module_info: ModuleInfo,
 ) -> ModuleFactoryResult {
-    let response = Response::new();
+    let response = ModuleFactoryResponse::new(
+        "execute_create_module",
+        vec![("module", module_info.id_with_version())],
+    );
     Ok(response.add_submessage(SubMsg {
         id: reply_id,
         gas_limit: None,
@@ -120,22 +132,24 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-    let dapp_address = res.get_contract_address();
+    let module_address = res.get_contract_address();
 
-    let register_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: context.core.unwrap().manager.into_string(),
-        funds: vec![],
-        msg: to_binary(&ManagerMsg::RegisterModule {
-            module_addr: dapp_address.to_string(),
+    let register_msg: CosmosMsg<Empty> = wasm_execute(
+        context.core.unwrap().manager.into_string(),
+        &ManagerMsg::RegisterModule {
+            module_addr: module_address.to_string(),
             module: context.module.unwrap(),
-        })?,
-    });
+        },
+        vec![],
+    )?
+    .into();
 
     clear_context(deps)?;
 
-    Ok(Response::new()
-        .add_attribute("new module:", dapp_address.to_string())
-        .add_message(register_msg))
+    Ok(
+        ModuleFactoryResponse::new("register_contract", vec![("new_module", module_address)])
+            .add_message(register_msg),
+    )
 }
 
 // Only owner can execute it
@@ -168,7 +182,7 @@ pub fn execute_update_config(
         ADMIN.set(deps, Some(addr))?;
     }
 
-    Ok(Response::new().add_attribute("action", "update_config"))
+    Ok(ModuleFactoryResponse::action("update_config"))
 }
 
 // Only owner can execute it
@@ -192,7 +206,7 @@ pub fn update_factory_binaries(
         key.assert_version_variant()?;
         MODULE_INIT_BINARIES.remove(deps.storage, key);
     }
-    Ok(Response::new().add_attribute("Action: ", "update binaries"))
+    Ok(ModuleFactoryResponse::action("update_factory_binaries"))
 }
 
 fn clear_context(deps: DepsMut) -> Result<(), StdError> {
@@ -249,7 +263,7 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_os::objects::module::ModuleVersion;
-        use cosmwasm_std::testing::mock_info;
+        use cosmwasm_std::{testing::mock_info, to_binary};
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
@@ -304,6 +318,8 @@ mod test {
             Ok(())
         }
     }
+
+    use cosmwasm_std::to_binary;
 
     mod update_factory_binaries {
         use super::*;

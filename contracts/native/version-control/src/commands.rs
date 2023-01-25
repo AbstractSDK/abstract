@@ -1,10 +1,15 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
+use abstract_macros::abstract_response;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
+    VERSION_CONTROL,
 };
-use cosmwasm_std::{DepsMut, Empty, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, Empty, MessageInfo};
+
+#[abstract_response(VERSION_CONTROL)]
+pub struct VcResponse;
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
@@ -13,12 +18,14 @@ pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, core: Core) -> V
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
     OS_ADDRESSES.save(deps.storage, os_id, &core)?;
 
-    Ok(Response::new().add_attributes(vec![
-        ("action", "add_os"),
-        ("os_id", os_id.to_string().as_str()),
-        ("manager", core.manager.as_ref()),
-        ("proxy", core.proxy.as_ref()),
-    ]))
+    Ok(VcResponse::new(
+        "add_os",
+        vec![
+            ("os_id", os_id.to_string().as_str()),
+            ("manager", core.manager.as_ref()),
+            ("proxy", core.proxy.as_ref()),
+        ],
+    ))
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
@@ -40,7 +47,7 @@ pub fn add_modules(
         MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
     }
 
-    Ok(Response::new().add_attributes(vec![("action", "add module")]))
+    Ok(VcResponse::action("add_modules"))
 }
 
 /// Remove a module
@@ -54,10 +61,10 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
         return Err(VCError::ModuleNotInstalled(module));
     }
 
-    Ok(Response::new().add_attributes(vec![
-        ("action", "remove module"),
-        ("module:", &module.to_string()),
-    ]))
+    Ok(VcResponse::new(
+        "remove_module",
+        vec![("module", &module.to_string())],
+    ))
 }
 
 pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
@@ -65,9 +72,13 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
     let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
     // Admin is asserted here
     ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(Response::default()
-        .add_attribute("previous admin", previous_admin)
-        .add_attribute("admin", admin))
+    Ok(VcResponse::new(
+        "set_admin",
+        vec![
+            ("previous_admin", previous_admin.to_string()),
+            ("admin", admin),
+        ],
+    ))
 }
 
 #[cfg(test)]

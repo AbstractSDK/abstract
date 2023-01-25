@@ -47,7 +47,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
     /// use abstract_sdk::{
-    ///     # base::features::{Identification, AbstractNameService},
+    ///  #   base::features::{Identification, AbstractNameService, ModuleIdentification},
     ///     TransferInterface
     /// };
     /// #
@@ -56,6 +56,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// #    fn proxy_address(&self, _deps: Deps) -> StdResult<Addr> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
+    /// # }
+    ///
+    /// # impl ModuleIdentification for MockModule {
+    /// #   fn module_id(&self) -> &'static str {
+    /// #      "mock_module"
+    /// #  }
     /// # }
     ///
     /// # impl AbstractNameService for MockModule {

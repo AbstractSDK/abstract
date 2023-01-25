@@ -1,12 +1,11 @@
 use abstract_os::{api, app};
 use cosmwasm_std::{Deps, StdError, StdResult};
 
-#[cfg(feature = "sdk")]
 use crate::{TEST_ANS_HOST, TEST_PROXY};
 #[cfg(feature = "sdk")]
 use ::{
     abstract_os::objects::ans_host::AnsHost,
-    abstract_sdk::base::features::{AbstractNameService, Identification},
+    abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification},
     cosmwasm_std::Addr,
 };
 
@@ -22,6 +21,13 @@ impl MockModule {
 impl Identification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> Result<Addr, StdError> {
         Ok(Addr::unchecked(TEST_PROXY))
+    }
+}
+
+#[cfg(feature = "sdk")]
+impl ModuleIdentification for MockModule {
+    fn module_id(&self) -> &'static str {
+        "mock_module"
     }
 }
 

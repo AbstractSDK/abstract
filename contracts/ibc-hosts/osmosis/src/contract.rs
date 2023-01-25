@@ -1,22 +1,28 @@
 use crate::error::OsmoError;
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
+use abstract_macros::abstract_response;
 use abstract_os::ibc_host::ExecuteMsg;
-use abstract_sdk::base::{
-    ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
+use abstract_sdk::{
+    base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint},
+    os::{
+        abstract_ica::StdAck,
+        dex::DexAction,
+        ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg},
+        OSMOSIS_HOST,
+    },
 };
-use abstract_sdk::os::abstract_ica::StdAck;
-use abstract_sdk::os::dex::DexAction;
-use abstract_sdk::os::ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg};
-use abstract_sdk::os::OSMOSIS_HOST;
-use cosmwasm_std::Reply;
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Response, StdResult,
+    Reply, Response, StdResult,
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
+
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[abstract_response(OSMOSIS_HOST)]
+pub(crate) struct OsmosisHostResponse;
 
 pub type OsmoHost = Host<OsmoError, DexAction>;
 pub type OsmoResult = Result<Response, OsmoError>;
@@ -27,7 +33,7 @@ const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSI
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> OsmoResult {
     OSMO_HOST.instantiate(deps, env, info, msg)?;
-    Ok(Response::default())
+    Ok(OsmosisHostResponse::action("instantiate"))
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]

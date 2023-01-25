@@ -30,7 +30,8 @@ thiserror = {workspace = true}
 semver = {workspace = true}
 protobuf = {workspace = true}
 abstract-sdk = {workspace = true}
-abstract-os = {workspace = true}
+abstract-os = { workspace = true }
+abstract-macros = { workspace = true }
 
 [dev-dependencies]
 abstract-boot = {workspace = true}
