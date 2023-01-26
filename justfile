@@ -13,3 +13,6 @@ lintfix:
 
 refresh:
   cargo clean && cargo update
+
+check-codecov:
+  cat codecov.yml | curl --data-binary @- https://codecov.io/validate

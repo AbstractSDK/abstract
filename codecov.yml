@@ -18,7 +18,10 @@ ignore:
   - "packages/abstract-boot"
   - "packages/abstract-testing"
   - "**/*.json"
+  # Ignore token implementation
+  - "contracts/token"
   - "contracts/modules/apps/subscription"
+  # Ignore protobuf generated files
   - "contracts/modules/apps/etf/src/response.rs"
   - "contracts/native/module-factory/src/response.rs"
   - "contracts/native/os-factory/src/response.rs"
