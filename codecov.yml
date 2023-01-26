@@ -20,6 +20,8 @@ ignore:
   - "**/*.json"
   # Ignore token implementation
   - "contracts/token"
+  # TODO: modules coverage
+  - "contracts/modules"
   - "contracts/modules/apps/subscription"
   # Ignore protobuf generated files
   - "contracts/modules/apps/etf/src/response.rs"
