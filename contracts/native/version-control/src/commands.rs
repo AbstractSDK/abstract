@@ -38,8 +38,11 @@ pub fn add_modules(
         if MODULE_LIBRARY.has(deps.storage, module.clone()) {
             return Err(VCError::NotUpdateableModule(module));
         }
+        module.validate()?;
+        mod_ref.validate(deps.as_ref())?;
         // version must be set in order to add the new version
         module.assert_version_variant()?;
+
         if module.provider == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
@@ -92,16 +95,12 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
+    use abstract_testing::{TEST_ADMIN, TEST_OS_FACTORY, TEST_VERSION};
 
     type VersionControlTestResult = Result<(), VCError>;
 
-    const TEST_OS_FACTORY: &str = "os_factory";
-    const TEST_ADMIN: &str = "testadmin";
-    const TEST_OTHER: &str = "test_other";
+    const TEST_OTHER: &str = "test-other";
     const TEST_MODULE: &str = "provider:test";
-    const TEST_VERSION: &str = "1.1.0";
-
-    const TEST_VERSION_CONTROL: &str = "version_control";
 
     const TEST_PROXY_ADDR: &str = "proxy";
     const TEST_MANAGER_ADDR: &str = "manager";
@@ -204,7 +203,7 @@ mod test {
         }
     }
 
-    mod update_modules {
+    mod add_modules {
         use super::*;
         use abstract_os::objects::{module::*, module_reference::ModuleReference};
 
@@ -257,8 +256,7 @@ mod test {
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            // as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
 
             let module = MODULE_LIBRARY.load(&deps.storage, rm_module);
             assert_that!(&module).is_err();
@@ -278,12 +276,9 @@ mod test {
                 modules: vec![(bad_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
-            assert_that!(&res).is_err().is_equal_to(
-                &StdError::generic_err(
-                    "unexpected character 'n' while parsing major version number",
-                )
-                .into(),
-            );
+            assert_that!(&res)
+                .is_err()
+                .matches(|e| e.to_string().contains("Invalid version"));
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Latest)?;
             let msg = ExecuteMsg::AddModules {
@@ -299,7 +294,7 @@ mod test {
         #[test]
         fn abstract_namespace() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
-            let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test_module");
+            let abstract_contract_id = format!("{}:{}", ABSTRACT_NAMESPACE, "test-module");
             mock_init(deps.as_mut())?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
             let msg = ExecuteMsg::AddModules {
@@ -312,10 +307,50 @@ mod test {
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            // execute as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
             let module = MODULE_LIBRARY.load(&deps.storage, new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            Ok(())
+        }
+
+        #[test]
+        fn validates_module_info() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+            let bad_modules = vec![
+                ModuleInfo {
+                    name: "test-module".to_string(),
+                    version: ModuleVersion::Version("0.0.1".to_string()),
+                    provider: "".to_string(),
+                },
+                ModuleInfo {
+                    name: "test-module".to_string(),
+                    version: ModuleVersion::Version("0.0.1".to_string()),
+                    provider: "".to_string(),
+                },
+                ModuleInfo {
+                    name: "".to_string(),
+                    version: ModuleVersion::Version("0.0.1".to_string()),
+                    provider: "test".to_string(),
+                },
+                ModuleInfo {
+                    name: "test-module".to_string(),
+                    version: ModuleVersion::Version("aoeu".to_string()),
+                    provider: "".to_string(),
+                },
+            ];
+
+            for bad_module in bad_modules {
+                let msg = ExecuteMsg::AddModules {
+                    modules: vec![(bad_module.clone(), ModuleReference::App(0))],
+                };
+                let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+                assert_that!(&res)
+                    .named(&format!("ModuleInfo validation failed for {}", bad_module))
+                    .is_err()
+                    .matches(|e| matches!(e, &VCError::Std(StdError::GenericErr { .. })));
+            }
+
             Ok(())
         }
     }
@@ -344,7 +379,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as admin
-            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            let res = execute_as_admin(deps.as_mut(), msg.clone());
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
@@ -377,8 +412,7 @@ mod test {
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            // as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
             let new_admin = ADMIN.query_admin(deps.as_ref())?.admin;
             assert_that!(new_admin).is_equal_to(&Some(TEST_OTHER.into()));
             Ok(())
@@ -399,8 +433,7 @@ mod test {
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
-            // as admin
-            execute_as(deps.as_mut(), TEST_ADMIN, msg)?;
+            execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_OS_FACTORY.into()));
             Ok(())

@@ -107,7 +107,7 @@ pub(crate) fn init_staking_api(
     deployment: &Abstract<Mock>,
     version: Option<String>,
 ) -> anyhow::Result<TMintStakingApi<Mock>> {
-    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain.clone());
+    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
     staking_api.as_instance_mut().set_mock(Box::new(
         cw_multi_test::ContractWrapper::new_with_empty(
             ::tendermint_staking::contract::execute,

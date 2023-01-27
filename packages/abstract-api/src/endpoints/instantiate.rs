@@ -102,7 +102,7 @@ mod tests {
     fn successful() -> ApiMockResult {
         let api = mock_api();
         let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &vec![]);
+        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::querier();
         let init_msg = InstantiateMsg {
@@ -112,7 +112,7 @@ mod tests {
             },
             app: Empty {},
         };
-        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg)?;
+        let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
         // confirm mock init handler executed
         assert_that!(&res.data).is_equal_to(Some("mock_response".as_bytes().into()));
@@ -149,7 +149,7 @@ mod tests {
     fn invalid_ans_host() -> ApiMockResult {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
         let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &vec![]);
+        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::querier();
         let init_msg = InstantiateMsg {
@@ -159,7 +159,7 @@ mod tests {
             },
             app: Empty {},
         };
-        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
+        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(
             &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );
@@ -170,7 +170,7 @@ mod tests {
     fn invalid_version_control() -> ApiMockResult {
         let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, None);
         let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &vec![]);
+        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::querier();
         let init_msg = InstantiateMsg {
@@ -180,7 +180,7 @@ mod tests {
             },
             app: Empty {},
         };
-        let res = api.instantiate(deps.as_mut(), env.clone(), info.clone(), init_msg);
+        let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(
             &StdError::generic_err("Invalid input: human address too short for this mock implementation (must be >= 3).").into(),
         );

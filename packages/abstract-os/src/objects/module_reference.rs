@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
@@ -16,6 +16,17 @@ pub enum ModuleReference {
 }
 
 impl ModuleReference {
+    /// Validates that addresses are valid
+    pub fn validate(&self, deps: Deps) -> StdResult<()> {
+        match self {
+            ModuleReference::Core(_) => Ok(()),
+            ModuleReference::App(_) => Ok(()),
+            ModuleReference::Standalone(_) => Ok(()),
+            ModuleReference::Native(addr) => deps.api.addr_validate(addr.as_str()).map(|_| ()),
+            ModuleReference::Api(addr) => deps.api.addr_validate(addr.as_str()).map(|_| ()),
+        }
+    }
+
     pub fn unwrap_core(&self) -> StdResult<u64> {
         match self {
             ModuleReference::Core(v) => Ok(*v),
@@ -65,6 +76,8 @@ impl ModuleReference {
 #[cfg(test)]
 mod test {
     use super::*;
+    use cosmwasm_std::testing::mock_dependencies;
+    use speculoos::prelude::*;
 
     #[test]
     fn core() {
@@ -124,5 +137,36 @@ mod test {
 
         let core = ModuleReference::Core(1);
         assert!(core.unwrap_addr().is_err());
+    }
+
+    #[test]
+    fn test_validate_happy_path() {
+        let mut deps = mock_dependencies();
+
+        let native = ModuleReference::Native(Addr::unchecked("addr"));
+        assert_that!(native.validate(deps.as_ref())).is_ok();
+
+        let api = ModuleReference::Api(Addr::unchecked("addr"));
+        assert_that!(api.validate(deps.as_ref())).is_ok();
+
+        let core = ModuleReference::Core(1);
+        assert_that!(core.validate(deps.as_ref())).is_ok();
+
+        let app = ModuleReference::App(1);
+        assert_that!(app.validate(deps.as_ref())).is_ok();
+
+        let standalone = ModuleReference::Standalone(1);
+        assert_that!(standalone.validate(deps.as_ref())).is_ok();
+    }
+
+    #[test]
+    fn test_validate_bad_address() {
+        let mut deps = mock_dependencies();
+
+        let native = ModuleReference::Native(Addr::unchecked(""));
+        assert_that!(native.validate(deps.as_ref())).is_err();
+
+        let api = ModuleReference::Api(Addr::unchecked(""));
+        assert_that!(api.validate(deps.as_ref())).is_err();
     }
 }

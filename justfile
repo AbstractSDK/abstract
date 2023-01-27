@@ -2,11 +2,14 @@ build:
   cargo build
 
 # Test everything
-test: build
+test:
   cargo nextest run
 
+format:
+  cargo fmt --all
+
 lint:
-  cargo clippy -- -D warnings
+  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty

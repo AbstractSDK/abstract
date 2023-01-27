@@ -16,6 +16,32 @@ pub struct ModuleInfo {
     pub version: ModuleVersion,
 }
 
+const MAX_LENGTH: usize = 64;
+
+/// Validate attributes of a [`ModuleInfo`].
+/// We use the same conventions as Rust package names.
+/// See https://github.com/rust-lang/api-guidelines/discussions/29
+fn validate_name(name: &str) -> StdResult<()> {
+    if name.is_empty() {
+        return Err(StdError::generic_err("Name cannot be empty"));
+    }
+    if name.len() > MAX_LENGTH {
+        return Err(StdError::generic_err(
+            "Name cannot be longer than 64 characters",
+        ));
+    }
+    if name.contains(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
+        return Err(StdError::generic_err(
+            "Name can only contain alphanumeric characters and hyphens",
+        ));
+    }
+
+    if name != name.to_lowercase() {
+        return Err(StdError::generic_err("Name must be lowercase"));
+    }
+    Ok(())
+}
+
 impl ModuleInfo {
     pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
@@ -33,6 +59,15 @@ impl ModuleInfo {
     }
     pub fn from_id_latest(id: &str) -> StdResult<Self> {
         Self::from_id(id, ModuleVersion::Latest)
+    }
+
+    pub fn validate(&self) -> StdResult<()> {
+        validate_name(&self.provider)?;
+        validate_name(&self.name)?;
+        self.version.validate().map_err(|e| {
+            StdError::generic_err(format!("Invalid version for module {}: {}", self.id(), e))
+        })?;
+        Ok(())
     }
 
     pub fn id(&self) -> String {
@@ -149,6 +184,19 @@ pub enum ModuleVersion {
     Version(String),
 }
 
+impl ModuleVersion {
+    pub fn validate(&self) -> StdResult<()> {
+        match &self {
+            ModuleVersion::Latest => Ok(()),
+            ModuleVersion::Version(ver) => {
+                // assert version parses correctly
+                Version::parse(ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                Ok(())
+            }
+        }
+    }
+}
+
 // Do not change!!
 impl Display for ModuleVersion {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -216,7 +264,6 @@ impl TryFrom<ContractVersion> for ModuleInfo {
 }
 
 #[cosmwasm_schema::cw_serde]
-
 pub struct Module {
     pub info: ModuleInfo,
     pub reference: ModuleReference,
@@ -266,218 +313,310 @@ impl ModuleInitMsg {
 
 #[cfg(test)]
 mod test {
-
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
     use speculoos::prelude::*;
 
-    fn mock_key() -> ModuleInfo {
-        ModuleInfo {
-            provider: "abstract".to_string(),
-            name: "rocket-ship".to_string(),
-            version: ModuleVersion::Version("1.9.9".into()),
+    mod storage_plus {
+        use super::*;
+
+        fn mock_key() -> ModuleInfo {
+            ModuleInfo {
+                provider: "abstract".to_string(),
+                name: "rocket-ship".to_string(),
+                version: ModuleVersion::Version("1.9.9".into()),
+            }
+        }
+
+        fn mock_keys() -> (ModuleInfo, ModuleInfo, ModuleInfo, ModuleInfo) {
+            (
+                ModuleInfo {
+                    provider: "abstract".to_string(),
+                    name: "boat".to_string(),
+                    version: ModuleVersion::Version("1.9.9".into()),
+                },
+                ModuleInfo {
+                    provider: "abstract".to_string(),
+                    name: "rocket-ship".to_string(),
+                    version: ModuleVersion::Version("1.0.0".into()),
+                },
+                ModuleInfo {
+                    provider: "abstract".to_string(),
+                    name: "rocket-ship".to_string(),
+                    version: ModuleVersion::Version("2.0.0".into()),
+                },
+                ModuleInfo {
+                    provider: "astroport".to_string(),
+                    name: "liquidity-pool".to_string(),
+                    version: ModuleVersion::Version("10.5.7".into()),
+                },
+            )
+        }
+
+        #[test]
+        fn storage_key_works() {
+            let mut deps = mock_dependencies();
+            let key = mock_key();
+            let map: Map<ModuleInfo, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, key.clone(), &42069)
+                .unwrap();
+
+            assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+
+            let items = map
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 1);
+            assert_eq!(items[0], (key, 42069));
+        }
+
+        #[test]
+        fn storage_key_with_overlapping_name_provider() {
+            let mut deps = mock_dependencies();
+            let info1 = ModuleInfo {
+                provider: "abstract".to_string(),
+                name: "ans".to_string(),
+                version: ModuleVersion::Version("1.9.9".into()),
+            };
+
+            let _key1 = info1.joined_key();
+
+            let info2 = ModuleInfo {
+                provider: "abs".to_string(),
+                name: "tractans".to_string(),
+                version: ModuleVersion::Version("1.9.9".into()),
+            };
+
+            let _key2 = info2.joined_key();
+
+            let map: Map<ModuleInfo, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, info1, &42069).unwrap();
+            map.save(deps.as_mut().storage, info2, &69420).unwrap();
+
+            assert_that!(map
+                .keys_raw(&deps.storage, None, None, Order::Ascending)
+                .collect::<Vec<_>>())
+            .has_length(2);
+        }
+
+        #[test]
+        fn composite_key_works() {
+            let mut deps = mock_dependencies();
+            let key = mock_key();
+            let map: Map<(ModuleInfo, Addr), u64> = Map::new("map");
+
+            map.save(
+                deps.as_mut().storage,
+                (key.clone(), Addr::unchecked("larry")),
+                &42069,
+            )
+            .unwrap();
+
+            map.save(
+                deps.as_mut().storage,
+                (key.clone(), Addr::unchecked("jake")),
+                &69420,
+            )
+            .unwrap();
+
+            let items = map
+                .prefix(key)
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
+            assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
+        }
+
+        #[test]
+        fn partial_key_works() {
+            let mut deps = mock_dependencies();
+            let (key1, key2, key3, key4) = mock_keys();
+            let map: Map<ModuleInfo, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+
+            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+
+            map.save(deps.as_mut().storage, key3, &999).unwrap();
+
+            map.save(deps.as_mut().storage, key4, &13).unwrap();
+
+            let items = map
+                .sub_prefix("abstract".to_string())
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 3);
+            assert_eq!(items[0], (("boat".to_string(), "1.9.9".to_string()), 42069));
+            assert_eq!(
+                items[1],
+                (("rocket-ship".to_string(), "1.0.0".to_string()), 69420)
+            );
+
+            assert_eq!(
+                items[2],
+                (("rocket-ship".to_string(), "2.0.0".to_string()), 999)
+            );
+
+            let items = map
+                .sub_prefix("astroport".to_string())
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 1);
+            assert_eq!(
+                items[0],
+                (("liquidity_pool".to_string(), "latest".to_string()), 13)
+            );
+        }
+
+        #[test]
+        fn partial_key_versions_works() {
+            let mut deps = mock_dependencies();
+            let (key1, key2, key3, key4) = mock_keys();
+            let map: Map<ModuleInfo, u64> = Map::new("map");
+
+            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+
+            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+
+            map.save(deps.as_mut().storage, key3, &999).unwrap();
+
+            map.save(deps.as_mut().storage, key4, &13).unwrap();
+
+            let items = map
+                .prefix(("abstract".to_string(), "rocket-ship".to_string()))
+                .range(deps.as_ref().storage, None, None, Order::Ascending)
+                .map(|item| item.unwrap())
+                .collect::<Vec<_>>();
+
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0], ("1.0.0".to_string(), 69420));
+
+            assert_eq!(items[1], ("2.0.0".to_string(), 999));
         }
     }
 
-    fn mock_keys() -> (ModuleInfo, ModuleInfo, ModuleInfo, ModuleInfo) {
-        (
-            ModuleInfo {
+    mod module_info {
+        use super::*;
+
+        #[test]
+        fn validate_with_empty_name() {
+            let info = ModuleInfo {
                 provider: "abstract".to_string(),
-                name: "boat".to_string(),
+                name: "".to_string(),
                 version: ModuleVersion::Version("1.9.9".into()),
-            },
-            ModuleInfo {
+            };
+
+            assert_that!(info.validate())
+                .is_err()
+                .matches(|e| e.to_string().contains("cannot be empty"));
+        }
+
+        #[test]
+        fn validate_with_empty_provider() {
+            let info = ModuleInfo {
+                provider: "".to_string(),
+                name: "ans".to_string(),
+                version: ModuleVersion::Version("1.9.9".into()),
+            };
+
+            assert_that!(info.validate())
+                .is_err()
+                .matches(|e| e.to_string().contains("cannot be empty"));
+        }
+
+        use rstest::rstest;
+
+        #[rstest]
+        #[case("ans_host")]
+        #[case("ans:host")]
+        #[case("ans-host&")]
+        fn validate_fails_with_non_alphanumeric(#[case] name: &str) {
+            let info = ModuleInfo {
                 provider: "abstract".to_string(),
-                name: "rocket-ship".to_string(),
+                name: name.to_string(),
+                version: ModuleVersion::Version("1.9.9".into()),
+            };
+
+            assert_that!(info.validate())
+                .is_err()
+                .matches(|e| e.to_string().contains("alphanumeric"));
+        }
+
+        #[rstest]
+        #[case("lmao")]
+        #[case("bad-")]
+        fn validate_with_bad_versions(#[case] version: &str) {
+            let info = ModuleInfo {
+                provider: "abstract".to_string(),
+                name: "ans".to_string(),
+                version: ModuleVersion::Version(version.into()),
+            };
+
+            assert_that!(info.validate())
+                .is_err()
+                .matches(|e| e.to_string().contains("Invalid version"));
+        }
+
+        #[test]
+        fn id() {
+            let info = ModuleInfo {
+                name: "name".to_string(),
+                provider: "provider".to_string(),
                 version: ModuleVersion::Version("1.0.0".into()),
-            },
-            ModuleInfo {
-                provider: "abstract".to_string(),
-                name: "rocket-ship".to_string(),
-                version: ModuleVersion::Version("2.0.0".into()),
-            },
-            ModuleInfo {
-                provider: "astroport".to_string(),
-                name: "liquidity_pool".to_string(),
-                version: ModuleVersion::Latest,
-            },
-        )
+            };
+
+            let expected = "provider:name".to_string();
+
+            assert_that!(info.id()).is_equal_to(expected);
+        }
+
+        #[test]
+        fn id_with_version() {
+            let info = ModuleInfo {
+                name: "name".to_string(),
+                provider: "provider".to_string(),
+                version: ModuleVersion::Version("1.0.0".into()),
+            };
+
+            let expected = "provider:name:1.0.0".to_string();
+
+            assert_that!(info.id_with_version()).is_equal_to(expected);
+        }
     }
 
-    #[test]
-    fn storage_key_works() {
-        let mut deps = mock_dependencies();
-        let key = mock_key();
-        let map: Map<ModuleInfo, u64> = Map::new("map");
+    mod module_version {
+        use super::*;
 
-        map.save(deps.as_mut().storage, key.clone(), &42069)
-            .unwrap();
+        #[test]
+        fn try_into_version_happy_path() {
+            let version = ModuleVersion::Version("1.0.0".into());
 
-        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+            let expected: Version = "1.0.0".to_string().parse().unwrap();
 
-        let items = map
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
+            let actual: Version = version.try_into().unwrap();
 
-        assert_eq!(items.len(), 1);
-        assert_eq!(items[0], (key, 42069));
-    }
+            assert_that!(actual).is_equal_to(expected);
+        }
 
-    #[test]
-    fn composite_key_works() {
-        let mut deps = mock_dependencies();
-        let key = mock_key();
-        let map: Map<(ModuleInfo, Addr), u64> = Map::new("map");
+        #[test]
+        fn try_into_version_with_latest() {
+            let version = ModuleVersion::Latest;
 
-        map.save(
-            deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("larry")),
-            &42069,
-        )
-        .unwrap();
+            let actual: Result<Version, _> = version.try_into();
 
-        map.save(
-            deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("jake")),
-            &69420,
-        )
-        .unwrap();
-
-        let items = map
-            .prefix(key)
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
-
-        assert_eq!(items.len(), 2);
-        assert_eq!(items[0], (Addr::unchecked("jake"), 69420));
-        assert_eq!(items[1], (Addr::unchecked("larry"), 42069));
-    }
-
-    #[test]
-    fn partial_key_works() {
-        let mut deps = mock_dependencies();
-        let (key1, key2, key3, key4) = mock_keys();
-        let map: Map<ModuleInfo, u64> = Map::new("map");
-
-        map.save(deps.as_mut().storage, key1, &42069).unwrap();
-
-        map.save(deps.as_mut().storage, key2, &69420).unwrap();
-
-        map.save(deps.as_mut().storage, key3, &999).unwrap();
-
-        map.save(deps.as_mut().storage, key4, &13).unwrap();
-
-        let items = map
-            .sub_prefix("abstract".to_string())
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
-
-        assert_eq!(items.len(), 3);
-        assert_eq!(items[0], (("boat".to_string(), "1.9.9".to_string()), 42069));
-        assert_eq!(
-            items[1],
-            (("rocket-ship".to_string(), "1.0.0".to_string()), 69420)
-        );
-
-        assert_eq!(
-            items[2],
-            (("rocket-ship".to_string(), "2.0.0".to_string()), 999)
-        );
-
-        let items = map
-            .sub_prefix("astroport".to_string())
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
-
-        assert_eq!(items.len(), 1);
-        assert_eq!(
-            items[0],
-            (("liquidity_pool".to_string(), "latest".to_string()), 13)
-        );
-    }
-
-    #[test]
-    fn partial_key_versions_works() {
-        let mut deps = mock_dependencies();
-        let (key1, key2, key3, key4) = mock_keys();
-        let map: Map<ModuleInfo, u64> = Map::new("map");
-
-        map.save(deps.as_mut().storage, key1, &42069).unwrap();
-
-        map.save(deps.as_mut().storage, key2, &69420).unwrap();
-
-        map.save(deps.as_mut().storage, key3, &999).unwrap();
-
-        map.save(deps.as_mut().storage, key4, &13).unwrap();
-
-        let items = map
-            .prefix(("abstract".to_string(), "rocket-ship".to_string()))
-            .range(deps.as_ref().storage, None, None, Order::Ascending)
-            .map(|item| item.unwrap())
-            .collect::<Vec<_>>();
-
-        assert_eq!(items.len(), 2);
-        assert_eq!(items[0], ("1.0.0".to_string(), 69420));
-
-        assert_eq!(items[1], ("2.0.0".to_string(), 999));
-    }
-
-    #[test]
-    fn id() {
-        let info = ModuleInfo {
-            name: "name".to_string(),
-            provider: "provider".to_string(),
-            version: ModuleVersion::Version("1.0.0".into()),
-        };
-
-        let expected = "provider:name".to_string();
-
-        assert_that!(info.id()).is_equal_to(expected);
-    }
-
-    #[test]
-    fn id_with_version() {
-        let info = ModuleInfo {
-            name: "name".to_string(),
-            provider: "provider".to_string(),
-            version: ModuleVersion::Version("1.0.0".into()),
-        };
-
-        let expected = "provider:name:1.0.0".to_string();
-
-        assert_that!(info.id_with_version()).is_equal_to(expected);
-    }
-
-    #[test]
-    fn try_into_version_happy_path() {
-        let info = ModuleInfo {
-            name: "name".to_string(),
-            provider: "provider".to_string(),
-            version: ModuleVersion::Version("1.0.0".into()),
-        };
-
-        let expected: Version = "1.0.0".to_string().parse().unwrap();
-
-        let actual: Version = info.version.try_into().unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn try_into_version_with_latest() {
-        let info = ModuleInfo {
-            name: "name".to_string(),
-            provider: "provider".to_string(),
-            version: ModuleVersion::Latest,
-        };
-
-        let actual: Result<Version, _> = info.version.try_into();
-
-        assert_that!(actual).is_err();
+            assert_that!(actual).is_err();
+        }
     }
 }

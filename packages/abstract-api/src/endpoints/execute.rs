@@ -181,7 +181,6 @@ mod tests {
     use super::*;
     use abstract_os::{
         api::{BaseInstantiateMsg, InstantiateMsg},
-        objects::module_version::{ModuleData, MODULE},
     };
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::*;
@@ -189,7 +188,7 @@ mod tests {
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, Empty, StdError,
     };
-    use cw2::{ContractVersion, CONTRACT};
+    
     use speculoos::prelude::*;
     use thiserror::Error;
 
@@ -238,7 +237,7 @@ mod tests {
     #[test]
     fn add_trader() -> ApiMockResult {
         let env = mock_env();
-        let info = mock_info(TEST_MANAGER, &vec![]);
+        let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::querier();
 

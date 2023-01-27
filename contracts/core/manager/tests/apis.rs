@@ -74,7 +74,7 @@ fn installing_one_api_should_succeed() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_staking_api(chain, &deployment, None)?;
 
     install_api(&os.manager, TENDERMINT_STAKING)?;
 
@@ -108,7 +108,7 @@ fn installing_one_api_should_succeed() -> AResult {
 fn install_non_existent_apiname_should_fail() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
+    let (mut deployment, mut core) = init_abstract_env(chain)?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
 
@@ -126,7 +126,7 @@ fn install_non_existent_version_should_fail() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    init_staking_api(chain.clone(), &deployment, None)?;
+    init_staking_api(chain, &deployment, None)?;
 
     let res = os.manager.install_module_version(
         TENDERMINT_STAKING,
@@ -147,7 +147,7 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_staking_api(chain, &deployment, None)?;
 
     install_api(&os.manager, TENDERMINT_STAKING)?;
 
@@ -182,7 +182,7 @@ fn reinstalling_api_should_be_allowed() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_staking_api(chain, &deployment, None)?;
 
     install_api(&os.manager, TENDERMINT_STAKING)?;
 
@@ -246,7 +246,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // We init the staking api with a new version to ensure that we get a new address
     let new_staking_api = init_staking_api(
-        chain.clone(),
+        chain,
         &deployment,
         Some(new_version_num.to_string()),
     )?;
@@ -291,7 +291,7 @@ fn not_trader_exec() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_staking_api(chain, &deployment, None)?;
     install_api(&os.manager, TENDERMINT_STAKING)?;
     // non-trader cannot execute
     let res = staking_api
@@ -348,7 +348,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let expected_staking_api_addr = expected_staking_api.address()?.to_string();
 
     let _staking_api_three =
-        init_staking_api(chain.clone(), &deployment, Some("3.4.5".to_string()))?;
+        init_staking_api(chain, &deployment, Some("3.4.5".to_string()))?;
 
     // install specific version
     os.manager.install_module_version(

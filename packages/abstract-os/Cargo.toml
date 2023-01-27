@@ -35,3 +35,4 @@ boot-core = { version = "0.5.1", workspace = true, optional = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }
+rstest = { workspace = true }
