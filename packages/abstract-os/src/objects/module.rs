@@ -476,7 +476,7 @@ mod test {
             assert_eq!(items.len(), 1);
             assert_eq!(
                 items[0],
-                (("liquidity_pool".to_string(), "latest".to_string()), 13)
+                (("liquidity-pool".to_string(), "10.5.7".to_string()), 13)
             );
         }
 
