@@ -110,7 +110,7 @@ impl AnsHost {
         let result = REV_ASSET_ADDRESSES
             .query(querier, self.address.clone(), asset.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("asset {} not found in ans_host", &asset))
+                StdError::generic_err(format!("cw-asset {} not found in ans_host", &asset))
             })?;
         Ok(result)
     }
