@@ -871,11 +871,15 @@ mod test {
             let mut map_tester = setup_map_tester();
 
             let (new_entry_1, new_entry_2, new_entry_3) = mock_unchecked_entries();
-
             map_tester.test_update_auto_expect(
                 &mut deps,
-                (vec![new_entry_1, new_entry_2, new_entry_3], vec![]),
-            )
+                (vec![new_entry_1, new_entry_2, new_entry_3.clone()], vec![]),
+            )?;
+
+            let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
+            let test_entry = reverse_map.load(&deps.storage, new_entry_3.1.check(&deps.api, None)?)?;
+            assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
+            Ok(())
         }
 
         #[test]
