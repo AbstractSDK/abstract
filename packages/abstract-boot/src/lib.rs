@@ -1,3 +1,6 @@
+// Re-export boot_core
+pub extern crate boot_core;
+
 pub mod idea_token;
 
 mod core;

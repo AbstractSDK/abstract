@@ -53,14 +53,14 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 
 semver = "1.0"
-cw-semver = {version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.5.1", git =  "https://github.com/Abstract-OS/BOOT.git"}
-boot-cw-plus = { version = "0.5.1",  git =  "https://github.com/Abstract-OS/BOOT.git"}
+cw-semver = { version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
+boot-core = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
+boot-cw-plus = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
 
 abstract-sdk = { version = "0.6.2", path = "packages/abstract-sdk" }
 abstract-os = { version = "0.6.2", path = "packages/abstract-os" }
-abstract-app = { version = "0.6.2", path = "packages/abstract-app"}
-abstract-api = { version = "0.6.2", path = "packages/abstract-api"}
+abstract-app = { version = "0.6.2", path = "packages/abstract-app" }
+abstract-api = { version = "0.6.2", path = "packages/abstract-api" }
 abstract-ibc-host = { version = "0.6.2", path = "packages/abstract-ibc-host" }
 abstract-ica = { version = "0.6.2", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
@@ -68,16 +68,16 @@ abstract-boot = { path = "packages/abstract-boot" }
 abstract-macros = { path = "packages/abstract-macros" }
 
 
-module-factory = { path = "contracts/native/module-factory"}
-os-factory = { path = "contracts/native/os-factory"}
-ans-host = { path = "contracts/native/ans-host"}
-version-control = { path = "contracts/native/version-control"}
-osmosis-host = { path = "contracts/ibc-hosts/osmosis"}
-proxy = { path = "contracts/core/proxy"}
-manager = {path = "contracts/core/manager"}
-ibc-client = {path = "contracts/native/ibc-client"}
-etf = {path = "contracts/modules/apps/etf"}
-subscription = {path = "contracts/modules/apps/subscription"}
+module-factory = { path = "contracts/native/module-factory" }
+os-factory = { path = "contracts/native/os-factory" }
+ans-host = { path = "contracts/native/ans-host" }
+version-control = { path = "contracts/native/version-control" }
+osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
+proxy = { path = "contracts/core/proxy" }
+manager = { path = "contracts/core/manager" }
+ibc-client = { path = "contracts/native/ibc-client" }
+etf = { path = "contracts/modules/apps/etf" }
+subscription = { path = "contracts/modules/apps/subscription" }
 
 
 ## Testing
