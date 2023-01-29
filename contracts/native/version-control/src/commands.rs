@@ -346,7 +346,7 @@ mod test {
                 };
                 let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
                 assert_that!(&res)
-                    .named(&format!("ModuleInfo validation failed for {}", bad_module))
+                    .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
                     .matches(|e| matches!(e, &VCError::Std(StdError::GenericErr { .. })));
             }

@@ -60,8 +60,7 @@ impl FromStr for PoolMetadata {
 
         if attributes.len() != ATTRIBUTE_COUNT {
             return Err(StdError::generic_err(format!(
-                "invalid pool metadata format `{}`; must be in format `{{dex}}:{{asset1}},{{asset2}}:{{pool_type}}...`",
-                s
+                "invalid pool metadata format `{s}`; must be in format `{{dex}}:{{asset1}},{{asset2}}:{{pool_type}}...`"
             )));
         }
 

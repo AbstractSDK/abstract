@@ -21,19 +21,18 @@ pub fn with_abstract_event(input: TokenStream) -> TokenStream {
     let attribute_addition = if attrs.is_empty() {
         "".to_string()
     } else if attrs.starts_with('[') && attrs.ends_with(']') {
-        format!(".add_attributes(vec!{})", attrs)
+        format!(".add_attributes(vec!{attrs})")
     } else {
-        format!(".add_attributes({})", attrs)
+        format!(".add_attributes({attrs})")
     };
     let output = format!(
-        "{}
+        "{base_response}
         .add_event(
             cosmwasm_std::Event::new(\"abstract\")
-                .add_attribute(\"contract\", {})
-                .add_attribute(\"action\", {})
-                {}
-        )",
-        base_response, contract_name, action, attribute_addition
+                .add_attribute(\"contract\", {contract_name})
+                .add_attribute(\"action\", {action})
+                {attribute_addition}
+        )"
     );
 
     output.parse().unwrap()

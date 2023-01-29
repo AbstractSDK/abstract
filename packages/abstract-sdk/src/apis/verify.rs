@@ -34,8 +34,7 @@ impl<'a, T: Verification> OsRegister<'a, T> {
             OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
             None => Err(StdError::generic_err(format!(
-                "OS with id {} is not active.",
-                os_id
+                "OS with id {os_id} is not active."
             ))),
             Some(core) => {
                 if &core.manager != maybe_manager {
@@ -58,8 +57,7 @@ impl<'a, T: Verification> OsRegister<'a, T> {
             OS_ADDRESSES.query(&self.deps.querier, self.base.registry(self.deps)?, os_id)?;
         match maybe_os {
             None => Err(StdError::generic_err(format!(
-                "OS with id {} is not active.",
-                os_id
+                "OS with id {os_id} is not active."
             ))),
             Some(core) => {
                 if &core.proxy != maybe_proxy {

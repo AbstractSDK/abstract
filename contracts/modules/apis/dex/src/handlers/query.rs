@@ -41,8 +41,7 @@ pub fn simulate_swap(
         )
         .map_err(|e| {
             StdError::generic_err(format!(
-                "Failed to get pair address for {:?} and {:?}: {}",
-                offer_asset, ask_asset, e
+                "Failed to get pair address for {offer_asset:?} and {ask_asset:?}: {e}"
             ))
         })?;
     let pool_info =

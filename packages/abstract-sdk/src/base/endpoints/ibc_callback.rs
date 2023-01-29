@@ -16,8 +16,7 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
         if info.sender.ne(&ibc_client) {
             return Err(StdError::generic_err(format!(
-                "ibc callback can only be called by local ibc client {}",
-                ibc_client
+                "ibc callback can only be called by local ibc client {ibc_client}"
             ))
             .into());
         };

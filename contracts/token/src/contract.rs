@@ -162,8 +162,7 @@ pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, 
 fn addr_validate_to_lower(api: &dyn Api, addr: &str) -> StdResult<Addr> {
     if addr.to_lowercase() != addr {
         return Err(StdError::generic_err(format!(
-            "Address {} should be lowercase",
-            addr
+            "Address {addr} should be lowercase"
         )));
     }
     api.addr_validate(addr)

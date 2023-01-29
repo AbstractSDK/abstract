@@ -213,8 +213,7 @@ impl ProxyAsset {
                         return Ok(response.value);
                     } else {
                         return Err(StdError::generic_err(format!(
-                            "external contract api {} must be enabled on OS",
-                            api_name
+                            "external contract api {api_name} must be enabled on OS"
                         )));
                     }
                 }
@@ -283,8 +282,7 @@ impl ProxyAsset {
 
         if other_pool_asset_names.len() != 2 {
             return Err(StdError::generic_err(format!(
-                "lp pair contract {} must be composed of two assets.",
-                pair
+                "lp pair contract {pair} must be composed of two assets."
             )));
         }
 
@@ -338,8 +336,7 @@ pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a
         .find(|component| *component != asset)
         .ok_or_else(|| {
             StdError::generic_err(format!(
-                "composite {} is not structured correctly",
-                composite
+                "composite {composite} is not structured correctly"
             ))
         })
 }

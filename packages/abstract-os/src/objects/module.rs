@@ -47,8 +47,7 @@ impl ModuleInfo {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
             return Err(StdError::generic_err(format!(
-                "contract id:{} must be formatted as provider:contract_name.",
-                id
+                "contract id:{id} must be formatted as provider:contract_name."
             )));
         }
         Ok(ModuleInfo {

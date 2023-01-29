@@ -675,8 +675,8 @@ mod test {
         let generate_test_assets_large = |n: usize| -> Vec<(String, String)> {
             let mut vector = vec![];
             for i in 0..n {
-                let string1 = format!("foo{}", i);
-                let string2 = format!("foo{}", i);
+                let string1 = format!("foo{i}");
+                let string2 = format!("foo{i}");
                 vector.push((string1, string2));
             }
             vector
@@ -876,7 +876,7 @@ mod test {
             pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
         };
         // assert
-        println!("{:?}", res);
+        println!("{res:?}");
         assert_eq!(&res, &expected);
         Ok(())
     }
@@ -1008,11 +1008,8 @@ mod test {
             )],
         };
         assert_eq!(&res_bar, &expected_bar);
-        println!("res_foo:{:?} expected_foo:{:?}", res_foo, expected_foo);
-        // TO-DO : this test is failing - the dex updates but the assets do not.
+        println!("res_foo:{res_foo:?} expected_foo:{expected_foo:?}");
         assert_eq!(&res_foo, &expected_foo);
-
-        // assert
 
         Ok(())
     }
@@ -1060,7 +1057,7 @@ mod test {
                 (foo_key, foo_metadata.clone()),
             ],
         };
-        println!("{:?} {:?}", res_both, expected_both);
+        println!("{res_both:?} {expected_both:?}");
         assert_that!(res_both).is_equal_to(expected_both);
 
         let msg_foo = QueryMsg::PoolMetadataList {

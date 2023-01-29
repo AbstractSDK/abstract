@@ -654,8 +654,7 @@ pub(crate) fn get_os_core(
     let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(
-            "OS with id {} is not active.",
-            os_id
+            "OS with id {os_id} is not active."
         ))),
         Some(core) => Ok(core),
     }

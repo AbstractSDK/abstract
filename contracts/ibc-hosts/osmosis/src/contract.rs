@@ -60,7 +60,7 @@ fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction
         local_proxy_addr: host.proxy_address.clone(),
     };
     let action = packet;
-    let acknowledgement = StdAck::fail(format!("action {:?} failed", action));
+    let acknowledgement = StdAck::fail(format!("action {action:?} failed"));
 
     // execute and expect reply after execution
     let proxy_msg = host.resolve_dex_action(deps, action, &exchange, true)?;

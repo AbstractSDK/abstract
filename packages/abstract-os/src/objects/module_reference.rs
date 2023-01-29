@@ -141,7 +141,7 @@ mod test {
 
     #[test]
     fn test_validate_happy_path() {
-        let mut deps = mock_dependencies();
+        let deps = mock_dependencies();
 
         let native = ModuleReference::Native(Addr::unchecked("addr"));
         assert_that!(native.validate(deps.as_ref())).is_ok();
@@ -161,7 +161,7 @@ mod test {
 
     #[test]
     fn test_validate_bad_address() {
-        let mut deps = mock_dependencies();
+        let deps = mock_dependencies();
 
         let native = ModuleReference::Native(Addr::unchecked(""));
         assert_that!(native.validate(deps.as_ref())).is_err();

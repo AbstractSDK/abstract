@@ -34,8 +34,7 @@ impl TryFrom<AssetEntry> for LpToken {
 
         if segments.len() != 2 {
             return Err(StdError::generic_err(format!(
-                "Invalid asset entry: {}",
-                asset
+                "Invalid asset entry: {asset}"
             )));
         }
 
@@ -50,8 +49,7 @@ impl TryFrom<AssetEntry> for LpToken {
 
         if assets.len() < 2 {
             return Err(StdError::generic_err(format!(
-                "Must be at least 2 assets in an LP token: {}",
-                asset
+                "Must be at least 2 assets in an LP token: {asset}"
             )));
         }
 

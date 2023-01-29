@@ -39,8 +39,7 @@ impl<'a, T: VersionRegisterInterface> VersionRegister<'a, T> {
             )?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
-                    "Module {} can not be found in registry {}.",
-                    module_info, registry_addr
+                    "Module {module_info} can not be found in registry {registry_addr}."
                 ))
             })
     }

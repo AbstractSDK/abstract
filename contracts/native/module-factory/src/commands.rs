@@ -117,7 +117,7 @@ fn instantiate_contract(
             code_id,
             funds: vec![],
             admin: admin.map(Into::into),
-            label: format!("Module: {}, Height {}", module_info, block_height),
+            label: format!("Module: {module_info}, Height {block_height}"),
             msg: init_msg,
         }
         .into(),
@@ -293,8 +293,7 @@ mod test {
                 funds: vec![],
                 admin: None,
                 label: format!(
-                    "Module: {}, Height {}",
-                    expected_module_info, some_block_height
+                    "Module: {expected_module_info}, Height {some_block_height}"
                 ),
                 msg: expected_module_init_msg,
             };

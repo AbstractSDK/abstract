@@ -27,7 +27,7 @@ impl FromStr for PoolType {
             STABLE => Ok(PoolType::Stable),
             WEIGHTED => Ok(PoolType::Weighted),
             LIQUIDITY_BOOTSTRAP => Ok(PoolType::LiquidityBootstrap),
-            _ => Err(StdError::generic_err(format!("invalid pool type `{}`", s))),
+            _ => Err(StdError::generic_err(format!("invalid pool type `{s}`"))),
         }
     }
 }
@@ -43,10 +43,10 @@ impl TryFrom<String> for PoolType {
 impl fmt::Display for PoolType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PoolType::ConstantProduct => write!(f, "{}", CONSTANT_PRODUCT),
-            PoolType::Stable => write!(f, "{}", STABLE),
-            PoolType::Weighted => write!(f, "{}", WEIGHTED),
-            PoolType::LiquidityBootstrap => write!(f, "{}", LIQUIDITY_BOOTSTRAP),
+            PoolType::ConstantProduct => write!(f, "{CONSTANT_PRODUCT}"),
+            PoolType::Stable => write!(f, "{STABLE}"),
+            PoolType::Weighted => write!(f, "{WEIGHTED}"),
+            PoolType::LiquidityBootstrap => write!(f, "{LIQUIDITY_BOOTSTRAP}"),
         }
     }
 }

@@ -95,10 +95,10 @@ fn unparsed_query(
     let raw = to_vec(request)?;
     match querier.raw_query(&raw) {
         SystemResult::Err(system_err) => {
-            Err(StdError::generic_err(format!("Querier system error: {}", system_err)).into())
+            Err(StdError::generic_err(format!("Querier system error: {system_err}")).into())
         }
         SystemResult::Ok(ContractResult::Err(contract_err)) => {
-            Err(StdError::generic_err(format!("Querier contract error: {}", contract_err)).into())
+            Err(StdError::generic_err(format!("Querier contract error: {contract_err}")).into())
         }
         SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
     }
@@ -160,7 +160,7 @@ pub fn receive_register<
     PENDING.save(deps.storage, &(channel, os_id))?;
 
     // We rely on Reply handler to change this to Success!
-    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {} ", os_id));
+    let acknowledgement = StdAck::fail(format!("Failed to create proxy for OS {os_id} "));
 
     Ok(IbcReceiveResponse::new()
         .add_submessage(msg)

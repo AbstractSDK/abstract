@@ -39,7 +39,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
         });
 
         if res.is_err() {
-            println!("Error removing autocompounder version {}", version);
+            println!("Error removing autocompounder version {version}");
         }
 
         let res = version_control.remove_module(ModuleInfo {
@@ -49,7 +49,7 @@ pub fn deploy_api() -> anyhow::Result<()> {
         });
 
         if res.is_err() {
-            println!("Error removing autocompounder version {}", version);
+            println!("Error removing autocompounder version {version}");
         }
     }
 

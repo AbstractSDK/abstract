@@ -82,8 +82,7 @@ fn assert_comparators(bounds: &[Comparator], version: &Version, module_id: &str)
             Ok(())
         } else {
             Err(StdError::generic_err(format!(
-                "Module {} with version {} does not fit requirement {}.",
-                module_id, version, comp
+                "Module {module_id} with version {version} does not fit requirement {comp}."
             )))
         }
     })?;

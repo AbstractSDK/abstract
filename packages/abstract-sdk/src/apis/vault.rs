@@ -48,8 +48,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let response = VAULT_ASSETS.query(&querier, proxy_address, asset.clone())?;
         response.ok_or_else(|| {
             StdError::generic_err(format!(
-                "Asset {} is not registered as an asset on your proxy contract.",
-                asset
+                "Asset {asset} is not registered as an asset on your proxy contract."
             ))
         })
     }

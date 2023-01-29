@@ -30,7 +30,7 @@ impl AnsHost {
             let result: Addr = CONTRACT_ADDRESSES
                 .query(querier, self.address.clone(), key.clone())?
                 .ok_or_else(|| {
-                    StdError::generic_err(format!("contract {} not found in ans_host", key))
+                    StdError::generic_err(format!("contract {key} not found in ans_host"))
                 })?;
             resolved_contracts.insert(key, result);
         }
@@ -46,7 +46,7 @@ impl AnsHost {
         let result: Addr = CONTRACT_ADDRESSES
             .query(querier, self.address.clone(), contract.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("contract {} not found in ans_host", contract))
+                StdError::generic_err(format!("contract {contract} not found in ans_host"))
             })?;
         // Addresses are checked when stored.
         Ok(Addr::unchecked(result))
@@ -124,7 +124,7 @@ impl AnsHost {
         let result: String = CHANNELS
             .query(querier, self.address.clone(), channel.clone())?
             .ok_or_else(|| {
-                StdError::generic_err(format!("channel {} not found in ans_host", channel))
+                StdError::generic_err(format!("channel {channel} not found in ans_host"))
             })?;
         // Addresses are checked when stored.
         Ok(result)
@@ -140,8 +140,7 @@ impl AnsHost {
             .query(querier, self.address.clone(), dex_asset_pairing.clone())?
             .ok_or_else(|| {
                 StdError::generic_err(format!(
-                    "asset pairing {} not found in ans_host",
-                    dex_asset_pairing
+                    "asset pairing {dex_asset_pairing} not found in ans_host"
                 ))
             })?;
         Ok(result)

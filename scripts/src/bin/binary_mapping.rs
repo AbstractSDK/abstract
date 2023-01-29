@@ -44,7 +44,7 @@ pub fn script() -> anyhow::Result<()> {
     let dubble_check: TestInit = from_binary(&bin)?;
 
     let mut input_value = serde_cw_value::to_value(from_bin)?;
-    println!("{:?}", dubble_check);
+    println!("{dubble_check:?}");
     match input_value {
         Value::Map(ref mut val_map) => {
             for rule in store {

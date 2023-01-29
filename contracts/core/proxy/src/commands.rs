@@ -52,8 +52,7 @@ pub fn execute_ibc_action(
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
-                "ibc_client not found on manager. Add it under the {} name.",
-                IBC_CLIENT
+                "ibc_client not found on manager. Add it under the {IBC_CLIENT} name."
             ))
         })?;
     let client_msgs: Result<Vec<_>, _> = msgs
@@ -98,7 +97,7 @@ pub fn update_assets(
     if validity_result.missing_dependencies.is_some()
         || validity_result.unresolvable_assets.is_some()
     {
-        return Err(ProxyError::BadUpdate(format!("{:?}", validity_result)));
+        return Err(ProxyError::BadUpdate(format!("{validity_result:?}")));
     }
 
     Ok(ProxyResponse::action("update_proxy_assets"))
@@ -271,7 +270,7 @@ mod test {
 
             for i in 0..LIST_SIZE_LIMIT {
                 msg = ExecuteMsg::AddModule {
-                    module: format!("module_{}", i),
+                    module: format!("module_{i}"),
                 };
                 let res = execute_as_admin(&mut deps, msg.clone());
                 assert_that(&res).is_ok();

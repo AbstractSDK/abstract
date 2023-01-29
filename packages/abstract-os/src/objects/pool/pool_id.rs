@@ -49,7 +49,7 @@ impl FromStr for UncheckedPoolAddress {
             "contract" => {
                 if words.len() != 2 {
                     return Err(StdError::generic_err(
-                        format!("invalid pool id format `{}`; must be in format `contract:{{contract_addr}}`", s)
+                        format!("invalid pool id format `{s}`; must be in format `contract:{{contract_addr}}`")
                     ));
                 }
                 Ok(UncheckedPoolAddress::Contract(String::from(words[1])))
@@ -57,8 +57,7 @@ impl FromStr for UncheckedPoolAddress {
             "id" => {
                 if words.len() != 2 {
                     return Err(StdError::generic_err(format!(
-                        "invalid pool id format `{}`; must be in format `id:{{pool_id}}`",
-                        s
+                        "invalid pool id format `{s}`; must be in format `id:{{pool_id}}`"
                     )));
                 }
                 let parsed_id_res = words[1].parse::<u64>();
@@ -68,8 +67,7 @@ impl FromStr for UncheckedPoolAddress {
                 }
             }
             unknown => Err(StdError::generic_err(format!(
-                "invalid pool id type `{}`; must be `contract` or `id`",
-                unknown
+                "invalid pool id type `{unknown}`; must be `contract` or `id`"
             ))),
         }
     }
@@ -133,8 +131,8 @@ impl UncheckedPoolAddress {
 impl fmt::Display for PoolAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PoolAddress::Contract(contract_addr) => write!(f, "contract:{}", contract_addr),
-            PoolAddress::Id(pool_id) => write!(f, "id:{}", pool_id),
+            PoolAddress::Contract(contract_addr) => write!(f, "contract:{contract_addr}"),
+            PoolAddress::Id(pool_id) => write!(f, "id:{pool_id}"),
         }
     }
 }

@@ -36,7 +36,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
         let Some(module_addr) = maybe_module_addr else {
-            return Err(StdError::generic_err(format!("Module {} not enabled on OS.", module_id)));
+            return Err(StdError::generic_err(format!("Module {module_id} not enabled on OS.")));
         };
         Ok(module_addr)
     }
@@ -62,8 +62,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         match is_dependency {
             true => Ok(()),
             false => Err(StdError::generic_err(format!(
-                "Module {} is not a dependency of this contract.",
-                module_id
+                "Module {module_id} is not a dependency of this contract."
             ))),
         }
     }
@@ -178,7 +177,7 @@ mod test {
 
             assert_that!(res).is_err().matches(|e| {
                 e.to_string()
-                    .contains(&format!("{} is not a dependency", fake_module))
+                    .contains(&format!("{fake_module} is not a dependency"))
             });
         }
     }

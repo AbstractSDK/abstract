@@ -154,8 +154,7 @@ fn handle_create_allocations(
         match ALLOCATIONS.load(deps.storage, &user) {
             Ok(..) => {
                 return Err(StdError::generic_err(format!(
-                    "Allocation already exists for user {}",
-                    user
+                    "Allocation already exists for user {user}"
                 )));
             }
             Err(..) => match allocation_info.clone().unlock_schedule {
@@ -164,7 +163,7 @@ fn handle_create_allocations(
                         > allocation_info.vest_schedule.start_time
                             + allocation_info.vest_schedule.cliff
                     {
-                        return Err(StdError::generic_err(format!("Invalid Allocation for {}. Unlock schedule needs to begin before vest schedule",user)));
+                        return Err(StdError::generic_err(format!("Invalid Allocation for {user}. Unlock schedule needs to begin before vest schedule")));
                     }
                     ALLOCATIONS.save(deps.storage, &user, &allocation_info)?;
                 }
