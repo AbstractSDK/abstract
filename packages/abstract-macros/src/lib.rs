@@ -43,22 +43,23 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
     let mut item = parse_macro_input!(input as syn::Item);
     let attributes = parse_macro_input!(attrs as AttributeArgs);
 
-    let Item::Struct(boot_struct) = &mut item else {
+    let Item::Struct(resp_struct) = &mut item else {
         panic!("Only works on structs");
     };
-    let Fields::Unit = &mut boot_struct.fields else {
+    let Fields::Unit = &mut resp_struct.fields else {
         panic!("Struct must be unit-struct");
     };
-    let name = boot_struct.ident.clone();
+    let visibility = resp_struct.vis.clone();
+    let resp_name = resp_struct.ident.clone();
 
     // if attributes.is_empty() {}
 
     let contract_name = attributes[0].clone();
 
     let struct_def = quote!(
-        struct #name;
-        impl #name {
-            fn new<T: Into<String>, A: Into<cosmwasm_std::Attribute>>(
+        #visibility struct #resp_name;
+        impl #resp_name {
+            #visibility fn new<T: Into<String>, A: Into<cosmwasm_std::Attribute>>(
                 action: T,
                 attrs: impl IntoIterator<Item = A>,
             ) -> cosmwasm_std::Response {
@@ -69,8 +70,8 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
                         .add_attributes(attrs),
                 )
             }
-            fn action<T: Into<String>>(action: T) -> cosmwasm_std::Response {
-                #name::new(action, Vec::<cosmwasm_std::Attribute>::new())
+            #visibility fn action<T: Into<String>>(action: T) -> cosmwasm_std::Response {
+                #resp_name::new(action, Vec::<cosmwasm_std::Attribute>::new())
             }
         }
     );

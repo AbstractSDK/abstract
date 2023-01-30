@@ -4,7 +4,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum ClientError {
+pub enum IbcClientError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -12,7 +12,7 @@ pub enum ClientError {
     SimpleIca(#[from] SimpleIcaError),
 
     #[error("{0}")]
-    AdminErr(#[from] AdminError),
+    Admin(#[from] AdminError),
 
     #[error("No account for channel {0}")]
     UnregisteredChannel(String),

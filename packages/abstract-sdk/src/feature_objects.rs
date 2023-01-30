@@ -18,6 +18,12 @@ pub struct VersionControlContract {
     pub address: Addr,
 }
 
+impl VersionControlContract {
+    pub fn new(address: Addr) -> Self {
+        Self { address }
+    }
+}
+
 impl RegisterAccess for VersionControlContract {
     fn registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
         Ok(self.address.clone())
@@ -29,6 +35,14 @@ impl RegisterAccess for VersionControlContract {
 /// Implements [`Identification`].
 pub struct ProxyContract {
     pub contract_address: Addr,
+}
+
+impl ProxyContract {
+    pub fn new(address: Addr) -> Self {
+        Self {
+            contract_address: address,
+        }
+    }
 }
 
 impl Identification for ProxyContract {
@@ -58,7 +72,7 @@ impl Identification for Core {
 }
 
 impl ModuleIdentification for Core {
-    // Any actions executed by the core will be by the proxy address
+    /// Any actions executed by the core will be by the proxy address
     fn module_id(&self) -> &'static str {
         PROXY
     }
@@ -70,5 +84,107 @@ impl crate::base::features::AbstractNameService for AnsHost {
         _deps: Deps,
     ) -> cosmwasm_std::StdResult<abstract_os::objects::ans_host::AnsHost> {
         Ok(self.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use abstract_testing::{TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL};
+    use speculoos::prelude::*;
+
+    mod version_control {
+        use super::*;
+        use cosmwasm_std::testing::mock_dependencies;
+
+        #[test]
+        fn test_registry() {
+            let address = Addr::unchecked("version");
+            let vc = VersionControlContract::new(address.clone());
+
+            let mut deps = mock_dependencies();
+
+            assert_that!(vc.registry(deps.as_ref()))
+                .is_ok()
+                .is_equal_to(address);
+        }
+    }
+
+    mod proxy {
+        use super::*;
+        use cosmwasm_std::testing::mock_dependencies;
+
+        #[test]
+        fn test_proxy_address() {
+            let address = Addr::unchecked(TEST_PROXY);
+            let proxy = ProxyContract::new(address.clone());
+
+            let mut deps = mock_dependencies();
+
+            assert_that!(proxy.proxy_address(deps.as_ref()))
+                .is_ok()
+                .is_equal_to(address);
+        }
+
+        #[test]
+        fn should_identify_self_as_abstract_proxy() {
+            let proxy = ProxyContract::new(Addr::unchecked(TEST_PROXY));
+
+            assert_that!(proxy.module_id()).is_equal_to(PROXY);
+        }
+    }
+
+    mod core {
+        use super::*;
+        use cosmwasm_std::testing::mock_dependencies;
+
+        fn test_core() -> Core {
+            Core {
+                manager: Addr::unchecked(TEST_MANAGER),
+                proxy: Addr::unchecked(TEST_PROXY),
+            }
+        }
+
+        #[test]
+        fn test_proxy_address() {
+            let address = Addr::unchecked(TEST_PROXY);
+            let core = test_core();
+
+            let mut deps = mock_dependencies();
+
+            assert_that!(core.proxy_address(deps.as_ref()))
+                .is_ok()
+                .is_equal_to(address);
+        }
+
+        #[test]
+        fn test_manager_address() {
+            let manager_addrsess = Addr::unchecked(TEST_MANAGER);
+            let core = test_core();
+
+            let mut deps = mock_dependencies();
+
+            assert_that!(core.manager_address(deps.as_ref()))
+                .is_ok()
+                .is_equal_to(manager_addrsess);
+        }
+
+        #[test]
+        fn test_os_core() {
+            let core = test_core();
+
+            let mut deps = mock_dependencies();
+
+            assert_that!(core.os_core(deps.as_ref()))
+                .is_ok()
+                .is_equal_to(core.clone());
+        }
+
+        #[test]
+        fn should_identify_self_as_abstract_proxy() {
+            let core = test_core();
+
+            assert_that!(core.module_id()).is_equal_to(PROXY);
+        }
     }
 }
