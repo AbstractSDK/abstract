@@ -161,7 +161,7 @@ mod test {
     #[test]
     fn swap_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex = stub
             .dex(deps.as_ref(), "junoswap".into())
@@ -200,7 +200,7 @@ mod test {
     #[test]
     fn custom_swap_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "astroport".to_string();
 
@@ -240,7 +240,7 @@ mod test {
     #[test]
     fn provide_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
@@ -276,7 +276,7 @@ mod test {
     #[test]
     fn provide_liquidity_symmetric_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 
@@ -313,7 +313,7 @@ mod test {
     #[test]
     fn withdraw_liquidity_msg() {
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let stub = MockModule::new();
         let dex_name = "junoswap".to_string();
 

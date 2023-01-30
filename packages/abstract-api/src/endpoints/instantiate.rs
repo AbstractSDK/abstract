@@ -104,7 +104,7 @@ mod tests {
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -151,7 +151,7 @@ mod tests {
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),
@@ -172,7 +172,7 @@ mod tests {
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::querier();
+        deps.querier = abstract_testing::mock_querier();
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.into(),

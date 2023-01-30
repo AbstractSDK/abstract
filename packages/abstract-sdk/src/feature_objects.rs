@@ -90,7 +90,7 @@ impl crate::base::features::AbstractNameService for AnsHost {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::{TEST_MANAGER, TEST_PROXY, TEST_VERSION_CONTROL};
+    use abstract_testing::{TEST_MANAGER, TEST_PROXY};
     use speculoos::prelude::*;
 
     mod version_control {
@@ -102,7 +102,7 @@ mod tests {
             let address = Addr::unchecked("version");
             let vc = VersionControlContract::new(address.clone());
 
-            let mut deps = mock_dependencies();
+            let deps = mock_dependencies();
 
             assert_that!(vc.registry(deps.as_ref()))
                 .is_ok()
@@ -118,8 +118,7 @@ mod tests {
         fn test_proxy_address() {
             let address = Addr::unchecked(TEST_PROXY);
             let proxy = ProxyContract::new(address.clone());
-
-            let mut deps = mock_dependencies();
+            let deps = mock_dependencies();
 
             assert_that!(proxy.proxy_address(deps.as_ref()))
                 .is_ok()
@@ -150,7 +149,7 @@ mod tests {
             let address = Addr::unchecked(TEST_PROXY);
             let core = test_core();
 
-            let mut deps = mock_dependencies();
+            let deps = mock_dependencies();
 
             assert_that!(core.proxy_address(deps.as_ref()))
                 .is_ok()
@@ -162,7 +161,7 @@ mod tests {
             let manager_addrsess = Addr::unchecked(TEST_MANAGER);
             let core = test_core();
 
-            let mut deps = mock_dependencies();
+            let deps = mock_dependencies();
 
             assert_that!(core.manager_address(deps.as_ref()))
                 .is_ok()
@@ -173,11 +172,11 @@ mod tests {
         fn test_os_core() {
             let core = test_core();
 
-            let mut deps = mock_dependencies();
+            let deps = mock_dependencies();
 
             assert_that!(core.os_core(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(core.clone());
+                .is_equal_to(core);
         }
 
         #[test]

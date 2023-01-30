@@ -310,18 +310,18 @@ pub fn ibc_packet_timeout(
 mod tests {
     use super::*;
     use crate::contract::{execute, instantiate, query, IbcClientResult};
-    use abstract_sdk::os::ibc_client::{AccountResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
+    use abstract_sdk::os::ibc_client::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
-    use crate::contract;
+    
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
-    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_OS_ID, TEST_VERSION_CONTROL};
+    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
         MockStorage,
     };
     use cosmwasm_std::{
-        coin, coins, BankMsg, CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
+        CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
     };
 
     type IbcClientTestResult = Result<(), IbcClientError>;
@@ -374,7 +374,7 @@ mod tests {
                 channel_id: packet_channel,
                 ..
             }) => assert_eq!(packet_channel.as_str(), channel_id),
-            o => panic!("Unexpected message: {:?}", o),
+            o => panic!("Unexpected message: {o:?}"),
         };
     }
 

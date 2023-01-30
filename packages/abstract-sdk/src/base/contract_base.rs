@@ -1,4 +1,3 @@
-use super::endpoints::migrate::{Metadata, Name, VersionString};
 use super::handler::Handler;
 use abstract_os::abstract_ica::StdAck;
 use cosmwasm_std::{
@@ -7,6 +6,10 @@ use cosmwasm_std::{
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use os::objects::dependency::StaticDependency;
+
+pub type ContractName = &'static str;
+pub type VersionString = &'static str;
+pub type ContractMetadata = Option<&'static str>;
 
 pub type IbcCallbackHandlerFn<Module, Error> =
     fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
@@ -41,7 +44,7 @@ pub struct AbstractContract<
     ReceiveMsg = Empty,
 > {
     /// static info about the contract, used for migration
-    pub(crate) info: (Name, VersionString, Metadata),
+    pub(crate) info: (ContractName, VersionString, ContractMetadata),
     /// On-chain storage of the same info
     pub(crate) version: Item<'static, ContractVersion>,
     /// ID's that this contract depends on
@@ -84,7 +87,11 @@ impl<
 where
     Module: Handler,
 {
-    pub const fn new(name: Name, version: VersionString, metadata: Metadata) -> Self {
+    pub const fn new(
+        name: ContractName,
+        version: VersionString,
+        metadata: ContractMetadata,
+    ) -> Self {
         Self {
             info: (name, version, metadata),
             version: CONTRACT,
@@ -102,7 +109,7 @@ where
     pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
         self.version.load(store)
     }
-    pub fn info(&self) -> (Name, VersionString, Metadata) {
+    pub fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
         self.info
     }
     /// add dependencies to the contract
@@ -251,16 +258,16 @@ mod test {
 
     #[test]
     fn test_info() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default());
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default());
         let (name, version, metadata) = contract.info();
         assert_that!(&name).is_equal_to("test_contract");
         assert_that!(&version).is_equal_to("0.1.0");
-        assert_that!(metadata).is_equal_to(Metadata::default());
+        assert_that!(metadata).is_equal_to(ContractMetadata::default());
     }
 
     #[test]
     fn test_with_empty() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_dependencies(&[]);
 
         assert!(contract.reply_handlers.iter().all(|x| x.is_empty()));
@@ -280,7 +287,7 @@ mod test {
         const dependency: StaticDependency = StaticDependency::new("test", &[verison]);
         const dependencies: &[StaticDependency] = &[dependency];
 
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_dependencies(dependencies);
 
         assert_that!(contract.dependencies[0].clone()).is_equal_to(dependency);
@@ -288,7 +295,7 @@ mod test {
 
     #[test]
     fn test_with_instantiate() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_instantiate(|_, _, _, _, _| {
                 Ok(Response::default().add_attribute("test", "instantiate"))
             });
@@ -298,7 +305,7 @@ mod test {
 
     #[test]
     fn test_with_receive() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_receive(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "receive")));
 
         assert!(contract.receive_handler.is_some());
@@ -306,7 +313,7 @@ mod test {
 
     #[test]
     fn test_with_execute() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_execute(|_, _, _, _, _| Ok(Response::default().add_attribute("test", "execute")));
 
         assert!(contract.execute_handler.is_some());
@@ -314,7 +321,7 @@ mod test {
 
     #[test]
     fn test_with_query() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_query(|_, _, _, _| Ok(cosmwasm_std::to_binary(&Empty {}).unwrap()));
 
         assert!(contract.query_handler.is_some());
@@ -322,7 +329,7 @@ mod test {
 
     #[test]
     fn test_with_migrate() {
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_migrate(|_, _, _, _| Ok(Response::default().add_attribute("test", "migrate")));
 
         assert!(contract.migrate_handler.is_some());
@@ -333,7 +340,7 @@ mod test {
         const reply_id: u64 = 50u64;
         const handler: ReplyHandlerFn<MockModule, MockError> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_replies([&[(reply_id, handler)], &[]]);
 
         assert_that!(contract.reply_handlers[0][0].0).is_equal_to(reply_id);
@@ -345,7 +352,7 @@ mod test {
         const ibc_id: &str = "aoeu";
         const handler: IbcCallbackHandlerFn<MockModule, MockError> =
             |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
-        let contract = MockAppContract::new("test_contract", "0.1.0", Metadata::default())
+        let contract = MockAppContract::new("test_contract", "0.1.0", ContractMetadata::default())
             .with_ibc_callbacks(&[(ibc_id, handler)]);
 
         assert_that!(contract.ibc_callback_handlers[0].0).is_equal_to(ibc_id);

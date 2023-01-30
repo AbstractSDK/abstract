@@ -1,17 +1,13 @@
-use super::{
-    contract_base::{
-        AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-        MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
-    },
-    endpoints::migrate::Metadata,
+use super::contract_base::{
+    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
 };
-use crate::base::{
-    endpoints::migrate::{Name, VersionString},
-    ReplyHandlerFn,
-};
+use crate::base::contract_base::{ContractMetadata, ContractName, VersionString};
+use crate::base::ReplyHandlerFn;
 use abstract_os::objects::dependency::StaticDependency;
 use cosmwasm_std::{StdError, StdResult, Storage};
 use cw2::ContractVersion;
+
 pub trait Handler
 where
     Self: Sized + 'static,
@@ -40,7 +36,7 @@ where
         contract.version.load(store)
     }
 
-    fn info(&self) -> (Name, VersionString, Metadata) {
+    fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
         let contract = self.contract();
         contract.info
     }
