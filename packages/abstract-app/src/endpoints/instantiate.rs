@@ -53,13 +53,10 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let core = match resp.core {
-            Some(core) => core,
-            None => {
-                return Err(
-                    StdError::generic_err("context of module factory not properly set.").into(),
-                )
-            }
+        let Some(core) = resp.core else {
+            return Err(
+                StdError::generic_err("context of module factory not properly set.").into(),
+            );
         };
 
         // Base state
@@ -77,5 +74,37 @@ impl<
             return Ok(Response::new())
         };
         handler(deps, env, info, self, msg.app)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+    
+    use abstract_testing::{
+        TEST_ANS_HOST, TEST_MODULE_FACTORY,
+    };
+    
+    
+
+    #[test]
+    fn test_instantiate() {
+        let mut deps = mock_dependencies();
+        let info = mock_info(TEST_MODULE_FACTORY, &[]);
+
+        deps.querier = app_base_mock_querier().build();
+
+        let msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.to_string(),
+            },
+            app: MockInitMsg {},
+        };
+
+        let res = MOCK_APP
+            .instantiate(deps.as_mut(), mock_env(), info, msg)
+            .unwrap();
+        assert_that!(res.messages).is_empty();
     }
 }

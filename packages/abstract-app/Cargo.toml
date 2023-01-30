@@ -30,3 +30,8 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
+
+[dev-dependencies]
+cosmwasm-schema = { workspace = true }
+abstract-testing = { workspace = true }
+speculoos = { workspace = true }

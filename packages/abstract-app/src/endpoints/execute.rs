@@ -1,9 +1,10 @@
 use crate::{state::AppContract, AppError, AppResult};
 use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
-use abstract_os::app::AppExecuteMsg;
+use abstract_sdk::base::features::AbstractResponse;
+
 use abstract_sdk::{
     base::ReceiveEndpoint,
-    os::app::{BaseExecuteMsg, ExecuteMsg},
+    os::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
@@ -34,7 +35,6 @@ impl<
         env: Env,
         info: MessageInfo,
         msg: Self::ExecuteMsg,
-        // request_handler: impl FnOnce(DepsMut, Env, MessageInfo, Self, T) -> Result<Response, E>,
     ) -> Result<Response, Error> {
         match msg {
             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
@@ -42,9 +42,7 @@ impl<
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
-            abstract_os::base::ExecuteMsg::Receive(msg) => {
-                self.handle_receive(deps, env, info, msg)
-            }
+            ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
         }
@@ -93,6 +91,101 @@ impl<
 
         self.base_state.save(deps.storage, &state)?;
 
-        Ok(Response::default().add_attribute("action", "update_config"))
+        Ok(self.tag_response(Response::default(), "update_config"))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_common::*;
+    use abstract_testing::{TEST_ADMIN, TEST_MANAGER};
+    use cosmwasm_std::Addr;
+    use cw_controllers::AdminError;
+
+    type AppExecuteMsg = ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+
+    fn execute_as(deps: DepsMut, sender: &str, msg: AppExecuteMsg) -> Result<Response, MockError> {
+        let info = mock_info(sender, &[]);
+        MOCK_APP.execute(deps, mock_env(), info, msg)
+    }
+
+    fn execute_as_manager(deps: DepsMut, msg: AppExecuteMsg) -> Result<Response, MockError> {
+        execute_as(deps, TEST_MANAGER, msg)
+    }
+
+    fn test_only_manager(_msg: AppExecuteMsg) -> AppTestResult {
+        let mut deps = mock_init();
+        let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+            ans_host_address: None,
+        });
+
+        let res = execute_as(deps.as_mut(), "not_admin", msg);
+        assert_that!(res).is_err().matches(|e| {
+            matches!(
+                e,
+                MockError::DappError(AppError::Admin(AdminError::NotAdmin {}))
+            )
+        });
+        Ok(())
+    }
+
+    mod base {
+        use super::*;
+        use abstract_testing::TEST_ANS_HOST;
+
+        #[test]
+        fn only_manager() -> AppTestResult {
+            let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: None,
+            });
+
+            test_only_manager(msg)
+        }
+
+        #[test]
+        fn update_config_should_update_ans_host() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let new_ans_host = "new_ans_host";
+            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: Some(new_ans_host.to_string()),
+            });
+
+            let res = execute_as_manager(deps.as_mut(), update_ans);
+
+            assert_that!(res).is_ok().map(|res| {
+                assert_that!(res.messages).is_empty();
+                res
+            });
+
+            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+
+            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
+
+            Ok(())
+        }
+
+        #[test]
+        fn update_config_with_none_host_should_leave_existing_host() -> AppTestResult {
+            let mut deps = mock_init();
+
+            let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
+                ans_host_address: None,
+            });
+
+            let res = execute_as_manager(deps.as_mut(), update_ans);
+
+            assert_that!(res).is_ok().map(|res| {
+                assert_that!(res.messages).is_empty();
+                res
+            });
+
+            let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
+
+            assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+
+            Ok(())
+        }
     }
 }
