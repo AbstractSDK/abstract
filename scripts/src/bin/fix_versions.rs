@@ -8,7 +8,7 @@ use tokio::runtime::Runtime;
 
 use abstract_boot::Abstract;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::version_control::{ExecuteMsgFns, ModulesResponse, QueryMsgFns};
+use abstract_os::version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns};
 
 const NETWORK: NetworkInfo = UNI_5;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
@@ -24,7 +24,15 @@ pub fn fix_versions() -> anyhow::Result<()> {
 
     let deployment = Abstract::new(chain, abstract_os_version);
 
-    let ModulesResponse { modules } = deployment.version_control.modules(None, None)?;
+    let ModulesListResponse { modules } = deployment.version_control.module_list(
+        Some(ModuleFilter {
+            provider: Some(PROVIDER.to_string()),
+            version: Some(WRONG_VERSION.to_string()),
+            ..Default::default()
+        }),
+        None,
+        None,
+    )?;
 
     for (info, reference) in modules {
         let ModuleInfo {

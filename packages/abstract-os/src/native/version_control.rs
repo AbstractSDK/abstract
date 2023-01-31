@@ -8,6 +8,8 @@
 //!
 //! An internal os-id store provides external verification for manager and proxy addresses.  
 
+pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
+
 pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
@@ -50,9 +52,7 @@ pub enum ExecuteMsg {
     /// Remove some version of a module
     RemoveModule { module: ModuleInfo },
     /// Add new modules
-    AddModules {
-        modules: Vec<(ModuleInfo, ModuleReference)>,
-    },
+    AddModules { modules: Vec<ModuleMapEntry> },
     /// Add a new OS to the deployed OSs.  
     /// Only Factory can call this
     AddOs { os_id: u32, core: Core },
@@ -60,6 +60,15 @@ pub enum ExecuteMsg {
     SetAdmin { new_admin: String },
     /// Sets a new Factory
     SetFactory { new_factory: String },
+}
+
+/// A ModuleFilter that mirrors the [`ModuleInfo`] struct.
+#[derive(Default)]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleFilter {
+    pub provider: Option<String>,
+    pub name: Option<String>,
+    pub version: Option<String>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -71,15 +80,16 @@ pub enum QueryMsg {
     #[returns(OsCoreResponse)]
     OsCore { os_id: u32 },
     /// Queries api addresses
-    /// Returns [`ModuleResponse`]
-    #[returns(ModuleResponse)]
-    Module { module: ModuleInfo },
+    /// Returns [`ModulesResponse`]
+    #[returns(ModulesResponse)]
+    Modules { infos: Vec<ModuleInfo> },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns [`ModulesResponse`]
-    #[returns(ModulesResponse)]
-    Modules {
+    /// Returns [`ModulesListResponse`]
+    #[returns(ModulesListResponse)]
+    ModuleList {
+        filter: Option<ModuleFilter>,
         page_token: Option<ModuleInfo>,
         page_size: Option<u8>,
     },
@@ -91,13 +101,13 @@ pub struct OsCoreResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ModuleResponse {
-    pub module: Module,
+pub struct ModulesResponse {
+    pub modules: Vec<Module>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ModulesResponse {
-    pub modules: Vec<(ModuleInfo, ModuleReference)>,
+pub struct ModulesListResponse {
+    pub modules: Vec<ModuleMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

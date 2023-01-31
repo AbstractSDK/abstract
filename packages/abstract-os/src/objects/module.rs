@@ -274,6 +274,12 @@ impl fmt::Display for Module {
     }
 }
 
+impl From<(ModuleInfo, ModuleReference)> for Module {
+    fn from((info, reference): (ModuleInfo, ModuleReference)) -> Self {
+        Self { info, reference }
+    }
+}
+
 #[cosmwasm_schema::cw_serde]
 
 pub struct ModuleInitMsg {

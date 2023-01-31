@@ -73,7 +73,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         &self,
         module_id: &str,
         version: ModuleVersion,
-        // not option
         init_msg: &M,
     ) -> Result<(), BootError> {
         self.execute(

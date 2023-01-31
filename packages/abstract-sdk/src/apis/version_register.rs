@@ -5,7 +5,7 @@ use abstract_os::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
     },
-    version_control::{state::MODULE_LIBRARY, ModuleResponse, QueryMsg},
+    version_control::{state::MODULE_LIBRARY, ModulesResponse, QueryMsg},
 };
 use cosmwasm_std::StdResult;
 use cosmwasm_std::{Deps, StdError};
@@ -47,12 +47,12 @@ impl<'a, T: VersionRegisterInterface> VersionRegister<'a, T> {
     /// Smart query for a module
     pub fn query_module(&self, module_info: ModuleInfo) -> StdResult<Module> {
         let registry_addr = self.base.registry(self.deps)?;
-        let ModuleResponse { module } = self.deps.querier.query(&wasm_smart_query(
+        let ModulesResponse { mut modules } = self.deps.querier.query(&wasm_smart_query(
             registry_addr.into_string(),
-            &QueryMsg::Module {
-                module: module_info,
+            &QueryMsg::Modules {
+                infos: vec![module_info],
             },
         )?)?;
-        Ok(module)
+        Ok(modules.swap_remove(0))
     }
 }

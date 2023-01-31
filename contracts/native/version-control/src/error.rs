@@ -15,7 +15,7 @@ pub enum VCError {
     SemVer(String),
 
     #[error("Module {0} does not have a stored module reference")]
-    ModuleNotInstalled(ModuleInfo),
+    ModuleNotFound(ModuleInfo),
 
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),

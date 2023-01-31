@@ -1,4 +1,5 @@
 use crate::deployment::{self, OS};
+use abstract_os::objects::module::Module;
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
@@ -33,6 +34,13 @@ where
 
     pub fn load(chain: Chain, address: &Addr) -> Self {
         Self(Contract::new(VERSION_CONTROL, chain).with_address(Some(address)))
+    }
+
+    /// Query a single module
+    pub fn module(&self, info: ModuleInfo) -> Result<Module, BootError> {
+        let ModulesResponse { mut modules } = self.modules(vec![info])?;
+
+        Ok(modules.swap_remove(0))
     }
 
     pub fn register_core(&self, os: &OS<Chain>, version: &str) -> Result<(), BootError> {
@@ -132,9 +140,9 @@ where
 
     /// Retrieves an API's address from version control given the module **id** and **version**.
     pub fn get_api_addr(&self, id: &str, version: ModuleVersion) -> Result<Addr, BootError> {
-        let resp: ModuleResponse = self.module(ModuleInfo::from_id(id, version)?)?;
+        let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
-        Ok(resp.module.reference.unwrap_addr()?)
+        Ok(module.reference.unwrap_addr()?)
     }
 }
 

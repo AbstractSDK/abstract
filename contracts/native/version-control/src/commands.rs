@@ -61,7 +61,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     if MODULE_LIBRARY.has(deps.storage, module.clone()) {
         MODULE_LIBRARY.remove(deps.storage, module.clone());
     } else {
-        return Err(VCError::ModuleNotInstalled(module));
+        return Err(VCError::ModuleNotFound(module));
     }
 
     Ok(VcResponse::new(

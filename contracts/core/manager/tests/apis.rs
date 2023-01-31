@@ -245,17 +245,12 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let new_version_num = "100.0.0";
 
     // We init the staking api with a new version to ensure that we get a new address
-    let new_staking_api = init_staking_api(
-        chain,
-        &deployment,
-        Some(new_version_num.to_string()),
-    )?;
+    let new_staking_api = init_staking_api(chain, &deployment, Some(new_version_num.to_string()))?;
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
         .version_control
-        .module(ModuleInfo::from_id_latest(TENDERMINT_STAKING)?)?
-        .module;
+        .module(ModuleInfo::from_id_latest(TENDERMINT_STAKING)?)?;
     assert_that!(latest_staking.info.version)
         .is_equal_to(ModuleVersion::Version(new_version_num.to_string()));
 
@@ -347,8 +342,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
         init_staking_api(chain.clone(), &deployment, Some(expected_version.clone()))?;
     let expected_staking_api_addr = expected_staking_api.address()?.to_string();
 
-    let _staking_api_three =
-        init_staking_api(chain, &deployment, Some("3.4.5".to_string()))?;
+    let _staking_api_three = init_staking_api(chain, &deployment, Some("3.4.5".to_string()))?;
 
     // install specific version
     os.manager.install_module_version(

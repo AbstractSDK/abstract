@@ -2,6 +2,8 @@ use crate::contract::OsFactoryResult;
 use crate::state::*;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_macros::abstract_response;
+use abstract_os::objects::module::Module;
+use abstract_os::version_control::{ModulesResponse};
 use abstract_os::{app, OS_FACTORY};
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
@@ -16,7 +18,7 @@ use abstract_sdk::os::{
         DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
         SubscriptionQueryMsg,
     },
-    version_control::{Core, ModuleResponse},
+    version_control::Core,
 };
 use cosmwasm_std::{
     from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -90,10 +92,9 @@ pub fn execute_create_os(
     };
 
     // Query version_control for code_id of Manager contract
-    let module_resp: ModuleResponse =
-        query_code_id(&deps.querier, &config.version_control_contract, MANAGER)?;
+    let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    if let ModuleReference::Core(manager_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(manager_code_id) = module.reference {
         Ok(
             OsFactoryResponse::new("create_os", vec![("os_id", &config.next_os_id.to_string())])
                 // Create manager
@@ -126,7 +127,7 @@ pub fn execute_create_os(
         )
     } else {
         Err(OsFactoryError::WrongModuleKind(
-            module_resp.module.info.to_string(),
+            module.info.to_string(),
             "app".to_string(),
         ))
     }
@@ -151,10 +152,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     )?;
 
     // Query version_control for code_id of proxy
-    let module_resp: ModuleResponse =
-        query_code_id(&deps.querier, &config.version_control_contract, PROXY)?;
+    let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
-    if let ModuleReference::Core(proxy_code_id) = module_resp.module.reference {
+    if let ModuleReference::Core(proxy_code_id) = module.reference {
         Ok(OsFactoryResponse::new(
             "create_manager",
             vec![("manager_address", manager_address.to_string())],
@@ -178,23 +178,25 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
         }))
     } else {
         Err(OsFactoryError::WrongModuleKind(
-            module_resp.module.info.to_string(),
+            module.info.to_string(),
             "app".to_string(),
         ))
     }
 }
 
-fn query_code_id(
+fn query_module(
     querier: &QuerierWrapper,
     version_control_addr: &Addr,
     module_id: &str,
-) -> StdResult<ModuleResponse> {
-    querier.query(&wasm_smart_query(
+) -> StdResult<Module> {
+    let ModulesResponse { mut modules } = querier.query(&wasm_smart_query(
         version_control_addr.to_string(),
-        &VCQuery::Module {
-            module: ModuleInfo::from_id_latest(module_id)?,
+        &VCQuery::Modules {
+            infos: vec![ModuleInfo::from_id_latest(module_id)?],
         },
-    )?)
+    )?)?;
+
+    Ok(modules.swap_remove(0))
 }
 
 /// Registers the DAO on the version_control contract and

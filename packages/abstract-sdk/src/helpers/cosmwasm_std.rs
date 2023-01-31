@@ -1,4 +1,5 @@
 use cosmwasm_std::{to_binary, QueryRequest, StdResult, WasmQuery};
+
 use serde::Serialize;
 
 /// Shortcut helper as the construction of QueryRequest::Wasm(WasmQuery::Smart {...}) can be quite verbose in contract code
