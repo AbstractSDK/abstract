@@ -14,8 +14,7 @@ use abstract_os::{
     },
     ANS_HOST,
 };
-use cosmwasm_std::{Addr, DepsMut, Empty, MessageInfo, StdResult};
-use cosmwasm_std::{Env, StdError, Storage};
+use cosmwasm_std::{Addr, DepsMut, Empty, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 
 const MIN_POOL_ASSETS: usize = 2;
@@ -743,7 +742,7 @@ mod test {
         use super::*;
         use abstract_os::objects::AssetEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
-        use cw_asset::{AssetInfoBase, AssetInfo};
+        use cw_asset::{AssetInfo, AssetInfoBase};
         use cw_storage_plus::Map;
 
         fn unchecked_asset_map_entry(
@@ -819,7 +818,8 @@ mod test {
             let mut map_tester = setup_map_tester();
             map_tester.test_add_one(&mut deps)?;
             let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
-            let test_entry = reverse_map.load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            let test_entry =
+                reverse_map.load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(AssetEntry::from("test"));
             Ok(())
         }
@@ -850,7 +850,8 @@ mod test {
             let mut map_tester = setup_map_tester();
             map_tester.test_add_and_remove_same(&mut deps)?;
             let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
-            let test_entry = reverse_map.may_load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
+            let test_entry =
+                reverse_map.may_load(&deps.storage, AssetInfoBase::Native("utest".into()))?;
             assert_that!(test_entry).is_equal_to(None);
             Ok(())
         }
@@ -877,7 +878,8 @@ mod test {
             )?;
 
             let reverse_map = Map::<AssetInfo, AssetEntry>::new("rev_assets");
-            let test_entry = reverse_map.load(&deps.storage, new_entry_3.1.check(&deps.api, None)?)?;
+            let test_entry =
+                reverse_map.load(&deps.storage, new_entry_3.1.check(&deps.api, None)?)?;
             assert_that!(test_entry.to_string()).is_equal_to(new_entry_3.0);
             Ok(())
         }

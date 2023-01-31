@@ -17,6 +17,10 @@ pub struct AnsHost {
 }
 
 impl AnsHost {
+    /// Create a new ans_host instance with the given address.
+    pub fn new(address: Addr) -> Self {
+        Self { address }
+    }
     /// Raw Query to AnsHost contract
     pub fn query_contracts(
         &self,
@@ -27,11 +31,7 @@ impl AnsHost {
 
         // Query over keys
         for key in contracts.into_iter() {
-            let result: Addr = CONTRACT_ADDRESSES
-                .query(querier, self.address.clone(), key.clone())?
-                .ok_or_else(|| {
-                    StdError::generic_err(format!("contract {key} not found in ans_host"))
-                })?;
+            let result = self.query_contract(querier, &key)?;
             resolved_contracts.insert(key, result);
         }
         Ok(resolved_contracts)
@@ -61,11 +61,7 @@ impl AnsHost {
         let mut resolved_assets: BTreeMap<AssetEntry, AssetInfo> = BTreeMap::new();
 
         for asset in assets.into_iter() {
-            let result = ASSET_ADDRESSES
-                .query(querier, self.address.clone(), asset.clone())?
-                .ok_or_else(|| {
-                    StdError::generic_err(format!("asset {} not found in ans_host", &asset))
-                })?;
+            let result = self.query_asset(querier, &asset)?;
             resolved_assets.insert(asset, result);
         }
         Ok(resolved_assets)

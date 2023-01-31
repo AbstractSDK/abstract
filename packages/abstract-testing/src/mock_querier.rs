@@ -8,7 +8,11 @@ use cosmwasm_std::{
     from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
     WasmQuery,
 };
+use cw_storage_plus::{Map, PrimaryKey};
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::collections::HashMap;
+use std::ops::Deref;
 
 pub type EmptyMockQuerier = MockQuerier<Empty>;
 
@@ -25,6 +29,7 @@ pub struct MockQuerierBuilder {
     fallback_smart_handler: Box<FallbackHandler>,
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
     raw_handlers: HashMap<ContractAddr, Box<RawHandler>>,
+    raw_mappings: HashMap<ContractAddr, HashMap<Binary, Binary>>,
 }
 
 impl Default for MockQuerierBuilder {
@@ -41,8 +46,25 @@ impl Default for MockQuerierBuilder {
             fallback_smart_handler: Box::from(smart_fallback),
             smart_handlers: HashMap::default(),
             raw_handlers: HashMap::default(),
+            raw_mappings: HashMap::default(),
         }
     }
+}
+
+pub fn map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> String
+where
+    V: Serialize + DeserializeOwned,
+    K: PrimaryKey<'a>,
+{
+    String::from_utf8(raw_map_key(map, key)).unwrap()
+}
+
+pub fn raw_map_key<'a, K, V>(map: &Map<'a, K, V>, key: K) -> Vec<u8>
+where
+    V: Serialize + DeserializeOwned,
+    K: PrimaryKey<'a>,
+{
+    map.key(key).deref().to_vec()
 }
 
 /// Helper to build a MockQuerier.
@@ -117,6 +139,39 @@ impl MockQuerierBuilder {
         self
     }
 
+    /// Add a map entry to the querier for the given contract.
+    pub fn with_contract_map_entry<'a, K, V>(
+        self,
+        contract: &str,
+        cw_map: Map<'a, K, V>,
+        key: K,
+        value: &V,
+    ) -> Self
+    where
+        K: PrimaryKey<'a>,
+        V: Serialize + DeserializeOwned,
+    {
+        self.with_contract_map_entries(contract, cw_map, vec![(key, value)])
+    }
+
+    pub fn with_contract_map_entries<'a, K, V>(
+        mut self,
+        contract: &str,
+        cw_map: Map<'a, K, V>,
+        entries: Vec<(K, &V)>,
+    ) -> Self
+    where
+        K: PrimaryKey<'a>,
+        V: Serialize + DeserializeOwned,
+    {
+        let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
+        for (key, value) in entries {
+            raw_map.insert(Binary(raw_map_key(&cw_map, key)), to_binary(value).unwrap());
+        }
+
+        self
+    }
+
     /// Build the [`MockQuerier`].
     pub fn build(mut self) -> EmptyMockQuerier {
         self.base.update_wasm(move |wasm| {
@@ -124,6 +179,14 @@ impl MockQuerierBuilder {
                 WasmQuery::Raw { contract_addr, key } => {
                     let str_key = std::str::from_utf8(&key.0).unwrap();
 
+                    // First check for raw mappings
+                    if let Some(raw_map) = self.raw_mappings.get(contract_addr.as_str()) {
+                        if let Some(value) = raw_map.get(key) {
+                            return SystemResult::Ok(ContractResult::Ok(value.clone()));
+                        }
+                    }
+
+                    // Then check the handlers
                     let raw_handler = self.raw_handlers.get(contract_addr.as_str());
 
                     match raw_handler {
@@ -171,7 +234,7 @@ pub fn mock_querier() -> EmptyMockQuerier {
             },
             TEST_MANAGER => {
                 // add module
-                let map_key = map_key("os_modules", TEST_MODULE_ID);
+                let map_key = broken_map_key("os_modules", TEST_MODULE_ID);
                 let mut modules = HashMap::<Binary, Addr>::default();
                 modules.insert(
                     Binary(map_key.as_bytes().to_vec()),
@@ -217,7 +280,7 @@ pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {
 }
 
 // TODO: Fix to actually make this work!
-fn map_key<'a>(namespace: &'a str, key: &'a str) -> String {
+fn broken_map_key<'a>(namespace: &'a str, key: &'a str) -> String {
     let line_feed_char = b"\x0a";
     let mut res = vec![0u8];
     res.extend_from_slice(line_feed_char);
