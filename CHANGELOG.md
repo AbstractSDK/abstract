@@ -13,7 +13,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-## [0.5.2] - 2022-01-10
+## [0.7.0] - 2023-02-01
+
+### Added
+
+### Changed
+
+- Version Control `Modules` / `ModuleList`
+
+### Fixed
+
+## [0.5.2] - 2023-01-10
 
 ### Added
 
