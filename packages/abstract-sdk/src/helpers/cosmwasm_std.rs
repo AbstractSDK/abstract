@@ -14,6 +14,8 @@ pub fn wasm_smart_query<C>(
     }))
 }
 
+
+
 #[cfg(test)]
 mod test {
     use super::*;

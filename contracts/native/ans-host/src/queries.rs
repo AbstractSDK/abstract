@@ -1,23 +1,24 @@
-use abstract_os::ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA};
-use abstract_os::ans_host::{
-    AssetPairingFilter, AssetPairingMapEntry, ConfigResponse, PoolAddressListResponse,
-    PoolMetadataFilter, PoolMetadataListResponse, PoolMetadataMapEntry, PoolMetadatasResponse,
-    PoolsResponse, RegisteredDexesResponse,
-};
-use abstract_os::dex::DexName;
-use abstract_os::objects::pool_metadata::PoolMetadata;
-use abstract_os::objects::pool_reference::PoolReference;
-use abstract_os::objects::{DexAssetPairing, UniquePoolId};
+use abstract_os::ans_host::{AssetMapEntry, ContractMapEntry};
 use abstract_os::{
+    ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
         state::{ASSET_ADDRESSES, CHANNELS, CONTRACT_ADDRESSES, REGISTERED_DEXES},
         AssetListResponse, AssetsResponse, ChannelListResponse, ChannelsResponse,
         ContractListResponse, ContractsResponse,
     },
-    objects::{AssetEntry, ChannelEntry, ContractEntry},
+    ans_host::{
+        AssetPairingFilter, AssetPairingMapEntry, ChannelMapEntry, ConfigResponse,
+        PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
+        PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
+    },
+    dex::DexName,
+    objects::{
+        AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
+        UniquePoolId,
+    },
 };
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdResult, Storage};
-use cw_asset::AssetInfo;
+use abstract_sdk::helpers::cw_storage_plus::load_many;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
 use cw_storage_plus::Bound;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
@@ -38,36 +39,29 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
     to_binary(&res)
 }
 
-pub fn query_assets(deps: Deps, _env: Env, asset_names: Vec<String>) -> StdResult<Binary> {
-    let assets: Vec<AssetEntry> = asset_names
-        .iter()
-        .map(|name| name.as_str().into())
-        .collect();
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| assets.contains(&e.as_ref().unwrap().0))
-        .collect();
-    to_binary(&AssetsResponse { assets: res? })
+pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
+    let keys: Vec<AssetEntry> = keys.iter().map(|name| name.as_str().into()).collect();
+
+    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys)?;
+
+    to_binary(&AssetsResponse { assets })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, names: Vec<ContractEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+    let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
-        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
+        contracts: contracts
+            .into_iter()
+            .map(|(x, a)| (x, a.to_string()))
+            .collect(),
     })
 }
 
-pub fn query_channel(deps: Deps, _env: Env, names: Vec<ChannelEntry>) -> StdResult<Binary> {
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter(|e| names.contains(&e.as_ref().unwrap().0))
-        .collect();
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+    let channels = load_many(CHANNELS, deps.storage, keys)?;
 
-    to_binary(&ChannelsResponse { channels: res? })
+    to_binary(&ChannelsResponse { channels })
 }
 
 pub fn query_asset_list(
@@ -78,7 +72,7 @@ pub fn query_asset_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
 
-    let res: Result<Vec<(AssetEntry, AssetInfo)>, _> = ASSET_ADDRESSES
+    let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
@@ -94,10 +88,11 @@ pub fn query_contract_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_contract.map(Bound::exclusive);
 
-    let res: Result<Vec<(ContractEntry, Addr)>, _> = CONTRACT_ADDRESSES
+    let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ContractListResponse {
         contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
     })
@@ -111,10 +106,11 @@ pub fn query_channel_list(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_channel.map(Bound::exclusive);
 
-    let res: Result<Vec<(ChannelEntry, String)>, _> = CHANNELS
+    let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
+
     to_binary(&ChannelListResponse { channels: res? })
 }
 
@@ -260,14 +256,14 @@ mod test {
     use abstract_os::ans_host::*;
     use abstract_os::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
-    use cosmwasm_std::{from_binary, DepsMut};
+    use cosmwasm_std::{from_binary, Addr, DepsMut};
 
     use crate::contract;
     use crate::contract::{instantiate, AnsHostResult};
     use crate::error::AnsHostError;
 
     use abstract_os::objects::pool_id::PoolAddressBase;
-    use cw_asset::{AssetInfoBase, AssetInfoUnchecked};
+    use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
     use speculoos::prelude::*;
 
     use super::*;
@@ -294,11 +290,8 @@ mod test {
         }
     }
 
-    fn create_test_assets(
-        input: Vec<(&str, &str)>,
-        api: MockApi,
-    ) -> Vec<(String, AssetInfoBase<Addr>)> {
-        let test_assets: Vec<(String, AssetInfoBase<Addr>)> = input
+    fn create_test_assets(input: Vec<(&str, &str)>, api: MockApi) -> Vec<(String, AssetInfo)> {
+        let test_assets: Vec<(String, AssetInfo)> = input
             .into_iter()
             .map(|input| {
                 (
@@ -312,7 +305,7 @@ mod test {
         test_assets
     }
 
-    fn create_asset_response(test_assets: Vec<(String, AssetInfoBase<Addr>)>) -> AssetsResponse {
+    fn create_asset_response(test_assets: Vec<(String, AssetInfo)>) -> AssetsResponse {
         let expected = AssetsResponse {
             assets: test_assets
                 .iter()
@@ -322,9 +315,7 @@ mod test {
         expected
     }
 
-    fn create_asset_list_response(
-        test_assets: Vec<(String, AssetInfoBase<Addr>)>,
-    ) -> AssetListResponse {
+    fn create_asset_list_response(test_assets: Vec<(String, AssetInfo)>) -> AssetListResponse {
         let expected = AssetListResponse {
             assets: test_assets
                 .iter()
@@ -363,10 +354,8 @@ mod test {
         contract_entry
     }
 
-    fn create_channel_entry_and_string(
-        input: Vec<(&str, &str, &str)>,
-    ) -> Vec<(ChannelEntry, String)> {
-        let channel_entry: Vec<(ChannelEntry, String)> = input
+    fn create_channel_entry_and_string(input: Vec<(&str, &str, &str)>) -> Vec<ChannelMapEntry> {
+        let channel_entry: Vec<ChannelMapEntry> = input
             .into_iter()
             .map(|input| {
                 (
@@ -400,7 +389,7 @@ mod test {
 
     fn update_asset_addresses(
         deps: DepsMut<'_>,
-        to_add: Vec<(String, AssetInfoBase<Addr>)>,
+        to_add: Vec<(String, AssetInfo)>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
@@ -423,7 +412,7 @@ mod test {
 
     fn update_channels(
         deps: DepsMut<'_>,
-        to_add: Vec<(ChannelEntry, String)>,
+        to_add: Vec<ChannelMapEntry>,
     ) -> Result<(), cosmwasm_std::StdError> {
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
@@ -530,7 +519,7 @@ mod test {
     fn create_pool_metadata(dex: &str, asset_x: &str, asset_y: &str) -> PoolMetadata {
         PoolMetadata::new(
             dex,
-            abstract_os::objects::PoolType::Stable,
+            PoolType::Stable,
             vec![asset_x.to_string(), asset_y.to_string()],
         )
     }
@@ -681,7 +670,7 @@ mod test {
             }
             vector
         };
-        let test_assets_large: Vec<(String, AssetInfoBase<Addr>)> = generate_test_assets_large(30)
+        let test_assets_large: Vec<(String, AssetInfo)> = generate_test_assets_large(30)
             .into_iter()
             .map(|input| {
                 (
@@ -992,7 +981,7 @@ mod test {
                 UniquePoolId::new(42),
                 PoolMetadata::new(
                     "bar",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["btc".to_string(), "eth".to_string()],
                 ),
             )],
@@ -1002,7 +991,7 @@ mod test {
                 UniquePoolId::new(69),
                 PoolMetadata::new(
                     "foo",
-                    abstract_os::objects::PoolType::Stable,
+                    PoolType::Stable,
                     vec!["juno".to_string(), "atom".to_string()],
                 ),
             )],

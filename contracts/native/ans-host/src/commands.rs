@@ -558,7 +558,7 @@ mod test {
     }
 
     mod update_contract_addresses {
-
+        use abstract_os::ans_host::ContractMapEntry;
         use abstract_os::objects::ContractEntry;
         use abstract_testing::map_tester::CwMapTesterBuilder;
 
@@ -590,9 +590,7 @@ mod test {
             ExecuteMsg::UpdateContractAddresses { to_add, to_remove }
         }
 
-        fn from_checked_entry(
-            (key, value): (ContractEntry, Addr),
-        ) -> (UncheckedContractEntry, String) {
+        fn from_checked_entry((key, value): ContractMapEntry) -> (UncheckedContractEntry, String) {
             (
                 UncheckedContractEntry {
                     protocol: key.protocol,

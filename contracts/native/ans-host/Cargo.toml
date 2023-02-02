@@ -27,6 +27,7 @@ thiserror = { workspace = true }
 abstract-os = { workspace = true }
 cw-asset = { workspace = true }
 abstract-macros = { workspace = true }
+abstract-sdk = { workspace = true }
 
 
 [dev-dependencies]

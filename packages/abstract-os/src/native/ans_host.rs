@@ -22,6 +22,12 @@ type DexName = String;
 
 /// A map entry of ((asset_x, asset_y, dex) -> compound_pool_id)
 pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
+/// Map entry for assets (asset_name -> info)
+pub type AssetMapEntry = (AssetEntry, AssetInfo);
+/// Map entry for channels
+pub type ChannelMapEntry = (ChannelEntry, String);
+/// Map entry for contracts (contract -> address)
+pub type ContractMapEntry = (ContractEntry, Addr);
 /// A map entry of (unique_pool_id -> pool_metadata)
 pub type PoolMetadataMapEntry = (UniquePoolId, PoolMetadata);
 
@@ -230,14 +236,14 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(AssetEntry, AssetInfo)>,
+    pub assets: Vec<AssetMapEntry>,
 }
 
 /// Query response
 #[cosmwasm_schema::cw_serde]
 pub struct AssetListResponse {
     /// Assets (name, assetinfo)
-    pub assets: Vec<(AssetEntry, AssetInfo)>,
+    pub assets: Vec<AssetMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -254,12 +260,12 @@ pub struct ContractListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelsResponse {
-    pub channels: Vec<(ChannelEntry, String)>,
+    pub channels: Vec<ChannelMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChannelListResponse {
-    pub channels: Vec<(ChannelEntry, String)>,
+    pub channels: Vec<ChannelMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

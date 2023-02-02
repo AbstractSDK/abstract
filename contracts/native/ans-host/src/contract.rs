@@ -56,7 +56,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             page_token,
             page_size,
         } => queries::query_contract_list(deps, page_token, page_size),
-        QueryMsg::Channels { names } => queries::query_channel(deps, env, names),
+        QueryMsg::Channels { names } => queries::query_channels(deps, env, names),
         QueryMsg::ChannelList {
             page_token,
             page_size,

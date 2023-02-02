@@ -135,6 +135,7 @@ mod test {
 
     mod key {
         use super::*;
+        use crate::ans_host::ContractMapEntry;
 
         fn mock_key() -> ContractEntry {
             ContractEntry {
@@ -184,7 +185,7 @@ mod test {
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<(ContractEntry, Addr), u64> = Map::new("map");
+            let map: Map<ContractMapEntry, u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
