@@ -35,3 +35,4 @@ abstract-os = { workspace = true }
 [dev-dependencies]
 abstract-testing = { workspace = true }
 speculoos = { workspace = true }
+cosmwasm-schema = { workspace = true }

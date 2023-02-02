@@ -81,7 +81,7 @@ mod test {
 
         #[test]
         fn without_handler() {
-            let mut deps = mock_init();
+            let deps = mock_init();
             let msg = AppQueryMsg::App(MockQueryMsg);
 
             let res = query_helper(deps.as_ref(), msg);
@@ -92,7 +92,7 @@ mod test {
         }
 
         fn mock_query_handler(
-            deps: Deps,
+            _deps: Deps,
             _env: Env,
             _contract: &MockAppContract,
             msg: MockQueryMsg,
@@ -103,7 +103,7 @@ mod test {
 
         #[test]
         fn with_handler() {
-            let mut deps = mock_init();
+            let deps = mock_init();
             let msg = AppQueryMsg::App(MockQueryMsg);
 
             let with_mocked_query = MOCK_APP.with_query(mock_query_handler);
@@ -121,7 +121,7 @@ mod test {
 
         #[test]
         fn config() -> AppTestResult {
-            let mut deps = mock_init();
+            let deps = mock_init();
 
             let config_query = QueryMsg::Base(BaseQueryMsg::Config {});
             let res = query_helper(deps.as_ref(), config_query)?;
@@ -137,7 +137,7 @@ mod test {
 
         #[test]
         fn admin() -> AppTestResult {
-            let mut deps = mock_init();
+            let deps = mock_init();
 
             let admin_query = QueryMsg::Base(BaseQueryMsg::Admin {});
             let res = query_helper(deps.as_ref(), admin_query)?;

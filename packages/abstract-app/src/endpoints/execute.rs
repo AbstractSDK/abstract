@@ -99,7 +99,7 @@ impl<
 mod test {
     use super::*;
     use crate::test_common::*;
-    use abstract_testing::{TEST_ADMIN, TEST_MANAGER};
+    use abstract_testing::{TEST_MANAGER};
     use cosmwasm_std::Addr;
     use cw_controllers::AdminError;
 

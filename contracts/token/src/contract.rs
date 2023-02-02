@@ -182,7 +182,7 @@ fn assert_recipient_allowed(deps: Deps, recipient: &str) -> Result<(), ContractE
         address: config.version_control_address,
     };
     verify_feature
-        .os_register(deps)
+        .os_registry(deps)
         .assert_proxy(&deps.api.addr_validate(recipient)?)
         .map_err(|_| StdError::generic_err("receiver must be a valid Abstract proxy contract"))?;
     Ok(())

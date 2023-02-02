@@ -33,11 +33,10 @@ pub fn execute_create_module(
     let config = CONFIG.load(deps.storage)?;
     // Verify sender is active OS manager
     // Construct feature object to access registry functions
-    let binding = VersionControlContract {
-        address: config.version_control_address,
-    };
-    let version_registry = binding.version_register(deps.as_ref());
-    let os_registry = binding.os_register(deps.as_ref());
+    let binding = VersionControlContract::new(config.version_control_address);
+
+    let version_registry = binding.module_registry(deps.as_ref());
+    let os_registry = binding.os_registry(deps.as_ref());
     // assert that sender is manager
     let core = os_registry.assert_manager(&info.sender)?;
 
@@ -292,9 +291,7 @@ mod test {
                 code_id: expected_code_id,
                 funds: vec![],
                 admin: None,
-                label: format!(
-                    "Module: {expected_module_info}, Height {some_block_height}"
-                ),
+                label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,
             };
 

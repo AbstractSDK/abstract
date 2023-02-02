@@ -58,7 +58,7 @@ pub mod helpers;
 
 pub use crate::apis::{
     bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,
-    vault::VaultInterface, verify::Verification, version_register::VersionRegisterInterface,
+    vault::VaultInterface, verify::OsVerification, version_registry::ModuleRegistryInterface,
 };
 pub use ans_resolve::Resolve;
 

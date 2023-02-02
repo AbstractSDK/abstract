@@ -15,7 +15,7 @@ use abstract_sdk::{
         objects::ChannelEntry,
         ICS20,
     },
-    Execution, Resolve, Verification,
+    Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Response, StdError, StdResult,
@@ -78,7 +78,7 @@ pub fn execute_send_packet(
 
     // Verify that the sender is a proxy contract
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // Can only call non-internal actions
@@ -121,7 +121,7 @@ pub fn execute_register_os(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // ensure the channel exists (not found if not registered)
@@ -165,7 +165,7 @@ pub fn execute_send_funds(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let core = version_control
-        .os_register(deps.as_ref())
+        .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // get os_id of OS
@@ -220,7 +220,7 @@ mod test {
     use super::*;
     use crate::contract;
 
-    use abstract_os::ibc_client::state::*;
+    
     use abstract_os::ibc_client::*;
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};

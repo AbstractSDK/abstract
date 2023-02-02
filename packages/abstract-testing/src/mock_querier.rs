@@ -1,14 +1,14 @@
 use crate::{
-    TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
+    test_core, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
     TEST_PROXY, TEST_VERSION_CONTROL,
 };
-use abstract_os::version_control::Core;
-use cosmwasm_std::testing::MockQuerier;
+use abstract_os::manager::state::OS_ID;
+use abstract_os::{manager::state::OS_MODULES, version_control::state::OS_ADDRESSES};
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, Binary, ContractResult, Empty, QuerierWrapper, SystemResult,
-    WasmQuery,
+    from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
+    QuerierWrapper, SystemResult, WasmQuery,
 };
-use cw_storage_plus::{Map, PrimaryKey};
+use cw_storage_plus::{Item, Map, PrimaryKey};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::collections::HashMap;
@@ -35,10 +35,16 @@ pub struct MockQuerierBuilder {
 impl Default for MockQuerierBuilder {
     /// Create a default
     fn default() -> Self {
-        let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult =
-            |_, _| panic!("No mock querier for this query");
-        let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult =
-            |_, _| Err("unexpected contract".into());
+        let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
+            let str_key = std::str::from_utf8(&key.0).unwrap();
+            Err(format!(
+                "No mock querier for this query: {addr:?} {str_key:?}"
+            ))
+        };
+        let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
+            let str_key = std::str::from_utf8(&key.0).unwrap();
+            Err(format!("unexpected contract: {addr:?} {str_key:?}"))
+        };
 
         Self {
             base: MockQuerier::default(),
@@ -139,19 +145,35 @@ impl MockQuerierBuilder {
         self
     }
 
+    fn insert_contract_key_value(&mut self, contract: &str, key: Vec<u8>, value: Binary) {
+        let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
+        raw_map.insert(Binary(key), value);
+    }
+
     /// Add a map entry to the querier for the given contract.
+    /// ```rust
+    /// use cw_storage_plus::Map;
+    /// use abstract_testing::MockQuerierBuilder;
+    ///
+    /// const MAP: Map<String, String> = Map::new("map");
+    ///
+    /// MockQuerierBuilder::default()
+    ///     .with_contract_map_entry(
+    ///     "contract_address",
+    ///     MAP,
+    ///     ("key".to_string(), &"value".to_string())
+    /// );
     pub fn with_contract_map_entry<'a, K, V>(
         self,
         contract: &str,
         cw_map: Map<'a, K, V>,
-        key: K,
-        value: &V,
+        entry: (K, &V),
     ) -> Self
     where
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        self.with_contract_map_entries(contract, cw_map, vec![(key, value)])
+        self.with_contract_map_entries(contract, cw_map, vec![entry])
     }
 
     pub fn with_contract_map_entries<'a, K, V>(
@@ -164,10 +186,68 @@ impl MockQuerierBuilder {
         K: PrimaryKey<'a>,
         V: Serialize + DeserializeOwned,
     {
-        let raw_map = self.raw_mappings.entry(contract.to_string()).or_default();
         for (key, value) in entries {
-            raw_map.insert(Binary(raw_map_key(&cw_map, key)), to_binary(value).unwrap());
+            self.insert_contract_key_value(
+                contract,
+                raw_map_key(&cw_map, key),
+                to_binary(value).unwrap(),
+            );
         }
+
+        self
+    }
+
+    /// Add an empty map key to the querier for the given contract.
+    /// This is useful when you want the item to exist, but not have a value.
+    pub fn with_contract_map_key<'a, K, V>(
+        mut self,
+        contract: &str,
+        cw_map: Map<'a, K, V>,
+        key: K,
+    ) -> Self
+    where
+        K: PrimaryKey<'a>,
+        V: Serialize + DeserializeOwned,
+    {
+        self.insert_contract_key_value(contract, raw_map_key(&cw_map, key), Binary(vec![]));
+
+        self
+    }
+
+    /// Add an empty item key to the querier for the given contract.
+    /// This is useful when you want the item to exist, but not have a value.
+    pub fn with_empty_contract_item<T>(mut self, contract: &str, cw_item: Item<T>) -> Self
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        self.insert_contract_key_value(contract, cw_item.as_slice().to_vec(), Binary(vec![]));
+
+        self
+    }
+
+    /// Include a contract item in the mock querier.
+    /// ```rust
+    /// use cw_storage_plus::Item;
+    /// use abstract_testing::MockQuerierBuilder;
+    ///
+    /// const ITEM: Item<String> = Item::new("item");
+    ///
+    /// MockQuerierBuilder::default()
+    ///     .with_contract_item(
+    ///     "contract_address",
+    ///     ITEM,
+    ///     &"value".to_string(),
+    /// );
+    /// ```
+    pub fn with_contract_item<T>(mut self, contract: &str, cw_item: Item<T>, value: &T) -> Self
+    where
+        T: Serialize + DeserializeOwned,
+    {
+        self.insert_contract_key_value(
+            contract,
+            cw_item.as_slice().to_vec(),
+            to_binary(value).unwrap(),
+        );
 
         self
     }
@@ -226,41 +306,16 @@ impl MockQuerierBuilder {
 ///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
 pub fn mock_querier() -> EmptyMockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
-        let str_key = std::str::from_utf8(&key.0).unwrap();
+        let _str_key = std::str::from_utf8(&key.0).unwrap();
         match contract {
-            TEST_PROXY => match str_key {
-                "admin" => Ok(to_binary(&TEST_MANAGER).unwrap()),
-                _ => Err("unexpected key".to_string()),
-            },
+            TEST_PROXY => Err("unexpected key".to_string()),
             TEST_MANAGER => {
-                // add module
-                let map_key = broken_map_key("os_modules", TEST_MODULE_ID);
-                let mut modules = HashMap::<Binary, Addr>::default();
-                modules.insert(
-                    Binary(map_key.as_bytes().to_vec()),
-                    Addr::unchecked(TEST_MODULE_ADDRESS),
-                );
-
-                if let Some(value) = modules.get(key) {
-                    Ok(to_binary(&value.clone()).unwrap())
-                } else if str_key == "\u{0}{5}os_id" {
-                    Ok(to_binary(&TEST_OS_ID).unwrap())
-                } else {
-                    // Return the default value
-                    Ok(Binary(vec![]))
-                }
+                // Return the default value
+                Ok(Binary(vec![]))
             }
             TEST_VERSION_CONTROL => {
-                if str_key == "\0\u{7}os_core\0\0\0\0" {
-                    Ok(to_binary(&Core {
-                        manager: Addr::unchecked(TEST_MANAGER),
-                        proxy: Addr::unchecked(TEST_PROXY),
-                    })
-                    .unwrap())
-                } else {
-                    // Default value
-                    Ok(Binary(vec![]))
-                }
+                // Default value
+                Ok(Binary(vec![]))
             }
             _ => Err("unexpected contract".to_string()),
         }
@@ -268,25 +323,31 @@ pub fn mock_querier() -> EmptyMockQuerier {
 
     MockQuerierBuilder::default()
         .with_fallback_raw_handler(raw_handler)
+        .with_contract_map_entry(
+            TEST_VERSION_CONTROL,
+            OS_ADDRESSES,
+            (TEST_OS_ID, &test_core()),
+        )
+        .with_contract_item(
+            TEST_PROXY,
+            Item::new("admin"),
+            &Some(Addr::unchecked(TEST_MANAGER)),
+        )
+        .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
         .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
             let Empty {} = from_binary(msg).unwrap();
             Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
         })
+        .with_contract_map_entry(
+            TEST_MANAGER,
+            OS_MODULES,
+            (TEST_MODULE_ID, &Addr::unchecked(TEST_MODULE_ADDRESS)),
+        )
         .build()
 }
 
 pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {
     QuerierWrapper::<Empty>::new(querier)
-}
-
-// TODO: Fix to actually make this work!
-fn broken_map_key<'a>(namespace: &'a str, key: &'a str) -> String {
-    let line_feed_char = b"\x0a";
-    let mut res = vec![0u8];
-    res.extend_from_slice(line_feed_char);
-    res.extend_from_slice(namespace.as_bytes());
-    res.extend_from_slice(key.as_bytes());
-    std::str::from_utf8(&res).unwrap().to_string()
 }
 
 #[cfg(test)]
@@ -302,6 +363,7 @@ mod tests {
 
     mod os_core {
         use super::*;
+        use abstract_os::version_control::Core;
 
         #[test]
         fn should_return_os_address() {

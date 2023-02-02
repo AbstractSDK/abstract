@@ -1,7 +1,7 @@
 use crate::{ApiContract, ApiError};
 use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
-    base::features::{AbstractNameService, Identification, RegisterAccess},
+    base::features::{AbstractNameService, AbstractRegistryAccess, Identification},
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
@@ -78,10 +78,10 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > RegisterAccess
+    > AbstractRegistryAccess
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn registry(&self, deps: Deps) -> StdResult<Addr> {
+    fn abstract_registry(&self, deps: Deps) -> StdResult<Addr> {
         Ok(self.state(deps.storage)?.version_control)
     }
 }

@@ -76,7 +76,7 @@ impl<
 #[cfg(test)]
 mod test {
     use super::*;
-    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_FACTORY, TEST_MODULE_ID, TEST_PROXY};
+    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_ID, TEST_PROXY};
 
     use crate::test_common::*;
 

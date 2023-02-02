@@ -7,13 +7,13 @@ use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
 
 use crate::apis::ModuleIdentification;
-use crate::base::features::{Identification, RegisterAccess};
+use crate::base::features::{AbstractRegistryAccess, Identification};
 pub use abstract_os::objects::ans_host::AnsHost;
 use os::PROXY;
 
-#[derive(Clone)]
 /// Store the Version Control contract.
-/// Implements [`RegisterAccess`]
+/// Implements [`AbstractRegistryAccess`]
+#[derive(Clone)]
 pub struct VersionControlContract {
     pub address: Addr,
 }
@@ -24,15 +24,15 @@ impl VersionControlContract {
     }
 }
 
-impl RegisterAccess for VersionControlContract {
-    fn registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+impl AbstractRegistryAccess for VersionControlContract {
+    fn abstract_registry(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
         Ok(self.address.clone())
     }
 }
 
-#[derive(Clone)]
 /// Store a proxy contract address.
 /// Implements [`Identification`].
+#[derive(Clone)]
 pub struct ProxyContract {
     pub contract_address: Addr,
 }
@@ -104,7 +104,7 @@ mod tests {
 
             let deps = mock_dependencies();
 
-            assert_that!(vc.registry(deps.as_ref()))
+            assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(address);
         }

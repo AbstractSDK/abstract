@@ -25,7 +25,7 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    VersionRegisterInterface,
+    ModuleRegistryInterface,
 };
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
@@ -363,17 +363,14 @@ pub fn replace_api(
     let mut msgs = vec![];
     // Makes sure we already have the api installed
     let proxy_addr = OS_MODULES.load(deps.storage, PROXY)?;
-    let traders: TradersResponse = deps.querier.query(&wasm_smart_query(
+    let TradersResponse { traders } = deps.querier.query(&wasm_smart_query(
         old_api_addr.to_string(),
         &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
             proxy_address: proxy_addr.to_string(),
         }),
     )?)?;
-    let traders_to_migrate: Vec<String> = traders
-        .traders
-        .into_iter()
-        .map(|addr| addr.into_string())
-        .collect();
+    let traders_to_migrate: Vec<String> =
+        traders.into_iter().map(|addr| addr.into_string()).collect();
     // Remove traders from old
     msgs.push(configure_api(
         &old_api_addr,
@@ -507,11 +504,9 @@ fn query_module(
 ) -> Result<Module, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let binding = VersionControlContract {
-        address: config.version_control_address,
-    };
+    let binding = VersionControlContract::new(config.version_control_address);
 
-    let version_registry = binding.version_register(deps);
+    let version_registry = binding.module_registry(deps);
 
     match &module_info.version {
         ModuleVersion::Version(new_version) => {

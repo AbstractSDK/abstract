@@ -52,7 +52,7 @@ mod test_common {
     use abstract_os::version_control::Core;
     use abstract_sdk::base::InstantiateEndpoint;
     use abstract_testing::{
-        MockDeps, MockQuerierBuilder, TEST_ADMIN, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
+        MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
         TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,
     };
     use thiserror::Error;

@@ -18,6 +18,7 @@ use std::{collections::HashSet, fmt::Debug};
 pub const TRADER_NAMESPACE: &str = "traders";
 
 /// The BaseState contains the main addresses needed for sending and verifying messages
+/// Every DApp should use the provided **ans_host** contract for token/contract address resolution.
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiState {
     /// Used to verify requests
@@ -37,10 +38,9 @@ pub struct ApiContract<
     pub(crate) contract:
         AbstractContract<Self, Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
-    // Map ProxyAddr -> WhitelistedTraders
+    /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    // Every DApp should use the provided ans_host contract for token/contract address resolution
-    /// Stores the api version
+    /// The OS on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub target_os: Option<Core>,
 }
 
@@ -121,6 +121,8 @@ impl<
         self.base_state.load(store)
     }
 
+    /// Return the address of the proxy for the OS associated with this API.
+    /// Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
             .target_os

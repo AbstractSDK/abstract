@@ -181,8 +181,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    test_asset_entry.clone(),
-                    &expected_value,
+                    (test_asset_entry.clone(), &expected_value),
                 )
                 .build();
 
@@ -255,8 +254,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    test_lp_token.clone().into(),
-                    &expected_value,
+                    (test_lp_token.clone().into(), &expected_value),
                 )
                 .build();
 
@@ -302,14 +300,12 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_PAIRINGS,
-                    pairing,
-                    &vec![pool_reference],
+                    (pairing, &vec![pool_reference]),
                 )
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     POOL_METADATA,
-                    unique_pool_id,
-                    &pool_metadata,
+                    (unique_pool_id, &pool_metadata),
                 )
                 .build();
 
@@ -347,8 +343,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
-                    test_contract_entry.clone(),
-                    &expected_value,
+                    (test_contract_entry.clone(), &expected_value),
                 )
                 .build();
 
@@ -383,7 +378,7 @@ mod tests {
                         protocol: "astroport".to_string(),
                         contract: "something".to_string(),
                     },
-                    expected_addr.clone(),
+                    expected_addr,
                 ),
             ];
             let querier = MockQuerierBuilder::default()
@@ -421,8 +416,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CHANNELS,
-                    test_channel_entry.clone(),
-                    &expected_value,
+                    (test_channel_entry.clone(), &expected_value),
                 )
                 .build();
 
@@ -456,8 +450,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
-                    test_asset_info.clone(),
-                    &expected_value,
+                    (test_asset_info.clone(), &expected_value),
                 )
                 .build();
 
@@ -481,11 +474,11 @@ mod tests {
         fn array() {
             let expected_entries = vec![
                 (
-                    AssetInfo::cw20(Addr::unchecked("boop").clone()),
+                    AssetInfo::cw20(Addr::unchecked("boop")),
                     AssetEntry::new("beepboop"),
                 ),
                 (
-                    AssetInfo::cw20(Addr::unchecked("iloveabstract").clone()),
+                    AssetInfo::cw20(Addr::unchecked("iloveabstract")),
                     AssetEntry::new("robinrocks!"),
                 ),
             ];
