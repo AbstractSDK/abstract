@@ -1,0 +1,190 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "description": "Query Core of an OS Returns [`OsCoreResponse`]",
+      "type": "object",
+      "required": [
+        "os_core"
+      ],
+      "properties": {
+        "os_core": {
+          "type": "object",
+          "required": [
+            "os_id"
+          ],
+          "properties": {
+            "os_id": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Queries api addresses Returns [`ModulesResponse`]",
+      "type": "object",
+      "required": [
+        "modules"
+      ],
+      "properties": {
+        "modules": {
+          "type": "object",
+          "required": [
+            "infos"
+          ],
+          "properties": {
+            "infos": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ModuleInfo"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns [`ConfigResponse`]",
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Returns [`ModulesListResponse`]",
+      "type": "object",
+      "required": [
+        "module_list"
+      ],
+      "properties": {
+        "module_list": {
+          "type": "object",
+          "properties": {
+            "filter": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ModuleFilter"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "page_size": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint8",
+              "minimum": 0.0
+            },
+            "page_token": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/ModuleInfo"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "ModuleFilter": {
+      "description": "A ModuleFilter that mirrors the [`ModuleInfo`] struct.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ModuleInfo": {
+      "description": "Stores the provider, name, and version of an Abstract module.",
+      "type": "object",
+      "required": [
+        "name",
+        "provider",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name of the contract",
+          "type": "string"
+        },
+        "provider": {
+          "description": "Provider of the module",
+          "type": "string"
+        },
+        "version": {
+          "description": "Version of the module",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ModuleVersion"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ModuleVersion": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "latest"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RegisteredDexesResponse",
+  "type": "object",
+  "required": [
+    "dexes"
+  ],
+  "properties": {
+    "dexes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

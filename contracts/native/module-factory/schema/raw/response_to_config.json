@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "ans_host_address",
+    "owner",
+    "version_control_address"
+  ],
+  "properties": {
+    "ans_host_address": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "version_control_address": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

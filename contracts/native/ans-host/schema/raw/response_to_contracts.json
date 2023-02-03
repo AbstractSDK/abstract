@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContractsResponse",
+  "type": "object",
+  "required": [
+    "contracts"
+  ],
+  "properties": {
+    "contracts": {
+      "description": "Contracts (name, address)",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "$ref": "#/definitions/ContractEntry"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "ContractEntry": {
+      "description": "Key to get the Address of a contract Use [`UncheckedContractEntry`] to construct this type.",
+      "type": "object",
+      "required": [
+        "contract",
+        "protocol"
+      ],
+      "properties": {
+        "contract": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

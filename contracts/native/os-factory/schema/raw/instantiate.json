@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "description": "Msg used on instantiation",
+  "type": "object",
+  "required": [
+    "ans_host_address",
+    "module_factory_address",
+    "version_control_address"
+  ],
+  "properties": {
+    "ans_host_address": {
+      "description": "AnsHost contract",
+      "type": "string"
+    },
+    "module_factory_address": {
+      "description": "AnsHosts of module factory. Used for instantiating manager.",
+      "type": "string"
+    },
+    "version_control_address": {
+      "description": "Version control contract used to get code-ids and register OS",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

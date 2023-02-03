@@ -1,0 +1,384 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExecuteMsg",
+  "description": "AnsHost Execute msg",
+  "oneOf": [
+    {
+      "description": "Updates the contract addressbook",
+      "type": "object",
+      "required": [
+        "update_contract_addresses"
+      ],
+      "properties": {
+        "update_contract_addresses": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "$ref": "#/definitions/UncheckedContractEntry"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UncheckedContractEntry"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Updates the Asset addressbook",
+      "type": "object",
+      "required": [
+        "update_asset_addresses"
+      ],
+      "properties": {
+        "update_asset_addresses": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/AssetInfoBase_for_String"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Updates the Asset addressbook",
+      "type": "object",
+      "required": [
+        "update_channels"
+      ],
+      "properties": {
+        "update_channels": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "$ref": "#/definitions/UncheckedChannelEntry"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UncheckedChannelEntry"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Registers a dex",
+      "type": "object",
+      "required": [
+        "update_dexes"
+      ],
+      "properties": {
+        "update_dexes": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Update the pools",
+      "type": "object",
+      "required": [
+        "update_pools"
+      ],
+      "properties": {
+        "update_pools": {
+          "type": "object",
+          "required": [
+            "to_add",
+            "to_remove"
+          ],
+          "properties": {
+            "to_add": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": [
+                  {
+                    "$ref": "#/definitions/PoolAddressBase_for_String"
+                  },
+                  {
+                    "$ref": "#/definitions/PoolMetadata"
+                  }
+                ],
+                "maxItems": 2,
+                "minItems": 2
+              }
+            },
+            "to_remove": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UniquePoolId"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Sets a new Admin",
+      "type": "object",
+      "required": [
+        "set_admin"
+      ],
+      "properties": {
+        "set_admin": {
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "AssetEntry": {
+      "description": "May key to retrieve information on an asset",
+      "type": "string"
+    },
+    "AssetInfoBase_for_String": {
+      "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "native"
+          ],
+          "properties": {
+            "native": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "cw20"
+          ],
+          "properties": {
+            "cw20": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "cw1155"
+          ],
+          "properties": {
+            "cw1155": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PoolAddressBase_for_String": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "contract"
+          ],
+          "properties": {
+            "contract": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "PoolMetadata": {
+      "type": "object",
+      "required": [
+        "assets",
+        "dex",
+        "pool_type"
+      ],
+      "properties": {
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssetEntry"
+          }
+        },
+        "dex": {
+          "type": "string"
+        },
+        "pool_type": {
+          "$ref": "#/definitions/PoolType"
+        }
+      }
+    },
+    "PoolType": {
+      "type": "string",
+      "enum": [
+        "ConstantProduct",
+        "Stable",
+        "Weighted",
+        "LiquidityBootstrap"
+      ]
+    },
+    "UncheckedChannelEntry": {
+      "description": "Key to get the Address of a connected_chain",
+      "type": "object",
+      "required": [
+        "connected_chain",
+        "protocol"
+      ],
+      "properties": {
+        "connected_chain": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      }
+    },
+    "UncheckedContractEntry": {
+      "description": "Key to get the Address of a contract",
+      "type": "object",
+      "required": [
+        "contract",
+        "protocol"
+      ],
+      "properties": {
+        "contract": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        }
+      }
+    },
+    "UniquePoolId": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  }
+}

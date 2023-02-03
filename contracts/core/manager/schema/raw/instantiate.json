@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "governance_type",
+    "module_factory_address",
+    "name",
+    "os_id",
+    "root_user",
+    "version_control_address"
+  ],
+  "properties": {
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "governance_type": {
+      "type": "string"
+    },
+    "link": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "module_factory_address": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "os_id": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0.0
+    },
+    "root_user": {
+      "type": "string"
+    },
+    "subscription_address": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "version_control_address": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

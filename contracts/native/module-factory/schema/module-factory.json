@@ -1,6 +1,6 @@
 {
   "contract_name": "module-factory",
-  "contract_version": "0.4.2",
+  "contract_version": "0.7.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -196,6 +196,7 @@
     "title": "QueryMsg",
     "oneOf": [
       {
+        "description": "Get the configuration for the module factory. Returns [`ConfigResponse`]",
         "type": "object",
         "required": [
           "config"
@@ -209,6 +210,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Get the installation context of the module factory. Returns [`ContextResponse`]",
         "type": "object",
         "required": [
           "context"

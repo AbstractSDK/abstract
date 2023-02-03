@@ -239,7 +239,7 @@
       ]
     },
     "IbcResponseMsg": {
-      "description": "IbcResponseMsg should be de/serialized under `Receive()` variant in a ExecuteMsg",
+      "description": "IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg",
       "type": "object",
       "required": [
         "id",

@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InstantiateMsg",
+  "type": "object",
+  "required": [
+    "ans_host_address",
+    "version_control_address"
+  ],
+  "properties": {
+    "ans_host_address": {
+      "description": "AnsHost address",
+      "type": "string"
+    },
+    "version_control_address": {
+      "description": "Version control address used to get code-ids and register OS",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
