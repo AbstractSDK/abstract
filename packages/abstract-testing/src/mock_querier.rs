@@ -8,6 +8,7 @@ use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
 };
+use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -250,6 +251,24 @@ impl MockQuerierBuilder {
         );
 
         self
+    }
+
+    /// Add a specific version of the contract to the mock querier.
+    /// ```rust
+    /// use abstract_testing::MockQuerierBuilder;
+    ///
+    /// MockQuerierBuilder::default()
+    ///    .with_contract_version("contract_address", "v1.0.0");
+    /// ```
+    pub fn with_contract_version(self, contract: &str, version: impl ToString) -> Self {
+        self.with_contract_item(
+            contract,
+            CONTRACT,
+            &ContractVersion {
+                contract: contract.to_string(),
+                version: version.to_string(),
+            },
+        )
     }
 
     /// Build the [`MockQuerier`].

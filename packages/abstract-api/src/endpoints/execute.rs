@@ -1,5 +1,6 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{api::ApiRequestMsg, version_control::Core};
+use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
     apis::respond::AbstractResponse,
     base::{
@@ -9,9 +10,7 @@ use abstract_sdk::{
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
     Execution, ModuleInterface, OsVerification,
 };
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError,
-};
+use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
@@ -79,7 +78,10 @@ impl<
         request: ApiRequestMsg<CustomExecMsg>,
     ) -> Result<Response, Error> {
         let sender = &info.sender;
-        let unauthorized_sender = |_| ApiError::UnauthorizedTraderApiRequest(sender.to_string());
+        let unauthorized_sender = |_| ApiError::UnauthorizedTraderApiRequest {
+            api: self.module_id().to_string(),
+            sender: sender.to_string(),
+        };
 
         let os_registry = self.os_registry(deps.as_ref());
 
@@ -124,7 +126,10 @@ impl<
         let core = self
             .os_registry(deps)
             .assert_manager(&info.sender)
-            .map_err(|_| ApiError::UnauthorizedApiRequest {})?;
+            .map_err(|_| ApiError::UnauthorizedApiRequest {
+                api: self.module_id().to_string(),
+                sender: info.sender.to_string(),
+            })?;
         self.target_os = Some(core);
 
         let dependencies = self.dependencies();
@@ -397,7 +402,7 @@ mod tests {
 
     mod execute_app {
         use super::*;
-        
+
         use abstract_testing::mock_module::mocked_os_querier_builder;
 
         /// This sets up the test with the following:
@@ -440,7 +445,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedTraderApiRequest(_trader))
+                    MockError::Api(ApiError::UnauthorizedTraderApiRequest { sender: _trader, .. })
                 )
             });
         }

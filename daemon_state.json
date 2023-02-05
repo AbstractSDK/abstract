@@ -24,5 +24,39 @@
         "abstract:version_control": "juno102k70cekzkwgex55en0zst5gy9x5h3gf8cegvn76w2uevqj4wdgs0q67mq"
       }
     }
+  },
+  "terra": {
+    "pisco-1": {
+      "code_ids": {
+        "abstract:ans-host": 7437,
+        "abstract:ans_host": 6733,
+        "abstract:dex": 7354,
+        "abstract:etf": 7356,
+        "abstract:manager": 7352,
+        "abstract:module-factory": 7351,
+        "abstract:module_factory": 6736,
+        "abstract:os-factory": 7350,
+        "abstract:os_factory": 6735,
+        "abstract:proxy": 7353,
+        "abstract:subscription": 7357,
+        "abstract:tendermint-staking": 7355,
+        "abstract:tendermint_staking": 6740,
+        "abstract:version-control": 7349,
+        "abstract:version_control": 6734
+      },
+      "default": {
+        "abstract:ans-host": "terra1faln50knus9ar2x986atp2hed003g96yktmxkry2ev498ptght4shjnp95",
+        "abstract:ans_host": "terra1dnmk4qdcv9h52wjus0wgx5uc8ewtntc2q0vt4n2dlxty8j2xhyrsmynhtg",
+        "abstract:dex": "terra1c59gtqhdvd74m29m2w6lpuh5n0pkytyudhqrru95udkrmluk3ycsqe4q8j",
+        "abstract:module-factory": "terra184m6fu5hp0dzd4p2deeyqjy5czpkng9cjdpg7fgwt0vurqlh95lsh8s5wl",
+        "abstract:module_factory": "terra1gw3507vk0qw6rdutl0xjwh4pm5pjyay348w8jgphm6h3ynzh2enqj4gdju",
+        "abstract:os-factory": "terra1kv220d639aj4e8034j3ghra499l6jjyqhs0mg3057xesg90yrtaqnhsu20",
+        "abstract:os_factory": "terra1v0ydqk77as7a5uu3r5atam3zc5l4s377u2tq06eg8xm6rvujk5asag2hzj",
+        "abstract:tendermint-staking": "terra1ltmjduydg3x2ychd5ewngfl5pnj37kxxh6rew28xfly4kjrvtu6q3x8lh8",
+        "abstract:tendermint_staking": "terra1nyqwdcmlrlusxtjf3x58ptcjyet7dn043lj2xajjwlx00vm39ucse0c0kq",
+        "abstract:version-control": "terra1ngnxtz2nyukp332ptp7mqk9a9zjlsn6m2w584zt5wajclcc4cnesk9cgjq",
+        "abstract:version_control": "terra1d7ud0c3prk5j7mhpndnkvxe4xmltj2gvgxrz2l0a49ehvneu7e3s5nsakt"
+      }
+    }
   }
 }

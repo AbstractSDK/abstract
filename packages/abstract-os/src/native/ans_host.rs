@@ -24,6 +24,8 @@ type DexName = String;
 pub type AssetPairingMapEntry = (DexAssetPairing, Vec<PoolReference>);
 /// Map entry for assets (asset_name -> info)
 pub type AssetMapEntry = (AssetEntry, AssetInfo);
+/// Map entry for assets (info -> asset_name)
+pub type AssetInfoMapEntry = (AssetInfo, AssetEntry);
 /// Map entry for channels
 pub type ChannelMapEntry = (ChannelEntry, String);
 /// Map entry for contracts (contract -> address)
@@ -165,6 +167,20 @@ pub enum QueryMsg {
         page_token: Option<String>,
         page_size: Option<u8>,
     },
+    /// Queries assets based on address
+    /// returns [`AssetsResponse`]
+    #[returns(AssetsResponse)]
+    AssetInfos {
+        // Addresses of assets to query
+        infos: Vec<AssetInfoUnchecked>,
+    },
+    /// Page over asset infos
+    /// returns [`AssetInfoListResponse`]
+    #[returns(AssetInfoListResponse)]
+    AssetInfoList {
+        page_token: Option<AssetInfoUnchecked>,
+        page_size: Option<u8>,
+    },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
@@ -244,6 +260,18 @@ pub struct AssetsResponse {
 pub struct AssetListResponse {
     /// Assets (name, assetinfo)
     pub assets: Vec<AssetMapEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfosResponse {
+    /// Assets (assetinfo, name)
+    pub infos: Vec<AssetInfoMapEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfoListResponse {
+    /// Assets (assetinfo, name)
+    pub infos: Vec<AssetInfoMapEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]

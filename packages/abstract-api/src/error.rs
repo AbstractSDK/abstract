@@ -6,11 +6,11 @@ pub enum ApiError {
     #[error("{0}")]
     Std(#[from] StdError),
 
-    #[error("Sender of request is not a Manager")]
-    UnauthorizedApiRequest {},
+    #[error("Sender: {sender} of request to {api} is not a Manager")]
+    UnauthorizedApiRequest { api: String, sender: String },
 
-    #[error("Sender of request with address {0} is not a Manager or Trader")]
-    UnauthorizedTraderApiRequest(String),
+    #[error("Sender: {sender} of request to {api} is not a Manager or Trader")]
+    UnauthorizedTraderApiRequest { api: String, sender: String },
 
     #[error("The trader you wished to remove: {} was not present.", trader)]
     TraderNotPresent { trader: String },

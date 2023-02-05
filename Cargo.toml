@@ -45,6 +45,7 @@ cw20 = { version = "1.0.1" }
 cw20-base = { version = "1.0.1", features = ["library"] }
 # wait for my pr to be merged
 cw-asset = { git = "https://github.com/CyberHoward/cw-asset.git" }
+#cw-asset = { version = "3.0.0-rc1", git = "https://github.com/mars-protocol/cw-asset" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }

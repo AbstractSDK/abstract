@@ -1,0 +1,1732 @@
+{
+  "terra": {
+    "pisco-1": [
+      [
+        {
+          "contract": "terra1udsua9w6jljwxwgwsegvt6v657rg3ayfvemupnes7lrggd28s0wq7g8azm"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra15207c4rlvz49sr692flm4v4q87c8fhszk7j74avxuzv5kefaywvquthwjq"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "terra2>stbl",
+            "terra2>stb"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra10kypagsdkrc769dnxs0th3wk87t84vu6gvrfzfg9ee93rfanu32qqfluee"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>stb",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1rut77wkk3tydyxmerxazz9yftau8n7dgjhvj722hvg800hrdquwq9x5c7q"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>vkr",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1vy9yuh53s54c7j5889q3vkdn6cktmy53nv4pxyxa23x3cgp283dqfv9k3r"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>usdc",
+            "terra2>lunc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1famwpwtjwu8wac2qf866sdg6k2fv6yfm9dfu5skep0gsx0f23exs4a24c9"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "terra2>stbl"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1vq6tl0t2rsu5java72ptc9vr2gtfnd5ktu2sv24w4sgm7rfl5rusz9d7qd"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>fatman",
+            "terra2>stbl"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1xphkmf7wpjshvc3m4dz8r87h6se7jgvu73kafsg9kfwz6g6gjy0sq6nn9n"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>zero",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra16ecanm82re65xev73cmrukspzm3fwswuwzw82r2gxx2aeca64edqzcz3up"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "terra2>usdt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1w4xpel2423mrlq43crxesjqg4tv44wue55zcsgm0vxqf0s5aqewqnxmsu3"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>usdc",
+            "terra2>ustc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1kqtn8rz00zh5kcqu4j3644kcestysw3txuvf6m6grvgqczdvxyhqz6mv4r"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>tcw",
+            "terra2>auto"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1v0es5n2dv94vq22jn8kk6nsvu577p7a0lcket78ga4hmm4c2pjks49u5ex"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>luna",
+            "terra2>lunastro"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra19gn0pd6a7n8kgmdg8h76t70rzssf0dguvetjfkq5y78v8cr6fk3s7jfvgl"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "terra2>astro",
+            "terra2>xastro"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra13mvmp4xheq54qutdcdugcwkfa9uchfjy56ta5rl8dtxl9rl66f6sp9tdwz"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "terra2>luna",
+            "terra2>lunax"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1fwhmscarzzcea60ekwnmjpep757afdp6u5p5x495q99yrha6ztzq733j0f"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "terra2>spxtst",
+            "terra2>pxtst"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra16jeph8hj64cz8phx0xfllet9hwl9lc4jep8weme5qx73slqa5k3s55u5xg"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>fatman",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra16u6xa76krku3ykxck44x39s62za7qhsh8gr7sk9jwgt8nndwwjnq7c2zr4"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>usdc",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1402uu7m4fnfqz780skvuhlytqmehk6cj88f00vnr2d7mapme0tksex7km9"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>tcw",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1yhv69jvxm9xtd45ukfymwysmdc2md57z7nck9uz8qlcwcl5tu99slp3t85"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>tvk",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1530xsjfjy0z50a67865y4hjvemh78gk6md6r89at82s8u7vf8vyqg6y8gy"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>beb",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1krch0hg7x2j5xuyu8lzpx2ylg39psr4lgy5ult4a5luzgdpf56ys38uwa9"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>neb",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra10mkat3tjsn90xpj3lgazqyxzc085dzsj55q68qcswl4j45adghhsqdnd8t"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "terra2>rand"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1ln7m0v6cncdq5y24npn0vj9khf5mnvrv5lyjaf2rdghv76284l3sm8j68c"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "terra2>stb",
+            "terra2>rand"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra1qvqtttkyl6jen2qnuvlx8rtttvcs69dd0u9x0wfer3llm30ul4asjph0uq"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>ttta",
+            "terra2>astro"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra19t77ejpytkde75gmwly94a9pe9kce267fsdlnyjqh6z0267h0v2s8hn4tp"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>rand",
+            "terra2>luna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "terra18earmem6k6plp45u9yy7rpcx56vynulzt5z8lew3mzsr3crgsews8w5fl2"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>luna",
+            "terra2>adotest"
+          ]
+        }
+      ]
+    ]
+  },
+  "juno": {
+    "juno-1": [
+      [
+        {
+          "contract": "juno124d0zymrkdxv72ccyuqrquur8dkesmxmx2unfn7dej95yqx5yn8s70x3yj"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>raw"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1sg6chmktuhyj4lsrxrrdflem7gsnk4ejv6zkcc4d3vcqulzp55wsf4l4gl"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "cosmoshub>atom"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1ctsmp54v79x7ea970zejlyws50cj9pkrmw49x46085fn80znjmpqz2n642"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1hue3dnrtgf9ly2frnnvf8z5u7e224ctc4hk7wks2xumeu3arj6rs9vgzec"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "terra>ustc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1j7pdtemw0qvl6rmnl0sf324409gz2p4sdt6rv659482x9rqqz6mqd653dg"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "bitsong>btsg"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno10mrlcttkwt99wxnqfyk6327lq3ac9yhfle2fd0c5s4rp8dzqy9ps3sjzyf"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "terra>lunc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1el6rfmz6h9pwpdlf6k2qf4dwt3y5wqd7k3xpyvytklsnkt9uv2aqe8aq4v"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1z5vukf037r6acgln3n37tr8a5rv7wafqzhcq29ddn9etwwtfrytsn6xvux"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "stargaze>stars"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1730cx75d8uevqvrkcwxpy9trhqqfksu5u9xwqss0qe4tn7x0tt3shakhk8"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "chihuahua>huahua"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1tmxx3rdnnrcckkh7pjde924lftjs724rzd44sqte5xh8xax0yf2sc7v7dk"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "akash>akt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1yaff0t6tfheqcdep24euu7w0xhnhs2yjwwv7r2c280vlns8trghq5d72pd"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "persistence>xprt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno152lfpmadpxh2xha5wmlh2np5rj8fuy06sk72j55v686wd4q4c9jsvwj0gm"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "comdex>cmdx"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1gpa5ardzal22el6czj4j0d2pwy0m9qj06lr20t2l8fca3gkws63qfnx8eq"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "dig>dig"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1hkz5dhn59w6l29k8w8ceuramqx2f35qpen7xtlx6ezketwh8ndxq8rwq2a"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "secretnetwork>scrt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1e8n6ch7msks487ecznyeagmzd5ml2pq9tgedqt2u63vra0q0r9mqrjy6ys"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>neta"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1acs6q36t6qje5k82h5g74plr258y2q90cjf9z4wnktt7caln0mhsx8mt7z"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>canlab"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno133xa84qnue3uy0mj9emvauddxzw554rfl9rr6eadhfau50ws7gvs4ynm79"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>tuck"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno16zn96yf3vnxengke3vcf6mg9x7qyppgsdh3dnnmvdd8hvtpw58wsrjuu56"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>hulc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1gv2gswtan8wsk54h663waefffywnuc9wcxr7xl5pnnxvjaqunpgs20t39g"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "bitcanna>bcna"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1653nhx2330rnhmzk2qe9w74kwwa3jtxe4lrfs5cfq8szfms8pqzsra5fvq"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "emoney>ngm"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1z698dxy9gj4fnrs76xwmtqwh84lamav9xl0w35pd35vnfx7987nqudxyge"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "emoney>eeur"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno18nflutunkth2smnh257sxtxn9p5tq6632kqgsw6h0c02wzpnq9rq927heu"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>hope"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1m08vn7klzxh9tmqwajuux202xms2qz3uckle7zvtturcq7vk2yaqpcwxlz"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>rac"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1cvjuc66rdg34guugmxpz6w59rw6ghrun5m33z3hpvx6q60f40knqglhzzx"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>marble"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno14nak8v6xeawstrq7r7qmpa67qqfc9xzzymfdfpnp0luycv8knyuq5a6w2m"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>coin"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1enl842z00cklnathpv8f3t3w2u70dkrq22crz3gxg38we7xjfq5s8lktmg"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>primo"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno14p3wvpeezqueenfu9jy29s96xuk0hp38k5d5k4ysyzk789v032sqp8uvh3"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>daisy"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fzl79pekf8wtd0y37q92dmz5h9dxtfpl97w3kguyc59m7ufnlzvsf46vf8"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>future"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno19859m5x8kgepwafc3h0n36kz545ngc2vlqnqxx7gx3t2kguv6fws93cu25"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>bfot"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1xkm8tmm7jlqdh8kua9y7wst8fwcxpdnk6gglndfckj6rsjg4xc5q8aaawn"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>phmn"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fpphzkkq5uyezm7amk6sslyz8r94wl658zg2ku47v8mtslueyx5q29rkzq"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>arto"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1w7l7hetsm4x6hxa55dsjwszqh9elzwqrd6cud2qkqhafrd6u9vrqc2zh48"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>nmn"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1jz50fj5zkcv3h6hmcfr3nr6eer7rj5pmsry5qj5jc8rfvpeavyzsgknm83"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>sgnl"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1rft4xp5e6ffta5a8aqwtu4kgdfjqw4jhnleu8agmmedzrxsat7pqxfgfrs"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>joe"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno17h4sgpaksygdnswpx74szv98hggddc08ny4zv5ca63jv53qptxrshacvku"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>raw",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1qsmywlded2sdggud5wft44gq2u6c3epl3qhzr4qv7psj536t8yhsfvrcf6"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "assetmantle>mntl"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno150vj5jusg4g8n82q40nd9cmq3unc255u3hf5qh6pud4dexkgyp0ss7yvwq"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>punk"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1cugrrrryrpl383kfca0w5swywffa08zwqshrsfre82059vxjlx6syhf73y"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>glto"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fha0ux5k6xxzzknhwk0j2rtwxtczlp8kzk6w9g383lzjhu337k9swvjdlv"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>sejuno",
+            "cosmoshub>atom"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1gxvcltkl0tf20rpsn2wf9q6ex0vr5xk6j3tzezuv6yyjez97w5vqmxk0cv"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>sejuno",
+            "juno>raw"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno17v2d2993me50e6dgzx50ckuuah0vmfyanl0segxsdcg3s4qzqersyrvu8n"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>bjuno",
+            "juno>juno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1d04vn4t3cw494md0xleyqk6hxt8ctn5gmr353h06uvnudlvk5chq93vmjq"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>sejuno",
+            "juno>juno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno14hrt7htv42234xwpsxmxaxu7wywak7zflpk9jf5nze3w6e93czdsfwe0ly"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>seasy",
+            "juno>juno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1qt7uzjg9su3mk78jpt695rmxce4sa7evz7wa0edexjrsxghy35hsgje5l9"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>loop",
+            "juno>raw"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno107l74mj5q7d6zdzqzwpmdkk76628az2p9z08z9cj5pa7s5fpucws96f57e"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>muse"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fjmrqc5tjj2t5mfwkk5utwz2t0gcpkfajjefllrfahuqanctn9ys968emr"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>drgn"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1na8zlnp3pqsjfzllcncq2ahsxg9zkdkqrz3sl4ae5lergh2wrjes7jl9gr"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>verse"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1lgmtzhn840y9l74azn06w0wnsh4y98mjq5zs98yf96ggm7ejz05sgvpzqc"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "teritori>tori"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno10yvrummu6ma72z9ne82k888acn5que7s8ef3xtadd3fkhtq9xkuq80dhjs"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>ampjuno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1p8prj0dddf6d2wp599rtv9c5zp3v5gx0pjpk0hwl8fuhn7x8jslqxvjeqk"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>muse",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1z8c5kqh2yc48wstsq4h68lk78kxmf0rh30qs5f6d7luxzledvjtsxgugzt"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>czar"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno17uv02azt545ag23xq7whw6z3r3chw7jwztnr9lypugy62drq3caqeyd2r3"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "cosmoshub>atom"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>neta"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1u2pl8ql778655wakqmnhpln65q9pughd6jnrp93xwf4zakqjdh6qx3y9yt"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno17jv00cm4f3twr548jzayu57g9txvd4zdh54mdg9qpjs7samlphjsykylsq"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>phmn"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1syxlvk6pjpuxplqxwxr6n6fveqaz069dzya0ass9vrfwn9qxpvpqhq7msy"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>bjuno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno177xtcl6dax47kg3xptr5n48kd7twmzm49ltugfxuc76x9v05qq6q63hsm9"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>sejuno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno16vvu2fjrgg6rnddrcvtaeukzl3weau63gc3d3c7mvq05ygnzklvs3peqmt"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>seasy"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno13lulw8mm9w8ww99dvr35tfaw5tdmwvc7xn6nsn28pnlre8uw7j6srce67z"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "juno>sejuno"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1ptdt6dg7ke6rn5k8xr8kh87zjnxhp832l5q07y3c9htz8z88cptqlthu5f"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>glto"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1rcssjyqgr6vzalss77d43v30c2qpyzzg607ua8gte2shqgtvu24sg8gs8r"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>muse"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno17ckp36lmgtt7jtuggdv2j39eh4alcnl35szu6quh747nujags07swwq0nh"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>canlab"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1ndw52eaajcn8wpx7e503ly3j07666hhufx6cyp0s9v703rvzrpksfujv3h"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>czar"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1mz5uz38h89dxj6c8w69rg7l060p8vq8pfetykk2gvrrxhjcsa5yqru9g7v"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>rac"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1p3eed298qx3nyhs3grld07jrf9vjsjsmdd2kmmh3crk87emjcx5stp409y"
+        },
+        {
+          "dex": "wynd",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "juno>sgnl"
+          ]
+        }
+      ]
+    ],
+    "uni-5": [
+      [
+        {
+          "contract": "juno18nhxas6yzzef3agczvfr62303enemkl8m84rlhur6q920rzarg5q3dn2fd"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>junox",
+            "juno>crab"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1gjk9gva6dfs254qvlthw6ldqu3etp3wf2854n2ln7szepzvrggys89w3yn"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>dao",
+            "juno>junox"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fwdduklq6csqp3xzzjdrsxqw8wtrfw3kflry09xghsn8m9nrfddsdztjjl"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>junox",
+            "juno>pood"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno177uyrw4px4dpw6ne3s0m4sfd93f6stz34k3tsgjnhezplgprfafsrd2hve"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>junox",
+            "juno>dog"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1ja8s2t860q3ye8zx5dr2qqnfsemslv9ycnj60jetyp2g5ve00lzqtlqaup"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>junox",
+            "juno>bull"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "juno1fy9hvdfluz46p38sf83gsmh4072pqa63rm9pz8qk09y3xfl5dymsvnvemc"
+        },
+        {
+          "dex": "junoswap",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>junox",
+            "juno>cat"
+          ]
+        }
+      ]
+    ]
+  },
+  "osmosis": {
+    "osmosis-1": [
+      [
+        {
+          "id": 678
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>usdc",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 1
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 704
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>weth",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 712
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>wbtc",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 722
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "evmos>evmos",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 584
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "secretnetwork>scrt",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 497
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "juno>juno",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 812
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>axl",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 795
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "agoric>bld",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 498
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "juno>juno"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 585
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "secretnetwork>scrt",
+            "cosmoshub>atom"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 9
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cronos>cro",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 816
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "teritori>tori",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 3
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "akash>akt",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 604
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "stargaze>stars",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 611
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "stargaze>stars"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 840
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>wbnb",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 4
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "Weighted",
+          "assets": [
+            "akash>akt",
+            "cosmoshub>atom"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 858
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "acrechain>acre",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 481
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "emoney>eeur",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 15
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "persistence>xprt",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 837
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "agoric>ist",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 773
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>dot",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 601
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "comdex>cmdx",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 5
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sentinel>dvpn",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 600
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "comdex>cmdx"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 10
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "cronos>cro"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 13
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "persistence>xprt"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 2
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "Weighted",
+          "assets": [
+            "osmosis>ion",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 6
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "Weighted",
+          "assets": [
+            "cosmoshub>atom",
+            "sentinel>dvpn"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 482
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "emoney>eeur"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 875
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "acrechain>acre",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 719
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "Weighted",
+          "assets": [
+            "persistence>xprt",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "id": 11
+        },
+        {
+          "dex": "osmosis",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "osmosis>ion",
+            "osmosis>osmo"
+          ]
+        }
+      ]
+    ]
+  }
+}

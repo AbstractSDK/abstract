@@ -8,6 +8,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
+use log::info;
 use serde_json::from_reader;
 use std::collections::HashSet;
 use std::{cmp::min, env, fs::File};
@@ -48,6 +49,7 @@ impl AnsHost<Daemon> {
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
         let chain_id = self.get_chain().state.chain.chain_id.clone();
+        info!("{}", chain_id);
         let network_id = self.get_chain().state.id.clone();
         let maybe_assets = json
             .get(chain_id)

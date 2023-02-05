@@ -7,21 +7,21 @@ CORE_CONTRACTS="manager proxy"
 MODULES="apis/dex apis/tendermint-staking apps/etf"
 
 
-#for pack in $NATIVE_CONTRACTS; do
-#  (
-#    cd "contracts/native/$pack"
-#    echo "Wasming $pack"
-#    RUSTFLAGS='-C link-arg=-s' cargo wasm
-#  )
-#done
+for pack in $NATIVE_CONTRACTS; do
+  (
+    cd "contracts/native/$pack"
+    echo "Wasming $pack"
+    RUSTFLAGS='-C link-arg=-s' cargo wasm
+  )
+done
 
-#for pack in $CORE_CONTRACTS; do
-#  (
-#    cd "contracts/core/$pack"
-#    echo "Wasming $pack"
-#    RUSTFLAGS='-C link-arg=-s' cargo wasm
-#  )
-#done
+for pack in $CORE_CONTRACTS; do
+  (
+    cd "contracts/core/$pack"
+    echo "Wasming $pack"
+    RUSTFLAGS='-C link-arg=-s' cargo wasm
+  )
+done
 
 
 for pack in $MODULES; do

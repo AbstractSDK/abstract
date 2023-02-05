@@ -50,3 +50,4 @@ rstest = { workspace = true }
 speculoos = { workspace = true }
 
 tendermint-staking = { path = "../../modules/apis/tendermint-staking" }
+abstract-testing = { workspace = true }

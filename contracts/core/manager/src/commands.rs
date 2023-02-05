@@ -1,6 +1,6 @@
 use crate::validation::{validate_description, validate_link};
 use crate::{
-    contract::ManagerResult, error::ManagerError, queries::query_module_version,
+    contract::ManagerResult, error::ManagerError, queries::query_module_cw2,
     validation::validate_name_or_gov_type,
 };
 use crate::{validation, versioning};
@@ -283,8 +283,8 @@ pub fn set_migrate_msgs_and_context(
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let contract = query_module_version(&deps.as_ref(), old_module_addr.clone())?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
+    let module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
     let id = module_info.id();
 
     match module.reference {
@@ -500,17 +500,16 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract: Option<ContractVersion>,
+    old_contract_cw2: Option<ContractVersion>,
 ) -> Result<Module, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
-    let binding = VersionControlContract::new(config.version_control_address);
-
-    let version_registry = binding.module_registry(deps);
+    let version_control = VersionControlContract::new(config.version_control_address);
+    let version_registry = version_control.module_registry(deps);
 
     match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            let old_contract = old_contract.unwrap();
+            let old_contract = old_contract_cw2.unwrap();
 
             let new_version = new_version.parse::<Version>().unwrap();
             let old_version = old_contract.version.parse::<Version>().unwrap();
@@ -1023,7 +1022,7 @@ mod test {
             Ok(())
         }
 
-        // integration tests
+        // rest should be in integration tests
     }
 
     mod register_module {
@@ -1118,12 +1117,62 @@ mod test {
 
     mod upgrade {
         use super::*;
+        use abstract_os::version_control::state::MODULE_LIBRARY;
+        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
 
         #[test]
         fn only_root() -> ManagerTestResult {
             let msg = ExecuteMsg::Upgrade { modules: vec![] };
 
             test_only_root(msg)
+        }
+
+        // TODO: this test is not fully implemented
+        #[test]
+        fn upgrade_to_latest_with_v1_and_v10() {
+            let mut deps = mock_dependencies();
+
+            const TEST_MODULE_ID: &str = "test:test";
+
+            let initial_version = "0.1.0";
+            let new_version = "0.10.0";
+            deps.querier = MockQuerierBuilder::default()
+                // old version
+                .with_contract_version(TEST_MODULE_ADDRESS, initial_version)
+                // new version
+                .with_contract_map_entry(
+                    TEST_VERSION_CONTROL,
+                    MODULE_LIBRARY,
+                    (
+                        ModuleInfo {
+                            provider: "test".to_string(),
+                            name: "test".to_string(),
+                            version: ModuleVersion::Version(new_version.to_string()),
+                        },
+                        &ModuleReference::App(1),
+                    ),
+                )
+                // old module data
+                .with_contract_item(
+                    TEST_MODULE_ADDRESS,
+                    abstract_os::objects::module_version::MODULE,
+                    &abstract_os::objects::module_version::ModuleData {
+                        module: TEST_MODULE_ID.to_string(),
+                        version: initial_version.to_string(),
+                        dependencies: vec![],
+                        metadata: None,
+                    },
+                )
+                .build();
+
+            // manual installation
+            OS_MODULES
+                .save(
+                    &mut deps.storage,
+                    TEST_MODULE_ID,
+                    &Addr::unchecked(TEST_MODULE_ADDRESS),
+                )
+                .unwrap();
         }
 
         // integration tests

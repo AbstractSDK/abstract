@@ -1,24 +1,75 @@
 {
+  "terra": {
+    "pisco-1": [
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/terra2>astro,terra2>luna"
+        },
+        "terra1gc4d4v82vjgkz0ag28lrmlxx3tf6sq69tmaujjpe7jwmnqakkx0qm28j2l"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/terra2>stb,terra2>stbl"
+        },
+        "terra1gc4d4v82vjgkz0ag28lrmlxx3tf6sq69tmaujjpe7jwmnqakkx0qm28j2l"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/terra2>luna,terra2>stb"
+        },
+        "terra1gc4d4v82vjgkz0ag28lrmlxx3tf6sq69tmaujjpe7jwmnqakkx0qm28j2l"
+      ]
+    ]
+  },
+  "osmosis": {
+    "osmosis-1": []
+  },
   "juno": {
+    "juno-1": [
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/junoswap/juno>juno,juno>punk"
+        },
+        "juno1fneqh5xvv6az0e7mxad78wqtsnzs4hlyuqapkn30sff6plgrnausa0un2v"
+      ],
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/junoswap/juno>drgn,juno>juno"
+        },
+        "juno19yv0nw00fzs30p0hhgm967fwy5e9ntzxspct4mjw7v7czg8pum9sp0hpz7"
+      ],
+      [
+        {
+          "protocol": "junoswap",
+          "contract": "staking/junoswap/juno>juno,teritori>tori"
+        },
+        "juno1altrcm2qmne28dzqt8ncekus49wxfqzyka6nr678ucczmdf0urpqj3gx0p"
+      ]
+    ],
     "uni-5": [
       [
         {
           "protocol": "junoswap",
-          "contract": "staking/crab,junox"
+          "contract": "staking/juno>crab,juno>junox"
         },
         "juno1vhxnvu0zh6p707auf0ltq6scse3d2fxvp4804s54q45z29vtjleqghne5g"
       ],
       [
         {
           "protocol": "junoswap",
-          "contract": "staking/dao,junox"
+          "contract": "staking/juno>dao,juno>junox"
         },
         "juno1paazsk7v2sx8tdjgw9ud22mg6hrawqwd27tjrv4nex9v529yzphsglem68"
       ],
       [
         {
           "protocol": "junoswap",
-          "contract": "staking/junox,pood"
+          "contract": "staking/juno>junox,juno>pood"
         },
         "juno1rnftahwja0xf3xrng33h9hyqs5s270rga92a999ynd8a4wj5c0nsgvevgg"
       ]

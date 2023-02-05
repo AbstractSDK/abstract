@@ -17,7 +17,7 @@ testing = ["terra"]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
-terra = ["dep:terraswap", "dep:astroport"]
+terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
 osmosis = ["library", "dep:osmosis-std"]
 all = ["terra", "juno", "osmosis"]
 
