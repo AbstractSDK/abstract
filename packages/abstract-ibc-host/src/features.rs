@@ -1,4 +1,5 @@
 use crate::{Host, HostError};
+use abstract_os::objects::OsId;
 use abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification};
 use cosmwasm_std::{Deps, StdError, StdResult};
 
@@ -44,7 +45,7 @@ impl<
         ))
     }
 
-    fn os_id(&self, _deps: Deps) -> StdResult<u32> {
+    fn os_id(&self, _deps: Deps) -> StdResult<OsId> {
         Err(StdError::generic_err(
             "os_id not available on stateless ibc deployment",
         ))

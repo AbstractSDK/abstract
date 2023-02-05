@@ -17,6 +17,7 @@ use crate::objects::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use crate::objects::core::OsId;
 
 pub mod state {
     pub use crate::objects::core::OS_ID;
@@ -41,7 +42,7 @@ pub mod state {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub os_id: u32,
+    pub os_id: OsId,
     pub ans_host_address: String,
 }
 

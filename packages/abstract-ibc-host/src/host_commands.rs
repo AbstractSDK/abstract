@@ -3,6 +3,7 @@ use crate::{
     state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
+use abstract_os::objects::OsId;
 use abstract_sdk::os::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
@@ -137,7 +138,7 @@ pub fn receive_register<
     env: Env,
     host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
-    os_id: u32,
+    os_id: OsId,
     os_proxy_address: String,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;

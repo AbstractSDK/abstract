@@ -27,6 +27,7 @@ pub mod paged_map;
 pub mod proxy_asset;
 pub mod time_weighted_average;
 
+pub use self::core::OsId;
 pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};

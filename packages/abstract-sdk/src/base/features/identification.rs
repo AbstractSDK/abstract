@@ -3,6 +3,7 @@ use abstract_os::{
 };
 use cosmwasm_std::{Addr, Deps, StdError, StdResult};
 use cw_storage_plus::Item;
+use os::objects::OsId;
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
@@ -22,7 +23,7 @@ pub trait Identification: Sized {
         })
     }
     /// Get the OS id for the current context.
-    fn os_id(&self, deps: Deps) -> StdResult<u32> {
+    fn os_id(&self, deps: Deps) -> StdResult<OsId> {
         OS_ID.query(&deps.querier, self.proxy_address(deps)?)
     }
 }
@@ -40,8 +41,6 @@ mod test {
             Ok(Addr::unchecked(TEST_PROXY))
         }
     }
-
-    
 
     mod core {
         use super::*;

@@ -1,5 +1,6 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::error::SubscriptionError;
+use abstract_os::objects::OsId;
 use abstract_sdk::os::manager::state::OS_ID;
 use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
@@ -19,6 +20,7 @@ use cosmwasm_std::{
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
 use cw_controllers::Admin;
+
 pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
 const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 pub fn receive_cw20(
@@ -52,7 +54,7 @@ pub fn try_pay(
     env: Env,
     msg_info: MessageInfo,
     asset: Asset,
-    os_id: u32,
+    os_id: OsId,
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
@@ -140,7 +142,7 @@ pub fn unsubscribe(
     deps: DepsMut,
     env: Env,
     app: SubscriptionApp,
-    os_ids: Vec<u32>,
+    os_ids: Vec<OsId>,
 ) -> SubscriptionResult {
     let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
@@ -186,7 +188,7 @@ pub fn claim_subscriber_emissions(
     app: &SubscriptionApp,
     deps: Deps,
     env: &Env,
-    os_id: u32,
+    os_id: OsId,
 ) -> SubscriptionResult {
     let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
@@ -259,7 +261,7 @@ pub fn update_contributor_compensation(
     env: Env,
     msg_info: MessageInfo,
     app: SubscriptionApp,
-    contributor_os_id: u32,
+    contributor_os_id: OsId,
     base_per_block: Option<Decimal>,
     weight: Option<u32>,
     expiration_block: Option<u64>,
@@ -354,7 +356,7 @@ pub fn update_contributor_compensation(
 }
 
 /// Removes the specified contributor
-pub fn remove_contributor(deps: DepsMut, msg_info: MessageInfo, os_id: u32) -> SubscriptionResult {
+pub fn remove_contributor(deps: DepsMut, msg_info: MessageInfo, os_id: OsId) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let manager_address =
@@ -380,7 +382,7 @@ pub fn try_claim_compensation(
     app: SubscriptionApp,
     deps: DepsMut,
     env: Env,
-    os_id: u32,
+    os_id: OsId,
 ) -> SubscriptionResult {
     let config = load_contribution_config(deps.storage)?;
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
@@ -625,7 +627,7 @@ fn expired_sub_msgs(
     deps: Deps,
     env: &Env,
     subscriber: &mut Subscriber,
-    os_id: u32,
+    os_id: OsId,
     app: &SubscriptionApp,
 ) -> Result<Option<Vec<SubMsg>>, SubscriptionError> {
     if subscriber.expiration_block <= env.block.height {
@@ -648,7 +650,7 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
 /// Get the [`abstract_sdk::os::version_control::Core`] object for an os-id.
 pub(crate) fn get_os_core(
     querier: &QuerierWrapper,
-    os_id: u32,
+    os_id: OsId,
     version_control_addr: &Addr,
 ) -> StdResult<Core> {
     let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;

@@ -64,13 +64,14 @@ use crate::objects::module::{Module, ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
+use crate::objects::core::OsId;
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub os_id: u32,
+    pub os_id: OsId,
     pub root_user: String,
     pub version_control_address: String,
     pub module_factory_address: String,

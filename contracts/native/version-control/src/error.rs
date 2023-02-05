@@ -1,3 +1,4 @@
+use abstract_os::objects::OsId;
 use abstract_sdk::os::objects::module::ModuleInfo;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
@@ -21,7 +22,7 @@ pub enum VCError {
     NotUpdateableModule(ModuleInfo),
 
     #[error("OS ID {} is not in version control register", id)]
-    MissingOsId { id: u32 },
+    MissingOsId { id: OsId },
 }
 impl From<cw_semver::Error> for VCError {
     fn from(err: cw_semver::Error) -> Self {

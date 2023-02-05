@@ -1,4 +1,5 @@
 use abstract_app::AppError;
+use abstract_os::objects::OsId;
 use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
 use cw_asset::AssetInfo;
 use cw_controllers::AdminError;
@@ -73,7 +74,7 @@ pub enum SubscriptionError {
     ContributorNotManager,
 
     #[error("no os found with id {0}")]
-    OsNotFound(u32),
+    OsNotFound(OsId),
 
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,

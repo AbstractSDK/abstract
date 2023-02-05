@@ -4,6 +4,7 @@ use crate::{
     },
     HostError,
 };
+use abstract_os::objects::OsId;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
@@ -22,13 +23,13 @@ use serde::{Deserialize, Serialize};
 pub const TRADER_NAMESPACE: &str = "traders";
 
 /// Store channel information for proxy contract creation reply
-pub const PENDING: Item<(String, u32)> = Item::new("pending");
+pub const PENDING: Item<(String, OsId)> = Item::new("pending");
 /// Store the processing packet information for processing in Reply along with the channel id it came from
 pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("processing");
 /// (channel-id,os_id) -> local_proxy_addr
-pub const ACCOUNTS: Map<(&str, u32), Addr> = Map::new("accounts");
+pub const ACCOUNTS: Map<(&str, OsId), Addr> = Map::new("accounts");
 /// (channel-id,os_id) -> client_proxy_addr
-pub const CLIENT_PROXY: Map<(&str, u32), String> = Map::new("client_proxy");
+pub const CLIENT_PROXY: Map<(&str, OsId), String> = Map::new("client_proxy");
 /// List of closed channels
 /// Allows for fund recovery
 pub const CLOSED_CHANNELS: Item<Vec<String>> = Item::new("closed");

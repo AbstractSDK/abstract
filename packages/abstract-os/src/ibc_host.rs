@@ -14,6 +14,8 @@ use crate::base::{
 use crate::ibc_client::CallbackInfo;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
+use crate::objects::core::OsId;
+
 pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
 pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
 pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
@@ -59,7 +61,7 @@ pub enum HostAction {
 impl HostAction {
     pub fn into_packet(
         self,
-        os_id: u32,
+        os_id: OsId,
         retries: u8,
         client_chain: String,
         callback_info: Option<CallbackInfo>,
@@ -80,7 +82,7 @@ pub struct PacketMsg {
     pub client_chain: String,
     /// Amount of retries to attempt if packet returns with StdAck::Error
     pub retries: u8,
-    pub os_id: u32,
+    pub os_id: OsId,
     /// Callback performed after receiving an StdAck::Result
     pub callback_info: Option<CallbackInfo>,
     /// execute the custom host function
@@ -99,7 +101,7 @@ pub enum BaseExecuteMsg {
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,
-        os_id: u32,
+        os_id: OsId,
         msgs: Vec<CosmosMsg>,
     },
 }
@@ -114,7 +116,7 @@ pub enum BaseQueryMsg {
     /// Returns (reflect) account that is attached to this channel,
     /// or none.
     #[returns(AccountResponse)]
-    Account { client_chain: String, os_id: u32 },
+    Account { client_chain: String, os_id: OsId },
     /// Returns all (channel, reflect_account) pairs.
     /// No pagination - this is a test contract
     #[returns(ListAccountsResponse)]
@@ -138,7 +140,7 @@ pub struct ListAccountsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {
-    pub os_id: u32,
+    pub os_id: OsId,
     pub account: String,
     pub channel_id: String,
 }

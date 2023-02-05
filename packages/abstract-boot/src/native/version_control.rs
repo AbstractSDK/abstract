@@ -1,10 +1,11 @@
 use crate::deployment::{self, OS};
-use abstract_os::objects::module::Module;
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
+        module::Module,
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
+        OsId,
     },
     version_control::*,
     VERSION_CONTROL,
@@ -133,7 +134,7 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, os_id: u32) -> Result<Core, BootError> {
+    pub fn get_os_core(&self, os_id: OsId) -> Result<Core, BootError> {
         let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
         Ok(resp.os_core)
     }

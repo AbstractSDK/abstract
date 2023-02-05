@@ -1,4 +1,5 @@
 use crate::error::IbcClientError;
+use abstract_os::objects::OsId;
 use abstract_sdk::os::abstract_ica::{
     check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
 };
@@ -181,7 +182,7 @@ fn acknowledge_query(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
@@ -230,7 +231,7 @@ fn acknowledge_who_am_i(
 fn acknowledge_register(
     deps: DepsMut,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -264,7 +265,7 @@ fn acknowledge_balances(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: u32,
+    os_id: OsId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -312,7 +313,6 @@ mod tests {
     use crate::contract::{execute, instantiate, query, IbcClientResult};
     use abstract_sdk::os::ibc_client::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
-    
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{
@@ -320,9 +320,7 @@ mod tests {
         mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
         MockStorage,
     };
-    use cosmwasm_std::{
-        CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
-    };
+    use cosmwasm_std::{CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse};
 
     type IbcClientTestResult = Result<(), IbcClientError>;
 

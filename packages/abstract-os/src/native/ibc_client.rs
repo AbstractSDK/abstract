@@ -4,6 +4,8 @@ use crate::ibc_host::HostAction;
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
+use crate::objects::core::OsId;
+
 pub mod state {
 
     use super::LatestQueryResponse;
@@ -14,6 +16,7 @@ pub mod state {
     use cosmwasm_std::{Addr, Coin, Timestamp};
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
+    use crate::objects::core::OsId;
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -40,9 +43,9 @@ pub mod state {
     pub const CHANNELS: Map<&str, String> = Map::new("channels");
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (channel-id,os_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, u32), AccountData> = Map::new("accounts");
+    pub const ACCOUNTS: Map<(&str, OsId), AccountData> = Map::new("accounts");
     /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, u32), LatestQueryResponse> = Map::new("queries");
+    pub const LATEST_QUERIES: Map<(&str, OsId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 }
 
@@ -122,10 +125,10 @@ pub enum QueryMsg {
     ListAccounts {},
     // Get channel info for one chain
     #[returns(AccountResponse)]
-    Account { chain: String, os_id: u32 },
+    Account { chain: String, os_id: OsId },
     // Get remote account info for a chain + OS
     #[returns(LatestQueryResponse)]
-    LatestQueryResult { chain: String, os_id: u32 },
+    LatestQueryResult { chain: String, os_id: OsId },
     // get the channels
     #[returns(ListChannelsResponse)]
     ListChannels {},
@@ -165,7 +168,7 @@ pub struct RemoteProxyResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AccountInfo {
     pub channel_id: String,
-    pub os_id: u32,
+    pub os_id: OsId,
     /// last block balance was updated (0 is never)
     pub last_update_time: Timestamp,
     /// in normal cases, it should be set, but there is a delay between binding
@@ -175,7 +178,7 @@ pub struct AccountInfo {
 }
 
 impl AccountInfo {
-    pub fn convert(channel_id: String, os_id: u32, input: AccountData) -> Self {
+    pub fn convert(channel_id: String, os_id: OsId, input: AccountData) -> Self {
         AccountInfo {
             channel_id,
             os_id,

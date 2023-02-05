@@ -2,6 +2,7 @@ use crate::{
     AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
     TMintStakingApi, VersionControl, ETF as EtfBoot,
 };
+use abstract_os::objects::OsId;
 use abstract_os::IBC_CLIENT;
 use abstract_os::{
     ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
@@ -38,7 +39,7 @@ where
 
 pub fn get_os_core_contracts<Chain: BootEnvironment>(
     chain: Chain,
-    os_id: Option<u32>,
+    os_id: Option<OsId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
     <Chain as TxHandler>::Response: IndexResponse,

@@ -17,6 +17,7 @@ pub mod state {
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, module::ModuleInfo, module_reference::ModuleReference,
     };
+    use crate::objects::core::OsId;
 
     use super::Core;
 
@@ -26,7 +27,7 @@ pub mod state {
     // We can iterate over the map giving just the prefix to get all the versions
     pub const MODULE_LIBRARY: Map<ModuleInfo, ModuleReference> = Map::new("module_lib");
     /// Maps OS ID to the address of its core contracts
-    pub const OS_ADDRESSES: Map<u32, Core> = Map::new("os_core");
+    pub const OS_ADDRESSES: Map<OsId, Core> = Map::new("os_core");
 }
 
 use crate::objects::{
@@ -35,6 +36,7 @@ use crate::objects::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use crate::objects::core::OsId;
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -55,7 +57,7 @@ pub enum ExecuteMsg {
     AddModules { modules: Vec<ModuleMapEntry> },
     /// Add a new OS to the deployed OSs.  
     /// Only Factory can call this
-    AddOs { os_id: u32, core: Core },
+    AddOs { os_id: OsId, core: Core },
     /// Sets a new Admin
     SetAdmin { new_admin: String },
     /// Sets a new Factory
@@ -78,7 +80,7 @@ pub enum QueryMsg {
     /// Query Core of an OS
     /// Returns [`OsCoreResponse`]
     #[returns(OsCoreResponse)]
-    OsCore { os_id: u32 },
+    OsCore { os_id: OsId },
     /// Queries api addresses
     /// Returns [`ModulesResponse`]
     #[returns(ModulesResponse)]

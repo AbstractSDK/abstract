@@ -2,6 +2,7 @@ use crate::{
     state::{Host, ACCOUNTS},
     HostError,
 };
+use abstract_os::objects::OsId;
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use abstract_sdk::os::ibc_host::{
     AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
@@ -56,7 +57,8 @@ impl<
         })
     }
 }
-pub fn query_account(deps: Deps, channel_id: String, os_id: u32) -> StdResult<AccountResponse> {
+
+pub fn query_account(deps: Deps, channel_id: String, os_id: OsId) -> StdResult<AccountResponse> {
     let account = ACCOUNTS.may_load(deps.storage, (&channel_id, os_id))?;
     Ok(AccountResponse {
         account: account.map(Into::into),

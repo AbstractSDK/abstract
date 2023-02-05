@@ -1,4 +1,5 @@
 use crate::error::VCError;
+use abstract_os::objects::OsId;
 use abstract_os::version_control::ModuleFilter;
 use abstract_sdk::os::{
     objects::{
@@ -16,7 +17,7 @@ use cw_storage_plus::Bound;
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_os_address_query(deps: Deps, os_id: u32) -> StdResult<Binary> {
+pub fn handle_os_address_query(deps: Deps, os_id: OsId) -> StdResult<Binary> {
     let os_address = OS_ADDRESSES.load(deps.storage, os_id);
     match os_address {
         Err(_) => Err(StdError::generic_err(

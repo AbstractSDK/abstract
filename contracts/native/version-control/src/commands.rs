@@ -1,6 +1,7 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
 use abstract_macros::abstract_response;
+use abstract_os::objects::OsId;
 use abstract_sdk::os::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
     version_control::{state::*, Core},
@@ -13,7 +14,7 @@ pub struct VcResponse;
 
 /// Add new OS to version control contract
 /// Only Factory can add OS
-pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: u32, core: Core) -> VCResult {
+pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: OsId, core: Core) -> VCResult {
     // Only Factory can add new OS
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
     OS_ADDRESSES.save(deps.storage, os_id, &core)?;
