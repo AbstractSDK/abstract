@@ -25,4 +25,5 @@ docker*
 
 .DS_Store
 
-**/schema/**/*.json
+packages/**/schema
+contracts/**/schema
