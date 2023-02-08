@@ -1,11 +1,18 @@
 use crate::error::IbcClientError;
 use crate::{commands, queries};
 use abstract_macros::abstract_response;
-use abstract_os::{ibc_client::state::*, ibc_client::*, objects::ans_host::AnsHost, IBC_CLIENT};
+use abstract_os::{
+    ibc_client::state::*,
+    ibc_client::*,
+    objects::ans_host::AnsHost,
+    objects::module_version::{migrate_module_data, set_module_data},
+    IBC_CLIENT,
+};
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
-use cw2::set_contract_version;
+use cw2::{get_contract_version, set_contract_version};
+use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MAX_RETRIES: u8 = 5;
@@ -22,6 +29,14 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
+    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        IBC_CLIENT,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
     let cfg = Config {
         chain: msg.chain,
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
@@ -33,7 +48,6 @@ pub fn instantiate(
             address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
     )?;
-    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
 
     ADMIN.set(deps, Some(info.sender))?;
     Ok(IbcClientResponse::action("instantiate"))
@@ -96,7 +110,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    let version: Version = CONTRACT_VERSION.parse().unwrap();
+    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+    if storage_version < version {
+        set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+        migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+    }
     // type migration
     Ok(Response::default())
 }

@@ -63,6 +63,35 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     MODULE.save(store, &val)
 }
 
+/// Migrate the module data to the new state.
+/// If there was no moduleData stored, it will be set to the given values with an empty dependency array.
+/// If the metadata is None, the old metadata will be kept.
+/// If the metadata is Some, the old metadata will be overwritten.
+pub fn migrate_module_data(
+    store: &mut dyn Storage,
+    name: &str,
+    version: &str,
+    metadata: Option<String>,
+) -> StdResult<()> {
+    let old_module_data = MODULE.may_load(store)?;
+    let val = old_module_data.map_or(
+        ModuleData {
+            module: name.into(),
+            version: version.into(),
+            dependencies: vec![],
+            metadata: None,
+        },
+        |data| ModuleData {
+            module: name.into(),
+            version: version.into(),
+            dependencies: data.dependencies,
+            metadata: metadata.or(data.metadata),
+        },
+    );
+
+    MODULE.save(store, &val)
+}
+
 /// This will make a raw_query to another module to determine the current version it
 /// claims to be. This should not be trusted, but could be used as a quick filter
 /// if the other module exists and claims to be a cw20-base module for example.

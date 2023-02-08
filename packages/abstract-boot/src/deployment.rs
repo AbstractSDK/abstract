@@ -199,7 +199,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.version_control
             .register_core(os_core, &self.version.to_string())?;
 
-        self.version_control.register_native(self)?;
+        self.version_control.register_deployment(self)?;
 
         Ok(())
     }
@@ -275,6 +275,15 @@ impl<Chain: BootEnvironment> OS<Chain> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
+    }
+
+    /// Register the os core contracts in the version control
+    pub fn register(
+        &self,
+        version_control: &VersionControl<Chain>,
+        version: &str,
+    ) -> Result<(), BootError> {
+        version_control.register_core(self, version)
     }
 
     pub fn install_module<TInitMsg: Serialize>(

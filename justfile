@@ -40,4 +40,4 @@ full-deploy chain:
 publish-schemas version:
   SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
   VERSION={{version}} \
-    cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
+    cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; mkdir -p "$outdir"; rm -rf "schema/raw"; cp -a "schema/." "$outdir"; }'

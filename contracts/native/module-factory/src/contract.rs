@@ -1,7 +1,9 @@
 use crate::error::ModuleFactoryError;
 use crate::{commands, state::*};
-use abstract_sdk::os::module_factory::*;
-use abstract_sdk::os::OS_FACTORY;
+use abstract_os::objects::module_version::migrate_module_data;
+use abstract_sdk::os::{
+    module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
+};
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -24,8 +26,14 @@ pub fn instantiate(
         ans_host_address: deps.api.addr_validate(&msg.ans_host_address)?,
     };
 
-    set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
-
+    set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        MODULE_FACTORY,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
     CONFIG.save(deps.storage, &config)?;
     // Set context for after init
     CONTEXT.save(
@@ -114,7 +122,13 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
-        set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+        set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+        migrate_module_data(
+            deps.storage,
+            MODULE_FACTORY,
+            CONTRACT_VERSION,
+            None::<String>,
+        )?;
     }
     Ok(Response::default())
 }

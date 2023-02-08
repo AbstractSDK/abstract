@@ -1,13 +1,19 @@
-use crate::queries::{handle_config_query, handle_module_info_query, handle_os_info_query};
-use crate::validation::{validate_description, validate_link, validate_name_or_gov_type};
-use crate::versioning;
-use crate::{commands::*, error::ManagerError, queries};
-use abstract_os::manager::CallbackMsg;
-use abstract_sdk::os::manager::state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS};
-use abstract_sdk::os::MANAGER;
+use crate::{
+    commands::*,
+    error::ManagerError,
+    queries,
+    queries::{handle_config_query, handle_module_info_query, handle_os_info_query},
+    validation::{validate_description, validate_link, validate_name_or_gov_type},
+    versioning,
+};
 use abstract_sdk::os::{
-    manager::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
+    manager::{
+        state::{Config, OsInfo, CONFIG, INFO, OS_FACTORY, ROOT, STATUS},
+        CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    },
+    objects::module_version::{migrate_module_data, set_module_data},
     proxy::state::OS_ID,
+    MANAGER,
 };
 use cosmwasm_std::{
     ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
@@ -31,6 +37,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
     if storage_version < version {
         set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+        migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     }
     Ok(Response::default())
 }
@@ -43,6 +50,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    set_module_data(deps.storage, MANAGER, CONTRACT_VERSION, &[], None::<String>)?;
 
     let subscription_address = msg
         .subscription_address

@@ -1,24 +1,30 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::os::objects::core::OS_ID;
-use abstract_sdk::os::objects::proxy_asset::ProxyAsset;
-use abstract_sdk::os::objects::AssetEntry;
-use abstract_sdk::os::proxy::state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_sdk::os::proxy::{
-    AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
-    HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
-    TotalValueResponse,
+use abstract_os::objects::module_version::migrate_module_data;
+use abstract_sdk::{
+    feature_objects::AnsHost,
+    os::{
+        objects::{
+            core::OS_ID, module_version::set_module_data, proxy_asset::ProxyAsset, AssetEntry,
+        },
+        proxy::{
+            state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
+            AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
+            HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
+            TotalValueResponse,
+        },
+        PROXY,
+    },
+    Resolve,
 };
-use abstract_sdk::os::PROXY;
-use abstract_sdk::Resolve;
 use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
     Uint128,
 };
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
+
 pub type ProxyResult = Result<Response, ProxyError>;
 /*
     The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
@@ -36,6 +42,7 @@ pub fn instantiate(
 ) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
     set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+    set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
     OS_ID.save(deps.storage, &msg.os_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
     ANS_HOST.save(
@@ -70,6 +77,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 
     if storage_version < version {
         set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
+        migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
     }
     Ok(Response::default())
 }

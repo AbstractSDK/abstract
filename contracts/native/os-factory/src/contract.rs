@@ -1,7 +1,10 @@
 use crate::error::OsFactoryError;
 use crate::{commands, state::*};
-use abstract_sdk::os::os_factory::*;
-use abstract_sdk::os::OS_FACTORY;
+use abstract_sdk::os::{
+    objects::module_version::{migrate_module_data, set_module_data},
+    os_factory::*,
+    OS_FACTORY,
+};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
@@ -29,6 +32,13 @@ pub fn instantiate(
     };
 
     set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        OS_FACTORY,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
 
     CONFIG.save(deps.storage, &config)?;
     ADMIN.set(deps, Some(info.sender))?;
@@ -117,8 +127,10 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
+
     if storage_version < version {
         set_contract_version(deps.storage, OS_FACTORY, CONTRACT_VERSION)?;
+        migrate_module_data(deps.storage, OS_FACTORY, CONTRACT_VERSION, None::<String>)?;
     }
     Ok(Response::default())
 }

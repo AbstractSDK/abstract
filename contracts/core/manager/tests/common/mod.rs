@@ -25,13 +25,14 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
     let mut manager = Manager::new(MANAGER, chain.clone());
     let mut proxy = Proxy::new(PROXY, chain.clone());
 
-    ans_host
-        .as_instance_mut()
-        .set_mock(Box::new(ContractWrapper::new_with_empty(
+    ans_host.as_instance_mut().set_mock(Box::new(
+        ContractWrapper::new_with_empty(
             ::ans_host::contract::execute,
             ::ans_host::contract::instantiate,
             ::ans_host::contract::query,
-        )));
+        )
+        .with_migrate_empty(::ans_host::contract::migrate),
+    ));
 
     os_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
@@ -39,6 +40,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
             ::os_factory::contract::instantiate,
             ::os_factory::contract::query,
         )
+        .with_migrate_empty(::os_factory::contract::migrate)
         .with_reply_empty(::os_factory::contract::reply),
     ));
 
@@ -48,6 +50,7 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
             ::module_factory::contract::instantiate,
             ::module_factory::contract::query,
         )
+        .with_migrate_empty(::module_factory::contract::migrate)
         .with_reply_empty(::module_factory::contract::reply),
     ));
 
@@ -56,24 +59,27 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
             ::version_control::contract::execute,
             ::version_control::contract::instantiate,
             ::version_control::contract::query,
-        ),
+        )
+        .with_migrate_empty(::version_control::contract::migrate),
     ));
 
-    manager
-        .as_instance_mut()
-        .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
+    manager.as_instance_mut().set_mock(Box::new(
+        cw_multi_test::ContractWrapper::new_with_empty(
             ::manager::contract::execute,
             ::manager::contract::instantiate,
             ::manager::contract::query,
-        )));
+        )
+        .with_migrate_empty(::manager::contract::migrate),
+    ));
 
-    proxy
-        .as_instance_mut()
-        .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
+    proxy.as_instance_mut().set_mock(Box::new(
+        cw_multi_test::ContractWrapper::new_with_empty(
             ::proxy::contract::execute,
             ::proxy::contract::instantiate,
             ::proxy::contract::query,
-        )));
+        )
+        .with_migrate_empty(::proxy::contract::migrate),
+    ));
 
     // do as above for the rest of the contracts
 

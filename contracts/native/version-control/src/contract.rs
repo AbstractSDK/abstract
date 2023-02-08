@@ -1,19 +1,21 @@
 use crate::error::VCError;
-use abstract_sdk::os::VERSION_CONTROL;
-use cosmwasm_std::to_binary;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::get_contract_version;
-use cw2::set_contract_version;
+use abstract_sdk::os::{
+    objects::{module_version::migrate_module_data, module_version::set_module_data},
+    version_control::{
+        state::{ADMIN, FACTORY},
+        ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    },
+    VERSION_CONTROL,
+};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw2::{get_contract_version, set_contract_version};
 use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 use crate::commands::*;
 use crate::queries;
-use abstract_sdk::os::version_control::state::{ADMIN, FACTORY};
-use abstract_sdk::os::version_control::{
-    ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
-};
 
 pub type VCResult = Result<Response, VCError>;
 
@@ -26,6 +28,12 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 
     if storage_version < version {
         set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+        migrate_module_data(
+            deps.storage,
+            VERSION_CONTROL,
+            CONTRACT_VERSION,
+            None::<String>,
+        )?;
     }
     Ok(Response::default())
 }
@@ -38,6 +46,13 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
+    set_module_data(
+        deps.storage,
+        VERSION_CONTROL,
+        CONTRACT_VERSION,
+        &[],
+        None::<String>,
+    )?;
     // Setup the admin as the creator of the contract
     ADMIN.set(deps.branch(), Some(info.sender))?;
     FACTORY.set(deps, None)?;

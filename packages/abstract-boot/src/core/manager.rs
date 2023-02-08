@@ -124,11 +124,18 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Ok(())
     }
 
-    pub fn is_module_installed(&self, module_id: &str) -> Result<bool, BootError> {
+    /// Return the module info installed on the manager
+    pub fn module_info(&self, module_id: &str) -> Result<Option<ManagerModuleInfo>, BootError> {
         let module_infos = self.module_infos(None, None)?.module_infos;
-        Ok(module_infos
-            .iter()
-            .any(|module_info| module_info.id == module_id))
+        let found = module_infos
+            .into_iter()
+            .find(|module_info| module_info.id == module_id);
+        Ok(found)
+    }
+
+    pub fn is_module_installed(&self, module_id: &str) -> Result<bool, BootError> {
+        let module = self.module_info(module_id)?;
+        Ok(module.is_some())
     }
 }
 

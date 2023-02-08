@@ -35,18 +35,18 @@
     "harpoon-4": {
       "code_ids": {
         "abstract:ans-host": 1341,
-        "abstract:manager": 1338,
+        "abstract:manager": 1348,
         "abstract:module-factory": 1337,
-        "abstract:os-factory": 1336,
-        "abstract:proxy": 1339,
-        "abstract:version-control": 1342
+        "abstract:os-factory": 1353,
+        "abstract:proxy": 1349,
+        "abstract:version-control": 1352
       },
       "default": {
         "abstract:ans-host": "kujira1qzp4jjm2gl7ya6wxpgeup3p35j7nms6zfv83gna7amryxs3xwkfs69pquu",
-        "abstract:manager": "kujira19cegflc3lwmd3xvlxn4t6yzlz7mn7xx3zg8yr7d6fmunzmx49ltsv2m7rx",
+        "abstract:manager": "kujira13y9nkhc5jlvcqff5kgp6wxkcts9mtguaup5pf4dqngrxjy092agsuj32uz",
         "abstract:module-factory": "kujira1v8g650vw3v6sldj7sh2x2n24naz87c5yept6qtsf4yjw47c59a2qnlmry3",
         "abstract:os-factory": "kujira1k484q3hqcezqs462vez27jf9mecwqhkd4w4a7ulshntq9l7lxr0qkf9rz4",
-        "abstract:proxy": "kujira1ax7hep3c0mnqznmjjwszs9lnhhx5mrg62hg7erqtf9syglgxrg7qphc0yd",
+        "abstract:proxy": "kujira1q229cwqy4m7u5lgjtvhwfhq3devy6shfc50pj4pufxk5ljkk2w0smdl3ca",
         "abstract:version-control": "kujira1eu7wy7lpf4yk9kes9pswp86sxg3uspz7a3dt3pt5xzlwxv2qqnas6lkwz8"
       }
     }
@@ -55,11 +55,11 @@
     "baryon-1": {
       "code_ids": {
         "abstract:ans-host": 1,
-        "abstract:manager": 6,
+        "abstract:manager": 8,
         "abstract:module-factory": 5,
-        "abstract:os-factory": 4,
-        "abstract:proxy": 7,
-        "abstract:version-control": 3
+        "abstract:os-factory": 11,
+        "abstract:proxy": 9,
+        "abstract:version-control": 10
       },
       "default": {
         "abstract:ans-host": "neutron14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s5c2epq",
@@ -76,16 +76,16 @@
         "abstract:ans_host": 6733,
         "abstract:dex": 7354,
         "abstract:etf": 7356,
-        "abstract:manager": 7352,
+        "abstract:manager": 7488,
         "abstract:module-factory": 7351,
         "abstract:module_factory": 6736,
-        "abstract:os-factory": 7350,
+        "abstract:os-factory": 7491,
         "abstract:os_factory": 6735,
-        "abstract:proxy": 7353,
+        "abstract:proxy": 7489,
         "abstract:subscription": 7357,
         "abstract:tendermint-staking": 7355,
         "abstract:tendermint_staking": 6740,
-        "abstract:version-control": 7479,
+        "abstract:version-control": 7490,
         "abstract:version_control": 6734
       },
       "default": {

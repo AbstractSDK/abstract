@@ -54,7 +54,7 @@ osmosis-std = { version = "0.13.2", optional = true }
 [dev-dependencies]
 abstract-boot = { workspace = true }
 boot-core = { workspace = true }
-tokio = { version = "1.4", features = ["full"] }
+tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 dotenv = "0.15.0"

@@ -65,6 +65,32 @@ where
         Ok(())
     }
 
+    /// Register core modules
+    pub fn register_cores(
+        &self,
+        apps: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let to_register = self.contracts_into_module_entries(apps, version, |c| {
+            ModuleReference::Core(c.code_id().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
+    /// Register native modules
+    pub fn register_natives(
+        &self,
+        natives: Vec<&Contract<Chain>>,
+        version: &Version,
+    ) -> Result<(), BootError> {
+        let to_register = self.contracts_into_module_entries(natives, version, |c| {
+            ModuleReference::Native(c.address().unwrap())
+        })?;
+        self.add_modules(to_register)?;
+        Ok(())
+    }
+
     pub fn register_apps(
         &self,
         apps: Vec<&Contract<Chain>>,
@@ -101,15 +127,11 @@ where
         Ok(())
     }
 
-    pub fn register_native(
+    pub fn register_deployment(
         &self,
         deployment: &deployment::Abstract<Chain>,
     ) -> Result<(), BootError> {
-        let to_register =
-            self.contracts_into_module_entries(deployment.contracts(), &deployment.version, |c| {
-                ModuleReference::Native(c.address().unwrap())
-            })?;
-        self.add_modules(to_register)?;
+        self.register_natives(deployment.contracts(), &deployment.version)?;
         Ok(())
     }
 

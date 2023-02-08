@@ -262,7 +262,7 @@ pub fn upgrade_modules(
     let mut upgrade_msgs = vec![];
     for (module_info, migrate_msg) in modules {
         if module_info.id() == MANAGER {
-            return upgrade_self(deps, env, module_info, migrate_msg.unwrap());
+            return upgrade_self(deps, env, module_info, migrate_msg.unwrap_or_default());
         }
         set_migrate_msgs_and_context(deps.branch(), module_info, migrate_msg, &mut upgrade_msgs)?;
     }
@@ -333,11 +333,9 @@ pub fn set_migrate_msgs_and_context(
                 migrate_msg.unwrap_or_else(|| to_binary(&Empty {}).unwrap()),
             ));
         }
-        ModuleReference::Standalone(code_id) => msgs.push(get_migrate_msg(
-            old_module_addr,
-            code_id,
-            migrate_msg.unwrap(),
-        )),
+        ModuleReference::Core(code_id) | ModuleReference::Standalone(code_id) => msgs.push(
+            get_migrate_msg(old_module_addr, code_id, migrate_msg.unwrap()),
+        ),
         _ => return Err(ManagerError::NotUpgradeable(module_info)),
     };
     Ok(())
@@ -543,7 +541,7 @@ fn upgrade_self(
 ) -> ManagerResult {
     let contract = get_contract_version(deps.storage)?;
     let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
-    if let ModuleReference::App(manager_code_id) = module.reference {
+    if let ModuleReference::Core(manager_code_id) = module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: env.contract.address.into_string(),
             new_code_id: manager_code_id,
