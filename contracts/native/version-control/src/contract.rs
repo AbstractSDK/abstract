@@ -70,9 +70,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::ModuleList {
             filter,
-            page_token,
-            page_size,
-        } => queries::handle_module_list_query(deps, page_token, page_size, filter),
+            start_after,
+            limit,
+        } => queries::handle_module_list_query(deps, start_after, limit, filter),
     }
 }
 

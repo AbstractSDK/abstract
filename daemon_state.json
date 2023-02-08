@@ -1,4 +1,10 @@
 {
+  "injective": {
+    "injective-888": {
+      "code_ids": {},
+      "default": {}
+    }
+  },
   "juno": {
     "uni-5": {
       "code_ids": {
@@ -25,10 +31,48 @@
       }
     }
   },
+  "kujira": {
+    "harpoon-4": {
+      "code_ids": {
+        "abstract:ans-host": 1341,
+        "abstract:manager": 1338,
+        "abstract:module-factory": 1337,
+        "abstract:os-factory": 1336,
+        "abstract:proxy": 1339,
+        "abstract:version-control": 1342
+      },
+      "default": {
+        "abstract:ans-host": "kujira1qzp4jjm2gl7ya6wxpgeup3p35j7nms6zfv83gna7amryxs3xwkfs69pquu",
+        "abstract:manager": "kujira19cegflc3lwmd3xvlxn4t6yzlz7mn7xx3zg8yr7d6fmunzmx49ltsv2m7rx",
+        "abstract:module-factory": "kujira1v8g650vw3v6sldj7sh2x2n24naz87c5yept6qtsf4yjw47c59a2qnlmry3",
+        "abstract:os-factory": "kujira1k484q3hqcezqs462vez27jf9mecwqhkd4w4a7ulshntq9l7lxr0qkf9rz4",
+        "abstract:proxy": "kujira1ax7hep3c0mnqznmjjwszs9lnhhx5mrg62hg7erqtf9syglgxrg7qphc0yd",
+        "abstract:version-control": "kujira1eu7wy7lpf4yk9kes9pswp86sxg3uspz7a3dt3pt5xzlwxv2qqnas6lkwz8"
+      }
+    }
+  },
+  "neutron": {
+    "baryon-1": {
+      "code_ids": {
+        "abstract:ans-host": 1,
+        "abstract:manager": 6,
+        "abstract:module-factory": 5,
+        "abstract:os-factory": 4,
+        "abstract:proxy": 7,
+        "abstract:version-control": 3
+      },
+      "default": {
+        "abstract:ans-host": "neutron14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s5c2epq",
+        "abstract:module-factory": "neutron1ufs3tlq4umljk0qfe8k5ya0x6hpavn897u2cnf9k0en9jr7qarqq2mt63x",
+        "abstract:os-factory": "neutron1ghd753shjuwexxywmgs4xz7x2q732vcnkm6h2pyv9s6ah3hylvrququ82r",
+        "abstract:version-control": "neutron1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3smncf9k"
+      }
+    }
+  },
   "terra": {
     "pisco-1": {
       "code_ids": {
-        "abstract:ans-host": 7437,
+        "abstract:ans-host": 7484,
         "abstract:ans_host": 6733,
         "abstract:dex": 7354,
         "abstract:etf": 7356,
@@ -41,7 +85,7 @@
         "abstract:subscription": 7357,
         "abstract:tendermint-staking": 7355,
         "abstract:tendermint_staking": 6740,
-        "abstract:version-control": 7349,
+        "abstract:version-control": 7479,
         "abstract:version_control": 6734
       },
       "default": {

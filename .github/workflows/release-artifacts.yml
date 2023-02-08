@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:
@@ -58,6 +61,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:

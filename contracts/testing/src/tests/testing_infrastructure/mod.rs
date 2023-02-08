@@ -56,8 +56,8 @@ pub mod env {
         let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
             &ManagerMsgs::QueryMsg::ModuleInfos {
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             },
         )?;
         let mut state = HashMap::new();
@@ -76,8 +76,8 @@ pub mod env {
             resp = app.wrap().query_wasm_smart(
                 &manager_addr,
                 &ManagerMsgs::QueryMsg::ModuleInfos {
-                    page_token: last_module,
-                    page_size: None,
+                    start_after: last_module,
+                    limit: None,
                 },
             )?;
         }

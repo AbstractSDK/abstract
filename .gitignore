@@ -24,3 +24,5 @@ docker*
 .dockerignore
 
 .DS_Store
+
+**/schema/**/*.json

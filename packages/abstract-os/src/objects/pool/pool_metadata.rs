@@ -2,6 +2,7 @@ use crate::constants::ASSET_DELIMITER;
 use crate::objects::pool_type::PoolType;
 use crate::objects::AssetEntry;
 use cosmwasm_std::StdError;
+use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -14,6 +15,13 @@ pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,
     pub assets: Vec<AssetEntry>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ResolvedPoolMetadata {
+    pub dex: DexName,
+    pub pool_type: PoolType,
+    pub assets: Vec<AssetInfo>,
 }
 
 impl PoolMetadata {

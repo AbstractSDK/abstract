@@ -1,4 +1,4 @@
-use boot_core::networks::NetworkInfo;
+use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
 use clap::Parser;
 use semver::Version;
@@ -7,7 +7,7 @@ use tokio::runtime::Runtime;
 
 use abstract_boot::{Abstract, OS};
 
-const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
@@ -16,6 +16,8 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
+    // log::info!("Your balance is: {}", );
+
     let _os_core = OS::new(chain.clone(), None);
 
     let deployment = Abstract::new(chain, abstract_os_version);
@@ -23,7 +25,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     // deployment.deploy(&mut os_core)?;
     //
     // let _dex = DexApi::new("dex", chain);
-    //
+
     // deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;
@@ -38,17 +40,6 @@ struct Arguments {
     /// Network Id to deploy on
     #[arg(short, long)]
     network_id: String,
-}
-
-use boot_core::networks;
-
-fn parse_network(net_id: &str) -> NetworkInfo {
-    match net_id {
-        "uni-5" => networks::UNI_5,
-        "juno-1" => networks::JUNO_1,
-        "pisco-1" => networks::terra::PISCO_1,
-        _ => panic!("unexpected network"),
-    }
 }
 
 fn main() {

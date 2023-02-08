@@ -19,3 +19,4 @@ speculoos = { workspace = true }
 abstract-sdk = { workspace = true, optional = true }
 serde_json = "1.0.79"
 cw2 = { workspace = true }
+cw-asset = { workspace = true }

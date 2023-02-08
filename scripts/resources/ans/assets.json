@@ -1314,5 +1314,35 @@
         }
       ]
     ]
+  },
+  "neutron": {
+    "baryon-1": [
+      [
+        "neutron>ntrn",
+        {
+          "native": "untrn"
+        }
+      ]
+    ]
+  },
+  "injective": {
+    "injective-888": [
+      [
+        "injective>inj",
+        {
+          "native": "inj"
+        }
+      ]
+    ]
+  },
+  "kujira": {
+    "kujira-1": [
+      [
+        "kujira>kuji",
+        {
+          "native": "ukuji"
+        }
+      ]
+    ]
   }
 }

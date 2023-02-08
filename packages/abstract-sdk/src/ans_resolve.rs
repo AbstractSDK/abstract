@@ -3,6 +3,7 @@
 
 use cosmwasm_std::{Addr, QuerierWrapper, StdResult};
 use cw_asset::{Asset, AssetInfo};
+use os::objects::pool_metadata::ResolvedPoolMetadata;
 use os::objects::{
     ans_host::AnsHost, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, LpToken,
     PoolMetadata, PoolReference, UniquePoolId,
@@ -84,6 +85,18 @@ impl Resolve for Asset {
         Ok(AnsAsset {
             name: self.info.resolve(querier, ans_host)?,
             amount: self.amount,
+        })
+    }
+}
+
+impl Resolve for PoolMetadata {
+    type Output = ResolvedPoolMetadata;
+
+    fn resolve(&self, querier: &QuerierWrapper, ans_host: &AnsHost) -> StdResult<Self::Output> {
+        Ok(ResolvedPoolMetadata {
+            assets: self.assets.resolve(querier, ans_host)?,
+            dex: self.dex.clone(),
+            pool_type: self.pool_type.clone(),
         })
     }
 }
@@ -271,6 +284,60 @@ mod tests {
             let not_exist_lp_token = LpToken::new("terraswap", vec!["rest", "peacefully"]);
 
             test_dne(&not_exist_lp_token);
+        }
+    }
+
+    use abstract_testing::prelude::*;
+
+    mod pool_metadata {
+        use super::*;
+        
+        use os::objects::PoolType;
+
+        #[test]
+        fn exists() {
+            let assets = vec!["atom", "juno"];
+
+            let atom_addr = AssetInfo::cw20(Addr::unchecked("atom_address"));
+            let juno_addr = AssetInfo::cw20(Addr::unchecked("juno_address"));
+            let resolved_assets = vec![
+                (AssetEntry::new("atom"), &atom_addr),
+                (AssetEntry::new("juno"), &juno_addr),
+            ];
+
+            let dex = "junoswap";
+            let pool_type = PoolType::ConstantProduct;
+            let test_pool_metadata = PoolMetadata::new(dex.clone(), pool_type.clone(), assets);
+            let querier = AbstractMockQuerierBuilder::default()
+                .assets(resolved_assets.clone())
+                .build();
+
+            let expected_value = ResolvedPoolMetadata {
+                dex: dex.into(),
+                pool_type,
+                assets: resolved_assets
+                    .into_iter()
+                    .map(|(_, b)| b.clone())
+                    .collect(),
+            };
+
+            let _ans_host = mock_ans_host();
+
+            let res = test_resolve(&querier, &test_pool_metadata);
+            assert_that!(res).is_ok().is_equal_to(expected_value);
+        }
+
+        #[test]
+        fn does_not_exist() {
+            let _deps = mock_deps_with_default_querier();
+
+            let not_exist_md = PoolMetadata::new(
+                "junoswap",
+                PoolType::ConstantProduct,
+                vec![AssetEntry::new("juno")],
+            );
+
+            test_dne(&not_exist_md);
         }
     }
 

@@ -39,9 +39,10 @@ mod test_addresses {
 
 pub use test_addresses::*;
 
-mod prelude {
+pub mod prelude {
     use super::*;
 
+    pub use abstract_mock_querier::AbstractMockQuerierBuilder;
     pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
     pub use test_addresses::*;
 

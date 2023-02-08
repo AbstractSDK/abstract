@@ -1,6 +1,5 @@
-use std::collections::HashMap;
+use super::common_integration::NativeContracts;
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
-use cosmwasm_std::{Addr, Timestamp};
 use abstract_sdk::os::{
     ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
     objects::{
@@ -11,8 +10,9 @@ use abstract_sdk::os::{
     version_control::{self as VCMsg, ModulesResponse},
     ANS_HOST, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
 };
+use cosmwasm_std::{Addr, Timestamp};
 use cw_multi_test::{App, Executor};
-use super::common_integration::NativeContracts;
+use std::collections::HashMap;
 
 /// Creates the basic contract instances needed to test the os.
 ///
@@ -162,8 +162,8 @@ fn add_contracts_to_version_control_and_set_factory(
         .query_wasm_smart(
             version_control,
             &VCMsg::QueryMsg::Modules {
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             },
         )
         .unwrap();

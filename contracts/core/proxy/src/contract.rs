@@ -99,10 +99,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
             proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
         }),
-        QueryMsg::Assets {
-            page_token,
-            page_size,
-        } => to_binary(&query_proxy_assets(deps, page_token, page_size)?),
+        QueryMsg::Assets { start_after, limit } => {
+            to_binary(&query_proxy_assets(deps, start_after, limit)?)
+        }
         QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
         QueryMsg::BaseAsset {} => {
             let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS

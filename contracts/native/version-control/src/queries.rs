@@ -68,7 +68,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
 
 pub fn handle_module_list_query(
     deps: Deps,
-    page_token: Option<ModuleInfo>,
+    start_after: Option<ModuleInfo>,
     limit: Option<u8>,
     filter: Option<ModuleFilter>,
 ) -> StdResult<Binary> {
@@ -85,13 +85,13 @@ pub fn handle_module_list_query(
     if let Some(provider_filter) = provider_filter {
         modules.extend(filter_modules_by_provider(
             deps,
-            page_token,
+            start_after,
             limit,
             provider_filter,
             name_filter,
         )?);
     } else {
-        let start_bound: Option<Bound<ModuleInfo>> = page_token.map(Bound::exclusive);
+        let start_bound: Option<Bound<ModuleInfo>> = start_after.map(Bound::exclusive);
 
         // Load all modules
         modules.extend(
@@ -112,13 +112,15 @@ pub fn handle_module_list_query(
         modules.retain(|(info, _)| info.version == version);
     }
 
+    let modules = modules.into_iter().map(Module::from).collect();
+
     to_binary(&ModulesListResponse { modules })
 }
 
 /// Filter the modules with their primary key prefix (provider)
 fn filter_modules_by_provider(
     deps: Deps,
-    page_token: Option<ModuleInfo>,
+    start_after: Option<ModuleInfo>,
     limit: usize,
     provider: &str,
     name: &Option<String>,
@@ -128,7 +130,7 @@ fn filter_modules_by_provider(
     // Filter by name using full prefix
     if let Some(name) = name {
         let start_bound: Option<Bound<String>> =
-            page_token.map(|token| Bound::exclusive(token.provider));
+            start_after.map(|token| Bound::exclusive(token.provider));
 
         modules.extend(
             MODULE_LIBRARY
@@ -151,7 +153,7 @@ fn filter_modules_by_provider(
     } else {
         // Filter by just provider using sub prefix
         let start_bound: Option<Bound<(String, String)>> =
-            page_token.map(|token| Bound::exclusive((token.provider, token.name)));
+            start_after.map(|token| Bound::exclusive((token.provider, token.name)));
 
         modules.extend(
             MODULE_LIBRARY
@@ -404,8 +406,8 @@ mod test {
         fn filtered_list_msg(filter: ModuleFilter) -> QueryMsg {
             QueryMsg::ModuleList {
                 filter: Some(filter),
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             }
         }
 
@@ -429,7 +431,7 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
-                    assert_that!(entry.0.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(entry.info.provider).is_equal_to(filtered_provider.clone());
                 }
 
                 res
@@ -493,8 +495,8 @@ mod test {
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
-                assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                assert_that!(module.0.name).is_equal_to(filtered_name.clone());
+                assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 res
             });
         }
@@ -532,8 +534,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                    assert_that!(module.0.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
                 }
                 res
             });
@@ -561,7 +563,7 @@ mod test {
                 assert_that!(modules).has_length(6);
 
                 for module in modules {
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -618,8 +620,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.0.name).is_equal_to(filtered_name.clone());
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -650,8 +652,8 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
-                    assert_that!(module.0.provider).is_equal_to(filtered_provider.clone());
-                    assert_that!(module.0.version.to_string())
+                    assert_that!(module.info.provider).is_equal_to(filtered_provider.clone());
+                    assert_that!(module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
 

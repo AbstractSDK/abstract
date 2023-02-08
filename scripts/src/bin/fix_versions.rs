@@ -7,7 +7,7 @@ use semver::Version;
 use tokio::runtime::Runtime;
 
 use abstract_boot::Abstract;
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_os::objects::module::{Module, ModuleInfo, ModuleVersion};
 use abstract_os::version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns};
 
 const NETWORK: NetworkInfo = UNI_5;
@@ -34,7 +34,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
         None,
     )?;
 
-    for (info, reference) in modules {
+    for Module { info, reference } in modules {
         let ModuleInfo {
             version,
             name,

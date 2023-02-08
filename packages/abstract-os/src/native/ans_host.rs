@@ -135,6 +135,22 @@ pub struct AssetPairingFilter {
     pub dex: Option<String>,
 }
 
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ContractFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct ChannelFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetFilter {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AssetInfoFilter {}
+
 /// Filter on the pool metadatas
 #[cosmwasm_schema::cw_serde]
 pub struct PoolMetadataFilter {
@@ -164,8 +180,9 @@ pub enum QueryMsg {
     /// returns [`AssetListResponse`]
     #[returns(AssetListResponse)]
     AssetList {
-        page_token: Option<String>,
-        page_size: Option<u8>,
+        filter: Option<AssetFilter>,
+        start_after: Option<String>,
+        limit: Option<u8>,
     },
     /// Queries assets based on address
     /// returns [`AssetsResponse`]
@@ -178,36 +195,39 @@ pub enum QueryMsg {
     /// returns [`AssetInfoListResponse`]
     #[returns(AssetInfoListResponse)]
     AssetInfoList {
-        page_token: Option<AssetInfoUnchecked>,
-        page_size: Option<u8>,
+        filter: Option<AssetInfoFilter>,
+        start_after: Option<AssetInfoUnchecked>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ContractsResponse`]
     #[returns(ContractsResponse)]
     Contracts {
         // Project and contract names of contracts to query
-        names: Vec<ContractEntry>,
+        entries: Vec<ContractEntry>,
     },
     /// Page over contracts
     /// returns [`ContractListResponse`]
     #[returns(ContractListResponse)]
     ContractList {
-        page_token: Option<ContractEntry>,
-        page_size: Option<u8>,
+        filter: Option<ContractFilter>,
+        start_after: Option<ContractEntry>,
+        limit: Option<u8>,
     },
     /// Queries contracts based on name
     /// returns [`ChannelsResponse`]
     #[returns(ChannelsResponse)]
     Channels {
         // Project and contract names of contracts to query
-        names: Vec<ChannelEntry>,
+        entries: Vec<ChannelEntry>,
     },
     /// Page over contracts
     /// returns [`ChannelListResponse`]
     #[returns(ChannelListResponse)]
     ChannelList {
-        page_token: Option<ChannelEntry>,
-        page_size: Option<u8>,
+        filter: Option<ChannelFilter>,
+        start_after: Option<ChannelEntry>,
+        limit: Option<u8>,
     },
     /// Retrieve the registered dexes
     /// returns [`RegisteredDexesResponse`]
@@ -215,28 +235,28 @@ pub enum QueryMsg {
     RegisteredDexes {},
     /// Retrieve the pools with the specified keys
     /// returns [`PoolsResponse`]
-    /// TODO: this may need to take a page_token and page_size for the return
+    /// TODO: this may need to take a start_after and limit for the return
     #[returns(PoolsResponse)]
-    Pools { keys: Vec<DexAssetPairing> },
+    Pools { pairings: Vec<DexAssetPairing> },
     /// Retrieve the (optionally-filtered) list of pools.
     /// returns [`PoolAddressListResponse`]
     #[returns(PoolAddressListResponse)]
     PoolList {
         filter: Option<AssetPairingFilter>,
-        page_token: Option<DexAssetPairing>,
-        page_size: Option<u8>,
+        start_after: Option<DexAssetPairing>,
+        limit: Option<u8>,
     },
     /// Get the pool metadatas for given pool ids
     /// returns [`PoolMetadatasResponse`]
     #[returns(PoolMetadatasResponse)]
-    PoolMetadatas { keys: Vec<UniquePoolId> },
+    PoolMetadatas { ids: Vec<UniquePoolId> },
     /// Retrieve the (optionally-filtered) list of pool metadatas
     /// returns [`PoolMetadataListResponse`]
     #[returns(PoolMetadataListResponse)]
     PoolMetadataList {
         filter: Option<PoolMetadataFilter>,
-        page_token: Option<UniquePoolId>,
-        page_size: Option<u8>,
+        start_after: Option<UniquePoolId>,
+        limit: Option<u8>,
     },
 }
 

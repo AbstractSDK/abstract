@@ -4,6 +4,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
+pub const CHAIN_DELIMITER: &str = ">";
+
 /// May key to retrieve information on an asset
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
@@ -19,6 +21,27 @@ impl AssetEntry {
     }
     pub fn format(&mut self) {
         self.0 = self.0.to_ascii_lowercase();
+    }
+
+    /// Retrieve the source chain of the asset
+    /// Example: osmosis>juno>crab returns osmosis
+    /// Returns string to remain consistent with [`Self::asset_name`]
+    pub fn src_chain(&self) -> String {
+        self.0
+            .split(CHAIN_DELIMITER)
+            .next()
+            .unwrap_or("")
+            .to_string()
+    }
+
+    /// Retrieve the asset name without the src chain
+    /// Example: osmosis>juno>crab returns juno>crab
+    pub fn asset_name(&self) -> String {
+        self.0
+            .split(CHAIN_DELIMITER)
+            .skip(1)
+            .collect::<Vec<&str>>()
+            .join(CHAIN_DELIMITER)
     }
 }
 
@@ -47,7 +70,7 @@ impl Display for AssetEntry {
 }
 
 impl<'a> PrimaryKey<'a> for AssetEntry {
-    type Prefix = ();
+    type Prefix = String;
 
     type SubPrefix = ();
 
@@ -55,6 +78,7 @@ impl<'a> PrimaryKey<'a> for AssetEntry {
 
     type SuperSuffix = Self;
 
+    // TODO: make this key implementation use src_chain as prefix
     fn key(&self) -> Vec<cw_storage_plus::Key> {
         self.0.key()
     }

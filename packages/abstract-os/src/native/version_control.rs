@@ -14,10 +14,10 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
+    use crate::objects::core::OsId;
     use crate::objects::{
         common_namespace::ADMIN_NAMESPACE, module::ModuleInfo, module_reference::ModuleReference,
     };
-    use crate::objects::core::OsId;
 
     use super::Core;
 
@@ -30,13 +30,13 @@ pub mod state {
     pub const OS_ADDRESSES: Map<OsId, Core> = Map::new("os_core");
 }
 
+use crate::objects::core::OsId;
 use crate::objects::{
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
-use crate::objects::core::OsId;
 
 /// Contains the minimal Abstract-OS contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -92,8 +92,8 @@ pub enum QueryMsg {
     #[returns(ModulesListResponse)]
     ModuleList {
         filter: Option<ModuleFilter>,
-        page_token: Option<ModuleInfo>,
-        page_size: Option<u8>,
+        start_after: Option<ModuleInfo>,
+        limit: Option<u8>,
     },
 }
 
@@ -109,7 +109,7 @@ pub struct ModulesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
-    pub modules: Vec<ModuleMapEntry>,
+    pub modules: Vec<Module>,
 }
 
 #[cosmwasm_schema::cw_serde]

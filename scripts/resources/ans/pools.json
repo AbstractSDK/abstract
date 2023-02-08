@@ -1728,5 +1728,14 @@
         }
       ]
     ]
+  },
+  "neutron": {
+    "baryon-1": []
+  },
+  "injective": {
+    "injective-888": []
+  },
+  "kujira": {
+    "kujira-1": []
   }
 }

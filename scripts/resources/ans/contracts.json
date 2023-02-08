@@ -74,5 +74,14 @@
         "juno1rnftahwja0xf3xrng33h9hyqs5s270rga92a999ynd8a4wj5c0nsgvevgg"
       ]
     ]
+  },
+  "neutron": {
+    "baryon-1": []
+  },
+  "injective": {
+    "injective-888": []
+  },
+  "kujira": {
+    "kujira-1": []
   }
 }

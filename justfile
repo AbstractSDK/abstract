@@ -24,6 +24,9 @@ check-codecov:
 publish:
   ./publish/publish.sh
 
+wasm:
+  ./publish/wasms.sh
+
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}
 

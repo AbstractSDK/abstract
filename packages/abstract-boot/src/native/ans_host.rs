@@ -34,6 +34,7 @@ where
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
+
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
     pub fn update_all(&self) -> Result<(), BootError> {
@@ -216,14 +217,14 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    fn execute_chunked<T, F>(
+    fn execute_chunked<T, MsgBuilder>(
         &self,
         items: &[T],
         chunk_size: usize,
-        mut msg_builder: F,
+        mut msg_builder: MsgBuilder,
     ) -> Result<(), BootError>
     where
-        F: FnMut(&[T]) -> ExecuteMsg,
+        MsgBuilder: FnMut(&[T]) -> ExecuteMsg,
     {
         let mut i = 0;
         while i < items.len() {

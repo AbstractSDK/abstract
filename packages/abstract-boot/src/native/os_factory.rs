@@ -13,6 +13,14 @@ use abstract_os::{MANAGER, PROXY};
 use boot_core::interface::BootExecute;
 use boot_core::interface::ContractInstance;
 
+/// A helper struct that omits fields from [`abstract_os::manager::OsInfo`]
+#[derive(Default)]
+pub struct OsDetails {
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+}
+
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct OSFactory<Chain>;
 
@@ -23,16 +31,23 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
         Self(contract)
     }
 
-    pub fn create_default_os(
+    pub fn create_new_os(
         &self,
+        os_details: OsDetails,
         governance_details: GovernanceDetails,
     ) -> Result<OS<Chain>, BootError> {
+        let OsDetails {
+            name,
+            link,
+            description,
+        } = os_details;
+
         let result = self.execute(
             &ExecuteMsg::CreateOs {
                 governance: governance_details,
-                description: None,
-                link: None,
-                name: "Test".to_string(),
+                name,
+                link,
+                description,
             },
             None,
         )?;
@@ -49,6 +64,19 @@ impl<Chain: BootEnvironment> OSFactory<Chain> {
             manager: Manager::new(MANAGER, self.get_chain().clone()),
             proxy: Proxy::new(PROXY, self.get_chain().clone()),
         })
+    }
+
+    pub fn create_default_os(
+        &self,
+        governance_details: GovernanceDetails,
+    ) -> Result<OS<Chain>, BootError> {
+        self.create_new_os(
+            OsDetails {
+                name: "Default Abstract OS".into(),
+                ..Default::default()
+            },
+            governance_details,
+        )
     }
 
     pub fn set_subscription_contract(&self, addr: String) -> Result<TxResponse<Chain>, BootError> {

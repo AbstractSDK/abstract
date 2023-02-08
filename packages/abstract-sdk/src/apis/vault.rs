@@ -99,12 +99,12 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let mut resp: AssetsResponse = querier.query_wasm_smart(
             &proxy_address,
             &QueryMsg::Assets {
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             },
         )?;
         while !resp.assets.is_empty() {
-            let page_token = resp.assets.last().unwrap().0.clone();
+            let start_after = resp.assets.last().unwrap().0.clone();
             for (k, v) in resp.assets {
                 maybe_set_base(&v, &mut base_asset);
                 asset_keys.push(k);
@@ -112,8 +112,8 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
             resp = querier.query_wasm_smart(
                 &proxy_address,
                 &QueryMsg::Assets {
-                    page_token: Some(page_token.to_string()),
-                    page_size: None,
+                    start_after: Some(start_after.to_string()),
+                    limit: None,
                 },
             )?;
         }
@@ -129,18 +129,18 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let mut resp: AssetsResponse = querier.query_wasm_smart(
             &proxy_address,
             &QueryMsg::Assets {
-                page_token: None,
-                page_size: None,
+                start_after: None,
+                limit: None,
             },
         )?;
         while !resp.assets.is_empty() {
-            let page_token = resp.assets.last().unwrap().0.clone();
+            let start_after = resp.assets.last().unwrap().0.clone();
             assets.append(resp.assets.as_mut());
             resp = querier.query_wasm_smart(
                 &proxy_address,
                 &QueryMsg::Assets {
-                    page_token: Some(page_token.to_string()),
-                    page_size: None,
+                    start_after: Some(start_after.to_string()),
+                    limit: None,
                 },
             )?;
         }

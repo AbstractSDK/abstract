@@ -138,10 +138,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::ModuleVersions { ids } => queries::handle_contract_versions_query(deps, env, ids),
         QueryMsg::ModuleAddresses { ids } => queries::handle_module_address_query(deps, env, ids),
-        QueryMsg::ModuleInfos {
-            page_token,
-            page_size,
-        } => handle_module_info_query(deps, page_token, page_size),
+        QueryMsg::ModuleInfos { start_after, limit } => {
+            handle_module_info_query(deps, start_after, limit)
+        }
         QueryMsg::Info {} => handle_os_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
     }

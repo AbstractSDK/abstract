@@ -60,11 +60,11 @@ pub mod state {
 }
 
 use self::state::OsInfo;
+use crate::objects::core::OsId;
 use crate::objects::module::{Module, ModuleInfo};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;
-use crate::objects::core::OsId;
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
@@ -156,8 +156,8 @@ pub enum QueryMsg {
     /// Returns [`ModuleInfosResponse`]
     #[returns(ModuleInfosResponse)]
     ModuleInfos {
-        page_token: Option<String>,
-        page_size: Option<u8>,
+        start_after: Option<String>,
+        limit: Option<u8>,
     },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
