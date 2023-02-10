@@ -36,7 +36,7 @@
       "code_ids": {
         "abstract:ans-host": 1341,
         "abstract:manager": 1348,
-        "abstract:module-factory": 1337,
+        "abstract:module-factory": 1354,
         "abstract:os-factory": 1353,
         "abstract:proxy": 1349,
         "abstract:version-control": 1352
@@ -56,7 +56,7 @@
       "code_ids": {
         "abstract:ans-host": 1,
         "abstract:manager": 8,
-        "abstract:module-factory": 5,
+        "abstract:module-factory": 12,
         "abstract:os-factory": 11,
         "abstract:proxy": 9,
         "abstract:version-control": 10
@@ -76,8 +76,8 @@
         "abstract:ans_host": 6733,
         "abstract:dex": 7354,
         "abstract:etf": 7356,
-        "abstract:manager": 7488,
-        "abstract:module-factory": 7351,
+        "abstract:manager": 7495,
+        "abstract:module-factory": 7498,
         "abstract:module_factory": 6736,
         "abstract:os-factory": 7491,
         "abstract:os_factory": 6735,

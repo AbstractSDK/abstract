@@ -1,29 +1,30 @@
-use abstract_boot::{DexApi, ModuleDeployer};
-use boot_core::networks::UNI_5;
-use boot_core::prelude::instantiate_daemon_env;
+use abstract_boot::{DexApi, ModuleDeployer, VersionControl};
+use abstract_os::VERSION_CONTROL;
 use boot_core::prelude::*;
-use boot_core::DaemonOptionsBuilder;
-use cosmwasm_std::{Addr, Empty};
+
+use boot_core::networks::{parse_network, NetworkInfo};
+use cosmwasm_std::{Empty};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn deploy_dex() -> anyhow::Result<()> {
+fn deploy_dex(network: NetworkInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let network = UNI_5;
 
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
     let abstract_version: Version = version.clone();
-    // let abstract_version: Version = "0.1.0-rc.3".parse().unwrap();
+
+    let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
+
     let deployer = ModuleDeployer::load_from_version_control(
         chain.clone(),
         &abstract_version,
-        &Addr::unchecked("juno1q8tuzav8y6aawhc4sddqnwj6q4gdvn7lyk3m9ks4uw69xp37j83ql3ck2q"),
+        &vc.address()?,
     )?;
 
     let mut dex = DexApi::new("abstract:dex", chain);
@@ -33,11 +34,25 @@ fn deploy_dex() -> anyhow::Result<()> {
     Ok(())
 }
 
+use clap::Parser;
+
+#[derive(Parser, Default, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Arguments {
+    /// Network Id to deploy on
+    #[arg(short, long)]
+    network_id: String,
+}
+
 fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::init();
 
     use dotenv::dotenv;
 
-    deploy_dex()
+    let args = Arguments::parse();
+
+    let network = parse_network(&args.network_id);
+
+    deploy_dex(network)
 }

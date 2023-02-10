@@ -3,7 +3,7 @@ use crate::state::*;
 use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_macros::abstract_response;
 use abstract_os::objects::module::Module;
-use abstract_os::version_control::{ModulesResponse};
+use abstract_os::version_control::ModulesResponse;
 use abstract_os::{app, OS_FACTORY};
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
@@ -128,7 +128,7 @@ pub fn execute_create_os(
     } else {
         Err(OsFactoryError::WrongModuleKind(
             module.info.to_string(),
-            "app".to_string(),
+            "core".to_string(),
         ))
     }
 }
