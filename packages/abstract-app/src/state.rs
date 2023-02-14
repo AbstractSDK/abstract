@@ -24,7 +24,7 @@ pub struct AppState {
 }
 /// The state variables for our AppContract.
 pub struct AppContract<
-    Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -48,7 +48,7 @@ pub struct AppContract<
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -128,7 +128,10 @@ impl<
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
         self.contract = self.contract.with_query(query_handler);
         self
     }

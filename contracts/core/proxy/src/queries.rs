@@ -1,13 +1,21 @@
+use crate::contract::ProxyResult;
+
+use crate::error::ProxyError;
+use abstract_os::proxy::{
+    BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
+};
 use abstract_sdk::os::objects::proxy_asset::{
     get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
 };
 use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
 use abstract_sdk::os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
+use abstract_sdk::Resolve;
 use cosmwasm_std::{Addr, Deps, Env, Order, StdError, StdResult, Uint128};
 use cw_storage_plus::Bound;
 use std::collections::HashSet;
 use std::convert::TryInto;
+
 const DEFAULT_LIMIT: u8 = 5;
 const MAX_LIMIT: u8 = 20;
 pub fn query_proxy_assets(
@@ -16,7 +24,8 @@ pub fn query_proxy_assets(
     limit: Option<u8>,
 ) -> StdResult<AssetsResponse> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+    let entry = last_asset_name.map(AssetEntry::from);
+    let start_bound = entry.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -43,7 +52,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 /// Returns the value of a specified asset.
-pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> StdResult<Uint128> {
+pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> ProxyResult<Uint128> {
     compute_token_value(deps, env, asset_entry, None)
 }
 
@@ -54,15 +63,16 @@ pub fn compute_token_value(
     env: &Env,
     asset_entry: String,
     amount: Option<Uint128>,
-) -> StdResult<Uint128> {
-    let mut vault_asset: ProxyAsset = VAULT_ASSETS.load(deps.storage, asset_entry.into())?;
+) -> ProxyResult<Uint128> {
+    let mut vault_asset: ProxyAsset =
+        VAULT_ASSETS.load(deps.storage, &AssetEntry::from(asset_entry))?;
     let ans_host = ANS_HOST.load(deps.storage)?;
     let value = vault_asset.value(deps, env, &ans_host, amount)?;
     Ok(value)
 }
 
 /// Computes the total value locked in this contract
-pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
+pub fn compute_total_value(deps: Deps, env: Env) -> ProxyResult<Uint128> {
     // Get all assets from storage
     let mut all_assets = VAULT_ASSETS
         .range(deps.storage, None, None, Order::Ascending)
@@ -75,6 +85,11 @@ pub fn compute_total_value(deps: Deps, env: Env) -> StdResult<Uint128> {
         total_value += vault_asset_entry.1.value(deps, &env, &ans_host, None)?;
     }
     Ok(total_value)
+}
+
+pub fn query_total_value(deps: Deps, env: Env) -> ProxyResult<TotalValueResponse> {
+    let value = compute_total_value(deps, env)?;
+    Ok(TotalValueResponse { value })
 }
 
 pub fn query_proxy_asset_validity(deps: Deps) -> StdResult<ValidityResponse> {
@@ -200,7 +215,7 @@ pub fn try_load_asset(
     missing_assets: &mut HashSet<String>,
     key: AssetEntry,
 ) -> Option<ProxyAsset> {
-    let maybe_proxy_asset = VAULT_ASSETS.load(deps.storage, key.clone());
+    let maybe_proxy_asset = VAULT_ASSETS.load(deps.storage, &key);
     match maybe_proxy_asset {
         Ok(asset) => Some(asset),
         Err(_) => {
@@ -233,4 +248,47 @@ pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> 
         } => vec![asset.clone()],
         abstract_sdk::os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
     }
+}
+
+pub fn query_base_asset(deps: Deps) -> ProxyResult<BaseAssetResponse> {
+    let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
+        .range(deps.storage, None, None, Order::Ascending)
+        .collect();
+
+    let maybe_base_asset: Vec<(AssetEntry, ProxyAsset)> = res?
+        .into_iter()
+        .filter(|(_, p)| p.value_reference.is_none())
+        .collect();
+    if maybe_base_asset.len() != 1 {
+        Err(ProxyError::MissingBaseAsset)
+    } else {
+        Ok(BaseAssetResponse {
+            base_asset: maybe_base_asset[0].1.to_owned(),
+        })
+    }
+}
+
+pub fn query_holding_amount(
+    deps: Deps,
+    env: Env,
+    identifier: String,
+) -> ProxyResult<HoldingAmountResponse> {
+    let vault_asset: AssetEntry = identifier.into();
+    let ans_host = ANS_HOST.load(deps.storage)?;
+    let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
+    Ok(HoldingAmountResponse {
+        amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
+    })
+}
+
+pub fn query_token_value(
+    deps: Deps,
+    env: Env,
+    identifier: String,
+    amount: Option<Uint128>,
+) -> ProxyResult<TokenValueResponse> {
+    Ok(TokenValueResponse {
+        // Default the value calculation to one so that the caller doesn't need to provide a default
+        value: compute_token_value(deps, &env, identifier, amount.or(Some(Uint128::one())))?,
+    })
 }

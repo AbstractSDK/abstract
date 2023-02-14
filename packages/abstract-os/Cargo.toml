@@ -19,6 +19,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator"] }
 cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }

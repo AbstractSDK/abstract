@@ -521,7 +521,7 @@ fn query_module(
 
             Ok(Module {
                 info: module_info.clone(),
-                reference: version_registry.query_module_reference_raw(module_info)?,
+                reference: version_registry.query_module_reference_raw(&module_info)?,
             })
         }
         ModuleVersion::Latest => {
@@ -1142,7 +1142,7 @@ mod test {
                     TEST_VERSION_CONTROL,
                     MODULE_LIBRARY,
                     (
-                        ModuleInfo {
+                        &ModuleInfo {
                             provider: "test".to_string(),
                             name: "test".to_string(),
                             version: ModuleVersion::Version(new_version.to_string()),

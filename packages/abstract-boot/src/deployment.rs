@@ -33,6 +33,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
     type Error = BootError;
     type DeployData = semver::Version;
 
+    // TODO: From<BootError>
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
@@ -103,7 +104,9 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
 
         let mut os_core = OS { manager, proxy };
 
-        deployment.deploy(&mut os_core)?;
+        deployment
+            .deploy(&mut os_core)
+            .map_err(|e| BootError::StdErr(e.to_string()))?;
         Ok(deployment)
     }
 
@@ -141,7 +144,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.chain.clone()
     }
 
-    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), BootError> {
+    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
         let sender = &self.chain.sender();
 
         // ########### Upload ##############
@@ -204,7 +207,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn deploy_modules(&self) -> Result<(), BootError> {
+    pub fn deploy_modules(&self) -> Result<(), crate::AbstractBootError> {
         self.upload_modules()?;
         self.instantiate_apis()?;
         self.register_modules()?;
@@ -220,7 +223,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         ]
     }
 
-    fn instantiate_apis(&self) -> Result<(), BootError> {
+    fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
         let init_msg = abstract_os::api::InstantiateMsg {
             app: Empty {},
@@ -234,7 +237,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    fn upload_modules(&self) -> Result<(), BootError> {
+    fn upload_modules(&self) -> Result<(), crate::AbstractBootError> {
         let (mut dex, mut staking) = get_apis(self.get_chain());
         let (mut etf, mut subs) = get_apps(self.get_chain());
         let modules: Vec<&mut dyn BootUpload<Chain>> =
@@ -242,11 +245,11 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         modules
             .into_iter()
             .map(BootUpload::upload)
-            .collect::<Result<Vec<_>, BootError>>()?;
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(())
     }
 
-    fn register_modules(&self) -> Result<(), BootError> {
+    fn register_modules(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
         let (etf, subs) = get_apps(self.get_chain());
 
@@ -271,7 +274,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
         Self { manager, proxy }
     }
 
-    pub fn upload(&mut self) -> Result<(), BootError> {
+    pub fn upload(&mut self) -> Result<(), crate::AbstractBootError> {
         self.manager.upload()?;
         self.proxy.upload()?;
         Ok(())
@@ -282,7 +285,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
         &self,
         version_control: &VersionControl<Chain>,
         version: &str,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         version_control.register_core(self, version)
     }
 
@@ -290,7 +293,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
         &mut self,
         module_id: &str,
         init_msg: &TInitMsg,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         self.manager.install_module(module_id, init_msg)
     }
 
@@ -301,7 +304,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,
-    ) -> Result<Vec<ManagerModuleInfo>, BootError> {
+    ) -> Result<Vec<ManagerModuleInfo>, crate::AbstractBootError> {
         let abstract_os::manager::ModuleInfosResponse {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;

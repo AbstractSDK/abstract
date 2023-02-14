@@ -18,3 +18,32 @@ pub mod state;
 
 #[cfg(feature = "schema")]
 mod schema;
+
+#[cfg(test)]
+mod test_common {
+    use crate::ApiError;
+    use abstract_os::api;
+    use abstract_sdk::AbstractSdkError;
+    use cosmwasm_std::StdError;
+    use thiserror::Error;
+
+    #[derive(Error, Debug, PartialEq)]
+    pub enum MockError {
+        #[error("{0}")]
+        Std(#[from] StdError),
+
+        #[error(transparent)]
+        Api(#[from] ApiError),
+
+        #[error("{0}")]
+        Abstract(#[from] abstract_os::AbstractOsError),
+
+        #[error("{0}")]
+        AbstractSdk(#[from] AbstractSdkError),
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockApiExecMsg;
+
+    impl api::ApiExecuteMsg for MockApiExecMsg {}
+}

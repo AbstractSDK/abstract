@@ -69,8 +69,8 @@ impl Display for AssetEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for AssetEntry {
-    type Prefix = String;
+impl<'a> PrimaryKey<'a> for &AssetEntry {
+    type Prefix = ();
 
     type SubPrefix = ();
 
@@ -84,18 +84,18 @@ impl<'a> PrimaryKey<'a> for AssetEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for AssetEntry {
+impl<'a> Prefixer<'a> for &AssetEntry {
     fn prefix(&self) -> Vec<Key> {
         self.0.prefix()
     }
 }
 
-impl KeyDeserialize for AssetEntry {
-    type Output = Self;
+impl KeyDeserialize for &AssetEntry {
+    type Output = AssetEntry;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
-        Ok(Self(String::from_vec(value)?))
+        Ok(AssetEntry(String::from_vec(value)?))
     }
 }
 
@@ -138,7 +138,7 @@ mod test {
 
     #[test]
     fn string_key_works() {
-        let k = AssetEntry::new("CRAB");
+        let k = &AssetEntry::new("CRAB");
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!(b"crab", path[0].as_ref());

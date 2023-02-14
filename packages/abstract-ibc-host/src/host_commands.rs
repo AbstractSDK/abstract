@@ -127,7 +127,7 @@ pub fn receive_query(
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote OS
 pub fn receive_register<
-    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,

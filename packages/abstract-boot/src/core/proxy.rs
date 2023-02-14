@@ -2,7 +2,7 @@ use crate::Manager;
 pub use abstract_os::proxy::{ExecuteMsgFns as ProxyExecFns, QueryMsgFns as ProxyQueryFns};
 use abstract_os::{objects::proxy_asset::UncheckedProxyAsset, proxy::*, MANAGER, PROXY};
 use boot_core::{
-    interface::ContractInstance, prelude::boot_contract, BootEnvironment, BootError, Contract,
+    interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract,
 };
 
 #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -15,7 +15,10 @@ impl<Chain: BootEnvironment> Proxy<Chain> {
         Self(contract)
     }
 
-    pub fn set_proxy_asset(&self, to_add: Vec<UncheckedProxyAsset>) -> Result<(), BootError> {
+    pub fn set_proxy_asset(
+        &self,
+        to_add: Vec<UncheckedProxyAsset>,
+    ) -> Result<(), crate::AbstractBootError> {
         let manager = Manager::new(MANAGER, self.get_chain().clone());
         manager.execute_on_module(
             PROXY,
@@ -26,7 +29,7 @@ impl<Chain: BootEnvironment> Proxy<Chain> {
         )?;
         Ok(())
     }
-    // pub  fn set_vault_assets(&self, path: &str) -> Result<(), BootError> {
+    // pub  fn set_vault_assets(&self, path: &str) -> Result<(), crate::AbstractBootError> {
     //     let file = File::open(path).expect(&format!("file should be present at {}", path));
     //     let json: serde_json::Value = from_reader(file)?;
     //     let maybe_assets = json.get(self.instance().deployment.network.chain.chain_id.clone());
@@ -55,7 +58,7 @@ impl<Chain: BootEnvironment> Proxy<Chain> {
     //     }
     // }
 
-    // pub  fn fund_os(&self, coin: Coin) -> Result<(), BootError> {
+    // pub  fn fund_os(&self, coin: Coin) -> Result<(), crate::AbstractBootError> {
     //     self.instance()
     //         .sender
     //         .bank_send(self.instance().name, vec![coin])

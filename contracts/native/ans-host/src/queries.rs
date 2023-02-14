@@ -21,7 +21,7 @@ use abstract_os::{
     },
 };
 use abstract_sdk::helpers::cw_storage_plus::load_many;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Storage};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
 
@@ -44,11 +44,13 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn query_assets(deps: Deps, _env: Env, keys: Vec<String>) -> StdResult<Binary> {
-    let keys: Vec<AssetEntry> = keys.iter().map(|name| name.as_str().into()).collect();
+    let keys: Vec<AssetEntry> = keys.into_iter().map(|name| name.as_str().into()).collect();
 
-    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys)?;
+    let assets = load_many(ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&AssetsResponse { assets })
+    to_binary(&AssetsResponse {
+        assets: assets.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
+    })
 }
 
 pub fn query_asset_list(
@@ -57,7 +59,8 @@ pub fn query_asset_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_name.as_deref().map(Bound::exclusive);
+    let entry = last_asset_name.map(AssetEntry::from);
+    let start_bound = entry.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<AssetMapEntry>, _> = ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -74,12 +77,17 @@ pub fn query_asset_infos(
 ) -> StdResult<Binary> {
     let keys = keys
         .into_iter()
-        .map(|info| info.check(deps.api, None))
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
         .collect::<StdResult<Vec<_>>>()?;
 
-    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys)?;
+    let infos = load_many(REV_ASSET_ADDRESSES, deps.storage, keys.iter().collect())?;
 
-    to_binary(&AssetInfosResponse { infos })
+    to_binary(&AssetInfosResponse {
+        infos: infos.into_iter().map(|(k, v)| (k.to_owned(), v)).collect(),
+    })
 }
 
 pub fn query_asset_info_list(
@@ -88,10 +96,13 @@ pub fn query_asset_info_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_asset_info
-        .map(|info| info.check(deps.api, None))
-        .transpose()?
-        .map(Bound::exclusive);
+    let asset_info = last_asset_info
+        .map(|info| {
+            info.check(deps.api, None)
+                .map_err(|e| StdError::generic_err(e.to_string()))
+        })
+        .transpose()?;
+    let start_bound = asset_info.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<AssetInfoMapEntry>, _> = REV_ASSET_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -101,21 +112,26 @@ pub fn query_asset_info_list(
     to_binary(&AssetInfoListResponse { infos: res? })
 }
 
-pub fn query_contract(deps: Deps, _env: Env, keys: Vec<ContractEntry>) -> StdResult<Binary> {
+pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdResult<Binary> {
     let contracts = load_many(CONTRACT_ADDRESSES, deps.storage, keys)?;
 
     to_binary(&ContractsResponse {
         contracts: contracts
             .into_iter()
-            .map(|(x, a)| (x, a.to_string()))
+            .map(|(x, a)| (x.to_owned(), a.to_string()))
             .collect(),
     })
 }
 
-pub fn query_channels(deps: Deps, _env: Env, keys: Vec<ChannelEntry>) -> StdResult<Binary> {
+pub fn query_channels(deps: Deps, _env: Env, keys: Vec<&ChannelEntry>) -> StdResult<Binary> {
     let channels = load_many(CHANNELS, deps.storage, keys)?;
 
-    to_binary(&ChannelsResponse { channels })
+    to_binary(&ChannelsResponse {
+        channels: channels
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v))
+            .collect(),
+    })
 }
 
 pub fn query_contract_list(
@@ -124,7 +140,7 @@ pub fn query_contract_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_contract.map(Bound::exclusive);
+    let start_bound = last_contract.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<ContractMapEntry>, _> = CONTRACT_ADDRESSES
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -142,7 +158,7 @@ pub fn query_channel_list(
     limit: Option<u8>,
 ) -> StdResult<Binary> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let start_bound = last_channel.map(Bound::exclusive);
+    let start_bound = last_channel.as_ref().map(Bound::exclusive);
 
     let res: Result<Vec<ChannelMapEntry>, _> = CHANNELS
         .range(deps.storage, start_bound, None, Order::Ascending)
@@ -185,7 +201,7 @@ pub fn list_pool_entries(
 
         // We can use the prefix to load all the entries for the asset pair
         let res: Result<Vec<(DexName, Vec<PoolReference>)>, _> = ASSET_PAIRINGS
-            .prefix((asset_x.clone(), asset_y.clone()))
+            .prefix((&asset_x, &asset_y))
             .range(deps.storage, start_bound, None, Order::Ascending)
             .take(limit)
             .collect();
@@ -203,7 +219,8 @@ pub fn list_pool_entries(
 
         matched
     } else {
-        let start_bound: Option<Bound<DexAssetPairing>> = start_after.map(Bound::exclusive);
+        let start_bound: Option<Bound<&DexAssetPairing>> =
+            start_after.as_ref().map(Bound::exclusive);
 
         // We have no filter, so load all the entries
         let res: Result<Vec<AssetPairingMapEntry>, _> = ASSET_PAIRINGS
@@ -238,7 +255,7 @@ fn load_asset_pairing_entry(
     storage: &dyn Storage,
     key: DexAssetPairing,
 ) -> StdResult<AssetPairingMapEntry> {
-    let value = ASSET_PAIRINGS.load(storage, key.clone())?;
+    let value = ASSET_PAIRINGS.load(storage, &key)?;
     Ok((key, value))
 }
 
@@ -432,7 +449,7 @@ mod test {
     ) -> Result<(), cosmwasm_std::StdError> {
         for (test_asset_name, test_asset_info) in to_add.into_iter() {
             let insert = |_| -> StdResult<AssetInfo> { Ok(test_asset_info) };
-            ASSET_ADDRESSES.update(deps.storage, test_asset_name.into(), insert)?;
+            ASSET_ADDRESSES.update(deps.storage, &test_asset_name.into(), insert)?;
         }
         Ok(())
     }
@@ -444,7 +461,7 @@ mod test {
         for (key, new_address) in to_add.into_iter() {
             let addr = deps.as_ref().api.addr_validate(&new_address)?;
             let insert = |_| -> StdResult<Addr> { Ok(addr) };
-            CONTRACT_ADDRESSES.update(deps.storage, key, insert)?;
+            CONTRACT_ADDRESSES.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
@@ -456,7 +473,7 @@ mod test {
         for (key, new_channel) in to_add.into_iter() {
             // Update function for new or existing keys
             let insert = |_| -> StdResult<String> { Ok(new_channel) };
-            CHANNELS.update(deps.storage, key, insert)?;
+            CHANNELS.update(deps.storage, &key, insert)?;
         }
         Ok(())
     }
@@ -494,7 +511,7 @@ mod test {
             let _pool_ref = pool_ref.unwrap_or_default();
             Ok(_pool_ref)
         };
-        ASSET_PAIRINGS.update(deps.storage, dex_asset_pairing, insert)?;
+        ASSET_PAIRINGS.update(deps.storage, &dex_asset_pairing, insert)?;
         Ok(())
     }
 
@@ -536,7 +553,7 @@ mod test {
         let asset_pairing = ASSET_PAIRINGS
             .load(
                 deps.storage,
-                create_dex_asset_pairing(asset_x, asset_y, dex),
+                &create_dex_asset_pairing(asset_x, asset_y, dex),
             )
             .unwrap();
         let asset_pairing = PoolsResponse {
@@ -903,7 +920,10 @@ mod test {
         let res: PoolsResponse = from_binary(&query_helper(deps.as_ref(), msg)?)?;
         //comparisons
         let expected = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "foo"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "foo"),
+            )
             .unwrap();
         let expected = PoolsResponse {
             pools: vec![(create_dex_asset_pairing("btc", "eth", "foo"), expected)],
@@ -961,12 +981,15 @@ mod test {
         let expected_foo =
             load_asset_pairing_into_pools_response("juno", "atom", "foo", deps.as_mut())?;
         let expected_all_bar = ASSET_PAIRINGS
-            .load(&deps.storage, create_dex_asset_pairing("btc", "eth", "bar"))
+            .load(
+                &deps.storage,
+                &create_dex_asset_pairing("btc", "eth", "bar"),
+            )
             .unwrap();
         let expected_all_foo = ASSET_PAIRINGS
             .load(
                 &deps.storage,
-                create_dex_asset_pairing("juno", "atom", "foo"),
+                &create_dex_asset_pairing("juno", "atom", "foo"),
             )
             .unwrap();
         let expected_all = PoolsResponse {

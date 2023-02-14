@@ -8,6 +8,7 @@ use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
     os::version_control::Core,
+    AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
@@ -29,7 +30,7 @@ pub struct ApiState {
 
 /// The state variables for our ApiContract.
 pub struct ApiContract<
-    Error: From<cosmwasm_std::StdError> + From<ApiError> + 'static,
+    Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static,
     CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
@@ -46,7 +47,7 @@ pub struct ApiContract<
 
 /// Constructor
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -112,7 +113,10 @@ impl<
         self
     }
 
-    pub const fn with_query(mut self, query_handler: QueryHandlerFn<Self, CustomQueryMsg>) -> Self {
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
         self.contract = self.contract.with_query(query_handler);
         self
     }

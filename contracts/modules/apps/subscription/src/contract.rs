@@ -11,11 +11,12 @@ use abstract_sdk::os::subscription::{
 };
 use abstract_sdk::os::SUBSCRIPTION;
 use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
-use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 use cw20::Cw20ReceiveMsg;
 use cw_asset::Asset;
 
-pub type SubscriptionResult = Result<Response, SubscriptionError>;
+pub type SubscriptionResult<T = Response> = Result<T, SubscriptionError>;
+
 pub type SubscriptionApp = AppContract<
     SubscriptionError,
     SubscriptionExecuteMsg,
@@ -24,6 +25,7 @@ pub type SubscriptionApp = AppContract<
     MigrateMsg,
     Cw20ReceiveMsg,
 >;
+
 const SUBSCRIPTION_MODULE: SubscriptionApp =
     SubscriptionApp::new(SUBSCRIPTION, CONTRACT_VERSION, None)
         .with_execute(request_handler)
@@ -170,7 +172,7 @@ pub fn query_handler(
     _env: Env,
     _app: &SubscriptionApp,
     msg: SubscriptionQueryMsg,
-) -> StdResult<Binary> {
+) -> SubscriptionResult<Binary> {
     match msg {
         // handle dapp-specific queries here
         SubscriptionQueryMsg::State {} => {
@@ -213,7 +215,7 @@ pub fn query_handler(
                     subscriber_details: sub,
                 })?
             } else {
-                return Err(StdError::generic_err("os has os_id 0 or does not exist"));
+                return Err(StdError::generic_err("os has os_id 0 or does not exist").into());
             };
             Ok(subscription_state)
         }
@@ -229,11 +231,10 @@ pub fn query_handler(
             let subscription_state = if let Some(compensation) = maybe_contributor {
                 to_binary(&ContributorStateResponse { compensation })?
             } else {
-                return Err(StdError::generic_err(
-                    "provided address is not a contributor",
-                ));
+                return Err(StdError::generic_err("provided address is not a contributor").into());
             };
             Ok(subscription_state)
         }
     }
+    .map_err(Into::into)
 }

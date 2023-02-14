@@ -1,6 +1,6 @@
-use crate::{base::Handler, ModuleInterface};
+use crate::{base::Handler, AbstractSdkError, ModuleInterface};
 use abstract_os::{abstract_ica::IbcResponseMsg, IBC_CLIENT};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
     /// Takes request, sets destination and executes request handler
@@ -15,9 +15,11 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
         // Todo: Change to use version control instead?
         let ibc_client = self.modules(deps.as_ref()).module_address(IBC_CLIENT)?;
         if info.sender.ne(&ibc_client) {
-            return Err(StdError::generic_err(format!(
-                "ibc callback can only be called by local ibc client {ibc_client}"
-            ))
+            return Err(AbstractSdkError::CallbackNotCalledByIbcClient {
+                caller: info.sender,
+                client_addr: ibc_client,
+                module: self.info().0.to_string(),
+            }
             .into());
         };
         let IbcResponseMsg { id, msg: ack } = msg;

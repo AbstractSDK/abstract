@@ -33,7 +33,7 @@ pub mod state {
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{7}context");
-    pub const MODULE_INIT_BINARIES: Map<ModuleInfo, Binary> = Map::new("module_init_binaries");
+    pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
 }
 
 use crate::{

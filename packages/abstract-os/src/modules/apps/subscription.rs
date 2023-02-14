@@ -28,7 +28,7 @@
 
 pub mod state {
     use crate::objects::core::OsId;
-    use crate::objects::time_weighted_average::TimeWeightedAverage;
+    use crate::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
@@ -55,7 +55,7 @@ pub mod state {
     }
 
     impl UncheckedEmissionType {
-        pub fn check(self, api: &dyn Api) -> StdResult<EmissionType> {
+        pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType> {
             match self {
                 UncheckedEmissionType::None => Ok(EmissionType::None),
                 UncheckedEmissionType::BlockShared(d, a) => {

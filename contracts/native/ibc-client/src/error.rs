@@ -1,4 +1,6 @@
+use abstract_os::AbstractOsError;
 use abstract_sdk::os::abstract_ica::SimpleIcaError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -7,6 +9,12 @@ use thiserror::Error;
 pub enum IbcClientError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    AbstractOs(#[from] AbstractOsError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     SimpleIca(#[from] SimpleIcaError),

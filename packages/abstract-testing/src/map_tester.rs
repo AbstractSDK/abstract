@@ -55,7 +55,7 @@ impl<'a, ExecMsg, TError, K, V, UncheckedK, UncheckedV>
 where
     V: Serialize + DeserializeOwned + Clone + Debug,
     K: PrimaryKey<'a> + KeyDeserialize + Debug,
-    (<K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
+    (&'a <K as KeyDeserialize>::Output, V): PartialEq<(K, V)>,
     K::Output: 'static,
     UncheckedK: Clone + PartialEq + Debug + Serialize,
     UncheckedV: Clone + PartialEq + Debug,

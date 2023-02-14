@@ -1,5 +1,5 @@
-use crate::base::Handler;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use crate::{base::Handler, AbstractSdkError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait ReceiveEndpoint: Handler {
     fn handle_receive(
@@ -12,9 +12,9 @@ pub trait ReceiveEndpoint: Handler {
         let maybe_handler = self.maybe_receive_handler();
         maybe_handler.map_or_else(
             || {
-                Err(Self::Error::from(StdError::generic_err(
-                    "Receive endpoint handler not set for module.",
-                )))
+                Err(Self::Error::from(AbstractSdkError::MissingHandler {
+                    endpoint: "receive".to_string(),
+                }))
             },
             |f| f(deps, env, info, self, msg),
         )

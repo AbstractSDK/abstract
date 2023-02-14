@@ -1,8 +1,7 @@
 use crate::{AnsHost, VersionControl};
 use abstract_os::objects::module::ModuleVersion;
 use abstract_os::{ANS_HOST, VERSION_CONTROL};
-use boot_core::BootError::StdErr;
-use boot_core::{prelude::*, BootEnvironment, BootError};
+use boot_core::{prelude::*, BootEnvironment, BootError::StdErr};
 use cosmwasm_std::Addr;
 use semver::Version;
 use serde::Serialize;
@@ -33,7 +32,7 @@ impl<Chain: BootEnvironment> ModuleDeployer<Chain> {
         chain: Chain,
         abstract_version: &Version,
         version_control_address: &Addr,
-    ) -> Result<Self, BootError> {
+    ) -> Result<Self, crate::AbstractBootError> {
         let version_control = VersionControl::load(chain.clone(), version_control_address);
 
         // TODO: get the version dynamically
@@ -60,7 +59,7 @@ impl<Chain: BootEnvironment> ModuleDeployer<Chain> {
         api: &mut Contract<Chain>,
         version: Version,
         api_init_msg: TInitMsg,
-    ) -> Result<(), BootError>
+    ) -> Result<(), crate::AbstractBootError>
     where
         TInitMsg: Serialize + Debug,
     {
@@ -73,7 +72,8 @@ impl<Chain: BootEnvironment> ModuleDeployer<Chain> {
             return Err(StdErr(format!(
                 "API {} already exists with version {}",
                 api.id, version
-            )));
+            ))
+            .into());
         };
 
         api.upload()?;

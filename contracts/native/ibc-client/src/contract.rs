@@ -6,7 +6,7 @@ use abstract_os::{
     ibc_client::*,
     objects::ans_host::AnsHost,
     objects::module_version::{migrate_module_data, set_module_data},
-    IBC_CLIENT,
+    AbstractResult, IBC_CLIENT,
 };
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
@@ -28,7 +28,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> StdResult<Response> {
+) -> AbstractResult<Response> {
     set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,

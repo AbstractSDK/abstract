@@ -25,7 +25,7 @@ pub mod state {
     pub const FACTORY: Admin = Admin::new("factory");
 
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const MODULE_LIBRARY: Map<ModuleInfo, ModuleReference> = Map::new("module_lib");
+    pub const MODULE_LIBRARY: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
     /// Maps OS ID to the address of its core contracts
     pub const OS_ADDRESSES: Map<OsId, Core> = Map::new("os_core");
 }

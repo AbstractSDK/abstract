@@ -37,7 +37,7 @@ macro_rules! export_endpoints {
             deps: cosmwasm_std::Deps,
             env: cosmwasm_std::Env,
             msg: <$app_type as abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
+        ) -> Result<cosmwasm_std::Binary, <$app_type as abstract_sdk::base::Handler>::Error> {
             use abstract_sdk::base::QueryEndpoint;
             $app_const.query(deps, env, msg)
         }

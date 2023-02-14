@@ -1,17 +1,23 @@
-use crate::{ApiContract, ApiError};
+use std::path::Path;
+
+use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
+use cosmwasm_std::Empty;
+use schemars::JsonSchema;
+use serde::Serialize;
+
 use abstract_os::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
     os::api::{ApiConfigResponse, TradersResponse},
 };
-use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
-use cosmwasm_std::Empty;
-use schemars::JsonSchema;
-use serde::Serialize;
-use std::path::Path;
+
+use crate::{ApiContract, ApiError};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + 'static,
+        Error: From<cosmwasm_std::StdError>
+            + From<ApiError>
+            + From<abstract_sdk::AbstractSdkError>
+            + 'static,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + ApiQueryMsg + QueryResponses,

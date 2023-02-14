@@ -1,7 +1,7 @@
 use crate::{Host, HostError};
 use abstract_sdk::base::Handler;
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

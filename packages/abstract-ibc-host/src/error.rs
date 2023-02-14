@@ -1,4 +1,6 @@
+use abstract_os::AbstractOsError;
 use abstract_sdk::os::abstract_ica::SimpleIcaError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use cw_utils::ParseReplyError;
@@ -8,6 +10,12 @@ use thiserror::Error;
 pub enum HostError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    AbstractOs(#[from] AbstractOsError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("This host does not implement any custom queries")]
     NoCustomQueries,

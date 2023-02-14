@@ -14,7 +14,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Reply, Response, StdResult,
+    Reply, Response,
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
@@ -25,7 +25,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) struct OsmosisHostResponse;
 
 pub type OsmoHost = Host<OsmoError, DexAction>;
-pub type OsmoResult = Result<Response, OsmoError>;
+pub type OsmoResult<T = Response> = Result<T, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 
 const OSMO_HOST: OsmoHost = OsmoHost::new(OSMOSIS_HOST, CONTRACT_VERSION, OSMOSIS, None);
@@ -76,7 +76,7 @@ pub fn reply(deps: DepsMut, env: Env, reply: Reply) -> OsmoResult {
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> OsmoResult<Binary> {
     OSMO_HOST.query(deps, env, msg)
 }
 

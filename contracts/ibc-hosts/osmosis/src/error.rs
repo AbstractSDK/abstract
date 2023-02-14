@@ -1,4 +1,6 @@
 use abstract_ibc_host::HostError;
+use abstract_os::AbstractOsError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use dex::error::DexError;
 use thiserror::Error;
@@ -10,6 +12,12 @@ pub enum OsmoError {
 
     #[error("{0}")]
     DexError(#[from] DexError),
+
+    #[error("{0}")]
+    AbstractOs(#[from] AbstractOsError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
     HostError(#[from] HostError),

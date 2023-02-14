@@ -27,9 +27,9 @@ fn instantiate() -> AResult {
     Ok(())
 }
 
+/// This test calls the factory as the root user, which is not allowed because he is not a manager.
 #[test]
 fn caller_must_be_manager() -> AResult {
-    let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_test_env(chain)?;
@@ -42,7 +42,8 @@ fn caller_must_be_manager() -> AResult {
     )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();
-    assert_that!(&res.root().to_string()).contains("Caller must be an OS manager");
+    assert_that!(&res.root().to_string())
+        .contains("ensure that the contract is a Manager or Proxy contract");
 
     Ok(())
 }

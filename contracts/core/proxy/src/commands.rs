@@ -85,11 +85,11 @@ pub fn update_assets(
     for new_asset in to_add.into_iter() {
         let checked_asset = new_asset.check(deps.as_ref(), ans_host)?;
 
-        VAULT_ASSETS.save(deps.storage, checked_asset.asset.clone(), &checked_asset)?;
+        VAULT_ASSETS.save(deps.storage, &checked_asset.asset, &checked_asset)?;
     }
 
     for asset_id in to_remove {
-        VAULT_ASSETS.remove(deps.storage, asset_id.into());
+        VAULT_ASSETS.remove(deps.storage, &asset_id.into());
     }
 
     // Check validity of new configuration

@@ -2,11 +2,11 @@ use crate::{state::AppContract, AppError};
 use crate::{Handler, QueryEndpoint};
 use abstract_os::app::AppQueryMsg;
 use abstract_sdk::os::app::{AppConfigResponse, BaseQueryMsg, QueryMsg};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg: AppQueryMsg,
@@ -24,9 +24,9 @@ impl<
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
 
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::Base(msg) => self.base_query(deps, env, msg),
+            QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
             QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
         }
     }
@@ -34,7 +34,7 @@ impl<
 /// Where we dispatch the queries for the AppContract
 /// These BaseQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -72,12 +72,13 @@ mod test {
 
     type AppQueryMsg = QueryMsg<MockQueryMsg>;
 
-    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, StdError> {
+    fn query_helper(deps: Deps, msg: AppQueryMsg) -> Result<Binary, MockError> {
         MOCK_APP.query(deps, mock_env(), msg)
     }
 
     mod app_query {
         use super::*;
+        use abstract_sdk::AbstractSdkError;
 
         #[test]
         fn without_handler() {
@@ -88,7 +89,13 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| e.to_string().contains("expected query handler"));
+                .matches(|e| {
+                    matches!(
+                        e,
+                        MockError::AbstractSdk(AbstractSdkError::MissingHandler { .. })
+                    )
+                })
+                .matches(|e| e.to_string().contains("query"));
         }
 
         fn mock_query_handler(
@@ -96,9 +103,9 @@ mod test {
             _env: Env,
             _contract: &MockAppContract,
             msg: MockQueryMsg,
-        ) -> Result<Binary, StdError> {
+        ) -> Result<Binary, MockError> {
             // simply return the message as binary
-            to_binary(&msg)
+            to_binary(&msg).map_err(Into::into)
         }
 
         #[test]

@@ -23,7 +23,7 @@ impl<Chain: BootEnvironment> Vesting<Chain> {
     //     &self,
     //     sender: &Sender<C>,
     //     path: &str,
-    // ) -> Result<(), BootError> {
+    // ) -> Result<(), crate::AbstractBootError> {
     //     let file = File::open(path).expect(&format!("file should be present at {}", path));
     //     let json: serde_json::Value = from_reader(file)?;
     //     let maybe_assets = json.get(self.instance().deployment.network.chain_id.clone());

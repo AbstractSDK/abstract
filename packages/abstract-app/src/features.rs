@@ -1,14 +1,16 @@
 use crate::{AppContract, AppError};
+
 use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::base::ContractName;
 use abstract_sdk::{
     base::features::{AbstractNameService, Identification},
     feature_objects::AnsHost,
+    AbstractSdkResult,
 };
-use cosmwasm_std::{Addr, Deps, StdResult};
+use cosmwasm_std::{Addr, Deps};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -24,13 +26,13 @@ impl<
         ReceiveMsg,
     >
 {
-    fn ans_host(&self, deps: Deps) -> StdResult<AnsHost> {
+    fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -46,13 +48,13 @@ impl<
         ReceiveMsg,
     >
 {
-    fn proxy_address(&self, deps: Deps) -> StdResult<Addr> {
+    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.base_state.load(deps.storage)?.proxy_address)
     }
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

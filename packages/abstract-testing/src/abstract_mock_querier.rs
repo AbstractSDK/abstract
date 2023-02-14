@@ -2,7 +2,7 @@ use crate::{MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL};
 use abstract_os::ans_host::state::ASSET_ADDRESSES;
 use abstract_os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_os::objects::core::OS_ID;
-use abstract_os::objects::AssetEntry;
+use abstract_os::objects::{AssetEntry};
 use abstract_os::version_control::state::OS_ADDRESSES;
 use abstract_os::version_control::Core;
 use cosmwasm_std::testing::MockQuerier;
@@ -52,7 +52,7 @@ impl AbstractMockQuerierBuilder {
     }
 
     /// Add mock assets into ANS
-    pub fn assets(mut self, assets: Vec<(AssetEntry, &AssetInfo)>) -> Self {
+    pub fn assets(mut self, assets: Vec<(&AssetEntry, &AssetInfo)>) -> Self {
         self.builder =
             self.builder
                 .with_contract_map_entries(TEST_ANS_HOST, ASSET_ADDRESSES, assets);

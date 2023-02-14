@@ -1,7 +1,8 @@
-use cosmwasm_std::{StdError, StdResult};
 use cw_asset::AssetInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use crate::{error::AbstractOsError, AbstractResult};
 
 /// Helper for handling deposit assets.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -10,25 +11,22 @@ pub struct DepositInfo {
 }
 
 impl DepositInfo {
-    pub fn assert(&self, asset_info: &AssetInfo) -> StdResult<()> {
+    pub fn assert(&self, asset_info: &AssetInfo) -> AbstractResult<()> {
         if asset_info == &self.asset_info {
             return Ok(());
         }
 
-        Err(StdError::generic_err(format!(
+        Err(AbstractOsError::Assert(format!(
             "Invalid deposit asset. Expected {}, got {}.",
             self.asset_info, asset_info
         )))
     }
 
-    pub fn get_denom(self) -> StdResult<String> {
+    pub fn get_denom(self) -> AbstractResult<String> {
         match self.asset_info {
             AssetInfo::Native(denom) => Ok(denom),
-            AssetInfo::Cw20(..) => Err(StdError::generic_err(
-                "'denom' only exists for native tokens.",
-            )),
-            AssetInfo::Cw1155(..) => Err(StdError::generic_err(
-                "'denom' only exists for native tokens.",
+            AssetInfo::Cw20(..) => Err(AbstractOsError::Assert(
+                "'denom' only exists for native tokens.".into(),
             )),
             _ => panic!("asset not supported"),
         }

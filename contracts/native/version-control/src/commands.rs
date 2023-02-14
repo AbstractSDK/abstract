@@ -36,7 +36,7 @@ pub fn add_modules(
     modules: Vec<(ModuleInfo, ModuleReference)>,
 ) -> VCResult {
     for (module, mod_ref) in modules {
-        if MODULE_LIBRARY.has(deps.storage, module.clone()) {
+        if MODULE_LIBRARY.has(deps.storage, &module) {
             return Err(VCError::NotUpdateableModule(module));
         }
         module.validate()?;
@@ -48,7 +48,7 @@ pub fn add_modules(
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         }
-        MODULE_LIBRARY.save(deps.storage, module, &mod_ref)?;
+        MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
     }
 
     Ok(VcResponse::action("add_modules"))
@@ -59,8 +59,8 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     // Only Admin can update code-ids
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     module.assert_version_variant()?;
-    if MODULE_LIBRARY.has(deps.storage, module.clone()) {
-        MODULE_LIBRARY.remove(deps.storage, module.clone());
+    if MODULE_LIBRARY.has(deps.storage, &module) {
+        MODULE_LIBRARY.remove(deps.storage, &module);
     } else {
         return Err(VCError::ModuleNotFound(module));
     }
@@ -88,7 +88,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, StdError};
+    use cosmwasm_std::{Addr};
 
     use abstract_os::version_control::*;
 
@@ -207,6 +207,7 @@ mod test {
     mod add_modules {
         use super::*;
         use abstract_os::objects::{module::*, module_reference::ModuleReference};
+        use abstract_os::AbstractOsError;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
@@ -228,7 +229,7 @@ mod test {
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res).is_ok();
-            let module = MODULE_LIBRARY.load(&deps.storage, new_module)?;
+            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
@@ -244,7 +245,7 @@ mod test {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OTHER, msg)?;
-            let module = MODULE_LIBRARY.load(&deps.storage, rm_module.clone())?;
+            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
 
             // then remove
@@ -259,7 +260,7 @@ mod test {
 
             execute_as_admin(deps.as_mut(), msg)?;
 
-            let module = MODULE_LIBRARY.load(&deps.storage, rm_module);
+            let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
             Ok(())
         }
@@ -286,9 +287,11 @@ mod test {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
-            assert_that!(&res).is_err().is_equal_to(
-                &StdError::generic_err("Module version must be set for this action.").into(),
-            );
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::AbstractOs(AbstractOsError::Assert(
+                    "Module version must be set to a specific version".into(),
+                )));
             Ok(())
         }
 
@@ -309,7 +312,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             execute_as_admin(deps.as_mut(), msg)?;
-            let module = MODULE_LIBRARY.load(&deps.storage, new_module)?;
+            let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
         }
@@ -349,7 +352,11 @@ mod test {
                 assert_that!(&res)
                     .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
-                    .matches(|e| matches!(e, &VCError::Std(StdError::GenericErr { .. })));
+                    .is_equal_to(&VCError::AbstractOs(AbstractOsError::FormattingError {
+                        object: "module name".into(),
+                        expected: "with content".into(),
+                        actual: "empty".into(),
+                    }));
             }
 
             Ok(())

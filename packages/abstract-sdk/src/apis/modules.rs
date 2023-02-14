@@ -1,14 +1,14 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
+use crate::AbstractSdkResult;
+
 use super::{Dependencies, Identification};
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
 };
-use cosmwasm_std::{
-    wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, StdError, StdResult, WasmQuery,
-};
+use cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 use os::api::ApiRequestMsg;
 use serde::{de::DeserializeOwned, Serialize};
@@ -32,11 +32,11 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// Retrieve the address of an application in this OS.
     /// This should **not** be used to execute messages on an `Api`.
     /// Use `Modules::api_request(..)` instead.
-    pub fn module_address(&self, module_id: ModuleId) -> StdResult<Addr> {
+    pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
         let manager_addr = self.base.manager_address(self.deps)?;
         let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
         let Some(module_addr) = maybe_module_addr else {
-            return Err(StdError::generic_err(format!("Module {module_id} not enabled on OS.")));
+            return Err(crate::AbstractSdkError::MissingModule { module: module_id.to_string() });
         };
         Ok(module_addr)
     }
@@ -44,16 +44,19 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// Retrieve the version of an application in this OS.
     /// Note: this method makes use of the Cw2 query and may not coincide with the version of the
     /// module listed in VersionControl.
-    pub fn module_version(&self, module_id: ModuleId) -> StdResult<ContractVersion> {
+    pub fn module_version(&self, module_id: ModuleId) -> AbstractSdkResult<ContractVersion> {
         let module_address = self.module_address(module_id)?;
         let req = QueryRequest::Wasm(WasmQuery::Raw {
             contract_addr: module_address.into(),
             key: CONTRACT.as_slice().into(),
         });
-        self.deps.querier.query::<ContractVersion>(&req)
+        self.deps
+            .querier
+            .query::<ContractVersion>(&req)
+            .map_err(Into::into)
     }
 
-    fn assert_module_dependency(&self, module_id: ModuleId) -> StdResult<()> {
+    fn assert_module_dependency(&self, module_id: ModuleId) -> AbstractSdkResult<()> {
         let is_dependency = Dependencies::dependencies(self.base)
             .iter()
             .map(|d| d.id)
@@ -61,9 +64,9 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
 
         match is_dependency {
             true => Ok(()),
-            false => Err(StdError::generic_err(format!(
-                "Module {module_id} is not a dependency of this contract."
-            ))),
+            false => Err(crate::AbstractSdkError::MissingDependency {
+                module: module_id.to_string(),
+            }),
         }
     }
 
@@ -72,7 +75,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         &self,
         app_id: ModuleId,
         message: impl Into<app::ExecuteMsg<M, Empty>>,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.assert_module_dependency(app_id)?;
         let app_msg: app::ExecuteMsg<M, Empty> = message.into();
         let app_address = self.module_address(app_id)?;
@@ -84,7 +87,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         &self,
         app_id: ModuleId,
         message: app::BaseExecuteMsg,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         let app_msg: app::ExecuteMsg<Empty, Empty> = message.into();
         let app_address = self.module_address(app_id)?;
         Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
@@ -95,10 +98,13 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         &self,
         app_id: ModuleId,
         message: impl Into<app::QueryMsg<Q>>,
-    ) -> StdResult<R> {
+    ) -> AbstractSdkResult<R> {
         let app_msg: app::QueryMsg<Q> = message.into();
         let app_address = self.module_address(app_id)?;
-        self.deps.querier.query_wasm_smart(app_address, &app_msg)
+        self.deps
+            .querier
+            .query_wasm_smart(app_address, &app_msg)
+            .map_err(Into::into)
     }
 
     /// Interactions with Abstract APIs
@@ -107,7 +113,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         &self,
         api_id: ModuleId,
         message: M,
-    ) -> StdResult<CosmosMsg> {
+    ) -> AbstractSdkResult<CosmosMsg> {
         self.assert_module_dependency(api_id)?;
         let api_msg = api::ExecuteMsg::<_>::App(ApiRequestMsg::new(
             Some(self.base.proxy_address(self.deps)?.into_string()),
@@ -122,10 +128,13 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
         &self,
         api_id: ModuleId,
         message: impl Into<api::QueryMsg<Q>>,
-    ) -> StdResult<R> {
+    ) -> AbstractSdkResult<R> {
         let api_msg: api::QueryMsg<Q> = message.into();
         let api_address = self.module_address(api_id)?;
-        self.deps.querier.query_wasm_smart(api_address, &api_msg)
+        self.deps
+            .querier
+            .query_wasm_smart(api_address, &api_msg)
+            .map_err(Into::into)
     }
 }
 
@@ -137,6 +146,7 @@ mod test {
     use std::fmt::Debug;
 
     use crate::apis::test_common::*;
+    
     use abstract_testing::TEST_MODULE_ID;
 
     /// Nonexistent module
@@ -184,7 +194,7 @@ mod test {
 
     /// Helper to check that the method is not callable when the module is not a dependency
     fn fail_when_not_dependency_test<T: Debug>(
-        modules_fn: impl FnOnce(&MockModule, Deps) -> StdResult<T>,
+        modules_fn: impl FnOnce(&MockModule, Deps) -> AbstractSdkResult<T>,
         fake_module: ModuleId,
     ) {
         let mut deps = mock_dependencies();
@@ -195,10 +205,9 @@ mod test {
 
         let res = modules_fn(&app, deps.as_ref());
 
-        assert_that!(res).is_err().matches(|e| match e {
-            StdError::GenericErr { msg, .. } => msg.contains(&fake_module.to_string()),
-            _ => false,
-        });
+        assert_that!(res)
+            .is_err()
+            .matches(|e| e.to_string().contains(&fake_module.to_string()));
     }
 
     mod api_request {

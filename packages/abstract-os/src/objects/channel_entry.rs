@@ -53,7 +53,7 @@ impl Display for ChannelEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ChannelEntry {
+impl<'a> PrimaryKey<'a> for &ChannelEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -69,7 +69,7 @@ impl<'a> PrimaryKey<'a> for ChannelEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for ChannelEntry {
+impl<'a> Prefixer<'a> for &ChannelEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.connected_chain.prefix();
         res.extend(self.protocol.prefix().into_iter());
@@ -77,8 +77,8 @@ impl<'a> Prefixer<'a> for ChannelEntry {
     }
 }
 
-impl KeyDeserialize for ChannelEntry {
-    type Output = Self;
+impl KeyDeserialize for &ChannelEntry {
+    type Output = ChannelEntry;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -86,7 +86,7 @@ impl KeyDeserialize for ChannelEntry {
         let t_len = parse_length(&value)?;
         let u = tu.split_off(t_len);
 
-        Ok(Self {
+        Ok(ChannelEntry {
             connected_chain: String::from_vec(tu)?,
             protocol: String::from_vec(u)?,
         })
@@ -141,12 +141,11 @@ mod test {
     fn storage_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<ChannelEntry, u64> = Map::new("map");
+        let map: Map<&ChannelEntry, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key.clone(), &42069)
-            .unwrap();
+        map.save(deps.as_mut().storage, &key, &42069).unwrap();
 
-        assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+        assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
 
         let items = map
             .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -161,24 +160,24 @@ mod test {
     fn composite_key_works() {
         let mut deps = mock_dependencies();
         let key = mock_key();
-        let map: Map<(ChannelEntry, Addr), u64> = Map::new("map");
+        let map: Map<(&ChannelEntry, Addr), u64> = Map::new("map");
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("larry")),
+            (&key, Addr::unchecked("larry")),
             &42069,
         )
         .unwrap();
 
         map.save(
             deps.as_mut().storage,
-            (key.clone(), Addr::unchecked("jake")),
+            (&key, Addr::unchecked("jake")),
             &69420,
         )
         .unwrap();
 
         let items = map
-            .prefix(key)
+            .prefix(&key)
             .range(deps.as_ref().storage, None, None, Order::Ascending)
             .map(|item| item.unwrap())
             .collect::<Vec<_>>();
@@ -192,13 +191,13 @@ mod test {
     fn partial_key_works() {
         let mut deps = mock_dependencies();
         let (key1, key2, key3) = mock_keys();
-        let map: Map<ChannelEntry, u64> = Map::new("map");
+        let map: Map<&ChannelEntry, u64> = Map::new("map");
 
-        map.save(deps.as_mut().storage, key1, &42069).unwrap();
+        map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-        map.save(deps.as_mut().storage, key2, &69420).unwrap();
+        map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-        map.save(deps.as_mut().storage, key3, &999).unwrap();
+        map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
         let items = map
             .prefix("osmosis".to_string())

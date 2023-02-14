@@ -31,7 +31,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<B
     let mut modules_response = ModulesResponse { modules: vec![] };
     for mut module in modules {
         let maybe_module_ref = if let ModuleVersion::Version(_) = module.version {
-            MODULE_LIBRARY.load(deps.storage, module.clone())
+            MODULE_LIBRARY.load(deps.storage, &module)
         } else {
             // get latest
             let versions: StdResult<Vec<(String, ModuleReference)>> = MODULE_LIBRARY
@@ -91,7 +91,7 @@ pub fn handle_module_list_query(
             name_filter,
         )?);
     } else {
-        let start_bound: Option<Bound<ModuleInfo>> = start_after.map(Bound::exclusive);
+        let start_bound: Option<Bound<&ModuleInfo>> = start_after.as_ref().map(Bound::exclusive);
 
         // Load all modules
         modules.extend(

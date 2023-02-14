@@ -1,8 +1,9 @@
+use crate::{AbstractSdkError, AbstractSdkResult};
+
 use super::handler::Handler;
+
 use abstract_os::abstract_ica::StdAck;
-use cosmwasm_std::{
-    Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, StdError, StdResult, Storage,
-};
+use cosmwasm_std::{Binary, Deps, DepsMut, Empty, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
 use os::objects::dependency::StaticDependency;
@@ -23,8 +24,8 @@ pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
 pub type InstantiateHandlerFn<Module, InitMsg, Error> =
     fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
 
-pub type QueryHandlerFn<Module, QueryMsg> =
-    fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, StdError>;
+pub type QueryHandlerFn<Module, QueryMsg, Error> =
+    fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
 
 pub type ReceiveHandlerFn<App, Msg, Error> =
     fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
@@ -36,7 +37,7 @@ const MAX_REPLY_COUNT: usize = 2;
 /// State variables for a generic contract
 pub struct AbstractContract<
     Module: Handler + 'static,
-    Error: From<cosmwasm_std::StdError> + 'static,
+    Error: From<AbstractSdkError> + 'static,
     CustomExecMsg = Empty,
     CustomInitMsg = Empty,
     CustomQueryMsg = Empty,
@@ -59,7 +60,7 @@ pub struct AbstractContract<
     /// Handler of instantiate messages
     pub(crate) instantiate_handler: Option<InstantiateHandlerFn<Module, CustomInitMsg, Error>>,
     /// Handler of query messages
-    pub(crate) query_handler: Option<QueryHandlerFn<Module, CustomQueryMsg>>,
+    pub(crate) query_handler: Option<QueryHandlerFn<Module, CustomQueryMsg, Error>>,
     /// Handler for migrations
     pub(crate) migrate_handler: Option<MigrateHandlerFn<Module, CustomMigrateMsg, Error>>,
     /// Handler of `Receive variant Execute messages
@@ -68,7 +69,7 @@ pub struct AbstractContract<
 
 impl<
         Module,
-        Error: From<cosmwasm_std::StdError>,
+        Error: From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -106,8 +107,8 @@ where
         }
     }
 
-    pub fn version(&self, store: &dyn Storage) -> StdResult<ContractVersion> {
-        self.version.load(store)
+    pub fn version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
+        self.version.load(store).map_err(Into::into)
     }
     pub fn info(&self) -> (ContractName, VersionString, ContractMetadata) {
         self.info
@@ -161,7 +162,7 @@ where
 
     pub const fn with_query(
         mut self,
-        query_handler: QueryHandlerFn<Module, CustomQueryMsg>,
+        query_handler: QueryHandlerFn<Module, CustomQueryMsg, Error>,
     ) -> Self {
         self.query_handler = Some(query_handler);
         self
@@ -202,7 +203,7 @@ mod test {
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {
         #[error("{0}")]
-        Std(#[from] StdError),
+        Sdk(#[from] AbstractSdkError),
     }
 
     struct MockModule;

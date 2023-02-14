@@ -1,9 +1,9 @@
-use crate::contract::EtfApp;
+use crate::contract::{EtfApp, EtfResult};
 use abstract_os::etf::state::{FEE, STATE};
 use abstract_os::etf::{EtfQueryMsg, StateResponse};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env};
 
-pub fn query_handler(deps: Deps, _env: Env, _etf: &EtfApp, msg: EtfQueryMsg) -> StdResult<Binary> {
+pub fn query_handler(deps: Deps, _env: Env, _etf: &EtfApp, msg: EtfQueryMsg) -> EtfResult<Binary> {
     match msg {
         EtfQueryMsg::State {} => {
             let fee = FEE.load(deps.storage)?;
@@ -13,4 +13,5 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &EtfApp, msg: EtfQueryMsg) -> 
             })
         }
     }
+    .map_err(Into::into)
 }

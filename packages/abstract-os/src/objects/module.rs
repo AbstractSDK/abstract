@@ -1,4 +1,5 @@
 use super::module_reference::ModuleReference;
+use crate::{error::AbstractOsError, AbstractResult};
 use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
@@ -21,34 +22,48 @@ const MAX_LENGTH: usize = 64;
 /// Validate attributes of a [`ModuleInfo`].
 /// We use the same conventions as Rust package names.
 /// See https://github.com/rust-lang/api-guidelines/discussions/29
-fn validate_name(name: &str) -> StdResult<()> {
+fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
-        return Err(StdError::generic_err("Name cannot be empty"));
+        return Err(AbstractOsError::FormattingError {
+            object: "module name".into(),
+            expected: "with content".into(),
+            actual: "empty".to_string(),
+        });
     }
     if name.len() > MAX_LENGTH {
-        return Err(StdError::generic_err(
-            "Name cannot be longer than 64 characters",
-        ));
+        return Err(AbstractOsError::FormattingError {
+            object: "module name".into(),
+            expected: "at most 64 characters".into(),
+            actual: name.len().to_string(),
+        });
     }
     if name.contains(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
-        return Err(StdError::generic_err(
-            "Name can only contain alphanumeric characters and hyphens",
-        ));
+        return Err(AbstractOsError::FormattingError {
+            object: "module name".into(),
+            expected: "alphanumeric characters and hyphens".into(),
+            actual: name.to_string(),
+        });
     }
 
     if name != name.to_lowercase() {
-        return Err(StdError::generic_err("Name must be lowercase"));
+        return Err(AbstractOsError::FormattingError {
+            object: "module name".into(),
+            expected: name.to_ascii_lowercase(),
+            actual: name.to_string(),
+        });
     }
     Ok(())
 }
 
 impl ModuleInfo {
-    pub fn from_id(id: &str, version: ModuleVersion) -> StdResult<Self> {
+    pub fn from_id(id: &str, version: ModuleVersion) -> AbstractResult<Self> {
         let split: Vec<&str> = id.split(':').collect();
         if split.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "contract id:{id} must be formatted as provider:contract_name."
-            )));
+            return Err(AbstractOsError::FormattingError {
+                object: "contract id".into(),
+                expected: "provider:contract_name".to_string(),
+                actual: id.to_string(),
+            });
         }
         Ok(ModuleInfo {
             provider: split[0].to_lowercase(),
@@ -56,11 +71,11 @@ impl ModuleInfo {
             version,
         })
     }
-    pub fn from_id_latest(id: &str) -> StdResult<Self> {
+    pub fn from_id_latest(id: &str) -> AbstractResult<Self> {
         Self::from_id(id, ModuleVersion::Latest)
     }
 
-    pub fn validate(&self) -> StdResult<()> {
+    pub fn validate(&self) -> AbstractResult<()> {
         validate_name(&self.provider)?;
         validate_name(&self.name)?;
         self.version.validate().map_err(|e| {
@@ -77,21 +92,21 @@ impl ModuleInfo {
         format!("{}:{}", self.id(), self.version)
     }
 
-    pub fn assert_version_variant(&self) -> StdResult<()> {
+    pub fn assert_version_variant(&self) -> AbstractResult<()> {
         match &self.version {
-            ModuleVersion::Latest => Err(StdError::generic_err(
-                "Module version must be set for this action.",
+            ModuleVersion::Latest => Err(AbstractOsError::Assert(
+                "Module version must be set to a specific version".into(),
             )),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
-                semver::Version::parse(ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                semver::Version::parse(ver)?;
                 Ok(())
             }
         }
     }
 }
 
-impl<'a> PrimaryKey<'a> for ModuleInfo {
+impl<'a> PrimaryKey<'a> for &ModuleInfo {
     type Prefix = (String, String);
 
     type SubPrefix = String;
@@ -113,7 +128,7 @@ impl<'a> PrimaryKey<'a> for ModuleInfo {
     }
 }
 
-impl<'a> Prefixer<'a> for ModuleInfo {
+impl<'a> Prefixer<'a> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.provider.prefix();
         res.extend(self.name.prefix().into_iter());
@@ -132,8 +147,8 @@ impl<'a> Prefixer<'a> for ModuleVersion {
     }
 }
 
-impl KeyDeserialize for ModuleInfo {
-    type Output = Self;
+impl KeyDeserialize for &ModuleInfo {
+    type Output = ModuleInfo;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -145,7 +160,7 @@ impl KeyDeserialize for ModuleInfo {
         let ver_len = parse_length(&len_name_ver)?;
         let ver = name_ver.split_off(ver_len);
 
-        Ok(Self {
+        Ok(ModuleInfo {
             provider: String::from_vec(prov_name_ver)?,
             name: String::from_vec(name_ver)?,
             version: ModuleVersion::from_vec(ver)?,
@@ -154,7 +169,7 @@ impl KeyDeserialize for ModuleInfo {
 }
 
 impl KeyDeserialize for ModuleVersion {
-    type Output = Self;
+    type Output = ModuleVersion;
 
     #[inline(always)]
     fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
@@ -184,12 +199,12 @@ pub enum ModuleVersion {
 }
 
 impl ModuleVersion {
-    pub fn validate(&self) -> StdResult<()> {
+    pub fn validate(&self) -> AbstractResult<()> {
         match &self {
             ModuleVersion::Latest => Ok(()),
             ModuleVersion::Version(ver) => {
                 // assert version parses correctly
-                Version::parse(ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                Version::parse(ver)?;
                 Ok(())
             }
         }
@@ -227,16 +242,13 @@ impl fmt::Display for ModuleInfo {
 }
 
 impl TryInto<Version> for ModuleVersion {
-    type Error = StdError;
+    type Error = AbstractOsError;
 
-    fn try_into(self) -> StdResult<Version> {
+    fn try_into(self) -> AbstractResult<Version> {
         match self {
-            ModuleVersion::Latest => Err(StdError::generic_err(
-                "Module version must be set for this action.",
-            )),
+            ModuleVersion::Latest => Err(AbstractOsError::MissingVersion("module".to_string())),
             ModuleVersion::Version(ver) => {
-                let version =
-                    Version::parse(&ver).map_err(|e| StdError::generic_err(e.to_string()))?;
+                let version = Version::parse(&ver)?;
                 Ok(version)
             }
         }
@@ -244,15 +256,16 @@ impl TryInto<Version> for ModuleVersion {
 }
 
 impl TryFrom<ContractVersion> for ModuleInfo {
-    type Error = StdError;
+    type Error = AbstractOsError;
 
     fn try_from(value: ContractVersion) -> Result<Self, Self::Error> {
         let split: Vec<&str> = value.contract.split(':').collect();
         if split.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "contract id:{} must be formatted as provider:contract_name.",
-                value.contract
-            )));
+            return Err(AbstractOsError::FormattingError {
+                object: "contract id".to_string(),
+                expected: "provider:contract_name".into(),
+                actual: value.contract,
+            });
         }
         Ok(ModuleInfo {
             provider: split[0].to_lowercase(),
@@ -288,7 +301,7 @@ pub struct ModuleInitMsg {
 }
 
 impl ModuleInitMsg {
-    pub fn format(self) -> StdResult<Binary> {
+    pub fn format(self) -> AbstractResult<Binary> {
         match self {
             // If both set, receiving contract must handle it using the ModuleInitMsg
             ModuleInitMsg {
@@ -309,6 +322,7 @@ impl ModuleInitMsg {
                 root_init: None,
             } => Err(StdError::generic_err("No init msg set for this module")),
         }
+        .map_err(Into::into)
     }
 }
 
@@ -363,12 +377,15 @@ mod test {
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key.clone(), &42069)
+            map.save(deps.as_mut().storage, &key, &42069)
                 .unwrap();
 
-            assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+            assert_eq!(
+                map.load(deps.as_ref().storage, &key).unwrap(),
+                42069
+            );
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -388,7 +405,7 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            let _key1 = info1.joined_key();
+            let _key1 = (&info1).joined_key();
 
             let info2 = ModuleInfo {
                 provider: "abs".to_string(),
@@ -396,12 +413,12 @@ mod test {
                 version: ModuleVersion::Version("1.9.9".into()),
             };
 
-            let _key2 = info2.joined_key();
+            let _key2 = (&info2).joined_key();
 
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, info1, &42069).unwrap();
-            map.save(deps.as_mut().storage, info2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &info1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &info2, &69420).unwrap();
 
             assert_that!(map
                 .keys_raw(&deps.storage, None, None, Order::Ascending)
@@ -413,24 +430,24 @@ mod test {
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<(ModuleInfo, Addr), u64> = Map::new("map");
+            let map: Map<(&ModuleInfo, Addr), u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("larry")),
+                (&key, Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("jake")),
+                (&key, Addr::unchecked("jake")),
                 &69420,
             )
             .unwrap();
 
             let items = map
-                .prefix(key)
+                .prefix(&key)
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -444,15 +461,15 @@ mod test {
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-            map.save(deps.as_mut().storage, key3, &999).unwrap();
+            map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
-            map.save(deps.as_mut().storage, key4, &13).unwrap();
+            map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
                 .sub_prefix("abstract".to_string())
@@ -489,15 +506,15 @@ mod test {
         fn partial_key_versions_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3, key4) = mock_keys();
-            let map: Map<ModuleInfo, u64> = Map::new("map");
+            let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-            map.save(deps.as_mut().storage, key3, &999).unwrap();
+            map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
-            map.save(deps.as_mut().storage, key4, &13).unwrap();
+            map.save(deps.as_mut().storage, &key4, &13).unwrap();
 
             let items = map
                 .prefix(("abstract".to_string(), "rocket-ship".to_string()))
@@ -525,7 +542,7 @@ mod test {
 
             assert_that!(info.validate())
                 .is_err()
-                .matches(|e| e.to_string().contains("cannot be empty"));
+                .matches(|e| e.to_string().contains("empty"));
         }
 
         #[test]
@@ -538,7 +555,7 @@ mod test {
 
             assert_that!(info.validate())
                 .is_err()
-                .matches(|e| e.to_string().contains("cannot be empty"));
+                .matches(|e| e.to_string().contains("empty"));
         }
 
         use rstest::rstest;

@@ -72,7 +72,6 @@ impl DEX for Astroport {
                 vec![],
             )?
             .into()],
-            AssetInfo::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
             _ => panic!("unsupported asset"),
         };
         Ok(swap_msg)
@@ -286,7 +285,7 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
                 contract_addr: contract_addr.clone(),
             },
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
 }
 

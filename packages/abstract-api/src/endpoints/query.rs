@@ -2,12 +2,13 @@ use crate::{state::ApiContract, ApiError};
 use abstract_os::api::ApiQueryMsg;
 use abstract_sdk::base::{endpoints::QueryEndpoint, Handler};
 use abstract_sdk::os::api::{ApiConfigResponse, BaseQueryMsg, QueryMsg, TradersResponse};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use abstract_sdk::AbstractSdkError;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg: ApiQueryMsg,
@@ -16,7 +17,7 @@ impl<
     for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
             QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),
@@ -25,16 +26,18 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
 {
-    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
+    fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
-            BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
+            BaseQueryMsg::Config {} => {
+                to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
+            }
             BaseQueryMsg::Traders { proxy_address } => {
                 let traders = self
                     .traders
@@ -43,6 +46,7 @@ impl<
                 to_binary(&TradersResponse {
                     traders: traders.into_iter().collect(),
                 })
+                .map_err(Into::into)
             }
         }
     }

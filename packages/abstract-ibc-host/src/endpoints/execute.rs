@@ -19,7 +19,7 @@ type HostResult = Result<Response, HostError>;
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomInitMsg,
         CustomQueryMsg,
@@ -49,7 +49,7 @@ impl<
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg: DeserializeOwned,
         CustomInitMsg,
         CustomQueryMsg,
@@ -59,7 +59,9 @@ impl<
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
-    pub fn handle_packet<RequestError: From<cosmwasm_std::StdError> + From<HostError>>(
+    pub fn handle_packet<
+        RequestError: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+    >(
         mut self,
         deps: DepsMut,
         env: Env,

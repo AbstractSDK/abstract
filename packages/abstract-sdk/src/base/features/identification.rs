@@ -1,9 +1,11 @@
 use abstract_os::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::OS_ID, version_control::Core,
 };
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 use os::objects::OsId;
+
+use crate::{AbstractSdkError, AbstractSdkResult};
 
 const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 
@@ -11,20 +13,24 @@ const MANAGER: Item<'_, Option<Addr>> = Item::new(ADMIN_NAMESPACE);
 /// This includes the manager, porxy, core (manager/proxy) and osId.
 /// TODO: rename OsIdentification
 pub trait Identification: Sized {
-    fn proxy_address(&self, deps: Deps) -> StdResult<Addr>;
-    fn manager_address(&self, deps: Deps) -> StdResult<Addr> {
+    fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
+    fn manager_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         let maybe_proxy_manager = MANAGER.query(&deps.querier, self.proxy_address(deps)?)?;
-        maybe_proxy_manager.ok_or_else(|| StdError::generic_err("proxy admin must be manager."))
+        maybe_proxy_manager.ok_or_else(|| AbstractSdkError::AdminNotSet {
+            proxy_addr: self.proxy_address(deps).unwrap(),
+        })
     }
-    fn os_core(&self, deps: Deps) -> StdResult<Core> {
+    fn os_core(&self, deps: Deps) -> AbstractSdkResult<Core> {
         Ok(Core {
             manager: self.manager_address(deps)?,
             proxy: self.proxy_address(deps)?,
         })
     }
     /// Get the OS id for the current context.
-    fn os_id(&self, deps: Deps) -> StdResult<OsId> {
-        OS_ID.query(&deps.querier, self.proxy_address(deps)?)
+    fn os_id(&self, deps: Deps) -> AbstractSdkResult<OsId> {
+        OS_ID
+            .query(&deps.querier, self.proxy_address(deps)?)
+            .map_err(Into::into)
     }
 }
 
@@ -37,7 +43,7 @@ mod test {
     struct MockBinding;
 
     impl Identification for MockBinding {
-        fn proxy_address(&self, _deps: Deps) -> StdResult<Addr> {
+        fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
             Ok(Addr::unchecked(TEST_PROXY))
         }
     }

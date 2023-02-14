@@ -7,12 +7,12 @@ use abstract_sdk::base::{Handler, QueryEndpoint};
 use abstract_sdk::os::ibc_host::{
     AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 /// Where we dispatch the queries for the Host
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -22,7 +22,7 @@ impl<
     for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
-    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, StdError> {
+    fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
             QueryMsg::App(api_query) => self.query_handler()?(deps, env, self, api_query),
             QueryMsg::Base(base_query) => {
@@ -32,7 +32,7 @@ impl<
     }
 }
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,

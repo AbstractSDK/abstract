@@ -16,7 +16,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type EtfApp =
     AppContract<EtfError, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
 
-pub type EtfResult = Result<Response, EtfError>;
+pub type EtfResult<T = Response> = Result<T, EtfError>;
 
 const ETF_ADDON: EtfApp = EtfApp::new(ETF, CONTRACT_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

@@ -6,7 +6,7 @@ use abstract_os::{
     EXCHANGE, MANAGER,
 };
 use boot_core::interface::ContractInstance;
-use boot_core::{prelude::boot_contract, BootEnvironment, BootError, Contract};
+use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 use log::info;
 
@@ -33,7 +33,7 @@ impl<Chain: BootEnvironment> DexApi<Chain> {
         offer_asset: (&str, u128),
         ask_asset: &str,
         dex: String,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), crate::AbstractBootError> {
         let manager = Manager::new(MANAGER, self.get_chain().clone());
         let asset = AssetEntry::new(offer_asset.0);
         let ask_asset = AssetEntry::new(ask_asset);

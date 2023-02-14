@@ -6,7 +6,7 @@ use serde::Serialize;
 use std::path::Path;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg: Serialize + JsonSchema,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema,

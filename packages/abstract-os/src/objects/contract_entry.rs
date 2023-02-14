@@ -73,7 +73,7 @@ impl Display for ContractEntry {
     }
 }
 
-impl<'a> PrimaryKey<'a> for ContractEntry {
+impl<'a> PrimaryKey<'a> for &ContractEntry {
     type Prefix = String;
 
     type SubPrefix = ();
@@ -89,7 +89,7 @@ impl<'a> PrimaryKey<'a> for ContractEntry {
     }
 }
 
-impl<'a> Prefixer<'a> for ContractEntry {
+impl<'a> Prefixer<'a> for &ContractEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.protocol.prefix();
         res.extend(self.contract.prefix().into_iter());
@@ -97,8 +97,8 @@ impl<'a> Prefixer<'a> for ContractEntry {
     }
 }
 
-impl KeyDeserialize for ContractEntry {
-    type Output = Self;
+impl KeyDeserialize for &ContractEntry {
+    type Output = ContractEntry;
 
     #[inline(always)]
     fn from_vec(mut value: Vec<u8>) -> StdResult<Self::Output> {
@@ -106,7 +106,7 @@ impl KeyDeserialize for ContractEntry {
         let t_len = parse_length(&value)?;
         let u = tu.split_off(t_len);
 
-        Ok(Self {
+        Ok(ContractEntry {
             protocol: String::from_vec(tu)?,
             contract: String::from_vec(u)?,
         })
@@ -135,7 +135,6 @@ mod test {
 
     mod key {
         use super::*;
-        use crate::ans_host::ContractMapEntry;
 
         fn mock_key() -> ContractEntry {
             ContractEntry {
@@ -165,12 +164,11 @@ mod test {
         fn storage_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<ContractEntry, u64> = Map::new("map");
+            let map: Map<&ContractEntry, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key.clone(), &42069)
-                .unwrap();
+            map.save(deps.as_mut().storage, &key, &42069).unwrap();
 
-            assert_eq!(map.load(deps.as_ref().storage, key.clone()).unwrap(), 42069);
+            assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
@@ -185,24 +183,24 @@ mod test {
         fn composite_key_works() {
             let mut deps = mock_dependencies();
             let key = mock_key();
-            let map: Map<ContractMapEntry, u64> = Map::new("map");
+            let map: Map<(&ContractEntry, Addr), u64> = Map::new("map");
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("larry")),
+                (&key, Addr::unchecked("larry")),
                 &42069,
             )
             .unwrap();
 
             map.save(
                 deps.as_mut().storage,
-                (key.clone(), Addr::unchecked("jake")),
+                (&key, Addr::unchecked("jake")),
                 &69420,
             )
             .unwrap();
 
             let items = map
-                .prefix(key)
+                .prefix(&key)
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())
                 .collect::<Vec<_>>();
@@ -216,13 +214,13 @@ mod test {
         fn partial_key_works() {
             let mut deps = mock_dependencies();
             let (key1, key2, key3) = mock_keys();
-            let map: Map<ContractEntry, u64> = Map::new("map");
+            let map: Map<&ContractEntry, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, key1, &42069).unwrap();
+            map.save(deps.as_mut().storage, &key1, &42069).unwrap();
 
-            map.save(deps.as_mut().storage, key2, &69420).unwrap();
+            map.save(deps.as_mut().storage, &key2, &69420).unwrap();
 
-            map.save(deps.as_mut().storage, key3, &999).unwrap();
+            map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
             let items = map
                 .prefix("abstract".to_string())

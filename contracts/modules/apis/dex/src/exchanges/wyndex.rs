@@ -45,7 +45,7 @@ impl DEX for WynDex {
         let pair_address = pool_id.expect_contract()?;
 
         let swap_msg: Vec<CosmosMsg> = match &offer_asset.info {
-            AssetInfo::Native(_) => vec![wasm_execute(
+            AssetInfo::Native(_) => Ok(vec![wasm_execute(
                 pair_address.to_string(),
                 &wyndex::pair::ExecuteMsg::Swap {
                     offer_asset: cw_asset_to_wyndex(&offer_asset)?,
@@ -58,8 +58,8 @@ impl DEX for WynDex {
                 },
                 vec![offer_asset.clone().try_into()?],
             )?
-            .into()],
-            AssetInfo::Cw20(addr) => vec![wasm_execute(
+            .into()]),
+            AssetInfo::Cw20(addr) => Ok(vec![wasm_execute(
                 addr.to_string(),
                 &Cw20ExecuteMsg::Send {
                     contract: pair_address.to_string(),
@@ -75,10 +75,9 @@ impl DEX for WynDex {
                 },
                 vec![],
             )?
-            .into()],
-            AssetInfo::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
-            _ => panic!("unsupported asset"),
-        };
+            .into()]),
+            _ => Err(DexError::UnsupportedAssetType(offer_asset.info.to_string())),
+        }?;
         Ok(swap_msg)
     }
 
@@ -283,7 +282,7 @@ fn cw_asset_to_wyndex(asset: &Asset) -> Result<wyndex::asset::Asset, DexError> {
             amount: asset.amount,
             info: wyndex::asset::AssetInfo::Token(contract_addr.to_string()),
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }
 }
 
@@ -297,7 +296,7 @@ fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<wyndex::asset::AssetValidat
             amount: asset.amount,
             info: wyndex::asset::AssetInfoValidated::Token(contract_addr.clone()),
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }
 }
 

@@ -11,7 +11,10 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + 'static,
+        Error: From<cosmwasm_std::StdError>
+            + From<AppError>
+            + From<abstract_sdk::AbstractSdkError>
+            + 'static,
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -50,7 +53,7 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -99,7 +102,7 @@ impl<
 mod test {
     use super::*;
     use crate::test_common::*;
-    use abstract_testing::{TEST_MANAGER};
+    use abstract_testing::TEST_MANAGER;
     use cosmwasm_std::Addr;
     use cw_controllers::AdminError;
 

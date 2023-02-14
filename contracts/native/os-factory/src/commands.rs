@@ -4,7 +4,7 @@ use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
 use abstract_macros::abstract_response;
 use abstract_os::objects::module::Module;
 use abstract_os::version_control::ModulesResponse;
-use abstract_os::{app, OS_FACTORY};
+use abstract_os::{app, AbstractResult, OS_FACTORY};
 use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
 use abstract_sdk::os::{
@@ -188,7 +188,7 @@ fn query_module(
     querier: &QuerierWrapper,
     version_control_addr: &Addr,
     module_id: &str,
-) -> StdResult<Module> {
+) -> AbstractResult<Module> {
     let ModulesResponse { mut modules } = querier.query(&wasm_smart_query(
         version_control_addr.to_string(),
         &VCQuery::Modules {
@@ -357,11 +357,6 @@ fn forward_payment(
                 ))?,
                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
             }),
-            AssetInfoBase::Cw1155(_, _) => {
-                return Err(OsFactoryError::Std(StdError::generic_err(
-                    "Cw1155 not supported.",
-                )))
-            }
             _ => panic!("unsupported asset"),
         };
 

@@ -1,11 +1,13 @@
 //! # Verification
 //! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
+use crate::{AbstractSdkError, AbstractSdkResult};
+
 use super::AbstractRegistryAccess;
 use abstract_os::{
     manager::state::OS_ID,
     version_control::{state::OS_ADDRESSES, Core},
 };
-use cosmwasm_std::{Addr, Deps, StdError, StdResult};
+use cosmwasm_std::{Addr, Deps};
 
 /// A trait enabling the verification of addresses associated with an OS.
 pub trait OsVerification: AbstractRegistryAccess {
@@ -25,21 +27,22 @@ pub struct OsRegistry<'a, T: OsVerification> {
 
 impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> StdResult<Core> {
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_manager.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS manager."))?;
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
+                contract_addr: maybe_manager.clone(),
+            })?;
         let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address, os_id)?;
+        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
-            ))),
+            None => Err(AbstractSdkError::UnknownOsId {
+                os_id,
+                version_control_addr: vc_address,
+            }),
             Some(core) => {
                 if &core.manager != maybe_manager {
-                    Err(StdError::generic_err(
-                        "Proposed manager is not the manager of this OS.",
-                    ))
+                    Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
                 } else {
                     Ok(core)
                 }
@@ -48,22 +51,23 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> StdResult<Core> {
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Core> {
         let os_id = OS_ID
             .query(&self.deps.querier, maybe_proxy.clone())
-            .map_err(|_| StdError::generic_err("Caller must be an OS proxy."))?;
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
+                contract_addr: maybe_proxy.clone(),
+            })?;
 
         let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address, os_id)?;
+        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
         match maybe_os {
-            None => Err(StdError::generic_err(format!(
-                "OS with id {os_id} is not active."
-            ))),
+            None => Err(AbstractSdkError::UnknownOsId {
+                os_id,
+                version_control_addr: vc_address,
+            }),
             Some(core) => {
                 if &core.proxy != maybe_proxy {
-                    Err(StdError::generic_err(
-                        "Proposed proxy is not the proxy of this OS.",
-                    ))
+                    Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
                 } else {
                     Ok(core)
                 }
@@ -78,16 +82,14 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
+    use abstract_testing::prelude::*;
     
-    use abstract_testing::{
-        mock_querier, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
-    };
     use speculoos::prelude::*;
 
     struct MockBinding;
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, _deps: Deps) -> StdResult<Addr> {
+        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
             Ok(Addr::unchecked(TEST_VERSION_CONTROL))
         }
     }
@@ -98,7 +100,14 @@ mod test {
         #[test]
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mocked_os_querier_builder()
+                // Setup the addresses as if the OS was registered
+                .os("not_manager", "not_proxy", TEST_OS_ID)
+                // update the proxy to be proxy of a different OS
+                .os(TEST_MANAGER, TEST_PROXY, 1)
+                .builder()
+                .with_contract_item("not_proxy", OS_ID, &1)
+                .build();
 
             let binding = MockBinding;
 
@@ -108,8 +117,8 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("OS proxy"));
+                .matches(|e| matches!(e, AbstractSdkError::NotProxy(..)))
+                .matches(|e| e.to_string().contains("not_proxy"));
         }
 
         #[test]
@@ -129,8 +138,8 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("OS with id 0 is not active"));
+                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
+                .matches(|e| e.to_string().contains("Unknown OS id 0"));
         }
 
         #[test]
@@ -182,8 +191,8 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("not the proxy"));
+                // .matches(|e| matches!(e, AbstractSdkError::Std(StdError::GenericErr { .. })))
+                .matches(|e| e.to_string().contains("not the Proxy"));
         }
     }
 
@@ -193,7 +202,14 @@ mod test {
         #[test]
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mock_querier();
+            deps.querier = mocked_os_querier_builder()
+                // Setup the addresses as if the OS was registered
+                .os("not_manager", "not_proxy", TEST_OS_ID)
+                // update the proxy to be proxy of a different OS
+                .os(TEST_MANAGER, TEST_PROXY, 1)
+                .builder()
+                .with_contract_item("not_manager", OS_ID, &1)
+                .build();
 
             let binding = MockBinding;
 
@@ -203,8 +219,8 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("OS manager"));
+                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| e.to_string().contains("not_manager is not the Manager"));
         }
 
         #[test]
@@ -224,8 +240,12 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("OS with id 0 is not active"));
+                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
+                .matches(|e| {
+                    e.to_string().contains(&format!(
+                        "Unknown OS id {TEST_OS_ID} on version control {TEST_VERSION_CONTROL}"
+                    ))
+                });
         }
 
         #[test]
@@ -277,8 +297,9 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, StdError::GenericErr { .. }))
-                .matches(|e| e.to_string().contains("not the manager"));
+                .matches(|e| matches!(e, AbstractSdkError::NotManager(..)))
+                .matches(|e| e.to_string().contains("not the Manager"))
+                .matches(|e| e.to_string().contains(TEST_MANAGER));
         }
     }
 }

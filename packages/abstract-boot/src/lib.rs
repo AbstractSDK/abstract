@@ -24,8 +24,11 @@ mod modules;
 pub use crate::modules::*;
 
 mod deployment;
+mod error;
 mod module_deployer;
 mod traits;
+
+pub use error::AbstractBootError;
 
 pub use crate::module_deployer::*;
 

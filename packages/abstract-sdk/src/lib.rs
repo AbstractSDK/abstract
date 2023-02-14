@@ -18,13 +18,14 @@
 //!   # use abstract_sdk::{feature_objects::VersionControlContract, base::features::{Identification, AbstractNameService, ModuleIdentification}};
 //!   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
 //!   # use abstract_sdk::feature_objects::AnsHost;
+//!   # use abstract_sdk::AbstractSdkResult;
 //!
 //!   # pub struct MyContract {
 //!   #     
 //!   # }
 //!   #
 //!   # impl Identification for MyContract {
-//!   #     fn proxy_address(&self, _deps: Deps) -> cosmwasm_std::StdResult<Addr> {
+//!   #     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
 //!   #         Ok(Addr::unchecked("just_an_example"))
 //!   #     }
 //!   # }
@@ -33,7 +34,7 @@
 //!   # }
 //!
 //!   # impl AbstractNameService for MyContract {
-//!   #     fn ans_host(&self, _deps: Deps) -> cosmwasm_std::StdResult<AnsHost> {
+//!   #     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
 //!   #         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
 //!   #     }
 //!   # }
@@ -47,14 +48,20 @@
 //!   # fn main() {}
 //!   ```
 
+pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
+
 pub extern crate abstract_macros as macros;
 pub extern crate abstract_os as os;
 
 mod ans_resolve;
 pub mod apis;
 pub mod base;
+mod error;
 pub mod feature_objects;
 pub mod helpers;
+
+pub use error::AbstractSdkError;
+pub use error::EndpointError;
 
 pub use crate::apis::{
     bank::TransferInterface, execution::Execution, ibc::IbcInterface, modules::ModuleInterface,

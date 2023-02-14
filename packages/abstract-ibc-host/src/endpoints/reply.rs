@@ -16,7 +16,7 @@ pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError>,
+        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg,
         CustomQueryMsg,
@@ -53,7 +53,7 @@ impl<
 }
 
 pub fn reply_dispatch_callback<
-    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,
@@ -76,7 +76,7 @@ pub fn reply_dispatch_callback<
 }
 
 pub fn reply_init_callback<
-    Error: From<cosmwasm_std::StdError> + From<HostError>,
+    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,

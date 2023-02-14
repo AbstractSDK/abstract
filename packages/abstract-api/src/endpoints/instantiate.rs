@@ -7,6 +7,7 @@ use abstract_sdk::os::api::InstantiateMsg;
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
+    AbstractSdkError,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -14,7 +15,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError>,
+        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
@@ -65,23 +66,15 @@ mod tests {
     };
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;
-    use thiserror::Error;
+    
 
     use super::*;
+    use crate::test_common::MockError;
     use abstract_testing::*;
 
     type MockApi = ApiContract<MockError, Empty, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
     const TEST_METADATA: &str = "test_metadata";
-
-    #[derive(Error, Debug, PartialEq)]
-    enum MockError {
-        #[error("{0}")]
-        Std(#[from] StdError),
-
-        #[error(transparent)]
-        Api(#[from] ApiError),
-    }
 
     fn mock_init_handler(
         _deps: DepsMut,

@@ -2,30 +2,24 @@ use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
 use abstract_os::objects::module_version::migrate_module_data;
+
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
-        objects::{
-            core::OS_ID, module_version::set_module_data, proxy_asset::ProxyAsset, AssetEntry,
-        },
+        objects::{core::OS_ID, module_version::set_module_data, AssetEntry},
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
-            AssetConfigResponse, BaseAssetResponse, ExecuteMsg, HoldingAmountResponse,
-            HoldingValueResponse, InstantiateMsg, MigrateMsg, QueryMsg, TokenValueResponse,
-            TotalValueResponse,
+            AssetConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg,
+            QueryMsg,
         },
         PROXY,
     },
-    Resolve,
 };
-use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult,
-    Uint128,
-};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-pub type ProxyResult = Result<Response, ProxyError>;
+pub type ProxyResult<T = Response> = Result<T, ProxyError>;
 /*
     The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
@@ -83,49 +77,27 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
 }
 
 #[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
-        QueryMsg::TotalValue {} => to_binary(&TotalValueResponse {
-            value: compute_total_value(deps, env)?,
-        }),
+        QueryMsg::TotalValue {} => to_binary(&query_total_value(deps, env)?),
         QueryMsg::HoldingAmount { identifier } => {
-            let vault_asset: AssetEntry = identifier.into();
-            let ans_host = ANS_HOST.load(deps.storage)?;
-            let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
-            to_binary(&HoldingAmountResponse {
-                amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
-            })
+            to_binary(&query_holding_amount(deps, env, identifier)?)
         }
-        QueryMsg::TokenValue { identifier, amount } => to_binary(&TokenValueResponse {
-            // Default the value calculation to one so that the caller doesn't need to provide a default
-            value: compute_token_value(deps, &env, identifier, amount.or(Some(Uint128::one())))?,
-        }),
+        QueryMsg::TokenValue { identifier, amount } => {
+            to_binary(&query_token_value(deps, env, identifier, amount)?)
+        }
         QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
             value: compute_holding_value(deps, &env, identifier)?,
         }),
         QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
-            proxy_asset: VAULT_ASSETS.load(deps.storage, identifier.into())?,
+            proxy_asset: VAULT_ASSETS.load(deps.storage, &AssetEntry::from(identifier))?,
         }),
         QueryMsg::Assets { start_after, limit } => {
             to_binary(&query_proxy_assets(deps, start_after, limit)?)
         }
         QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
-        QueryMsg::BaseAsset {} => {
-            let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
-                .range(deps.storage, None, None, Order::Ascending)
-                .collect();
-            let maybe_base_asset: Vec<(AssetEntry, ProxyAsset)> = res?
-                .into_iter()
-                .filter(|(_, p)| p.value_reference.is_none())
-                .collect();
-            if maybe_base_asset.len() != 1 {
-                Err(StdError::generic_err("No base asset configured."))
-            } else {
-                to_binary(&BaseAssetResponse {
-                    base_asset: maybe_base_asset[0].1.to_owned(),
-                })
-            }
-        }
+        QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
     }
+    .map_err(Into::into)
 }

@@ -37,7 +37,7 @@ pub mod state {
     pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const VAULT_ASSETS: Map<AssetEntry, ProxyAsset> = Map::new("proxy_assets");
+    pub const VAULT_ASSETS: Map<&AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
 #[cosmwasm_schema::cw_serde]

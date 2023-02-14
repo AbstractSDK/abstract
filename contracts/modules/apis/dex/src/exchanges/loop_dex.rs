@@ -213,7 +213,7 @@ fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexEr
                 contract_addr: contract_addr.to_string(),
             },
         }),
-        _ => Err(DexError::Cw1155Unsupported {}),
+        _ => Err(DexError::UnsupportedAssetType(asset.info.to_string())),
     }
 }
 

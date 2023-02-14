@@ -18,7 +18,7 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError>,
+        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomExecMsg,
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg,
@@ -81,12 +81,8 @@ impl<
 mod test {
     use super::*;
     use crate::test_common::*;
-    
-    use abstract_testing::{
-        TEST_ANS_HOST, TEST_MODULE_FACTORY,
-    };
-    
-    
+
+    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_FACTORY};
 
     #[test]
     fn test_instantiate() {

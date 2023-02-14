@@ -88,17 +88,16 @@ impl DEX for JunoSwap {
                 )?
                 .into();
                 let swap_msg = wasm_execute(pair_address, &swap_msg, vec![])?;
-                vec![allowance_msg, swap_msg.into()]
+                Ok(vec![allowance_msg, swap_msg.into()])
             }
-            AssetInfoBase::Native(denom) => vec![wasm_execute(
+            AssetInfoBase::Native(denom) => Ok(vec![wasm_execute(
                 pair_address,
                 &swap_msg,
                 vec![Coin::new(offer_asset.amount.u128(), denom)],
             )?
-            .into()],
-            AssetInfoBase::Cw1155(..) => return Err(DexError::Cw1155Unsupported {}),
-            _ => panic!("unsupported asset"),
-        };
+            .into()]),
+            _ => Err(DexError::UnsupportedAssetType(offer_asset.info.to_string())),
+        }?;
         Ok(msgs)
     }
 
@@ -300,14 +299,12 @@ fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexEr
         Denom::Native(denom_name) => match asset {
             cw_asset::AssetInfoBase::Native(asset_name) => Ok(denom_name == asset_name),
             cw_asset::AssetInfoBase::Cw20(_asset_addr) => Ok(false),
-            cw_asset::AssetInfoBase::Cw1155(_, _) => Err(DexError::Cw1155Unsupported),
-            _ => panic!("unsupported asset"),
+            _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
         },
         Denom::Cw20(denom_addr) => match asset {
             cw_asset::AssetInfoBase::Native(_asset_name) => Ok(false),
             cw_asset::AssetInfoBase::Cw20(asset_addr) => Ok(denom_addr == asset_addr),
-            cw_asset::AssetInfoBase::Cw1155(_, _) => Err(DexError::Cw1155Unsupported),
-            _ => panic!("unsupported asset"),
+            _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
         },
     }
 }

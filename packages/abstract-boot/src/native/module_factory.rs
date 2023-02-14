@@ -1,7 +1,7 @@
 use abstract_os::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
-use boot_core::{BootEnvironment, BootError, Contract, TxResponse};
+use boot_core::{BootEnvironment, Contract, TxResponse};
 
 pub use abstract_os::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
@@ -18,7 +18,10 @@ impl<Chain: BootEnvironment> ModuleFactory<Chain> {
         Self(contract)
     }
 
-    pub fn change_ans_host_addr(&self, mem_addr: String) -> Result<TxResponse<Chain>, BootError> {
+    pub fn change_ans_host_addr(
+        &self,
+        mem_addr: String,
+    ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
         self.execute(
             &ExecuteMsg::UpdateConfig {
                 admin: None,
@@ -27,9 +30,10 @@ impl<Chain: BootEnvironment> ModuleFactory<Chain> {
             },
             None,
         )
+        .map_err(Into::into)
     }
 
-    // pub  fn save_init_binaries(&self, mem_addr: String, version_control_addr: String) -> Result<(), BootError> {
+    // pub  fn save_init_binaries(&self, mem_addr: String, version_control_addr: String) -> Result<(), crate::AbstractBootError> {
     //     let msgs = get_api_init_msgs(mem_addr,version_control_addr);
     //     // TODO: Add version management support
     //     let binaries = msgs

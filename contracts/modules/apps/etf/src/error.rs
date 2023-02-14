@@ -1,5 +1,8 @@
 use abstract_app::AppError;
+use abstract_os::AbstractOsError;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{OverflowError, StdError};
+use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -7,6 +10,18 @@ use thiserror::Error;
 pub enum EtfError {
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error("{0}")]
+    AbstractOs(#[from] AbstractOsError),
+
+    #[error("{0}")]
+    AbstractSdk(#[from] AbstractSdkError),
+
+    #[error("{0}")]
+    Asset(#[from] AssetError),
+
+    #[error("Asset type: {0} is unsupported.")]
+    UnsupportedAssetType(String),
 
     #[error("{0}")]
     Admin(#[from] AdminError),

@@ -15,15 +15,16 @@ use super::{
     contract_entry::{ContractEntry, UncheckedContractEntry},
 };
 use crate::{
+    error::AbstractOsError,
     manager::state::OS_MODULES,
     proxy::{
         state::{ADMIN, VAULT_ASSETS},
         ExternalValueResponse, ValueQueryMsg,
     },
+    AbstractResult,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, StdResult,
-    Uint128, WasmQuery,
+    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
@@ -51,7 +52,7 @@ impl UncheckedProxyAsset {
     }
 
     /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
-    pub fn check(self, deps: Deps, ans_host: &AnsHost) -> StdResult<ProxyAsset> {
+    pub fn check(self, deps: Deps, ans_host: &AnsHost) -> AbstractResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
         ans_host.query_asset(&deps.querier, &entry)?;
         let value_reference = self
@@ -89,16 +90,22 @@ pub enum UncheckedValueRef {
 }
 
 impl UncheckedValueRef {
-    pub fn check(self, deps: Deps, ans_host: &AnsHost, entry: &AssetEntry) -> StdResult<ValueRef> {
+    pub fn check(
+        self,
+        deps: Deps,
+        ans_host: &AnsHost,
+        entry: &AssetEntry,
+    ) -> AbstractResult<ValueRef> {
         match self {
             UncheckedValueRef::Pool { pair, exchange } => {
                 let lowercase = pair.to_ascii_lowercase();
                 let mut composite: Vec<&str> = lowercase.split('_').collect();
                 if composite.len() != 2 {
-                    return Err(StdError::generic_err(
-                        "trading pair should be formatted as \"asset1_asset2\".",
-                    ));
-                }
+                    return Err(AbstractOsError::EntryFormattingError {
+                        actual: entry.to_string(),
+                        expected: "asset1_asset2".to_string(),
+                    });
+                };
                 composite.sort();
                 let pair_name = format!("{}_{}", composite[0], composite[1]);
                 // verify pair is available
@@ -168,7 +175,7 @@ impl ProxyAsset {
         env: &Env,
         ans_host: &AnsHost,
         set_holding: Option<Uint128>,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         // Query how many of these tokens are held in the contract if not set.
         let asset_info = ans_host.query_asset(&deps.querier, &self.asset)?;
         let holding: Uint128 = match set_holding {
@@ -212,9 +219,7 @@ impl ProxyAsset {
                             }))?;
                         return Ok(response.value);
                     } else {
-                        return Err(StdError::generic_err(format!(
-                            "external contract api {api_name} must be enabled on OS"
-                        )));
+                        return Err(AbstractOsError::ApiNotInstalled(api_name));
                     }
                 }
             }
@@ -231,7 +236,7 @@ impl ProxyAsset {
         ans_host: &AnsHost,
         valued_asset: Asset,
         pair: ContractEntry,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         let other_pool_asset: AssetEntry =
             other_asset_name(self.asset.as_str(), &pair.contract)?.into();
 
@@ -250,7 +255,7 @@ impl ProxyAsset {
         let ratio = Decimal::from_ratio(pool_info.0.u128(), pool_info.1.u128());
 
         // Get the value of the current asset in the denom of the other asset
-        let mut recursive_vault_asset = VAULT_ASSETS.load(deps.storage, other_pool_asset)?;
+        let mut recursive_vault_asset = VAULT_ASSETS.load(deps.storage, &other_pool_asset)?;
 
         // #other = #this * (pool_other/pool_this)
         let amount_in_other_denom = valued_asset.amount * ratio;
@@ -267,12 +272,12 @@ impl ProxyAsset {
         ans_host: &AnsHost,
         lp_asset: Asset,
         pair: ContractEntry,
-    ) -> StdResult<Uint128> {
+    ) -> AbstractResult<Uint128> {
         let supply: Uint128;
         if let AssetInfo::Cw20(addr) = &lp_asset.info {
             supply = query_cw20_supply(&deps.querier, addr)?;
         } else {
-            return Err(StdError::generic_err("Can't have a native LP token"));
+            return Err(StdError::generic_err("Can't have a native LP token").into());
         }
 
         // Get total supply of LP tokens and calculate share
@@ -281,9 +286,11 @@ impl ProxyAsset {
         let other_pool_asset_names = get_pair_asset_names(pair.contract.as_str());
 
         if other_pool_asset_names.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "lp pair contract {pair} must be composed of two assets."
-            )));
+            return Err(AbstractOsError::FormattingError {
+                object: "lp asset entry".into(),
+                expected: "with two '_' seperated asset names".into(),
+                actual: pair.to_string(),
+            });
         }
 
         let pair_address = ans_host.query_contract(&deps.querier, &pair)?;
@@ -298,9 +305,9 @@ impl ProxyAsset {
 
         // load the assets
         let mut vault_asset_1: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[0].into())?;
+            VAULT_ASSETS.load(deps.storage, &other_pool_asset_names[0].into())?;
         let mut vault_asset_2: ProxyAsset =
-            VAULT_ASSETS.load(deps.storage, other_pool_asset_names[1].into())?;
+            VAULT_ASSETS.load(deps.storage, &other_pool_asset_names[1].into())?;
 
         // set the amounts to the LP holdings
         let vault_asset_1_amount = share * Uint128::new(amount1.u128());
@@ -320,24 +327,24 @@ pub fn value_as_value(
     replacement_asset: AssetEntry,
     multiplier: Decimal,
     holding: Uint128,
-) -> StdResult<Uint128> {
+) -> AbstractResult<Uint128> {
     // Get the proxy asset
     let mut replacement_vault_asset: ProxyAsset =
-        VAULT_ASSETS.load(deps.storage, replacement_asset)?;
+        VAULT_ASSETS.load(deps.storage, &replacement_asset)?;
     // call value on proxy asset with adjusted multiplier.
     replacement_vault_asset.value(deps, env, ans_host, Some(holding * multiplier))
 }
 /// Get the other asset's name from a composite name
 /// ex: asset= "btc" composite = "btc_eth"
 /// returns "eth"
-pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> StdResult<&'a str> {
+pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> AbstractResult<&'a str> {
     composite
         .split('_')
         .find(|component| *component != asset)
-        .ok_or_else(|| {
-            StdError::generic_err(format!(
-                "composite {composite} is not structured correctly"
-            ))
+        .ok_or_else(|| AbstractOsError::FormattingError {
+            object: "lp asset key".to_string(),
+            expected: "with '_' as asset separator".to_string(),
+            actual: composite.to_string(),
         })
 }
 
@@ -346,7 +353,7 @@ pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
     composite.split('_').collect()
 }
 
-fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> StdResult<Uint128> {
+fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> AbstractResult<Uint128> {
     let response: cw20::TokenInfoResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: contract_addr.into(),
