@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.7.0] - 2023-02-15
+
+### Added
+
+### Changed
+
+- Errors now need to implement `From<AbstractOsError>` and `From<AbstractSdkError>`
+
+### Fixed
+
 ## [0.7.0] - 2023-02-01
 
 ### Added

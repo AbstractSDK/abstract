@@ -7,7 +7,7 @@ command -v shellcheck >/dev/null && shellcheck "$0"
 
 function print_usage() {
   echo "Usage: $0 [-h|--help] <new_version>"
-  echo "e.g.: $0 0.8.3"
+  echo "e.g.: $0 0.9.0"
 }
 
 if [ "$#" -ne 1 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]
