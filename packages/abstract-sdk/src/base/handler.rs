@@ -2,10 +2,13 @@ use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
 };
-use crate::base::contract_base::{ContractMetadata, ContractName, VersionString};
-use crate::base::ReplyHandlerFn;
-
-use crate::{AbstractSdkError, AbstractSdkResult};
+use crate::{
+    base::{
+        contract_base::{ContractMetadata, ContractName, VersionString},
+        ReplyHandlerFn,
+    },
+    AbstractSdkError, AbstractSdkResult,
+};
 use abstract_os::objects::dependency::StaticDependency;
 use cosmwasm_std::Storage;
 use cw2::ContractVersion;

@@ -20,7 +20,7 @@ use abstract_os::{
         UniquePoolId,
     },
 };
-use abstract_sdk::helpers::cw_storage_plus::load_many;
+use abstract_sdk::cw_helpers::cw_storage_plus::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;

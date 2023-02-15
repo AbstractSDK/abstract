@@ -1,11 +1,10 @@
 use crate::{
     state::{AppContract, AppState},
-    AppError,
+    AppError, Handler, InstantiateEndpoint,
 };
-use crate::{Handler, InstantiateEndpoint};
 use abstract_os::objects::module_version::set_module_data;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::{
+    cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::AnsHost,
     os::{
         app::{BaseInstantiateMsg, InstantiateMsg},

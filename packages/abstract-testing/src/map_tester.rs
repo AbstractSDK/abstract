@@ -1,14 +1,9 @@
 use crate::MockDeps;
-use cosmwasm_std::testing::mock_env;
-use cosmwasm_std::Order;
-use cosmwasm_std::{DepsMut, MessageInfo, Response};
-use cosmwasm_std::{Env, Storage};
+use cosmwasm_std::{testing::mock_env, DepsMut, Env, MessageInfo, Order, Response, Storage};
 use cw_storage_plus::{KeyDeserialize, Map, PrimaryKey};
 use derive_builder::Builder;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use serde_json;
-use serde_json::json;
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::{self, json};
 use speculoos::prelude::*;
 use std::fmt::Debug;
 

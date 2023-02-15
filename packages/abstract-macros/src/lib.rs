@@ -1,9 +1,7 @@
 extern crate proc_macro2;
-
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::parse_macro_input;
-use syn::{AttributeArgs, Fields, Item};
+use syn::{parse_macro_input, AttributeArgs, Fields, Item};
 
 const DELIMITER: &str = ",";
 

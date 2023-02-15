@@ -4,7 +4,7 @@ use crate::{
     DEX,
 };
 use abstract_os::objects::PoolAddress;
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
 };

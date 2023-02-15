@@ -1,5 +1,4 @@
 use crate::contract::ProxyResult;
-
 use crate::error::ProxyError;
 use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,

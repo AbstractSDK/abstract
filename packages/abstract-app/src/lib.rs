@@ -48,10 +48,8 @@ mod test_common {
     pub struct MockReceiveMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_os::module_factory::ContextResponse;
-    use abstract_os::version_control::Core;
-    use abstract_sdk::base::InstantiateEndpoint;
-    use abstract_sdk::AbstractSdkError;
+    use abstract_os::{module_factory::ContextResponse, version_control::Core};
+    use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
         TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,

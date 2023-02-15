@@ -14,9 +14,9 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_storage_plus::Map;
 
-    use crate::objects::core::OsId;
     use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, module::ModuleInfo, module_reference::ModuleReference,
+        common_namespace::ADMIN_NAMESPACE, core::OsId, module::ModuleInfo,
+        module_reference::ModuleReference,
     };
 
     use super::Core;
@@ -30,8 +30,8 @@ pub mod state {
     pub const OS_ADDRESSES: Map<OsId, Core> = Map::new("os_core");
 }
 
-use crate::objects::core::OsId;
 use crate::objects::{
+    core::OsId,
     module::{Module, ModuleInfo},
     module_reference::ModuleReference,
 };

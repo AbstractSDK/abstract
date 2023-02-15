@@ -1,8 +1,7 @@
 use cosmwasm_std::StdError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 #[non_exhaustive]

@@ -1,15 +1,16 @@
-//! # Feature Objects
-//! Feature objects are objects that store sufficient data to unlock a set of APIs.
+//! # Structs that implement a feature trait
+//!
+//! Feature objects are objects that store sufficient data to unlock some functionality.
 //! These objects are mostly used internally to easy re-use application code without
-//! requiring the usage of a base contract.  
+//! requiring the usage of a base contract.
 
+use crate::{
+    features::{AbstractRegistryAccess, Identification, ModuleIdentification},
+    AbstractSdkResult,
+};
+pub use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::version_control::Core;
 use cosmwasm_std::{Addr, Deps};
-
-use crate::apis::ModuleIdentification;
-use crate::base::features::{AbstractRegistryAccess, Identification};
-use crate::AbstractSdkResult;
-pub use abstract_os::objects::ans_host::AnsHost;
 use os::PROXY;
 
 /// Store the Version Control contract.
@@ -79,7 +80,7 @@ impl ModuleIdentification for Core {
     }
 }
 
-impl crate::base::features::AbstractNameService for AnsHost {
+impl crate::features::AbstractNameService for AnsHost {
     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<abstract_os::objects::ans_host::AnsHost> {
         Ok(self.clone())
     }

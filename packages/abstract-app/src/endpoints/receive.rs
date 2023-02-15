@@ -1,5 +1,4 @@
-use crate::ReceiveEndpoint;
-use crate::{error::AppError, state::AppContract};
+use crate::{error::AppError, state::AppContract, ReceiveEndpoint};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,

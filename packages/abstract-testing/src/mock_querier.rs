@@ -2,18 +2,18 @@ use crate::{
     test_core, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
     TEST_PROXY, TEST_VERSION_CONTROL,
 };
-use abstract_os::manager::state::OS_ID;
-use abstract_os::{manager::state::OS_MODULES, version_control::state::OS_ADDRESSES};
+use abstract_os::{
+    manager::state::{OS_ID, OS_MODULES},
+    version_control::state::OS_ADDRESSES,
+};
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
     QuerierWrapper, SystemResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::{Item, Map, PrimaryKey};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
-use std::collections::HashMap;
-use std::ops::Deref;
+use serde::{de::DeserializeOwned, Serialize};
+use std::{collections::HashMap, ops::Deref};
 
 pub type EmptyMockQuerier = MockQuerier<Empty>;
 
@@ -374,9 +374,9 @@ mod tests {
     use crate::{TEST_MODULE_ID, TEST_OS_ID};
 
     use super::*;
-    use abstract_os::manager::state::OS_MODULES;
-    use abstract_os::proxy::state::OS_ID;
-    use abstract_os::version_control::state::OS_ADDRESSES;
+    use abstract_os::{
+        manager::state::OS_MODULES, proxy::state::OS_ID, version_control::state::OS_ADDRESSES,
+    };
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 

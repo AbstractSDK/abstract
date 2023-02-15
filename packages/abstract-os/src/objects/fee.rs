@@ -1,9 +1,8 @@
+use crate::{error::AbstractOsError, AbstractResult};
 use cosmwasm_std::{Addr, CosmosMsg, Decimal, Uint128};
 use cw_asset::Asset;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use crate::{error::AbstractOsError, AbstractResult};
 
 /// A wrapper around Decimal to help handle fractional fees.
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]

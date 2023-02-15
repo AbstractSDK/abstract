@@ -14,8 +14,7 @@ pub mod state {
 
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::common_namespace::ADMIN_NAMESPACE;
-    use crate::objects::core::OsId;
+    use crate::objects::{common_namespace::ADMIN_NAMESPACE, core::OsId};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
@@ -36,10 +35,9 @@ pub mod state {
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
 }
 
-use crate::objects::gov_type::GovernanceDetails;
+use crate::objects::{core::OsId, gov_type::GovernanceDetails};
 use cosmwasm_schema::QueryResponses;
 use cw20::Cw20ReceiveMsg;
-use crate::objects::core::OsId;
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]

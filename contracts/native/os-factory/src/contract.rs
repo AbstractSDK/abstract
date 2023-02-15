@@ -1,5 +1,4 @@
-use crate::error::OsFactoryError;
-use crate::{commands, state::*};
+use crate::{commands, error::OsFactoryError, state::*};
 use abstract_sdk::os::{
     objects::module_version::{migrate_module_data, set_module_data},
     os_factory::*,

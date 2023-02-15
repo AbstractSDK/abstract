@@ -1,11 +1,11 @@
-use crate::error::IbcClientError;
-use crate::{commands, queries};
+use crate::{commands, error::IbcClientError, queries};
 use abstract_macros::abstract_response;
 use abstract_os::{
-    ibc_client::state::*,
-    ibc_client::*,
-    objects::ans_host::AnsHost,
-    objects::module_version::{migrate_module_data, set_module_data},
+    ibc_client::{state::*, *},
+    objects::{
+        ans_host::AnsHost,
+        module_version::{migrate_module_data, set_module_data},
+    },
     AbstractResult, IBC_CLIENT,
 };
 use cosmwasm_std::{
@@ -124,8 +124,10 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response
 mod tests {
     use super::*;
     use crate::queries::query_config;
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr,
+    };
     use cw2::CONTRACT;
 
     const CREATOR: &str = "creator";

@@ -1,7 +1,6 @@
 use cosmwasm_std::{StdResult, Storage};
 use cw_storage_plus::{Map, PrimaryKey};
-use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 
 /// Load a batch of values by their keys from a [`Map`].
 pub fn load_many<'a, K, V>(
@@ -26,8 +25,10 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use cosmwasm_std::testing::{mock_dependencies, MockApi, MockQuerier, MockStorage};
-    use cosmwasm_std::OwnedDeps;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, MockApi, MockQuerier, MockStorage},
+        OwnedDeps,
+    };
     use speculoos::prelude::*;
 
     const TEST_MAP: Map<String, String> = Map::new("test_map");

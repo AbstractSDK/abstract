@@ -5,8 +5,7 @@ use abstract_os::{
     objects::{AnsAsset, AssetEntry},
     EXCHANGE, MANAGER,
 };
-use boot_core::interface::ContractInstance;
-use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
+use boot_core::{interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 use log::info;
 

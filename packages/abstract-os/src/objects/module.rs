@@ -379,13 +379,9 @@ mod test {
             let key = mock_key();
             let map: Map<&ModuleInfo, u64> = Map::new("map");
 
-            map.save(deps.as_mut().storage, &key, &42069)
-                .unwrap();
+            map.save(deps.as_mut().storage, &key, &42069).unwrap();
 
-            assert_eq!(
-                map.load(deps.as_ref().storage, &key).unwrap(),
-                42069
-            );
+            assert_eq!(map.load(deps.as_ref().storage, &key).unwrap(), 42069);
 
             let items = map
                 .range(deps.as_ref().storage, None, None, Order::Ascending)

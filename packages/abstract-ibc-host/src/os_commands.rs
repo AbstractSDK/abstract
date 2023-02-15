@@ -3,7 +3,7 @@ use crate::{
     HostError,
 };
 use abstract_sdk::{
-    base::features::AbstractNameService,
+    features::AbstractNameService,
     os::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,

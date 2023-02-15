@@ -4,7 +4,10 @@ use crate::DEX;
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
-pub use crate::exchanges::{junoswap::{JunoSwap, JUNOSWAP}, wyndex::{WynDex, WYNDEX}};
+pub use crate::exchanges::{
+    junoswap::{JunoSwap, JUNOSWAP},
+    wyndex::{WynDex, WYNDEX},
+};
 
 #[cfg(any(feature = "juno", feature = "terra"))]
 pub use crate::exchanges::loop_dex::{Loop, LOOP};

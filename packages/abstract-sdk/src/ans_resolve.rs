@@ -1,17 +1,15 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
+use crate::AbstractSdkResult;
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
-use os::objects::pool_metadata::ResolvedPoolMetadata;
 use os::objects::{
-    ans_host::AnsHost, AnsAsset, AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, LpToken,
-    PoolMetadata, PoolReference, UniquePoolId,
+    ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
+    ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
 
-use crate::AbstractSdkResult;
-
-/// Resolve an [`AbstractNameService`](crate::base::features::AbstractNameService) entry into its value.
+/// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
     type Output;
     fn resolve(
@@ -179,11 +177,12 @@ mod tests {
 
     use abstract_os::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
-    use cosmwasm_std::testing::{mock_dependencies, MockQuerier};
-    use cosmwasm_std::Empty;
+    use cosmwasm_std::{
+        testing::{mock_dependencies, MockQuerier},
+        Empty,
+    };
     use cw_storage_plus::{Map, PrimaryKey};
-    use serde::de::DeserializeOwned;
-    use serde::Serialize;
+    use serde::{de::DeserializeOwned, Serialize};
     use speculoos::prelude::*;
 
     use std::fmt::Debug;

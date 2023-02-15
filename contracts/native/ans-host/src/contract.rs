@@ -10,7 +10,6 @@ use semver::Version;
 pub type AnsHostResult = Result<Response, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 use abstract_os::objects::module_version::{migrate_module_data, set_module_data};
 use abstract_os::ANS_HOST;
 

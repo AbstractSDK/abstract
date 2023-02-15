@@ -1,9 +1,8 @@
 use abstract_boot::{DexApi, ModuleDeployer, VersionControl};
 use abstract_os::VERSION_CONTROL;
-use boot_core::prelude::*;
-
 use boot_core::networks::{parse_network, NetworkInfo};
-use cosmwasm_std::{Empty};
+use boot_core::prelude::*;
+use cosmwasm_std::Empty;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

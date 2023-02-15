@@ -5,14 +5,12 @@ use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
     api::InstantiateMsg, objects::gov_type::GovernanceDetails, PROXY, TENDERMINT_STAKING,
 };
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
 use boot_core::{
     prelude::{BootInstantiate, BootUpload, ContractInstance},
     Mock,
 };
 use cosmwasm_std::{Addr, Empty};
-
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL};
-
 use cw_multi_test::ContractWrapper;
 use manager::contract::CONTRACT_VERSION;
 use semver::Version;

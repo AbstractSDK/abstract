@@ -1,14 +1,14 @@
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_std::Empty;
 
-/// EndpointMsg to the Middleware.
+/// EndpointMsg to the base.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg<BaseMsg, AppMsg, ReceiveMsg = Empty> {
-    /// A configuration message.
+    /// A configuration message, defined by the base.
     Base(BaseMsg),
-    /// An app request.
+    /// An app request defined by a base consumer.
     App(AppMsg),
-    /// IbcReceive to process callbacks
+    /// IbcReceive to process IBC callbacks
     IbcCallback(IbcResponseMsg),
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),
@@ -18,13 +18,13 @@ pub enum ExecuteMsg<BaseMsg, AppMsg, ReceiveMsg = Empty> {
 pub struct InstantiateMsg<BaseMsg, AppMsg = Empty> {
     /// base instantiate information
     pub base: BaseMsg,
-    /// custom instantiate msg attributes
+    /// custom instantiate msg
     pub app: AppMsg,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg<BaseMsg, AppMsg = Empty> {
-    /// A configuration message to the base.
+    /// A query to the base.
     Base(BaseMsg),
     /// Custom query
     App(AppMsg),
@@ -34,6 +34,6 @@ pub enum QueryMsg<BaseMsg, AppMsg = Empty> {
 pub struct MigrateMsg<BaseMsg = Empty, AppMsg = Empty> {
     /// base migrate information
     pub base: BaseMsg,
-    /// custom migrate msg attributes
+    /// custom migrate msg
     pub app: AppMsg,
 }

@@ -13,7 +13,6 @@ use cw_controllers::{Admin, AdminError};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
 use crate::commands::*;
 use crate::queries;
 

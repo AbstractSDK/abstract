@@ -27,8 +27,10 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 pub mod state {
-    use crate::objects::core::OsId;
-    use crate::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
+    use crate::{
+        objects::{core::OsId, time_weighted_average::TimeWeightedAverage},
+        AbstractResult,
+    };
     use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
     use cw_asset::{AssetInfo, AssetInfoUnchecked};
     use cw_storage_plus::{Item, Map};
@@ -224,8 +226,10 @@ pub mod state {
 }
 
 use self::state::UncheckedEmissionType;
-use crate::app::{self};
-use crate::objects::core::OsId;
+use crate::{
+    app::{self},
+    objects::core::OsId,
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw_asset::{Asset, AssetInfoUnchecked};

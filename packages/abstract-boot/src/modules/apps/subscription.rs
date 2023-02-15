@@ -1,11 +1,9 @@
-use abstract_os::objects::OsId;
 use abstract_os::{
     app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
+    objects::OsId,
     subscription::*,
 };
-use boot_core::{
-    interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract,
-};
+use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::{Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use std::str::FromStr;

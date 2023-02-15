@@ -86,8 +86,8 @@ impl WasmMockQuerier {
                                 None => {
                                     return SystemResult::Err(SystemError::InvalidRequest {
                                         error: format!(
-                                            "No balance info exists for the contract {contract_addr}"
-                                        ),
+                                        "No balance info exists for the contract {contract_addr}"
+                                    ),
                                         request: msg.as_slice().into(),
                                     })
                                 }

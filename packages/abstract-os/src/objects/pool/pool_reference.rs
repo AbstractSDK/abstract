@@ -1,6 +1,10 @@
-use crate::objects::pool_id::{PoolAddress, UncheckedPoolAddress};
-use crate::objects::unique_pool_id::UniquePoolId;
-use crate::AbstractResult;
+use crate::{
+    objects::{
+        pool_id::{PoolAddress, UncheckedPoolAddress},
+        unique_pool_id::UniquePoolId,
+    },
+    AbstractResult,
+};
 use cosmwasm_std::Api;
 
 #[cosmwasm_schema::cw_serde]

@@ -1,5 +1,4 @@
-use crate::objects::lp_token::LpToken;
-use crate::objects::AssetEntry;
+use crate::objects::{lp_token::LpToken, AssetEntry};
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;

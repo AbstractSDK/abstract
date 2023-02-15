@@ -1,14 +1,13 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
 use abstract_os::{api::ApiRequestMsg, version_control::Core};
-use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
-    apis::respond::AbstractResponse,
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
+    features::ModuleIdentification,
     os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
-    AbstractSdkError, Execution, ModuleInterface, OsVerification,
+    AbstractResponse, AbstractSdkError, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
@@ -218,7 +217,6 @@ mod tests {
 
     use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
-    
 
     type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;

@@ -1,8 +1,11 @@
 //! # Vault
 //! The Vault object provides function for querying balances and asset values for the OS.
 
-use super::{AbstractNameService, Identification};
-use crate::{helpers::cosmwasm_std::wasm_smart_query, AbstractSdkResult};
+use crate::{
+    cw_helpers::cosmwasm_std::wasm_smart_query,
+    features::{AbstractNameService, Identification},
+    AbstractSdkResult,
+};
 use abstract_os::{
     objects::{proxy_asset::ProxyAsset, AssetEntry},
     proxy::{

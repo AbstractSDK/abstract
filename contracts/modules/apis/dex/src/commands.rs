@@ -1,6 +1,6 @@
 use crate::{error::DexError, DEX};
 use abstract_os::objects::{DexAssetPairing, PoolReference};
-use abstract_sdk::base::features::AbstractNameService;
+use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::os::dex::AskAsset;
 use abstract_sdk::os::objects::AnsAsset;
 use abstract_sdk::os::{

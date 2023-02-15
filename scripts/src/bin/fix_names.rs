@@ -1,15 +1,15 @@
-use std::sync::Arc;
-
-use boot_core::networks::terra::PISCO_1;
-use boot_core::networks::NetworkInfo;
-use boot_core::prelude::*;
-
-use semver::Version;
-use tokio::runtime::Runtime;
-
 use abstract_boot::Abstract;
-use abstract_os::objects::module::{Module, ModuleInfo};
-use abstract_os::version_control::{ExecuteMsgFns, ModulesListResponse, QueryMsgFns};
+use abstract_os::{
+    objects::module::{Module, ModuleInfo},
+    version_control::{ExecuteMsgFns, ModulesListResponse, QueryMsgFns},
+};
+use boot_core::{
+    networks::{terra::PISCO_1, NetworkInfo},
+    prelude::*,
+};
+use semver::Version;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 
 const NETWORK: NetworkInfo = PISCO_1;
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");

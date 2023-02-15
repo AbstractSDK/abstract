@@ -1,7 +1,9 @@
 use crate::{Host, HostError};
 use abstract_os::objects::OsId;
-use abstract_sdk::base::features::{AbstractNameService, Identification, ModuleIdentification};
-use abstract_sdk::{AbstractSdkError, AbstractSdkResult};
+use abstract_sdk::{
+    features::{AbstractNameService, Identification, ModuleIdentification},
+    AbstractSdkError, AbstractSdkResult,
+};
 use cosmwasm_std::Deps;
 
 impl<

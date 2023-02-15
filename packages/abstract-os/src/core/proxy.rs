@@ -10,11 +10,13 @@
 //! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
 //! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
-use crate::ibc_client::ExecuteMsg as IbcClientMsg;
-use crate::objects::core::OsId;
-use crate::objects::{
-    proxy_asset::{ProxyAsset, UncheckedProxyAsset},
-    AssetEntry,
+use crate::{
+    ibc_client::ExecuteMsg as IbcClientMsg,
+    objects::{
+        core::OsId,
+        proxy_asset::{ProxyAsset, UncheckedProxyAsset},
+        AssetEntry,
+    },
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};

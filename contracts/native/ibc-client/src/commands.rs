@@ -1,18 +1,18 @@
-use crate::contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES};
-use crate::error::IbcClientError;
-use crate::ibc::PACKET_LIFETIME;
-
+use crate::{
+    contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES},
+    error::IbcClientError,
+    ibc::PACKET_LIFETIME,
+};
 use abstract_sdk::{
-    base::features::Identification,
     feature_objects::VersionControlContract,
+    features::Identification,
     os::{
-        ibc_client::state::{
-            AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES,
+        ibc_client::{
+            state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
+            CallbackInfo,
         },
-        ibc_client::CallbackInfo,
         ibc_host::{HostAction, InternalAction, PacketMsg},
-        objects::ans_host::AnsHost,
-        objects::ChannelEntry,
+        objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
     },
     Execution, OsVerification, Resolve,
@@ -220,11 +220,12 @@ mod test {
     use super::*;
     use crate::contract;
 
-    use abstract_os::ibc_client::*;
-    use abstract_os::AbstractResult;
+    use abstract_os::{ibc_client::*, AbstractResult};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
-    use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-    use cosmwasm_std::{Addr, Response};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        Addr, Response,
+    };
     use speculoos::prelude::*;
 
     const TEST_CHAIN: &str = "test-chain";
@@ -262,8 +263,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_os::abstract_ica::StdAck;
-        use abstract_os::ibc_client::state::Config;
+        use abstract_os::{abstract_ica::StdAck, ibc_client::state::Config};
         use abstract_testing::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 

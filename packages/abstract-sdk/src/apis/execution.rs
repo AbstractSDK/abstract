@@ -1,9 +1,11 @@
 //! # Executor
 //! The executor provides function for executing commands on the OS.
 //!
-use crate::AbstractSdkResult;
 
-use super::{Identification, ModuleIdentification};
+use crate::{
+    features::{Identification, ModuleIdentification},
+    AbstractSdkResult,
+};
 use abstract_macros::with_abstract_event;
 use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};

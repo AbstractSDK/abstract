@@ -2,8 +2,7 @@ use crate::deployment::{self, OS};
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{
-        module::Module,
-        module::{ModuleInfo, ModuleVersion},
+        module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
         OsId,
     },

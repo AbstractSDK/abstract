@@ -1,13 +1,17 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::base::features::{Dependencies, Identification};
-use crate::{AbstractSdkResult, ModuleInterface};
-use abstract_os::dex::{
-    AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-    SwapRouter,
+use crate::{
+    features::{Dependencies, Identification},
+    AbstractSdkResult, ModuleInterface,
 };
-use abstract_os::objects::AssetEntry;
-use abstract_os::EXCHANGE;
+use abstract_os::{
+    dex::{
+        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+        SwapRouter,
+    },
+    objects::AssetEntry,
+    EXCHANGE,
+};
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use os::manager::state::ModuleId;
 use serde::de::DeserializeOwned;
@@ -147,8 +151,7 @@ mod test {
 
     use crate::apis::test_common::*;
 
-    use os::api;
-    use os::api::ApiRequestMsg;
+    use os::{api, api::ApiRequestMsg};
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> api::ExecuteMsg<DexExecuteMsg> {
         ApiRequestMsg {

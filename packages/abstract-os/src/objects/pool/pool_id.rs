@@ -1,9 +1,6 @@
+use crate::{error::AbstractOsError, AbstractResult};
 use cosmwasm_std::{Addr, Api, StdError};
-use std::fmt;
-use std::str::FromStr;
-
-use crate::error::AbstractOsError;
-use crate::AbstractResult;
+use std::{fmt, str::FromStr};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]

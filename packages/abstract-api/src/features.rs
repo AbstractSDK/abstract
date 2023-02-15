@@ -1,8 +1,7 @@
 use crate::{ApiContract, ApiError};
-use abstract_sdk::base::features::ModuleIdentification;
 use abstract_sdk::{
-    base::features::{AbstractNameService, AbstractRegistryAccess, Identification},
     feature_objects::AnsHost,
+    features::{AbstractNameService, AbstractRegistryAccess, Identification, ModuleIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};

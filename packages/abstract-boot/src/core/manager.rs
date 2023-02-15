@@ -1,10 +1,10 @@
-use abstract_os::api;
-use abstract_os::manager::*;
 pub use abstract_os::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
-use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::BootEnvironment;
-use boot_core::{interface::BootExecute, prelude::boot_contract};
-use boot_core::{Contract};
+use abstract_os::{
+    api,
+    manager::*,
+    objects::module::{ModuleInfo, ModuleVersion},
+};
+use boot_core::{interface::BootExecute, prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 

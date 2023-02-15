@@ -1,6 +1,6 @@
 use crate::state::{Config, ADMIN, CONFIG};
-use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::{
+    feature_objects::VersionControlContract,
     os::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     *,
 };

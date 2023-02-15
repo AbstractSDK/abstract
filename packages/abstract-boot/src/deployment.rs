@@ -2,9 +2,9 @@ use crate::{
     get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
     ModuleFactory, OSFactory, Proxy, VersionControl,
 };
-use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::{
-    manager::QueryMsgFns as ManagerQueryMsgFns, proxy::QueryMsgFns as ProxyQueryMsgFns,
+    manager::{ManagerModuleInfo, QueryMsgFns as ManagerQueryMsgFns},
+    proxy::QueryMsgFns as ProxyQueryMsgFns,
 };
 use boot_core::{prelude::*, BootEnvironment, BootError};
 use cosmwasm_std::Empty;
@@ -22,9 +22,9 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
-
-use abstract_os::objects::OsId;
+use abstract_os::{
+    objects::OsId, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL,
+};
 #[cfg(feature = "integration")]
 use cw_multi_test::ContractWrapper;
 
@@ -300,7 +300,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
     /// Also checks that the proxy's configuration includes the expected module addresses.
     /// Note that the proxy is automatically included in the assertions and *should not* (but can) be included in the expected list.
-    /// Returns the Vec<ManagerModuleInfo> from the manager
+    /// Returns the `Vec<ManagerModuleInfo>` from the manager
     pub fn expect_modules(
         &self,
         module_addrs: Vec<String>,

@@ -1,9 +1,10 @@
 //! # Module
 //! The Module interface provides helper functions to execute functions on other modules installed on the OS.
 
-use crate::AbstractSdkResult;
-
-use super::{Dependencies, Identification};
+use crate::{
+    features::{Dependencies, Identification},
+    AbstractSdkResult,
+};
 use abstract_os::{
     api, app,
     manager::state::{ModuleId, OS_MODULES},
@@ -146,7 +147,7 @@ mod test {
     use std::fmt::Debug;
 
     use crate::apis::test_common::*;
-    
+
     use abstract_testing::TEST_MODULE_ID;
 
     /// Nonexistent module

@@ -1,6 +1,5 @@
-use cosmwasm_std::{Addr, Deps};
-
 use crate::{error::AbstractOsError, AbstractResult};
+use cosmwasm_std::{Addr, Deps};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]

@@ -1,24 +1,26 @@
-use crate::contract::OsFactoryResult;
-use crate::state::*;
-use crate::{error::OsFactoryError, response::MsgInstantiateContractResponse};
-use abstract_macros::abstract_response;
-use abstract_os::objects::module::Module;
-use abstract_os::version_control::ModulesResponse;
-use abstract_os::{app, AbstractResult, OS_FACTORY};
-use abstract_sdk::helpers::cosmwasm_std::wasm_smart_query;
-use abstract_sdk::os::version_control::{ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery};
-use abstract_sdk::os::{
-    manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
-    proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+use crate::{
+    contract::OsFactoryResult, error::OsFactoryError, response::MsgInstantiateContractResponse,
+    state::*,
 };
-use abstract_sdk::os::{
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference},
-    os_factory::ExecuteMsg,
-    subscription::{
-        DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
-        SubscriptionQueryMsg,
+use abstract_macros::abstract_response;
+use abstract_os::{
+    app, objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
+};
+use abstract_sdk::{
+    cw_helpers::cosmwasm_std::wasm_smart_query,
+    os::{
+        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        objects::{
+            gov_type::GovernanceDetails, module::ModuleInfo, module_reference::ModuleReference,
+        },
+        os_factory::ExecuteMsg,
+        proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
+        subscription::{
+            DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
+            SubscriptionQueryMsg,
+        },
+        version_control::{Core, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
-    version_control::Core,
 };
 use cosmwasm_std::{
     from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
@@ -30,7 +32,6 @@ use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_OS_PROXY_MSG_ID: u64 = 2u64;
-
 use abstract_sdk::os::{MANAGER, PROXY};
 
 #[abstract_response(OS_FACTORY)]

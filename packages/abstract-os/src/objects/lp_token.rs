@@ -1,6 +1,8 @@
-use crate::constants::{ASSET_DELIMITER, TYPE_DELIMITER};
-use crate::dex::DexName;
-use crate::objects::{AssetEntry, PoolMetadata};
+use crate::{
+    constants::{ASSET_DELIMITER, TYPE_DELIMITER},
+    dex::DexName,
+    objects::{AssetEntry, PoolMetadata},
+};
 use cosmwasm_std::StdError;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

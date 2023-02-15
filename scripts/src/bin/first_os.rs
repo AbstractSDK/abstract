@@ -1,14 +1,12 @@
-use std::sync::Arc;
-
-use boot_core::networks::{ChainInfo, NetworkInfo, NetworkKind};
-use boot_core::prelude::*;
-
-use semver::Version;
-use tokio::runtime::Runtime;
-
 use abstract_boot::Abstract;
-
 use abstract_os::objects::gov_type::GovernanceDetails;
+use boot_core::{
+    networks::{ChainInfo, NetworkInfo, NetworkKind},
+    prelude::*,
+};
+use semver::Version;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 
 pub const KUJIRA_CHAIN: ChainInfo = ChainInfo {
     chain_id: "kujira",

@@ -1,5 +1,7 @@
-use crate::{contract::ModuleFactoryResult, error::ModuleFactoryError};
-use crate::{response::MsgInstantiateContractResponse, state::*};
+use crate::{
+    contract::ModuleFactoryResult, error::ModuleFactoryError,
+    response::MsgInstantiateContractResponse, state::*,
+};
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     feature_objects::VersionControlContract,
@@ -319,10 +321,11 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion;
-        use abstract_os::AbstractOsError;
-        use abstract_testing::map_tester::{CwMapTester, CwMapTesterBuilder};
-        use abstract_testing::TEST_ADMIN;
+        use abstract_os::{objects::module::ModuleVersion, AbstractOsError};
+        use abstract_testing::{
+            map_tester::{CwMapTester, CwMapTesterBuilder},
+            TEST_ADMIN,
+        };
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

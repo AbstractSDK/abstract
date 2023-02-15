@@ -1,14 +1,12 @@
 //! # Bank
 //! The Bank object handles asset transfers to and from the OS.
 
-use super::{execution::Execution, AbstractNameService};
-use crate::{ans_resolve::Resolve, AbstractSdkResult};
-use abstract_os::objects::AnsAsset;
+use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
-use os::objects::AssetEntry;
+use os::objects::{AnsAsset, AssetEntry};
 
-/// Bank assets from and to the Abstract OS.
+/// Query and Transfer assets from and to the Abstract OS.
 pub trait TransferInterface: AbstractNameService + Execution {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
@@ -43,12 +41,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// The caller must be a whitelisted module or trader.
     ///
     /// ```rust
-    /// use cosmwasm_std::{Addr, Response, AbstractSdkResult, Deps, DepsMut, Env, MessageInfo};
-    /// use abstract_os::objects::AnsAsset;
+    /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
+    /// # use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
-    /// use abstract_sdk::{
-    ///  #   base::features::{Identification, AbstractNameService, ModuleIdentification},
-    ///     TransferInterface
+    /// # use abstract_sdk::{
+    ///     features::{Identification, AbstractNameService, ModuleIdentification},
+    ///     TransferInterface, AbstractSdkResult,
     /// };
     /// #
     /// # struct MockModule;
@@ -57,20 +55,20 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
     /// # }
-    ///
+    /// #
     /// # impl ModuleIdentification for MockModule {
     /// #   fn module_id(&self) -> &'static str {
     /// #      "mock_module"
     /// #  }
     /// # }
-    ///
+    /// #
     /// # impl AbstractNameService for MockModule {
     /// #   fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
     ///
-    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
+    /// fn _transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
     ///     // check that the caller has the rights to the asset
     ///     // ...
     ///     let bank = app.bank(deps.as_ref());

@@ -17,8 +17,6 @@ For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
 */
 
-
-
 use super::dependency::{Dependency, StaticDependency};
 use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery};
 use cw_storage_plus::Item;

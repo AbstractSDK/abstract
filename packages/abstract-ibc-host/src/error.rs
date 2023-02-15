@@ -1,6 +1,5 @@
 use abstract_os::AbstractOsError;
-use abstract_sdk::os::abstract_ica::SimpleIcaError;
-use abstract_sdk::AbstractSdkError;
+use abstract_sdk::{os::abstract_ica::SimpleIcaError, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use cw_utils::ParseReplyError;

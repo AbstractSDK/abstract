@@ -48,7 +48,7 @@ impl<T: ApiQueryMsg> From<T> for QueryMsg<T> {
 impl ApiQueryMsg for Empty {}
 
 /// Used by Abstract to instantiate the contract
-/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddApi`].
+/// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::AddModules`].
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     /// Used to easily perform address translation

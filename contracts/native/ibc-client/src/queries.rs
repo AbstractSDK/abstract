@@ -1,9 +1,11 @@
-use abstract_os::ibc_client::state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES};
-use abstract_os::ibc_client::{
-    AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
-    ListChannelsResponse,
+use abstract_os::{
+    ibc_client::{
+        state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
+        AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
+        ListChannelsResponse,
+    },
+    objects::OsId,
 };
-use abstract_os::objects::OsId;
 use cosmwasm_std::{Deps, Order, StdResult};
 
 pub fn query_latest_ibc_query_result(

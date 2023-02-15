@@ -1,5 +1,7 @@
-use super::AbstractRegistryAccess;
-use crate::{helpers::cosmwasm_std::wasm_smart_query, AbstractSdkError, AbstractSdkResult};
+use crate::{
+    cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractRegistryAccess, AbstractSdkError,
+    AbstractSdkResult,
+};
 use abstract_os::{
     objects::{
         module::{Module, ModuleInfo},
@@ -9,7 +11,7 @@ use abstract_os::{
 };
 use cosmwasm_std::Deps;
 
-/// Access the Abstract Version Control and access the modules.
+/// Access the Abstract Version Control and access module information.
 pub trait ModuleRegistryInterface: AbstractRegistryAccess {
     fn module_registry<'a>(&'a self, deps: Deps<'a>) -> ModuleRegistry<Self> {
         ModuleRegistry { base: self, deps }

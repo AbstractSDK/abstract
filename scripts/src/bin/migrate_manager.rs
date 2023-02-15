@@ -1,13 +1,13 @@
 use abstract_boot::{Manager, VersionControl};
 use abstract_os::{MANAGER, VERSION_CONTROL};
-
-use boot_core::networks::{parse_network, NetworkInfo};
-use boot_core::prelude::*;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
-
+use boot_core::{
+    networks::{parse_network, NetworkInfo},
+    prelude::*,
+};
 use clap::Parser;
 use semver::Version;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 

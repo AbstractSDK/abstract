@@ -1,6 +1,5 @@
-use crate::AppError;
 use crate::{
-    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 use abstract_os::objects::dependency::StaticDependency;

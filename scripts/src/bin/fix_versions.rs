@@ -1,14 +1,15 @@
-use std::sync::Arc;
-
-use boot_core::networks::{NetworkInfo, UNI_5};
-use boot_core::prelude::*;
-
-use semver::Version;
-use tokio::runtime::Runtime;
-
 use abstract_boot::Abstract;
-use abstract_os::objects::module::{Module, ModuleInfo, ModuleVersion};
-use abstract_os::version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns};
+use abstract_os::{
+    objects::module::{Module, ModuleInfo, ModuleVersion},
+    version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns},
+};
+use boot_core::{
+    networks::{NetworkInfo, UNI_5},
+    prelude::*,
+};
+use semver::Version;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 
 const NETWORK: NetworkInfo = UNI_5;
 const WRONG_VERSION: &str = "0.1.0-rc.3";

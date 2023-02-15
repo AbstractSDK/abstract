@@ -46,7 +46,7 @@ pub enum TendermintStakingExecuteMsg {
     WithdrawAllRewards {},
 }
 
-/// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`]. Helper function are exposed by [`abstract_sdk::tendermint_staking`]
+/// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`].
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]

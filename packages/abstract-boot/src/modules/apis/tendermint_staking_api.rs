@@ -1,5 +1,4 @@
-use abstract_os::api::InstantiateMsg;
-use abstract_os::tendermint_staking::*;
+use abstract_os::{api::InstantiateMsg, tendermint_staking::*};
 use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
 use cosmwasm_std::Empty;
 

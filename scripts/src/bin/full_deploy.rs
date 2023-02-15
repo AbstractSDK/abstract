@@ -1,11 +1,12 @@
-use boot_core::networks::{parse_network, NetworkInfo};
-use boot_core::prelude::*;
+use abstract_boot::{Abstract, OS};
+use boot_core::{
+    networks::{parse_network, NetworkInfo},
+    prelude::*,
+};
 use clap::Parser;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
-
-use abstract_boot::{Abstract, OS};
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

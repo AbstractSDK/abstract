@@ -2,11 +2,9 @@ use crate::{
     AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
     TMintStakingApi, VersionControl, ETF as EtfBoot,
 };
-use abstract_os::objects::OsId;
-use abstract_os::IBC_CLIENT;
 use abstract_os::{
-    ANS_HOST, ETF, EXCHANGE, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, SUBSCRIPTION,
-    TENDERMINT_STAKING, VERSION_CONTROL,
+    objects::OsId, ANS_HOST, ETF, EXCHANGE, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
+    SUBSCRIPTION, TENDERMINT_STAKING, VERSION_CONTROL,
 };
 use boot_core::{state::StateInterface, BootEnvironment, IndexResponse, TxHandler};
 

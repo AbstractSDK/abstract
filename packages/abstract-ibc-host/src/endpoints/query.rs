@@ -3,9 +3,12 @@ use crate::{
     HostError,
 };
 use abstract_os::objects::OsId;
-use abstract_sdk::base::{Handler, QueryEndpoint};
-use abstract_sdk::os::ibc_host::{
-    AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse, QueryMsg,
+use abstract_sdk::{
+    base::{Handler, QueryEndpoint},
+    os::ibc_host::{
+        AccountInfo, AccountResponse, BaseQueryMsg, HostConfigResponse, ListAccountsResponse,
+        QueryMsg,
+    },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 

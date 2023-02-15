@@ -60,8 +60,10 @@ pub mod state {
 }
 
 use self::state::OsInfo;
-use crate::objects::core::OsId;
-use crate::objects::module::{Module, ModuleInfo};
+use crate::objects::{
+    core::OsId,
+    module::{Module, ModuleInfo},
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Binary, Uint64};
 use cw2::ContractVersion;

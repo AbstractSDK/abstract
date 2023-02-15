@@ -1,9 +1,9 @@
-use crate::{state::AppContract, AppError, AppResult};
-use crate::{ExecuteEndpoint, Handler, IbcCallbackEndpoint};
-use abstract_sdk::base::features::AbstractResponse;
-
+use crate::{
+    state::AppContract, AppError, AppResult, ExecuteEndpoint, Handler, IbcCallbackEndpoint,
+};
 use abstract_sdk::{
     base::ReceiveEndpoint,
+    features::AbstractResponse,
     os::app::{AppExecuteMsg, BaseExecuteMsg, ExecuteMsg},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};

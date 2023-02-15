@@ -1,5 +1,4 @@
-use crate::{AppContract, AppError};
-use crate::{Handler, MigrateEndpoint};
+use crate::{AppContract, AppError, Handler, MigrateEndpoint};
 use abstract_os::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::os::app::MigrateMsg;
 use cosmwasm_std::{Response, StdError};

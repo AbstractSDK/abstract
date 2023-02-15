@@ -1,6 +1,5 @@
 use crate::{ApiContract, ApiError};
-use abstract_sdk::base::endpoints::IbcCallbackEndpoint;
-use abstract_sdk::AbstractSdkError;
+use abstract_sdk::{base::endpoints::IbcCallbackEndpoint, AbstractSdkError};
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,

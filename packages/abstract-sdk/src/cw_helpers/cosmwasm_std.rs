@@ -1,5 +1,4 @@
 use cosmwasm_std::{to_binary, QueryRequest, StdResult, WasmQuery};
-
 use serde::Serialize;
 
 /// Shortcut helper as the construction of QueryRequest::Wasm(WasmQuery::Smart {...}) can be quite verbose in contract code
@@ -18,8 +17,7 @@ pub fn wasm_smart_query<C>(
 mod test {
     use super::*;
     use cosmwasm_std::Empty;
-    use os::app;
-    use os::app::BaseQueryMsg;
+    use os::{app, app::BaseQueryMsg};
 
     #[test]
     fn test_wasm_smart_query() {

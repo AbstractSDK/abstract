@@ -2,9 +2,10 @@ pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
 pub mod mock_module;
 pub(crate) mod mock_querier;
-
-use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::OwnedDeps;
+use cosmwasm_std::{
+    testing::{MockApi, MockQuerier, MockStorage},
+    OwnedDeps,
+};
 pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
 
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;

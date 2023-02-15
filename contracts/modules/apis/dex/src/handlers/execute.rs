@@ -6,7 +6,7 @@ use abstract_os::dex::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
-use abstract_sdk::base::features::AbstractNameService;
+use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::{IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 

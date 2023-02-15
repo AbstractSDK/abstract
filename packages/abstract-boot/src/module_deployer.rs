@@ -1,6 +1,5 @@
 use crate::{AnsHost, VersionControl};
-use abstract_os::objects::module::ModuleVersion;
-use abstract_os::{ANS_HOST, VERSION_CONTROL};
+use abstract_os::{objects::module::ModuleVersion, ANS_HOST, VERSION_CONTROL};
 use boot_core::{prelude::*, BootEnvironment, BootError::StdErr};
 use cosmwasm_std::Addr;
 use semver::Version;
