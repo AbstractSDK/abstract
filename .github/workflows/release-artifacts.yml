@@ -49,7 +49,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: cosmwasm-artifacts.tar.gz
+          files: |
+            cosmwasm-artifacts.tar.gz
+            *.wasm
           body_path: CHANGELOG.md
 
   publish-schemas:
