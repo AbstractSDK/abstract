@@ -24,7 +24,7 @@ use serde::Serialize;
 /// in the [`ExecuteMsg`] enum.
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait AppExecuteMsg: Serialize {}
-impl<T: AppExecuteMsg> From<T> for ExecuteMsg<T> {
+impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     fn from(app: T) -> Self {
         Self::App(app)
     }
