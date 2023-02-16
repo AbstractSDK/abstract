@@ -25,7 +25,7 @@ pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantia
 /// Enables [`Into<ExecuteMsg>`] for BOOT fn-generation support.
 pub trait ApiExecuteMsg: Serialize {}
 
-impl<T: ApiExecuteMsg> From<T> for ExecuteMsg<T> {
+impl<T: ApiExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     fn from(api_msg: T) -> Self {
         Self::App(ApiRequestMsg {
             proxy_address: None,
