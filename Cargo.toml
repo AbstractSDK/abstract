@@ -44,7 +44,6 @@ cw20 = { version = "1.0.1" }
 cw20-base = { version = "1.0.1", features = ["library"] }
 # wait for my pr to be merged
 cw-asset = { version = "3.0" }
-# cw-asset = { git = "https://github.com/mars-protocol/cw-asset.git", tag = "v3.0.0-rc1" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
@@ -83,7 +82,6 @@ subscription = { path = "contracts/modules/apps/subscription" }
 
 
 ## Testing
-# cw-multi-test = { git = "https://github.com/Abstract-OS/cw-plus.git", branch = "main" }
 cw-multi-test = { version = "0.16.2" }
 rstest = "0.16.0"
 speculoos = "0.11.0"
