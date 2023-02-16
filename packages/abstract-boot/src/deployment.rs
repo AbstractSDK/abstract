@@ -34,6 +34,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
     type DeployData = semver::Version;
 
     // TODO: From<BootError>
+    #[allow(unused_mut)]
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
         let mut os_factory = OSFactory::new(OS_FACTORY, chain.clone());
@@ -41,6 +42,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
         let mut module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let mut manager = Manager::new(MANAGER, chain.clone());
         let mut proxy = Proxy::new(PROXY, chain.clone());
+        #[cfg(feature = "integration")]
         if cfg!(feature = "integration") {
             ans_host
                 .as_instance_mut()
