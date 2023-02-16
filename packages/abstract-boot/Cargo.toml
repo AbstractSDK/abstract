@@ -21,7 +21,7 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
-abstract-os = { workspace = true, features = ["boot"] }
+abstract-os = { version = "0.10", features = ["boot"] }
 
 boot-core = { workspace = true }
 tokio = { workspace = true }
