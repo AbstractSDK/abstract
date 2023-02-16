@@ -1,5 +1,7 @@
 use crate::{error::DexError, DEX};
+use abstract_os::dex::state::SWAP_FEE;
 use abstract_os::objects::{DexAssetPairing, PoolReference};
+use abstract_sdk::cw_helpers::fees::Chargeable;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::os::dex::AskAsset;
 use abstract_sdk::os::objects::AnsAsset;
@@ -128,16 +130,20 @@ pub trait LocalDex: AbstractNameService + Execution {
 
         let pair_address =
             exchange.pair_address(deps, ans.host(), (offer_asset.clone(), ask_asset))?;
-        let offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
-
-        exchange.swap(
+        let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
+        // account for fee
+        let fee = SWAP_FEE.load(deps.storage)?;
+        let fee_msg = offer_asset.charge_usage_fee(fee)?;
+        let mut swap_msgs = exchange.swap(
             deps,
             pair_address,
             offer_asset,
             ask_asset_info,
             belief_price,
             max_spread,
-        )
+        )?;
+        swap_msgs.push(fee_msg);
+        Ok(swap_msgs)
     }
 
     #[allow(clippy::too_many_arguments)]

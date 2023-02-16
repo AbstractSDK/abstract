@@ -2,12 +2,13 @@ use crate::contract::{DexApi, DexResult};
 use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
 use crate::LocalDex;
-use abstract_os::dex::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
+use abstract_os::dex::state::SWAP_FEE;
+use abstract_os::dex::{DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, IBC_DEX_ID};
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::{IbcInterface, Resolve};
+use abstract_sdk::{IbcInterface, OsVerification, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 const ACTION_RETRIES: u8 = 3;
@@ -17,19 +18,43 @@ pub fn execute_handler(
     env: Env,
     info: MessageInfo,
     api: DexApi,
-    msg: DexExecuteMsg,
+    msg: DexApiExecuteMsg,
 ) -> DexResult {
-    let DexExecuteMsg {
-        dex: dex_name,
-        action,
-    } = msg;
-    let exchange = exchange_resolver::identify_exchange(&dex_name)?;
-    // if exchange is on an app-chain, execute the action on the app-chain
-    if exchange.over_ibc() {
-        handle_ibc_api_request(&deps, info, &api, dex_name, &action)
-    } else {
-        // the action can be executed on the local chain
-        handle_local_api_request(deps, env, info, api, action, dex_name)
+    match msg {
+        DexApiExecuteMsg::Action(msg) => {
+            let DexExecuteMsg {
+                dex: dex_name,
+                action,
+            } = msg;
+            let exchange = exchange_resolver::identify_exchange(&dex_name)?;
+            // if exchange is on an app-chain, execute the action on the app-chain
+            if exchange.over_ibc() {
+                handle_ibc_api_request(&deps, info, &api, dex_name, &action)
+            } else {
+                // the action can be executed on the local chain
+                handle_local_api_request(deps, env, info, api, action, dex_name)
+            }
+        }
+        DexApiExecuteMsg::UpdateFee {
+            swap_fee,
+            recipient_os_id,
+        } => {
+            // only previous OS can change the owner
+            api.os_registry(deps.as_ref()).assert_proxy(&info.sender)?;
+            if let Some(swap_fee) = swap_fee {
+                let mut fee = SWAP_FEE.load(deps.storage)?;
+                fee.set_share(swap_fee)?;
+                SWAP_FEE.save(deps.storage, &fee)?;
+            }
+
+            if let Some(os_id) = recipient_os_id {
+                let mut fee = SWAP_FEE.load(deps.storage)?;
+                let recipient = api.os_registry(deps.as_ref()).proxy_address(os_id)?;
+                fee.set_recipient(deps.api, recipient)?;
+                SWAP_FEE.save(deps.storage, &fee)?;
+            }
+            Ok(Response::default())
+        }
     }
 }
 

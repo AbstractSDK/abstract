@@ -26,51 +26,55 @@ pub struct OsRegistry<'a, T: OsVerification> {
 impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Core> {
-        let os_id = OS_ID
-            .query(&self.deps.querier, maybe_manager.clone())
-            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
-                contract_addr: maybe_manager.clone(),
-            })?;
-        let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
-        match maybe_os {
-            None => Err(AbstractSdkError::UnknownOsId {
-                os_id,
-                version_control_addr: vc_address,
-            }),
-            Some(core) => {
-                if &core.manager != maybe_manager {
-                    Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
-                } else {
-                    Ok(core)
-                }
-            }
+        let os_id = self.os_id(maybe_manager)?;
+        let core = self.core(os_id)?;
+        if &core.manager != maybe_manager {
+            Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
+        } else {
+            Ok(core)
         }
     }
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Core> {
-        let os_id = OS_ID
-            .query(&self.deps.querier, maybe_proxy.clone())
-            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
-                contract_addr: maybe_proxy.clone(),
-            })?;
+        let os_id = self.os_id(maybe_proxy)?;
+        let core = self.core(os_id)?;
+        if &core.proxy != maybe_proxy {
+            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
+        } else {
+            Ok(core)
+        }
+    }
 
-        let vc_address = self.base.abstract_registry(self.deps)?;
-        let maybe_os = OS_ADDRESSES.query(&self.deps.querier, vc_address.clone(), os_id)?;
+    pub fn proxy_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
+        self.core(os_id).map(|core| core.proxy)
+    }
+
+    pub fn manager_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
+        self.core(os_id).map(|core| core.manager)
+    }
+
+    pub fn core(&self, os_id: u32) -> AbstractSdkResult<Core> {
+        let maybe_os = OS_ADDRESSES.query(
+            &self.deps.querier,
+            self.base.abstract_registry(self.deps)?,
+            os_id,
+        )?;
         match maybe_os {
             None => Err(AbstractSdkError::UnknownOsId {
                 os_id,
-                version_control_addr: vc_address,
+                version_control_addr: self.base.abstract_registry(self.deps)?,
             }),
-            Some(core) => {
-                if &core.proxy != maybe_proxy {
-                    Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
-                } else {
-                    Ok(core)
-                }
-            }
+            Some(core) => Ok(core),
         }
+    }
+
+    fn os_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
+        OS_ID
+            .query(&self.deps.querier, maybe_core_contract_addr.clone())
+            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
+                contract_addr: maybe_core_contract_addr.clone(),
+            })
     }
 }
 

@@ -72,16 +72,14 @@ macro_rules! export_endpoints {
 
 #[cfg(test)]
 mod test {
-
-    use cosmwasm_std::{
-        testing::{mock_dependencies, mock_env, mock_info},
-        SubMsgResult,
-    };
-
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
     };
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST};
+    use cosmwasm_std::{
+        testing::{mock_dependencies, mock_env, mock_info},
+        SubMsgResult,
+    };
     use speculoos::prelude::*;
 
     use crate::test_common::*;

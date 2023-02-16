@@ -13,7 +13,7 @@ use abstract_os::{
     EXCHANGE,
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
-use os::manager::state::ModuleId;
+use os::{dex::DexApiExecuteMsg, manager::state::ModuleId};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex api in your module.
@@ -61,10 +61,10 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
         modules.api_request(
             self.dex_module_id(),
-            DexExecuteMsg {
+            DexApiExecuteMsg::from(DexExecuteMsg {
                 dex: self.dex_name(),
                 action,
-            },
+            }),
         )
     }
 
@@ -150,13 +150,13 @@ mod test {
     use super::*;
 
     use crate::apis::test_common::*;
+    use os::api::ApiRequestMsg;
+    use os::dex::ExecuteMsg;
 
-    use os::{api, api::ApiRequestMsg};
-
-    fn expected_request_with_test_proxy(request: DexExecuteMsg) -> api::ExecuteMsg<DexExecuteMsg> {
+    fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         ApiRequestMsg {
             proxy_address: Some(abstract_testing::TEST_PROXY.to_string()),
-            request,
+            request: request.into(),
         }
         .into()
     }

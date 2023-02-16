@@ -13,18 +13,47 @@ pub type DexName = String;
 pub type OfferAsset = AnsAsset;
 pub type AskAsset = AnsAsset;
 
+pub mod state {
+    use cw_storage_plus::Item;
+
+    use crate::objects::fee::UsageFee;
+
+    pub const SWAP_FEE: Item<UsageFee> = Item::new("swap_fee");
+}
+
 pub const IBC_DEX_ID: u32 = 11335;
 
-pub type ExecuteMsg = api::ExecuteMsg<DexExecuteMsg>;
+pub type ExecuteMsg = api::ExecuteMsg<DexApiExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<DexQueryMsg>;
+pub type InstantiateMsg = api::InstantiateMsg<DexInstantiateMsg>;
 
-impl api::ApiExecuteMsg for DexExecuteMsg {}
-
+impl api::ApiExecuteMsg for DexApiExecuteMsg {}
 impl api::ApiQueryMsg for DexQueryMsg {}
+
+#[cosmwasm_schema::cw_serde]
+pub struct DexInstantiateMsg {
+    pub swap_fee: Decimal,
+    pub recipient_os: u32,
+}
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-// Struct messages not yet supported by BOOT
+pub enum DexApiExecuteMsg {
+    Action(DexExecuteMsg),
+    UpdateFee {
+        swap_fee: Option<Decimal>,
+        recipient_os_id: Option<u32>,
+    },
+}
+
+impl From<DexExecuteMsg> for DexApiExecuteMsg {
+    fn from(action: DexExecuteMsg) -> Self {
+        DexApiExecuteMsg::Action(action)
+    }
+}
+
+/// Dex Execute msg
+#[cosmwasm_schema::cw_serde]
 pub struct DexExecuteMsg {
     pub dex: DexName,
     pub action: DexAction,
@@ -100,4 +129,6 @@ pub struct SimulateSwapResponse {
     pub spread_amount: Uint128,
     /// Commission charged for the swap
     pub commission: (AssetEntry, Uint128),
+    /// API fee charged for the swap (paid in offer asset)
+    pub api_fee: Uint128,
 }

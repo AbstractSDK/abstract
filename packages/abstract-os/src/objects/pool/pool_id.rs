@@ -118,9 +118,9 @@ impl UncheckedPoolAddress {
     /// * For Contract addresses, assert its address is valid
     ///
     ///
-    /// ```rust
-    /// use cosmwasm_std::{Addr, Api, AbstractResult};
-    /// use abstract_os::objects::pool_id::UncheckedPoolAddress;
+    /// ```rust,no_run
+    /// use cosmwasm_std::{Addr, Api};
+    /// use abstract_os::{objects::pool_id::UncheckedPoolAddress, AbstractResult};
     ///
     /// fn validate_pool_id(api: &dyn Api, pool_id_unchecked: &UncheckedPoolAddress) {
     ///     match pool_id_unchecked.check(api) {
