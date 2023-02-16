@@ -62,7 +62,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
-                bank.transfer(vec![receives_each.clone()], receiver)
+                bank.transfer(vec![&receives_each], receiver)
             })
             .collect();
 

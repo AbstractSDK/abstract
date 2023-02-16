@@ -30,6 +30,17 @@ impl Resolve for AssetEntry {
     }
 }
 
+impl Resolve for &AssetEntry {
+    type Output = AssetInfo;
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
+        ans_host.query_asset(querier, self).map_err(Into::into)
+    }
+}
+
 /// TODO: this should be moved into a more appropriate package (with the LP token)
 impl Resolve for LpToken {
     type Output = AssetInfo;
@@ -94,6 +105,21 @@ impl Resolve for UniquePoolId {
 }
 
 impl Resolve for AnsAsset {
+    type Output = Asset;
+
+    fn resolve(
+        &self,
+        querier: &QuerierWrapper,
+        ans_host: &AnsHost,
+    ) -> AbstractSdkResult<Self::Output> {
+        Ok(Asset::new(
+            ans_host.query_asset(querier, &self.name)?,
+            self.amount,
+        ))
+    }
+}
+
+impl Resolve for &AnsAsset {
     type Output = Asset;
 
     fn resolve(

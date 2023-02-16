@@ -81,9 +81,16 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///         .add_attribute("asset_sent", requested_asset.to_string()))
     /// }
     /// ```
-    pub fn transfer(&self, funds: Vec<AnsAsset>, recipient: &Addr) -> AbstractSdkResult<CosmosMsg> {
-        let resolved_funds = funds.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
-        let transfer_msgs = resolved_funds
+    pub fn transfer<R: Transferable>(
+        &self,
+        funds: Vec<R>,
+        recipient: &Addr,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let transferable_funds = funds
+            .into_iter()
+            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
+        let transfer_msgs = transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>();
@@ -105,10 +112,13 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Transfer the **funds** (deposit) into the OS from the current contract.
-    pub fn deposit(&self, funds: Vec<AnsAsset>) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
-        let resolved_funds = funds.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
-        resolved_funds
+        let transferable_funds = funds
+            .into_iter()
+            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
+        transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>()
@@ -122,6 +132,35 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             to_address: recipient,
             amount: coins,
         }))
+    }
+}
+
+/// Transfer an asset into an actual transferable asset.
+pub trait Transferable: Resolve {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        base: &T,
+        deps: Deps,
+    ) -> AbstractSdkResult<Asset>;
+}
+
+impl Transferable for &AnsAsset {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        base: &T,
+        deps: Deps,
+    ) -> AbstractSdkResult<Asset> {
+        self.resolve(&deps.querier, &base.ans_host(deps)?)
+    }
+}
+
+impl Transferable for Asset {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        _base: &T,
+        _deps: Deps,
+    ) -> AbstractSdkResult<Asset> {
+        Ok(self)
     }
 }
 
