@@ -23,9 +23,9 @@ pub mod feature_objects;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    bank::TransferInterface, dex::DexInterface, execution::Execution, ibc::IbcInterface,
-    modules::ModuleInterface, respond::AbstractResponse, vault::VaultInterface,
-    verify::OsVerification, version_registry::ModuleRegistryInterface,
+    bank::*, dex::*, execution::*, ibc::*,
+    modules::*, respond::*, vault::*,
+    verify::*, version_registry::*,
 };
 
 pub mod features {
