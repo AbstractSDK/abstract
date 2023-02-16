@@ -154,6 +154,16 @@ impl Transferable for &AnsAsset {
     }
 }
 
+impl Transferable for AnsAsset {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        base: &T,
+        deps: Deps,
+    ) -> AbstractSdkResult<Asset> {
+        self.resolve(&deps.querier, &base.ans_host(deps)?)
+    }
+}
+
 impl Transferable for Asset {
     fn transferable_asset<T: AbstractNameService>(
         self,
