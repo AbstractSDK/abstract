@@ -1,7 +1,6 @@
-use abstract_boot::VersionControl;
+use abstract_boot::{VersionControl, VCExecFns};
 use abstract_os::{
     objects::module::{ModuleInfo, ModuleVersion},
-    version_control::ExecuteMsgFns,
 };
 use boot_core::{
     networks, networks::NetworkInfo, prelude::instantiate_daemon_env, DaemonOptionsBuilder,

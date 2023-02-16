@@ -1,7 +1,7 @@
-use abstract_boot::Abstract;
+use abstract_boot::{Abstract, VCExecFns};
 use abstract_os::{
     objects::module::{Module, ModuleInfo},
-    version_control::{ExecuteMsgFns, ModulesListResponse, QueryMsgFns},
+    version_control::{ModulesListResponse, QueryMsgFns},
 };
 use boot_core::{
     networks::{terra::PISCO_1, NetworkInfo},

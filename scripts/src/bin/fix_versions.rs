@@ -1,7 +1,7 @@
-use abstract_boot::Abstract;
+use abstract_boot::{Abstract, VCExecFns, VCQueryFns};
 use abstract_os::{
     objects::module::{Module, ModuleInfo, ModuleVersion},
-    version_control::{ExecuteMsgFns, ModuleFilter, ModulesListResponse, QueryMsgFns},
+    version_control::{ModuleFilter, ModulesListResponse},
 };
 use boot_core::{
     networks::{NetworkInfo, UNI_5},
