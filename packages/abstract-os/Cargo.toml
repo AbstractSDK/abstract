@@ -21,6 +21,7 @@ cosmwasm-std = { workspace = true, features = ["iterator"] }
 cosmwasm-schema = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
+cw-utils = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }

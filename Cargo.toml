@@ -7,8 +7,7 @@ members = [
     "contracts/token",
     "contracts/modules/apps/etf",
     "contracts/modules/apps/subscription",
-    "contracts/modules/apis/tendermint-staking",
-    "contracts/modules/apis/dex",
+    "contracts/modules/apis/*",
     "contracts/modules/perks/vesting",
     "contracts/ibc-hosts/osmosis",
     "scripts"
@@ -25,7 +24,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.9.0"
+version = "0.9.1"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -44,7 +43,8 @@ cw2 = { version = "1.0.1" }
 cw20 = { version = "1.0.1" }
 cw20-base = { version = "1.0.1", features = ["library"] }
 # wait for my pr to be merged
-cw-asset = { git = "https://github.com/mars-protocol/cw-asset.git", tag = "v3.0.0-rc1" }
+cw-asset = { version = "3.0" }
+# cw-asset = { git = "https://github.com/mars-protocol/cw-asset.git", tag = "v3.0.0-rc1" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
@@ -59,12 +59,12 @@ boot-cw-plus = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.g
 tokio = { version = "1.4", features = ["full"] }
 
 
-abstract-sdk = { version = "0.9.0", path = "packages/abstract-sdk" }
-abstract-os = { version = "0.9.0", path = "packages/abstract-os" }
-abstract-app = { version = "0.9.0", path = "packages/abstract-app" }
-abstract-api = { version = "0.9.0", path = "packages/abstract-api" }
-abstract-ibc-host = { version = "0.9.0", path = "packages/abstract-ibc-host" }
-abstract-ica = { version = "0.9.0", path = "packages/abstract-ica" }
+abstract-sdk = { version = "0.9.1", path = "packages/abstract-sdk" }
+abstract-os = { version = "0.9.1", path = "packages/abstract-os" }
+abstract-app = { version = "0.9.1", path = "packages/abstract-app" }
+abstract-api = { version = "0.9.1", path = "packages/abstract-api" }
+abstract-ibc-host = { version = "0.9.1", path = "packages/abstract-ibc-host" }
+abstract-ica = { version = "0.9.1", path = "packages/abstract-ica" }
 abstract-testing = { path = "packages/abstract-testing" }
 abstract-boot = { path = "packages/abstract-boot" }
 abstract-macros = { path = "packages/abstract-macros" }
