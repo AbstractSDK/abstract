@@ -24,7 +24,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.10.2"
+version = "0.10.3"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -53,21 +53,21 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 
 semver = "1.0"
-cw-semver = { version = "1.0", git = "https://github.com/Abstract-OS/cw-semver.git" }
-boot-core = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
-boot-cw-plus = { version = "0.6.0", git = "https://github.com/Abstract-OS/BOOT.git" }
+cw-semver = { version = "1.0"}
+boot-core = { version = "0.6.0" }
+boot-cw-plus = { version = "0.6.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 
-abstract-macros = {version = "0.10.0", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.10.0", path = "packages/abstract-ica" }
-abstract-os = { version = "0.10.0", path = "packages/abstract-os" }
-abstract-sdk = { version = "0.10.2", path = "packages/abstract-sdk" }
-abstract-app = { version = "0.10.2", path = "packages/abstract-app" }
-abstract-api = { version = "0.10.2", path = "packages/abstract-api" }
-abstract-ibc-host = { version = "0.10.2", path = "packages/abstract-ibc-host" }
+abstract-macros = {version = "0.10.3", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.10.3", path = "packages/abstract-ica" }
+abstract-os = { version = "0.10.3", path = "packages/abstract-os" }
+abstract-sdk = { version = "0.10.3", path = "packages/abstract-sdk" }
+abstract-app = { version = "0.10.3", path = "packages/abstract-app" }
+abstract-api = { version = "0.10.3", path = "packages/abstract-api" }
+abstract-ibc-host = { version = "0.10.3", path = "packages/abstract-ibc-host" }
 abstract-testing = { path = "packages/abstract-testing" }
-abstract-boot = {version = "0.10.0", path = "packages/abstract-boot" }
+abstract-boot = {version = "0.10.3", path = "packages/abstract-boot" }
 
 
 module-factory = { path = "contracts/native/module-factory" }
