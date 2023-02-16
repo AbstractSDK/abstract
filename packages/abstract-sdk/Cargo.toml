@@ -32,5 +32,4 @@ speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
 abstract-testing = { workspace = true, default-features = false }
 abstract-ica = { workspace = true }
-abstract-app = { workspace = true }
 doc-comment = "0.3.3"
