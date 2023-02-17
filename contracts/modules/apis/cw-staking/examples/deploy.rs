@@ -5,8 +5,8 @@ use boot_core::{
     networks::NetworkInfo, prelude::instantiate_daemon_env, prelude::*, DaemonOptionsBuilder,
 };
 use cosmwasm_std::{Addr, Empty};
-use forty_two::cw_staking::CW_STAKING;
-use forty_two_boot::cw_staking::CwStakingApi;
+use abstract_sdk::os::cw_staking::CW_STAKING;
+use abstract_boot::CwStakingApi;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -76,7 +76,6 @@ fn deploy_cw_staking(
 }
 
 use clap::Parser;
-use forty_two_boot::parse_network;
 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -102,7 +101,7 @@ fn main() -> anyhow::Result<()> {
         code_id,
     } = Arguments::parse();
 
-    let network = parse_network(&network_id);
+    let network = boot_core::networks::parse_network(&network_id);
 
     deploy_cw_staking(network, prev_version, code_id)
 }

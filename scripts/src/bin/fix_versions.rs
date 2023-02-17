@@ -4,14 +4,14 @@ use abstract_os::{
     version_control::{ModuleFilter, ModulesListResponse},
 };
 use boot_core::{
-    networks::{NetworkInfo, UNI_5},
+    networks::{NetworkInfo, UNI_6},
     prelude::*,
 };
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
-const NETWORK: NetworkInfo = UNI_5;
+const NETWORK: NetworkInfo = UNI_6;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PROVIDER: &str = "abstract";
