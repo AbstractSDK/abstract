@@ -15,8 +15,6 @@ use cw_storage_plus::{Item, Map, PrimaryKey};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::HashMap, ops::Deref};
 
-pub type EmptyMockQuerier = MockQuerier<Empty>;
-
 type BinaryQueryResult = Result<Binary, String>;
 type ContractAddr = String;
 type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
@@ -25,7 +23,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
 /// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
 pub struct MockQuerierBuilder {
-    base: EmptyMockQuerier,
+    base: MockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
     fallback_smart_handler: Box<FallbackHandler>,
     smart_handlers: HashMap<ContractAddr, Box<SmartHandler>>,
@@ -272,7 +270,7 @@ impl MockQuerierBuilder {
     }
 
     /// Build the [`MockQuerier`].
-    pub fn build(mut self) -> EmptyMockQuerier {
+    pub fn build(mut self) -> MockQuerier {
         self.base.update_wasm(move |wasm| {
             let res = match wasm {
                 WasmQuery::Raw { contract_addr, key } => {
@@ -323,7 +321,7 @@ impl MockQuerierBuilder {
 ///   - "os_id" -> TEST_OS_ID
 /// - TEST_VERSION_CONTROL
 ///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
-pub fn mock_querier() -> EmptyMockQuerier {
+pub fn mock_querier() -> MockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
         let _str_key = std::str::from_utf8(&key.0).unwrap();
         match contract {
@@ -365,7 +363,7 @@ pub fn mock_querier() -> EmptyMockQuerier {
         .build()
 }
 
-pub fn wrap_querier(querier: &EmptyMockQuerier) -> QuerierWrapper<'_, Empty> {
+pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
     QuerierWrapper::<Empty>::new(querier)
 }
 
