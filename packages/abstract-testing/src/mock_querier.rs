@@ -39,12 +39,12 @@ impl Default for MockQuerierBuilder {
         let raw_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
             let str_key = std::str::from_utf8(&key.0).unwrap();
             Err(format!(
-                "No mock querier for this query: {addr:?} {str_key:?}"
+                "No raw query handler for {addr:?} with key {str_key:?}"
             ))
         };
         let smart_fallback: fn(&str, &Binary) -> BinaryQueryResult = |addr, key| {
             let str_key = std::str::from_utf8(&key.0).unwrap();
-            Err(format!("unexpected contract: {addr:?} {str_key:?}"))
+            Err(format!("unexpected smart-query on contract: {addr:?} {str_key:?}"))
         };
 
         Self {
