@@ -6,7 +6,7 @@ use serde::Serialize;
 pub trait InstantiateEndpoint: Handler {
     type InstantiateMsg: Serialize + JsonSchema;
 
-    /// Instantiate the base contract
+    /// Handler for the Instantiate endpoint.
     fn instantiate(
         self,
         deps: DepsMut,

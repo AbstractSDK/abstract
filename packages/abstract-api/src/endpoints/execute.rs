@@ -36,8 +36,8 @@ impl<
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
-            ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
-            ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
+            ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
+            ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported api execute message variant").into()),
         }

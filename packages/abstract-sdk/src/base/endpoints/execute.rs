@@ -6,7 +6,7 @@ use serde::Serialize;
 pub trait ExecuteEndpoint: Handler {
     type ExecuteMsg: Serialize + JsonSchema;
 
-    /// Entry point for contract execution
+    /// Handler for the Execute endpoint.
     fn execute(
         self,
         deps: DepsMut,

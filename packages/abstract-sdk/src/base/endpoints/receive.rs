@@ -2,7 +2,9 @@ use crate::{base::Handler, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait ReceiveEndpoint: Handler {
-    fn handle_receive(
+
+    /// Handler for the `ExecuteMsg::Receive()` variant.
+    fn receive(
         self,
         deps: DepsMut,
         env: Env,

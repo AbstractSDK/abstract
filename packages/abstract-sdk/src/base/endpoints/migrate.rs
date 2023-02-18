@@ -5,6 +5,8 @@ use serde::Serialize;
 
 pub trait MigrateEndpoint: Handler {
     type MigrateMsg: Serialize + JsonSchema;
+
+    /// Handler for the Migrate endpoint.
     fn migrate(
         self,
         deps: DepsMut,

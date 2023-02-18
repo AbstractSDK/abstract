@@ -3,9 +3,9 @@ use abstract_os::{abstract_ica::IbcResponseMsg, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
-    /// Takes request, sets destination and executes request handler
-    /// This fn is the only way to get an ApiContract instance which ensures the destination address is set correctly.
-    fn handle_ibc_callback(
+
+    /// Handler for the `ExecuteMsg::IbcCallback()` variant.
+    fn ibc_callback(
         self,
         deps: DepsMut,
         env: Env,

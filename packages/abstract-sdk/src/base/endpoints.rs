@@ -95,8 +95,8 @@
 //!             // handle the other messages with a custom handler set by the developer
 //!             // by passing `self` to the handlers we expose all the features and APIs that the base contract provides through the SDK.
 //!             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
-//!             ExecuteMsg::IbcCallback(msg) => self.handle_ibc_callback(deps, env, info, msg),
-//!             ExecuteMsg::Receive(msg) => self.handle_receive(deps, env, info, msg),
+//!             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
+//!             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
 //!            
 //!         }
 //!     }
