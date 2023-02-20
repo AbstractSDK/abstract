@@ -1,5 +1,6 @@
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
+use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 use abstract_boot::{TMintStakingApi, OS};
 use abstract_os::{
@@ -12,7 +13,6 @@ use boot_core::{
 };
 use cosmwasm_std::{Addr, Empty};
 use cw_multi_test::ContractWrapper;
-use ::abstract_manager::contract::CONTRACT_VERSION;
 use semver::Version;
 
 pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> {

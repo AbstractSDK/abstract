@@ -1,6 +1,6 @@
 mod common;
-use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_boot::*;
+use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{
     api::BaseQueryMsgFns,
