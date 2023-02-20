@@ -24,7 +24,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.10.3"
+version = "0.11.0"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -48,34 +48,30 @@ schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
-
 clap = { version = "4.0.32", features = ["derive"] }
-
 semver = "1.0"
 cw-semver = { version = "1.0"}
 boot-core = { version = "0.6.1" }
 boot-cw-plus = { version = "0.6.1" }
 tokio = { version = "1.4", features = ["full"] }
 
-
-abstract-macros = {version = "0.10.3", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.10.3", path = "packages/abstract-ica" }
-abstract-os = { version = "0.10.3", path = "packages/abstract-os" }
-abstract-sdk = { version = "0.10.3", path = "packages/abstract-sdk" }
-abstract-app = { version = "0.10.3", path = "packages/abstract-app" }
-abstract-api = { version = "0.10.3", path = "packages/abstract-api" }
-abstract-ibc-host = { version = "0.10.3", path = "packages/abstract-ibc-host" }
 abstract-testing = { path = "packages/abstract-testing" }
-abstract-boot = {version = "0.10.3", path = "packages/abstract-boot" }
+abstract-macros = {version = "0.11.0", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.11.0", path = "packages/abstract-ica" }
+abstract-os = { version = "0.11.0", path = "packages/abstract-os" }
+abstract-sdk = { version = "0.11.0", path = "packages/abstract-sdk" }
+abstract-app = { version = "0.11.0", path = "packages/abstract-app" }
+abstract-api = { version = "0.11.0", path = "packages/abstract-api" }
+abstract-ibc-host = { version = "0.11.0", path = "packages/abstract-ibc-host" }
+abstract-boot = {version = "0.11.0", path = "packages/abstract-boot" }
 
-
-module-factory = { path = "contracts/native/module-factory" }
-os-factory = { path = "contracts/native/os-factory" }
-ans-host = { path = "contracts/native/ans-host" }
-version-control = { path = "contracts/native/version-control" }
+module-factory = {version = "0.11.0", path = "contracts/native/module-factory" }
+os-factory = {version = "0.11.0", path = "contracts/native/os-factory" }
+ans-host = {version = "0.11.0", path = "contracts/native/ans-host" }
+version-control = {version = "0.11.0", path = "contracts/native/version-control" }
+proxy = {version = "0.11.0", path = "contracts/core/proxy" }
+manager = {version = "0.11.0", path = "contracts/core/manager" }
 osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
-proxy = { path = "contracts/core/proxy" }
-manager = { path = "contracts/core/manager" }
 ibc-client = { path = "contracts/native/ibc-client" }
 etf = { path = "contracts/modules/apps/etf" }
 subscription = { path = "contracts/modules/apps/subscription" }

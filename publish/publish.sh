@@ -16,12 +16,14 @@ fi
 # these are imported by other packages
 BASE_PACKAGES="abstract-ica abstract-os abstract-macros"
 UTILS_PACKAGES="abstract-sdk"
+CORE_CONTRACTS="proxy manager"
+NATIVE_CONTRACTS="ans-host os-factory module-factory version-control"
 ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
 
 for pack in $BASE_PACKAGES; do
   (
     cd "packages/$pack"
-    echo "Publishing $pack"
+    echo "Publishing base $pack"
     cargo publish
   )
 done
@@ -29,7 +31,23 @@ done
 for pack in $UTILS_PACKAGES; do
   (
     cd "packages/$pack"
-    echo "Publishing $pack"
+    echo "Publishing util $pack"
+    cargo publish
+  )
+done
+
+for con in $CORE_CONTRACTS; do
+  (
+    cd "contracts/core/$con"
+    echo "Publishing core $con"
+    cargo publish
+  )
+done
+
+for con in $NATIVE_CONTRACTS; do
+  (
+    cd "contracts/native/$con"
+    echo "Publishing native $con"
     cargo publish
   )
 done

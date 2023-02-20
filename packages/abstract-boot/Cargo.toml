@@ -29,8 +29,8 @@ log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
 
-ans-host = { workspace = true, optional = true, features = ["library"] }
 cw-multi-test = { workspace = true, optional = true }
+ans-host = { workspace = true, optional = true, features = ["library"] }
 module-factory = { workspace = true, optional = true, features = ["library"] }
 os-factory = { workspace = true, optional = true, features = ["library"] }
 version-control = { workspace = true, optional = true, features = ["library"] }
