@@ -20,7 +20,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
-migrate = ["abstract-boot/daemon"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
