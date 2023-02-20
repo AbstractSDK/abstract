@@ -20,21 +20,21 @@ CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host os-factory module-factory version-control"
 ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
 
-# for pack in $BASE_PACKAGES; do
-#   (
-#     cd "packages/$pack"
-#     echo "Publishing base $pack"
-#     cargo publish
-#   )
-# done
+for pack in $BASE_PACKAGES; do
+  (
+    cd "packages/$pack"
+    echo "Publishing base $pack"
+    cargo publish
+  )
+done
 
-# for pack in $UTILS_PACKAGES; do
-#   (
-#     cd "packages/$pack"
-#     echo "Publishing util $pack"
-#     cargo publish
-#   )
-# done
+for pack in $UTILS_PACKAGES; do
+  (
+    cd "packages/$pack"
+    echo "Publishing util $pack"
+    cargo publish
+  )
+done
 
 for con in $CORE_CONTRACTS; do
   (
