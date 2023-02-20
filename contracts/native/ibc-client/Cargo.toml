@@ -1,10 +1,12 @@
 [package]
-name = "ibc-client"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
-publish = false
-license = "Apache-2.0"
+name = "abstract-ibc-client"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract IBC Client Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
 
 
 [lib]

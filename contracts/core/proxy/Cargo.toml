@@ -1,8 +1,13 @@
 [package]
-name = "proxy"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
+name = "abstract-proxy"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract OS Proxy Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
+
 
 exclude = [
   "contract.wasm",

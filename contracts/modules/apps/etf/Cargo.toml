@@ -33,8 +33,8 @@ abstract-sdk = {workspace = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-ans-host = { path = "../../../native/ans-host" }
+ans-host = { workspace = true }
 cw-multi-test = {workspace = true}
 cw20 = {workspace = true}
-proxy = { path = "../../../core/proxy" }
+proxy = { workspace = true }
 abstract-app = { workspace = true, features = ["schema"] }

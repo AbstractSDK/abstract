@@ -1,10 +1,12 @@
 [package]
-name = "os-factory"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
-description = "A CosmWasm DAO factory contract - Generates the initial DAO infrastructure"
-license = "MIT"
+name = "abstract-os-factory"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract OS Factory Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
 
 exclude = [
   "contract.wasm",

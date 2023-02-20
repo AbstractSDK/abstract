@@ -1,10 +1,13 @@
 [package]
-name = "module-factory"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
-description = ""
-license = "MIT"
+name = "abstract-module-factory"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract Module Factory Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
+
 
 exclude = [
   "contract.wasm",

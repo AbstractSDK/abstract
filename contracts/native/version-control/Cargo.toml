@@ -1,8 +1,12 @@
 [package]
-name = "version-control"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
+name = "abstract-version-control"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract Version Control Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
 
 exclude = [
   "contract.wasm",
@@ -38,8 +42,8 @@ boot-core = { workspace = true }
 anyhow = { workspace = true }
 cw-multi-test = { workspace = true }
 module-factory = { workspace = true }
-ans-host = { workspace = true }
 os-factory = { workspace = true }
+ans-host = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
 

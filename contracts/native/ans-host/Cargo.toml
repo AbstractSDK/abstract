@@ -1,8 +1,12 @@
 [package]
-name = "ans-host"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
+name = "abstract-ans-host"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract Name Service Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
 
 exclude = [
   "contract.wasm",

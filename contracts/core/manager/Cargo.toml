@@ -1,8 +1,12 @@
 [package]
-name = "manager"
+name = "abstract-manager"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
+description = "Abstract OS Manager Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/Abstract-OS/contracts"
 
 exclude = [
   "contract.wasm",
@@ -41,13 +45,11 @@ abstract-boot = { workspace = true }
 boot-core = { workspace = true }
 anyhow = { workspace = true }
 os-factory = { workspace = true }
-module-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }
-manager = { workspace = true }
+module-factory = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }
-
 tendermint-staking = { path = "../../modules/apis/tendermint-staking" }
 abstract-testing = { workspace = true }

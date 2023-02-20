@@ -4,7 +4,7 @@ use abstract_os::{manager::ManagerModuleInfo, PROXY};
 use boot_core::prelude::{instantiate_default_mock_env, ContractInstance};
 use common::{create_default_os, init_abstract_env, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
-use manager::contract::CONTRACT_VERSION;
+use abstract_manager::contract::CONTRACT_VERSION;
 use speculoos::prelude::*;
 
 #[test]

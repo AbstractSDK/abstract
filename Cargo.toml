@@ -48,6 +48,7 @@ schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
+
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0"}
@@ -63,16 +64,17 @@ abstract-sdk = { version = "0.11.0", path = "packages/abstract-sdk" }
 abstract-app = { version = "0.11.0", path = "packages/abstract-app" }
 abstract-api = { version = "0.11.0", path = "packages/abstract-api" }
 abstract-ibc-host = { version = "0.11.0", path = "packages/abstract-ibc-host" }
-abstract-boot = {version = "0.11.0", path = "packages/abstract-boot" }
 
-module-factory = {version = "0.11.0", path = "contracts/native/module-factory" }
-os-factory = {version = "0.11.0", path = "contracts/native/os-factory" }
-ans-host = {version = "0.11.0", path = "contracts/native/ans-host" }
-version-control = {version = "0.11.0", path = "contracts/native/version-control" }
-proxy = {version = "0.11.0", path = "contracts/core/proxy" }
-manager = {version = "0.11.0", path = "contracts/core/manager" }
+abstract-boot = {path = "packages/abstract-boot" }
+
+module-factory = {package = "abstract-module-factory",version = "0.11.0", path = "contracts/native/module-factory" }
+os-factory = {package = "abstract-os-factory",version = "0.11.0", path = "contracts/native/os-factory" }
+ans-host = {package = "abstract-ans-host",version = "0.11.0", path = "contracts/native/ans-host" }
+version-control = {package = "abstract-version-control",version = "0.11.0", path = "contracts/native/version-control" }
+proxy = {package = "abstract-proxy",version = "0.11.0", path = "contracts/core/proxy" }
+manager = {package = "abstract-manager",version = "0.11.0", path = "contracts/core/manager" }
 osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
-ibc-client = { path = "contracts/native/ibc-client" }
+abstract-ibc-client = {package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 etf = { path = "contracts/modules/apps/etf" }
 subscription = { path = "contracts/modules/apps/subscription" }
 

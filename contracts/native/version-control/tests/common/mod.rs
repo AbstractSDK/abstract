@@ -43,9 +43,9 @@ pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> 
 
     version_control.as_instance_mut().set_mock(Box::new(
         cw_multi_test::ContractWrapper::new_with_empty(
-            ::version_control::contract::execute,
-            ::version_control::contract::instantiate,
-            ::version_control::contract::query,
+            ::abstract_version_control::contract::execute,
+            ::abstract_version_control::contract::instantiate,
+            ::abstract_version_control::contract::query,
         ),
     ));
 

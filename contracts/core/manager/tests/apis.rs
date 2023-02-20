@@ -1,5 +1,5 @@
 mod common;
-use ::manager::contract::CONTRACT_VERSION;
+use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_boot::*;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_os::{

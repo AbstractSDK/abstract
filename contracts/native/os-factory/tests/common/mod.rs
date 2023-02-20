@@ -25,11 +25,11 @@ pub fn init_abstract_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock
 
     os_factory.as_instance_mut().set_mock(Box::new(
         ContractWrapper::new_with_empty(
-            ::os_factory::contract::execute,
-            ::os_factory::contract::instantiate,
-            ::os_factory::contract::query,
+            ::abstract_os_factory::contract::execute,
+            ::abstract_os_factory::contract::instantiate,
+            ::abstract_os_factory::contract::query,
         )
-        .with_reply_empty(::os_factory::contract::reply),
+        .with_reply_empty(::abstract_os_factory::contract::reply),
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
