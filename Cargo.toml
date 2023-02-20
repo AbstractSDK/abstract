@@ -67,12 +67,12 @@ abstract-ibc-host = { version = "0.11.0", path = "packages/abstract-ibc-host" }
 
 abstract-boot = {path = "packages/abstract-boot" }
 
-module-factory = {package = "abstract-module-factory",version = "0.11.0", path = "contracts/native/module-factory" }
-os-factory = {package = "abstract-os-factory",version = "0.11.0", path = "contracts/native/os-factory" }
-ans-host = {package = "abstract-ans-host",version = "0.11.0", path = "contracts/native/ans-host" }
-version-control = {package = "abstract-version-control",version = "0.11.0", path = "contracts/native/version-control" }
-proxy = {package = "abstract-proxy",version = "0.11.0", path = "contracts/core/proxy" }
-manager = {package = "abstract-manager",version = "0.11.0", path = "contracts/core/manager" }
+module-factory = {package = "abstract-module-factory", path = "contracts/native/module-factory" }
+os-factory = {package = "abstract-os-factory", path = "contracts/native/os-factory" }
+ans-host = {package = "abstract-ans-host", path = "contracts/native/ans-host" }
+version-control = {package = "abstract-version-control", path = "contracts/native/version-control" }
+proxy = {package = "abstract-proxy", path = "contracts/core/proxy" }
+manager = {package = "abstract-manager", path = "contracts/core/manager" }
 osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
 abstract-ibc-client = {package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 etf = { path = "contracts/modules/apps/etf" }
