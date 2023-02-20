@@ -32,65 +32,22 @@ if [[ -n "$CHANGES_IN_REPO" ]]; then
 fi
 
 NEW="$1"
-OLD=$(sed -n -e 's/^version[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' packages/abstract-os/Cargo.toml)
+OLD=$(sed -n -e 's/^version[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' Cargo.toml)
 echo "Updating old version $OLD to new version $NEW ..."
 
 FILES_MODIFIED=()
 
-for package_dir in packages/*/; do
-  CARGO_TOML="$package_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
-
-# Token
-CARGO_TOML="contracts/abstract-token/Cargo.toml"
-sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
+CARGO_TOML="packages/abstract-boot/Cargo.toml"
+sed -i '' -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
 FILES_MODIFIED+=("$CARGO_TOML")
 
-# Testing
-CARGO_TOML="contracts/testing/Cargo.toml"
-sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-FILES_MODIFIED+=("$CARGO_TOML")
+sed -i '' -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "Cargo.toml"
+FILES_MODIFIED+=("Cargo.toml")
 
-# Core
-for contract_dir in contracts/core/*/; do
-  CARGO_TOML="$contract_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
-
-# apis
-for contract_dir in contracts/modules/apis/*/; do
-  CARGO_TOML="$contract_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
-
-# apps
-for contract_dir in contracts/modules/apps/*/; do
-  CARGO_TOML="$contract_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
-
-# services
-for contract_dir in contracts/modules/services/*/; do
-  CARGO_TOML="$contract_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
-
-# native
-for contract_dir in contracts/native/*/; do
-  CARGO_TOML="$contract_dir/Cargo.toml"
-  sed -i -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
-  FILES_MODIFIED+=("$CARGO_TOML")
-done
 
 cargo build
 FILES_MODIFIED+=("Cargo.lock")
 
 echo "Staging ${FILES_MODIFIED[*]} ..."
-git add "${FILES_MODIFIED[@]}"
-git commit -m "Set version: $NEW"
+# git add "${FILES_MODIFIED[@]}"
+# git commit -m "Set version: $NEW"
