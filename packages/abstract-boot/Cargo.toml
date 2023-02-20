@@ -30,9 +30,16 @@ serde_json = "1.0.79"
 speculoos = { workspace = true }
 
 cw-multi-test = { workspace = true, optional = true }
-ans-host = { workspace = true, optional = true, features = ["library"] }
-module-factory = { workspace = true, optional = true, features = ["library"] }
-os-factory = { workspace = true, optional = true, features = ["library"] }
-version-control = { workspace = true, optional = true, features = ["library"] }
-proxy = { workspace = true, optional = true, features = ["library"] }
-manager = { workspace = true, optional = true, features = ["library"] }
+# ans-host = { workspace = true, optional = true, features = ["library"] }
+# module-factory = { workspace = true, optional = true, features = ["library"] }
+# os-factory = { workspace = true, optional = true, features = ["library"] }
+# version-control = { workspace = true, optional = true, features = ["library"] }
+# proxy = { workspace = true, optional = true, features = ["library"] }
+# manager = { workspace = true, optional = true, features = ["library"] }
+
+module-factory = {package = "abstract-module-factory", path = "../../contracts/native/module-factory", features = ["library"], version = "0.11.0", optional = true }
+os-factory = {package = "abstract-os-factory", path = "../../contracts/native/os-factory", features = ["library"], version = "0.11.0", optional = true }
+ans-host = {package = "abstract-ans-host", path = "../../contracts/native/ans-host", features = ["library"], version = "0.11.0", optional = true }
+version-control = {package = "abstract-version-control", path = "../../contracts/native/version-control", features = ["library"], version = "0.11.0", optional = true }
+proxy = {package = "abstract-proxy", path = "../../contracts/core/proxy", features = ["library"], version = "0.11.0", optional = true }
+manager = {package = "abstract-manager", path = "../../contracts/core/manager", features = ["library"], version = "0.11.0", optional = true }
