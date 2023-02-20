@@ -10,15 +10,16 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type TendermintStakeApi = ApiContract<
     TendermintStakeError,
-    TendermintStakingExecuteMsg,
     Empty,
+    TendermintStakingExecuteMsg,
     TendermintStakingQueryMsg,
 >;
-pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 const STAKING_API: TendermintStakeApi =
     TendermintStakeApi::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
         .with_execute(handle_request);
+
+pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 // Export handlers
 #[cfg(not(feature = "library"))]

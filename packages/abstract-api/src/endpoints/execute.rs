@@ -15,12 +15,12 @@ use serde::Serialize;
 
 impl<
         Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomInitMsg,
+        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomQueryMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -47,11 +47,11 @@ impl<
 /// The api-contract base implementation.
 impl<
         Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn base_execute(
         &mut self,
@@ -218,7 +218,7 @@ mod tests {
     use crate::test_common::{MockApiExecMsg, MockError};
     use speculoos::prelude::*;
 
-    type MockApi = ApiContract<MockError, MockApiExecMsg, Empty, Empty, Empty>;
+    type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty, Empty>;
     type ApiMockResult = Result<(), MockError>;
 
     const TEST_METADATA: &str = "test_metadata";

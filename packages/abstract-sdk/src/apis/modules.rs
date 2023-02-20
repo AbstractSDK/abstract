@@ -5,10 +5,7 @@ use crate::{
     features::{Dependencies, Identification},
     AbstractSdkResult,
 };
-use abstract_os::{
-    api, app,
-    manager::state::{ModuleId, OS_MODULES},
-};
+use abstract_os::{api, app, manager::state::OS_MODULES, ModuleId};
 use cosmwasm_std::{wasm_execute, Addr, CosmosMsg, Deps, Empty, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 use os::api::ApiRequestMsg;

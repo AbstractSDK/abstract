@@ -13,7 +13,7 @@ use abstract_os::{
     EXCHANGE,
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
-use os::{dex::DexApiExecuteMsg, manager::state::ModuleId};
+use os::{dex::DexApiExecuteMsg, ModuleId};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex api in your module.

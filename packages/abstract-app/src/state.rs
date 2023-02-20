@@ -24,8 +24,8 @@ pub struct AppState {
 /// The state variables for our AppContract.
 pub struct AppContract<
     Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError> + 'static,
-    CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
+    CustomExecMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
     CustomMigrateMsg: 'static = Empty,
     Receive: 'static = Empty,
@@ -34,8 +34,8 @@ pub struct AppContract<
     pub(crate) contract: AbstractContract<
         Self,
         Error,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         Receive,
@@ -48,13 +48,13 @@ pub struct AppContract<
 /// Constructor
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     >
-    AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -78,6 +78,30 @@ impl<
         self
     }
 
+    pub const fn with_instantiate(
+        mut self,
+        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_instantiate(instantiate_handler);
+        self
+    }
+
+    pub const fn with_execute(
+        mut self,
+        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_execute(execute_handler);
+        self
+    }
+
+    pub const fn with_query(
+        mut self,
+        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_query(query_handler);
+        self
+    }
+
     pub const fn with_replies(
         mut self,
         reply_handlers: &'static [(u64, ReplyHandlerFn<Self, Error>)],
@@ -95,14 +119,6 @@ impl<
         self
     }
 
-    pub const fn with_instantiate(
-        mut self,
-        instantiate_handler: InstantiateHandlerFn<Self, CustomInitMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_instantiate(instantiate_handler);
-        self
-    }
-
     pub const fn with_receive(
         mut self,
         receive_handler: ReceiveHandlerFn<Self, ReceiveMsg, Error>,
@@ -111,27 +127,11 @@ impl<
         self
     }
 
-    pub const fn with_execute(
-        mut self,
-        execute_handler: ExecuteHandlerFn<Self, CustomExecMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_execute(execute_handler);
-        self
-    }
-
     pub const fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Self, CustomMigrateMsg, Error>,
     ) -> Self {
         self.contract = self.contract.with_migrate(migrate_handler);
-        self
-    }
-
-    pub const fn with_query(
-        mut self,
-        query_handler: QueryHandlerFn<Self, CustomQueryMsg, Error>,
-    ) -> Self {
-        self.contract = self.contract.with_query(query_handler);
         self
     }
 }

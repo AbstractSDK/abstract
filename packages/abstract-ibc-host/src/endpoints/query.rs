@@ -16,13 +16,13 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     > QueryEndpoint
-    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<Self::CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -36,12 +36,12 @@ impl<
 }
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {

@@ -18,13 +18,12 @@ pub mod state {
     use std::collections::HashSet;
 
     pub use crate::objects::core::OS_ID;
+    use crate::ModuleId;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     pub type Subscribed = bool;
-    /// ID of the module
-    pub type ModuleId<'a> = &'a str;
 
     /// Manager configuration
     #[cosmwasm_schema::cw_serde]

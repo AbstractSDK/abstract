@@ -12,7 +12,7 @@ impl<
         CustomQueryMsg: Serialize + JsonSchema,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
-    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         export_schema_with_title(

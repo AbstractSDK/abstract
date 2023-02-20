@@ -16,12 +16,12 @@ use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg: Serialize + JsonSchema,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
     > InstantiateEndpoint
-    for ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api

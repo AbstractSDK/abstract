@@ -3,7 +3,6 @@ use abstract_os::{abstract_ica::IbcResponseMsg, IBC_CLIENT};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
-
     /// Handler for the `ExecuteMsg::IbcCallback()` variant.
     fn ibc_callback(
         self,

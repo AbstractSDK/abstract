@@ -4,17 +4,17 @@
 //!
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
-
 use crate::base::{
-    ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
-    MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
+    ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
+    MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
 };
 
 pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> =
-    MiddlewareExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
-pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
-pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
-pub type MigrateMsg<AppMsg = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, AppMsg>;
+    EndpointExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
+pub type QueryMsg<AppMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, AppMsg>;
+pub type InstantiateMsg<AppMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, AppMsg>;
+pub type MigrateMsg<AppMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, AppMsg>;
+
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use cw_controllers::AdminResponse;

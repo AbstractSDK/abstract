@@ -20,13 +20,13 @@ type HostResult = Result<Response, HostError>;
 /// The host contract base implementation.
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomInitMsg,
+        CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
-    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -55,7 +55,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.

@@ -15,13 +15,13 @@ use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg: Serialize + JsonSchema,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     > InstantiateEndpoint
-    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     /// Instantiate the api
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;

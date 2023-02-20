@@ -19,8 +19,8 @@ pub type SubscriptionResult<T = Response> = Result<T, SubscriptionError>;
 
 pub type SubscriptionApp = AppContract<
     SubscriptionError,
-    SubscriptionExecuteMsg,
     InstantiateMsg,
+    SubscriptionExecuteMsg,
     SubscriptionQueryMsg,
     MigrateMsg,
     Cw20ReceiveMsg,

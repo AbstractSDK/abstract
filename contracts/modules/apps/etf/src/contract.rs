@@ -14,7 +14,7 @@ pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type EtfApp =
-    AppContract<EtfError, EtfExecuteMsg, EtfInstantiateMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
+    AppContract<EtfError, EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, Empty, Cw20ReceiveMsg>;
 
 pub type EtfResult<T = Response> = Result<T, EtfError>;
 

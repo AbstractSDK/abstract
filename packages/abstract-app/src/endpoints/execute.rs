@@ -15,16 +15,16 @@ impl<
             + From<AppError>
             + From<abstract_sdk::AbstractSdkError>
             + 'static,
-        CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomInitMsg,
+        CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
     for AppContract<
         Error,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
@@ -54,13 +54,13 @@ impl<
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     >
-    AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn base_execute(
         &self,

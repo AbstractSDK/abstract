@@ -9,16 +9,16 @@ use serde::Serialize;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg,
     > MigrateEndpoint
     for AppContract<
         Error,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,

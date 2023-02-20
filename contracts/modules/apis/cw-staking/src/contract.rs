@@ -5,7 +5,7 @@ use cosmwasm_std::{Empty, Response};
 
 const MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type CwStakingApi = ApiContract<StakingError, CwStakingExecuteMsg, Empty, CwStakingQueryMsg>;
+pub type CwStakingApi = ApiContract<StakingError, Empty, CwStakingExecuteMsg, CwStakingQueryMsg>;
 pub type CwStakingResult<T = Response> = Result<T, StakingError>;
 
 pub const CW_STAKING_API: CwStakingApi = CwStakingApi::new(CW_STAKING, MODULE_VERSION, None)

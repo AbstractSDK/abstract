@@ -74,8 +74,8 @@ mod test_common {
     pub type MockAppContract = AppContract<
         // MockModule,
         MockError,
-        MockExecMsg,
         MockInitMsg,
+        MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
         MockReceiveMsg,

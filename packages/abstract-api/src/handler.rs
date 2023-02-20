@@ -7,11 +7,11 @@ use cosmwasm_std::Empty;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        ExecMsg,
         InitMsg,
+        ExecMsg,
         QueryMsg,
         Receive,
-    > Handler for ApiContract<Error, ExecMsg, InitMsg, QueryMsg, Receive>
+    > Handler for ApiContract<Error, InitMsg, ExecMsg, QueryMsg, Receive>
 {
     type Error = Error;
 
@@ -27,7 +27,7 @@ impl<
 
     fn contract(
         &self,
-    ) -> &AbstractContract<Self, Error, ExecMsg, InitMsg, QueryMsg, Empty, Receive> {
+    ) -> &AbstractContract<Self, Error, InitMsg, ExecMsg, QueryMsg, Empty, Receive> {
         &self.contract
     }
 }

@@ -13,8 +13,8 @@ use abstract_sdk::{
     },
 };
 use cosmwasm_std::{
-    entry_point, Binary, Deps, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Reply, Response,
+    entry_point, Binary, Deps, DepsMut, Empty, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
+    MessageInfo, Reply, Response,
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
@@ -24,7 +24,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[abstract_response(OSMOSIS_HOST)]
 pub(crate) struct OsmosisHostResponse;
 
-pub type OsmoHost = Host<OsmoError, DexAction>;
+pub type OsmoHost = Host<OsmoError, Empty, DexAction>;
 pub type OsmoResult<T = Response> = Result<T, OsmoError>;
 pub type IbcOsmoResult = Result<IbcReceiveResponse, OsmoError>;
 

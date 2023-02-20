@@ -31,13 +31,13 @@ pub struct ApiState {
 /// The state variables for our ApiContract.
 pub struct ApiContract<
     Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static,
-    CustomExecMsg: 'static = Empty,
     CustomInitMsg: 'static = Empty,
+    CustomExecMsg: 'static = Empty,
     CustomQueryMsg: 'static = Empty,
     Receive: 'static = Empty,
 > {
     pub(crate) contract:
-        AbstractContract<Self, Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, Empty, Receive>,
+        AbstractContract<Self, Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Empty, Receive>,
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
@@ -48,11 +48,11 @@ pub struct ApiContract<
 /// Constructor
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     pub const fn new(
         name: &'static str,

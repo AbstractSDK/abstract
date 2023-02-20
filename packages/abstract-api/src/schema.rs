@@ -19,7 +19,7 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + ApiQueryMsg + QueryResponses,
         ReceiveMsg: Serialize + JsonSchema,
-    > ApiContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, ReceiveMsg>
+    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         // write out the module schema

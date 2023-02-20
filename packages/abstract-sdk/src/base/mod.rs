@@ -8,8 +8,8 @@ pub(crate) mod features;
 mod handler;
 
 pub use contract_base::{
-    AbstractContract, ContractName, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, VersionString,
+    AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
+    MigrateHandlerFn, ModuleId, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, VersionString,
 };
 pub use endpoints::{
     migrate::MigrateEndpoint, ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint,

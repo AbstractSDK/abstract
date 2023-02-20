@@ -17,13 +17,13 @@ pub const INIT_CALLBACK_ID: u64 = 7890;
 
 impl<
         Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-        CustomExecMsg,
         CustomInitMsg,
+        CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
     > ReplyEndpoint
-    for Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
         let id = msg.id;
@@ -62,7 +62,7 @@ pub fn reply_dispatch_callback<
 >(
     deps: DepsMut,
     _env: Env,
-    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    _host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     reply: Reply,
 ) -> Result<Response, Error> {
     // add the new result to the current tracker
@@ -85,7 +85,7 @@ pub fn reply_init_callback<
 >(
     deps: DepsMut,
     _env: Env,
-    _host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    _host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
 
     reply: Reply,
 ) -> Result<Response, Error> {

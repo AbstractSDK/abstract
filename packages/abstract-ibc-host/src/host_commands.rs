@@ -136,7 +136,7 @@ pub fn receive_register<
 >(
     deps: DepsMut,
     env: Env,
-    host: Host<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
     os_id: OsId,
     os_proxy_address: String,

@@ -1,7 +1,7 @@
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_std::Empty;
 
-/// EndpointMsg to the base.
+/// Wrapper around all possible messages that can be sent to the contract.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg<BaseMsg, AppMsg, ReceiveMsg = Empty> {
     /// A configuration message, defined by the base.

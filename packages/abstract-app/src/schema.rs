@@ -20,7 +20,7 @@ impl<
         CustomMigrateMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
     >
-    AppContract<Error, CustomExecMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    AppContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         // write out the module-specific schema
