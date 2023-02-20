@@ -1,10 +1,11 @@
 use crate::error::StakingError;
 use crate::traits::identify::Identify;
-use abstract_sdk::os::cw_staking::{
-    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
+use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::os::objects::{AssetEntry, ContractEntry};
-use abstract_sdk::{feature_objects::AnsHost, os::AbstractResult};
+use abstract_sdk::{
+    os::cw_staking::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse},
+    AbstractSdkResult,
+};
 use cosmwasm_std::{Addr, CosmosMsg, Deps, QuerierWrapper, StdResult, Uint128};
 use cw_utils::Duration;
 
@@ -25,9 +26,11 @@ pub trait CwStakingAdapter: Identify {
         deps: Deps,
         ans_host: &AnsHost,
         staking_token: &AssetEntry,
-    ) -> AbstractResult<Addr> {
+    ) -> AbstractSdkResult<Addr> {
         let provider_staking_contract_entry = self.staking_entry(staking_token);
-        ans_host.query_contract(&deps.querier, &provider_staking_contract_entry)
+        ans_host
+            .query_contract(&deps.querier, &provider_staking_contract_entry)
+            .map_err(Into::into)
     }
 
     /// Fetch the required data for interacting with the provider
@@ -36,7 +39,7 @@ pub trait CwStakingAdapter: Identify {
         deps: Deps,
         ans_host: &AnsHost,
         staking_asset: AssetEntry,
-    ) -> StdResult<()>;
+    ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
     ///

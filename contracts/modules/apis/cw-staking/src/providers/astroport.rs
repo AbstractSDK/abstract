@@ -4,13 +4,13 @@ use crate::traits::identify::Identify;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::objects::{AssetEntry, LpToken},
-    Resolve,
+    AbstractSdkResult, Resolve,
 };
 
 #[cfg(feature = "phoenix-1")]
 use astroport::generator::{
-    Config as ConfigResponse, Cw20HookMsg, ExecuteMsg as GeneratorExecuteMsg,
-    QueryMsg as GeneratorQueryMsg, RewardInfoResponse,
+    ConfigResponse, Cw20HookMsg, ExecuteMsg as GeneratorExecuteMsg, QueryMsg as GeneratorQueryMsg,
+    RewardInfoResponse,
 };
 
 #[cfg(feature = "pisco-1")]
@@ -22,15 +22,15 @@ use astroport_testnet::{
     },
 };
 
+use abstract_sdk::os::cw_staking::{
+    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::AssetInfo;
 use cw_utils::Duration;
-use forty_two::cw_staking::{
-    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
 
 pub const ASTROPORT: &str = "astroport";
 
@@ -68,12 +68,12 @@ impl CwStakingAdapter for Astroport {
         deps: Deps,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
-    ) -> StdResult<()> {
+    ) -> AbstractSdkResult<()> {
         self.generator_contract_address =
             self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfo::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking."));
+                return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
             };
         self.lp_token_address = token_addr;
         self.lp_token = LpToken::try_from(lp_token)?;
@@ -146,11 +146,14 @@ impl CwStakingAdapter for Astroport {
             })?;
 
         #[cfg(feature = "pisco-1")]
-        let astro_token = astroport_asset_info_to_addr(&astro_token);
+        let astro_token = astroport_asset_info_to_cw_asset(&astro_token);
+
+        #[cfg(feature = "phoenix-1")]
+        let astro_token = AssetInfo::cw20(astro_token);
 
         Ok(StakingInfoResponse {
             staking_contract_address: self.generator_contract_address.clone(),
-            staking_token: AssetInfo::Cw20(astro_token),
+            staking_token: astro_token,
             unbonding_periods: None,
             max_claims: None,
         })
@@ -194,7 +197,7 @@ impl CwStakingAdapter for Astroport {
     fn query_reward_tokens(
         &self,
         querier: &QuerierWrapper,
-    ) -> StdResult<forty_two::cw_staking::RewardTokensResponse> {
+    ) -> StdResult<abstract_sdk::os::cw_staking::RewardTokensResponse> {
         let reward_info: RewardInfoResponse = querier
             .query_wasm_smart(
                 self.generator_contract_address.clone(),
@@ -217,8 +220,7 @@ impl CwStakingAdapter for Astroport {
         #[cfg(feature = "pisco-1")]
         let mut tokens = {
             let reward_token: AstroportAssetInfo = reward_info.base_reward_token;
-            let addr = astroport_asset_info_to_addr(&reward_token);
-            vec![AssetInfo::cw20(addr)]
+            vec![astroport_asset_info_to_cw_asset(&reward_token)]
         };
 
         if let Some(reward_token) = reward_info.proxy_reward_token {
@@ -229,9 +231,11 @@ impl CwStakingAdapter for Astroport {
 }
 
 #[cfg(feature = "pisco-1")]
-fn astroport_asset_info_to_addr(asset_info: &AstroportAssetInfo) -> Addr {
+fn astroport_asset_info_to_cw_asset(asset_info: &AstroportAssetInfo) -> cw_asset::AssetInfo {
     match asset_info {
-        AstroportAssetInfo::Token { contract_addr } => contract_addr.clone(),
-        AstroportAssetInfo::NativeToken { denom } => Addr::unchecked(denom),
+        AstroportAssetInfo::Token { contract_addr } => {
+            cw_asset::AssetInfoBase::Cw20(contract_addr.clone())
+        }
+        AstroportAssetInfo::NativeToken { denom } => cw_asset::AssetInfo::native(denom),
     }
 }

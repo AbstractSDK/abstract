@@ -18,7 +18,6 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = []
 library = []
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
@@ -58,7 +57,10 @@ dao-cw-utils = {version = "0.13.4", package = "cw-utils" }
 osmosis-std = { version = "0.12.0", optional = true }
 
 # Astroport
-astroport = {git = "https://github.com/astroport-fi/astroport-core.git", rev = "d194515" , optional = true}
+# see https://github.com/astroport-fi/astroport-changelog
+# main set to commit of factory contract
+astroport = {git = "https://github.com/astroport-fi/astroport-core.git", rev = "126d43216111df786472fe2a845c1e2fadfe4a36" , optional = true}
+# test set to release brach
 astroport-testnet = { package = "astroport", git = "https://github.com/astroport-fi/astroport-core.git", branch = "release", optional = true}
 
 [dev-dependencies]
