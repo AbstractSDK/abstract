@@ -1,0 +1,307 @@
+pub mod suite;
+
+use self::suite::{Suite, SuiteBuilder};
+use abstract_boot::Abstract;
+use abstract_os::{
+    ans_host::ExecuteMsgFns,
+    objects::{
+        pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
+    },
+};
+use boot_core::{
+    deploy::Deploy, prelude::ContractInstance, state::StateInterface, BootError, Mock,
+};
+use boot_cw_plus::Cw20;
+use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
+use wyndex::{
+    asset::{AssetInfo, AssetInfoExt},
+    factory::{DefaultStakeConfig, PartialStakeConfig},
+};
+
+pub const STAKING: &str = "wyndex:staking";
+pub const FACTORY: &str = "wyndex:factory";
+pub const WYND_TOKEN: &str = "wynd";
+pub const EUR_USD_PAIR: &str = "wyndex:eur_usd_pair";
+pub const EUR_USD_STAKE: &str = "wyndex:eur_usd_staking";
+pub const EUR_USD_LP: &str = "wyndex?eur,usd";
+pub const WYND_EUR_PAIR: &str = "wyndex:wynd_eur_pair";
+pub const WYND_EUR_LP: &str = "wyndex:wynd,eur";
+pub const EUR: &str = "eur";
+pub const USD: &str = "usd";
+pub const WYNDEX: &str = "wyndex";
+pub const WYNDEX_OWNER: &str = "wyndex_owner";
+pub const POOL_FACTORY: &str = "pool_factory";
+pub const MULTI_HOP: &str = "multi_hop";
+
+pub struct WynDex {
+    /// Suite can be used to create new pools and register new rewards.
+    pub suite: Suite,
+    pub eur_usd_staking: Addr,
+    pub eur_token: AssetInfo,
+    pub usd_token: AssetInfo,
+    // incentivized pair
+    // rewarded in wynd
+    pub eur_usd_pair: Addr,
+    pub eur_usd_lp: Cw20<Mock>,
+    pub wynd_token: AssetInfo,
+    pub wynd_eur_pair: Addr,
+    pub wynd_eur_lp: Cw20<Mock>,
+}
+
+// Two step deploy process for WyndDex
+// First create Suite with SuiteBuilder, this uploads contracts and instantiates factory
+// Then create first pair and stake config and return WyndDex object
+impl Deploy<Mock> for WynDex {
+    type Error = BootError;
+    type DeployData = Empty;
+
+    fn deploy_on(chain: Mock, _: Empty) -> Result<Self, Self::Error> {
+        let eur_usd_lp: Cw20<Mock> = Cw20::new(EUR_USD_LP, chain.clone());
+        let wynd_eur_lp: Cw20<Mock> = Cw20::new(WYND_EUR_LP, chain.clone());
+
+        let owner = Addr::unchecked(WYNDEX_OWNER);
+
+        let eur_info = AssetInfo::Native(EUR.to_string());
+        let usd_info = AssetInfo::Native(USD.to_string());
+        let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
+
+        chain.set_balance(
+            &owner,
+            vec![
+                coin(20_000, EUR),
+                coin(10_000, USD),
+                coin(20_000, WYND_TOKEN),
+            ],
+        )?;
+
+        // Instantiate test suite with default stake config
+        // uploads contracts and instantiates factory
+        let mut suite = SuiteBuilder::new()
+            .with_stake_config(DefaultStakeConfig {
+                staking_code_id: 0,
+                tokens_per_power: Uint128::new(1),
+                min_bond: Uint128::new(1),
+                unbonding_periods: vec![1, 2],
+                max_distributions: 1,
+            })
+            .build(&chain);
+
+        // let mut app = chain.app.borrow_mut();
+        let mut state = chain.state.clone();
+
+        state.set_address(POOL_FACTORY, &suite.factory);
+        state.set_address(MULTI_HOP, &suite.multi_hop);
+
+        // create euro_usd pair
+        let eur_usd_pair = suite
+            .create_pair(
+                owner.as_str(),
+                wyndex::factory::PairType::Xyk {},
+                [eur_info.clone(), usd_info.clone()],
+                Some(PartialStakeConfig {
+                    tokens_per_power: Some(Uint128::new(100)),
+                    min_bond: Some(Uint128::new(100)),
+                    ..Default::default()
+                }),
+                None,
+            )
+            .unwrap();
+
+        let pair_info = suite
+            .query_pair(vec![eur_info.clone(), usd_info.clone()])
+            .unwrap();
+
+        let eur_usd_lp_token = pair_info.liquidity_token;
+        eur_usd_lp.set_address(&eur_usd_lp_token);
+        let eur_usd_staking = pair_info.staking_addr;
+        state.set_address(EUR_USD_PAIR, &eur_usd_pair);
+        state.set_address(EUR_USD_STAKE, &eur_usd_staking);
+
+        // owner provides some initial liquidity
+        suite
+            .provide_liquidity(
+                owner.as_str(),
+                &eur_usd_pair,
+                [
+                    eur_info.with_balance(10_000u128),
+                    usd_info.with_balance(10_000u128),
+                ],
+                &[coin(10_000, EUR), coin(10_000, USD)],
+            )
+            .unwrap();
+
+        // create wynd_eur pair
+        let wynd_eur_pair = suite
+            .create_pair(
+                owner.as_str(),
+                wyndex::factory::PairType::Xyk {},
+                [eur_info.clone(), wynd_info.clone()],
+                Some(PartialStakeConfig {
+                    tokens_per_power: Some(Uint128::new(100)),
+                    min_bond: Some(Uint128::new(100)),
+                    ..Default::default()
+                }),
+                None,
+            )
+            .unwrap();
+
+        let pair_info = suite
+            .query_pair(vec![eur_info.clone(), wynd_info.clone()])
+            .unwrap();
+
+        let wynd_eur_lp_token = pair_info.liquidity_token;
+        wynd_eur_lp.set_address(&wynd_eur_lp_token);
+        state.set_address(WYND_EUR_PAIR, &wynd_eur_pair);
+
+        // owner provides some initial liquidity
+        suite
+            .provide_liquidity(
+                owner.as_str(),
+                &wynd_eur_pair,
+                [
+                    eur_info.with_balance(10_000u128),
+                    wynd_info.with_balance(10_000u128),
+                ],
+                &[coin(10_000, EUR), coin(10_000, WYND_TOKEN)],
+            )
+            .unwrap();
+
+        // create rewards distribution
+        // wynd tokens are distributed to the pool's stakers.
+        suite
+            .create_distribution_flow(
+                owner.as_str(),
+                vec![eur_info.clone(), usd_info.clone()],
+                wynd_info.clone(),
+                vec![(1, Decimal::percent(50)), (2, Decimal::one())],
+            )
+            .unwrap();
+
+        state.set_address(FACTORY, &suite.factory);
+
+        let wyndex = Self {
+            suite,
+            eur_usd_pair,
+            eur_usd_staking,
+            wynd_eur_pair,
+            wynd_eur_lp,
+            eur_usd_lp,
+            wynd_token: wynd_info,
+            eur_token: eur_info,
+            usd_token: usd_info,
+        };
+
+        // register contracts in abstract host
+        let abstract_ = Abstract::load_from(chain)?;
+        wyndex.register_info_on_abstract(&abstract_)?;
+
+        Ok(wyndex)
+    }
+
+    // Loads WynDex addresses from state
+    fn load_from(chain: Mock) -> Result<Self, Self::Error> {
+        let state = chain.state.borrow();
+        // load all addresses for Self from state
+        let eur_usd_pair = state.get_address(EUR_USD_PAIR)?;
+        let eur_usd_lp: Cw20<Mock> = Cw20::new(EUR_USD_LP, chain.clone());
+        let wynd_eur_pair = state.get_address(WYND_EUR_PAIR)?;
+        let wynd_eur_lp: Cw20<Mock> = Cw20::new(WYND_EUR_LP, chain.clone());
+
+        let eur_info = AssetInfo::Native(EUR.to_string());
+        let usd_info = AssetInfo::Native(USD.to_string());
+        let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
+
+        Ok(Self {
+            suite: Suite::load_from(&chain),
+            eur_usd_pair,
+            eur_usd_lp,
+            wynd_eur_pair,
+            wynd_eur_lp,
+            wynd_token: wynd_info,
+            eur_token: eur_info,
+            usd_token: usd_info,
+            eur_usd_staking: state.get_address(EUR_USD_STAKE)?,
+        })
+    }
+}
+
+impl WynDex {
+    /// registers the WynDex contracts and assets on Abstract
+    pub(crate) fn register_info_on_abstract(
+        &self,
+        abstrct: &Abstract<Mock>,
+    ) -> Result<(), BootError> {
+        let eur_asset = AssetEntry::new(EUR);
+        let usd_asset = AssetEntry::new(USD);
+        let wynd_asset = AssetEntry::new(WYND_TOKEN);
+        let eur_usd_lp_asset = LpToken::new(WYNDEX, vec![EUR, USD]);
+        let eur_wynd_lp_asset = LpToken::new(WYNDEX, vec![WYND_TOKEN, EUR]);
+
+        // Register addresses on ANS
+        abstrct
+            .ans_host
+            .update_asset_addresses(
+                vec![
+                    (
+                        eur_asset.to_string(),
+                        cw_asset::AssetInfoBase::native(self.eur_token.to_string()),
+                    ),
+                    (
+                        usd_asset.to_string(),
+                        cw_asset::AssetInfoBase::native(self.usd_token.to_string()),
+                    ),
+                    (
+                        eur_usd_lp_asset.to_string(),
+                        cw_asset::AssetInfoBase::cw20(self.eur_usd_lp.addr_str()?),
+                    ),
+                    (
+                        eur_wynd_lp_asset.to_string(),
+                        cw_asset::AssetInfoBase::cw20(self.wynd_eur_lp.addr_str()?),
+                    ),
+                    (
+                        WYND_TOKEN.to_string(),
+                        cw_asset::AssetInfoBase::native(self.wynd_token.to_string()),
+                    ),
+                ],
+                vec![],
+            )
+            .unwrap();
+
+        abstrct
+            .ans_host
+            .update_contract_addresses(
+                vec![(
+                    UncheckedContractEntry::new(
+                        WYNDEX.to_string(),
+                        format!("staking/{eur_usd_lp_asset}"),
+                    ),
+                    self.eur_usd_staking.to_string(),
+                )],
+                vec![],
+            )
+            .unwrap();
+
+        abstrct
+            .ans_host
+            .update_dexes(vec![WYNDEX.into()], vec![])
+            .unwrap();
+        abstrct
+            .ans_host
+            .update_pools(
+                vec![
+                    (
+                        PoolAddressBase::contract(self.eur_usd_pair.to_string()),
+                        PoolMetadata::constant_product(WYNDEX, vec![eur_asset.clone(), usd_asset]),
+                    ),
+                    (
+                        PoolAddressBase::contract(self.wynd_eur_pair.to_string()),
+                        PoolMetadata::constant_product(WYNDEX, vec![wynd_asset, eur_asset]),
+                    ),
+                ],
+                vec![],
+            )
+            .unwrap();
+
+        Ok(())
+    }
+}
