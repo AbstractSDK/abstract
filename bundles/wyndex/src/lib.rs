@@ -1,5 +1,7 @@
 pub mod suite;
 
+use std::fmt::Debug;
+
 use self::suite::{Suite, SuiteBuilder};
 use abstract_boot::Abstract;
 use abstract_os::{
@@ -46,6 +48,32 @@ pub struct WynDex {
     pub wynd_token: AssetInfo,
     pub wynd_eur_pair: Addr,
     pub wynd_eur_lp: Cw20<Mock>,
+}
+
+// Shitty implementation until https://github.com/Abstract-OS/BOOT/issues/60 is done
+impl PartialEq for WynDex {
+    fn eq(&self, other: &Self) -> bool {
+        self.suite == other.suite
+            && self.eur_usd_staking == other.eur_usd_staking
+            && self.eur_token == other.eur_token
+            && self.usd_token == other.usd_token
+            && self.eur_usd_pair == other.eur_usd_pair
+            && self.wynd_token == other.wynd_token
+            && self.wynd_eur_pair == other.wynd_eur_pair
+    }
+}
+
+impl Debug for WynDex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WynDex")
+            .field("eur_usd_staking", &self.eur_usd_staking)
+            .field("eur_token", &self.eur_token)
+            .field("usd_token", &self.usd_token)
+            .field("eur_usd_pair", &self.eur_usd_pair)
+            .field("wynd_token", &self.wynd_token)
+            .field("wynd_eur_pair", &self.wynd_eur_pair)
+            .finish()
+    }
 }
 
 // Two step deploy process for WyndDex
@@ -227,6 +255,18 @@ impl Deploy<Mock> for WynDex {
 
 impl WynDex {
     /// registers the WynDex contracts and assets on Abstract
+    /// this includes:
+    /// - registering the assets on ANS
+    ///   - EUR
+    ///   - USD
+    ///   - WYND
+    ///   - EUR/USD LP
+    ///   - EUR/WYND LP
+    /// - Register the staking contract
+    ///   - wyndex:staking/wyndex/eur,usd
+    /// - Register the pair contracts
+    ///   - wyndex/eur,usd
+    ///   - wyndex/eur,wynd
     pub(crate) fn register_info_on_abstract(
         &self,
         abstrct: &Abstract<Mock>,

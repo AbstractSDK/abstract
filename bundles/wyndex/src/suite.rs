@@ -206,6 +206,14 @@ pub struct Suite {
     pub multi_hop: Addr,
 }
 
+impl PartialEq for Suite {
+    fn eq(&self, other: &Self) -> bool {
+        self.owner == other.owner
+            && self.factory == other.factory
+            && self.multi_hop == other.multi_hop
+    }
+}
+
 impl Suite {
     pub fn load_from(mock: &Mock) -> Self {
         let owner = Addr::unchecked(WYNDEX_OWNER);
