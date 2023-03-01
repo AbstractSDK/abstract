@@ -266,7 +266,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (&test_asset_entry, &expected_value),
+                    (&test_asset_entry, expected_value.clone()),
                 )
                 .build();
 
@@ -308,7 +308,10 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
+                    expected_entries
+                        .iter()
+                        .map(|(k, v)| (k, v.clone()))
+                        .collect(),
                 )
                 .build();
 
@@ -336,7 +339,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (&test_lp_token.clone().into(), &expected_value),
+                    (&test_lp_token.clone().into(), expected_value.clone()),
                 )
                 .build();
 
@@ -381,7 +384,7 @@ mod tests {
                 .assets(
                     resolved_assets
                         .iter()
-                        .map(|(k, v)| (k, v.clone()))
+                        .map(|(k, v)| (k, (*v).clone()))
                         .collect(),
                 )
                 .build();
@@ -440,12 +443,12 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_PAIRINGS,
-                    (&pairing, &vec![pool_reference]),
+                    (&pairing, vec![pool_reference]),
                 )
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     POOL_METADATA,
-                    (unique_pool_id, &pool_metadata),
+                    (unique_pool_id, pool_metadata.clone()),
                 )
                 .build();
 
@@ -483,7 +486,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
-                    (&test_contract_entry, &expected_value),
+                    (&test_contract_entry, expected_value.clone()),
                 )
                 .build();
 
@@ -525,7 +528,10 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     CONTRACT_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
+                    expected_entries
+                        .iter()
+                        .map(|(k, v)| (k, v.clone()))
+                        .collect(),
                 )
                 .build();
 
@@ -553,7 +559,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     CHANNELS,
-                    (&test_channel_entry, &expected_value),
+                    (&test_channel_entry, expected_value.clone()),
                 )
                 .build();
 
@@ -587,7 +593,7 @@ mod tests {
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
-                    (&test_asset_info, &expected_value),
+                    (&test_asset_info, expected_value.clone()),
                 )
                 .build();
 
@@ -623,7 +629,10 @@ mod tests {
                 .with_contract_map_entries(
                     TEST_ANS_HOST,
                     REV_ASSET_ADDRESSES,
-                    expected_entries.iter().map(|(k, v)| (k, v)).collect(),
+                    expected_entries
+                        .iter()
+                        .map(|(k, v)| (k, v.clone()))
+                        .collect(),
                 )
                 .build();
 

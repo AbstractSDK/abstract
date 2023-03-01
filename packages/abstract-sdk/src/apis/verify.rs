@@ -155,7 +155,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
-                    (TEST_OS_ID, &test_core()),
+                    (TEST_OS_ID, test_core()),
                 )
                 .build();
 
@@ -179,7 +179,7 @@ mod test {
                     OS_ADDRESSES,
                     (
                         TEST_OS_ID,
-                        &Core {
+                        Core {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
                         },
@@ -261,7 +261,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     OS_ADDRESSES,
-                    (TEST_OS_ID, &test_core()),
+                    (TEST_OS_ID, test_core()),
                 )
                 .build();
 
@@ -285,7 +285,7 @@ mod test {
                     OS_ADDRESSES,
                     (
                         TEST_OS_ID,
-                        &Core {
+                        Core {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },

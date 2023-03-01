@@ -21,7 +21,24 @@ type FallbackHandler = dyn for<'a> Fn(&'a str, &'a Binary) -> BinaryQueryResult;
 type SmartHandler = dyn for<'a> Fn(&'a Binary) -> BinaryQueryResult;
 type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
-/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
+/// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].  
+/// Usage:
+/// ```rust
+/// use cosmwasm_std::{from_binary, to_binary};
+/// use abstract_testing::MockQuerierBuilder;
+/// use cosmwasm_std::testing::MockQuerier;
+/// use abstract_testing::mock_module::MockModuleExecuteMsg;
+///
+/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
+///    // handle the message
+///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
+///         // handle the message
+///        _ => panic!("unexpected message"),
+///    };
+///
+///   Ok(to_binary(&msg).unwrap())
+/// }).build();
+/// ```
 pub struct MockQuerierBuilder {
     base: MockQuerier,
     fallback_raw_handler: Box<FallbackHandler>,
@@ -74,24 +91,6 @@ where
     map.key(key).deref().to_vec()
 }
 
-/// Helper to build a MockQuerier.
-/// Usage:
-/// ```rust
-/// use cosmwasm_std::{from_binary, to_binary};
-/// use abstract_testing::MockQuerierBuilder;
-/// use cosmwasm_std::testing::MockQuerier;
-/// use abstract_testing::mock_module::MockModuleExecuteMsg;
-///
-/// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
-///    // handle the message
-///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
-///         // handle the message
-///        _ => panic!("unexpected message"),
-///    };
-///
-///   Ok(to_binary(&msg).unwrap())
-/// }).build();
-/// ```
 impl MockQuerierBuilder {
     pub fn with_fallback_smart_handler<SH: 'static>(mut self, handler: SH) -> Self
     where
@@ -162,13 +161,13 @@ impl MockQuerierBuilder {
     ///     .with_contract_map_entry(
     ///     "contract_address",
     ///     MAP,
-    ///     ("key".to_string(), &"value".to_string())
+    ///     ("key".to_string(), "value".to_string())
     /// );
     pub fn with_contract_map_entry<'a, K, V>(
         self,
         contract: &str,
         cw_map: Map<'a, K, V>,
-        entry: (K, &V),
+        entry: (K, V),
     ) -> Self
     where
         K: PrimaryKey<'a>,
@@ -181,7 +180,7 @@ impl MockQuerierBuilder {
         mut self,
         contract: &str,
         cw_map: Map<'a, K, V>,
-        entries: Vec<(K, &V)>,
+        entries: Vec<(K, V)>,
     ) -> Self
     where
         K: PrimaryKey<'a>,
@@ -191,7 +190,7 @@ impl MockQuerierBuilder {
             self.insert_contract_key_value(
                 contract,
                 raw_map_key(&cw_map, key),
-                to_binary(value).unwrap(),
+                to_binary(&value).unwrap(),
             );
         }
 
@@ -345,7 +344,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             OS_ADDRESSES,
-            (TEST_OS_ID, &test_core()),
+            (TEST_OS_ID, test_core()),
         )
         .with_contract_item(
             TEST_PROXY,
@@ -360,7 +359,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_MANAGER,
             OS_MODULES,
-            (TEST_MODULE_ID, &Addr::unchecked(TEST_MODULE_ADDRESS)),
+            (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
         )
         .build()
 }

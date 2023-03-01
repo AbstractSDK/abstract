@@ -18,6 +18,7 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 pub const CW20_VESTING: &str = "abstract:cw20-vesting";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
 pub const OSMOSIS_HOST: &str = "abstract:osmosis-host";
+pub const CW_STAKING: &str = "abstract:cw-staking";
 
 /// IBC protocols
 pub const ICS20: &str = "ics-20";

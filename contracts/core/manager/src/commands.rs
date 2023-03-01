@@ -1147,7 +1147,7 @@ mod test {
                             name: "test".to_string(),
                             version: ModuleVersion::Version(new_version.to_string()),
                         },
-                        &ModuleReference::App(1),
+                        ModuleReference::App(1),
                     ),
                 )
                 // old module data

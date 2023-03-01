@@ -1,5 +1,6 @@
 pub(crate) mod abstract_mock_querier;
 pub mod map_tester;
+pub mod mock_ans;
 pub mod mock_module;
 pub(crate) mod mock_querier;
 use cosmwasm_std::{
