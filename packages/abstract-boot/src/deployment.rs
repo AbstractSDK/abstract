@@ -16,6 +16,7 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
+use abstract_os::dex::DexInstantiateMsg;
 use abstract_os::{
     objects::OsId, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL,
 };
@@ -140,16 +141,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         self.chain.clone()
     }
 
-    pub fn get_os(&self, os_id: OsId) -> Result<OS<Chain>, BootError> {
-        let (manager, proxy) = get_os_core_contracts(self.get_chain(), Some(os_id));
-        Ok(OS { manager, proxy })
-    }
-
-    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
-        let sender = &self.chain.sender();
-
-        // ########### Upload ##############
-
+    pub fn upload(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
         self.ans_host.upload()?;
         self.version_control.upload()?;
         self.os_factory.upload()?;
@@ -157,7 +149,11 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
         os_core.upload()?;
 
-        // ########### Instantiate ##############
+        Ok(())
+    }
+
+    pub fn instantiate(&mut self) -> Result<(), crate::AbstractBootError> {
+        let sender = &self.chain.sender();
 
         self.ans_host.instantiate(
             &abstract_os::ans_host::InstantiateMsg {},
@@ -189,6 +185,16 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
             Some(sender),
             None,
         )?;
+
+        Ok(())
+    }
+
+    pub fn deploy(&mut self, os_core: &mut OS<Chain>) -> Result<(), crate::AbstractBootError> {
+        // ########### Upload ##############
+        self.upload(os_core)?;
+
+        // ########### Instantiate ##############
+        self.instantiate()?;
 
         // Set Factory
         self.version_control.execute(
@@ -226,6 +232,17 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
 
     fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
         let (dex, staking) = get_apis(self.get_chain());
+        let dex_init_msg = abstract_os::api::InstantiateMsg {
+            app: DexInstantiateMsg {
+                swap_fee: Decimal::permille(3),
+                recipient_os: 0u32,
+            },
+            base: abstract_os::api::BaseInstantiateMsg {
+                ans_host_address: self.ans_host.address()?.into(),
+                version_control_address: self.version_control.address()?.into(),
+            },
+        };
+        dex.instantiate(&dex_init_msg, None, None)?;
         let staking_init_msg = abstract_os::api::InstantiateMsg {
             app: Empty {},
             base: abstract_os::api::BaseInstantiateMsg {
@@ -233,26 +250,16 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
                 version_control_address: self.version_control.address()?.into(),
             },
         };
-        let dex_init_msg = abstract_os::api::InstantiateMsg::<abstract_os::dex::DexInstantiateMsg> {
-            app: abstract_os::dex::DexInstantiateMsg {
-                swap_fee: Decimal::percent(1),
-                recipient_os: 0,
-            },
-            base: abstract_os::api::BaseInstantiateMsg {
-                ans_host_address: self.ans_host.addr_str()?,
-                version_control_address: self.version_control.addr_str()?,
-            },
-        };
-        dex.instantiate(&dex_init_msg, None, None)?;
         staking.instantiate(&staking_init_msg, None, None)?;
         Ok(())
     }
 
     fn upload_modules(&self) -> Result<(), crate::AbstractBootError> {
         let (mut dex, mut staking) = get_apis(self.get_chain());
-        let (mut etf, mut subs) = get_apps(self.get_chain());
-        let modules: Vec<&mut dyn BootUpload<Chain>> =
-            vec![&mut dex, &mut staking, &mut etf, &mut subs];
+        let (mut etf, _subs) = get_apps(self.get_chain());
+        let modules: Vec<&mut dyn BootUpload<Chain>> = vec![&mut dex, &mut staking, &mut etf];
+        // no subscription
+        // vec![&mut dex, &mut staking, &mut etf, &mut subs];
         modules
             .into_iter()
             .map(BootUpload::upload)
@@ -265,7 +272,8 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         let (etf, subs) = get_apps(self.get_chain());
 
         self.version_control
-            .register_apps(vec![etf.as_instance(), subs.as_instance()], &self.version)?;
+            // , subs.as_instance()
+            .register_apps(vec![etf.as_instance()], &self.version)?;
         self.version_control.register_apis(
             vec![dex.as_instance(), staking.as_instance()],
             &self.version,

@@ -1,4 +1,29 @@
 {
+  "archway": {
+    "constantine-1": {
+      "code_ids": {
+        "abstract:ans-host": 114,
+        "abstract:dex": 122,
+        "abstract:etf": 124,
+        "abstract:manager": 118,
+        "abstract:module-factory": 117,
+        "abstract:os-factory": 116,
+        "abstract:proxy": 119,
+        "abstract:tendermint-staking": 123,
+        "abstract:version-control": 115
+      },
+      "default": {
+        "abstract:ans-host": "archway15aj7s8ayp5ekv0js6nzqhqjy28rrhu5a36hm4k3z0p9tncghvzksn7f0ux",
+        "abstract:dex": "archway13fjj4cyt0q98ev25fa6tmx6ydyhg3l9dq43fqg3205c9auy6sjgse759m5",
+        "abstract:manager": "archway1kttjxvqu0wkdkgq8amk7ux8cuv0epjtr9hn0ccq2z4zjl3ka3pfqnqtxyd",
+        "abstract:module-factory": "archway1xftpplat9glypjfza9mjxz9u6yjvt0nukjg5lk24pjjerqmwd0qqr2vmks",
+        "abstract:os-factory": "archway1qzz4uw6874zxck0e0rrkcu7vs3zsus0ft8qcz3p5eyfv6ucqqkuqe74lh8",
+        "abstract:proxy": "archway17akgf5y2t775k27kulyw8durzsgfedym9wemg0qv3msc4ry0cg2s0suy2w",
+        "abstract:tendermint-staking": "archway1tha2a29v9kwyqy0069mr20jrktz047j555qfvdwwa0m75nndcduszjdwz8",
+        "abstract:version-control": "archway1rqkfdlkkerc79w3hhc8zd667s7p8kryhelrftn2n50yw9wm2a2fqacg3pw"
+      }
+    }
+  },
   "injective": {
     "injective-888": {
       "code_ids": {},
@@ -28,6 +53,29 @@
         "abstract:proxy": "juno17dpw0d27jqfpcrv0rehwqckvgmp94jh7ltjcmxsanlvhfuadcgvq8sfhe2",
         "abstract:tendermint_staking": "juno1lej3ehwpw8lzlxu0kvaxenzp2j87tm2x7jgwc5h77304x6dfk52sdvnd0y",
         "abstract:version_control": "juno102k70cekzkwgex55en0zst5gy9x5h3gf8cegvn76w2uevqj4wdgs0q67mq"
+      }
+    },
+    "uni-6": {
+      "code_ids": {
+        "abstract:ans-host": 288,
+        "abstract:dex": 294,
+        "abstract:etf": 296,
+        "abstract:manager": 292,
+        "abstract:module-factory": 291,
+        "abstract:os-factory": 290,
+        "abstract:proxy": 293,
+        "abstract:tendermint-staking": 295,
+        "abstract:version-control": 289
+      },
+      "default": {
+        "abstract:ans-host": "juno1jjl8h5wx7cqss8adl4p3fk8njfdgykt6tj7unuah8dtjhrfdkcrsqc8ze5",
+        "abstract:dex": "juno1a55k4l43ctxx82x3avngx7v60vj5xpw4ne9kt9ulk494fmumk54slktn60",
+        "abstract:manager": "juno1z06n3exx2w8cjfmzw8xfdeh3cullgl0cs3puweg74jdd0pu8cf5sml3knq",
+        "abstract:module-factory": "juno1wdh78w7qykvexurw3gtygvy0jwqraapjwjteyfsay5pvnpdf9raqsm0ndz",
+        "abstract:os-factory": "juno1cy7le4y84wkv9qyvxvm6vvt6n463rhzmvd85fl6m0n9zl0989t7sk58fcw",
+        "abstract:proxy": "juno16nvfh5z9yu9vzy8dygck0ap36l2ev99zlpwjm7k4cj4rlpmkvvlsqk7pcv",
+        "abstract:tendermint-staking": "juno1qfe3xvee5fhgdcm8xesch63vpzj5zy5x6f8w8gjvp4aw8mec2w6swmkzp5",
+        "abstract:version-control": "juno1082cenpp2sxm4pw9r2c3evffmq6aczzkqduprc6ezd3mwpce0cks95j3x3"
       }
     }
   },

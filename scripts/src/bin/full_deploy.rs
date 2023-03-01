@@ -1,4 +1,8 @@
-use abstract_boot::{Abstract, OS};
+use abstract_boot::{Abstract, DexApi, OS};
+use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_os::EXCHANGE;
+use boot_core::networks::juno::JUNO_CHAIN;
+use boot_core::networks::NetworkKind;
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     prelude::*,
@@ -15,19 +19,26 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
     // log::info!("Your balance is: {}", );
 
-    let _os_core = OS::new(chain.clone(), None);
+    let mut os_core = OS::new(chain.clone(), None);
 
-    let deployment = Abstract::new(chain, abstract_os_version);
+    let mut deployment = Abstract::new(chain.clone(), abstract_os_version);
 
-    // deployment.deploy(&mut os_core)?;
-    //
+    deployment.deploy(&mut os_core)?;
+
+    // CReate the Abstract OS because it's needed for the fees for the dex module
+    deployment
+        .os_factory
+        .create_default_os(GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        })?;
+
     // let _dex = DexApi::new("dex", chain);
 
-    // deployment.deploy_modules()?;
+    deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;

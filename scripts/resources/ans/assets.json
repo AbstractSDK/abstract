@@ -638,6 +638,14 @@
     ]
   },
   "juno": {
+    "uni-6": [
+      [
+        "juno>junox",
+        {
+          "native": "ujunox"
+        }
+      ]
+    ],
     "uni-5": [
       [
         "juno>junox",
@@ -1341,6 +1349,16 @@
         "kujira>kuji",
         {
           "native": "ukuji"
+        }
+      ]
+    ]
+  },
+  "archway": {
+    "constantine-1": [
+      [
+        "archway>const",
+        {
+          "native": "uconst"
         }
       ]
     ]
