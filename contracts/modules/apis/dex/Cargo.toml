@@ -10,15 +10,22 @@ exclude = ["contract.wasm", "hash.txt"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[example]]
+name = "deploy"
+required-features = ["deploy"]
+
 [features]
-default = ["juno", "terra"]
+default = ["export", "juno"]
+# Use endpoint "export" feature instead of "library" feature because features are required to be additive.
+# https://doc.rust-lang.org/cargo/reference/features.html?highlight=additive#feature-unification
+export = []
+deploy = ["boot-core/daemon"]
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
-library = []
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
 terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
-osmosis = ["library", "dep:osmosis-std"]
+osmosis = ["dep:osmosis-std"]
 all = ["terra", "juno", "osmosis"]
 
 # Keep as is until TendermintStake updates.
@@ -52,12 +59,16 @@ wyndex = {git = "https://github.com/cosmorama/wynddex.git", optional = true}
 osmosis-std = { version = "0.13.2", optional = true }
 
 [dev-dependencies]
-abstract-boot = { workspace = true }
+abstract-boot = { workspace = true, features = ["integration"]}
 boot-core = { workspace = true }
 tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
+speculoos = { workspace = true }
+cw-multi-test = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 abstract-api = { workspace = true, features = ["schema"] }
-clap = { workspace = true }
+clap = { workspace = true}
+wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git"}
+abstract-testing = { workspace = true }

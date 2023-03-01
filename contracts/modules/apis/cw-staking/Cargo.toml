@@ -1,6 +1,6 @@
 [package]
 name = "cw-staking"
-description = "Cw-staking is a Abstract api for staking tokens by 4t2 Finance."
+description = "Cw-staking is a Abstract api for staking tokens."
 version.workspace = true
 authors.workspace = true
 edition.workspace = true

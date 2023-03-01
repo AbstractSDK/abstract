@@ -58,7 +58,7 @@ fn init_contracts(app: &mut App) -> (Addr, Addr, InstantiateMsg) {
     let whale_token_instance = app
         .instantiate_contract(
             whale_token_code_id,
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             &msg,
             &[],
             String::from("WHALE"),
@@ -76,7 +76,7 @@ fn init_contracts(app: &mut App) -> (Addr, Addr, InstantiateMsg) {
     let vesting_code_id = app.store_code(vesting_contract);
 
     let vesting_instantiate_msg = InstantiateMsg {
-        owner: OWNER.clone().to_string(),
+        owner: OWNER.to_string(),
         refund_recipient: "refund_recipient".to_string(),
         token: whale_token_instance.to_string(),
         default_unlock_schedule: Schedule {
@@ -90,7 +90,7 @@ fn init_contracts(app: &mut App) -> (Addr, Addr, InstantiateMsg) {
     let vesting_instance = app
         .instantiate_contract(
             vesting_code_id,
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             &vesting_instantiate_msg,
             &[],
             "vesting",
@@ -206,7 +206,7 @@ fn test_create_allocations() {
 
     mint_some_whale(
         &mut app,
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance.clone(),
         Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
@@ -260,7 +260,7 @@ fn test_create_allocations() {
 
     mint_some_whale(
         &mut app,
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance.clone(),
         Uint128::new(1_000),
         "not_owner".to_string(),
@@ -312,7 +312,7 @@ fn test_create_allocations() {
     let not_whale_token_instance = app
         .instantiate_contract(
             not_whale_token_code_id,
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             &msg,
             &[],
             String::from("WHALE"),
@@ -321,10 +321,10 @@ fn test_create_allocations() {
         .unwrap();
 
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         not_whale_token_instance.clone(),
         &cw20::Cw20ExecuteMsg::Mint {
-            recipient: OWNER.clone().to_string(),
+            recipient: OWNER.to_string(),
             amount: Uint128::from(15_000_000_000_000_u64),
         },
         &[],
@@ -333,7 +333,7 @@ fn test_create_allocations() {
 
     err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             not_whale_token_instance,
             &cw20::Cw20ExecuteMsg::Send {
                 contract: vesting_instance.to_string(),
@@ -355,7 +355,7 @@ fn test_create_allocations() {
 
     err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             whale_instance.clone(),
             &cw20::Cw20ExecuteMsg::Send {
                 contract: vesting_instance.to_string(),
@@ -376,7 +376,7 @@ fn test_create_allocations() {
     // ######    SUCCESSFULLY CREATES ALLOCATIONS    ######
 
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance.clone(),
         &cw20::Cw20ExecuteMsg::Send {
             contract: vesting_instance.to_string(),
@@ -473,7 +473,7 @@ fn test_create_allocations() {
 
     err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             whale_instance.clone(),
             &cw20::Cw20ExecuteMsg::Send {
                 contract: vesting_instance.to_string(),
@@ -495,7 +495,7 @@ fn test_create_allocations() {
 
     err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             whale_instance,
             &cw20::Cw20ExecuteMsg::Send {
                 contract: vesting_instance.to_string(),
@@ -535,7 +535,7 @@ fn test_withdraw() {
 
     mint_some_whale(
         &mut app,
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance.clone(),
         Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
@@ -591,7 +591,7 @@ fn test_withdraw() {
 
     // SUCCESSFULLY CREATES ALLOCATIONS
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance,
         &cw20::Cw20ExecuteMsg::Send {
             contract: vesting_instance.to_string(),
@@ -609,7 +609,7 @@ fn test_withdraw() {
 
     let err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             vesting_instance.clone(),
             &ExecuteMsg::Withdraw {},
             &[],
@@ -736,7 +736,7 @@ fn test_withdraw() {
 
     let err = app
         .execute_contract(
-            Addr::unchecked("investor_1".clone()),
+            Addr::unchecked("investor_1"),
             vesting_instance.clone(),
             &ExecuteMsg::Withdraw {},
             &[],
@@ -796,7 +796,7 @@ fn test_withdraw() {
     assert_eq!(resp.withdrawable_amount, Uint128::from(1232876870877u64));
 
     app.execute_contract(
-        Addr::unchecked("team_1".clone()),
+        Addr::unchecked("team_1"),
         vesting_instance.clone(),
         &ExecuteMsg::Withdraw {},
         &[],
@@ -823,69 +823,70 @@ fn test_terminate() {
 
     mint_some_whale(
         &mut app,
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance.clone(),
         Uint128::new(1_000_000_000_000_000),
         OWNER.to_string(),
     );
 
-    let mut allocations: Vec<(String, AllocationInfo)> = vec![];
-    allocations.push((
-        "investor_1".to_string(),
-        AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000_000_u64),
-            withdrawn_amount: Uint128::from(0u64),
-            vest_schedule: Schedule {
-                start_time: 1642402274u64,
-                cliff: 0u64,
-                duration: 31536000u64,
+    let allocations: Vec<(String, AllocationInfo)> = vec![
+        (
+            "investor_1".to_string(),
+            AllocationInfo {
+                total_amount: Uint128::from(5_000_000_000_000_u64),
+                withdrawn_amount: Uint128::from(0u64),
+                vest_schedule: Schedule {
+                    start_time: 1642402274u64,
+                    cliff: 0u64,
+                    duration: 31536000u64,
+                },
+                unlock_schedule: None,
+                canceled: false,
             },
-            unlock_schedule: None,
-            canceled: false,
-        },
-    ));
-    allocations.push((
-        "advisor_1".to_string(),
-        AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000_000_u64),
-            withdrawn_amount: Uint128::from(0u64),
-            vest_schedule: Schedule {
-                start_time: 1642402274u64,
-                cliff: 7776000u64,
-                duration: 31536000u64,
+        ),
+        (
+            "advisor_1".to_string(),
+            AllocationInfo {
+                total_amount: Uint128::from(5_000_000_000_000_u64),
+                withdrawn_amount: Uint128::from(0u64),
+                vest_schedule: Schedule {
+                    start_time: 1642402274u64,
+                    cliff: 7776000u64,
+                    duration: 31536000u64,
+                },
+                unlock_schedule: None,
+                canceled: false,
             },
-            unlock_schedule: None,
-            canceled: false,
-        },
-    ));
-    allocations.push((
-        "team_1".to_string(),
-        AllocationInfo {
-            total_amount: Uint128::from(5_000_000_000_000_u64),
-            withdrawn_amount: Uint128::from(0u64),
-            vest_schedule: Schedule {
-                start_time: 1642402274u64,
-                cliff: 7776000u64,
-                duration: 31536000u64,
+        ),
+        (
+            "team_1".to_string(),
+            AllocationInfo {
+                total_amount: Uint128::from(5_000_000_000_000_u64),
+                withdrawn_amount: Uint128::from(0u64),
+                vest_schedule: Schedule {
+                    start_time: 1642402274u64,
+                    cliff: 7776000u64,
+                    duration: 31536000u64,
+                },
+                unlock_schedule: Some(Schedule {
+                    start_time: 1642400000u64,
+                    cliff: 7770000u64,
+                    duration: 31536000u64,
+                }),
+                canceled: false,
             },
-            unlock_schedule: Some(Schedule {
-                start_time: 1642400000u64,
-                cliff: 7770000u64,
-                duration: 31536000u64,
-            }),
-            canceled: false,
-        },
-    ));
+        ),
+    ];
 
     // SUCCESSFULLY CREATES ALLOCATIONS
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         whale_instance,
         &cw20::Cw20ExecuteMsg::Send {
             contract: vesting_instance.to_string(),
             amount: Uint128::from(15_000_000_000_000_u64),
             msg: to_binary(&ReceiveMsg::CreateAllocations {
-                allocations: allocations.clone(),
+                allocations: allocations,
             })
             .unwrap(),
         },
@@ -911,7 +912,7 @@ fn test_terminate() {
 
     let err = app
         .execute_contract(
-            Addr::unchecked(OWNER.clone()),
+            Addr::unchecked(OWNER),
             vesting_instance.clone(),
             &ExecuteMsg::Terminate {
                 user_address: "investor_1".to_string(),
@@ -932,7 +933,7 @@ fn test_terminate() {
     });
 
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         vesting_instance.clone(),
         &ExecuteMsg::Terminate {
             user_address: "team_1".to_string(),
@@ -943,7 +944,7 @@ fn test_terminate() {
 
     // Try to terminate again, should err
     app.execute_contract(
-        Addr::unchecked(OWNER.clone()),
+        Addr::unchecked(OWNER),
         vesting_instance.clone(),
         &ExecuteMsg::Terminate {
             user_address: "team_1".to_string(),

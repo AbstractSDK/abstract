@@ -21,7 +21,7 @@ pub fn execute_handler(
     msg: DexApiExecuteMsg,
 ) -> DexResult {
     match msg {
-        DexApiExecuteMsg::Action(msg) => {
+        DexApiExecuteMsg::Request(msg) => {
             let DexExecuteMsg {
                 dex: dex_name,
                 action,

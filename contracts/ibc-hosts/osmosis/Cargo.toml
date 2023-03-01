@@ -19,7 +19,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 [dependencies]
 cosmwasm-std = { version =  "1.1", features = ["stargate"]}
 thiserror = {workspace = true}
-dex = { path = "../../modules/apis/dex", features = ["osmosis", "library"] }
+dex = {workspace = true, default-features = false ,features = ["osmosis"] }
 abstract-os = { workspace = true }
 abstract-ibc-host = { workspace = true}
 abstract-sdk = {workspace = true}

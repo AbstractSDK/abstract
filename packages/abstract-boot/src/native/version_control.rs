@@ -1,4 +1,4 @@
-use crate::deployment::{self, OS};
+use crate::{deployment, OS};
 pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_os::{
     objects::{

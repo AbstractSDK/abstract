@@ -27,6 +27,9 @@ publish:
 watch:
   cargo watch -x lcheck
 
+watch-test:
+  cargo watch -x "nextest run"
+
 wasm:
   ./publish/wasms.sh
 

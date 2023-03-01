@@ -4,12 +4,10 @@ pub mod junoswap;
 #[cfg(feature = "juno")]
 pub mod wyndex;
 
-#[cfg(any(feature = "juno", feature = "terra"))]
-pub mod loop_dex;
 #[cfg(feature = "terra")]
 pub mod terraswap;
 
-#[cfg(any(feature = "juno", feature = "terra"))]
+#[cfg(any(feature = "terra"))]
 pub mod astroport;
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]

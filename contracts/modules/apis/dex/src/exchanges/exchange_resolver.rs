@@ -9,9 +9,6 @@ pub use crate::exchanges::{
     wyndex::{WynDex, WYNDEX},
 };
 
-#[cfg(any(feature = "juno", feature = "terra"))]
-pub use crate::exchanges::loop_dex::{Loop, LOOP};
-
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
@@ -31,8 +28,6 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
         OSMOSIS => Ok(&Osmosis {
             local_proxy_addr: None,
         }),
-        #[cfg(any(feature = "juno", feature = "terra"))]
-        LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
@@ -51,8 +46,6 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError
         // OSMOSIS => Ok(&Osmosis {
         //     local_proxy_addr: None,
         // }),
-        #[cfg(any(feature = "juno", feature = "terra"))]
-        LOOP => Ok(&Loop {}),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]

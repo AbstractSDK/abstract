@@ -213,10 +213,6 @@ mod test {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
         }
 
-        fn test_module_latest() -> ModuleInfo {
-            ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
-        }
-
         // - Query latest
 
         #[test]

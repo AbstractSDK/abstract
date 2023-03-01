@@ -312,25 +312,22 @@ pub fn ibc_packet_timeout(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::contract::{execute, instantiate, query, IbcClientResult};
-    use abstract_sdk::os::ibc_client::{ExecuteMsg, InstantiateMsg, QueryMsg};
+    use crate::contract::instantiate;
+    use abstract_sdk::os::ibc_client::InstantiateMsg;
 
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{
-            mock_dependencies, mock_env, mock_ibc_channel_connect_ack, mock_ibc_channel_open_init,
-            mock_ibc_channel_open_try, mock_ibc_packet_ack, mock_info, MockApi, MockQuerier,
-            MockStorage,
+            mock_dependencies, mock_env, mock_ibc_channel_open_try, mock_info, MockApi,
+            MockQuerier, MockStorage,
         },
-        CosmosMsg, Deps, IbcAcknowledgement, OwnedDeps, QueryResponse,
+        OwnedDeps,
     };
 
-    type IbcClientTestResult = Result<(), IbcClientError>;
+    // type IbcClientTestResult = Result<(), IbcClientError>;
 
     const TEST_CHAIN: &str = "test-chain";
-
-    use speculoos::prelude::*;
 
     fn mock_init() -> OwnedDeps<MockStorage, MockApi, MockQuerier> {
         let mut deps = mock_dependencies();
@@ -345,51 +342,39 @@ mod tests {
         deps
     }
 
-    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> IbcClientResult {
-        execute(deps, mock_env(), mock_info(sender, &[]), msg)
-    }
+    // // connect will run through the entire handshake to set up a proper connect and
+    // // save the account (tested in detail in `proper_handshake_flow`)
+    // fn connect(mut deps: DepsMut, channel_id: &str) {
+    //     let handshake_open = mock_ibc_channel_open_init(channel_id, APP_ORDER, IBC_APP_VERSION);
+    //     // first we try to open with a valid handshake
+    //     ibc_channel_open(deps.branch(), mock_env(), handshake_open).unwrap();
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> IbcClientResult {
-        execute_as(deps, TEST_ADMIN, msg)
-    }
+    //     // then we connect (with counter-party version set)
+    //     let handshake_connect =
+    //         mock_ibc_channel_connect_ack(channel_id, APP_ORDER, IBC_APP_VERSION);
+    //     let res = ibc_channel_connect(deps.branch(), mock_env(), handshake_connect).unwrap();
 
-    fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<QueryResponse> {
-        query(deps, mock_env(), msg)
-    }
+    //     // this should send a WhoAmI request, which is received some blocks later
+    //     assert_that!(res.messages).has_length(1);
+    //     match &res.messages[0].msg {
+    //         CosmosMsg::Ibc(IbcMsg::SendPacket {
+    //             channel_id: packet_channel,
+    //             ..
+    //         }) => assert_eq!(packet_channel.as_str(), channel_id),
+    //         o => panic!("Unexpected message: {o:?}"),
+    //     };
+    // }
 
-    // connect will run through the entire handshake to set up a proper connect and
-    // save the account (tested in detail in `proper_handshake_flow`)
-    fn connect(mut deps: DepsMut, channel_id: &str) {
-        let handshake_open = mock_ibc_channel_open_init(channel_id, APP_ORDER, IBC_APP_VERSION);
-        // first we try to open with a valid handshake
-        ibc_channel_open(deps.branch(), mock_env(), handshake_open).unwrap();
-
-        // then we connect (with counter-party version set)
-        let handshake_connect =
-            mock_ibc_channel_connect_ack(channel_id, APP_ORDER, IBC_APP_VERSION);
-        let res = ibc_channel_connect(deps.branch(), mock_env(), handshake_connect).unwrap();
-
-        // this should send a WhoAmI request, which is received some blocks later
-        assert_that!(res.messages).has_length(1);
-        match &res.messages[0].msg {
-            CosmosMsg::Ibc(IbcMsg::SendPacket {
-                channel_id: packet_channel,
-                ..
-            }) => assert_eq!(packet_channel.as_str(), channel_id),
-            o => panic!("Unexpected message: {o:?}"),
-        };
-    }
-
-    fn who_am_i_response(deps: DepsMut, channel_id: &str, _account: impl Into<String>) {
-        let packet = InternalAction::WhoAmI {};
-        let res = StdAck::success(WhoAmIResponse {
-            chain: TEST_CHAIN.into(),
-        });
-        let ack = IbcAcknowledgement::new(res);
-        let msg = mock_ibc_packet_ack(channel_id, &packet, ack).unwrap();
-        let res = ibc_packet_ack(deps, mock_env(), msg).unwrap();
-        assert_that!(res.messages).is_empty();
-    }
+    // fn who_am_i_response(deps: DepsMut, channel_id: &str, _account: impl Into<String>) {
+    //     let packet = InternalAction::WhoAmI {};
+    //     let res = StdAck::success(WhoAmIResponse {
+    //         chain: TEST_CHAIN.into(),
+    //     });
+    //     let ack = IbcAcknowledgement::new(res);
+    //     let msg = mock_ibc_packet_ack(channel_id, &packet, ack).unwrap();
+    //     let res = ibc_packet_ack(deps, mock_env(), msg).unwrap();
+    //     assert_that!(res.messages).is_empty();
+    // }
 
     #[test]
     fn enforce_version_in_handshake() {

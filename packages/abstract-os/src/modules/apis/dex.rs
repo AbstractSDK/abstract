@@ -3,7 +3,7 @@
 //! `abstract_os::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
 use crate::{
-    api::{self},
+    api,
     objects::{AnsAsset, AssetEntry, DexAssetPairing},
 };
 use cosmwasm_schema::QueryResponses;
@@ -39,7 +39,7 @@ pub struct DexInstantiateMsg {
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum DexApiExecuteMsg {
-    Action(DexExecuteMsg),
+    Request(DexExecuteMsg),
     UpdateFee {
         swap_fee: Option<Decimal>,
         recipient_os_id: Option<u32>,
@@ -48,7 +48,7 @@ pub enum DexApiExecuteMsg {
 
 impl From<DexExecuteMsg> for DexApiExecuteMsg {
     fn from(action: DexExecuteMsg) -> Self {
-        DexApiExecuteMsg::Action(action)
+        DexApiExecuteMsg::Request(action)
     }
 }
 

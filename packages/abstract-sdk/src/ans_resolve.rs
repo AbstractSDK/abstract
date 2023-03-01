@@ -207,21 +207,10 @@ mod tests {
         testing::{mock_dependencies, MockQuerier},
         Empty,
     };
-    use cw_storage_plus::{Map, PrimaryKey};
-    use serde::{de::DeserializeOwned, Serialize};
+
     use speculoos::prelude::*;
 
     use std::fmt::Debug;
-
-    fn mock_map_key<'a, K, V>(map: Map<'a, K, V>, key: K) -> String
-    where
-        V: Serialize + DeserializeOwned,
-        K: PrimaryKey<'a>,
-    {
-        String::from_utf8(map.key(key).deref().to_vec()).unwrap()
-    }
-
-    use std::ops::Deref;
 
     fn assert_not_found<T: Debug>(res: AbstractSdkResult<T>) {
         assert_that!(res)
@@ -445,8 +434,7 @@ mod tests {
             let unique_pool_id: UniquePoolId = 1u64.into();
             let pool_address: PoolAddress = Addr::unchecked("pool_address").into();
             let pool_reference = PoolReference::new(unique_pool_id, pool_address);
-            let pool_metadata =
-                PoolMetadata::new(dex.clone(), PoolType::ConstantProduct, assets.clone());
+            let pool_metadata = PoolMetadata::new(dex, PoolType::ConstantProduct, assets.clone());
 
             let querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(

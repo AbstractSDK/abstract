@@ -238,8 +238,6 @@ mod test {
         }
     }
 
-    use speculoos::prelude::*;
-
     // #[test]
     // fn test_version() {
     //     let contract =
@@ -281,14 +279,14 @@ mod test {
 
     #[test]
     fn test_with_dependencies() {
-        const verison: &str = "0.1.0";
-        const dependency: StaticDependency = StaticDependency::new("test", &[verison]);
-        const dependencies: &[StaticDependency] = &[dependency];
+        const VERSION: &str = "0.1.0";
+        const DEPENDENCY: StaticDependency = StaticDependency::new("test", &[VERSION]);
+        const DEPENDENCIES: &[StaticDependency] = &[DEPENDENCY];
 
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_dependencies(dependencies);
+            .with_dependencies(DEPENDENCIES);
 
-        assert_that!(contract.dependencies[0].clone()).is_equal_to(dependency);
+        assert_that!(contract.dependencies[0].clone()).is_equal_to(DEPENDENCY);
     }
 
     #[test]
@@ -335,24 +333,24 @@ mod test {
 
     #[test]
     fn test_with_reply_handlers() {
-        const reply_id: u64 = 50u64;
-        const handler: ReplyHandlerFn<MockModule, MockError> =
+        const REPLY_ID: u64 = 50u64;
+        const HANDLER: ReplyHandlerFn<MockModule, MockError> =
             |_, _, _, _| Ok(Response::default().add_attribute("test", "reply"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_replies([&[(reply_id, handler)], &[]]);
+            .with_replies([&[(REPLY_ID, HANDLER)], &[]]);
 
-        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(reply_id);
+        assert_that!(contract.reply_handlers[0][0].0).is_equal_to(REPLY_ID);
         assert!(contract.reply_handlers[1].is_empty());
     }
 
     #[test]
     fn test_with_ibc_callback_handlers() {
-        const ibc_id: &str = "aoeu";
-        const handler: IbcCallbackHandlerFn<MockModule, MockError> =
+        const IBC_ID: &str = "aoeu";
+        const HANDLER: IbcCallbackHandlerFn<MockModule, MockError> =
             |_, _, _, _, _, _| Ok(Response::default().add_attribute("test", "ibc"));
         let contract = MockAppContract::new("test_contract", "0.1.0", ModuleMetadata::default())
-            .with_ibc_callbacks(&[(ibc_id, handler)]);
+            .with_ibc_callbacks(&[(IBC_ID, HANDLER)]);
 
-        assert_that!(contract.ibc_callback_handlers[0].0).is_equal_to(ibc_id);
+        assert_that!(contract.ibc_callback_handlers[0].0).is_equal_to(IBC_ID);
     }
 }

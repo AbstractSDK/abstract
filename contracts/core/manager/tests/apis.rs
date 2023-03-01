@@ -318,7 +318,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
     let _staking_api = init_staking_api(chain.clone(), &deployment, None)?;
     install_api(&os.manager, TENDERMINT_STAKING)?;
 
-    chain.init_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
+    chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
 
     os.manager.execute_on_module(
         TENDERMINT_STAKING,
