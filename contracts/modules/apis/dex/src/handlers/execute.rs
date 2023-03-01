@@ -7,7 +7,7 @@ use abstract_os::dex::{DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, IBC_
 use abstract_os::ibc_client::CallbackInfo;
 use abstract_os::objects::ans_host::AnsHost;
 use abstract_os::objects::AnsAsset;
-use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{IbcInterface, OsVerification, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
@@ -68,7 +68,9 @@ fn handle_local_api_request(
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    Ok(Response::new().add_submessage(api.resolve_dex_action(deps, action, exchange, false)?))
+    let (msgs, _) = api.resolve_dex_action(deps.as_ref(), action, exchange)?;
+    let proxy_msg = api.executor(deps.as_ref()).execute(msgs)?;
+    Ok(Response::new().add_message(proxy_msg))
 }
 
 fn handle_ibc_api_request(

@@ -68,7 +68,10 @@ impl<
         }
     }
 
-    /// Handle a custom execution message sent to this app.
+    /// Handle a custom execution message sent to this api.
+    /// Two success scenarios are possible:
+    /// 1. The sender is a trader of the given proxy address and has provided the proxy address in the message.
+    /// 2. The sender is a manager of the given proxy address.
     fn handle_app_msg(
         mut self,
         deps: DepsMut,

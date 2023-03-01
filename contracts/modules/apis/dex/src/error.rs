@@ -53,6 +53,9 @@ pub enum DexError {
     #[error("Maximum spread {0} exceeded for dex {1}")]
     MaxSlippageAssertion(String, String),
 
+    #[error("Message generation for IBC queries not supported.")]
+    IbcMsgQuery,
+
     #[error("Asset pairing {} not found.", asset_pairing)]
     AssetPairingNotFound { asset_pairing: DexAssetPairing },
 }

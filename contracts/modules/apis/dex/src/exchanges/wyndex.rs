@@ -1,13 +1,12 @@
 use crate::{
+    commands::{coins_in_assets, cw_approve_msgs},
     dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,
     DEX,
 };
 use abstract_os::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
-use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Coin, CosmosMsg, Decimal, Deps, StdResult, Uint128, WasmMsg,
-};
+use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};
 use wyndex::pair::{PoolResponse, SimulationResponse};
@@ -298,33 +297,4 @@ fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<wyndex::asset::AssetValidat
         }),
         _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
     }
-}
-
-fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
-    let mut msgs = vec![];
-    for asset in assets {
-        if let AssetInfo::Cw20(addr) = &asset.info {
-            let msg = cw20_junoswap::Cw20ExecuteMsg::IncreaseAllowance {
-                spender: spender.to_string(),
-                amount: asset.amount,
-                expires: None,
-            };
-            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: addr.to_string(),
-                msg: to_binary(&msg)?,
-                funds: vec![],
-            }))
-        }
-    }
-    Ok(msgs)
-}
-
-fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
-    let mut coins = vec![];
-    for asset in assets {
-        if let AssetInfo::Native(denom) = &asset.info {
-            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
-        }
-    }
-    coins
 }

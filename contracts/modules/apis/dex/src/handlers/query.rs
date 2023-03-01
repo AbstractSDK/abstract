@@ -1,6 +1,11 @@
-use crate::contract::{DexApi, DexResult};
 use crate::exchanges::exchange_resolver::resolve_exchange;
-use abstract_os::dex::state::SWAP_FEE;
+use crate::{
+    contract::{DexApi, DexResult},
+    error::DexError,
+    exchanges::exchange_resolver,
+    LocalDex,
+};
+use abstract_os::dex::{state::SWAP_FEE, DexExecuteMsg, GenerateMessagesResponse};
 use abstract_os::dex::{DexQueryMsg, OfferAsset, SimulateSwapResponse};
 use abstract_os::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::features::AbstractNameService;
@@ -12,8 +17,19 @@ pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> De
             offer_asset,
             ask_asset,
             dex,
+        } => simulate_swap(deps, env, api, offer_asset, ask_asset, dex.unwrap()),
+        DexQueryMsg::GenerateMessages {
+            message: DexExecuteMsg { dex, action },
         } => {
-            simulate_swap(deps, env, api, offer_asset, ask_asset, dex.unwrap()).map_err(Into::into)
+            let exchange_id = exchange_resolver::identify_exchange(&dex)?;
+            // if exchange is on an app-chain, execute the action on the app-chain
+            if exchange_id.over_ibc() {
+                return Err(DexError::IbcMsgQuery);
+            }
+
+            let exchange = exchange_resolver::resolve_exchange(&dex)?;
+            let (messages, _) = api.resolve_dex_action(deps, action, exchange)?;
+            to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
         }
     }
 }

@@ -11,10 +11,11 @@ use abstract_sdk::{
         ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg},
         OSMOSIS_HOST,
     },
+    Execution,
 };
 use cosmwasm_std::{
     entry_point, Binary, Deps, DepsMut, Empty, Env, IbcPacketReceiveMsg, IbcReceiveResponse,
-    MessageInfo, Reply, Response,
+    MessageInfo, Reply, ReplyOn, Response,
 };
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
@@ -63,7 +64,11 @@ fn handle_app_action(deps: DepsMut, _env: Env, host: OsmoHost, packet: DexAction
     let acknowledgement = StdAck::fail(format!("action {action:?} failed"));
 
     // execute and expect reply after execution
-    let proxy_msg = host.resolve_dex_action(deps, action, &exchange, true)?;
+    let (msgs, reply_id) = host.resolve_dex_action(deps.as_ref(), action, &exchange)?;
+    let proxy_msg =
+        host.executor(deps.as_ref())
+            .execute_with_reply(msgs, ReplyOn::Success, reply_id)?;
+
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_submessage(proxy_msg)
