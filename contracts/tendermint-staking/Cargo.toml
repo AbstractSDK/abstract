@@ -1,0 +1,34 @@
+[package]
+name = "tendermint-staking"
+version = {workspace = true}
+authors = {workspace = true}
+edition = {workspace = true}
+
+exclude = [
+  "contract.wasm",
+  "hash.txt",
+]
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+library = []
+backtraces = ["cosmwasm-std/backtraces"]
+schema = ["abstract-api/schema"]
+boot = ["dep:boot-core"]
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = {workspace = true}
+cosmwasm-schema = { workspace = true }
+thiserror = {workspace = true}
+abstract-os = {workspace = true}
+abstract-sdk = { workspace = true }
+abstract-api = { workspace = true }
+
+boot-core = {workspace= true, optional = true}
+
+[dev-dependencies]
+abstract-api = { workspace = true, features = ["schema"] }
