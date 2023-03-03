@@ -12,22 +12,20 @@ exclude = [
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[[examples]]
-name = "schema"
-required-features = ["schema"]
-
 [features]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
-schema = ["abstract-app/schema"]
+boot = []
 
 [dependencies]
 cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
 cw-controllers = {workspace = true}
 cw-storage-plus = {workspace = true}
 cw20 = {workspace = true}
 cw20-base = {workspace = true}
 thiserror = {workspace = true}
+schemars = { workspace = true}
 protobuf = {workspace = true}
 cw-asset= {workspace = true}
 
@@ -36,6 +34,5 @@ abstract-app = {workspace = true}
 abstract-sdk = {workspace = true}
 
 [dev-dependencies]
-cosmwasm-schema = { workspace = true }
 cw-multi-test = {workspace = true}
 cw20 = {workspace = true}

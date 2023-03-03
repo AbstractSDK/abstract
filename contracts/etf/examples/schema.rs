@@ -1,4 +1,4 @@
-use abstract_sdk::os::etf::StateResponse;
+use etf::msg::StateResponse;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 use etf::contract::EtfApp;
 use std::env::current_dir;

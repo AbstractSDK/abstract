@@ -1,6 +1,6 @@
 //! # Liquidity Interface Add-On
 //!
-//! `abstract_os::etf` is an app which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
+//! `crate::msg` is an app which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
 //! ## Description  
 //! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
@@ -36,31 +36,10 @@
 //!
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
-
-pub mod state {
-    use schemars::JsonSchema;
-    use serde::{Deserialize, Serialize};
-
-    use crate::objects::fee::Fee;
-    use cosmwasm_std::Addr;
-    use cw_storage_plus::Item;
-
-    #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
-    /// State stores LP token address
-    /// BaseState is initialized in contract
-    pub struct State {
-        pub liquidity_token_addr: Addr,
-        pub provider_addr: Addr,
-    }
-
-    pub const STATE: Item<State> = Item::new("\u{0}{5}state");
-    pub const FEE: Item<Fee> = Item::new("\u{0}{3}fee");
-}
-
-use crate::app::{self};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
+use abstract_os::app;
 
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;

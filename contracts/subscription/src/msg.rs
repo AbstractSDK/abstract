@@ -27,14 +27,14 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 use crate::state::UncheckedEmissionType;
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128, Uint64};
-use cw_asset::{Asset, AssetInfoUnchecked};
 use crate::state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     SubscriptionState,
 };
-use abstract_os::app;
+use abstract_os::{app, objects::OsId};
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::{Decimal, Uint128, Uint64};
+use cw_asset::{Asset, AssetInfoUnchecked};
 
 pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<SubscriptionQueryMsg>;

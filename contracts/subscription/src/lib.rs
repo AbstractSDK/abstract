@@ -1,9 +1,11 @@
 mod commands;
 pub mod contract;
 pub mod error;
-pub mod queries;
 pub mod msg;
+pub mod queries;
 pub mod state;
+
+pub const SUBSCRIPTION: &str = "abstract:subscription";
 
 // TODO: FIX
 // #[cfg(test)]
@@ -20,10 +22,10 @@ pub mod boot {
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
     use std::str::FromStr;
-    
+
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
     pub struct Subscription<Chain>;
-    
+
     impl<Chain: BootEnvironment> Subscription<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             let mut contract = Contract::new(name, chain);
@@ -62,17 +64,17 @@ pub mod boot {
                 },
             }
         }
-    
+
         // pub  fn pay_subscription(&self, os_id: OsId, manager: Manager<'_>) -> Result<CosmTxResponse, crate::AbstractBootError> {
         //     let result: SubscriptionFeeResponse = self.query(QueryMsg::Fee {  })?;
-    
+
         //     let asset = result.fee;
         //     let msg = CosmosMsg::Wasm(WasmMsg::Execute { contract_addr: (), msg: (), funds: () });
         //     manager.execute(&ManagerExec::ConfigureModule { module_name: PROXY, config_msg: () }, coins);
-    
+
         //     self.execute(&ExecuteMsg::Pay {  os_id: os_id }, Some(&[Coin::create("uusd", asset.amount.u128().into())]))
         // }
-    
+
         pub fn claim_contribution(&self, os_id: OsId) -> Result<(), crate::AbstractBootError> {
             self.claim_compensation(os_id)?;
             self.execute(
@@ -81,7 +83,7 @@ pub mod boot {
             )?;
             Ok(())
         }
-    
+
         pub fn claim_emissions(&self, os_id: OsId) -> Result<(), crate::AbstractBootError> {
             self.execute(
                 &SubscriptionExecuteMsg::ClaimEmissions { os_id }.into(),
@@ -90,5 +92,4 @@ pub mod boot {
             Ok(())
         }
     }
-    
 }

@@ -1,18 +1,18 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::error::SubscriptionError;
 use abstract_os::objects::OsId;
+use abstract_sdk::Execution;
 use abstract_sdk::os::manager::state::OS_ID;
 use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
-use abstract_sdk::os::subscription::state::{
+use crate::state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
-use abstract_sdk::os::subscription::DepositHookMsg;
+use crate::msg::DepositHookMsg;
 use abstract_sdk::os::version_control::state::OS_ADDRESSES;
 use abstract_sdk::os::version_control::Core;
-use abstract_sdk::Execution;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
     QuerierWrapper, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
@@ -211,10 +211,10 @@ pub fn claim_subscriber_emissions(
     subscriber.last_emission_claim_block = env.block.height;
 
     let asset = match subscription_config.subscription_per_block_emissions {
-        abstract_sdk::os::subscription::state::EmissionType::None => {
+        crate::state::EmissionType::None => {
             return Err(SubscriptionError::SubscriberEmissionsNotEnabled)
         }
-        abstract_sdk::os::subscription::state::EmissionType::BlockShared(
+        crate::state::EmissionType::BlockShared(
             shared_emissions,
             token,
         ) => {
@@ -223,14 +223,14 @@ pub fn claim_subscriber_emissions(
                 / (Uint128::from(subscription_state.active_subs));
             Asset::new(token, amount)
         }
-        abstract_sdk::os::subscription::state::EmissionType::BlockPerUser(
+        crate::state::EmissionType::BlockPerUser(
             per_user_emissions,
             token,
         ) => {
             let amount = per_user_emissions * Uint128::from(duration);
             Asset::new(token, amount)
         }
-        abstract_sdk::os::subscription::state::EmissionType::IncomeBased(token) => {
+        crate::state::EmissionType::IncomeBased(token) => {
             let contributor_config = load_contribution_config(deps.storage)?;
             let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
 
@@ -408,7 +408,7 @@ pub fn try_claim_compensation(
         .load(deps.storage)?
         .subscription_per_block_emissions
     {
-        abstract_sdk::os::subscription::state::EmissionType::IncomeBased(_) => {
+        crate::state::EmissionType::IncomeBased(_) => {
             cached_state.emissions * (Decimal::one() - config.emission_user_share)
         }
         _ => cached_state.emissions,

@@ -3,13 +3,13 @@ use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
 use abstract_app::AppContract;
-use abstract_os::subscription::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
-use abstract_sdk::os::subscription::state::*;
-use abstract_sdk::os::subscription::{
+use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
+use crate::state::*;
+use crate::msg::{
     ConfigResponse, ContributorStateResponse, InstantiateMsg, MigrateMsg, StateResponse,
     SubscriberStateResponse, SubscriptionFeeResponse,
 };
-use abstract_sdk::os::SUBSCRIPTION;
+use crate::SUBSCRIPTION;
 use cosmwasm_std::{to_binary, Binary, Decimal, StdError, Uint128};
 use cosmwasm_std::{Deps, DepsMut, Env, MessageInfo, Response};
 use cw20::Cw20ReceiveMsg;
