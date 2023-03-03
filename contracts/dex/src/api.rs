@@ -1,19 +1,18 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::{
-    features::{Dependencies, Identification},
-    AbstractSdkResult, ModuleInterface,
-};
+use crate::{msg::{
+    AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+    SwapRouter, DexApiExecuteMsg,
+}, EXCHANGE};
+use abstract_sdk::ApiInterface;
 use abstract_os::{
-    dex::{
-        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-        SwapRouter,
-    },
-    objects::AssetEntry,
-    EXCHANGE,
+    objects::{AssetEntry, module::ModuleId},
+};
+use abstract_sdk::{
+    features::{Dependencies, Identification},
+    AbstractSdkResult,
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
-use os::{dex::DexApiExecuteMsg, ModuleId};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex api in your module.
@@ -32,7 +31,7 @@ pub trait DexInterface: Identification + Dependencies {
     }
 }
 
-impl<T> DexInterface for T where T: Identification + Dependencies {}
+impl<T: Identification + Dependencies> DexInterface for T {}
 
 #[derive(Clone)]
 pub struct Dex<'a, T: DexInterface> {
@@ -57,9 +56,9 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         self.dex_module_id
     }
     fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
-        let modules = self.base.modules(self.deps);
+        let modules = self.base.apis(self.deps);
 
-        modules.api_request(
+        modules.request(
             self.dex_module_id(),
             DexApiExecuteMsg::from(DexExecuteMsg {
                 dex: self.dex_name(),
@@ -128,8 +127,8 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
 impl<'a, T: DexInterface> Dex<'a, T> {
     fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
-        let modules = self.base.modules(self.deps);
-        modules.query_api(EXCHANGE, query_msg)
+        let modules = self.base.apis(self.deps);
+        modules.query(EXCHANGE, query_msg)
     }
     pub fn simulate_swap(
         &self,
@@ -148,16 +147,16 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-
-    use crate::apis::test_common::*;
+    use speculoos::*;
+    use abstract_sdk::mock_module::*;
     use crate::msg::ExecuteMsg;
     use abstract_os::api::ApiRequestMsg;
-    use abstract_testing::prelude::MockModule;
+    use abstract_sdk::mock_module::MockModule;
     use cosmwasm_std::testing::mock_dependencies;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         ApiRequestMsg {
-            proxy_address: Some(abstract_testing::TEST_PROXY.to_string()),
+            proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
             request: request.into(),
         }
         .into()
@@ -170,7 +169,7 @@ mod test {
         let stub = MockModule::new();
         let dex = stub
             .dex(deps.as_ref(), "junoswap".into())
-            .with_module_id(abstract_testing::TEST_MODULE_ID);
+            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let dex_name = "junoswap".to_string();
         let offer_asset = OfferAsset::new("juno", 1000u128);
@@ -197,7 +196,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected =
-            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -211,7 +210,7 @@ mod test {
 
         let dex = stub
             .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::TEST_MODULE_ID);
+            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer_assets = vec![OfferAsset::new("juno", 1000u128)];
         let ask_assets = vec![AskAsset::new("uusd", 1000u128)];
@@ -237,7 +236,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected =
-            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -251,7 +250,7 @@ mod test {
 
         let dex = stub
             .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::TEST_MODULE_ID);
+            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let assets = vec![OfferAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
@@ -273,7 +272,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected =
-            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -287,7 +286,7 @@ mod test {
 
         let dex = stub
             .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::TEST_MODULE_ID);
+            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let offer = OfferAsset::new("taco", 1000u128);
         let paired = vec![AssetEntry::new("bell")];
@@ -310,7 +309,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected =
-            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -324,7 +323,7 @@ mod test {
 
         let dex = stub
             .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::TEST_MODULE_ID);
+            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
 
         let lp_token = AssetEntry::new("taco");
         let withdraw_amount: Uint128 = 1000u128.into();
@@ -346,7 +345,7 @@ mod test {
             _ => panic!("expected wasm msg"),
         };
         let expected =
-            wasm_execute(abstract_testing::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }

@@ -1,7 +1,7 @@
+use crate::EXCHANGE;
 use crate::msg::{DexApiExecuteMsg, DexInstantiateMsg, DexQueryMsg};
 use crate::{error::DexError, handlers};
 use abstract_api::{export_endpoints, ApiContract};
-use abstract_sdk::os::EXCHANGE;
 use cosmwasm_std::Response;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

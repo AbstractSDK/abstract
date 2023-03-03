@@ -2,8 +2,8 @@ use crate::error::StakingError;
 use crate::traits::identify::Identify;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::os::objects::{AssetEntry, ContractEntry};
+use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use abstract_sdk::{
-    os::cw_staking::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, CosmosMsg, Deps, QuerierWrapper, StdResult, Uint128};

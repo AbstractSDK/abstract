@@ -3,7 +3,7 @@ use crate::providers::resolver::{self, is_over_ibc};
 use crate::LocalCwStaking;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
-use abstract_sdk::os::cw_staking::{
+use crate::msg::{
     CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID,
 };
 use abstract_sdk::os::ibc_client::CallbackInfo;

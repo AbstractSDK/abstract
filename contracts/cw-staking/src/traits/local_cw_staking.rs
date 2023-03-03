@@ -1,7 +1,7 @@
 use crate::error::StakingError;
 use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::os::cw_staking::CwStakingAction;
+use crate::msg::CwStakingAction;
 use abstract_sdk::os::objects::AssetEntry;
 use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, SubMsg};

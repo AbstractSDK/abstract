@@ -1,9 +1,7 @@
-use crate::error::TendermintStakeError;
+use crate::{error::TendermintStakeError, TENDERMINT_STAKING};
 use crate::staking::*;
 use abstract_api::ApiContract;
-use abstract_os::tendermint_staking::TendermintStakingQueryMsg;
-use abstract_sdk::os::tendermint_staking::TendermintStakingExecuteMsg;
-use abstract_sdk::os::TENDERMINT_STAKING;
+use crate::msg::{TendermintStakingQueryMsg,TendermintStakingExecuteMsg};
 use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

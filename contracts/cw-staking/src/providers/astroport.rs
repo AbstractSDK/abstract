@@ -22,7 +22,7 @@ use astroport_testnet::{
     },
 };
 
-use abstract_sdk::os::cw_staking::{
+use crate::msg::{
     RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{
@@ -197,7 +197,7 @@ impl CwStakingAdapter for Astroport {
     fn query_reward_tokens(
         &self,
         querier: &QuerierWrapper,
-    ) -> StdResult<abstract_sdk::os::cw_staking::RewardTokensResponse> {
+    ) -> StdResult<crate::msg::RewardTokensResponse> {
         let reward_info: RewardInfoResponse = querier
             .query_wasm_smart(
                 self.generator_contract_address.clone(),

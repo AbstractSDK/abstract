@@ -12,6 +12,8 @@ pub mod state;
 pub use commands::LocalDex;
 pub use dex_trait::DEX;
 
+pub const EXCHANGE: &str = "abstract:dex";
+
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
     pub use super::exchanges::osmosis::Osmosis;

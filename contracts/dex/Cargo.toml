@@ -72,7 +72,7 @@ speculoos = { workspace = true }
 cw-multi-test = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-abstract-api = { workspace = true, features = ["schema"] }
 clap = { workspace = true}
 wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git"}
 abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }

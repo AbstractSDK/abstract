@@ -1,5 +1,6 @@
 pub mod contract;
 pub mod error;
+pub mod msg;
 mod providers;
 
 mod handlers;
@@ -7,6 +8,8 @@ mod traits;
 
 pub use traits::cw_staking_adapter::CwStakingAdapter;
 pub use traits::local_cw_staking::LocalCwStaking;
+
+pub const CW_STAKING: &str = "abstract:cw-staking";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {

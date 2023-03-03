@@ -2,8 +2,8 @@
 //!
 //! `4t2::cw-staking`
 
-use crate::api;
-use crate::objects::{AnsAsset, AssetEntry};
+use abstract_os::api;
+use abstract_os::objects::{AnsAsset, AssetEntry};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty, Uint128};
 use cw20::Expiration;

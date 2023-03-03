@@ -3,7 +3,7 @@ use crate::{
     providers::resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::os::cw_staking::CwStakingQueryMsg;
+use crate::msg::CwStakingQueryMsg;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
 pub fn query_handler(
