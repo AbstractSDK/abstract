@@ -1,4 +1,4 @@
-use abstract_sdk::os::subscription::{
+use subscription::msg::{
     ConfigResponse, ContributorStateResponse, StateResponse, SubscriberStateResponse,
     SubscriptionFeeResponse,
 };

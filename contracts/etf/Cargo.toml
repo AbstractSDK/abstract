@@ -15,7 +15,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
-boot = []
+boot = ["dep:boot-core", "dep:abstract-boot", "dep:cw-multi-test"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -32,6 +32,10 @@ cw-asset= {workspace = true}
 abstract-os = {workspace = true}
 abstract-app = {workspace = true}
 abstract-sdk = {workspace = true}
+
+boot-core = { workspace = true , optional = true }
+abstract-boot = { workspace = true , optional = true }
+cw-multi-test = {workspace = true, optional = true }
 
 [dev-dependencies]
 cw-multi-test = {workspace = true}

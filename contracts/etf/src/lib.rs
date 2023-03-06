@@ -6,22 +6,29 @@ pub mod response;
 pub mod state;
 
 pub const ETF: &str = "abstract:etf";
-// TODO; FIX
-// #[cfg(test)]
-// #[cfg(not(target_arch = "wasm32"))]
-// mod tests;
+
 #[cfg(feature = "boot")]
 pub mod boot {
-    use abstract_os::{app::MigrateMsg, etf::*};
+    use abstract_os::{app::MigrateMsg};
+    use crate::msg::*;
     use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
+    use cw_multi_test::ContractWrapper;
+    use abstract_boot::AppDeployer;
 
     #[boot_contract(EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, MigrateMsg)]
     pub struct ETF<Chain>;
 
+    impl<Chain: BootEnvironment> AppDeployer<Chain> for ETF<Chain> {}
+
+
     impl<Chain: BootEnvironment> ETF<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             let mut contract = Contract::new(name, chain);
-            contract = contract.with_wasm_path("etf");
+            contract = contract.with_wasm_path("etf").with_mock(Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            )));
             Self(contract)
         }
     }
