@@ -16,7 +16,8 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 backtraces = ["cosmwasm-std/backtraces"]
-boot = ["dep:boot-core"]
+boot = ["dep:boot-core", "dep:abstract-boot", "dep:cw-multi-test"]
+
 
 # Keep as is until TendermintStake updates.
 [dependencies]
@@ -26,4 +27,7 @@ thiserror = {workspace = true}
 abstract-os = {workspace = true}
 abstract-sdk = { workspace = true }
 abstract-api = { workspace = true }
-boot-core = {workspace= true, optional = true}
+
+boot-core = { workspace = true , optional = true }
+abstract-boot = { workspace = true , optional = true }
+cw-multi-test = {workspace = true, optional = true }

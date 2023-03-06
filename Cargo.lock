@@ -4099,11 +4099,13 @@ name = "tendermint-staking"
 version = "0.11.0"
 dependencies = [
  "abstract-api",
+ "abstract-boot 0.12.0-alpha.2",
  "abstract-os 0.12.0-alpha.3",
  "abstract-sdk 0.12.0-alpha.5",
  "boot-core",
  "cosmwasm-schema",
  "cosmwasm-std",
+ "cw-multi-test",
  "thiserror",
 ]
 
