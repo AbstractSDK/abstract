@@ -1,12 +1,12 @@
-use abstract_boot::CwStakingApi;
 use abstract_boot::{ModuleDeployer, VCExecFns};
 use abstract_sdk::os;
-use crate::msg::CW_STAKING;
 use abstract_sdk::os::objects::module::{Module, ModuleInfo, ModuleVersion};
 use boot_core::{
     networks::NetworkInfo, prelude::instantiate_daemon_env, prelude::*, DaemonOptionsBuilder,
 };
 use cosmwasm_std::{Addr, Empty};
+use cw_staking::msg::CW_STAKING;
+use cw_staking::CwStakingApi;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

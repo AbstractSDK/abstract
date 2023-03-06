@@ -1,8 +1,11 @@
-use abstract_boot::{DexApi, ModuleDeployer, VersionControl};
-use abstract_os::VERSION_CONTROL;
+use abstract_boot::ApiDeployer;
+
 use boot_core::networks::{parse_network, NetworkInfo};
 use boot_core::prelude::*;
-use cosmwasm_std::Empty;
+use cosmwasm_std::Decimal;
+use dex::boot::DexApi;
+use dex::msg::DexInstantiateMsg;
+use dex::EXCHANGE;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -11,25 +14,17 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn deploy_dex(network: NetworkInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
-
-    let abstract_version: Version = version.clone();
-
-    let vc = VersionControl::new(VERSION_CONTROL, chain.clone());
-
-    let deployer = ModuleDeployer::load_from_version_control(
-        chain.clone(),
-        &abstract_version,
-        &vc.address()?,
+    let mut dex = DexApi::new(EXCHANGE, chain);
+    dex.deploy(
+        version,
+        DexInstantiateMsg {
+            swap_fee: Decimal::percent(1),
+            recipient_os: 0,
+        },
     )?;
-
-    let mut dex = DexApi::new("abstract:dex", chain);
-
-    deployer.deploy_api(dex.as_instance_mut(), version, Empty {})?;
-
     Ok(())
 }
 

@@ -1,13 +1,14 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::{msg::{
-    AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-    SwapRouter, DexApiExecuteMsg,
-}, EXCHANGE};
-use abstract_sdk::ApiInterface;
-use abstract_os::{
-    objects::{AssetEntry, module::ModuleId},
+use crate::{
+    msg::{
+        AskAsset, DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset,
+        SimulateSwapResponse, SwapRouter,
+    },
+    EXCHANGE,
 };
+use abstract_os::objects::{module::ModuleId, AssetEntry};
+use abstract_sdk::ApiInterface;
 use abstract_sdk::{
     features::{Dependencies, Identification},
     AbstractSdkResult,
@@ -147,12 +148,12 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use speculoos::*;
-    use abstract_sdk::mock_module::*;
     use crate::msg::ExecuteMsg;
     use abstract_os::api::ApiRequestMsg;
     use abstract_sdk::mock_module::MockModule;
+    use abstract_sdk::mock_module::*;
     use cosmwasm_std::testing::mock_dependencies;
+    use speculoos::prelude::*;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         ApiRequestMsg {
@@ -195,8 +196,12 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected =
-            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+        let expected = wasm_execute(
+            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            &expected,
+            vec![],
+        )
+        .unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -235,8 +240,12 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected =
-            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+        let expected = wasm_execute(
+            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            &expected,
+            vec![],
+        )
+        .unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -271,8 +280,12 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected =
-            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+        let expected = wasm_execute(
+            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            &expected,
+            vec![],
+        )
+        .unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -308,8 +321,12 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected =
-            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+        let expected = wasm_execute(
+            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            &expected,
+            vec![],
+        )
+        .unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }
@@ -344,8 +361,12 @@ mod test {
             CosmosMsg::Wasm(msg) => msg,
             _ => panic!("expected wasm msg"),
         };
-        let expected =
-            wasm_execute(abstract_testing::prelude::TEST_MODULE_ADDRESS, &expected, vec![]).unwrap();
+        let expected = wasm_execute(
+            abstract_testing::prelude::TEST_MODULE_ADDRESS,
+            &expected,
+            vec![],
+        )
+        .unwrap();
 
         assert_that!(actual).is_equal_to(expected);
     }

@@ -1,6 +1,6 @@
-use abstract_sdk::os::dex::SimulateSwapResponse;
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
 use dex::contract::DexApi;
+use dex::msg::SimulateSwapResponse;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 

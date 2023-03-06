@@ -3,8 +3,8 @@ name = "dex"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
-
 exclude = ["contract.wasm", "hash.txt"]
+resolver = "2"
 
 
 [lib]
@@ -12,15 +12,15 @@ crate-type = ["cdylib", "rlib"]
 
 [[example]]
 name = "deploy"
-required-features = ["deploy"]
+required-features = ["boot"]
 
 [features]
 default = ["export", "juno"]
 # Use endpoint "export" feature instead of "library" feature because features are required to be additive.
 # https://doc.rust-lang.org/cargo/reference/features.html?highlight=additive#feature-unification
 export = []
-boot = ["dep:boot-core"]
-# deploy = ["boot", "boot-core/daemon"]
+boot = ["dep:boot-core", "dep:abstract-boot", "dep:cw-multi-test"]
+
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
 backtraces = ["cosmwasm-std/backtraces"]
@@ -42,6 +42,8 @@ cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = {workspace = true}
 boot-core = { workspace = true , optional = true }
+abstract-boot = { workspace = true , optional = true }
+cw-multi-test = {workspace = true, optional = true }
 
 # abstract-macros = { workspace = true }
 
@@ -76,3 +78,4 @@ clap = { workspace = true}
 wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git"}
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
+dex = {path = ".", features = ["boot"]}

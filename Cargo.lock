@@ -72,9 +72,9 @@ dependencies = [
 
 [[package]]
 name = "abstract-boot"
-version = "0.12.0-alpha.1"
+version = "0.12.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9171752e73dc8feae3a99afd9f98814c599463118758eb04066b6cf1e56223cb"
+checksum = "f9395ead67b0aa3bca7ab5a709fb8c994ac5ca4d7adab212f289c3fe3400f725"
 dependencies = [
  "abstract-ans-host",
  "abstract-manager",
@@ -1115,7 +1115,7 @@ name = "cw-staking"
 version = "0.11.0"
 dependencies = [
  "abstract-api",
- "abstract-boot 0.12.0-alpha.1",
+ "abstract-boot 0.12.0-alpha.2",
  "abstract-os 0.12.0-alpha.3",
  "abstract-sdk 0.12.0-alpha.5",
  "anyhow",
@@ -1127,6 +1127,7 @@ dependencies = [
  "cosmwasm-std",
  "cw-asset",
  "cw-controllers 1.0.1",
+ "cw-multi-test",
  "cw-utils 0.13.4",
  "cw-utils 1.0.1",
  "cw20 0.10.3",
@@ -1611,7 +1612,7 @@ name = "dex"
 version = "0.11.0"
 dependencies = [
  "abstract-api",
- "abstract-boot 0.12.0-alpha.1",
+ "abstract-boot 0.12.0-alpha.2",
  "abstract-os 0.12.0-alpha.3",
  "abstract-sdk 0.12.0-alpha.5",
  "abstract-testing",
@@ -1626,6 +1627,7 @@ dependencies = [
  "cw-storage-plus 1.0.1",
  "cw20 0.10.3",
  "cw20 1.0.1",
+ "dex",
  "dotenv",
  "env_logger",
  "osmosis-std 0.13.2",

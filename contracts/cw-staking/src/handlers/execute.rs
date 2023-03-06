@@ -1,11 +1,9 @@
 use crate::contract::{CwStakingApi, CwStakingResult};
+use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID};
 use crate::providers::resolver::{self, is_over_ibc};
 use crate::LocalCwStaking;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
-use crate::msg::{
-    CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID,
-};
 use abstract_sdk::os::ibc_client::CallbackInfo;
 use abstract_sdk::{IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};

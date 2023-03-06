@@ -1,5 +1,5 @@
-use crate::EXCHANGE;
 use crate::msg::{DexApiExecuteMsg, DexInstantiateMsg, DexQueryMsg};
+use crate::EXCHANGE;
 use crate::{error::DexError, handlers};
 use abstract_api::{export_endpoints, ApiContract};
 use cosmwasm_std::Response;

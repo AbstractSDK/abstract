@@ -5,7 +5,6 @@ mod staking;
 
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 
-
 #[cfg(feature = "boot")]
 pub mod boot {
     use abstract_os::api::InstantiateMsg;

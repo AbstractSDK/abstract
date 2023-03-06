@@ -1,13 +1,13 @@
 mod common;
 
 use abstract_boot::*;
-use abstract_os::EXCHANGE;
 use boot_core::{
     prelude::{instantiate_default_mock_env, ContractInstance},
     Deploy,
 };
 use common::create_default_os;
-use cosmwasm_std::{coin, Addr, Empty};
+use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use dex::{boot::DexApi, msg::DexInstantiateMsg, EXCHANGE};
 
 use speculoos::prelude::*;
 use wyndex_bundle::{EUR, USD};
@@ -21,7 +21,16 @@ fn swap_native() -> anyhow::Result<()> {
     let _wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_os(&deployment.os_factory)?;
-    deployment.deploy_modules()?;
+    let mut exchange_api = DexApi::new(EXCHANGE, chain.clone());
+
+    exchange_api.deploy(
+        "1.0.0".parse()?,
+        DexInstantiateMsg {
+            swap_fee: Decimal::percent(1),
+            recipient_os: 0,
+        },
+    )?;
+
     let os = create_default_os(&deployment.os_factory)?;
     let proxy_addr = os.proxy.address()?;
     let _manager_addr = os.manager.address()?;
@@ -30,7 +39,6 @@ fn swap_native() -> anyhow::Result<()> {
     // install exchange on OS
     os.manager.install_module(EXCHANGE, &Empty {})?;
     // load exchange data into type
-    let exchange_api = DexApi::new(EXCHANGE, chain.clone());
     exchange_api.set_address(&Addr::unchecked(
         os.manager.module_info(EXCHANGE)?.unwrap().address,
     ));
@@ -46,7 +54,7 @@ fn swap_native() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = deployment.get_os(0)?.proxy.address()?;
+    let os0_proxy = OS::new(chain.clone(), Some(0)).proxy.address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 

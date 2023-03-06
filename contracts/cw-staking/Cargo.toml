@@ -14,12 +14,16 @@ exclude = [
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[example]]
+name = "deploy"
+required-features = ["boot"] 
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
 library = []
-boot = ["dep:boot-core"]
+boot = ["dep:boot-core", "dep:abstract-boot", "dep:cw-multi-test"]
 # for more explicit tests, cargo test --features=backtraces
 backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:cw20-stake", "dep:wyndex", "dep:wyndex-stake", "dep:cw-controllers"]
@@ -39,6 +43,8 @@ abstract-os = { workspace = true }
 abstract-api = { workspace = true }
 cw-asset = { workspace = true }
 boot-core = { workspace = true , optional = true }
+abstract-boot = { workspace = true , optional = true }
+cw-multi-test = {workspace = true, optional = true }
 
 # Juno dexes
 cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = ["library"], tag = "v1.0.0" }

@@ -22,9 +22,7 @@ use astroport_testnet::{
     },
 };
 
-use crate::msg::{
-    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
+use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128,
 };
