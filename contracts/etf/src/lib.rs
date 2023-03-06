@@ -12,8 +12,8 @@ pub mod boot {
     use crate::msg::*;
     use abstract_boot::AppDeployer;
     use abstract_os::app::MigrateMsg;
-    use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
-    use cw_multi_test::ContractWrapper;
+    use boot_core::{boot_contract, BootEnvironment, Contract};
+    use boot_core::ContractWrapper;
 
     #[boot_contract(EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, MigrateMsg)]
     pub struct ETF<Chain>;
