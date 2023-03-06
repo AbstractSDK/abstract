@@ -23,7 +23,7 @@ pub fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<Mock>> 
 //     let mut dex_api = DexApi::new(EXCHANGE, chain);
 //     dex_api
 //         .as_instance_mut()
-//         .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
+//         .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
 //             ::dex::contract::execute,
 //             ::dex::contract::instantiate,
 //             ::dex::contract::query,

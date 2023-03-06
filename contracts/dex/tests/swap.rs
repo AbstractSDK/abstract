@@ -1,15 +1,14 @@
 mod common;
 
 use abstract_boot::*;
-use boot_core::{
-    prelude::{instantiate_default_mock_env, ContractInstance},
+use boot_core::{{instantiate_default_mock_env, ContractInstance},
     Deploy,
 };
 use common::create_default_os;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use dex::{boot::DexApi, msg::DexInstantiateMsg, EXCHANGE};
 
-use speculoos::prelude::*;
+use speculoos::*;
 use wyndex_bundle::{EUR, USD};
 
 #[test]

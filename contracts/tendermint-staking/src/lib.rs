@@ -9,9 +9,9 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 pub mod boot {
     use abstract_boot::ApiDeployer;
     use abstract_os::api::InstantiateMsg;
-    use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
+    use boot_core::{boot_contract, BootEnvironment, Contract};
     use cosmwasm_std::Empty;
-    use cw_multi_test::ContractWrapper;
+    use boot_core::ContractWrapper;
 
     use crate::msg::*;
 

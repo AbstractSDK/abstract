@@ -29,10 +29,10 @@ pub mod boot {
         MANAGER,
     };
     use boot_core::{
-        interface::ContractInstance, prelude::boot_contract, BootEnvironment, Contract,
+        ContractInstance, boot_contract, BootEnvironment, Contract,
     };
     use cosmwasm_std::{Decimal, Empty};
-    use cw_multi_test::ContractWrapper;
+    use boot_core::ContractWrapper;
 
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexApi<Chain>;

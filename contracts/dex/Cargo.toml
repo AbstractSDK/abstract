@@ -19,7 +19,7 @@ default = ["export", "juno"]
 # Use endpoint "export" feature instead of "library" feature because features are required to be additive.
 # https://doc.rust-lang.org/cargo/reference/features.html?highlight=additive#feature-unification
 export = []
-boot = ["dep:boot-core", "dep:abstract-boot", "dep:cw-multi-test"]
+boot = ["dep:abstract-boot","dep:boot-core"]
 
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
@@ -41,11 +41,8 @@ abstract-api = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = {workspace = true}
-boot-core = { workspace = true , optional = true }
 abstract-boot = { workspace = true , optional = true }
-cw-multi-test = {workspace = true, optional = true }
-
-# abstract-macros = { workspace = true }
+boot-core = { workspace = true , optional = true }
 
 # Juno dexes
 cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
@@ -65,13 +62,11 @@ wyndex = {git = "https://github.com/cosmorama/wynddex.git", optional = true}
 osmosis-std = { version = "0.13.2", optional = true }
 
 [dev-dependencies]
-boot-core = { workspace = true , features = ["daemon"]}
-abstract-boot = { workspace = true, features = ["integration"]}
+abstract-boot = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
-cw-multi-test = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true}
