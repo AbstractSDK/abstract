@@ -36,10 +36,10 @@
 //!
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
+use abstract_os::app;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
-use abstract_os::app;
 
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;

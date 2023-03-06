@@ -1,7 +1,7 @@
 use crate::contract::INSTANTIATE_REPLY_ID;
 use crate::contract::{EtfApp, EtfResult, DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL};
-use crate::state::{State, FEE, STATE};
 use crate::msg::EtfInstantiateMsg;
+use crate::state::{State, FEE, STATE};
 use abstract_os::objects::fee::Fee;
 use cosmwasm_std::{
     to_binary, Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, WasmMsg,

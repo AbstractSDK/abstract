@@ -1,6 +1,6 @@
 use crate::contract::{EtfApp, EtfResult};
-use crate::state::{FEE, STATE};
 use crate::msg::{EtfQueryMsg, StateResponse};
+use crate::state::{FEE, STATE};
 use cosmwasm_std::{to_binary, Binary, Deps, Env};
 
 pub fn query_handler(deps: Deps, _env: Env, _etf: &EtfApp, msg: EtfQueryMsg) -> EtfResult<Binary> {

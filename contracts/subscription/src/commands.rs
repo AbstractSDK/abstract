@@ -1,18 +1,18 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::error::SubscriptionError;
-use abstract_os::objects::OsId;
-use abstract_sdk::Execution;
-use abstract_sdk::os::manager::state::OS_ID;
-use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
-use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
+use crate::msg::DepositHookMsg;
 use crate::state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
-use crate::msg::DepositHookMsg;
+use abstract_os::objects::OsId;
+use abstract_sdk::os::manager::state::OS_ID;
+use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
+use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_sdk::os::version_control::state::OS_ADDRESSES;
 use abstract_sdk::os::version_control::Core;
+use abstract_sdk::Execution;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
     QuerierWrapper, Response, StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
@@ -214,19 +214,13 @@ pub fn claim_subscriber_emissions(
         crate::state::EmissionType::None => {
             return Err(SubscriptionError::SubscriberEmissionsNotEnabled)
         }
-        crate::state::EmissionType::BlockShared(
-            shared_emissions,
-            token,
-        ) => {
+        crate::state::EmissionType::BlockShared(shared_emissions, token) => {
             // active_sub can't be 0 as we already loaded from storage
             let amount = (shared_emissions * Uint128::from(duration))
                 / (Uint128::from(subscription_state.active_subs));
             Asset::new(token, amount)
         }
-        crate::state::EmissionType::BlockPerUser(
-            per_user_emissions,
-            token,
-        ) => {
+        crate::state::EmissionType::BlockPerUser(per_user_emissions, token) => {
             let amount = per_user_emissions * Uint128::from(duration);
             Asset::new(token, amount)
         }

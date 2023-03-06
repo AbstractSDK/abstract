@@ -1,8 +1,8 @@
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
 use crate::handlers::execute;
-use crate::state::{State, STATE};
 use crate::msg::DepositHookMsg;
+use crate::state::{State, STATE};
 use cosmwasm_std::from_binary;
 use cosmwasm_std::DepsMut;
 use cosmwasm_std::{Env, MessageInfo};

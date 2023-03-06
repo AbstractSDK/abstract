@@ -9,16 +9,14 @@ pub const SUBSCRIPTION: &str = "abstract:subscription";
 
 #[cfg(feature = "boot")]
 pub mod boot {
-    use abstract_os::{
-        app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg},
-    };
     use crate::msg::*;
+    use abstract_boot::AppDeployer;
+    use abstract_os::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use boot_core::{prelude::boot_contract, BootEnvironment, Contract};
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
-    use std::str::FromStr;
     use cw_multi_test::ContractWrapper;
-    use abstract_boot::AppDeployer;
+    use std::str::FromStr;
 
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
     pub struct Subscription<Chain>;
@@ -28,11 +26,13 @@ pub mod boot {
     impl<Chain: BootEnvironment> Subscription<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             let mut contract = Contract::new(name, chain);
-            contract = contract.with_wasm_path("subscription").with_mock(Box::new(ContractWrapper::new_with_empty(
-                crate::contract::execute,
-                crate::contract::instantiate,
-                crate::contract::query,
-            )));
+            contract = contract.with_wasm_path("subscription").with_mock(Box::new(
+                ContractWrapper::new_with_empty(
+                    crate::contract::execute,
+                    crate::contract::instantiate,
+                    crate::contract::query,
+                ),
+            ));
             Self(contract)
         }
         pub fn init_msg(
@@ -50,9 +50,10 @@ pub mod boot {
                         payment_asset: AssetInfoUnchecked::native(payment_denom),
                         subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
                         version_control_addr,
-                        subscription_per_block_emissions: crate::state::UncheckedEmissionType::IncomeBased(
-                            AssetInfoUnchecked::cw20(token_addr.clone()),
-                        ),
+                        subscription_per_block_emissions:
+                            crate::state::UncheckedEmissionType::IncomeBased(
+                                AssetInfoUnchecked::cw20(token_addr.clone()),
+                            ),
                     },
                     contribution: Some(ContributionInstantiateMsg {
                         protocol_income_share: Decimal::percent(10),

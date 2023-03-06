@@ -1,8 +1,8 @@
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
+use crate::msg::EtfExecuteMsg;
 use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
-use crate::msg::EtfExecuteMsg;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::features::AbstractResponse;
