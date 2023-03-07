@@ -15,7 +15,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 library = []
-backtraces = ["cosmwasm-std/backtraces"]
+
 boot = ["dep:abstract-boot","dep:boot-core"]
 
 

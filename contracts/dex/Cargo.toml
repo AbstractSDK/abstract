@@ -23,7 +23,7 @@ boot = ["dep:abstract-boot","dep:boot-core"]
 
 # feature flag that fixes the astroport liquidity msg for testing
 testing = ["terra"]
-backtraces = ["cosmwasm-std/backtraces"]
+
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
 terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
 osmosis = ["dep:osmosis-std"]

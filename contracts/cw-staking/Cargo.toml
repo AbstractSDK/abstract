@@ -24,8 +24,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 boot = ["dep:boot-core", "dep:abstract-boot"]
-# for more explicit tests, cargo test --features=backtraces
-backtraces = ["cosmwasm-std/backtraces"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:cw20-stake", "dep:wyndex", "dep:wyndex-stake", "dep:cw-controllers"]
 osmosis = ["library", "dep:osmosis-std"]
 phoenix-1 = ["dep:astroport"]
