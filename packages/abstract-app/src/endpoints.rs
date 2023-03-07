@@ -75,14 +75,14 @@ mod test {
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
     };
-    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST};
+    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         SubMsgResult,
     };
     use speculoos::prelude::*;
 
-    use crate::test_common::*;
+    use crate::mock::*;
 
     #[test]
     fn exports_endpoints() {

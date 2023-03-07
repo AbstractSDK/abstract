@@ -2,14 +2,14 @@ use crate::{
     state::{AppContract, AppState},
     AppError, Handler, InstantiateEndpoint,
 };
-use abstract_os::objects::module_version::set_module_data;
+use abstract_os::{
+    app::{BaseInstantiateMsg, InstantiateMsg},
+    objects::module_version::set_module_data,
+};
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::AnsHost,
-    os::{
-        app::{BaseInstantiateMsg, InstantiateMsg},
-        module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    },
+    os::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
@@ -79,9 +79,11 @@ impl<
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_common::*;
+    use crate::mock::*;
+    use speculoos::prelude::*;
 
-    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_FACTORY};
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_FACTORY};
+    use speculoos::assert_that;
 
     #[test]
     fn test_instantiate() {

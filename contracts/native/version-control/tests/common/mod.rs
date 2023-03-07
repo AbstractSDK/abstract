@@ -2,8 +2,8 @@ use abstract_boot::{
     Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
 use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
-use boot_core::{prelude::ContractInstance, Mock};
-use cw_multi_test::ContractWrapper;
+use boot_core::ContractWrapper;
+use boot_core::{ContractInstance, Mock};
 
 pub const ROOT_USER: &str = "root_user";
 
@@ -33,7 +33,7 @@ pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> 
     ));
 
     module_factory.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::module_factory::contract::execute,
             ::module_factory::contract::instantiate,
             ::module_factory::contract::query,
@@ -42,7 +42,7 @@ pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> 
     ));
 
     version_control.as_instance_mut().set_mock(Box::new(
-        cw_multi_test::ContractWrapper::new_with_empty(
+        boot_core::ContractWrapper::new_with_empty(
             ::abstract_version_control::contract::execute,
             ::abstract_version_control::contract::instantiate,
             ::abstract_version_control::contract::query,
@@ -51,7 +51,7 @@ pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> 
 
     manager
         .as_instance_mut()
-        .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
+        .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
             ::manager::contract::execute,
             ::manager::contract::instantiate,
             ::manager::contract::query,
@@ -59,7 +59,7 @@ pub fn init_test_env(chain: Mock) -> anyhow::Result<(Abstract<Mock>, OS<Mock>)> 
 
     proxy
         .as_instance_mut()
-        .set_mock(Box::new(cw_multi_test::ContractWrapper::new_with_empty(
+        .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
             ::proxy::contract::execute,
             ::proxy::contract::instantiate,
             ::proxy::contract::query,

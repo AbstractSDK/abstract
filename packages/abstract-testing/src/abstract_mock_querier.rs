@@ -1,4 +1,4 @@
-use crate::{mock_ans::MockAnsHost, MockQuerierBuilder, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
 use abstract_os::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::OS_ID, AssetEntry},
@@ -7,6 +7,11 @@ use abstract_os::{
 use cosmwasm_std::{testing::MockQuerier, Addr};
 use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
+
+/// A mock querier setup with the proper responses for proxy/manager/osId.
+pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
+    AbstractMockQuerierBuilder::default().os(TEST_MANAGER, TEST_PROXY, TEST_OS_ID)
+}
 
 pub struct AbstractMockQuerierBuilder {
     builder: MockQuerierBuilder,

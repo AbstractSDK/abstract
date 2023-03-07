@@ -1,25 +1,25 @@
 [package]
 name = "abstract-app"
-version = { workspace = true }
+version = "0.12.0-alpha.4"
 edition = { workspace = true }
 license = { workspace = true }
 description = "base app contract implementation"
-
+resolver = "2"
 
 # [lib]
 # crate-type = ["cdylib", "rlib"]
 
 
 [features]
-backtraces = ["cosmwasm-std/backtraces"]
+
 # use library feature to disable all instantiate/execute/query exports
 library = []
-schema = ["dep:cosmwasm-schema"]
+test-utils = ["abstract-testing"]
 
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true, optional = true }
+cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
@@ -30,8 +30,9 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
+abstract-testing = { workspace = true, optional = true}
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-abstract-testing = { workspace = true }
 speculoos = { workspace = true }
+abstract-app ={ path = ".", features = ["test-utils"]}

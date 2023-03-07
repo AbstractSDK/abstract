@@ -6,6 +6,9 @@ use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use std::fmt::{self, Display};
 
+/// ID of the module
+pub type ModuleId<'a> = &'a str;
+
 /// Stores the provider, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {

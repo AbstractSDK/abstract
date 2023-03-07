@@ -5,12 +5,12 @@ use abstract_macros::abstract_response;
 use abstract_os::{
     ans_host::ExecuteMsg,
     ans_host::{state::*, AssetPair},
-    dex::DexName,
     objects::{
         pool_id::{PoolAddress, UncheckedPoolAddress},
         pool_metadata::PoolMetadata,
         pool_reference::PoolReference,
-        AssetEntry, DexAssetPairing, UncheckedChannelEntry, UncheckedContractEntry, UniquePoolId,
+        AssetEntry, DexAssetPairing, DexName, UncheckedChannelEntry, UncheckedContractEntry,
+        UniquePoolId,
     },
     ANS_HOST,
 };

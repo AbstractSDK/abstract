@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_macros::abstract_response;
 use abstract_os::{
-    app, objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
+    objects::module::Module, version_control::ModulesResponse, AbstractResult, OS_FACTORY,
 };
 use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
@@ -15,19 +15,15 @@ use abstract_sdk::{
         },
         os_factory::ExecuteMsg,
         proxy::{ExecuteMsg as ProxyExecMsg, InstantiateMsg as ProxyInstantiateMsg},
-        subscription::{
-            DepositHookMsg as SubDepositHook, SubscriptionExecuteMsg, SubscriptionFeeResponse,
-            SubscriptionQueryMsg,
-        },
         version_control::{Core, ExecuteMsg as VCExecuteMsg, QueryMsg as VCQuery},
     },
 };
 use cosmwasm_std::{
-    from_binary, to_binary, wasm_execute, Addr, Coin, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
-    QuerierWrapper, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    from_binary, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
+use cw_asset::{Asset, AssetInfo};
 use protobuf::Message;
 
 pub const CREATE_OS_MANAGER_MSG_ID: u64 = 1u64;
@@ -68,20 +64,20 @@ pub fn execute_create_os(
     deps: DepsMut,
     env: Env,
     governance: GovernanceDetails,
-    asset: Option<Asset>,
+    _asset: Option<Asset>,
     name: String,
     description: Option<String>,
     link: Option<String>,
 ) -> OsFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    let mut msgs = vec![];
-    if let Some(sub_addr) = &config.subscription_address {
-        let subscription_fee: SubscriptionFeeResponse =
-            query_subscription_fee(&deps.querier, sub_addr)?;
-        if !subscription_fee.fee.amount.is_zero() {
-            forward_payment(asset, &config, &mut msgs, sub_addr)?;
-        }
+    if let Some(_sub_addr) = &config.subscription_address {
+        panic!("not implemented");
+        // let subscription_fee: SubscriptionFeeResponse =
+        //     query_subscription_fee(&deps.querier, sub_addr)?;
+        // if !subscription_fee.fee.amount.is_zero() {
+        //     forward_payment(asset, &config, &mut msgs, sub_addr)?;
+        // }
     }
     // Get address of OS root user, depends on gov-type
     let root_user: Addr = match &governance {
@@ -122,9 +118,7 @@ pub fn execute_create_os(
                     }
                     .into(),
                     reply_on: ReplyOn::Success,
-                })
-                // Add as subscription registration as last. Gets called after the reply sequence is done.
-                .add_messages(msgs),
+                }),
         )
     } else {
         Err(OsFactoryError::WrongModuleKind(
@@ -321,49 +315,49 @@ pub fn execute_update_config(
     Ok(OsFactoryResponse::action("update_config"))
 }
 
-fn query_subscription_fee(
-    querier: &QuerierWrapper,
-    subscription_address: &Addr,
-) -> StdResult<SubscriptionFeeResponse> {
-    let subscription_fee_response: SubscriptionFeeResponse = querier.query(&wasm_smart_query(
-        subscription_address.to_string(),
-        &app::QueryMsg::App(SubscriptionQueryMsg::Fee {}),
-    )?)?;
-    Ok(subscription_fee_response)
-}
+// fn query_subscription_fee(
+//     querier: &QuerierWrapper,
+//     subscription_address: &Addr,
+// ) -> StdResult<SubscriptionFeeResponse> {
+//     let subscription_fee_response: SubscriptionFeeResponse = querier.query(&wasm_smart_query(
+//         subscription_address.to_string(),
+//         &app::QueryMsg::App(SubscriptionQueryMsg::Fee {}),
+//     )?)?;
+//     Ok(subscription_fee_response)
+// }
 
 // Does not do any payment verifications.
 // This provides more flexibility on the subscription contract to handle different payment options
-fn forward_payment(
-    maybe_received_payment: Option<Asset>,
-    config: &Config,
-    msgs: &mut Vec<CosmosMsg>,
-    sub_addr: &Addr,
-) -> Result<(), OsFactoryError> {
-    if let Some(received_payment) = maybe_received_payment {
-        // Forward payment to subscription module and registers the OS
-        let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
-            AssetInfoBase::Cw20(_) => received_payment.send_msg(
-                sub_addr,
-                to_binary(&SubDepositHook::Pay {
-                    os_id: config.next_os_id,
-                })?,
-            )?,
-            AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: sub_addr.into(),
-                msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
-                    SubscriptionExecuteMsg::Pay {
-                        os_id: config.next_os_id,
-                    },
-                ))?,
-                funds: vec![Coin::new(received_payment.amount.u128(), denom)],
-            }),
-            _ => panic!("unsupported asset"),
-        };
+// fn forward_payment(
+//     maybe_received_payment: Option<Asset>,
+//     config: &Config,
+//     msgs: &mut Vec<CosmosMsg>,
+//     sub_addr: &Addr,
+// ) -> Result<(), OsFactoryError> {
+//     if let Some(received_payment) = maybe_received_payment {
+//         // Forward payment to subscription module and registers the OS
+//         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
+//             AssetInfoBase::Cw20(_) => received_payment.send_msg(
+//                 sub_addr,
+//                 to_binary(&SubDepositHook::Pay {
+//                     os_id: config.next_os_id,
+//                 })?,
+//             )?,
+//             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
+//                 contract_addr: sub_addr.into(),
+//                 msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
+//                     SubscriptionExecuteMsg::Pay {
+//                         os_id: config.next_os_id,
+//                     },
+//                 ))?,
+//                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
+//             }),
+//             _ => panic!("unsupported asset"),
+//         };
 
-        msgs.push(forward_payment_to_module);
-        Ok(())
-    } else {
-        Err(OsFactoryError::NoPaymentReceived {})
-    }
-}
+//         msgs.push(forward_payment_to_module);
+//         Ok(())
+//     } else {
+//         Err(OsFactoryError::NoPaymentReceived {})
+//     }
+// }

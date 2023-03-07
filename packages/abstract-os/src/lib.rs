@@ -63,6 +63,3 @@ mod native;
 pub use crate::native::*;
 
 pub(crate) mod constants;
-mod modules;
-
-pub use crate::modules::*;

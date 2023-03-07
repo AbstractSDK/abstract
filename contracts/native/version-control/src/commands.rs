@@ -96,7 +96,7 @@ mod test {
     use speculoos::prelude::*;
 
     use super::*;
-    use abstract_testing::{TEST_ADMIN, TEST_OS_FACTORY, TEST_VERSION};
+    use abstract_testing::prelude::{TEST_ADMIN, TEST_OS_FACTORY, TEST_VERSION};
 
     type VersionControlTestResult = Result<(), VCError>;
 

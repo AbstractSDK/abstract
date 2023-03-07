@@ -1,6 +1,5 @@
 use crate::{state::AppContract, AppError, Handler, QueryEndpoint};
-use abstract_os::app::AppQueryMsg;
-use abstract_sdk::os::app::{AppConfigResponse, BaseQueryMsg, QueryMsg};
+use abstract_os::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
@@ -67,7 +66,8 @@ impl<
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_common::*;
+    use crate::mock::*;
+    use speculoos::prelude::*;
 
     type AppQueryMsg = QueryMsg<MockQueryMsg>;
 
@@ -122,7 +122,7 @@ mod test {
 
     mod base_query {
         use super::*;
-        use abstract_testing::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
+        use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MANAGER, TEST_PROXY};
         use cosmwasm_std::{from_binary, Addr};
 
         #[test]

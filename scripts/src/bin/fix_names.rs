@@ -5,7 +5,7 @@ use abstract_os::{
 };
 use boot_core::{
     networks::{terra::PISCO_1, NetworkInfo},
-    prelude::*,
+    *,
 };
 use semver::Version;
 use std::sync::Arc;

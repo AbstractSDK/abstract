@@ -6,8 +6,8 @@ use abstract_os::{
     ANS_HOST,
 };
 use boot_core::{
-    prelude::{boot_contract, ContractInstance},
     BootEnvironment, BootError, Contract, IndexResponse, TxResponse,
+    {boot_contract, ContractInstance},
 };
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;

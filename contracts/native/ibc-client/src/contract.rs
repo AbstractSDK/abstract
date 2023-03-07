@@ -131,7 +131,7 @@ mod tests {
     use cw2::CONTRACT;
 
     const CREATOR: &str = "creator";
-    use abstract_testing::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use speculoos::prelude::*;
 
     #[test]

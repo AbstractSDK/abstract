@@ -1,17 +1,9 @@
-use crate::{
-    AnsHost, DexApi, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, Subscription,
-    TMintStakingApi, VersionControl, ETF as EtfBoot,
-};
+use crate::{AnsHost, IbcClient, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
 use abstract_os::{
-    objects::OsId, ANS_HOST, ETF, EXCHANGE, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
-    SUBSCRIPTION, TENDERMINT_STAKING, VERSION_CONTROL,
+    objects::OsId, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY,
+    VERSION_CONTROL,
 };
-use boot_core::{
-    prelude::ContractInstance, state::StateInterface, BootEnvironment, IndexResponse, TxHandler,
-};
-
-#[cfg(feature = "integration")]
-use cw_multi_test::ContractWrapper;
+use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
 
 #[allow(clippy::type_complexity)]
 pub fn get_native_contracts<Chain: BootEnvironment>(
@@ -60,58 +52,4 @@ where
         let proxy = Proxy::new(PROXY, chain);
         (manager, proxy)
     }
-}
-
-#[allow(unused_mut)]
-pub fn get_apps<Chain: BootEnvironment>(chain: Chain) -> (EtfBoot<Chain>, Subscription<Chain>)
-where
-    <Chain as TxHandler>::Response: IndexResponse,
-{
-    let mut etf = EtfBoot::new(ETF, chain.clone());
-    let mut subscription = Subscription::new(SUBSCRIPTION, chain);
-
-    #[cfg(feature = "integration")]
-    if cfg!(feature = "integration") {
-        etf.as_instance_mut()
-            .set_mock(Box::new(ContractWrapper::new_with_empty(
-                ::etf::contract::execute,
-                ::etf::contract::instantiate,
-                ::etf::contract::query,
-            )));
-        subscription
-            .as_instance_mut()
-            .set_mock(Box::new(ContractWrapper::new_with_empty(
-                ::subscription::contract::execute,
-                ::subscription::contract::instantiate,
-                ::subscription::contract::query,
-            )));
-    }
-    (etf, subscription)
-}
-
-#[allow(unused_mut)]
-pub fn get_apis<Chain: BootEnvironment>(chain: Chain) -> (DexApi<Chain>, TMintStakingApi<Chain>)
-where
-    <Chain as TxHandler>::Response: IndexResponse,
-{
-    let mut dex_api = DexApi::new(EXCHANGE, chain.clone());
-    let mut staking_api = TMintStakingApi::new(TENDERMINT_STAKING, chain);
-    #[cfg(feature = "integration")]
-    if cfg!(feature = "integration") {
-        dex_api
-            .as_instance_mut()
-            .set_mock(Box::new(ContractWrapper::new_with_empty(
-                ::dex::contract::execute,
-                ::dex::contract::instantiate,
-                ::dex::contract::query,
-            )));
-        staking_api
-            .as_instance_mut()
-            .set_mock(Box::new(ContractWrapper::new_with_empty(
-                ::cw_staking::contract::execute,
-                ::cw_staking::contract::instantiate,
-                ::cw_staking::contract::query,
-            )));
-    }
-    (dex_api, staking_api)
 }

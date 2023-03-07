@@ -1,7 +1,7 @@
 mod common;
 use abstract_boot::*;
 use abstract_os::{module_factory, objects::module::ModuleInfo};
-use boot_core::prelude::{instantiate_default_mock_env, ContractInstance};
+use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::init_test_env;
 use cosmwasm_std::Addr;
 use speculoos::prelude::*;

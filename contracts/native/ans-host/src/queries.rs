@@ -1,7 +1,7 @@
-use abstract_os::ans_host::state::REV_ASSET_ADDRESSES;
 use abstract_os::ans_host::{
     AssetInfoListResponse, AssetInfoMapEntry, AssetInfosResponse, AssetMapEntry, ContractMapEntry,
 };
+use abstract_os::{ans_host::state::REV_ASSET_ADDRESSES, objects::DexName};
 use abstract_os::{
     ans_host::state::{Config, ADMIN, ASSET_PAIRINGS, CONFIG, POOL_METADATA},
     ans_host::{
@@ -14,7 +14,6 @@ use abstract_os::{
         PoolAddressListResponse, PoolMetadataFilter, PoolMetadataListResponse,
         PoolMetadataMapEntry, PoolMetadatasResponse, PoolsResponse, RegisteredDexesResponse,
     },
-    dex::DexName,
     objects::{
         AssetEntry, ChannelEntry, ContractEntry, DexAssetPairing, PoolMetadata, PoolReference,
         UniquePoolId,

@@ -1,30 +1,21 @@
-// #[cfg(test)]
-// mod mock_querier;
-pub use crate::state::AppContract;
-pub(crate) use abstract_sdk::base::*;
-use cosmwasm_std::{Empty, Response};
-pub use error::AppError;
-
 mod endpoints;
 pub mod error;
-/// Abstract SDK trait implementations
 pub mod features;
 pub(crate) mod handler;
-#[cfg(feature = "schema")]
-mod schema;
+pub mod schema;
 pub mod state;
+pub(crate) use abstract_sdk::base::*;
 
-// #[cfg(test)]
-// mod testing;
-// Default to Empty
+pub use crate::state::AppContract;
+pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
 
-#[cfg(test)]
-mod test_common {
+use cosmwasm_std::{Empty, Response};
+#[cfg(feature = "test-utils")]
+pub mod mock {
     pub use abstract_os::app;
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
-    pub use speculoos::prelude::*;
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -50,7 +41,7 @@ mod test_common {
     use crate::{AppContract, AppError};
     use abstract_os::{module_factory::ContextResponse, version_control::Core};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
-    use abstract_testing::{
+    use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
         TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,
     };
@@ -82,6 +73,8 @@ mod test_common {
     >;
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+
+    crate::export_endpoints!(MOCK_APP, MockAppContract);
 
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {

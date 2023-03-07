@@ -20,7 +20,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 library = []
 # for quicker tests, cargo test --lib
-backtraces = ["cosmwasm-std/backtraces"]
+
 
 [dependencies]
 abstract-os = { workspace = true }
@@ -42,7 +42,6 @@ thiserror = { workspace = true }
 abstract-boot = {workspace = true}
 boot-core = { workspace = true}
 anyhow = {workspace = true}
-cw-multi-test = {workspace = true}
 
 module-factory = { workspace = true }
 ans-host = { workspace = true }

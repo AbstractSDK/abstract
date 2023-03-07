@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 library = []
-backtraces = ["cosmwasm-std/backtraces"]
+
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -39,7 +39,6 @@ cosmwasm-schema = { workspace = true }
 abstract-boot = { workspace = true }
 boot-core = { workspace = true }
 anyhow = { workspace = true }
-cw-multi-test = { workspace = true }
 module-factory = { workspace = true }
 os-factory = { workspace = true }
 ans-host = { workspace = true }

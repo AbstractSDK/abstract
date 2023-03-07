@@ -2,7 +2,7 @@ use abstract_boot::{OSFactory, OsFactoryQueryFns, VersionControl, OS};
 use abstract_os::{manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
-    prelude::*,
+    *,
 };
 use std::sync::Arc;
 use tokio::runtime::Runtime;

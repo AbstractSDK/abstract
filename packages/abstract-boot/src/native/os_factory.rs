@@ -6,10 +6,8 @@ use abstract_os::{
     objects::gov_type::GovernanceDetails, os_factory::*, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
-    interface::{BootExecute, ContractInstance},
-    prelude::boot_contract,
-    state::StateInterface,
-    BootEnvironment, Contract, IndexResponse, TxResponse,
+    boot_contract, BootEnvironment, Contract, IndexResponse, StateInterface, TxResponse,
+    {BootExecute, ContractInstance},
 };
 use cosmwasm_std::Addr;
 

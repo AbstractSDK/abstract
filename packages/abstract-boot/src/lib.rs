@@ -1,4 +1,4 @@
-// Re-export boot_core
+// Re-export boot
 pub extern crate boot_core;
 
 pub mod idea_token;
@@ -19,17 +19,13 @@ mod interfaces;
 
 pub use crate::interfaces::*;
 
-mod modules;
-
-pub use crate::modules::*;
-
+mod deployers;
 mod deployment;
 mod error;
-mod module_deployer;
 mod traits;
 
 pub use error::AbstractBootError;
 
-pub use crate::module_deployer::*;
+pub use crate::deployers::*;
 
 pub use crate::deployment::*;

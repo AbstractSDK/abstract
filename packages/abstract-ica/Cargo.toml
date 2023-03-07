@@ -8,7 +8,7 @@ description = "Abstract ICA struct and protocol version definitions"
 
 [features]
 default = []
-backtraces = ["cosmwasm-std/backtraces"]
+
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["ibc3"] }

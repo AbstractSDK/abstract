@@ -38,7 +38,7 @@ pub trait Identification: Sized {
 #[cfg(test)]
 mod test {
     use super::*;
-    use abstract_testing::*;
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     struct MockBinding;

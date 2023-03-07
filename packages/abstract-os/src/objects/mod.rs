@@ -33,4 +33,4 @@ pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
 pub use contract_entry::{ContractEntry, UncheckedContractEntry};
 pub use dex_asset_pairing::DexAssetPairing;
-pub use lp_token::LpToken;
+pub use lp_token::{DexName, LpToken};

@@ -1,10 +1,9 @@
 use crate::{
-    get_apis, get_apps, get_native_contracts, get_os_core_contracts, AnsHost, Manager,
-    ModuleFactory, OSFactory, Proxy, VersionControl, OS,
+    get_native_contracts, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl, OS,
 };
 
-use boot_core::{prelude::*, BootEnvironment, BootError};
-use cosmwasm_std::{Decimal, Empty};
+use boot_core::*;
+
 use semver::Version;
 
 pub struct Abstract<Chain: BootEnvironment> {
@@ -16,19 +15,15 @@ pub struct Abstract<Chain: BootEnvironment> {
     pub module_factory: ModuleFactory<Chain>,
 }
 
-use abstract_os::dex::DexInstantiateMsg;
-use abstract_os::{
-    objects::OsId, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL,
-};
+use abstract_os::{ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
-use cw_multi_test::ContractWrapper;
+use boot_core::ContractWrapper;
 
-impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain> {
+impl<Chain: BootEnvironment> boot_core::Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = BootError;
     type DeployData = semver::Version;
 
-    // TODO: From<BootError>
     #[allow(unused_mut)]
     fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, BootError> {
         let mut ans_host = AnsHost::new(ANS_HOST, chain.clone());
@@ -57,7 +52,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             module_factory.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::module_factory::contract::execute,
                     ::module_factory::contract::instantiate,
                     ::module_factory::contract::query,
@@ -66,7 +61,7 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             version_control.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::version_control::contract::execute,
                     ::version_control::contract::instantiate,
                     ::version_control::contract::query,
@@ -74,20 +69,20 @@ impl<Chain: BootEnvironment> boot_core::deploy::Deploy<Chain> for Abstract<Chain
             ));
 
             manager.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+                boot_core::ContractWrapper::new_with_empty(
                     ::manager::contract::execute,
                     ::manager::contract::instantiate,
                     ::manager::contract::query,
                 ),
             ));
 
-            proxy.as_instance_mut().set_mock(Box::new(
-                cw_multi_test::ContractWrapper::new_with_empty(
+            proxy
+                .as_instance_mut()
+                .set_mock(Box::new(boot_core::ContractWrapper::new_with_empty(
                     ::proxy::contract::execute,
                     ::proxy::contract::instantiate,
                     ::proxy::contract::query,
-                ),
-            ));
+                )));
         }
 
         let mut deployment = Abstract {
@@ -137,6 +132,7 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         }
     }
 
+    #[allow(unused)]
     fn get_chain(&self) -> Chain {
         self.chain.clone()
     }
@@ -214,13 +210,6 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
         Ok(())
     }
 
-    pub fn deploy_modules(&self) -> Result<(), crate::AbstractBootError> {
-        self.upload_modules()?;
-        self.instantiate_apis()?;
-        self.register_modules()?;
-        Ok(())
-    }
-
     pub fn contracts(&self) -> Vec<&Contract<Chain>> {
         vec![
             self.ans_host.as_instance(),
@@ -228,56 +217,5 @@ impl<Chain: BootEnvironment> Abstract<Chain> {
             self.os_factory.as_instance(),
             self.module_factory.as_instance(),
         ]
-    }
-
-    fn instantiate_apis(&self) -> Result<(), crate::AbstractBootError> {
-        let (dex, staking) = get_apis(self.get_chain());
-        let dex_init_msg = abstract_os::api::InstantiateMsg {
-            app: DexInstantiateMsg {
-                swap_fee: Decimal::permille(3),
-                recipient_os: 0u32,
-            },
-            base: abstract_os::api::BaseInstantiateMsg {
-                ans_host_address: self.ans_host.address()?.into(),
-                version_control_address: self.version_control.address()?.into(),
-            },
-        };
-        dex.instantiate(&dex_init_msg, None, None)?;
-        let staking_init_msg = abstract_os::api::InstantiateMsg {
-            app: Empty {},
-            base: abstract_os::api::BaseInstantiateMsg {
-                ans_host_address: self.ans_host.address()?.into(),
-                version_control_address: self.version_control.address()?.into(),
-            },
-        };
-        staking.instantiate(&staking_init_msg, None, None)?;
-        Ok(())
-    }
-
-    fn upload_modules(&self) -> Result<(), crate::AbstractBootError> {
-        let (mut dex, mut staking) = get_apis(self.get_chain());
-        let (mut etf, _subs) = get_apps(self.get_chain());
-        let modules: Vec<&mut dyn BootUpload<Chain>> = vec![&mut dex, &mut staking, &mut etf];
-        // no subscription
-        // vec![&mut dex, &mut staking, &mut etf, &mut subs];
-        modules
-            .into_iter()
-            .map(BootUpload::upload)
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(())
-    }
-
-    fn register_modules(&self) -> Result<(), crate::AbstractBootError> {
-        let (dex, staking) = get_apis(self.get_chain());
-        let (etf, subs) = get_apps(self.get_chain());
-
-        self.version_control
-            // , subs.as_instance()
-            .register_apps(vec![etf.as_instance()], &self.version)?;
-        self.version_control.register_apis(
-            vec![dex.as_instance(), staking.as_instance()],
-            &self.version,
-        )?;
-        Ok(())
     }
 }

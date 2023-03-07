@@ -1,4 +1,4 @@
-use crate::{
+use crate::addresses::{
     test_core, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
     TEST_PROXY, TEST_VERSION_CONTROL,
 };
@@ -27,7 +27,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 /// use cosmwasm_std::{from_binary, to_binary};
 /// use abstract_testing::MockQuerierBuilder;
 /// use cosmwasm_std::testing::MockQuerier;
-/// use abstract_testing::mock_module::MockModuleExecuteMsg;
+/// use abstract_sdk::mock_module::MockModuleExecuteMsg;
 ///
 /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
 ///    // handle the message
@@ -115,7 +115,7 @@ impl MockQuerierBuilder {
     /// use cosmwasm_std::{from_binary, to_binary};
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
-    /// use abstract_testing::mock_module::MockModuleExecuteMsg;
+    /// use abstract_sdk::mock_module::MockModuleExecuteMsg;
     ///
     /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
     ///    // handle the message
@@ -370,7 +370,7 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{TEST_MODULE_ID, TEST_OS_ID};
+    use crate::addresses::{TEST_MODULE_ID, TEST_OS_ID};
 
     use super::*;
     use abstract_os::{

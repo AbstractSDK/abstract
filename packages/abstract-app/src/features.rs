@@ -54,9 +54,10 @@ impl<
 mod test {
     use super::*;
     use abstract_sdk::features::ModuleIdentification;
-    use abstract_testing::{TEST_ANS_HOST, TEST_MODULE_ID, TEST_PROXY};
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_ID, TEST_PROXY};
+    use speculoos::prelude::*;
 
-    use crate::test_common::*;
+    use crate::mock::*;
 
     #[test]
     fn test_ans_host() -> AppTestResult {

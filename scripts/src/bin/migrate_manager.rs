@@ -2,7 +2,7 @@ use abstract_boot::{Manager, VersionControl};
 use abstract_os::{MANAGER, VERSION_CONTROL};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
-    prelude::*,
+    *,
 };
 use clap::Parser;
 use semver::Version;

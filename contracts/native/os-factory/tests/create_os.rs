@@ -4,8 +4,7 @@ use abstract_os::{
     objects::gov_type::GovernanceDetails, os_factory, version_control::Core, ABSTRACT_EVENT_NAME,
 };
 use boot_core::{
-    prelude::{instantiate_default_mock_env, ContractInstance},
-    IndexResponse,
+    IndexResponse, {instantiate_default_mock_env, ContractInstance},
 };
 use common::init_abstract_env;
 use cosmwasm_std::{Addr, Uint64};

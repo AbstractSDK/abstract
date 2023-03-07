@@ -1,4 +1,4 @@
-use os::ModuleId;
+use os::objects::module::ModuleId;
 
 use crate::base::Handler;
 

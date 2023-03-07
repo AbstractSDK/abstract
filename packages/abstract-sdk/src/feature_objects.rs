@@ -89,7 +89,7 @@ impl crate::features::AbstractNameService for AnsHost {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::{TEST_MANAGER, TEST_PROXY};
+    use abstract_testing::prelude::{TEST_MANAGER, TEST_PROXY};
     use speculoos::prelude::*;
 
     mod version_control {

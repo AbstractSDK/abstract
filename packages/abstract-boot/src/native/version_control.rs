@@ -12,9 +12,8 @@ use abstract_os::{
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
 use boot_core::{
-    interface::{BootQuery, ContractInstance},
-    prelude::boot_contract,
-    BootEnvironment, Contract, IndexResponse, TxResponse,
+    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
+    {BootQuery, ContractInstance},
 };
 use cosmwasm_std::Addr;
 use semver::Version;

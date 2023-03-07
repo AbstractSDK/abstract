@@ -14,7 +14,7 @@ use abstract_os::{
 use cosmwasm_std::{testing::MockApi, Addr};
 use cw_asset::AssetInfo;
 
-use crate::{MockQuerierBuilder, TEST_ANS_HOST};
+use crate::{addresses::TEST_ANS_HOST, MockQuerierBuilder};
 
 /// mirror ANS state
 /// ```rust,ignore

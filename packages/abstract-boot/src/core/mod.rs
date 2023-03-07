@@ -17,8 +17,7 @@ use std::collections::HashSet;
 
 use abstract_os::{manager::ManagerModuleInfo, objects::OsId};
 use boot_core::{
-    prelude::{BootUpload, ContractInstance},
-    BootEnvironment,
+    BootEnvironment, {BootUpload, ContractInstance},
 };
 use serde::Serialize;
 use speculoos::prelude::*;

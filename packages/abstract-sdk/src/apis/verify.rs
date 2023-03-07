@@ -84,10 +84,7 @@ mod test {
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
-    use abstract_testing::{
-        prelude::*, MockQuerierBuilder, TEST_OS_ID, TEST_PROXY, TEST_VERSION_CONTROL,
-    };
-
+    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     struct MockBinding;
@@ -99,6 +96,7 @@ mod test {
     }
 
     mod assert_proxy {
+
         use super::*;
 
         #[test]

@@ -2,7 +2,7 @@
 use cw_semver::{Comparator, Version};
 use serde::{Deserialize, Serialize};
 
-use crate::ModuleId;
+use super::module::ModuleId;
 
 /// Statically defined dependency used in-contract
 #[derive(Debug, Clone, PartialEq)]

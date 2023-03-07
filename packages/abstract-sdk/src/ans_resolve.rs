@@ -202,7 +202,7 @@ mod tests {
     use cosmwasm_std::Binary;
 
     use abstract_os::ans_host::state::ASSET_ADDRESSES;
-    use abstract_testing::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
+    use abstract_testing::prelude::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
         Empty,

@@ -1,8 +1,7 @@
 use abstract_os::abstract_token::*;
 use boot_core::{
-    interface::{BootExecute, BootInstantiate, ContractInstance},
-    prelude::boot_contract,
-    BootEnvironment, Contract, TxResponse,
+    boot_contract, BootEnvironment, Contract, TxResponse,
+    {BootExecute, BootInstantiate, ContractInstance},
 };
 use cosmwasm_std::{Addr, Binary, Uint128};
 

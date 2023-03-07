@@ -1,12 +1,14 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_os::{api::ApiRequestMsg, version_control::Core};
+use abstract_os::{
+    api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    version_control::Core,
+};
 use abstract_sdk::{
     base::{
         endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
         Handler,
     },
     features::ModuleIdentification,
-    os::api::{ApiExecuteMsg, BaseExecuteMsg, ExecuteMsg},
     AbstractResponse, AbstractSdkError, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -206,51 +208,24 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_os::{
-        api,
-        api::{BaseInstantiateMsg, InstantiateMsg},
-    };
-    use abstract_sdk::base::InstantiateEndpoint;
-    use abstract_testing::*;
+    use abstract_os::api;
+
+    use abstract_testing::prelude::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Empty, Storage,
+        Addr, Storage,
     };
     use std::collections::HashSet;
 
-    use crate::test_common::{MockApiExecMsg, MockError};
+    use crate::mock::*;
     use speculoos::prelude::*;
-
-    type MockApi = ApiContract<MockError, Empty, MockApiExecMsg, Empty, Empty>;
-    type ApiMockResult = Result<(), MockError>;
-
-    const TEST_METADATA: &str = "test_metadata";
-    const TEST_TRADER: &str = "test_trader";
-
-    fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
-        let api = MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA));
-        let info = mock_info(TEST_ADMIN, &[]);
-        let init_msg = InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: TEST_ANS_HOST.into(),
-                version_control_address: TEST_VERSION_CONTROL.into(),
-            },
-            app: Empty {},
-        };
-        api.instantiate(deps, mock_env(), info, init_msg)
-    }
-
-    fn mock_api() -> MockApi {
-        MockApi::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
-            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_response".as_bytes())))
-    }
 
     fn execute_as(
         deps: DepsMut,
         sender: &str,
         msg: ExecuteMsg<MockApiExecMsg>,
     ) -> Result<Response, MockError> {
-        mock_api().execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        MOCK_API.execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
     fn base_execute_as(
@@ -262,10 +237,12 @@ mod tests {
     }
 
     mod update_traders {
+        use crate::mock::TEST_TRADER;
+
         use super::*;
 
         fn load_test_proxy_traders(storage: &dyn Storage) -> HashSet<Addr> {
-            mock_api()
+            MOCK_API
                 .traders
                 .load(storage, Addr::unchecked(TEST_PROXY))
                 .unwrap()
@@ -278,7 +255,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = mock_api();
+            let _api = MOCK_API;
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -286,7 +263,7 @@ mod tests {
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let api = mock_api();
+            let api = MOCK_API;
             assert_that!(api.traders.is_empty(&deps.storage)).is_false();
 
             let test_proxy_traders = load_test_proxy_traders(&deps.storage);
@@ -303,7 +280,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = mock_api();
+            let _api = MOCK_API;
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -332,7 +309,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = mock_api();
+            let _api = MOCK_API;
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![TEST_TRADER.into()],
                 to_remove: vec![],
@@ -367,7 +344,7 @@ mod tests {
 
             mock_init(deps.as_mut())?;
 
-            let _api = mock_api();
+            let _api = MOCK_API;
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: vec![],
                 to_remove: vec![TEST_TRADER.into()],
@@ -390,9 +367,11 @@ mod tests {
     }
 
     mod execute_app {
+        use crate::mock::{MOCK_API, TEST_TRADER};
+
         use super::*;
 
-        use abstract_testing::mock_module::mocked_os_querier_builder;
+        use abstract_testing::prelude::mocked_os_querier_builder;
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single trader, TEST_TRADER
@@ -403,7 +382,7 @@ mod tests {
         fn setup_with_traders(mut deps: DepsMut, traders: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 
-            let _api = mock_api();
+            let _api = MOCK_API;
             let msg = BaseExecuteMsg::UpdateTraders {
                 to_add: traders.into_iter().map(Into::into).collect(),
                 to_remove: vec![],

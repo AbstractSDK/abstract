@@ -9,10 +9,6 @@ use abstract_sdk::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::VersionControlContract,
     os::{
-        api::{
-            BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery,
-            TradersResponse,
-        },
         manager::state::DEPENDENTS,
         manager::state::{OsInfo, Subscribed, CONFIG, INFO, OS_MODULES, ROOT, STATUS},
         manager::{CallbackMsg, ExecuteMsg},
@@ -26,6 +22,10 @@ use abstract_sdk::{
         IBC_CLIENT, MANAGER, PROXY,
     },
     ModuleRegistryInterface,
+};
+
+use abstract_os::api::{
+    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
 };
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
@@ -1116,7 +1116,7 @@ mod test {
     mod upgrade {
         use super::*;
         use abstract_os::version_control::state::MODULE_LIBRARY;
-        use abstract_testing::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
+        use abstract_testing::prelude::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
 
         #[test]
         fn only_root() -> ManagerTestResult {

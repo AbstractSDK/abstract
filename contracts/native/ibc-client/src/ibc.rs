@@ -316,7 +316,7 @@ mod tests {
     use abstract_sdk::os::ibc_client::InstantiateMsg;
 
     use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
-    use abstract_testing::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::addresses::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{
             mock_dependencies, mock_env, mock_ibc_channel_open_try, mock_info, MockApi,

@@ -71,8 +71,10 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::apis::test_common::*;
-
+    use crate::mock_module::*;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::{testing::*, *};
+    use speculoos::prelude::*;
     const TEST_HOST_CHAIN: &str = "host_chain";
 
     /// Tests that a host_action can be built with no callback

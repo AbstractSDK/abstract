@@ -3,18 +3,6 @@
 "core":
   # Match all of core folders
   - contracts/core/**/*
-"app":
-  # Match all of app folders
-  - contracts/modules/apps/**/*
-"api":
-  # Match all of api folders
-  - contracts/modules/apis/**/*
-"service":
-  # Match all of service folders
-  - contracts/modules/services/**/*
-"perk":
-  # Match all of perk folders
-  - contracts/modules/perks/**/*
 "native":
   # Match all of native folders
   - contracts/native/**/*

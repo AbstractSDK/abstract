@@ -1,23 +1,20 @@
 mod common;
 use abstract_boot::*;
-use abstract_manager::contract::CONTRACT_VERSION;
+use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use abstract_os::{
-    api::BaseQueryMsgFns,
-    tendermint_staking::{TendermintStakingExecuteMsg, TendermintStakingExecuteMsgFns},
-    *,
-};
-use abstract_os::{manager::ManagerModuleInfo, TENDERMINT_STAKING};
+use abstract_os::{api::BaseQueryMsgFns, *};
+use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
+use boot_core::BootExecute;
 use boot_core::{
-    prelude::{instantiate_default_mock_env, CallAs, ContractInstance},
-    BootError, Mock, TxHandler,
+    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
-use common::{create_default_os, init_abstract_env, init_staking_api, AResult, TEST_COIN};
+use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
 use cw_multi_test::StakingInfo;
-use speculoos::prelude::*;
+use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
+use abstract_api::mock::{BootMockApi, MockApi, MockApiExecMsg};
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
@@ -74,18 +71,17 @@ fn installing_one_api_should_succeed() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain, &deployment, None)?;
-
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    let staking_api = init_mock_api(chain.clone(), &deployment, None)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_api.addr_str()?,
-        id: TENDERMINT_STAKING.to_string(),
+        id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
-            contract: TENDERMINT_STAKING.into(),
-            version: CONTRACT_VERSION.into(),
+            contract: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
         },
     });
 
@@ -126,10 +122,10 @@ fn install_non_existent_version_should_fail() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    init_staking_api(chain, &deployment, None)?;
+    init_mock_api(chain, &deployment, None)?;
 
     let res = os.manager.install_module_version(
-        TENDERMINT_STAKING,
+        TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
         &Empty {},
     );
@@ -147,9 +143,9 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain, &deployment, None)?;
+    let staking_api = init_mock_api(chain, &deployment, None)?;
 
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
@@ -157,18 +153,18 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_api.addr_str()?,
-        id: TENDERMINT_STAKING.to_string(),
+        id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
-            contract: TENDERMINT_STAKING.into(),
-            version: CONTRACT_VERSION.into(),
+            contract: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
         },
     });
 
     // install again
-    let second_install_res = install_api(&os.manager, TENDERMINT_STAKING);
+    let second_install_res = install_api(&os.manager, TEST_MODULE_ID);
     assert_that!(second_install_res)
         .is_err()
-        .matches(|e| e.to_string().contains("tendermint-staking"));
+        .matches(|e| e.to_string().contains("test-module-id"));
 
     os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
@@ -182,30 +178,30 @@ fn reinstalling_api_should_be_allowed() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain, &deployment, None)?;
+    let staking_api = init_mock_api(chain, &deployment, None)?;
 
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_api.addr_str()?,
-        id: TENDERMINT_STAKING.to_string(),
+        id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
-            contract: TENDERMINT_STAKING.into(),
-            version: CONTRACT_VERSION.into(),
+            contract: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
         },
     });
 
     // uninstall
-    uninstall_module(&os.manager, TENDERMINT_STAKING)?;
+    uninstall_module(&os.manager, TEST_MODULE_ID)?;
 
     // None expected
     os.expect_modules(vec![])?;
 
     // reinstall
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
@@ -218,26 +214,27 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
+
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain.clone(), &deployment, None)?;
+    let staking_api = init_mock_api(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
 
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_api.addr_str()?,
-        id: TENDERMINT_STAKING.to_string(),
+        id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
-            contract: TENDERMINT_STAKING.into(),
-            version: CONTRACT_VERSION.into(),
+            contract: TEST_MODULE_ID.into(),
+            version: TEST_VERSION.into(),
         },
     });
 
     // uninstall tendermint staking
-    uninstall_module(&os.manager, TENDERMINT_STAKING)?;
+    uninstall_module(&os.manager, TEST_MODULE_ID)?;
 
     os.expect_modules(vec![])?;
 
@@ -245,25 +242,25 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let new_version_num = "100.0.0";
 
     // We init the staking api with a new version to ensure that we get a new address
-    let new_staking_api = init_staking_api(chain, &deployment, Some(new_version_num.to_string()))?;
+    let new_staking_api = init_mock_api(chain, &deployment, Some(new_version_num.to_string()))?;
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
         .version_control
-        .module(ModuleInfo::from_id_latest(TENDERMINT_STAKING)?)?;
+        .module(ModuleInfo::from_id_latest(TEST_MODULE_ID)?)?;
     assert_that!(latest_staking.info.version)
         .is_equal_to(ModuleVersion::Version(new_version_num.to_string()));
 
     // reinstall
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     let modules = os.expect_modules(vec![new_staking_api.address()?.to_string()])?;
 
     // assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
     //     address: staking_api.addr_str()?,
-    //     id: TENDERMINT_STAKING.to_string(),
+    //     id: TEST_MODULE_ID.to_string(),
     //     version: cw2::ContractVersion {
-    //         contract: TENDERMINT_STAKING.into(),
+    //         contract: TEST_MODULE_ID.into(),
     //         version: new_version_num.to_string(),
     //     },
     // });
@@ -280,28 +277,28 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
 #[test]
 fn not_trader_exec() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(ROOT_USER);
     let not_trader = Addr::unchecked("not_trader");
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let staking_api = init_staking_api(chain, &deployment, None)?;
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    let staking_api = init_mock_api(chain, &deployment, None)?;
+    install_api(&os.manager, TEST_MODULE_ID)?;
     // non-trader cannot execute
     let res = staking_api
         .call_as(&not_trader)
-        .delegate(100u128.into(), VALIDATOR.into())
+        .execute(&MockApiExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
-        "Sender: not_trader of request to abstract:tendermint-staking is not a Manager or Trader",
+        "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",
     );
     // neither can the ROOT directly
     let res = staking_api
-        .delegate(100u128.into(), VALIDATOR.into())
+        .execute(&MockApiExecMsg.into(), None)
         .unwrap_err();
     assert_that!(&res.root().to_string()).contains(
-        "Sender: root_user of request to abstract:tendermint-staking is not a Manager or Trader",
+        "Sender: root_user of request to tester:test-module-id is not a Manager or Trader",
     );
     Ok(())
 }
@@ -315,17 +312,15 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let _staking_api = init_staking_api(chain.clone(), &deployment, None)?;
-    install_api(&os.manager, TENDERMINT_STAKING)?;
+    let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
+
+    install_api(&os.manager, TEST_MODULE_ID)?;
 
     chain.set_balance(&os.proxy.address()?, vec![Coin::new(100_000, TEST_COIN)])?;
 
     os.manager.execute_on_module(
-        TENDERMINT_STAKING,
-        Into::<tendermint_staking::ExecuteMsg>::into(TendermintStakingExecuteMsg::Delegate {
-            validator: VALIDATOR.into(),
-            amount: 100u128.into(),
-        }),
+        TEST_MODULE_ID,
+        Into::<abstract_os::api::ExecuteMsg<MockApiExecMsg>>::into(MockApiExecMsg),
     )?;
 
     Ok(())
@@ -338,24 +333,24 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
-    let _staking_api_one = init_staking_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
+    let _staking_api_one = init_mock_api(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
     let expected_version = "2.3.4".to_string();
     let expected_staking_api =
-        init_staking_api(chain.clone(), &deployment, Some(expected_version.clone()))?;
+        init_mock_api(chain.clone(), &deployment, Some(expected_version.clone()))?;
     let expected_staking_api_addr = expected_staking_api.address()?.to_string();
 
-    let _staking_api_three = init_staking_api(chain, &deployment, Some("3.4.5".to_string()))?;
+    let _staking_api_three = init_mock_api(chain, &deployment, Some("3.4.5".to_string()))?;
 
     // install specific version
     os.manager.install_module_version(
-        TENDERMINT_STAKING,
+        TEST_MODULE_ID,
         ModuleVersion::Version(expected_version),
         &Empty {},
     )?;
 
     let modules = os.expect_modules(vec![expected_staking_api_addr])?;
     let installed_module: ManagerModuleInfo = modules[1].clone();
-    assert_that!(installed_module.id).is_equal_to(TENDERMINT_STAKING.to_string());
+    assert_that!(installed_module.id).is_equal_to(TEST_MODULE_ID.to_string());
 
     Ok(())
 }

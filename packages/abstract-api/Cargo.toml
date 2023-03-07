@@ -1,10 +1,11 @@
 [package]
 name = "abstract-api"
-version = { workspace = true }
+version = "0.12.0-alpha.6"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 description = "base api contract implementation"
+resolver = "2"
 
 
 # [lib]
@@ -12,17 +13,13 @@ description = "base api contract implementation"
 
 
 [features]
-default = []
-backtraces = ["cosmwasm-std/backtraces"]
-# # use library feature to disable all instantiate/execute/query exports
-library = []
-schema = ["dep:cosmwasm-schema"]
-# ibc = ["dep:abstract-ica","abstract-os = {workspace = true}
 
+# Exposes a mock API contract for testing
+test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true, optional = true }
+cosmwasm-schema = { workspace = true}
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
@@ -31,8 +28,12 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
+abstract-testing = { workspace = true, optional = true }
+abstract-boot = { workspace = true, optional = true }
+boot-core = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-testing = { workspace = true }
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
+abstract-api = {path = ".", features = ["test-utils"]}

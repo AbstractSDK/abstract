@@ -13,7 +13,7 @@ repository = "https://github.com/Abstract-OS/contracts"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-backtraces = ["cosmwasm-std/backtraces"]
+
 library = []
 
 [dependencies]

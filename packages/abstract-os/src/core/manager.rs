@@ -18,7 +18,7 @@ pub mod state {
     use std::collections::HashSet;
 
     pub use crate::objects::core::OS_ID;
-    use crate::ModuleId;
+    use crate::objects::module::ModuleId;
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};

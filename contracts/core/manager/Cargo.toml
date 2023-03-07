@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 library = []
-backtraces = ["cosmwasm-std/backtraces"]
+
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -51,5 +51,6 @@ proxy = { workspace = true }
 module-factory = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }
-tendermint-staking = { path = "../../modules/apis/tendermint-staking" }
+abstract-api ={ workspace = true }
 abstract-testing = { workspace = true }
+abstract-macros = { workspace = true }

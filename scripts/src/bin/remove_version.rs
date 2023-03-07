@@ -1,8 +1,6 @@
 use abstract_boot::{VCExecFns, VersionControl};
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-use boot_core::{
-    networks, networks::NetworkInfo, prelude::instantiate_daemon_env, DaemonOptionsBuilder,
-};
+use boot_core::{instantiate_daemon_env, networks, networks::NetworkInfo, DaemonOptionsBuilder};
 use cosmwasm_std::Addr;
 use std::{env, sync::Arc};
 

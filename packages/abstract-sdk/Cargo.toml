@@ -1,17 +1,20 @@
 [package]
 name = "abstract-sdk"
-version = { workspace = true }
+version = "0.12.0-alpha.5"
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Helpers for Abstract contracts"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts/tree/main/packages/abstract-sdk"
+resolver = "2"
 
 
 [features]
 # for quicker tests, cargo test --lib
-backtraces = ["cosmwasm-std/backtraces"]
+
+# Expose MockModule for testing with other APIs
+test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
 
 [dependencies]
 cosmwasm-std = { workspace = true, features = ["iterator", "staking"] }
@@ -25,11 +28,16 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 abstract-os = { workspace = true }
 semver = { workspace = true }
-abstract-macros = { workspace = true }
+abstract-macros = { workspace = true}
+
+# test-utils feature
+abstract-testing = { workspace = true, optional = true }
+cosmwasm-schema = {workspace = true, optional = true}
 
 [dev-dependencies]
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
-abstract-testing = { workspace = true, default-features = false }
 abstract-ica = { workspace = true }
 doc-comment = "0.3.3"
+# Set our own feature when running tests!
+abstract-sdk = { path = ".", features = ["test-utils"] }

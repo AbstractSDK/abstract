@@ -5,7 +5,7 @@ use abstract_os::{
 };
 use boot_core::{
     networks::{NetworkInfo, UNI_6},
-    prelude::*,
+    *,
 };
 use semver::Version;
 use std::sync::Arc;

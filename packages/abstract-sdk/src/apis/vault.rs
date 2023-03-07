@@ -159,7 +159,7 @@ fn maybe_set_base(value: &ProxyAsset, base: &mut Option<AssetEntry>) {
 #[cfg(test)]
 mod test {
     // use super::*;
-    // use crate::apis::test_common::*;
+    // use crate::mock_module::*;
 
     mod query_total_value {
         // use super::*;

@@ -1,6 +1,8 @@
 use crate::{AppContract, AppError, Handler, MigrateEndpoint};
-use abstract_os::objects::module_version::{get_module_data, set_module_data};
-use abstract_sdk::os::app::MigrateMsg;
+use abstract_os::{
+    app::MigrateMsg,
+    objects::module_version::{get_module_data, set_module_data},
+};
 use cosmwasm_std::{Response, StdError};
 use cw2::set_contract_version;
 use schemars::JsonSchema;

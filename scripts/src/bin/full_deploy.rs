@@ -1,11 +1,9 @@
-use abstract_boot::{Abstract, DexApi, OS};
+use abstract_boot::{Abstract, OS};
 use abstract_os::objects::gov_type::GovernanceDetails;
-use abstract_os::EXCHANGE;
-use boot_core::networks::juno::JUNO_CHAIN;
-use boot_core::networks::NetworkKind;
+
 use boot_core::{
     networks::{parse_network, NetworkInfo},
-    prelude::*,
+    *,
 };
 use clap::Parser;
 use semver::Version;
@@ -25,7 +23,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     let mut os_core = OS::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain.clone(), abstract_os_version);
+    let mut deployment = Abstract::new(chain, abstract_os_version);
 
     deployment.deploy(&mut os_core)?;
 
@@ -38,7 +36,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // let _dex = DexApi::new("dex", chain);
 
-    deployment.deploy_modules()?;
+    // deployment.deploy_modules()?;
 
     let ans_host = deployment.ans_host;
     ans_host.update_all()?;

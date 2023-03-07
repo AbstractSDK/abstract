@@ -228,7 +228,7 @@ mod test {
 
     use crate::contract::{execute, instantiate};
     use abstract_os::module_factory::{ExecuteMsg, InstantiateMsg};
-    use abstract_testing::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
@@ -322,10 +322,8 @@ mod test {
     mod update_factory_binaries {
         use super::*;
         use abstract_os::{objects::module::ModuleVersion, AbstractOsError};
-        use abstract_testing::{
-            map_tester::{CwMapTester, CwMapTesterBuilder},
-            TEST_ADMIN,
-        };
+        use abstract_testing::map_tester::*;
+        use abstract_testing::prelude::TEST_ADMIN;
 
         fn update_module_msgs_builder(
             to_add: Vec<(ModuleInfo, Binary)>,

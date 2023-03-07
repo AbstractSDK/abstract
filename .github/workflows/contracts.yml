@@ -106,7 +106,7 @@ jobs:
       - name: Dependencies | Compile
         run: cargo update
       - name: Build | Compile
-        run: cargo check --features all
+        run: cargo check
   test:
     name: Test
     if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
