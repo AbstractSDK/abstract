@@ -6,12 +6,16 @@ use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying APIs
-pub trait ApiDeployer<Chain: BootEnvironment, IMsg: Serialize>:
+pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
-    + BootInstantiate<Chain, InstantiateMsg = abstract_os::api::InstantiateMsg<IMsg>>
+    + BootInstantiate<Chain, InstantiateMsg = abstract_os::api::InstantiateMsg<CustomInitMsg>>
     + BootUpload<Chain>
 {
-    fn deploy(&mut self, version: Version, init_msg: IMsg) -> Result<(), crate::AbstractBootError> {
+    fn deploy(
+        &mut self,
+        version: Version,
+        custom_init_msg: CustomInitMsg,
+    ) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().clone())?;
 
@@ -31,7 +35,7 @@ pub trait ApiDeployer<Chain: BootEnvironment, IMsg: Serialize>:
 
         self.upload()?;
         let init_msg = abstract_os::api::InstantiateMsg {
-            app: init_msg,
+            app: custom_init_msg,
             base: abstract_os::api::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),
@@ -55,7 +59,7 @@ pub trait AppDeployer<Chain: BootEnvironment>: ContractInstance<Chain> + BootUpl
         // check for existing version
         let version_check = abstr
             .version_control
-            .get_api_addr(&self.id(), ModuleVersion::from(version.to_string()));
+            .get_app_code(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
             return Err(StdErr(format!(
@@ -70,7 +74,7 @@ pub trait AppDeployer<Chain: BootEnvironment>: ContractInstance<Chain> + BootUpl
 
         abstr
             .version_control
-            .register_apis(vec![self.as_instance()], &version)?;
+            .register_apps(vec![self.as_instance()], &version)?;
         Ok(())
     }
 }

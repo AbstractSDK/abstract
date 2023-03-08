@@ -223,7 +223,7 @@ mod tests {
     fn execute_as(
         deps: DepsMut,
         sender: &str,
-        msg: ExecuteMsg<MockApiExecMsg>,
+        msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
     ) -> Result<Response, MockError> {
         MOCK_API.execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
@@ -400,7 +400,7 @@ mod tests {
 
             let msg = ExecuteMsg::App(ApiRequestMsg {
                 proxy_address: None,
-                request: MockApiExecMsg,
+                request: MockExecMsg,
             });
 
             let not_trader: String = "someoone".into();
@@ -430,7 +430,7 @@ mod tests {
 
             let msg = ExecuteMsg::App(ApiRequestMsg {
                 proxy_address: None,
-                request: MockApiExecMsg,
+                request: MockExecMsg,
             });
 
             let res = execute_as(deps.as_mut(), TEST_MANAGER, msg);
@@ -447,7 +447,7 @@ mod tests {
 
             let msg = ExecuteMsg::App(ApiRequestMsg {
                 proxy_address: None,
-                request: MockApiExecMsg,
+                request: MockExecMsg,
             });
 
             let res = execute_as(deps.as_mut(), TEST_TRADER, msg);
@@ -464,7 +464,7 @@ mod tests {
 
             let msg = ExecuteMsg::App(ApiRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
-                request: MockApiExecMsg,
+                request: MockExecMsg,
             });
 
             let res = execute_as(deps.as_mut(), TEST_TRADER, msg);
@@ -484,7 +484,7 @@ mod tests {
 
             let msg = ExecuteMsg::App(ApiRequestMsg {
                 proxy_address: Some(other_proxy.into()),
-                request: MockApiExecMsg,
+                request: MockExecMsg,
             });
 
             let res = execute_as(deps.as_mut(), TEST_TRADER, msg);

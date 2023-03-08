@@ -174,7 +174,18 @@ where
     ) -> Result<Addr, crate::AbstractBootError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
-        Ok(module.reference.unwrap_addr()?)
+        Ok(module.reference.unwrap_api()?)
+    }
+
+    /// Retrieves an APP's code id from version control given the module **id** and **version**.
+    pub fn get_app_code(
+        &self,
+        id: &str,
+        version: ModuleVersion,
+    ) -> Result<u64, crate::AbstractBootError> {
+        let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
+
+        Ok(module.reference.unwrap_app()?)
     }
 }
 

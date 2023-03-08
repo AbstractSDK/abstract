@@ -67,7 +67,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{ApiMockResult, MOCK_API, TEST_METADATA},
+        mock::{ApiMockResult, MockInitMsg, MOCK_API, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
@@ -84,7 +84,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: Empty {},
+            app: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
@@ -131,7 +131,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: "5".into(),
             },
-            app: Empty {},
+            app: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(
@@ -152,7 +152,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: "4".into(),
             },
-            app: Empty {},
+            app: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(

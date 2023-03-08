@@ -50,7 +50,7 @@ pub mod prelude {
 
     pub use cosmwasm_std::{
         from_binary,
-        testing::{MockApi, MockQuerier, MockStorage},
+        testing::{MockApi as CwMockApi, MockQuerier, MockStorage},
         to_binary,
     };
 }

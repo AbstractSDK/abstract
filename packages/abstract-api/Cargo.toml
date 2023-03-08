@@ -13,7 +13,6 @@ resolver = "2"
 
 
 [features]
-
 # Exposes a mock API contract for testing
 test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
 

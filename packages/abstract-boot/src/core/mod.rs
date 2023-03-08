@@ -60,8 +60,7 @@ impl<Chain: BootEnvironment> OS<Chain> {
     }
 
     /// Assert that the OS has the expected modules with the provided **expected_module_addrs** installed.
-    /// Also checks that the proxy's configuration includes the expected module addresses.
-    /// Note that the proxy is automatically included in the assertions and *should not* (but can) be included in the expected list.
+    /// Note that the proxy is automatically included in the assertions.
     /// Returns the `Vec<ManagerModuleInfo>` from the manager
     pub fn expect_modules(
         &self,
@@ -71,22 +70,42 @@ impl<Chain: BootEnvironment> OS<Chain> {
             module_infos: manager_modules,
         } = self.manager.module_infos(None, None)?;
 
+        // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
+            .into_iter()
+            .chain(std::iter::once(self.proxy.address()?.into_string()))
+            .collect::<HashSet<_>>();
+
+        let actual_module_addrs = manager_modules
+            .iter()
+            .map(|module_info| module_info.address.clone())
+            .collect::<HashSet<_>>();
+
+        // assert that these modules are installed
+        assert_that!(expected_module_addrs).is_equal_to(actual_module_addrs);
+
+        Ok(manager_modules)
+    }
+    /// Checks that the proxy's whitelist includes the expected module addresses.
+    /// Automatically includes the manager in the expected whitelist.
+    pub fn expect_whitelist(
+        &self,
+        whitelisted_addrs: Vec<String>,
+    ) -> Result<Vec<String>, crate::AbstractBootError> {
+        // insert manager in expected whitelisted addresses
+        let expected_whitelisted_addrs = whitelisted_addrs
             .into_iter()
             .chain(std::iter::once(self.manager.address()?.into_string()))
             .collect::<HashSet<_>>();
-
-        // account for the proxy
-        assert_that!(manager_modules).has_length(expected_module_addrs.len());
 
         // check proxy config
         let abstract_os::proxy::ConfigResponse {
             modules: proxy_whitelist,
         } = self.proxy.config()?;
 
-        let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist);
-        assert_eq!(actual_proxy_whitelist, expected_module_addrs);
+        let actual_proxy_whitelist = HashSet::from_iter(proxy_whitelist.clone());
+        assert_eq!(actual_proxy_whitelist, expected_whitelisted_addrs);
 
-        Ok(manager_modules)
+        Ok(proxy_whitelist)
     }
 }

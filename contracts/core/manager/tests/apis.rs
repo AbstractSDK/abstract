@@ -1,4 +1,5 @@
 mod common;
+use abstract_api::mock::MockExecMsg;
 use abstract_boot::*;
 use abstract_os::manager::ManagerModuleInfo;
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
@@ -10,11 +11,11 @@ use boot_core::{
 };
 use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Decimal, Empty, Validator};
-use cw_multi_test::StakingInfo;
+// use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
 const VALIDATOR: &str = "testvaloper1";
-use abstract_api::mock::{BootMockApi, MockApi, MockApiExecMsg};
+use abstract_api::mock::BootMockApi;
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
@@ -27,37 +28,37 @@ pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     Ok(())
 }
 
-fn setup_staking(mock: Mock) -> AResult {
-    let block_info = mock.block_info()?;
+// fn setup_staking(mock: Mock) -> AResult {
+//     let block_info = mock.block_info()?;
 
-    mock.app.borrow_mut().init_modules(|router, api, store| {
-        router
-            .staking
-            .setup(
-                store,
-                StakingInfo {
-                    bonded_denom: TEST_COIN.to_string(),
-                    unbonding_time: 60,
-                    apr: Decimal::percent(50),
-                },
-            )
-            .unwrap();
+//     mock.app.borrow_mut().init_modules(|router, api, store| {
+//         router
+//             .staking
+//             .setup(
+//                 store,
+//                 StakingInfo {
+//                     bonded_denom: TEST_COIN.to_string(),
+//                     unbonding_time: 60,
+//                     apr: Decimal::percent(50),
+//                 },
+//             )
+//             .unwrap();
 
-        // add validator
-        let valoper1 = Validator {
-            address: VALIDATOR.to_string(),
-            commission: Decimal::percent(10),
-            max_commission: Decimal::percent(100),
-            max_change_rate: Decimal::percent(1),
-        };
-        router
-            .staking
-            .add_validator(api, store, &block_info, valoper1)
-            .unwrap();
-    });
+//         // add validator
+//         let valoper1 = Validator {
+//             address: VALIDATOR.to_string(),
+//             commission: Decimal::percent(10),
+//             max_commission: Decimal::percent(100),
+//             max_change_rate: Decimal::percent(1),
+//         };
+//         router
+//             .staking
+//             .add_validator(api, store, &block_info, valoper1)
+//             .unwrap();
+//     });
 
-    Ok(())
-}
+//     Ok(())
+// }
 
 /// TODO
 /// - Migration
@@ -240,6 +241,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // Register the new version
     let new_version_num = "100.0.0";
+    let old_api_addr = staking_api.address()?;
 
     // We init the staking api with a new version to ensure that we get a new address
     let new_staking_api = init_mock_api(chain, &deployment, Some(new_version_num.to_string()))?;
@@ -256,16 +258,19 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let modules = os.expect_modules(vec![new_staking_api.address()?.to_string()])?;
 
-    // assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
-    //     address: staking_api.addr_str()?,
-    //     id: TEST_MODULE_ID.to_string(),
-    //     version: cw2::ContractVersion {
-    //         contract: TEST_MODULE_ID.into(),
-    //         version: new_version_num.to_string(),
-    //     },
-    // });
-    // we should check that the address registered in the manager is the new one as opposed to the version, which is incorrectly returned as the ContractVerison (right now)
-    // TODO uncomment when the manager actually queries version control (if desired)
+    assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
+        // the address stored for BootMockApi was updated when we instantiated the new version, so this is the new address
+        address: new_staking_api.addr_str()?,
+        id: TEST_MODULE_ID.to_string(),
+        version: cw2::ContractVersion {
+            contract: TEST_MODULE_ID.into(),
+            // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
+            // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
+            version: TEST_VERSION.to_string(),
+        },
+    });
+    // assert that the new staking api has a different address
+    assert_ne!(old_api_addr, new_staking_api.address()?);
 
     assert_that!(modules[1].address)
         .is_equal_to(new_staking_api.as_instance().address()?.to_string());
@@ -288,15 +293,13 @@ fn not_trader_exec() -> AResult {
     // non-trader cannot execute
     let res = staking_api
         .call_as(&not_trader)
-        .execute(&MockApiExecMsg.into(), None)
+        .execute(&MockExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
         "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",
     );
     // neither can the ROOT directly
-    let res = staking_api
-        .execute(&MockApiExecMsg.into(), None)
-        .unwrap_err();
+    let res = staking_api.execute(&MockExecMsg.into(), None).unwrap_err();
     assert_that!(&res.root().to_string()).contains(
         "Sender: root_user of request to tester:test-module-id is not a Manager or Trader",
     );
@@ -308,7 +311,6 @@ fn manager_api_exec_staking_delegation() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let (mut deployment, mut core) = init_abstract_env(chain.clone())?;
-    setup_staking(chain.clone())?;
 
     deployment.deploy(&mut core)?;
     let os = create_default_os(&deployment.os_factory)?;
@@ -320,7 +322,7 @@ fn manager_api_exec_staking_delegation() -> AResult {
 
     os.manager.execute_on_module(
         TEST_MODULE_ID,
-        Into::<abstract_os::api::ExecuteMsg<MockApiExecMsg>>::into(MockApiExecMsg),
+        Into::<abstract_os::api::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
     )?;
 
     Ok(())

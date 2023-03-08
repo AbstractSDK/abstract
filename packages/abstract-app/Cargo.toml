@@ -11,10 +11,9 @@ resolver = "2"
 
 
 [features]
-
 # use library feature to disable all instantiate/execute/query exports
 library = []
-test-utils = ["abstract-testing"]
+test-utils = ["abstract-testing", "abstract-boot", "boot-core"]
 
 
 [dependencies]
@@ -31,6 +30,8 @@ cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
 abstract-testing = { workspace = true, optional = true}
+abstract-boot = { workspace = true, optional = true }
+boot-core = { workspace = true, optional = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

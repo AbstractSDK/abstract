@@ -9,7 +9,7 @@ use crate::base::{
     MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
 };
 
-pub type ExecuteMsg<AppMsg, ReceiveMsg = Empty> =
+pub type ExecuteMsg<AppMsg = Empty, ReceiveMsg = Empty> =
     EndpointExecMsg<BaseExecuteMsg, AppMsg, ReceiveMsg>;
 pub type QueryMsg<AppMsg = Empty> = EndpointQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = EndpointInstantiateMsg<BaseInstantiateMsg, AppMsg>;
@@ -29,6 +29,8 @@ impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
         Self::App(app)
     }
 }
+
+impl AppExecuteMsg for Empty {}
 
 /// Trait indicates that the type is used as an app message
 /// in the [`QueryMsg`] enum.

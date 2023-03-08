@@ -2,28 +2,36 @@ use abstract_os::{
     manager::state::{DEPENDENTS, OS_MODULES},
     objects::{dependency::Dependency, module_version::MODULE},
 };
-use cosmwasm_std::{Deps, DepsMut, StdError, StdResult, Storage};
+use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
 use cw_semver::{Comparator, Version};
 
+use crate::{commands::MIGRATE_CONTEXT, contract::ManagerResult, error::ManagerError};
+
 /// Assert the dependencies that this app relies on are installed.
-pub fn assert_install_requirements(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {
+pub fn assert_install_requirements(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
     let module_dependencies = load_module_dependencies(deps, module_id)?;
-    assert_dependency_requirements(deps, &module_dependencies)?;
+    assert_dependency_requirements(deps, &module_dependencies, module_id)?;
     Ok(module_dependencies)
 }
 
 /// Assert that the new version of this app is supported by its dependents.
+/// Unless that dependent is also being migrated.
 pub fn assert_migrate_requirements(
     deps: Deps,
     module_id: &str,
     new_version: Version,
-) -> StdResult<()> {
+) -> ManagerResult<()> {
     // load all the modules that depend on this module
     let dependents = DEPENDENTS
         .may_load(deps.storage, module_id)?
         .unwrap_or_default();
+    let migrating = MIGRATE_CONTEXT.load(deps.storage)?;
     // for each module that depends on this module, check if it supports the new version.
     for dependent_module in dependents {
+        // if the dependent is also being migrated, skip it.
+        if migrating.iter().any(|(m, _)| m == &dependent_module) {
+            continue;
+        }
         let dependent_address = OS_MODULES.load(deps.storage, &dependent_module)?;
         let module_data = MODULE.query(&deps.querier, dependent_address)?;
         // filter the dependencies and assert version comparison when applicable
@@ -32,8 +40,9 @@ pub fn assert_migrate_requirements(
             .iter()
             .filter(|dep| dep.id == module_id);
         // assert bounds
-        applicable_bounds
-            .try_for_each(|dep| assert_comparators(&dep.version_req, &new_version, module_id))?;
+        applicable_bounds.try_for_each(|dep| {
+            assert_comparators(&dep.version_req, &new_version, module_id, false)
+        })?;
     }
     Ok(())
 }
@@ -46,7 +55,7 @@ pub fn set_as_dependent(
     store: &mut dyn Storage,
     module_id: String,
     dependencies: Vec<Dependency>,
-) -> StdResult<()> {
+) -> ManagerResult<()> {
     for dep in dependencies {
         DEPENDENTS.update(store, &dep.id, |dependents| {
             let mut dependents = dependents.unwrap_or_default();
@@ -64,7 +73,7 @@ pub fn remove_as_dependent(
     store: &mut dyn Storage,
     module_id: &str,
     dependencies: Vec<Dependency>,
-) -> StdResult<()> {
+) -> ManagerResult<()> {
     for dep in dependencies {
         DEPENDENTS.update(store, &dep.id, |dependents| {
             let mut dependents = dependents.unwrap_or_default();
@@ -75,15 +84,23 @@ pub fn remove_as_dependent(
     Ok(())
 }
 
-fn assert_comparators(bounds: &[Comparator], version: &Version, module_id: &str) -> StdResult<()> {
+fn assert_comparators(
+    bounds: &[Comparator],
+    version: &Version,
+    module_id: &str,
+    post_migration: bool,
+) -> ManagerResult<()> {
     // assert requirements
     bounds.iter().try_for_each(|comp: &Comparator| {
         if comp.matches(version) {
             Ok(())
         } else {
-            Err(StdError::generic_err(format!(
-                "Module {module_id} with version {version} does not fit requirement {comp}."
-            )))
+            Err(ManagerError::VersionRequirementNotMet {
+                module_id: module_id.to_string(),
+                version: version.to_string(),
+                comp: comp.to_string(),
+                post_migration,
+            })
         }
     })?;
     Ok(())
@@ -92,22 +109,26 @@ fn assert_comparators(bounds: &[Comparator], version: &Version, module_id: &str)
 /// Goes over all the provided dependencies and asserts that:
 /// 1. The dependency is installed
 /// 2. The dependency version fits the requirements
-pub fn assert_dependency_requirements(deps: Deps, dependencies: &[Dependency]) -> StdResult<()> {
+pub fn assert_dependency_requirements(
+    deps: Deps,
+    dependencies: &[Dependency],
+    dependent: &str,
+) -> ManagerResult<()> {
     for dep in dependencies {
-        let dep_addr = OS_MODULES.may_load(deps.storage, &dep.id)?.ok_or_else(|| {
-            StdError::generic_err(format!("Module {} not enabled on OS.", dep.id))
-        })?;
+        let dep_addr = OS_MODULES
+            .may_load(deps.storage, &dep.id)?
+            .ok_or_else(|| ManagerError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
 
         let dep_version = cw2::CONTRACT.query(&deps.querier, dep_addr)?;
         let version: Version = dep_version.version.parse().unwrap();
         // assert requirements
-        assert_comparators(&dep.version_req, &version, &dep.id)?;
+        assert_comparators(&dep.version_req, &version, &dep.id, true)?;
     }
     Ok(())
 }
 
 // TODO: this reads the OS_MODULES to retrieve the module addrsess when it can be passed in
-pub fn load_module_dependencies(deps: Deps, module_id: &str) -> StdResult<Vec<Dependency>> {
+pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
     let querier = &deps.querier;
     let module_addr = OS_MODULES.load(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
@@ -118,7 +139,7 @@ pub fn maybe_remove_old_deps(
     deps: DepsMut,
     module_id: &str,
     old_deps: &[Dependency],
-) -> StdResult<()> {
+) -> ManagerResult<()> {
     let new_deps = load_module_dependencies(deps.as_ref(), module_id)?;
     // find deps that are no longer required.
     // ie. the old deps contain a deps that the new deps doesn't.
@@ -140,14 +161,15 @@ pub fn maybe_add_new_deps(
     deps: DepsMut,
     module_id: &str,
     old_deps: &[Dependency],
-) -> StdResult<Vec<Dependency>> {
+) -> ManagerResult<Vec<Dependency>> {
     let new_deps = load_module_dependencies(deps.as_ref(), module_id)?;
-    // find deps that are no longer required.
-    // ie. the old deps contain a deps that the new deps doesn't.
+    // find deps that are new.
+    // the new deps contain deps that were not in the old deps.
     let to_be_added_deps: Vec<&Dependency> =
         new_deps.iter().filter(|d| !old_deps.contains(d)).collect();
     for dep_to_add in &to_be_added_deps {
-        // Remove module from dependents on the removable dep
+        // Add module as dependent on the new deps
+        // Will also run when a version requirement is changed.
         DEPENDENTS.update(deps.storage, &dep_to_add.id, |dependents| {
             // Adding new dep so might be the first entry, hence default to empty set in that case.
             let mut dependents = dependents.unwrap_or_default();

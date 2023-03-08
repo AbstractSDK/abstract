@@ -15,7 +15,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 use serde::Serialize;
 
-pub type ExecuteMsg<Request, ReceiveMsg = Empty> =
+pub type ExecuteMsg<Request = Empty, ReceiveMsg = Empty> =
     MiddlewareExecMsg<BaseExecuteMsg, ApiRequestMsg<Request>, ReceiveMsg>;
 pub type QueryMsg<AppMsg = Empty> = MiddlewareQueryMsg<BaseQueryMsg, AppMsg>;
 pub type InstantiateMsg<AppMsg = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, AppMsg>;
@@ -33,6 +33,8 @@ impl<T: ApiExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
         })
     }
 }
+
+impl ApiExecuteMsg for Empty {}
 
 /// Trait indicates that the type is used as an api message
 /// in the [`QueryMsg`] enum.

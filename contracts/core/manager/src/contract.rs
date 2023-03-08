@@ -21,7 +21,7 @@ use cosmwasm_std::{
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
-pub type ManagerResult = Result<Response, ManagerError>;
+pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MIN_DESC_LENGTH: usize = 4;
@@ -166,7 +166,7 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
         versioning::maybe_remove_old_deps(deps.branch(), &migrated_module_id, &old_deps)?;
         let new_deps =
             versioning::maybe_add_new_deps(deps.branch(), &migrated_module_id, &old_deps)?;
-        versioning::assert_dependency_requirements(deps.as_ref(), &new_deps)?;
+        versioning::assert_dependency_requirements(deps.as_ref(), &new_deps, &migrated_module_id)?;
     }
 
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;

@@ -18,26 +18,6 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Self(contract)
     }
 
-    // pub fn update_terraswap_trader(
-    //     &self,
-    //     api: &str,
-    //     to_add: Option<Vec<String>>,
-    //     to_remove: Option<Vec<String>>,
-    // ) -> Result<(), crate::AbstractBootError> {
-    //     self.execute(
-    //         &ExecuteMsg::ExecOnModule {
-    //             module_id: api.into(),
-    //             exec_msg: to_binary(&<ApiExecuteMsg<Empty>>::Configure(BaseExecuteMsg::UpdateTraders {
-    //                 to_add,
-    //                 to_remove,
-    //             }))
-    //             .unwrap(),
-    //         },
-    //         None,
-    //     )?;
-    //     Ok(())
-    // }
-
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,
@@ -148,15 +128,3 @@ impl<Chain: BootEnvironment> Manager<Chain> {
         Ok(module.is_some())
     }
 }
-
-// pub fn get_module_kind(name: &str) -> anyhow::Result<ModuleKind> {
-//     if [TERRASWAP].contains(&name) {
-//         return Ok(ModuleKind::Api);
-//     } else if [LIQUIDITY_INTERFACE, SUBSCRIPTION].contains(&name) {
-//         Ok(ModuleKind::App)
-//     } else {
-//         return Err(anyhow::Error::msg(
-//             "The requested module to be added is not a module",
-//         ));
-//     }
-// }

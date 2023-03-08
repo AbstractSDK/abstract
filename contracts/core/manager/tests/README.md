@@ -2,17 +2,8 @@
 
 ## Unit tests
 
-- Messages
-  - Instantiation
-  - ExecuteMsg::UpdateConfig
-
-
 ## Integration tests
 
-- Messages
-  - ExecuteMsg::Receive -> src/tests/integration_tests/integration.rs
-  - ExecuteMsg::CreateOs -> src/tests/integration_tests/integration.rs
+### Upgrades
 
----
-
-# Coverage
+test 0.10.0 to 0.11.0
