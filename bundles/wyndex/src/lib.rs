@@ -10,9 +10,7 @@ use abstract_os::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use boot_core::{
-    deploy::Deploy, prelude::ContractInstance, state::StateInterface, BootError, Mock,
-};
+use boot_core::{BootError, ContractInstance, Deploy, Mock, StateInterface};
 use boot_cw_plus::Cw20;
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use wyndex::{

@@ -1,4 +1,4 @@
-use boot_core::prelude::instantiate_default_mock_env;
+use boot_core::instantiate_default_mock_env;
 use cosmwasm_std::{coin, testing::mock_env, Addr};
 use wyndex::asset::{AssetInfo, AssetInfoExt};
 use wyndex_bundle::suite::SuiteBuilder;
@@ -8,7 +8,7 @@ use wyndex_multi_hop::msg::SwapOperation;
 fn trading_frozen() {
     let ujuno = "ujuno";
     let uluna = "uluna";
-    let user = "user";
+    let _user = "user";
 
     let ujuno_info = AssetInfo::Native(ujuno.to_string());
     let uluna_info = AssetInfo::Native(uluna.to_string());
@@ -63,7 +63,7 @@ fn trading_frozen() {
 fn custom_fee_works() {
     let ujuno = "ujuno";
     let uluna = "uluna";
-    let user = "user";
+    let _user = "user";
 
     let ujuno_info = AssetInfo::Native(ujuno.to_string());
     let uluna_info = AssetInfo::Native(uluna.to_string());

@@ -14,7 +14,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -33,17 +33,17 @@ cw20 = { version = "1.0.1" }
 cw-asset = { version = "3.0" }
 
 cw-semver = { version = "1.0"}
-boot-core = { version = "0.7.0" }
-boot-cw-plus = { version = "0.7.0" }
+boot-core = { version = "0.8.0" }
+boot-cw-plus = { version = "0.8.0" }
 
 abstract-macros = {version = "0.11.0" }
 abstract-ica = { version = "0.11.0" }
-abstract-os = { version = "0.11.1" }
-abstract-sdk = { version = "0.11.0" }
-abstract-app = { version = "0.11.0" }
-abstract-api = { version = "0.11.0" }
+abstract-os = { version = "0.12.0" }
+abstract-sdk = { version = "0.12.0" }
+abstract-app = { version = "0.12.0" }
+abstract-api = { version = "0.12.0" }
 abstract-ibc-host = { version = "0.11.0" }
-abstract-boot = {version = "0.11.1" }
+abstract-boot = {version = "0.12.0" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }

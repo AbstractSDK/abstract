@@ -8,7 +8,7 @@ use wyndex_stake::msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedR
 use wyndex_stake::state::Config as WyndexStakeConfig;
 
 mod staking {
-    use boot_core::prelude::instantiate_default_mock_env;
+    use boot_core::instantiate_default_mock_env;
     use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
     use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
 
