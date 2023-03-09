@@ -1,15 +1,15 @@
+use crate::contract::CwStakingResult;
 use crate::error::StakingError;
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::traits::identify::Identify;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::os::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::AbstractSdkResult;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, QuerierWrapper, StdResult, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, QuerierWrapper, Uint128};
 use cw_utils::Duration;
 
 /// Trait that defines the adapter interface for staking providers
 pub trait CwStakingAdapter: Identify {
-    // TODO: Move to SDK.
     /// Construct a staking contract entry from the staking token and the provider
     fn staking_entry(&self, staking_token: &AssetEntry) -> ContractEntry {
         ContractEntry {
@@ -17,7 +17,6 @@ pub trait CwStakingAdapter: Identify {
             contract: format!("staking/{staking_token}"),
         }
     }
-    // TODO: Move to SDK.
     /// Retrieve the staking contract address for the pool with the provided staking token name
     fn staking_contract_address(
         &self,
@@ -68,7 +67,7 @@ pub trait CwStakingAdapter: Identify {
     /// * `deps` - the dependencies
     fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
 
-    fn query_info(&self, querier: &QuerierWrapper) -> StdResult<StakingInfoResponse>;
+    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse>;
     // This function queries the staked token balance of a staker
     // The staking contract is queried using the staking address
     fn query_staked(
@@ -76,11 +75,11 @@ pub trait CwStakingAdapter: Identify {
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
-    ) -> StdResult<StakeResponse>;
+    ) -> CwStakingResult<StakeResponse>;
     fn query_unbonding(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> StdResult<UnbondingResponse>;
-    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> StdResult<RewardTokensResponse>;
+    ) -> CwStakingResult<UnbondingResponse>;
+    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse>;
 }

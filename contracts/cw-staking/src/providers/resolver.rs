@@ -2,7 +2,7 @@ use crate::error::StakingError;
 use crate::CwStakingAdapter;
 use cosmwasm_std::{StdError, StdResult};
 
-#[cfg(any(feature = "phoenix-1", feature = "pisco-1"))]
+#[cfg(feature = "terra")]
 use super::astroport::{Astroport, ASTROPORT};
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub use crate::providers::osmosis::{Osmosis, OSMOSIS};
@@ -18,7 +18,7 @@ pub(crate) fn is_over_ibc(provider: &str) -> StdResult<bool> {
         JUNOSWAP => Ok(false),
         #[cfg(feature = "juno")]
         WYNDEX => Ok(false),
-        #[cfg(any(feature = "phoenix-1", feature = "pisco-1"))]
+        #[cfg(feature = "terra")]
         ASTROPORT => Ok(false),
         #[cfg(feature = "juno")]
         OSMOSIS => Ok(true),
@@ -39,7 +39,7 @@ pub(crate) fn resolve_local_provider(
         WYNDEX => Ok(Box::<WynDex>::default()),
         #[cfg(feature = "osmosis")]
         OSMOSIS => Ok(Box::new(Osmosis::default())),
-        #[cfg(any(feature = "phoenix-1", feature = "pisco-1"))]
+        #[cfg(feature = "terra")]
         ASTROPORT => Ok(Box::<Astroport>::default()),
         _ => Err(StakingError::ForeignDex(name.to_owned())),
     }

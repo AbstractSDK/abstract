@@ -1,18 +1,18 @@
-use crate::error::StakingError;
+use crate::{error::StakingError, contract::CwStakingResult};
 use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::objects::{AssetEntry, LpToken},
-    Resolve,
+    Resolve, AbstractSdkError,
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, Env, QuerierWrapper, StdError, StdResult, Uint128, WasmMsg,
+    to_binary, Addr, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
-use forty_two::cw_staking::{
+use crate::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
 use wyndex_stake::{
@@ -60,11 +60,11 @@ impl CwStakingAdapter for WynDex {
         deps: Deps,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
-    ) -> StdResult<()> {
+    ) -> std::result::Result<(), AbstractSdkError> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfoBase::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking."));
+                return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
             };
         self.lp_token_address = token_addr;
         self.lp_token = LpToken::try_from(lp_token)?;
@@ -121,7 +121,7 @@ impl CwStakingAdapter for WynDex {
         })])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> StdResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse> {
         let bonding_info_resp: BondingInfoResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::BondingInfo {},
@@ -151,7 +151,7 @@ impl CwStakingAdapter for WynDex {
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
-    ) -> StdResult<StakeResponse> {
+    ) -> CwStakingResult<StakeResponse> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)
             .map_err(|e| StdError::generic_err(e.to_string()))?;
         // Raw query because the smart-query returns staked + currently unbonding tokens, which is not what we want.
@@ -181,7 +181,7 @@ impl CwStakingAdapter for WynDex {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> StdResult<UnbondingResponse> {
+    ) -> CwStakingResult<UnbondingResponse> {
         let claims: cw_controllers::ClaimsResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::Claims {
@@ -198,7 +198,7 @@ impl CwStakingAdapter for WynDex {
             .collect();
         Ok(UnbondingResponse { claims })
     }
-    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> StdResult<RewardTokensResponse> {
+    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
         // hardcode as wynd token for now.
         let token = AssetEntry::new(WYND_TOKEN).resolve(
             querier,

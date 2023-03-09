@@ -1,19 +1,20 @@
-use crate::error::StakingError;
+use crate::contract::CwStakingResult;
+use crate::{error::StakingError, msg::RewardTokensResponse};
 use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::objects::{AssetEntry, LpToken},
-    Resolve,
+    Resolve, AbstractSdkError,
 };
 use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128, WasmMsg,
+    to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use cw20_stake::msg::{ExecuteMsg as StakeCw20ExecuteMsg, ReceiveMsg};
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
-use forty_two::cw_staking::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
+use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
 
 pub const JUNOSWAP: &str = "junoswap";
 // Source https://github.com/wasmswap/wasmswap-contracts
@@ -47,11 +48,11 @@ impl CwStakingAdapter for JunoSwap {
         deps: Deps,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
-    ) -> StdResult<()> {
+    ) -> Result<(), AbstractSdkError> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfoBase::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking."));
+                return Err(AbstractSdkError::Std(StdError::generic_err("expected CW20 as LP token for staking.")));
             };
         self.lp_token_address = token_addr;
         self.lp_token = LpToken::try_from(lp_token)?;
@@ -100,7 +101,7 @@ impl CwStakingAdapter for JunoSwap {
         })])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> StdResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse> {
         let stake_info_resp: cw20_stake::state::Config = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &cw20_stake::msg::QueryMsg::GetConfig {},
@@ -121,7 +122,7 @@ impl CwStakingAdapter for JunoSwap {
         querier: &QuerierWrapper,
         staker: Addr,
         _unbonding_period: Option<Duration>,
-    ) -> StdResult<StakeResponse> {
+    ) -> CwStakingResult<StakeResponse> {
         let stake_balance: cw20_stake::msg::StakedBalanceAtHeightResponse = querier
             .query_wasm_smart(
                 self.staking_contract_address.clone(),
@@ -139,7 +140,7 @@ impl CwStakingAdapter for JunoSwap {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> StdResult<UnbondingResponse> {
+    ) -> CwStakingResult<UnbondingResponse> {
         let claims: cw20_stake::msg::ClaimsResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &cw20_stake::msg::QueryMsg::Claims {
@@ -159,7 +160,7 @@ impl CwStakingAdapter for JunoSwap {
     fn query_reward_tokens(
         &self,
         _querier: &QuerierWrapper,
-    ) -> StdResult<forty_two::cw_staking::RewardTokensResponse> {
+    ) -> CwStakingResult<RewardTokensResponse> {
         todo!()
     }
 }

@@ -301,16 +301,6 @@ checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 [[package]]
 name = "ap-native-coin-registry"
 version = "1.0.0"
-source = "git+https://github.com/astroport-fi/astroport-core.git?branch=release#042b0768951422099f5d77224c320978cbfa92cc"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
-]
-
-[[package]]
-name = "ap-native-coin-registry"
-version = "1.0.0"
 source = "git+https://github.com/astroport-fi/astroport-core.git#6da1b4765e29c64deaffd18db2da6110176efe04"
 dependencies = [
  "cosmwasm-schema",
@@ -336,22 +326,7 @@ name = "astroport"
 version = "2.1.0"
 source = "git+https://github.com/astroport-fi/astroport-core.git#6da1b4765e29c64deaffd18db2da6110176efe04"
 dependencies = [
- "ap-native-coin-registry 1.0.0 (git+https://github.com/astroport-fi/astroport-core.git)",
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "cw-utils 0.15.1",
- "cw20 0.15.1",
- "itertools",
- "uint",
-]
-
-[[package]]
-name = "astroport"
-version = "2.3.0"
-source = "git+https://github.com/astroport-fi/astroport-core.git?branch=release#042b0768951422099f5d77224c320978cbfa92cc"
-dependencies = [
- "ap-native-coin-registry 1.0.0 (git+https://github.com/astroport-fi/astroport-core.git?branch=release)",
+ "ap-native-coin-registry",
  "cosmwasm-schema",
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
@@ -1044,7 +1019,6 @@ dependencies = [
  "abstract-sdk",
  "anyhow",
  "astroport 2.0.0",
- "astroport 2.3.0",
  "boot-core",
  "clap",
  "cosmwasm-schema",
