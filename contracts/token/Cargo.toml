@@ -15,7 +15,8 @@ crate-type = ["cdylib", "rlib"]
 [features]
 
 # use library feature to disable all init/handle/query exports
-library = []
+default = ["export"]
+export = []
 
 [dependencies]
 cw-controllers = {workspace = true}

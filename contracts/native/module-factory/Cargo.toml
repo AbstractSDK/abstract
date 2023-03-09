@@ -19,7 +19,8 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
-library = []
+default = ["export"]
+export = []
 # for quicker tests, cargo test --lib
 
 

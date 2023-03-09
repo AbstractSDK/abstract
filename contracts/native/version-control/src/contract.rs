@@ -20,7 +20,7 @@ pub type VCResult = Result<Response, VCError>;
 
 pub const ABSTRACT_NAMESPACE: &str = "abstract";
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     let version: Version = CONTRACT_VERSION.parse()?;
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse()?;
@@ -37,7 +37,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
@@ -59,7 +59,7 @@ pub fn instantiate(
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
@@ -72,7 +72,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     }
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),

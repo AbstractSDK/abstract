@@ -33,7 +33,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 ///
 /// * **_info** is the object of type [`MessageInfo`].
 /// * **msg** is a message of type [`InstantiateMsg`] which contains the basic settings for creating a contract.
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     mut deps: DepsMut,
     _env: Env,
@@ -88,7 +88,7 @@ pub fn instantiate(
     Ok(Response::default())
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(
     deps: DepsMut,
     env: Env,
@@ -124,7 +124,7 @@ pub fn execute(
     }
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => {
@@ -154,7 +154,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 /// * **_env** is the object of type [`Env`].
 ///
 /// * **_msg** is the object of type [`MigrateMsg`].
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
     Ok(Response::default())
 }

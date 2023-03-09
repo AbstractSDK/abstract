@@ -22,7 +22,7 @@ pub(crate) type IbcClientResult = Result<Response, IbcClientError>;
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
@@ -53,7 +53,7 @@ pub fn instantiate(
     Ok(IbcClientResponse::action("instantiate"))
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> IbcClientResult {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => {
@@ -93,7 +93,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
     }
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
         QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
@@ -108,7 +108,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     }
 }
 
-#[cfg_attr(not(feature = "library"), cosmwasm_std::entry_point)]
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
