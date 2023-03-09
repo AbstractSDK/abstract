@@ -151,8 +151,8 @@ mod test {
     use crate::msg::ExecuteMsg;
     use abstract_os::api::ApiRequestMsg;
     use abstract_sdk::mock_module::MockModule;
-    use abstract_sdk::mock_module::*;
     use cosmwasm_std::testing::mock_dependencies;
+    use cosmwasm_std::wasm_execute;
     use speculoos::prelude::*;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
