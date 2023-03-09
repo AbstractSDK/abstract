@@ -35,7 +35,7 @@ const SUBSCRIPTION_MODULE: SubscriptionApp =
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // export endpoints
-#[cfg(not(feature = "library"))]
+#[cfg(feature = "export")]
 abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
 pub fn instantiate_handler(

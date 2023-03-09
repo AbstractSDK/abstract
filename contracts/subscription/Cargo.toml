@@ -13,7 +13,8 @@ exclude = [
 crate-type = ["cdylib", "rlib"]
 
 [features]
-library = []
+default = ["export"]
+export = []
 boot = ["dep:boot-core","dep:abstract-boot"]
 
 [dependencies]
