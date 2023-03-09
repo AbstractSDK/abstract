@@ -54,8 +54,7 @@ pub fn deploy_modules(mock: &Mock) {
 
 pub mod api_1 {
     use super::*;
-    use abstract_os::api::ExecuteMsg;
-    use abstract_os::api::InstantiateMsg;
+
     pub const MOCK_API_ID: &str = "tester:mock-api1";
     pub use self::v1::*;
     pub use self::v2::*;
@@ -74,8 +73,7 @@ pub mod api_1 {
 
 pub mod api_2 {
     use super::*;
-    use abstract_os::api::ExecuteMsg;
-    use abstract_os::api::InstantiateMsg;
+
     pub const MOCK_API_ID: &str = "tester:mock-api2";
     pub use self::v0_1_0::*;
     pub use self::v1::*;

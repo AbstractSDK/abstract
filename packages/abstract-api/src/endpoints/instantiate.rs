@@ -61,7 +61,7 @@ mod tests {
     use abstract_sdk::{base::InstantiateEndpoint, feature_objects::AnsHost};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Empty, StdError,
+        Addr, StdError,
     };
     use cw2::{ContractVersion, CONTRACT};
     use speculoos::prelude::*;

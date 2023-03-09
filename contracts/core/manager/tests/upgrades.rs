@@ -1,16 +1,14 @@
 mod common;
 
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
-use abstract_boot::{Abstract, AbstractBootError, Manager, ManagerExecFns, OS};
+use abstract_boot::{Abstract, Manager, ManagerExecFns, OS};
 use abstract_manager::error::ManagerError;
 use abstract_os::app::{self, BaseInstantiateMsg};
 use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_testing::prelude::TEST_VERSION;
-use boot_core::{
-    instantiate_default_mock_env, Addr, BootError, ContractInstance, Deploy, Empty, Mock,
-};
+use boot_core::{instantiate_default_mock_env, Addr, ContractInstance, Deploy, Empty, Mock};
 use common::mock_modules::*;
-use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
+use common::{create_default_os, AResult};
 use cosmwasm_std::to_binary;
 use speculoos::prelude::*;
 
