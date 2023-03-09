@@ -12,7 +12,7 @@ mod reply;
 macro_rules! export_endpoints {
     ($app_const:expr, $app_type:ty) => {
         /// Instantiate entrypoint
-        #[cfg_attr(not(feature = "library"), ::cosmwasm_std::entry_point)]
+        #[::cosmwasm_std::entry_point]
         pub fn instantiate(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
@@ -24,7 +24,7 @@ macro_rules! export_endpoints {
         }
 
         /// Execute entrypoint
-        #[cfg_attr(not(feature = "library"), ::cosmwasm_std::entry_point)]
+        #[::cosmwasm_std::entry_point]
         pub fn execute(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
@@ -36,7 +36,7 @@ macro_rules! export_endpoints {
         }
 
         /// Query entrypoint
-        #[cfg_attr(not(feature = "library"), ::cosmwasm_std::entry_point)]
+        #[::cosmwasm_std::entry_point]
         pub fn query(
             deps: ::cosmwasm_std::Deps,
             env: ::cosmwasm_std::Env,
@@ -47,7 +47,7 @@ macro_rules! export_endpoints {
         }
 
         /// Migrate entrypoint
-        #[cfg_attr(not(feature = "library"), ::cosmwasm_std::entry_point)]
+        #[::cosmwasm_std::entry_point]
         pub fn migrate(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
@@ -58,7 +58,7 @@ macro_rules! export_endpoints {
         }
 
         // Reply entrypoint
-        #[cfg_attr(not(feature = "library"), ::cosmwasm_std::entry_point)]
+        #[::cosmwasm_std::entry_point]
         pub fn reply(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
