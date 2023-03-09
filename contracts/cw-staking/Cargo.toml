@@ -33,40 +33,39 @@ terra = ["dep:astroport"]
 [dependencies]
 cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
+cw-controllers = {workspace = true, optional = true}
+cw-utils = {workspace = true}
+cw20 = { workspace = true }
+cw-asset = { workspace = true }
 schemars = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
+
 abstract-sdk = { workspace = true }
 abstract-os = { workspace = true }
 abstract-api = { workspace = true }
-cw-asset = { workspace = true }
-boot-core = { workspace = true , optional = true }
 abstract-boot = { workspace = true , optional = true }
+boot-core = { workspace = true , optional = true }
 
-# Juno dexes
+# Juno dexes #
 cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = ["library"], tag = "v1.0.0" }
 cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
 wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.1.2-beta", features = [
   "library",
 ], optional = true }
-wyndex = {git = "https://github.com/cosmorama/wynddex.git", optional = true}
-wyndex-stake = {git = "https://github.com/cosmorama/wynddex.git", optional = true, features = ["library"] }
-cw-controllers = {workspace = true, optional = true}
-cw-utils = {workspace = true}
-cw20 = { workspace = true }
-
+wyndex = {git = "https://github.com/cosmorama/wynddex.git",rev = "v1.1.2", optional = true}
+wyndex-stake = {git = "https://github.com/cosmorama/wynddex.git",rev = "v1.1.2", optional = true, features = ["library"] }
 dao-cw-utils = {version = "0.13.4", package = "cw-utils" }
 
-# Osmosis
+# Osmosis #
 osmosis-std = { version = "0.12.0", optional = true }
 
-# Astroport Terra
+# Terra #
+
 # see https://github.com/astroport-fi/astroport-changelog
-# main set to commit of factory contract
 astroport = {git = "https://github.com/astroport-fi/astroport-core.git", rev = "126d43216111df786472fe2a845c1e2fadfe4a36" , optional = true}
 
 [dev-dependencies]
-# dev dependencies
 anyhow = {  workspace = true }
 tokio = { version = "1.4", features = ["full"] }
 semver = { version = "1.0"}

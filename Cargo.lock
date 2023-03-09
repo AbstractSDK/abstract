@@ -299,16 +299,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "224afbd727c3d6e4b90103ece64b8d1b67fbb1973b1046c2281eed3f3803f800"
 
 [[package]]
-name = "ap-native-coin-registry"
-version = "1.0.0"
-source = "git+https://github.com/astroport-fi/astroport-core.git#6da1b4765e29c64deaffd18db2da6110176efe04"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
-]
-
-[[package]]
 name = "astroport"
 version = "2.0.0"
 source = "git+https://github.com/astroport-fi/astroport-core.git?rev=126d43216111df786472fe2a845c1e2fadfe4a36#126d43216111df786472fe2a845c1e2fadfe4a36"
@@ -323,16 +313,14 @@ dependencies = [
 
 [[package]]
 name = "astroport"
-version = "2.1.0"
-source = "git+https://github.com/astroport-fi/astroport-core.git#6da1b4765e29c64deaffd18db2da6110176efe04"
+version = "2.0.0"
+source = "git+https://github.com/astroport-fi/astroport-core.git?rev=7bedc6f27e59ef8b921a0980be9bc30c4aab7459#7bedc6f27e59ef8b921a0980be9bc30c4aab7459"
 dependencies = [
- "ap-native-coin-registry",
- "cosmwasm-schema",
  "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "cw-utils 0.15.1",
- "cw20 0.15.1",
- "itertools",
+ "cw-storage-plus 0.13.4",
+ "cw20 0.13.4",
+ "schemars",
+ "serde",
  "uint",
 ]
 
@@ -1018,7 +1006,7 @@ dependencies = [
  "abstract-os",
  "abstract-sdk",
  "anyhow",
- "astroport 2.0.0",
+ "astroport 2.0.0 (git+https://github.com/astroport-fi/astroport-core.git?rev=126d43216111df786472fe2a845c1e2fadfe4a36)",
  "boot-core",
  "clap",
  "cosmwasm-schema",
@@ -1040,8 +1028,8 @@ dependencies = [
  "thiserror",
  "tokio",
  "wasmswap 1.1.2-beta",
- "wyndex 1.2.1",
- "wyndex-stake 1.2.1",
+ "wyndex",
+ "wyndex-stake",
 ]
 
 [[package]]
@@ -1079,17 +1067,6 @@ dependencies = [
 
 [[package]]
 name = "cw-storage-plus"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc6cf70ef7686e2da9ad7b067c5942cd3e88dd9453f7af42f54557f8af300fb0"
-dependencies = [
- "cosmwasm-std",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw-storage-plus"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "053a5083c258acd68386734f428a5a171b29f7d733151ae83090c6fcc9417ffa"
@@ -1107,21 +1084,6 @@ checksum = "9dbaecb78c8e8abfd6b4258c7f4fbeb5c49a5e45ee4d910d3240ee8e1d714e1b"
 dependencies = [
  "cosmwasm-std",
  "schemars",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "cw-utils"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ae0b69fa7679de78825b4edeeec045066aa2b2c4b6e063d80042e565bb4da5c"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw2 0.15.1",
- "schemars",
- "semver",
  "serde",
  "thiserror",
 ]
@@ -1220,19 +1182,6 @@ dependencies = [
 
 [[package]]
 name = "cw2"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5abb8ecea72e09afff830252963cb60faf945ce6cef2c20a43814516082653da"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 0.15.1",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw2"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fb70cee2cf0b4a8ff7253e6bc6647107905e8eb37208f87d54f67810faa62f8"
@@ -1264,19 +1213,6 @@ checksum = "4cb782b8f110819a4eb5dbbcfed25ffba49ec16bbe32b4ad8da50a5ce68fec05"
 dependencies = [
  "cosmwasm-std",
  "cw-utils 0.13.4",
- "schemars",
- "serde",
-]
-
-[[package]]
-name = "cw20"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6025276fb6e603e974c21f3e4606982cdc646080e8fba3198816605505e1d9a"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-utils 0.15.1",
  "schemars",
  "serde",
 ]
@@ -1514,7 +1450,7 @@ dependencies = [
  "abstract-sdk",
  "abstract-testing",
  "anyhow",
- "astroport 2.1.0",
+ "astroport 2.0.0 (git+https://github.com/astroport-fi/astroport-core.git?rev=7bedc6f27e59ef8b921a0980be9bc30c4aab7459)",
  "boot-core",
  "clap",
  "cosmwasm-schema",
@@ -1535,7 +1471,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "wasmswap 1.2.0",
- "wyndex 1.2.1",
+ "wyndex",
  "wyndex-bundle",
 ]
 
@@ -2417,9 +2353,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.139"
+version = "0.2.140"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
+checksum = "99227334921fae1a979cf0bfdfcc6b3e5ce376ef57e16fb6fb3ea2ed6095f80c"
 
 [[package]]
 name = "link-cplusplus"
@@ -4787,22 +4723,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wyndex"
-version = "1.2.1"
-source = "git+https://github.com/cosmorama/wynddex.git#20ffca3a6dd536af9960d00e072a70608d0400d9"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-storage-plus 1.0.1",
- "cw-utils 1.0.1",
- "cw20 1.0.1",
- "cw20-base 1.0.1",
- "itertools",
- "thiserror",
- "uint",
-]
-
-[[package]]
 name = "wyndex-bundle"
 version = "0.2.0"
 source = "git+https://github.com/Abstract-OS/integration-bundles.git#024120b931d5dffa96f528ca9967f378e989b46e"
@@ -4818,11 +4738,11 @@ dependencies = [
  "cw-multi-test",
  "cw20 1.0.1",
  "cw20-base 1.0.1",
- "wyndex 1.1.2",
+ "wyndex",
  "wyndex-factory",
  "wyndex-multi-hop",
  "wyndex-pair",
- "wyndex-stake 1.1.2",
+ "wyndex-stake",
 ]
 
 [[package]]
@@ -4838,8 +4758,8 @@ dependencies = [
  "cw2 1.0.1",
  "itertools",
  "thiserror",
- "wyndex 1.1.2",
- "wyndex-stake 1.1.2",
+ "wyndex",
+ "wyndex-stake",
 ]
 
 [[package]]
@@ -4853,7 +4773,7 @@ dependencies = [
  "cw2 1.0.1",
  "cw20 1.0.1",
  "thiserror",
- "wyndex 1.1.2",
+ "wyndex",
 ]
 
 [[package]]
@@ -4868,8 +4788,8 @@ dependencies = [
  "cw2 1.0.1",
  "cw20 1.0.1",
  "cw20-base 1.0.1",
- "wyndex 1.1.2",
- "wyndex-stake 1.1.2",
+ "wyndex",
+ "wyndex-stake",
 ]
 
 [[package]]
@@ -4887,25 +4807,7 @@ dependencies = [
  "serde",
  "thiserror",
  "wynd-utils",
- "wyndex 1.1.2",
-]
-
-[[package]]
-name = "wyndex-stake"
-version = "1.2.1"
-source = "git+https://github.com/cosmorama/wynddex.git#20ffca3a6dd536af9960d00e072a70608d0400d9"
-dependencies = [
- "cosmwasm-schema",
- "cosmwasm-std",
- "cw-controllers 1.0.1",
- "cw-storage-plus 1.0.1",
- "cw-utils 1.0.1",
- "cw2 1.0.1",
- "cw20 1.0.1",
- "serde",
- "thiserror",
- "wynd-utils",
- "wyndex 1.2.1",
+ "wyndex",
 ]
 
 [[package]]
