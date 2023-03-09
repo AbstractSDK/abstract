@@ -81,5 +81,8 @@ pub trait CwStakingAdapter: Identify {
         querier: &QuerierWrapper,
         staker: Addr,
     ) -> CwStakingResult<UnbondingResponse>;
-    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse>;
+    fn query_reward_tokens(
+        &self,
+        querier: &QuerierWrapper,
+    ) -> CwStakingResult<RewardTokensResponse>;
 }

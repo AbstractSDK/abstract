@@ -1,10 +1,13 @@
-use crate::{error::StakingError, contract::CwStakingResult};
+use crate::msg::{
+    Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+};
 use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
+use crate::{contract::CwStakingResult, error::StakingError};
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::objects::{AssetEntry, LpToken},
-    Resolve, AbstractSdkError,
+    AbstractSdkError, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128, WasmMsg,
@@ -12,9 +15,6 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
-use crate::msg::{
-    Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
 use wyndex_stake::{
     msg::{
         BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg, ReceiveDelegationMsg as ReceiveMsg,
@@ -198,7 +198,10 @@ impl CwStakingAdapter for WynDex {
             .collect();
         Ok(UnbondingResponse { claims })
     }
-    fn query_reward_tokens(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
+    fn query_reward_tokens(
+        &self,
+        querier: &QuerierWrapper,
+    ) -> CwStakingResult<RewardTokensResponse> {
         // hardcode as wynd token for now.
         let token = AssetEntry::new(WYND_TOKEN).resolve(
             querier,

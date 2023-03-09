@@ -22,11 +22,11 @@ required-features = ["boot"]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-library = []
-default = ["juno"]
+export = []
+default = ["juno", "export"]
 boot = ["dep:boot-core", "dep:abstract-boot"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:cw20-stake", "dep:wyndex", "dep:wyndex-stake", "dep:cw-controllers"]
-osmosis = ["library", "dep:osmosis-std"]
+osmosis = ["dep:osmosis-std"]
 terra = ["dep:astroport"]
 
 

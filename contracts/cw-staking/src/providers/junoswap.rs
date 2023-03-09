@@ -1,20 +1,18 @@
 use crate::contract::CwStakingResult;
-use crate::{error::StakingError, msg::RewardTokensResponse};
+use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
+use crate::{error::StakingError, msg::RewardTokensResponse};
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::objects::{AssetEntry, LpToken},
-    Resolve, AbstractSdkError,
+    AbstractSdkError, Resolve,
 };
-use cosmwasm_std::{
-    to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg,
-};
+use cosmwasm_std::{to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use cw20_stake::msg::{ExecuteMsg as StakeCw20ExecuteMsg, ReceiveMsg};
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
-use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
 
 pub const JUNOSWAP: &str = "junoswap";
 // Source https://github.com/wasmswap/wasmswap-contracts

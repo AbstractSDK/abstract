@@ -1,5 +1,5 @@
-use crate::CW_STAKING;
 use crate::msg::{CwStakingExecuteMsg, CwStakingQueryMsg};
+use crate::CW_STAKING;
 use crate::{error::StakingError, handlers};
 use abstract_api::{export_endpoints, ApiContract};
 use cosmwasm_std::{Empty, Response};
@@ -14,5 +14,5 @@ pub const CW_STAKING_API: CwStakingApi = CwStakingApi::new(CW_STAKING, MODULE_VE
     .with_query(handlers::query_handler);
 
 // Export the endpoints for this contract
-#[cfg(not(feature = "library"))]
+#[cfg(feature = "export")]
 export_endpoints!(CW_STAKING_API, CwStakingApi);

@@ -28,11 +28,9 @@ pub mod boot {
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
-    use boot_core::{
-        ContractInstance, boot_contract, BootEnvironment, Contract,
-    };
-    use cosmwasm_std::{Decimal, Empty};
     use boot_core::ContractWrapper;
+    use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
+    use cosmwasm_std::{Decimal, Empty};
 
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexApi<Chain>;

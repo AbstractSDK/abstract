@@ -22,9 +22,9 @@ pub mod boot {
     use crate::CW_STAKING;
     use abstract_boot::ApiDeployer;
     use boot_core::boot_contract;
+    use boot_core::ContractWrapper;
     use boot_core::{BootEnvironment, Contract, IndexResponse, TxResponse};
     use cosmwasm_std::{Addr, Empty};
-    use boot_core::ContractWrapper;
 
     /// Contract wrapper for interacting with BOOT
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]

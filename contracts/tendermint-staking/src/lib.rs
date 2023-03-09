@@ -9,9 +9,9 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 pub mod boot {
     use abstract_boot::ApiDeployer;
     use abstract_os::api::InstantiateMsg;
+    use boot_core::ContractWrapper;
     use boot_core::{boot_contract, BootEnvironment, Contract};
     use cosmwasm_std::Empty;
-    use boot_core::ContractWrapper;
 
     use crate::msg::*;
 
@@ -26,9 +26,9 @@ pub mod boot {
                 Contract::new(name, chain)
                     .with_wasm_path("tendermint_staking")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
-                        crat::contract::execute,
-                        crat::contract::instantiate,
-                        crat::contract::query,
+                        crate::contract::execute,
+                        crate::contract::instantiate,
+                        crate::contract::query,
                     ))),
             )
         }

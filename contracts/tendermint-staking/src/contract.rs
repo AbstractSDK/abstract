@@ -20,7 +20,7 @@ const STAKING_API: TendermintStakeApi =
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 // Export handlers
-#[cfg(not(feature = "library"))]
+#[cfg(feature = "export")]
 abstract_api::export_endpoints!(STAKING_API, TendermintStakeApi);
 
 pub fn handle_request(

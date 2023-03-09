@@ -1,9 +1,8 @@
 mod common;
 
-use abstract_boot::{ApiDeployer, Abstract, OS};
-use boot_core::{{instantiate_default_mock_env, ContractInstance},
-};
+use abstract_boot::{Abstract, ApiDeployer, OS};
 use boot_core::Deploy;
+use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::create_default_os;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use dex::{boot::DexApi, msg::DexInstantiateMsg, EXCHANGE};
