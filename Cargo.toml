@@ -52,9 +52,8 @@ boot-core = { version = "0.8.0-beta.1" }
 boot-cw-plus = { version = "0.8.0-beta.1" }
 tokio = { version = "1.4", features = ["full"] }
 
-## crates in order of publishing
+## crates in order of publishing ## see docs/Publishing.md
 
-# Then upload these
 abstract-ibc-host = { path = "packages/abstract-ibc-host" }
 abstract-api = { path = "packages/abstract-api" }
 abstract-app = { path = "packages/abstract-app" }
@@ -74,6 +73,7 @@ abstract-ibc-client = {package = "abstract-ibc-client", path = "contracts/native
 abstract-sdk = { version = "0.12.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.12.0", path = "packages/abstract-testing" }
 abstract-os = { version = "0.12.0", path = "packages/abstract-os" }
+
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = {version = "0.11.0", path = "packages/abstract-macros" }
 abstract-ica = { version = "0.11.0", path = "packages/abstract-ica" }
