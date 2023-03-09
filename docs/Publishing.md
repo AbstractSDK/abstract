@@ -2,7 +2,8 @@
 
 Publishing new abstract versions.
 
-## utils
+## Utils
+
 Two utils packages (`abstract-ica` and `abstract-macros`) are used by a lot of packages and are considered stable. They are published manually.
 
 ## Packages

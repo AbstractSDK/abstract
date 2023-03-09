@@ -14,19 +14,19 @@ then
 fi
 
 # these are imported by other packages
-BASE_PACKAGES="abstract-ica abstract-os abstract-macros"
-UTILS_PACKAGES="abstract-sdk"
+# BASE_PACKAGES="abstract-ica abstract-macros"
+UTILS_PACKAGES="abstract-os abstract-sdk abstract-testing"
 CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host os-factory module-factory version-control"
-ALL_PACKAGES="abstract-api abstract-app abstract-ibc-host abstract-boot"
+ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 
-for pack in $BASE_PACKAGES; do
-  (
-    cd "packages/$pack"
-    echo "Publishing base $pack"
-    cargo publish
-  )
-done
+# for pack in $BASE_PACKAGES; do
+#   (
+#     cd "packages/$pack"
+#     echo "Publishing base $pack"
+#     cargo publish
+#   )
+# done
 
 for pack in $UTILS_PACKAGES; do
   (
