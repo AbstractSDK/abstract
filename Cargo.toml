@@ -20,7 +20,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.11.0"
+version = "0.12.0"
 authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
@@ -52,18 +52,16 @@ boot-core = { version = "0.8.0-beta.1" }
 boot-cw-plus = { version = "0.8.0-beta.1" }
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-macros = {version = "0.11.0", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.11.0", path = "packages/abstract-ica" }
-abstract-ibc-host = { version = "0.11.0", path = "packages/abstract-ibc-host" }
+## crates in order of publishing
 
-abstract-testing = { version = "0.12.0", path = "packages/abstract-testing" }
-abstract-os = { version = "0.12.0", path = "packages/abstract-os" }
-abstract-sdk = { version = "0.12.0", path = "packages/abstract-sdk" }
-abstract-app = { version = "0.12.0", path = "packages/abstract-app" }
-abstract-api = { version = "0.12.0", path = "packages/abstract-api" }
+# Then upload these
+abstract-ibc-host = { path = "packages/abstract-ibc-host" }
+abstract-api = { path = "packages/abstract-api" }
+abstract-app = { path = "packages/abstract-app" }
 
+# Keep these as path, creates cirular dependency otherwise
+# Only need to re-publish all contracts if a re-publish of abstract-boot is required
 abstract-boot = {path = "packages/abstract-boot" }
-
 module-factory = {package = "abstract-module-factory", path = "contracts/native/module-factory" }
 os-factory = {package = "abstract-os-factory", path = "contracts/native/os-factory" }
 ans-host = {package = "abstract-ans-host", path = "contracts/native/ans-host" }
@@ -73,6 +71,12 @@ manager = {package = "abstract-manager", path = "contracts/core/manager" }
 osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
 abstract-ibc-client = {package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 
+abstract-sdk = { version = "0.12.0", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.12.0", path = "packages/abstract-testing" }
+abstract-os = { version = "0.12.0", path = "packages/abstract-os" }
+# These should remain fixed and don't need to be re-published (unless changes are made)
+abstract-macros = {version = "0.11.0", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.11.0", path = "packages/abstract-ica" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
