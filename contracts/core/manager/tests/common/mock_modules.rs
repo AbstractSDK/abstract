@@ -112,36 +112,6 @@ pub mod app_1 {
                 StaticDependency::new(api_2::MOCK_API_ID, &[V1]),
             ]
         );
-        // use abstract_boot::AppDeployer;
-        // use abstract_os::objects::dependency::StaticDependency;
-
-        // /// App that depends on API1 v1 and API2 v1
-        // pub const MOCK_APP1_V1: MockAppContract = MockAppContract::new(MOCK_APP_ID, V1, None)
-        //     .with_dependencies(&[
-        //         StaticDependency::new(api_1::MOCK_API_ID, &[V1]),
-        //         StaticDependency::new(api_2::MOCK_API_ID, &[V1]),
-        //     ]);
-
-        // abstract_app::export_endpoints!(MOCK_APP1_V1, MockAppContract);
-
-        // #[boot_core::boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-        // pub struct BootMockApp1V1;
-
-        // impl<Chain: BootEnvironment> AppDeployer<Chain> for BootMockApp1V1<Chain> {}
-
-        // impl<Chain: boot_core::BootEnvironment> BootMockApp1V1<Chain> {
-        //     pub fn new(name: &str, chain: Chain) -> Self {
-        //         Self(
-        //             boot_core::Contract::new(name, chain).with_mock(Box::new(
-        //                 ContractWrapper::new_with_empty(
-        //                     self::execute,
-        //                     self::instantiate,
-        //                     self::query,
-        //                 )
-        //                 .with_migrate(self::migrate),
-        //             )),
-        //         )
-        //     }
     }
 
     pub mod v2 {
