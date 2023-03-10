@@ -14,7 +14,6 @@ use cosmwasm_std::{Addr, Coin, Empty};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
 }
