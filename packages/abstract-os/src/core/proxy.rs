@@ -82,7 +82,7 @@ pub enum QueryMsg {
     /// [`TotalValueResponse`]
     #[returns(TotalValueResponse)]
     TotalValue {},
-    /// Returns the value of amount OR one token of a specific asset
+    /// Returns the value of one token with an optional amount set. 
     /// [`TokenValueResponse`]
     #[returns(TokenValueResponse)]
     TokenValue {

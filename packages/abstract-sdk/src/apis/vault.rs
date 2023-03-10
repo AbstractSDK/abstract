@@ -151,7 +151,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
 
 #[inline(always)]
 fn maybe_set_base(value: &ProxyAsset, base: &mut Option<AssetEntry>) {
-    if value.value_reference.is_none() {
+    if value.price_source.is_none() {
         *base = Some(value.asset.clone());
     }
 }

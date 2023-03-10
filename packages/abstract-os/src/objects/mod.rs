@@ -11,6 +11,7 @@ pub(crate) mod dex_asset_pairing;
 pub(crate) mod lp_token;
 
 pub mod pool;
+pub mod oracle;
 
 pub use pool::*;
 

@@ -4,15 +4,15 @@
 //! ## Details
 //! A proxy asset is composed of two components.
 //! * The `asset`, which is an [`AssetEntry`] and maps to an [`AssetInfo`].
-//! * The [`ValueRef`] which is an enum that indicates how to calculate the value for that asset.
+//! * The [`PriceSource`] which is an enum that indicates how to calculate the value for that asset.
 //!
-//! The base asset is the asset for which `value_reference` in `None`.
+//! The base asset is the asset for which `price_source` in `None`.
 //! **There should only be ONE base asset when configuring your proxy**
 
 use super::{
     ans_host::AnsHost,
     asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
+    contract_entry::{ContractEntry, UncheckedContractEntry}, PoolAddress, DexAssetPairing, PoolReference,
 };
 use crate::{
     error::AbstractOsError,
@@ -35,52 +35,48 @@ use std::convert::TryInto;
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
 pub struct UncheckedProxyAsset {
     /// The asset that's held by the proxy
-    pub asset: String,
+    pub asset: AssetEntry,
     /// The value reference provides the tooling to get the value of the asset
     /// relative to the base asset.
     /// If None, the provided asset is set as the base asset.
     /// **You can only have one base asset!**
-    pub value_reference: Option<UncheckedValueRef>,
+    pub price_source: Option<UncheckedPriceSource>,
 }
 
 impl UncheckedProxyAsset {
-    pub fn new(asset: impl Into<String>, value_reference: Option<UncheckedValueRef>) -> Self {
+    pub fn new(asset: impl Into<AssetEntry>, price_source: Option<UncheckedPriceSource>) -> Self {
         Self {
             asset: asset.into(),
-            value_reference,
+            price_source,
         }
     }
 
     /// Perform checks on the proxy asset to ensure it can be resolved by the AnsHost
     pub fn check(self, deps: Deps, ans_host: &AnsHost) -> AbstractResult<ProxyAsset> {
         let entry: AssetEntry = self.asset.into();
-        ans_host.query_asset(&deps.querier, &entry)?;
-        let value_reference = self
-            .value_reference
+        let asset = ans_host.query_asset(&deps.querier, &entry)?;
+        let price_source = self
+            .price_source
             .map(|val| val.check(deps, ans_host, &entry));
         Ok(ProxyAsset {
-            asset: entry,
-            value_reference: value_reference.transpose()?,
+            asset,
+            price_source: price_source.transpose()?,
         })
     }
 }
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-
-pub enum UncheckedValueRef {
+pub enum UncheckedPriceSource {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Proxy_assets state
-    Pool {
-        pair: String,
-        exchange: String,
-    },
+    Pair(DexAssetPairing),
     // Liquidity Pool token
     LiquidityToken {},
     // a Proxy, the proxy also takes a Decimal (the multiplier)
     // Asset will be valued as if they are Proxy tokens
     ValueAs {
-        asset: String,
+        asset: AssetEntry,
         multiplier: Decimal,
     },
     // Query an external contract to get the value
@@ -89,72 +85,68 @@ pub enum UncheckedValueRef {
     },
 }
 
-impl UncheckedValueRef {
+impl UncheckedPriceSource {
     pub fn check(
         self,
         deps: Deps,
         ans_host: &AnsHost,
         entry: &AssetEntry,
-    ) -> AbstractResult<ValueRef> {
+    ) -> AbstractResult<PriceSource> {
         match self {
-            UncheckedValueRef::Pool { pair, exchange } => {
-                let lowercase = pair.to_ascii_lowercase();
-                let mut composite: Vec<&str> = lowercase.split('_').collect();
-                if composite.len() != 2 {
-                    return Err(AbstractOsError::EntryFormattingError {
-                        actual: entry.to_string(),
-                        expected: "asset1_asset2".to_string(),
-                    });
-                };
-                composite.sort();
-                let pair_name = format!("{}_{}", composite[0], composite[1]);
-                // verify pair is available
-                let pair_contract: ContractEntry =
-                    UncheckedContractEntry::new(exchange, pair_name).check();
-                ans_host.query_contract(&deps.querier, &pair_contract)?;
-                Ok(ValueRef::Pool {
-                    pair: pair_contract,
+            UncheckedPriceSource::Pair(pair_info) => {
+                let PoolReference{
+                    pool_address,
+                    unique_id
+                } = ans_host.query_asset_pairing(&deps.querier, &pair_info)?.pop().unwrap();
+                let pool_assets = ans_host.query_pool_metadata(&deps.querier, &unique_id)?.assets;
+                let assets = ans_host.query_assets(&deps.querier, &pool_assets)?;
+
+                Ok(PriceSource::Pool {
+                    address: pool_address,
+                    assets: pool_assets,
                 })
             }
-            UncheckedValueRef::LiquidityToken {} => {
+            UncheckedPriceSource::LiquidityToken {} => {
                 let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
                 // Ensure lp pair is registered
                 ans_host.query_contract(&deps.querier, &maybe_pair.check())?;
-                Ok(ValueRef::LiquidityToken {})
+                Ok(PriceSource::LiquidityToken {})
             }
-            UncheckedValueRef::ValueAs { asset, multiplier } => {
+            UncheckedPriceSource::ValueAs { asset, multiplier } => {
                 let replacement_asset: AssetEntry = asset.into();
                 ans_host.query_asset(&deps.querier, &replacement_asset)?;
-                Ok(ValueRef::ValueAs {
+                Ok(PriceSource::ValueAs {
                     asset: replacement_asset,
                     multiplier,
                 })
             }
-            UncheckedValueRef::External { api_name } => Ok(ValueRef::External { api_name }),
+            UncheckedPriceSource::External { api_name } => Ok(PriceSource::External { api_name }),
         }
     }
 }
 
 /// Every ProxyAsset provides a way to determine its value recursively relative to
 /// a base asset.
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ProxyAsset {
     /// Asset entry that maps to an AssetInfo using raw-queries on ans_host
-    pub asset: AssetEntry,
+    pub asset: AssetInfo,
     /// The value reference provides the tooling to get the value of the asset
     /// relative to the base asset.
-    pub value_reference: Option<ValueRef>,
+    pub price_source: Option<PriceSource>,
 }
 
 /// Provides information on how to calculate the value of an asset
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 
-pub enum ValueRef {
+pub enum PriceSource {
     /// A pool name of an asset/asset pair
     /// Both assets must be defined in the Vault_assets state
-    Pool { pair: ContractEntry },
+    Pool { address: PoolAddress, assets: Vec<AssetInfo> },
     /// Liquidity pool token
-    LiquidityToken {},
+    LiquidityToken {
+        pool_assets: Vec<AssetInfo>,
+    },
     /// Asset will be valued as if they are ValueAs.asset tokens
     ValueAs {
         asset: AssetEntry,
@@ -165,7 +157,7 @@ pub enum ValueRef {
 }
 
 impl ProxyAsset {
-    /// Calculates the value of the asset through the optionally provided ValueReference
+    /// Calculates the value of the asset through the optionally provided PriceSource
     // TODO: improve efficiency
     // We could cache each asset/contract address and store each asset in a stack with the most complex (most hops) assets on top.
     // Doing this would prevent an asset value from being calculated multiple times.
@@ -186,14 +178,14 @@ impl ProxyAsset {
         let valued_asset = Asset::new(asset_info, holding);
 
         // Is there a reference to calculate the value?
-        if let Some(value_reference) = self.value_reference.clone() {
-            match value_reference {
+        if let Some(price_source) = self.price_source.clone() {
+            match price_source {
                 // A Pool refers to a swap pair that recursively leads to an asset/base_asset pool.
-                ValueRef::Pool { pair } => {
+                PriceSource::Pool { pair } => {
                     return self.trade_pair_value(deps, env, ans_host, valued_asset, pair)
                 }
                 // Liquidity is an LP token, value() fn is called recursively on both assets in the pool
-                ValueRef::LiquidityToken {} => {
+                PriceSource::LiquidityToken {} => {
                     // We map the LP token to its pair address.
                     // lp tokens are stored as "dex/asset1_asset2" in the asset store.
                     // pairs are stored as ContractEntry{protocol: dex, contract: asset1_asset2} in the contract store.
@@ -202,10 +194,10 @@ impl ProxyAsset {
                     return self.lp_value(deps, env, ans_host, valued_asset, pair);
                 }
                 // A proxy asset is used instead
-                ValueRef::ValueAs { asset, multiplier } => {
+                PriceSource::ValueAs { asset, multiplier } => {
                     return value_as_value(deps, env, ans_host, asset, multiplier, holding)
                 }
-                ValueRef::External { api_name } => {
+                PriceSource::External { api_name } => {
                     let manager = ADMIN.get(deps)?.unwrap();
                     let maybe_api_addr = OS_MODULES.query(&deps.querier, manager, &api_name)?;
                     if let Some(api_addr) = maybe_api_addr {

@@ -4,7 +4,7 @@ use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
 };
 use abstract_sdk::os::objects::proxy_asset::{
-    get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
+    get_pair_asset_names, other_asset_name, ProxyAsset, PriceSource,
 };
 use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
@@ -156,14 +156,14 @@ pub fn resolve_asset(
 ) -> StdResult<()> {
     let ProxyAsset {
         asset: entry,
-        value_reference,
+        price_source,
     } = proxy_asset;
     // key already checked?
     if checked_assets.contains(entry.as_str()) || unresolvable_assets.contains(entry.as_str()) {
         return Ok(());
     }
 
-    match value_reference {
+    match price_source {
         None => {
             if base.is_some() {
                 if entry.as_str() != base.as_ref().unwrap() {
@@ -224,16 +224,16 @@ pub fn try_load_asset(
     }
 }
 
-pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<AssetEntry> {
-    match value_reference {
-        abstract_sdk::os::objects::proxy_asset::ValueRef::Pool { pair } => {
+pub fn get_value_ref_dependencies(price_source: &PriceSource, entry: String) -> Vec<AssetEntry> {
+    match price_source {
+        abstract_sdk::os::objects::proxy_asset::PriceSource::Pool { pair } => {
             // Check if the other asset in the pool resolves
             let other_pool_asset: AssetEntry = other_asset_name(entry.as_str(), &pair.contract)
                 .unwrap()
                 .into();
             vec![other_pool_asset]
         }
-        abstract_sdk::os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
+        abstract_sdk::os::objects::proxy_asset::PriceSource::LiquidityToken {} => {
             // check if both tokens of pool resolve
             let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
             let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
@@ -241,11 +241,11 @@ pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> 
             let asset2: AssetEntry = other_pool_asset_names[1].into();
             vec![asset1, asset2]
         }
-        abstract_sdk::os::objects::proxy_asset::ValueRef::ValueAs {
+        abstract_sdk::os::objects::proxy_asset::PriceSource::ValueAs {
             asset,
             multiplier: _,
         } => vec![asset.clone()],
-        abstract_sdk::os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
+        abstract_sdk::os::objects::proxy_asset::PriceSource::External { api_name: _ } => todo!(),
     }
 }
 
@@ -256,7 +256,7 @@ pub fn query_base_asset(deps: Deps) -> ProxyResult<BaseAssetResponse> {
 
     let maybe_base_asset: Vec<(AssetEntry, ProxyAsset)> = res?
         .into_iter()
-        .filter(|(_, p)| p.value_reference.is_none())
+        .filter(|(_, p)| p.price_source.is_none())
         .collect();
     if maybe_base_asset.len() != 1 {
         Err(ProxyError::MissingBaseAsset)
