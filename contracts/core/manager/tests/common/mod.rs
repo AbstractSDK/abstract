@@ -1,7 +1,9 @@
+#![allow(unused)]
 pub mod mock_modules;
 
 pub const ROOT_USER: &str = "root_user";
 pub const TEST_COIN: &str = "ucoin";
+
 use ::abstract_manager::contract::CONTRACT_VERSION;
 use abstract_api::mock::{BootMockApi, MockInitMsg};
 use abstract_boot::{Abstract, AnsHost, Manager, ModuleFactory, OSFactory, Proxy, VersionControl};
@@ -103,9 +105,6 @@ pub(crate) fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<
 }
 
 use abstract_testing::addresses::TEST_MODULE_ID;
-
-pub const TEST_METADATA: &str = "test_metadata";
-pub const TEST_TRADER: &str = "test_trader";
 
 pub(crate) fn init_mock_api(
     chain: Mock,

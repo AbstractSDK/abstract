@@ -7,14 +7,13 @@ use abstract_os::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{ROOT_USER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::BootExecute;
 use boot_core::{
-    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
+    BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
 use common::{create_default_os, init_abstract_env, init_mock_api, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
 
-const VALIDATOR: &str = "testvaloper1";
 
 fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
     manager.install_module(api, &Empty {}).map_err(Into::into)
