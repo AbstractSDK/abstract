@@ -7,7 +7,7 @@ on:
 name: check
 jobs:
   fmt:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: stable / fmt
     steps:
       - uses: actions/checkout@v3
@@ -20,7 +20,7 @@ jobs:
       - name: cargo fmt --check
         run: cargo fmt --check
   clippy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ${{ matrix.toolchain }} / clippy
     permissions:
       contents: read
@@ -43,7 +43,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
   doc:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: nightly / doc
     steps:
       - uses: actions/checkout@v3
@@ -56,7 +56,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --cfg docsrs
   hack:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / stable / features
     steps:
       - uses: actions/checkout@v3
@@ -69,7 +69,7 @@ jobs:
       - name: cargo hack
         run: cargo hack --feature-powerset check --lib --tests
   msrv:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     # we use a matrix here just because env can't be used in job names
     # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
     strategy:

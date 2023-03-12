@@ -10,7 +10,7 @@ name: rolling
 jobs:
   # https://twitter.com/mycoliza/status/1571295690063753218
   nightly:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / nightly
     steps:
       - uses: actions/checkout@v3
@@ -25,7 +25,7 @@ jobs:
         run: cargo test --locked --all-features --all-targets
   # https://twitter.com/alcuadrado/status/1571291687837732873
   update:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / beta / updated
     # There's no point running this if no Cargo.lock was checked in in the
     # first place, since we'd just redo what happened in the regular test job.

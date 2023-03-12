@@ -7,7 +7,7 @@ on:
 name: test
 jobs:
   required:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / ${{ matrix.toolchain }}
     strategy:
       matrix:
@@ -27,7 +27,7 @@ jobs:
       - name: cargo test --locked
         run: cargo test --locked --all-features --all-targets
   minimal:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / stable / minimal-versions
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +62,7 @@ jobs:
       - name: cargo test
         run: cargo test --locked --all-features --all-targets
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     name: ubuntu / stable / coverage
     steps:
       - uses: actions/checkout@v3
