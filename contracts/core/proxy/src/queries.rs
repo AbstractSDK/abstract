@@ -4,7 +4,7 @@ use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
 };
 use abstract_sdk::os::objects::proxy_asset::{
-    get_pair_asset_names, other_asset_name, ProxyAsset, PriceSource,
+    get_pair_asset_names, other_asset_name, PriceSource, ProxyAsset,
 };
 use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};

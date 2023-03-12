@@ -12,7 +12,8 @@
 use super::{
     ans_host::AnsHost,
     asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry}, PoolAddress, DexAssetPairing, PoolReference,
+    contract_entry::{ContractEntry, UncheckedContractEntry},
+    DexAssetPairing, LpToken, PoolAddress, PoolMetadata, PoolReference,
 };
 use crate::{
     error::AbstractOsError,
@@ -94,29 +95,45 @@ impl UncheckedPriceSource {
     ) -> AbstractResult<PriceSource> {
         match self {
             UncheckedPriceSource::Pair(pair_info) => {
-                let PoolReference{
+                let PoolReference {
                     pool_address,
-                    unique_id
-                } = ans_host.query_asset_pairing(&deps.querier, &pair_info)?.pop().unwrap();
-                let pool_assets = ans_host.query_pool_metadata(&deps.querier, &unique_id)?.assets;
+                    unique_id,
+                } = ans_host
+                    .query_asset_pairing(&deps.querier, &pair_info)?
+                    .pop()
+                    .unwrap();
+                let pool_assets = ans_host
+                    .query_pool_metadata(&deps.querier, &unique_id)?
+                    .assets;
                 let assets = ans_host.query_assets(&deps.querier, &pool_assets)?;
 
                 Ok(PriceSource::Pool {
                     address: pool_address,
-                    assets: pool_assets,
+                    assets,
                 })
             }
             UncheckedPriceSource::LiquidityToken {} => {
-                let maybe_pair: UncheckedContractEntry = entry.to_string().try_into()?;
-                // Ensure lp pair is registered
-                ans_host.query_contract(&deps.querier, &maybe_pair.check())?;
-                Ok(PriceSource::LiquidityToken {})
+                let lp_token = LpToken::try_from(entry.clone())?;
+                let token_entry: AssetEntry = lp_token.clone().into();
+                let token_info = ans_host.query_asset(&deps.querier, &token_entry)?;
+                let pairing = DexAssetPairing::try_from(token_entry)?;
+                let pool_assets = ans_host.query_assets(&deps.querier, &lp_token.assets)?;
+                // TODO: fix this for multiple pools
+                let pool_address = ans_host
+                    .query_asset_pairing(&deps.querier, &pairing)?
+                    .pop()
+                    .unwrap()
+                    .pool_address;
+                Ok(PriceSource::LiquidityToken {
+                    pool_assets,
+                    token_info,
+                    pool_address,
+                })
             }
             UncheckedPriceSource::ValueAs { asset, multiplier } => {
-                let replacement_asset: AssetEntry = asset.into();
-                ans_host.query_asset(&deps.querier, &replacement_asset)?;
+                let asset_info = ans_host.query_asset(&deps.querier, &asset)?;
                 Ok(PriceSource::ValueAs {
-                    asset: replacement_asset,
+                    asset: asset_info,
                     multiplier,
                 })
             }
@@ -142,14 +159,19 @@ pub struct ProxyAsset {
 pub enum PriceSource {
     /// A pool name of an asset/asset pair
     /// Both assets must be defined in the Vault_assets state
-    Pool { address: PoolAddress, assets: Vec<AssetInfo> },
+    Pool {
+        address: PoolAddress,
+        assets: Vec<AssetInfo>,
+    },
     /// Liquidity pool token
     LiquidityToken {
+        token_info: AssetInfo,
         pool_assets: Vec<AssetInfo>,
+        pool_address: PoolAddress,
     },
     /// Asset will be valued as if they are ValueAs.asset tokens
     ValueAs {
-        asset: AssetEntry,
+        asset: AssetInfo,
         multiplier: Decimal,
     },
     /// Query an external contract to get the value
