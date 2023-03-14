@@ -10,21 +10,29 @@ use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 
 use cw_multi_test::{App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg};
 
-use wyndex::asset::{Asset, AssetInfo};
+use wyndex::asset::{Asset, AssetInfo, AssetInfoValidated};
 use wyndex::factory::{
     DefaultStakeConfig, DistributionFlow, ExecuteMsg as FactoryExecuteMsg,
     InstantiateMsg as FactoryInstantiateMsg, PairConfig, PairType, PartialStakeConfig,
     QueryMsg as FactoryQueryMsg,
 };
+
+use cw_controllers::{Claim, ClaimsResponse};
 use wyndex::fee_config::FeeConfig;
 use wyndex::pair::{ExecuteMsg as PairExecuteMsg, PairInfo};
 use wyndex::stake::UnbondingPeriod;
+
 use wyndex_multi_hop::msg::{
     ExecuteMsg, InstantiateMsg, QueryMsg, SimulateSwapOperationsResponse, SwapOperation,
 };
-use wyndex_stake::msg::ExecuteMsg as StakeExecuteMsg;
+use wyndex_stake::msg::{
+    AllStakedResponse, AnnualizedReward, AnnualizedRewardsResponse, BondingInfoResponse,
+    BondingPeriodInfo, ExecuteMsg as StakeExecuteMsg, QueryMsg as StakeQueryMsg,
+    RewardsPowerResponse, StakedResponse, TotalStakedResponse,
+};
 
 use crate::{MULTI_HOP, POOL_FACTORY, WYNDEX_OWNER};
+pub const SEVEN_DAYS: u64 = 604800;
 
 fn store_multi_hop(app: &mut App) -> u64 {
     let contract = Box::new(ContractWrapper::new_with_empty(
@@ -234,6 +242,15 @@ impl Suite {
     pub fn advance_time(&mut self, seconds: u64) {
         self.app()
             .update_block(|block| block.time = block.time.plus_seconds(seconds));
+    }
+
+    fn unbonding_period_or_default(&self, unbonding_period: impl Into<Option<u64>>) -> u64 {
+        // Use default SEVEN_DAYS unbonding period if none provided
+        if let Some(up) = unbonding_period.into() {
+            up
+        } else {
+            SEVEN_DAYS
+        }
     }
 
     pub fn create_pair(
@@ -637,5 +654,137 @@ impl Suite {
             .app()
             .wrap()
             .query_wasm_smart(self.factory.clone(), &FactoryQueryMsg::Pair { asset_infos })?)
+    }
+
+    // returns address' balance on staking contract
+    pub fn query_balance_staking_contract(&self, asset_infos: Vec<AssetInfo>) -> AnyResult<u128> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let balance: BalanceResponse = self.app().wrap().query_wasm_smart(
+            pair_info.liquidity_token.clone(),
+            &Cw20QueryMsg::Balance {
+                address: pair_info.staking_addr.to_string(),
+            },
+        )?;
+        Ok(balance.balance.u128())
+    }
+
+    pub fn query_all_staked(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+        address: &str,
+    ) -> AnyResult<AllStakedResponse> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let staked: AllStakedResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::AllStaked {
+                address: address.to_owned(),
+            },
+        )?;
+        Ok(staked)
+    }
+
+    pub fn query_staked(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+        address: &str,
+        unbonding_period: impl Into<Option<u64>>,
+    ) -> AnyResult<u128> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let staked: StakedResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::Staked {
+                address: address.to_owned(),
+                unbonding_period: self.unbonding_period_or_default(unbonding_period),
+            },
+        )?;
+        Ok(staked.stake.u128())
+    }
+
+    pub fn query_staked_periods(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+    ) -> AnyResult<Vec<BondingPeriodInfo>> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let info: BondingInfoResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::BondingInfo {},
+        )?;
+        Ok(info.bonding)
+    }
+
+    pub fn query_total_staked(&self, asset_infos: Vec<AssetInfo>) -> AnyResult<u128> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let total_staked: TotalStakedResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::TotalStaked {},
+        )?;
+        Ok(total_staked.total_staked.u128())
+    }
+
+    pub fn query_claims(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+        address: &str,
+    ) -> AnyResult<Vec<Claim>> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let claims: ClaimsResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::Claims {
+                address: address.to_owned(),
+            },
+        )?;
+        Ok(claims.claims)
+    }
+
+    // TODO: fix
+    pub fn query_annualized_rewards(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+    ) -> AnyResult<Vec<(UnbondingPeriod, Vec<AnnualizedReward>)>> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let apr: AnnualizedRewardsResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::AnnualizedRewards {},
+        )?;
+        Ok(apr.rewards)
+    }
+
+    pub fn query_rewards_power(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+        address: &str,
+    ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::RewardsPower {
+                address: address.to_owned(),
+            },
+        )?;
+
+        Ok(rewards
+            .rewards
+            .into_iter()
+            .map(|(a, p)| (a, p.u128()))
+            .filter(|(_, p)| *p > 0)
+            .collect())
+    }
+
+    pub fn query_total_rewards_power(
+        &self,
+        asset_infos: Vec<AssetInfo>,
+    ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
+        let pair_info = self.query_pair(asset_infos)?;
+        let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
+            pair_info.staking_addr.clone(),
+            &StakeQueryMsg::TotalRewardsPower {},
+        )?;
+
+        Ok(rewards
+            .rewards
+            .into_iter()
+            .map(|(a, p)| (a, p.u128()))
+            .filter(|(_, p)| *p > 0)
+            .collect())
     }
 }

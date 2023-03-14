@@ -1,6 +1,6 @@
 [package]
 name = "wyndex-bundle"
-version = {workspace = true}
+version = { workspace = true }
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -9,20 +9,21 @@ edition = "2021"
 
 [dependencies]
 # wyndex-tests = {package = "tests", git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
-wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
-wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
-wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
-wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
-wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
+wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
 
 cw20-base = { workspace = true }
 cw20 = { workspace = true }
-boot-core = {workspace = true}
+boot-core = { workspace = true }
 boot-cw-plus = { workspace = true }
-abstract-os = {workspace = true}
-abstract-boot = {workspace = true, features = ["integration"]}
-cosmwasm-std = {workspace = true}
-cosmwasm-schema = {workspace = true}
-cw-multi-test = {workspace = true}
-cw-asset = {workspace = true}
-anyhow = {workspace = true}
+abstract-os = { workspace = true }
+abstract-boot = { workspace = true, features = ["integration"] }
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-multi-test = { workspace = true }
+cw-asset = { workspace = true }
+anyhow = { workspace = true }
+cw-controllers = "1.0.1"
