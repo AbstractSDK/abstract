@@ -86,9 +86,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
         QueryMsg::TokenValue { identifier, amount } => {
             to_binary(&query_token_value(deps, env, identifier, amount)?)
         }
-        QueryMsg::HoldingValue { identifier } => to_binary(&HoldingValueResponse {
-            value: compute_holding_value(deps, &env, identifier)?,
-        }),
         QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
             proxy_asset: VAULT_ASSETS.load(deps.storage, &AssetEntry::from(identifier))?,
         }),

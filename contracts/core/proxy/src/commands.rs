@@ -4,7 +4,7 @@ use crate::queries::*;
 use abstract_macros::abstract_response;
 use abstract_sdk::os::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    objects::proxy_asset::UncheckedProxyAsset,
+    objects::price_source::UncheckedProxyAsset,
     proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
     IBC_CLIENT, PROXY,
 };

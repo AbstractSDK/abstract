@@ -3,7 +3,7 @@ use crate::error::ProxyError;
 use abstract_os::proxy::{
     BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
 };
-use abstract_sdk::os::objects::proxy_asset::{
+use abstract_sdk::os::objects::price_source::{
     get_pair_asset_names, other_asset_name, PriceSource, ProxyAsset,
 };
 use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
@@ -87,8 +87,11 @@ pub fn compute_total_value(deps: Deps, env: Env) -> ProxyResult<Uint128> {
 }
 
 pub fn query_total_value(deps: Deps, env: Env) -> ProxyResult<TotalValueResponse> {
-    let value = compute_total_value(deps, env)?;
-    Ok(TotalValueResponse { value })
+    let distribution = compute_total_value_per_asset(deps, env)?;
+    Ok(TotalValueResponse {
+        total_value,
+        distribution,
+    })
 }
 
 pub fn query_proxy_asset_validity(deps: Deps) -> StdResult<ValidityResponse> {
@@ -226,14 +229,14 @@ pub fn try_load_asset(
 
 pub fn get_value_ref_dependencies(price_source: &PriceSource, entry: String) -> Vec<AssetEntry> {
     match price_source {
-        abstract_sdk::os::objects::proxy_asset::PriceSource::Pool { pair } => {
+        abstract_sdk::os::objects::price_source::PriceSource::Pool { pair } => {
             // Check if the other asset in the pool resolves
             let other_pool_asset: AssetEntry = other_asset_name(entry.as_str(), &pair.contract)
                 .unwrap()
                 .into();
             vec![other_pool_asset]
         }
-        abstract_sdk::os::objects::proxy_asset::PriceSource::LiquidityToken {} => {
+        abstract_sdk::os::objects::price_source::PriceSource::LiquidityToken {} => {
             // check if both tokens of pool resolve
             let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
             let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
@@ -241,11 +244,11 @@ pub fn get_value_ref_dependencies(price_source: &PriceSource, entry: String) -> 
             let asset2: AssetEntry = other_pool_asset_names[1].into();
             vec![asset1, asset2]
         }
-        abstract_sdk::os::objects::proxy_asset::PriceSource::ValueAs {
+        abstract_sdk::os::objects::price_source::PriceSource::ValueAs {
             asset,
             multiplier: _,
         } => vec![asset.clone()],
-        abstract_sdk::os::objects::proxy_asset::PriceSource::External { api_name: _ } => todo!(),
+        abstract_sdk::os::objects::price_source::PriceSource::External { api_name: _ } => todo!(),
     }
 }
 
