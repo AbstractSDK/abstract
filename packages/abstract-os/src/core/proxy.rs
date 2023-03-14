@@ -14,24 +14,23 @@ use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
         core::OsId,
-        proxy_asset::{ProxyAsset, UncheckedProxyAsset},
+        price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
     },
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty, Uint128};
+use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
+    use super::*;
     pub use crate::objects::core::OS_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::{
-        ans_host::AnsHost, asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE,
-        proxy_asset::ProxyAsset,
-    };
+    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
@@ -39,7 +38,7 @@ pub mod state {
     pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const VAULT_ASSETS: Map<&AssetEntry, ProxyAsset> = Map::new("proxy_assets");
+    // pub const VAULT_ASSETS: Map<&AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -48,7 +47,6 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
 }
 
-// hot fix
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -64,8 +62,8 @@ pub enum ExecuteMsg {
     RemoveModule { module: String },
     /// Updates the VAULT_ASSETS map
     UpdateAssets {
-        to_add: Vec<UncheckedProxyAsset>,
-        to_remove: Vec<String>,
+        to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
+        to_remove: Vec<AssetEntry>,
     },
 }
 #[cosmwasm_schema::cw_serde]
@@ -86,21 +84,17 @@ pub enum QueryMsg {
     /// [`TokenValueResponse`]
     #[returns(TokenValueResponse)]
     TokenValue {
-        identifier: String,
+        identifier: AssetEntry,
         amount: Option<Uint128>,
     },
-    /// Returns the value of one specific asset
-    /// [`HoldingValueResponse`]
-    #[returns(HoldingValueResponse)]
-    HoldingValue { identifier: String },
     /// Returns the amount of specified tokens this contract holds
     /// [`HoldingAmountResponse`]
     #[returns(HoldingAmountResponse)]
-    HoldingAmount { identifier: String },
+    HoldingAmount { identifier: AssetEntry },
     /// Returns the VAULT_ASSETS value for the specified key
     /// [`AssetConfigResponse`]
     #[returns(AssetConfigResponse)]
-    AssetConfig { identifier: String },
+    AssetConfig { identifier: AssetEntry },
     /// Returns [`AssetsResponse`]
     #[returns(AssetsResponse)]
     Assets {
@@ -122,16 +116,12 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct TotalValueResponse {
-    pub value: Uint128,
+    pub total_value: Uint128,
+    pub distribution: (AssetInfo, Uint128),
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct TokenValueResponse {
-    pub value: Uint128,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct HoldingValueResponse {
     pub value: Uint128,
 }
 
@@ -145,7 +135,7 @@ pub struct ValidityResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct BaseAssetResponse {
-    pub base_asset: ProxyAsset,
+    pub base_asset: AssetInfo,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -155,23 +145,22 @@ pub struct HoldingAmountResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AssetConfigResponse {
-    pub proxy_asset: ProxyAsset,
+    pub proxy_asset: AssetInfo,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct AssetsResponse {
-    pub assets: Vec<(AssetEntry, ProxyAsset)>,
+    pub assets: Vec<(AssetEntry, (AssetInfo, PriceSource))>,
 }
 
 /// Query message to external contract to get asset value
 #[cosmwasm_schema::cw_serde]
-
 pub struct ValueQueryMsg {
-    pub asset: AssetEntry,
+    pub asset: AssetInfo,
     pub amount: Uint128,
 }
 /// External contract value response
 #[cosmwasm_schema::cw_serde]
 pub struct ExternalValueResponse {
-    pub value: Uint128,
+    pub value: Asset,
 }
