@@ -138,9 +138,9 @@ impl<
 
 #[cfg(test)]
 mod tests {
+    use abstract_sdk::base::Handler;
     use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
     use cosmwasm_std::{to_binary, Response};
-    use abstract_sdk::base::Handler;
 
     use super::*;
     use crate::mock::{ApiMockResult, MockApiContract, TEST_METADATA};
