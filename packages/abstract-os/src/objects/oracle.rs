@@ -104,9 +104,8 @@ impl<'a> Oracle<'a> {
         // Registration is expected to be done in increasing complexity
         // So this will fail if a dependent asset is not registered first.
         for (asset, price_source) in assets_and_sources {
-            let dependencies;
             // Get dependencies for this price source
-            dependencies = price_source.dependency(&asset);
+            let dependencies = price_source.dependency(&asset);
             self.assert_dependency_exists(deps.as_ref(), &dependencies)?;
             // get the complexity of the dependencies
             // depending on the type of price source, the complexity is calculated differently
@@ -288,15 +287,7 @@ impl<'a> Oracle<'a> {
         let asset_pos = self
             .asset_equivalent_cache
             .iter()
-            .position(
-                |(asset_info, _)| {
-                    if asset_info == asset {
-                        true
-                    } else {
-                        false
-                    }
-                },
-            );
+            .position(|(asset_info, _)| asset_info == asset);
         asset_pos.map(|ix| self.asset_equivalent_cache.swap_remove(ix).1)
     }
 

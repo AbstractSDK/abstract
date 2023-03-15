@@ -31,7 +31,7 @@ impl AnsHost {
     ) -> AbstractResult<Vec<Addr>> {
         let mut resolved_contracts: Vec<Addr> = Vec::new();
         // Query over keys
-        for key in contracts.into_iter() {
+        for key in contracts.iter() {
             let result = self.query_contract(querier, key)?;
             resolved_contracts.push(result);
         }
@@ -61,8 +61,8 @@ impl AnsHost {
     ) -> AbstractResult<Vec<AssetInfo>> {
         let mut resolved_assets = Vec::new();
 
-        for asset in assets.into_iter() {
-            let result = self.query_asset(querier, &asset)?;
+        for asset in assets.iter() {
+            let result = self.query_asset(querier, asset)?;
             resolved_assets.push(result);
         }
         Ok(resolved_assets)
@@ -91,8 +91,8 @@ impl AnsHost {
         // AssetInfo does not implement PartialEq, so we can't use a Vec
         let mut resolved_assets = vec![];
 
-        for asset in assets.into_iter() {
-            let result = self.query_asset_reverse(querier, &asset)?;
+        for asset in assets.iter() {
+            let result = self.query_asset_reverse(querier, asset)?;
             resolved_assets.push(result);
         }
         Ok(resolved_assets)

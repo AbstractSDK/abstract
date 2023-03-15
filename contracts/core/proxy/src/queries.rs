@@ -11,9 +11,6 @@ use abstract_sdk::Resolve;
 use cosmwasm_std::{Addr, Deps, Env, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
-const DEFAULT_LIMIT: u8 = 5;
-const MAX_LIMIT: u8 = 20;
-
 /// get the assets pricing information
 pub fn query_oracle_asset_info(
     deps: Deps,

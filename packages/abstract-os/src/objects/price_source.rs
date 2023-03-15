@@ -39,7 +39,7 @@ impl AssetConversion {
     /// convert the balance of an asset into a (list of) asset(s) given the provided rate(s)
     pub fn convert(rates: &[Self], amount: Uint128) -> Vec<Asset> {
         rates
-            .into_iter()
+            .iter()
             .map(|rate| Asset::new(rate.into.clone(), amount * rate.ratio))
             .collect()
     }
@@ -150,7 +150,7 @@ impl PriceSource {
         match self {
             // return the other asset as the dependency
             PriceSource::Pool { pair, .. } => {
-                pair.into_iter().filter(|a| *a != asset).cloned().collect()
+                pair.iter().filter(|a| *a != asset).cloned().collect()
             }
             PriceSource::LiquidityToken { pool_assets, .. } => pool_assets.clone(),
             PriceSource::ValueAs { asset, .. } => vec![asset.clone()],
@@ -169,18 +169,17 @@ impl PriceSource {
         match self {
             // A Pool refers to a swap pair, the ratio of assets in the pool represents the price of the asset in the other asset's denom
             PriceSource::Pool { address, pair } => self
-                .trade_pair_price(deps, asset, &address.expect_contract()?, &pair)
+                .trade_pair_price(deps, asset, &address.expect_contract()?, pair)
                 .map(|e| vec![e]),
             // Liquidity is an LP token,
             PriceSource::LiquidityToken {
                 pool_address,
                 pool_assets,
-            } => self.lp_conversion(deps, asset, &pool_address.expect_contract()?, &pool_assets),
+            } => self.lp_conversion(deps, asset, &pool_address.expect_contract()?, pool_assets),
             // A proxy asset is used instead
-            PriceSource::ValueAs { asset, multiplier } => Ok(vec![AssetConversion::new(
-                asset.clone(),
-                multiplier.clone(),
-            )]),
+            PriceSource::ValueAs { asset, multiplier } => {
+                Ok(vec![AssetConversion::new(asset.clone(), *multiplier)])
+            }
             // None means it's the base asset
             PriceSource::None => Ok(vec![]),
         }
