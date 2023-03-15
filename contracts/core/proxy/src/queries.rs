@@ -108,15 +108,12 @@ pub fn query_holding_amount(
 #[cfg(test)]
 mod test {
     use abstract_os::objects::price_source::{PriceSource, UncheckedPriceSource};
-    
+
     use abstract_sdk::feature_objects::AnsHost;
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::testing::{
-        mock_env, mock_info, MockApi, MockQuerier, MockStorage,
-    };
+    use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
     use cosmwasm_std::{Addr, Decimal, DepsMut, OwnedDeps};
-    
 
     use abstract_os::proxy::{ExecuteMsg, InstantiateMsg};
 
