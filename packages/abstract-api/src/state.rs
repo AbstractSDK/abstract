@@ -167,8 +167,20 @@ mod tests {
     }
 
     #[test]
-    fn set_and_retrieve_handlers() -> ApiMockResult {
+    fn set_handlers() -> ApiMockResult {
         get_mock();
+        Ok(())
+    }
+
+    #[test]
+    fn set_and_get_target() -> ApiMockResult {
+        let mut mock = get_mock();
+        let target = Addr::unchecked("target");
+        mock.target_os = Some(Core {
+            proxy: target.clone(),
+            manager: Addr::unchecked("manager"),
+        });
+        assert_eq!(mock.target()?, &target);
         Ok(())
     }
 }
