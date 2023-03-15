@@ -10,20 +10,40 @@
 //! **There should only be ONE base asset when configuring your proxy**
 
 use super::{
-    ans_host::AnsHost,
-    asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
-    DexAssetPairing, LpToken, PoolAddress, PoolMetadata, PoolReference,
+    ans_host::AnsHost, asset_entry::AssetEntry, DexAssetPairing, LpToken, PoolAddress,
+    PoolReference,
 };
-use crate::{
-    error::AbstractOsError, manager::state::OS_MODULES, proxy::state::ADMIN, AbstractResult,
-};
+use crate::{error::AbstractOsError, AbstractResult};
 use cosmwasm_std::{
-    to_binary, Addr, Decimal, Deps, Env, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
+    to_binary, Addr, Decimal, Deps, QuerierWrapper, QueryRequest, StdError, Uint128, WasmQuery,
 };
 use cw_asset::{Asset, AssetInfo};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+/// represents the conversion of an asset in terms of the provided asset
+/// Example: provided asset is ETH and the price source for ETH is the pair ETH/USD, the price is 100USD/ETH
+/// then `AssetConversion { into: USD, ratio: 100}`
+pub struct AssetConversion {
+    into: AssetInfo,
+    ratio: Decimal,
+}
+
+impl AssetConversion {
+    pub fn new(asset: impl Into<AssetInfo>, price: Decimal) -> Self {
+        Self {
+            into: asset.into(),
+            ratio: price,
+        }
+    }
+    /// convert the balance of an asset into a (list of) asset(s) given the provided rate(s)
+    pub fn convert(rates: &[Self], amount: Uint128) -> Vec<Asset> {
+        rates
+            .into_iter()
+            .map(|rate| Asset::new(rate.into.clone(), amount * rate.ratio))
+            .collect()
+    }
+}
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
@@ -124,7 +144,7 @@ pub enum PriceSource {
 }
 
 impl PriceSource {
-    /// Returns the assets that are required to calculate the value of the asset
+    /// Returns the assets that are required to calculate the price of the asset
     /// Panics if the price source is None
     pub fn dependency(&self, asset: &AssetInfo) -> Vec<AssetInfo> {
         match self {
@@ -138,105 +158,83 @@ impl PriceSource {
         }
     }
 
-    /// Calculates the value of the asset through the optionally provided PriceSource
-    // We could cache each asset/contract address and store each asset in a stack with the most complex (most hops) assets on top.
-    // Doing this would prevent an asset value from being calculated multiple times.
-    pub fn value(
+    /// Calculates the conversion ratio of the asset.
+    pub fn conversion_rates(
         &self,
         deps: Deps,
-        env: &Env,
-        asset: AssetInfo,
-        cached_balance: Option<Uint128>,
-    ) -> AbstractResult<Vec<Asset>> {
-        // Query how many of these tokens are held in the contract.
-        let mut balance = asset.query_balance(&deps.querier, env.contract.address.clone())?;
-        // Update balance with cached balance if appropriate
-        if let Some(cached_balance) = cached_balance {
-            balance += cached_balance;
-        }
-
-        let valued_asset = Asset::new(asset.clone(), balance);
-        // Is there a reference to calculate the value?
-        // each method must return the value of the asset in terms of the another asset, accept for the base asset.
+        asset: &AssetInfo,
+    ) -> AbstractResult<Vec<AssetConversion>> {
+        // Is there a reference to calculate the price?
+        // each method must return the price of the asset in terms of the another asset, accept for the base asset.
         match self {
-            // A Pool refers to a swap pair, the ratio of assets in the pool represents the value of the asset in the other asset's denom
+            // A Pool refers to a swap pair, the ratio of assets in the pool represents the price of the asset in the other asset's denom
             PriceSource::Pool { address, pair } => self
-                .trade_pair_value(deps, valued_asset, address.expect_contract()?, pair)
+                .trade_pair_price(deps, asset, &address.expect_contract()?, &pair)
                 .map(|e| vec![e]),
             // Liquidity is an LP token,
             PriceSource::LiquidityToken {
                 pool_address,
                 pool_assets,
-            } => self.lp_value(
-                deps,
-                valued_asset,
-                pool_address.expect_contract()?,
-                pool_assets,
-            ),
+            } => self.lp_conversion(deps, asset, &pool_address.expect_contract()?, &pool_assets),
             // A proxy asset is used instead
-            PriceSource::ValueAs { asset, multiplier } => {
-                Ok(vec![Asset::new(asset.clone(), balance * *multiplier)])
-            }
+            PriceSource::ValueAs { asset, multiplier } => Ok(vec![AssetConversion::new(
+                asset.clone(),
+                multiplier.clone(),
+            )]),
             // None means it's the base asset
-            PriceSource::None => Ok(vec![valued_asset]),
+            PriceSource::None => Ok(vec![]),
         }
     }
 
-    /// Calculates the value of an asset compared to some other asset through the provided trading pair.
-    fn trade_pair_value(
+    /// Calculates the price of an asset compared to some other asset through the provided trading pair.
+    fn trade_pair_price(
         &self,
         deps: Deps,
-        valued_asset: Asset,
-        address: Addr,
+        priced_asset: &AssetInfo,
+        address: &Addr,
         pair: &[AssetInfo],
-    ) -> AbstractResult<Asset> {
-        let other_asset_info = pair.iter().find(|a| a != &&valued_asset.info).unwrap();
+    ) -> AbstractResult<AssetConversion> {
+        let other_asset_info = pair.iter().find(|a| a != &priced_asset).unwrap();
         // query assets held in pool, gives price
         let pool_info = (
-            other_asset_info.query_balance(&deps.querier, &address)?,
-            valued_asset.info.query_balance(&deps.querier, address)?,
+            other_asset_info.query_balance(&deps.querier, address)?,
+            priced_asset.query_balance(&deps.querier, address)?,
         );
         // other / this
         let ratio = Decimal::from_ratio(pool_info.0.u128(), pool_info.1.u128());
-        // Get the value of the current asset in the denom of the other asset
+        // Get the conversion ratio in the denom of this asset
         // #other = #this * (pool_other/pool_this)
-        let amount_in_other_denom = valued_asset.amount * ratio;
-        // return the value of this asset in the other asset denom
-        Ok(Asset {
-            info: other_asset_info.to_owned(),
-            amount: amount_in_other_denom,
-        })
+        Ok(AssetConversion::new(other_asset_info.clone(), ratio))
     }
 
-    /// Calculate the value of an LP token
+    /// Calculate the conversions of an LP token
     /// Uses the lp token name to query pair pool for both assets
-    fn lp_value(
+    /// Returns the conversion ratio of the LP token in terms of the other asset
+    fn lp_conversion(
         &self,
         deps: Deps,
-        lp_asset: Asset,
-        pool: Addr,
+        lp_asset: &AssetInfo,
+        pool: &Addr,
         pool_assets: &[AssetInfo],
-    ) -> AbstractResult<Vec<Asset>> {
+    ) -> AbstractResult<Vec<AssetConversion>> {
         let supply: Uint128;
-        if let AssetInfo::Cw20(addr) = &lp_asset.info {
+        if let AssetInfo::Cw20(addr) = lp_asset {
             supply = query_cw20_supply(&deps.querier, addr)?;
         } else {
             return Err(StdError::generic_err("Can't have a native LP token").into());
         }
-        // Get total supply of LP tokens and calculate share
-        let share: Decimal = Decimal::from_ratio(lp_asset.amount, supply.u128());
         pool_assets
             .iter()
             .map(|a| {
                 let balance = a
                     .query_balance(&deps.querier, pool.clone())
                     .map_err(AbstractOsError::from)?;
-                Ok(Asset {
-                    info: a.clone(),
-                    amount: balance,
-                })
+                Ok(AssetConversion::new(
+                    a.clone(),
+                    Decimal::from_ratio(balance.u128(), supply.u128()),
+                ))
             })
-            .collect::<AbstractResult<Vec<Asset>>>()
+            .collect::<AbstractResult<Vec<AssetConversion>>>()
     }
 }
 

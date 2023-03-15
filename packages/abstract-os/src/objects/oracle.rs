@@ -1,34 +1,15 @@
-// There are two functions the oracle must perform:
+use std::collections::HashSet;
 
-// ## Resolve the total value of an account given a base asset.
-// This process goes as follows
-// 1. Get the highest complexity asset and check the cache for a balance.
-// 2. Get the price associated with that asset and convert it into its lower complexity equivalent.
-// 3. Save the resulting value in the cache for that lower complexity asset.
-// 4. Repeat until the base asset is reached.
-
-// ## Resolve the value of a single asset.
-// 1. Get the assets's price source
-// 2. Get the price of the asset from the price source
-// 3. Get the price source of the asset's equivalent asset
-// 4. Repeat until the base asset is reached.
-
-use std::{
-    cmp::min,
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
-
-use cosmwasm_std::{Deps, DepsMut, Order, StdError, StdResult, Uint128};
-use cw_asset::AssetInfo;
-use cw_storage_plus::{Index, IndexList, IndexedMap, Map, MultiIndex, PrimaryKey, UniqueIndex};
-use serde::{Deserialize, Serialize};
+use cosmwasm_schema::cw_serde;
+use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, StdResult, Uint128};
+use cw_asset::{Asset, AssetInfo};
+use cw_storage_plus::{Index, Map};
 
 use crate::AbstractResult;
 
 use super::{
     ans_host::AnsHost,
-    price_source::{PriceSource, UncheckedPriceSource},
+    price_source::{AssetConversion, PriceSource, UncheckedPriceSource},
     AssetEntry,
 };
 
@@ -49,23 +30,18 @@ pub struct Oracle<'a> {
     complexity: Map<'static, Complexity, Vec<AssetInfo>>,
     /// Cache of asset values for efficient total value calculation
     /// the amount set for an asset will be added to its balance.
-    asset_equivalent_cache: Option<HashMap<HashableAssetInfo, Vec<(Uint128, HashableAssetInfo)>>>,
+    /// Vec instead of HashMap because it's faster for small sets + AssetInfo does not implement `Hash`!
+    asset_equivalent_cache: Vec<(AssetInfo, Vec<(AssetInfo, Uint128)>)>,
 }
 
 impl<'a> Oracle<'a> {
-    const fn new() -> Self {
+    pub const fn new() -> Self {
         Oracle {
             config: Map::new("oracle_config"),
             assets: Map::new("assets"),
             complexity: Map::new("complexity"),
-            asset_equivalent_cache: None,
+            asset_equivalent_cache: Vec::new(),
         }
-    }
-
-    /// Instantiate the oracle cache
-    fn with_cache(mut self) -> Self {
-        self.asset_equivalent_cache = Some(HashMap::new());
-        self
     }
 
     pub fn update_assets(
@@ -129,34 +105,33 @@ impl<'a> Oracle<'a> {
         // So this will fail if a dependent asset is not registered first.
         for (asset, price_source) in assets_and_sources {
             let dependencies;
-                    // Get dependencies for this price source
-                    dependencies = price_source.dependency(&asset);
-                    self.assert_dependency_exists(deps.as_ref(), &dependencies)?;
-                    // get the complexity of the dependencies
-                    // depending on the type of price source, the complexity is calculated differently
-                    let complexity =
-                        self.asset_complexity(deps.as_ref(), &price_source, &dependencies)?;
-                    // Add asset to complexity level
-                    self.complexity.update(deps.storage, complexity, |v| {
-                        let mut v = v.unwrap_or_default();
-                        if v.contains(&asset) {
-                            return Err(StdError::generic_err(format!(
-                                "Asset {} already registered",
-                                asset
-                            )));
-                        }
-                        v.push(asset.clone());
-                        Result::<_, StdError>::Ok(v)
-                    })?;
-                    self.assets.update(deps.storage, &asset, |v| {
-                        if v.is_some() {
-                            return Err(StdError::generic_err(format!(
-                                "asset {} already registered",
-                                asset
-                            )));
-                        }
-                        Ok((price_source, complexity))
-                    })?;
+            // Get dependencies for this price source
+            dependencies = price_source.dependency(&asset);
+            self.assert_dependency_exists(deps.as_ref(), &dependencies)?;
+            // get the complexity of the dependencies
+            // depending on the type of price source, the complexity is calculated differently
+            let complexity = self.asset_complexity(deps.as_ref(), &price_source, &dependencies)?;
+            // Add asset to complexity level
+            self.complexity.update(deps.storage, complexity, |v| {
+                let mut v = v.unwrap_or_default();
+                if v.contains(&asset) {
+                    return Err(StdError::generic_err(format!(
+                        "Asset {} already registered",
+                        asset
+                    )));
+                }
+                v.push(asset.clone());
+                Result::<_, StdError>::Ok(v)
+            })?;
+            self.assets.update(deps.storage, &asset, |v| {
+                if v.is_some() {
+                    return Err(StdError::generic_err(format!(
+                        "asset {} already registered",
+                        asset
+                    )));
+                }
+                Ok((price_source, complexity))
+            })?;
         }
 
         Ok(())
@@ -229,11 +204,129 @@ impl<'a> Oracle<'a> {
         }
     }
 
-    /// Calculates the value of a single asset by recursive conversion to underlying assets.
-    pub fn asset_value(&self, asset: AssetEntry) {}
+    /// Calculates the value of a single asset by recursive conversion to underlying asset(s).
+    /// Does not make use of the cache to prevent querying the same price source multiple times.
+    pub fn asset_value(&self, deps: Deps, asset: Asset) -> AbstractResult<Uint128> {
+        // get the price source for the asset
+        let (price_source, _) = self.assets.load(deps.storage, &asset.info)?;
+        // get the conversions for this asset
+        let conversion_rates = price_source.conversion_rates(deps, &asset.info)?;
+        if conversion_rates.is_empty() {
+            // no conversion rates means this is the base asset, return the amount
+            return Ok(asset.amount);
+        }
+        // convert the asset into its underlying assets using the conversions
+        let converted_assets = AssetConversion::convert(&conversion_rates, asset.amount);
+        // recursively calculate the value of the underlying assets
+        converted_assets
+            .into_iter()
+            .map(|a| self.asset_value(deps, a))
+            .sum()
+    }
 
-    /// Calculates the total value of an account's assets by
-    pub fn account_value(&mut self, account: String) {}
+    /// Calculates the total value of an account's assets by efficiently querying the configured price sources
+    ///
+    ///
+    /// ## Resolve the total value of an account given a base asset.
+    /// This process goes as follows
+    /// 1. Get the assets for the highest, not visited, complexity.
+    /// 2. For each asset query it's balance, get the conversion ratios associated with that asset and load its cached values.
+    /// 3. Using the conversion ratio convert the balance and cached values and save the resulting values in the cache for that lower complexity asset.
+    /// 4. Repeat until the base asset is reached. (complexity = 0)
+    pub fn account_value(&mut self, deps: Deps, account: &Addr) -> AbstractResult<AccountValue> {
+        // get the highest complexity
+        let start_complexity = self.highest_complexity(deps)?;
+
+        self.complexity_value_calculation(deps, start_complexity, account)
+    }
+
+    /// Get the cached balance for an asset
+    /// Removes from cache if present
+    pub fn cached_balance(&mut self, asset: &AssetInfo) -> Option<Vec<(AssetInfo, Uint128)>> {
+        let asset_pos = self
+            .asset_equivalent_cache
+            .iter()
+            .position(
+                |(asset_info, _)| {
+                    if asset_info == asset {
+                        true
+                    } else {
+                        false
+                    }
+                },
+            );
+        asset_pos.map(|ix| self.asset_equivalent_cache.swap_remove(ix).1)
+    }
+
+    /// Calculates the values of assets for a given complexity level
+    fn complexity_value_calculation(
+        &mut self,
+        deps: Deps,
+        complexity: u8,
+        account: &Addr,
+    ) -> AbstractResult<AccountValue> {
+        let assets = self.complexity.load(deps.storage, complexity)?;
+        for asset in assets {
+            let (price_source, _) = self.assets.load(deps.storage, &asset)?;
+            // get the balance for this asset
+            let balance = asset.query_balance(&deps.querier, account)?;
+            // and the cached balances
+            let mut cached_balances = self.cached_balance(&asset).unwrap_or_default();
+            // add the balance to the cached balances
+            cached_balances.push((asset.clone(), balance.clone()));
+            // get the conversion rates for this asset
+            let conversion_rates = price_source.conversion_rates(deps, &asset)?;
+            if conversion_rates.is_empty() {
+                // no conversion rates means this is the base asset, construct the account value and return
+                let total: u128 = balance.u128()
+                    + cached_balances
+                        .iter()
+                        .map(|(_, amount)| amount.u128())
+                        .sum::<u128>();
+
+                return Ok(AccountValue {
+                    total_value: total.into(),
+                    breakdown: cached_balances,
+                });
+            }
+            // convert the balance and cached values to this asset using the conversion rates
+            self.update_cache(cached_balances, conversion_rates)?;
+        }
+        // call recursively for the next complexity level
+        self.complexity_value_calculation(deps, complexity - 1, account)
+    }
+
+    /// for each balance, convert it to the equivalent value in the target asset(s) of lower complexity
+    /// update the cache of these target assets to include the re-valued balance of the source asset
+    fn update_cache(
+        &mut self,
+        source_asset_balances: Vec<(AssetInfo, Uint128)>,
+        conversions: Vec<AssetConversion>,
+    ) -> AbstractResult<()> {
+        for (source_asset, balance) in source_asset_balances {
+            // these balances are the equivalent to the source asset, just in a different denomination
+            let target_assets_balances = AssetConversion::convert(&conversions, balance);
+            // update the cache with these balances
+            for Asset {
+                info: target_asset,
+                amount: balance,
+            } in target_assets_balances
+            {
+                let cache = self
+                    .asset_equivalent_cache
+                    .iter_mut()
+                    .find(|(a, _)| a == &target_asset);
+                if let Some((_, cache)) = cache {
+                    cache.push((source_asset.clone(), balance));
+                } else {
+                    self.asset_equivalent_cache
+                        .push((target_asset, vec![(source_asset.clone(), balance)]));
+                }
+            }
+        }
+
+        Ok(())
+    }
 
     pub fn assets_info(&self) {}
 
@@ -256,7 +349,7 @@ impl<'a> Oracle<'a> {
         // then the oracle is not configured correctly.
         let mut encountered_assets: HashSet<String> =
             base_asset.iter().map(ToString::to_string).collect();
-        let max_complexity = self.hightest_complexity(deps)?;
+        let max_complexity = self.highest_complexity(deps)?;
         // if only base asset, just return
         if max_complexity == 0 {
             return Ok(());
@@ -309,13 +402,20 @@ impl<'a> Oracle<'a> {
     }
 
     /// Get the highest complexity present in the oracle
-    fn hightest_complexity(&self, deps: Deps) -> AbstractResult<u8> {
+    fn highest_complexity(&self, deps: Deps) -> AbstractResult<u8> {
         Ok(self
             .complexity
             .keys(deps.storage, None, None, Order::Descending)
             .take(1)
             .collect::<StdResult<Vec<u8>>>()?[0])
     }
+}
+
+#[cw_serde]
+pub struct AccountValue {
+    pub total_value: Uint128,
+    /// Vec of asset information and their value in the base asset denomination
+    pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
 // See if we can change this to multi-indexed maps when documentation improves.
@@ -453,7 +553,6 @@ mod tests {
 
         assert_that!(complexity[0].1).has_length(1);
         assert_that!(complexity[1].1).has_length(1);
-        
 
         Ok(())
     }
