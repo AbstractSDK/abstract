@@ -707,4 +707,10 @@ mod tests {
         assert_that!(asset_value.u128()).is_equal_to(500u128);
         Ok(())
     }
+
+    // test for pair
+
+    // test for LP tokens
+
+    // test for max complexity
 }

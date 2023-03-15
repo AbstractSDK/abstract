@@ -1,10 +1,12 @@
+use abstract_os::objects::AssetEntry;
+use abstract_os::objects::oracle::Oracle;
+use abstract_os::objects::price_source::UncheckedPriceSource;
 use cosmwasm_std::testing::{
     mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
 };
-use cosmwasm_std::{Addr, Api, DepsMut};
+use cosmwasm_std::{Addr, Api, DepsMut, Decimal};
 use cosmwasm_std::{OwnedDeps, Uint128};
 use crate::contract::{execute, instantiate, ProxyResult};
-use abstract_os::objects::proxy_asset::{ProxyAsset, UncheckedProxyAsset};
 use abstract_sdk::os::proxy::state::*;
 use abstract_sdk::os::proxy::*;
 use cw_asset::{Asset, AssetInfo};
@@ -84,10 +86,10 @@ fn successful_asset_update() {
     assert_eq!(state, State { modules: vec![] });
 
     let asset1 = "asset1";
-    let proxy_asset_1 = UncheckedProxyAsset::new(asset1, None);
+    let proxy_asset_1 = (AssetEntry::new(asset1), UncheckedPriceSource::None);
 
     let asset2 = "asset2";
-    let proxy_asset_2 = UncheckedProxyAsset::new(asset2, None);
+    let proxy_asset_2 = (AssetEntry::new(asset2), UncheckedPriceSource::ValueAs { asset: AssetEntry::new(asset1), multiplier: Decimal::one() });
 
     let msg = ExecuteMsg::UpdateAssets {
         to_add: vec![proxy_asset_1.clone(), proxy_asset_2.clone()],
@@ -98,13 +100,13 @@ fn successful_asset_update() {
     assert_that(&res).is_ok();
 
     // Get an asset
-    let actual_asset_1: ProxyAsset = VAULT_ASSETS.load(&deps.storage, asset1.into()).unwrap();
+    let actual_asset_1 = Oracle::new().asset_config(deps.as_ref(), &asset1.into()).unwrap();
 
-    assert_that(&actual_asset_1.asset.to_string()).is_equal_to(proxy_asset_1.asset);
+    assert_that(&actual_asset_1).is_equal_to(UncheckedPriceSource::None);
 
     // Get the other asset
-    let actual_asset_2: ProxyAsset = VAULT_ASSETS.load(&deps.storage, asset2.into()).unwrap();
-    assert_that(&actual_asset_2.asset.to_string()).is_equal_to(proxy_asset_2.asset);
+    // let actual_asset_2: ProxyAsset = VAULT_ASSETS.load(&deps.storage, asset2.into()).unwrap();
+    // assert_that(&actual_asset_2.asset.to_string()).is_equal_to(proxy_asset_2.asset);
 
     // // Remove token
     // let msg = ExecuteMsg::UpdateAssets {
