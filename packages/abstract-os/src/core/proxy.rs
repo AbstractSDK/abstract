@@ -14,6 +14,7 @@ use crate::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
         core::OsId,
+        oracle::{AccountValue, Complexity},
         price_source::{PriceSource, UncheckedPriceSource},
         AssetEntry,
     },
@@ -23,12 +24,12 @@ use cosmwasm_std::{CosmosMsg, Empty, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub mod state {
-    use super::*;
+
     pub use crate::objects::core::OS_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
-    use cw_storage_plus::{Item, Map};
+    use cw_storage_plus::Item;
 
     use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
     #[cosmwasm_schema::cw_serde]
@@ -73,14 +74,16 @@ pub struct MigrateMsg {}
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 pub enum QueryMsg {
+    /// Contains the enabled modules
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    /// Returns the total value of all held assets
-    /// [`TotalValueResponse`]
-    #[returns(TotalValueResponse)]
+    /// Returns the total value of the assets held by this account
+    /// [`AccountValue`]
+    #[returns(AccountValue)]
     TotalValue {},
     /// Returns the value of one token with an optional amount set.
+    /// If amount is not set, the account's balance of the token is used.
     /// [`TokenValueResponse`]
     #[returns(TokenValueResponse)]
     TokenValue {
@@ -91,19 +94,24 @@ pub enum QueryMsg {
     /// [`HoldingAmountResponse`]
     #[returns(HoldingAmountResponse)]
     HoldingAmount { identifier: AssetEntry },
-    /// Returns the VAULT_ASSETS value for the specified key
+    /// Returns the oracle configuration value for the specified key
     /// [`AssetConfigResponse`]
     #[returns(AssetConfigResponse)]
     AssetConfig { identifier: AssetEntry },
-    /// Returns [`AssetsResponse`]
-    #[returns(AssetsResponse)]
-    Assets {
-        start_after: Option<String>,
+    /// Returns [`AssetsConfigResponse`]
+    /// Human readable
+    #[returns(AssetsConfigResponse)]
+    AssetsConfig {
+        start_after: Option<AssetEntry>,
         limit: Option<u8>,
     },
-    /// Returns [`ValidityResponse`]
-    #[returns(ValidityResponse)]
-    CheckValidity {},
+    /// Returns [`AssetsInfoResponse`]
+    /// Not human readable
+    #[returns(AssetsInfoResponse)]
+    AssetsInfo {
+        start_after: Option<AssetInfo>,
+        limit: Option<u8>,
+    },
     /// Returns [`BaseAssetResponse`]
     #[returns(BaseAssetResponse)]
     BaseAsset {},
@@ -115,22 +123,8 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct TotalValueResponse {
-    pub total_value: Uint128,
-    pub distribution: (AssetInfo, Uint128),
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct TokenValueResponse {
     pub value: Uint128,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ValidityResponse {
-    /// Assets that have unresolvable dependencies in their value calculation
-    pub unresolvable_assets: Option<Vec<AssetEntry>>,
-    /// Assets that are missing in the VAULT_ASSET map which caused some assets to be unresolvable.
-    pub missing_dependencies: Option<Vec<AssetEntry>>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -143,16 +137,29 @@ pub struct HoldingAmountResponse {
     pub amount: Uint128,
 }
 
+/// Human readable config for a single asset
 #[cosmwasm_schema::cw_serde]
 pub struct AssetConfigResponse {
-    pub proxy_asset: AssetInfo,
+    pub price_source: UncheckedPriceSource,
+}
+
+/// non-human readable asset configuration
+#[cosmwasm_schema::cw_serde]
+pub struct AssetsInfoResponse {
+    pub assets: Vec<(AssetInfo, OracleAsset)>,
+}
+
+/// Human readable asset configuration
+#[cosmwasm_schema::cw_serde]
+pub struct AssetsConfigResponse {
+    pub assets: Vec<(AssetEntry, UncheckedPriceSource)>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AssetsResponse {
-    pub assets: Vec<(AssetEntry, (AssetInfo, PriceSource))>,
+pub struct OracleAsset {
+    pub price_source: PriceSource,
+    pub complexity: Complexity,
 }
-
 /// Query message to external contract to get asset value
 #[cosmwasm_schema::cw_serde]
 pub struct ValueQueryMsg {

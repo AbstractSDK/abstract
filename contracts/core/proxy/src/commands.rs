@@ -1,14 +1,13 @@
 use crate::contract::ProxyResult;
 use crate::error::ProxyError;
-use crate::queries::*;
 use abstract_macros::abstract_response;
+use abstract_os::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use abstract_sdk::os::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    objects::price_source::UncheckedProxyAsset,
-    proxy::state::{ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
+    proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT, PROXY,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, Order, StdError};
+use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -67,39 +66,15 @@ pub fn execute_ibc_action(
 pub fn update_assets(
     deps: DepsMut,
     msg_info: MessageInfo,
-    to_add: Vec<UncheckedProxyAsset>,
-    to_remove: Vec<String>,
+    to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
+    to_remove: Vec<AssetEntry>,
 ) -> ProxyResult {
     // Only Admin can call this method
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let ans_host = &ANS_HOST.load(deps.storage)?;
-    // Check the vault size to be within the size limit to prevent running out of gas when doing lookups
-    let current_vault_size = VAULT_ASSETS
-        .keys(deps.storage, None, None, Order::Ascending)
-        .count();
-    let delta: i128 = to_add.len() as i128 - to_remove.len() as i128;
-    if current_vault_size as i128 + delta > LIST_SIZE_LIMIT as i128 {
-        return Err(ProxyError::AssetsLimitReached {});
-    }
 
-    for new_asset in to_add.into_iter() {
-        let checked_asset = new_asset.check(deps.as_ref(), ans_host)?;
-
-        VAULT_ASSETS.save(deps.storage, &checked_asset.asset, &checked_asset)?;
-    }
-
-    for asset_id in to_remove {
-        VAULT_ASSETS.remove(deps.storage, &asset_id.into());
-    }
-
-    // Check validity of new configuration
-    let validity_result = query_proxy_asset_validity(deps.as_ref())?;
-    if validity_result.missing_dependencies.is_some()
-        || validity_result.unresolvable_assets.is_some()
-    {
-        return Err(ProxyError::BadUpdate(format!("{validity_result:?}")));
-    }
-
+    let oracle = Oracle::new();
+    oracle.update_assets(deps, ans_host, to_add, to_remove)?;
     Ok(ProxyResponse::action("update_proxy_assets"))
 }
 

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Deps, DepsMut, Order, StdError, StdResult, Uint128};
 use cw_asset::{Asset, AssetInfo};
-use cw_storage_plus::{Index, Map};
+use cw_storage_plus::{Bound, Map};
 
 use crate::AbstractResult;
 
@@ -16,8 +16,8 @@ use super::{
 pub type Complexity = u8;
 
 const LIST_SIZE_LIMIT: usize = 15;
-
-type HashableAssetInfo = String;
+const DEFAULT_PAGE_LIMIT: u8 = 5;
+const MAX_PAGE_LIMIT: u8 = 20;
 
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
@@ -147,9 +147,11 @@ impl<'a> Oracle<'a> {
         for asset in assets {
             // assert asset was in config
             if !self.config.has(deps.storage, &asset) {
-                return Err(
-                    StdError::generic_err(format!("Asset {} not registered", asset)).into(),
-                );
+                return Err(StdError::generic_err(format!(
+                    "Asset {} not registered on oracle",
+                    asset
+                ))
+                .into());
             }
             // remove from config
             self.config.remove(deps.storage, &asset);
@@ -236,13 +238,53 @@ impl<'a> Oracle<'a> {
     pub fn account_value(&mut self, deps: Deps, account: &Addr) -> AbstractResult<AccountValue> {
         // get the highest complexity
         let start_complexity = self.highest_complexity(deps)?;
-
+        eprintln!("start complexity: {}", start_complexity);
         self.complexity_value_calculation(deps, start_complexity, account)
+    }
+
+    /// Calculates the values of assets for a given complexity level
+    fn complexity_value_calculation(
+        &mut self,
+        deps: Deps,
+        complexity: u8,
+        account: &Addr,
+    ) -> AbstractResult<AccountValue> {
+        let assets = self.complexity.load(deps.storage, complexity)?;
+        for asset in assets {
+            let (price_source, _) = self.assets.load(deps.storage, &asset)?;
+            // get the balance for this asset
+            let balance = asset.query_balance(&deps.querier, account)?;
+            eprintln!("{}: {} ", asset, balance);
+            // and the cached balances
+            let mut cached_balances = self.cached_balance(&asset).unwrap_or_default();
+            eprintln!("cached: {:?}", cached_balances);
+            // add the balance to the cached balances
+            cached_balances.push((asset.clone(), balance));
+
+            // get the conversion rates for this asset
+            let conversion_rates = price_source.conversion_rates(deps, &asset)?;
+            if conversion_rates.is_empty() {
+                // no conversion rates means this is the base asset, construct the account value and return
+                let total: u128 = cached_balances
+                    .iter()
+                    .map(|(_, amount)| amount.u128())
+                    .sum::<u128>();
+
+                return Ok(AccountValue {
+                    total_value: Asset::new(asset, total),
+                    breakdown: cached_balances,
+                });
+            }
+            // convert the balance and cached values to this asset using the conversion rates
+            self.update_cache(cached_balances, conversion_rates)?;
+        }
+        // call recursively for the next complexity level
+        self.complexity_value_calculation(deps, complexity - 1, account)
     }
 
     /// Get the cached balance for an asset
     /// Removes from cache if present
-    pub fn cached_balance(&mut self, asset: &AssetInfo) -> Option<Vec<(AssetInfo, Uint128)>> {
+    fn cached_balance(&mut self, asset: &AssetInfo) -> Option<Vec<(AssetInfo, Uint128)>> {
         let asset_pos = self
             .asset_equivalent_cache
             .iter()
@@ -258,44 +300,6 @@ impl<'a> Oracle<'a> {
         asset_pos.map(|ix| self.asset_equivalent_cache.swap_remove(ix).1)
     }
 
-    /// Calculates the values of assets for a given complexity level
-    fn complexity_value_calculation(
-        &mut self,
-        deps: Deps,
-        complexity: u8,
-        account: &Addr,
-    ) -> AbstractResult<AccountValue> {
-        let assets = self.complexity.load(deps.storage, complexity)?;
-        for asset in assets {
-            let (price_source, _) = self.assets.load(deps.storage, &asset)?;
-            // get the balance for this asset
-            let balance = asset.query_balance(&deps.querier, account)?;
-            // and the cached balances
-            let mut cached_balances = self.cached_balance(&asset).unwrap_or_default();
-            // add the balance to the cached balances
-            cached_balances.push((asset.clone(), balance.clone()));
-            // get the conversion rates for this asset
-            let conversion_rates = price_source.conversion_rates(deps, &asset)?;
-            if conversion_rates.is_empty() {
-                // no conversion rates means this is the base asset, construct the account value and return
-                let total: u128 = balance.u128()
-                    + cached_balances
-                        .iter()
-                        .map(|(_, amount)| amount.u128())
-                        .sum::<u128>();
-
-                return Ok(AccountValue {
-                    total_value: total.into(),
-                    breakdown: cached_balances,
-                });
-            }
-            // convert the balance and cached values to this asset using the conversion rates
-            self.update_cache(cached_balances, conversion_rates)?;
-        }
-        // call recursively for the next complexity level
-        self.complexity_value_calculation(deps, complexity - 1, account)
-    }
-
     /// for each balance, convert it to the equivalent value in the target asset(s) of lower complexity
     /// update the cache of these target assets to include the re-valued balance of the source asset
     fn update_cache(
@@ -303,6 +307,10 @@ impl<'a> Oracle<'a> {
         source_asset_balances: Vec<(AssetInfo, Uint128)>,
         conversions: Vec<AssetConversion>,
     ) -> AbstractResult<()> {
+        eprintln!(
+            "updating cache with source asset balances: {:?}",
+            source_asset_balances
+        );
         for (source_asset, balance) in source_asset_balances {
             // these balances are the equivalent to the source asset, just in a different denomination
             let target_assets_balances = AssetConversion::convert(&conversions, balance);
@@ -324,11 +332,9 @@ impl<'a> Oracle<'a> {
                 }
             }
         }
-
+        eprintln!("cache updated: {:?}", self.asset_equivalent_cache);
         Ok(())
     }
-
-    pub fn assets_info(&self) {}
 
     /// Checks that the oracle is configured correctly.
     pub fn validate(&self, deps: Deps) -> AbstractResult<()> {
@@ -337,10 +343,10 @@ impl<'a> Oracle<'a> {
         // fist check that a base asset is registered
         let base_asset = self.complexity.load(deps.storage, 0)?;
         let base_asset_len = base_asset.len();
-        if base_asset_len != 0 {
-            return Err(StdError::generic_err(
-                "{base_asset_len} base assets registered, must be 1",
-            )
+        if base_asset_len != 1 {
+            return Err(StdError::generic_err(format!(
+                "{base_asset_len} base assets registered, must be 1"
+            ))
             .into());
         }
 
@@ -365,7 +371,7 @@ impl<'a> Oracle<'a> {
                 for dep in &deps {
                     if !encountered_assets.contains(&dep.to_string()) {
                         return Err(StdError::generic_err(format!(
-                            "Asset {} is a dependency but is not registered",
+                            "Asset {} is an oracle dependency but is not registered",
                             dep
                         ))
                         .into());
@@ -394,13 +400,52 @@ impl<'a> Oracle<'a> {
             let asset_info = self.assets.has(deps.storage, dependency);
             if !asset_info {
                 return Err(crate::AbstractOsError::Std(StdError::generic_err(format!(
-                    "Asset {dependency} not registered"
+                    "Asset {dependency} not registered on oracle"
                 ))));
             }
         }
         Ok(())
     }
 
+    // ### Queries ###
+
+    /// Page over the oracle assets
+    pub fn paged_asset_info(
+        &self,
+        deps: Deps,
+        last_asset: Option<AssetInfo>,
+        limit: Option<u8>,
+    ) -> AbstractResult<Vec<(AssetInfo, (PriceSource, Complexity))>> {
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let start_bound = last_asset.as_ref().map(Bound::exclusive);
+
+        let res: Result<Vec<(AssetInfo, (PriceSource, Complexity))>, _> = self
+            .assets
+            .range(deps.storage, start_bound, None, Order::Ascending)
+            .take(limit)
+            .collect();
+
+        res.map_err(Into::into)
+    }
+
+    /// Page over the oracle's asset configuration
+    pub fn paged_asset_config(
+        &self,
+        deps: Deps,
+        last_asset: Option<AssetEntry>,
+        limit: Option<u8>,
+    ) -> AbstractResult<Vec<(AssetEntry, UncheckedPriceSource)>> {
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let start_bound = last_asset.as_ref().map(Bound::exclusive);
+
+        let res: Result<Vec<(AssetEntry, UncheckedPriceSource)>, _> = self
+            .config
+            .range(deps.storage, start_bound, None, Order::Ascending)
+            .take(limit)
+            .collect();
+
+        res.map_err(Into::into)
+    }
     /// Get the highest complexity present in the oracle
     fn highest_complexity(&self, deps: Deps) -> AbstractResult<u8> {
         Ok(self
@@ -409,16 +454,38 @@ impl<'a> Oracle<'a> {
             .take(1)
             .collect::<StdResult<Vec<u8>>>()?[0])
     }
+
+    /// get the configuration of an asset
+    pub fn asset_config(
+        &self,
+        deps: Deps,
+        asset: &AssetEntry,
+    ) -> AbstractResult<UncheckedPriceSource> {
+        self.config.load(deps.storage, asset).map_err(Into::into)
+    }
+
+    pub fn base_asset(&self, deps: Deps) -> AbstractResult<AssetInfo> {
+        let base_asset = self.complexity.load(deps.storage, 0)?;
+        let base_asset_len = base_asset.len();
+        if base_asset_len != 1 {
+            return Err(StdError::generic_err(format!(
+                "{base_asset_len} base assets registered, must be 1"
+            ))
+            .into());
+        }
+        Ok(base_asset[0].clone())
+    }
 }
 
 #[cw_serde]
 pub struct AccountValue {
-    pub total_value: Uint128,
+    /// the total value of this account in the base denomination
+    pub total_value: Asset,
     /// Vec of asset information and their value in the base asset denomination
     pub breakdown: Vec<(AssetInfo, Uint128)>,
 }
 
-// See if we can change this to multi-indexed maps when documentation improves.
+// TODO: See if we can change this to multi-indexed maps when documentation improves.
 
 // #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 // struct OracleAsset {
@@ -467,8 +534,12 @@ mod tests {
     use abstract_testing::prelude::TEST_DEX;
     use abstract_testing::prelude::USD;
     use abstract_testing::MockAnsHost;
+    use cosmwasm_std::coin;
     use cosmwasm_std::testing::*;
     use cosmwasm_std::Addr;
+
+    use cosmwasm_std::Decimal;
+
     use speculoos::prelude::*;
 
     use crate::objects::DexAssetPairing;
@@ -496,6 +567,15 @@ mod tests {
         (asset, price_source)
     }
 
+    pub fn asset_as_half() -> (AssetEntry, UncheckedPriceSource) {
+        let asset = AssetEntry::from(EUR);
+        let price_source = UncheckedPriceSource::ValueAs {
+            asset: AssetEntry::new(USD),
+            multiplier: Decimal::percent(50),
+        };
+        (asset, price_source)
+    }
+
     pub fn assets() -> Vec<(AssetEntry, UncheckedPriceSource)> {
         vec![base_asset(), asset_with_dep()]
     }
@@ -514,17 +594,17 @@ mod tests {
         let oracle = Oracle::new();
         // first asset can not have dependency
         oracle
-            .add_assets(deps.as_mut(), &ans, vec![asset_with_dep()])
+            .update_assets(deps.as_mut(), &ans, vec![asset_with_dep()], vec![])
             .unwrap_err();
         // add base asset
-        oracle.add_assets(deps.as_mut(), &ans, vec![base_asset()])?;
+        oracle.update_assets(deps.as_mut(), &ans, vec![base_asset()], vec![])?;
 
         // try add second base asset, fails
         oracle
-            .add_assets(deps.as_mut(), &ans, vec![base_asset()])
+            .update_assets(deps.as_mut(), &ans, vec![base_asset()], vec![])
             .unwrap_err();
         // add asset with dependency
-        oracle.add_assets(deps.as_mut(), &ans, vec![asset_with_dep()])?;
+        oracle.update_assets(deps.as_mut(), &ans, vec![asset_with_dep()], vec![])?;
 
         // ensure these assets were added
         // Ensure that all assets have been added to the oracle
@@ -554,6 +634,86 @@ mod tests {
         assert_that!(complexity[0].1).has_length(1);
         assert_that!(complexity[1].1).has_length(1);
 
+        Ok(())
+    }
+
+    #[test]
+    fn query_base_value() -> AResult {
+        let mut deps = mock_dependencies();
+        let mock_ans = MockAnsHost::new().with_defaults();
+        deps.querier = mock_ans.to_querier();
+        deps.querier
+            .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
+        let ans = get_ans();
+        let mut oracle = Oracle::new();
+
+        // add base asset
+        oracle.update_assets(deps.as_mut(), &ans, vec![base_asset()], vec![])?;
+
+        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        assert_that!(value.total_value.amount.u128()).is_equal_to(1000u128);
+
+        let base_asset = oracle.base_asset(deps.as_ref())?;
+        assert_that!(base_asset).is_equal_to(AssetInfo::native(USD));
+
+        // get the one-asset value of the base asset
+        let asset_value =
+            oracle.asset_value(deps.as_ref(), Asset::new(AssetInfo::native(USD), 1000u128))?;
+        assert_that!(asset_value.u128()).is_equal_to(1000u128);
+        Ok(())
+    }
+
+    #[test]
+    fn query_equivalent_asset_value() -> AResult {
+        let mut deps = mock_dependencies();
+        let mock_ans = MockAnsHost::new().with_defaults();
+        deps.querier = mock_ans.to_querier();
+        deps.querier
+            .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, EUR)]);
+        let ans = get_ans();
+        let mut oracle = Oracle::new();
+        // fails because base asset is not set.
+        let res = oracle.update_assets(deps.as_mut(), &ans, vec![asset_as_half()], vec![]);
+        // match when adding better errors
+        assert_that!(res).is_err();
+        // fails, need to add base asset first, TODO: try removing this requirement when more tests are added.
+        oracle
+            .update_assets(
+                deps.as_mut(),
+                &ans,
+                vec![asset_as_half(), base_asset()],
+                vec![],
+            )
+            .unwrap_err();
+
+        // now in correct order
+        oracle.update_assets(
+            deps.as_mut(),
+            &ans,
+            vec![base_asset(), asset_as_half()],
+            vec![],
+        )?;
+
+        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        assert_that!(value.total_value.amount.u128()).is_equal_to(500u128);
+
+        // give the account some base asset
+        deps.querier
+            .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD), coin(1000, EUR)]);
+
+        // assert that the value increases with 1000
+        let value = oracle.account_value(deps.as_ref(), &Addr::unchecked(MOCK_CONTRACT_ADDR))?;
+        assert_that!(value.total_value.amount.u128()).is_equal_to(1500u128);
+
+        // get the one-asset value of the base asset
+        let asset_value =
+            oracle.asset_value(deps.as_ref(), Asset::new(AssetInfo::native(USD), 1000u128))?;
+        assert_that!(asset_value.u128()).is_equal_to(1000u128);
+
+        // now for EUR
+        let asset_value =
+            oracle.asset_value(deps.as_ref(), Asset::new(AssetInfo::native(EUR), 1000u128))?;
+        assert_that!(asset_value.u128()).is_equal_to(500u128);
         Ok(())
     }
 }

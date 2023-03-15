@@ -1,15 +1,14 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_os::objects::module_version::migrate_module_data;
+use abstract_os::objects::{module_version::migrate_module_data, oracle::Oracle};
 use abstract_sdk::{
     feature_objects::AnsHost,
     os::{
-        objects::{core::OS_ID, module_version::set_module_data, AssetEntry},
+        objects::{core::OS_ID, module_version::set_module_data},
         proxy::{
-            state::{State, ADMIN, ANS_HOST, STATE, VAULT_ASSETS},
-            AssetConfigResponse, ExecuteMsg, HoldingValueResponse, InstantiateMsg, MigrateMsg,
-            QueryMsg,
+            state::{State, ADMIN, ANS_HOST, STATE},
+            AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
         },
         PROXY,
     },
@@ -20,8 +19,8 @@ use semver::Version;
 
 pub type ProxyResult<T = Response> = Result<T, ProxyError>;
 /*
-    The proxy is the bank account of the protocol. It owns the liquidity and acts as a proxy contract.
-    Whitelisted dApps construct messages for this contract. The dApps are controlled by Governance.
+    The proxy is the bank account of the account. It owns the liquidity and acts as a proxy contract.
+    Whitelisted dApps construct messages for this contract. The dApps are controlled by the Manager.
 */
 // TODO: test max limit on-chain
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -87,12 +86,14 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
             to_binary(&query_token_value(deps, env, identifier, amount)?)
         }
         QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
-            proxy_asset: VAULT_ASSETS.load(deps.storage, &AssetEntry::from(identifier))?,
+            price_source: Oracle::new().asset_config(deps, &identifier)?,
         }),
-        QueryMsg::Assets { start_after, limit } => {
-            to_binary(&query_proxy_assets(deps, start_after, limit)?)
+        QueryMsg::AssetsConfig { start_after, limit } => {
+            to_binary(&query_oracle_asset_config(deps, start_after, limit)?)
         }
-        QueryMsg::CheckValidity {} => to_binary(&query_proxy_asset_validity(deps)?),
+        QueryMsg::AssetsInfo { start_after, limit } => {
+            to_binary(&query_oracle_asset_info(deps, start_after, limit)?)
+        }
         QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
