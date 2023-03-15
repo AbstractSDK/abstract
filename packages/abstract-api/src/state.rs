@@ -135,3 +135,40 @@ impl<
             .proxy)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};
+    use cosmwasm_std::{to_binary, Response};
+    use abstract_sdk::base::Handler;
+
+    use super::*;
+    use crate::mock::{ApiMockResult, MockApiContract, TEST_METADATA};
+
+    const DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
+
+    fn get_mock() -> MockApiContract {
+        MockApiContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+            .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_query(|_, _, _, _| to_binary("mock_query").map_err(Into::into))
+            .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+            .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+            .with_dependencies(&[DEP])
+            .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _| {
+                Ok(Response::new().set_data("mock_callback".as_bytes()))
+            })])
+            .with_replies(&[(1u64, |_, _, _, _| {
+                Ok(Response::new().set_data("mock_reply".as_bytes()))
+            })])
+    }
+
+    fn assert_response(resp: Response, expected: &str) {
+        assert_eq!(resp.data, Some(to_binary(expected).unwrap()));
+    }
+
+    #[test]
+    fn set_and_retrieve_handlers() -> ApiMockResult {
+        get_mock();
+        Ok(())
+    }
+}
