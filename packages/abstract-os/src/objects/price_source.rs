@@ -39,6 +39,7 @@ pub enum UncheckedPriceSource {
         asset: AssetEntry,
         multiplier: Decimal,
     },
+    None,
 }
 
 impl UncheckedPriceSource {
@@ -92,6 +93,7 @@ impl UncheckedPriceSource {
                     multiplier,
                 })
             }
+            UncheckedPriceSource::None => Ok(PriceSource::None),
         }
     }
 }
@@ -132,7 +134,7 @@ impl PriceSource {
             }
             PriceSource::LiquidityToken { pool_assets, .. } => pool_assets.clone(),
             PriceSource::ValueAs { asset, .. } => vec![asset.clone()],
-            PriceSource::None => panic!("None is not a valid price source"),
+            PriceSource::None => vec![],
         }
     }
 
