@@ -58,7 +58,7 @@ impl CwStakingAdapter for WynDex {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        _env: Env,
+        env: Env,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {
@@ -69,6 +69,7 @@ impl CwStakingAdapter for WynDex {
             };
         self.lp_token_address = token_addr;
         self.lp_token = LpToken::try_from(lp_token)?;
+        self.env = Some(env);
         Ok(())
     }
 
