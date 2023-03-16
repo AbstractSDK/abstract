@@ -22,7 +22,6 @@ pub type ProxyResult<T = Response> = Result<T, ProxyError>;
     The proxy is the bank account of the account. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by the Manager.
 */
-// TODO: test max limit on-chain
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]

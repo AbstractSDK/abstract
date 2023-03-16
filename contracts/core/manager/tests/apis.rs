@@ -25,43 +25,6 @@ pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     Ok(())
 }
 
-// fn setup_staking(mock: Mock) -> AResult {
-//     let block_info = mock.block_info()?;
-
-//     mock.app.borrow_mut().init_modules(|router, api, store| {
-//         router
-//             .staking
-//             .setup(
-//                 store,
-//                 StakingInfo {
-//                     bonded_denom: TEST_COIN.to_string(),
-//                     unbonding_time: 60,
-//                     apr: Decimal::percent(50),
-//                 },
-//             )
-//             .unwrap();
-
-//         // add validator
-//         let valoper1 = Validator {
-//             address: VALIDATOR.to_string(),
-//             commission: Decimal::percent(10),
-//             max_commission: Decimal::percent(100),
-//             max_change_rate: Decimal::percent(1),
-//         };
-//         router
-//             .staking
-//             .add_validator(api, store, &block_info, valoper1)
-//             .unwrap();
-//     });
-
-//     Ok(())
-// }
-
-/// TODO
-/// - Migration
-/// - Migration with traders
-/// - Uninstall
-/// - Dependency checks
 #[test]
 fn installing_one_api_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::ROOT_USER);
@@ -109,7 +72,6 @@ fn install_non_existent_apiname_should_fail() -> AResult {
     let res = install_api(&os.manager, "lol:no_chance");
 
     assert_that!(res).is_err();
-    // testtodo: check error
     Ok(())
 }
 
@@ -353,9 +315,3 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     Ok(())
 }
-
-// #[test]
-// fn uninstalling_api_with_dependent_module_should_fail() -> AResult {
-//     // TODO
-//     Ok(())
-// }

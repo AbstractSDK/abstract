@@ -753,7 +753,6 @@ mod test {
         }
     }
 
-    // TODO: MapTester
     mod update_module_addresses {
         use super::*;
 
@@ -1111,69 +1110,6 @@ mod test {
 
             Ok(())
         }
-    }
-
-    mod upgrade {
-        use super::*;
-        use abstract_os::version_control::state::MODULE_LIBRARY;
-        use abstract_testing::prelude::{MockQuerierBuilder, TEST_MODULE_ADDRESS};
-
-        #[test]
-        fn only_root() -> ManagerTestResult {
-            let msg = ExecuteMsg::Upgrade { modules: vec![] };
-
-            test_only_root(msg)
-        }
-
-        // TODO: this test is not fully implemented
-        #[test]
-        fn upgrade_to_latest_with_v1_and_v10() {
-            let mut deps = mock_dependencies();
-
-            const TEST_MODULE_ID: &str = "test:test";
-
-            let initial_version = "0.1.0";
-            let new_version = "0.10.0";
-            deps.querier = MockQuerierBuilder::default()
-                // old version
-                .with_contract_version(TEST_MODULE_ADDRESS, initial_version)
-                // new version
-                .with_contract_map_entry(
-                    TEST_VERSION_CONTROL,
-                    MODULE_LIBRARY,
-                    (
-                        &ModuleInfo {
-                            provider: "test".to_string(),
-                            name: "test".to_string(),
-                            version: ModuleVersion::Version(new_version.to_string()),
-                        },
-                        ModuleReference::App(1),
-                    ),
-                )
-                // old module data
-                .with_contract_item(
-                    TEST_MODULE_ADDRESS,
-                    abstract_os::objects::module_version::MODULE,
-                    &abstract_os::objects::module_version::ModuleData {
-                        module: TEST_MODULE_ID.to_string(),
-                        version: initial_version.to_string(),
-                        dependencies: vec![],
-                        metadata: None,
-                    },
-                )
-                .build();
-
-            // manual installation
-            OS_MODULES
-                .save(
-                    &mut deps.storage,
-                    TEST_MODULE_ID,
-                    &Addr::unchecked(TEST_MODULE_ADDRESS),
-                )
-                .unwrap();
-        }
-
-        // integration tests
     }
 
     mod update_info {
