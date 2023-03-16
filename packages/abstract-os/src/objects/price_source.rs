@@ -47,6 +47,7 @@ impl AssetConversion {
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[non_exhaustive]
 pub enum UncheckedPriceSource {
     /// A pool address of an asset/asset pair
     /// Both assets must be defined in the Proxy_assets state
@@ -84,6 +85,7 @@ impl UncheckedPriceSource {
                 let assets = ans_host.query_assets(&deps.querier, &pool_assets)?;
                 // TODO: fix this for pools with multiple assets
                 assert_eq!(assets.len(), 2);
+                // TODO: fix this for Osmosis pools
                 pool_address.expect_contract()?;
                 Ok(PriceSource::Pool {
                     address: pool_address,
@@ -120,7 +122,7 @@ impl UncheckedPriceSource {
 
 /// Provides information on how to calculate the value of an asset
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
-
+#[non_exhaustive]
 pub enum PriceSource {
     /// Should only be used for the base asset
     None,
