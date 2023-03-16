@@ -140,6 +140,7 @@ pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: &String) -> ProxyResul
 
 #[cfg(test)]
 mod test {
+    use abstract_testing::prelude::TEST_MANAGER;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::testing::{
         mock_env, mock_info, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
@@ -154,12 +155,11 @@ mod test {
     use super::*;
 
     const TEST_MODULE: &str = "module";
-    const TEST_CREATOR: &str = "creator";
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     fn mock_init(deps: DepsMut) {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(TEST_MANAGER, &[]);
         let msg = InstantiateMsg {
             os_id: 0,
             ans_host_address: MOCK_CONTRACT_ADDR.to_string(),
@@ -168,7 +168,7 @@ mod test {
     }
 
     pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
-        let info = mock_info(TEST_CREATOR, &[]);
+        let info = mock_info(TEST_MANAGER, &[]);
         execute(deps.as_mut(), mock_env(), info, msg)
     }
 
@@ -361,7 +361,7 @@ mod test {
                 MOCK_CONTRACT_ADDR.to_string(),
                 // example garbage
                 &ExecuteMsg::SetAdmin {
-                    admin: TEST_CREATOR.to_string(),
+                    admin: TEST_MANAGER.to_string(),
                 },
                 vec![],
             )?
@@ -383,5 +383,35 @@ mod test {
 
             Ok(())
         }
+    }
+
+
+    mod execute_ibc {
+       use abstract_os::{manager, proxy::state::State};
+    use abstract_testing::{MockQuerierBuilder, prelude::TEST_MANAGER};
+    use cosmwasm_std::{SubMsg, to_binary};
+
+    use super::*;
+
+       #[test]
+        fn add_module() {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+            deps.querier = MockQuerierBuilder::default().with_contract_map_entry(TEST_MANAGER, manager::state::OS_MODULES, (IBC_CLIENT, Addr::unchecked("ibc_client_addr"))).build();
+            let info = mock_info(TEST_MANAGER, &[]);
+            // whitelist creator 
+            STATE.save(
+                &mut deps.storage,
+                &State {
+                    modules: vec![Addr::unchecked(TEST_MANAGER)],
+                },
+            ).unwrap();
+            
+            let msg = ExecuteMsg::IbcAction { msgs: vec![abstract_os::ibc_client::ExecuteMsg::Register{host_chain: "juno".into() }] };
+            let res = execute(deps.as_mut(),mock_env(), info, msg).unwrap();
+
+            assert_that(&res.messages).has_length(1);
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute { contract_addr: "ibc_client_addr".into(), msg: to_binary(&abstract_os::ibc_client::ExecuteMsg::Register{host_chain: "juno".into() }).unwrap(), funds: vec![] })));
+        } 
     }
 }

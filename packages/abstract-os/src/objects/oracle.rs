@@ -567,14 +567,6 @@ mod tests {
         (asset, price_source)
     }
 
-    pub fn assets() -> Vec<(AssetEntry, UncheckedPriceSource)> {
-        vec![base_asset(), asset_with_dep()]
-    }
-
-    pub fn entries() -> Vec<AssetEntry> {
-        vec![AssetEntry::from(USD), AssetEntry::from(EUR)]
-    }
-
     #[test]
     fn add_base_asset() -> AResult {
         let mut deps = mock_dependencies();

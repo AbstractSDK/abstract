@@ -2,7 +2,7 @@ use crate::contract::ProxyResult;
 
 use abstract_os::objects::oracle::{AccountValue, Oracle};
 use abstract_os::proxy::{
-    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset,
+    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
 };
 use abstract_sdk::os::objects::AssetEntry;
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE};
@@ -61,13 +61,14 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 /// Returns the value of the amount of the specified asset
 /// @param amount: The amount of the asset to compute the value of. If None, balance of the proxy account is used.
-pub fn query_token_value(deps: Deps, env: Env, asset_entry: AssetEntry) -> ProxyResult<Uint128> {
+pub fn query_token_value(deps: Deps, env: Env, asset_entry: AssetEntry) -> ProxyResult<TokenValueResponse> {
     let oracle = Oracle::new();
     let ans_host = ANS_HOST.load(deps.storage)?;
     let asset_info = asset_entry.resolve(&deps.querier, &ans_host)?;
     let balance = asset_info.query_balance(&deps.querier, env.contract.address)?;
     let value = oracle.asset_value(deps, Asset::new(asset_info, balance))?;
-    Ok(value)
+
+    Ok(TokenValueResponse { value }  )
 }
 
 /// Computes the total value locked in this contract
@@ -102,11 +103,11 @@ mod test {
 
     use abstract_sdk::feature_objects::AnsHost;
     use abstract_testing::{prelude::*, MockAnsHost};
-    use cosmwasm_std::testing::mock_dependencies;
+    use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
     use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
-    use cosmwasm_std::{Addr, Decimal, DepsMut, OwnedDeps};
+    use cosmwasm_std::{Addr, Decimal, DepsMut, OwnedDeps, coin};
 
-    use abstract_os::proxy::{ExecuteMsg, InstantiateMsg};
+    use abstract_os::proxy::{ExecuteMsg, InstantiateMsg, AssetConfigResponse, TokenValueResponse};
 
     use crate::contract::{execute, instantiate, query};
 
@@ -115,12 +116,6 @@ mod test {
     const TEST_CREATOR: &str = "creator";
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
-
-    pub fn get_ans() -> AnsHost {
-        let addr = Addr::unchecked(TEST_ANS_HOST);
-        let ans = AnsHost::new(addr);
-        ans
-    }
 
     pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {
         (AssetEntry::from(USD), UncheckedPriceSource::None)
@@ -178,6 +173,109 @@ mod test {
                 base_asset: cw_asset::AssetInfoBase::Native(USD.to_string())
             }
         );
+    }
+
+    #[test]
+    fn query_config() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::AddModule {
+                module: "test_module".to_string()
+            },
+        )
+        .unwrap();
+
+        let config: ConfigResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::Config {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config,
+            ConfigResponse {
+                modules: vec!["test_module".to_string()],
+            }
+        );
+    }
+
+    #[test]
+    fn query_oracle() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateAssets {
+                to_add: vec![base_asset()],
+                to_remove: vec![],
+            },
+        )
+        .unwrap();
+
+        // mint tokens to the contract
+        deps.querier.update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
+
+        // get the balance of the asset
+        // returns HoldingAmountResponse
+        let holding_amount: HoldingAmountResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::HoldingAmount {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        ).unwrap();
+        assert_eq!(holding_amount.amount.u128(), 1000);
+
+        // get the value of the asset
+        // returns AccountValue
+        let account_value: AccountValue = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::TotalValue {  }
+            )
+            .unwrap(),
+        ).unwrap();
+        // equal to balance as it's the base asset
+        assert_eq!(account_value.total_value, Asset::new(AssetInfo::native(USD),1000u128));
+
+        // get the token value
+        // returns TokenValueResponse
+        let token_value: TokenValueResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::TokenValue {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        ).unwrap();
+        assert_eq!(token_value.value.u128(), 1000u128);
+
+        // query USD asset config
+        let asset_config: AssetConfigResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::AssetConfig {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        ).unwrap();
+        assert_eq!(asset_config.price_source,UncheckedPriceSource::None);
+        
     }
 
     #[test]
