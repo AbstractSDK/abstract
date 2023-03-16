@@ -31,9 +31,9 @@ pub mod addresses {
     pub const TEST_DEX: &str = "test_dex";
     pub const TTOKEN: &str = "test_token";
     pub const EUR_USD_PAIR: &str = "dex:eur_usd_pair";
-    pub const EUR_USD_LP: &str = "dex?eur,usd";
+    pub const EUR_USD_LP: &str = "dex/eur,usd";
     pub const TTOKEN_EUR_PAIR: &str = "dex:wynd_eur_pair";
-    pub const TTOKEN_EUR_LP: &str = "dex:wynd,eur";
+    pub const TTOKEN_EUR_LP: &str = "dex/wynd,eur";
     pub const EUR: &str = "eur";
     pub const USD: &str = "usd";
 
