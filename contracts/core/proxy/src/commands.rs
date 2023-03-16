@@ -385,33 +385,53 @@ mod test {
         }
     }
 
-
     mod execute_ibc {
-       use abstract_os::{manager, proxy::state::State};
-    use abstract_testing::{MockQuerierBuilder, prelude::TEST_MANAGER};
-    use cosmwasm_std::{SubMsg, to_binary};
+        use abstract_os::{manager, proxy::state::State};
+        use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
+        use cosmwasm_std::{to_binary, SubMsg};
 
-    use super::*;
+        use super::*;
 
-       #[test]
+        #[test]
         fn add_module() {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
-            deps.querier = MockQuerierBuilder::default().with_contract_map_entry(TEST_MANAGER, manager::state::OS_MODULES, (IBC_CLIENT, Addr::unchecked("ibc_client_addr"))).build();
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::OS_MODULES,
+                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                )
+                .build();
             let info = mock_info(TEST_MANAGER, &[]);
-            // whitelist creator 
-            STATE.save(
-                &mut deps.storage,
-                &State {
-                    modules: vec![Addr::unchecked(TEST_MANAGER)],
-                },
-            ).unwrap();
-            
-            let msg = ExecuteMsg::IbcAction { msgs: vec![abstract_os::ibc_client::ExecuteMsg::Register{host_chain: "juno".into() }] };
-            let res = execute(deps.as_mut(),mock_env(), info, msg).unwrap();
+            // whitelist creator
+            STATE
+                .save(
+                    &mut deps.storage,
+                    &State {
+                        modules: vec![Addr::unchecked(TEST_MANAGER)],
+                    },
+                )
+                .unwrap();
+
+            let msg = ExecuteMsg::IbcAction {
+                msgs: vec![abstract_os::ibc_client::ExecuteMsg::Register {
+                    host_chain: "juno".into(),
+                }],
+            };
+            let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
             assert_that(&res.messages).has_length(1);
-            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute { contract_addr: "ibc_client_addr".into(), msg: to_binary(&abstract_os::ibc_client::ExecuteMsg::Register{host_chain: "juno".into() }).unwrap(), funds: vec![] })));
-        } 
+            assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
+                cosmwasm_std::WasmMsg::Execute {
+                    contract_addr: "ibc_client_addr".into(),
+                    msg: to_binary(&abstract_os::ibc_client::ExecuteMsg::Register {
+                        host_chain: "juno".into(),
+                    })
+                    .unwrap(),
+                    funds: vec![],
+                },
+            )));
+        }
     }
 }

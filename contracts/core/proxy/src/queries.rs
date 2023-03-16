@@ -8,7 +8,7 @@ use abstract_sdk::os::objects::AssetEntry;
 use abstract_sdk::os::proxy::state::{ANS_HOST, STATE};
 use abstract_sdk::os::proxy::{AssetsInfoResponse, ConfigResponse};
 use abstract_sdk::Resolve;
-use cosmwasm_std::{Addr, Deps, Env, StdResult, Uint128};
+use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_asset::{Asset, AssetInfo};
 
 /// get the assets pricing information
@@ -61,14 +61,18 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 /// Returns the value of the amount of the specified asset
 /// @param amount: The amount of the asset to compute the value of. If None, balance of the proxy account is used.
-pub fn query_token_value(deps: Deps, env: Env, asset_entry: AssetEntry) -> ProxyResult<TokenValueResponse> {
+pub fn query_token_value(
+    deps: Deps,
+    env: Env,
+    asset_entry: AssetEntry,
+) -> ProxyResult<TokenValueResponse> {
     let oracle = Oracle::new();
     let ans_host = ANS_HOST.load(deps.storage)?;
     let asset_info = asset_entry.resolve(&deps.querier, &ans_host)?;
     let balance = asset_info.query_balance(&deps.querier, env.contract.address)?;
     let value = oracle.asset_value(deps, Asset::new(asset_info, balance))?;
 
-    Ok(TokenValueResponse { value }  )
+    Ok(TokenValueResponse { value })
 }
 
 /// Computes the total value locked in this contract
@@ -101,13 +105,12 @@ pub fn query_holding_amount(
 mod test {
     use abstract_os::objects::price_source::{PriceSource, UncheckedPriceSource};
 
-    use abstract_sdk::feature_objects::AnsHost;
     use abstract_testing::{prelude::*, MockAnsHost};
     use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
     use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
-    use cosmwasm_std::{Addr, Decimal, DepsMut, OwnedDeps, coin};
+    use cosmwasm_std::{coin, Decimal, DepsMut, OwnedDeps};
 
-    use abstract_os::proxy::{ExecuteMsg, InstantiateMsg, AssetConfigResponse, TokenValueResponse};
+    use abstract_os::proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse};
 
     use crate::contract::{execute, instantiate, query};
 
@@ -183,7 +186,7 @@ mod test {
         execute_as_admin(
             &mut deps,
             ExecuteMsg::AddModule {
-                module: "test_module".to_string()
+                module: "test_module".to_string(),
             },
         )
         .unwrap();
@@ -220,7 +223,8 @@ mod test {
         .unwrap();
 
         // mint tokens to the contract
-        deps.querier.update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
+        deps.querier
+            .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
 
         // get the balance of the asset
         // returns HoldingAmountResponse
@@ -233,7 +237,8 @@ mod test {
                 },
             )
             .unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(holding_amount.amount.u128(), 1000);
 
         // get the value of the asset
@@ -242,12 +247,16 @@ mod test {
             &query(
                 deps.as_ref(),
                 mock_env(),
-                abstract_os::proxy::QueryMsg::TotalValue {  }
+                abstract_os::proxy::QueryMsg::TotalValue {},
             )
             .unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // equal to balance as it's the base asset
-        assert_eq!(account_value.total_value, Asset::new(AssetInfo::native(USD),1000u128));
+        assert_eq!(
+            account_value.total_value,
+            Asset::new(AssetInfo::native(USD), 1000u128)
+        );
 
         // get the token value
         // returns TokenValueResponse
@@ -260,7 +269,8 @@ mod test {
                 },
             )
             .unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(token_value.value.u128(), 1000u128);
 
         // query USD asset config
@@ -273,9 +283,9 @@ mod test {
                 },
             )
             .unwrap(),
-        ).unwrap();
-        assert_eq!(asset_config.price_source,UncheckedPriceSource::None);
-        
+        )
+        .unwrap();
+        assert_eq!(asset_config.price_source, UncheckedPriceSource::None);
     }
 
     #[test]

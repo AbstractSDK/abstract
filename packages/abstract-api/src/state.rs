@@ -162,10 +162,6 @@ mod tests {
             })])
     }
 
-    fn assert_response(resp: Response, expected: &str) {
-        assert_eq!(resp.data, Some(to_binary(expected).unwrap()));
-    }
-
     #[test]
     fn set_handlers() -> ApiMockResult {
         get_mock();
