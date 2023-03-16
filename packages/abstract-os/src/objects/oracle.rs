@@ -105,8 +105,8 @@ impl<'a> Oracle<'a> {
         // So this will fail if a dependent asset is not registered first.
         for (asset, price_source) in assets_and_sources {
             // Get dependencies for this price source
-            let dependencies = price_source.dependency(&asset);
-            self.assert_dependency_exists(deps.as_ref(), &dependencies)?;
+            let dependencies = price_source.dependencies(&asset);
+            self.assert_dependencies_exists(deps.as_ref(), &dependencies)?;
             // get the complexity of the dependencies
             // depending on the type of price source, the complexity is calculated differently
             let complexity = self.asset_complexity(deps.as_ref(), &price_source, &dependencies)?;
@@ -358,7 +358,7 @@ impl<'a> Oracle<'a> {
 
             for asset in assets {
                 let (price_source, _) = self.assets.load(deps.storage, &asset)?;
-                let deps = price_source.dependency(&asset);
+                let deps = price_source.dependencies(&asset);
                 for dep in &deps {
                     if !encountered_assets.contains(&dep.to_string()) {
                         return Err(StdError::generic_err(format!(
@@ -382,7 +382,7 @@ impl<'a> Oracle<'a> {
     }
 
     /// Asserts that all dependencies of an asset are registered.
-    fn assert_dependency_exists(
+    fn assert_dependencies_exists(
         &self,
         deps: Deps,
         dependencies: &Vec<AssetInfo>,

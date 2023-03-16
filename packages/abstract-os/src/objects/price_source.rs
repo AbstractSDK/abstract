@@ -148,7 +148,7 @@ pub enum PriceSource {
 impl PriceSource {
     /// Returns the assets that are required to calculate the price of the asset
     /// Panics if the price source is None
-    pub fn dependency(&self, asset: &AssetInfo) -> Vec<AssetInfo> {
+    pub fn dependencies(&self, asset: &AssetInfo) -> Vec<AssetInfo> {
         match self {
             // return the other asset as the dependency
             PriceSource::Pool { pair, .. } => {
