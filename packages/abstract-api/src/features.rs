@@ -83,7 +83,10 @@ mod tests {
     };
     use speculoos::prelude::*;
 
-    use crate::mock::{mock_init_custom, MockApiContract, MockError, MockExecMsg, TEST_METADATA, mock_init, MOCK_API};
+    use crate::mock::{
+        mock_init, mock_init_custom, MockApiContract, MockError, MockExecMsg, MOCK_API,
+        TEST_METADATA,
+    };
 
     use super::*;
 
@@ -137,7 +140,6 @@ mod tests {
         assert_that!(res).is_ok();
     }
 
-
     #[test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
@@ -153,6 +155,5 @@ mod tests {
 
         let res = MOCK_API.os_core(deps.as_ref());
         assert_that!(res).is_err();
-        
     }
 }
