@@ -5,7 +5,7 @@ use crate::traits::identify::Identify;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::os::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::AbstractSdkResult;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, QuerierWrapper, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
 use cw_utils::Duration;
 
 /// Trait that defines the adapter interface for staking providers
@@ -34,6 +34,7 @@ pub trait CwStakingAdapter: Identify {
     fn fetch_data(
         &mut self,
         deps: Deps,
+        env: Env,
         ans_host: &AnsHost,
         staking_asset: AssetEntry,
     ) -> AbstractSdkResult<()>;

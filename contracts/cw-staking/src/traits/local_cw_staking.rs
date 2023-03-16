@@ -4,7 +4,7 @@ use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::os::objects::AssetEntry;
 use abstract_sdk::Execution;
-use cosmwasm_std::{DepsMut, SubMsg};
+use cosmwasm_std::{DepsMut, Env, SubMsg};
 
 impl<T> LocalCwStaking for T where T: AbstractNameService + Execution {}
 
@@ -15,11 +15,17 @@ pub trait LocalCwStaking: AbstractNameService + Execution {
     fn resolve_staking_action(
         &self,
         deps: DepsMut,
+        env: Env,
         action: CwStakingAction,
         mut provider: Box<dyn CwStakingAdapter>,
     ) -> Result<SubMsg, StakingError> {
         let staking_asset = staking_asset_from_action(&action);
-        provider.fetch_data(deps.as_ref(), &self.ans_host(deps.as_ref())?, staking_asset)?;
+        provider.fetch_data(
+            deps.as_ref(),
+            env,
+            &self.ans_host(deps.as_ref())?,
+            staking_asset,
+        )?;
 
         let msgs = match action {
             CwStakingAction::Stake {

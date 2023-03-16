@@ -58,6 +58,7 @@ impl CwStakingAdapter for WynDex {
     fn fetch_data(
         &mut self,
         deps: Deps,
+        _env: Env,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {

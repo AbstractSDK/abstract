@@ -33,7 +33,7 @@ pub fn execute_handler(
 /// Handle an api request that can be executed on the local chain
 fn handle_local_request(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     api: CwStakingApi,
     action: CwStakingAction,
@@ -41,7 +41,7 @@ fn handle_local_request(
 ) -> CwStakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
     let response =
-        Response::new().add_submessage(api.resolve_staking_action(deps, action, provider)?);
+        Response::new().add_submessage(api.resolve_staking_action(deps, env, action, provider)?);
     Ok(api.custom_tag_response(
         response,
         "handle_local_request",

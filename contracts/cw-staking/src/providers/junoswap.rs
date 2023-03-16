@@ -8,7 +8,9 @@ use abstract_sdk::{
     os::objects::{AssetEntry, LpToken},
     AbstractSdkError, Resolve,
 };
-use cosmwasm_std::{to_binary, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg};
+use cosmwasm_std::{
+    to_binary, Addr, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128, WasmMsg,
+};
 use cw20::Cw20ExecuteMsg;
 use cw20_stake::msg::{ExecuteMsg as StakeCw20ExecuteMsg, ReceiveMsg};
 use cw_asset::{AssetInfo, AssetInfoBase};
@@ -44,6 +46,7 @@ impl CwStakingAdapter for JunoSwap {
     fn fetch_data(
         &mut self,
         deps: Deps,
+        _env: Env,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> Result<(), AbstractSdkError> {

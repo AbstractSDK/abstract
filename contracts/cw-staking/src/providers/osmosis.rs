@@ -2,7 +2,6 @@ use cosmwasm_std::Addr;
 
 use crate::traits::identify::Identify;
 
-
 pub const OSMOSIS: &str = "osmosis";
 
 #[derive(Default)]
@@ -21,6 +20,7 @@ pub mod fns {
 
     use super::*;
     const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
+    use cosmwasm_std::Env;
     use osmosis_std::{
         shim::Duration,
         types::osmosis::gamm::v1beta1::{
@@ -36,16 +36,17 @@ pub mod fns {
     /// Osmosis app-chain dex implementation
     impl CwStakingAdapter for Osmosis {
         fn fetch_data(
-                &mut self,
-                deps: cosmwasm_std::Deps,
-                ans_host: &abstract_sdk::feature_objects::AnsHost,
-                staking_asset: abstract_os::objects::AssetEntry,
-            ) -> abstract_sdk::AbstractSdkResult<()> {
-                let provider_staking_contract_entry = self.staking_entry(&staking_asset);
-                let staking_contract_address = ans_host
-                    .query_contract(&deps.querier, &provider_staking_contract_entry)?;
-                self.local_proxy_addr = Some(staking_contract_address);
-                Ok(())
+            &mut self,
+            deps: cosmwasm_std::Deps,
+            env: Env,
+            ans_host: &abstract_sdk::feature_objects::AnsHost,
+            staking_asset: abstract_os::objects::AssetEntry,
+        ) -> abstract_sdk::AbstractSdkResult<()> {
+            let provider_staking_contract_entry = self.staking_entry(&staking_asset);
+            let staking_contract_address =
+                ans_host.query_contract(&deps.querier, &provider_staking_contract_entry)?;
+            self.local_proxy_addr = Some(staking_contract_address);
+            Ok(())
         }
 
         fn stake(
