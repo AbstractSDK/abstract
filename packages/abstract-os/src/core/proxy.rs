@@ -86,10 +86,7 @@ pub enum QueryMsg {
     /// If amount is not set, the account's balance of the token is used.
     /// [`TokenValueResponse`]
     #[returns(TokenValueResponse)]
-    TokenValue {
-        identifier: AssetEntry,
-        amount: Option<Uint128>,
-    },
+    TokenValue { identifier: AssetEntry },
     /// Returns the amount of specified tokens this contract holds
     /// [`HoldingAmountResponse`]
     #[returns(HoldingAmountResponse)]

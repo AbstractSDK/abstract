@@ -61,20 +61,11 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 
 /// Returns the value of the amount of the specified asset
 /// @param amount: The amount of the asset to compute the value of. If None, balance of the proxy account is used.
-pub fn query_token_value(
-    deps: Deps,
-    env: Env,
-    asset_entry: AssetEntry,
-    amount: Option<Uint128>,
-) -> ProxyResult<Uint128> {
+pub fn query_token_value(deps: Deps, env: Env, asset_entry: AssetEntry) -> ProxyResult<Uint128> {
     let oracle = Oracle::new();
     let ans_host = ANS_HOST.load(deps.storage)?;
     let asset_info = asset_entry.resolve(&deps.querier, &ans_host)?;
-    let balance = amount.unwrap_or_else(|| {
-        asset_info
-            .query_balance(&deps.querier, env.contract.address)
-            .unwrap()
-    });
+    let balance = asset_info.query_balance(&deps.querier, env.contract.address)?;
     let value = oracle.asset_value(deps, Asset::new(asset_info, balance))?;
     Ok(value)
 }

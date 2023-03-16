@@ -49,7 +49,6 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
             proxy_address.to_string(),
             &QueryMsg::TokenValue {
                 identifier: asset_entry,
-                amount: None,
             },
         )?)?;
 

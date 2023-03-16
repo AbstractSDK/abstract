@@ -82,8 +82,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
         QueryMsg::HoldingAmount { identifier } => {
             to_binary(&query_holding_amount(deps, env, identifier)?)
         }
-        QueryMsg::TokenValue { identifier, amount } => {
-            to_binary(&query_token_value(deps, env, identifier, amount)?)
+        QueryMsg::TokenValue { identifier } => {
+            to_binary(&query_token_value(deps, env, identifier)?)
         }
         QueryMsg::AssetConfig { identifier } => to_binary(&AssetConfigResponse {
             price_source: Oracle::new().asset_config(deps, &identifier)?,
