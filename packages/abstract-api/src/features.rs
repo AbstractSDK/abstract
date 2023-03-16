@@ -83,7 +83,7 @@ mod tests {
     };
     use speculoos::prelude::*;
 
-    use crate::mock::{mock_init_custom, MockApiContract, MockError, MockExecMsg, TEST_METADATA};
+    use crate::mock::{mock_init_custom, MockApiContract, MockError, MockExecMsg, TEST_METADATA, mock_init, MOCK_API};
 
     use super::*;
 
@@ -120,7 +120,7 @@ mod tests {
     }
 
     #[test]
-    fn test_features_with_custom_exec() {
+    fn custom_exec() {
         let mut deps = mock_dependencies();
         deps.querier = mocked_os_querier_builder().build();
 
@@ -135,5 +135,24 @@ mod tests {
             featured_api().execute(deps.as_mut(), mock_env(), mock_info(TEST_MANAGER, &[]), msg);
 
         assert_that!(res).is_ok();
+    }
+
+
+    #[test]
+    fn targets_not_set() {
+        let mut deps = mock_dependencies();
+        deps.querier = mocked_os_querier_builder().build();
+
+        mock_init(deps.as_mut()).unwrap();
+
+        let res = MOCK_API.proxy_address(deps.as_ref());
+        assert_that!(res).is_err();
+
+        let res = MOCK_API.manager_address(deps.as_ref());
+        assert_that!(res).is_err();
+
+        let res = MOCK_API.os_core(deps.as_ref());
+        assert_that!(res).is_err();
+        
     }
 }
