@@ -239,25 +239,6 @@ impl PriceSource {
     }
 }
 
-/// Get the other asset's name from a composite name
-/// ex: asset= "btc" composite = "btc_eth"
-/// returns "eth"
-// pub fn other_asset_name<'a>(asset: &'a str, composite: &'a str) -> AbstractResult<&'a str> {
-//     composite
-//         .split('_')
-//         .find(|component| *component != asset)
-//         .ok_or_else(|| AbstractOsError::FormattingError {
-//             object: "lp asset key".to_string(),
-//             expected: "with '_' as asset separator".to_string(),
-//             actual: composite.to_string(),
-//         })
-// }
-
-// /// Composite of form asset1_asset2
-// pub fn get_pair_asset_names(composite: &str) -> Vec<&str> {
-//     composite.split('_').collect()
-// }
-
 fn query_cw20_supply(querier: &QuerierWrapper, contract_addr: &Addr) -> AbstractResult<Uint128> {
     let response: cw20::TokenInfoResponse =
         querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
