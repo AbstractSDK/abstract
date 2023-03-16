@@ -396,14 +396,6 @@ mod test {
         fn add_module() {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut());
-            deps.querier = MockQuerierBuilder::default()
-                .with_contract_map_entry(
-                    TEST_MANAGER,
-                    manager::state::OS_MODULES,
-                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
-                )
-                .build();
-            let info = mock_info(TEST_MANAGER, &[]);
             // whitelist creator
             STATE
                 .save(
@@ -419,8 +411,23 @@ mod test {
                     host_chain: "juno".into(),
                 }],
             };
-            let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
+            let not_whitelisted_info = mock_info(TEST_MANAGER, &[]);
+            execute(deps.as_mut(), mock_env(), not_whitelisted_info, msg.clone()).unwrap_err();
+
+            let manager_info = mock_info(TEST_MANAGER, &[]);
+            // ibc not enabled
+            execute(deps.as_mut(), mock_env(), manager_info.clone(), msg.clone()).unwrap_err();
+            // mock enabling ibc
+            deps.querier = MockQuerierBuilder::default()
+                .with_contract_map_entry(
+                    TEST_MANAGER,
+                    manager::state::OS_MODULES,
+                    (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
+                )
+                .build();
+
+            let res = execute(deps.as_mut(), mock_env(), manager_info, msg).unwrap();
             assert_that(&res.messages).has_length(1);
             assert_that!(res.messages[0]).is_equal_to(SubMsg::new(CosmosMsg::Wasm(
                 cosmwasm_std::WasmMsg::Execute {

@@ -313,3 +313,8 @@ fn update_api_with_traders() -> AResult {
     assert_that!(traders.traders).is_empty();
     Ok(())
 }
+
+// TODO:
+// - api-api dependencies
+// - app-api dependencies
+// - app-app dependencies
