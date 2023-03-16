@@ -127,7 +127,6 @@ pub fn assert_dependency_requirements(
     Ok(())
 }
 
-// TODO: this reads the OS_MODULES to retrieve the module addrsess when it can be passed in
 pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
     let querier = &deps.querier;
     let module_addr = OS_MODULES.load(deps.storage, module_id)?;

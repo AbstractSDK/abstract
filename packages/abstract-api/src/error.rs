@@ -28,9 +28,3 @@ pub enum ApiError {
     #[error("No IBC receive handler function provided")]
     MissingIbcReceiveHandler,
 }
-
-impl From<ApiError> for StdError {
-    fn from(val: ApiError) -> Self {
-        StdError::generic_err(val.to_string())
-    }
-}

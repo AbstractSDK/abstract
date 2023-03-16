@@ -131,7 +131,6 @@ fn upgrade_app_() -> AResult {
     );
 
     // upgrade api 1 to version 2
-
     let res = manager.upgrade_module(
         api_1::MOCK_API_ID,
         &app::MigrateMsg {
@@ -271,5 +270,46 @@ fn uninstall_modules() -> AResult {
     manager.uninstall_module(api_1::MOCK_API_ID)?;
     // and api 2
     manager.uninstall_module(api_2::MOCK_API_ID)?;
+    Ok(())
+}
+
+#[test]
+fn update_api_with_traders() -> AResult {
+    let sender = Addr::unchecked(common::ROOT_USER);
+    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    deploy_modules(&chain);
+    let os = create_default_os(&abstr.os_factory)?;
+    let OS { manager, proxy } = &os;
+
+    // install api 1
+    let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
+    os.expect_modules(vec![api1.clone()])?;
+
+    // register a trader on API1
+    manager.update_api_traders(api_1::MOCK_API_ID, vec!["trader".to_string()], vec![])?;
+
+    // upgrade api 1 to version 2
+    manager.upgrade_module(
+        api_1::MOCK_API_ID,
+        &app::MigrateMsg {
+            base: app::BaseMigrateMsg {},
+            app: Empty {},
+        },
+    )?;
+    use abstract_os::manager::QueryMsgFns as _;
+    let api_v2 = manager.module_addresses(vec![api_1::MOCK_API_ID.into()])?;
+    // assert that the address actually changed
+    assert_that!(api_v2.modules[0].1).is_not_equal_to(api1.clone());
+
+    let api = api_1::BootMockApi1V2::new(chain.clone());
+    use abstract_os::api::BaseQueryMsgFns as _;
+    let traders = api.traders(proxy.addr_str()?)?;
+    assert_that!(traders.traders).contains(Addr::unchecked("trader"));
+
+    // assert that trader was removed from old API
+    api.set_address(&Addr::unchecked(api1));
+    let traders = api.traders(proxy.addr_str()?)?;
+    assert_that!(traders.traders).is_empty();
     Ok(())
 }

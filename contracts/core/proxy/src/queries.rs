@@ -1,40 +1,49 @@
 use crate::contract::ProxyResult;
-use crate::error::ProxyError;
+
+use abstract_os::objects::oracle::{AccountValue, Oracle};
 use abstract_os::proxy::{
-    BaseAssetResponse, HoldingAmountResponse, TokenValueResponse, TotalValueResponse,
+    AssetsConfigResponse, BaseAssetResponse, HoldingAmountResponse, OracleAsset, TokenValueResponse,
 };
-use abstract_sdk::os::objects::proxy_asset::{
-    get_pair_asset_names, other_asset_name, ProxyAsset, ValueRef,
-};
-use abstract_sdk::os::objects::{AssetEntry, UncheckedContractEntry};
-use abstract_sdk::os::proxy::state::{ANS_HOST, STATE, VAULT_ASSETS};
-use abstract_sdk::os::proxy::{AssetsResponse, ConfigResponse, ValidityResponse};
+use abstract_sdk::os::objects::AssetEntry;
+use abstract_sdk::os::proxy::state::{ANS_HOST, STATE};
+use abstract_sdk::os::proxy::{AssetsInfoResponse, ConfigResponse};
 use abstract_sdk::Resolve;
-use cosmwasm_std::{Addr, Deps, Env, Order, StdError, StdResult, Uint128};
-use cw_storage_plus::Bound;
-use std::collections::HashSet;
-use std::convert::TryInto;
+use cosmwasm_std::{Addr, Deps, Env, StdResult};
+use cw_asset::{Asset, AssetInfo};
 
-const DEFAULT_LIMIT: u8 = 5;
-const MAX_LIMIT: u8 = 20;
-pub fn query_proxy_assets(
+/// get the assets pricing information
+pub fn query_oracle_asset_info(
     deps: Deps,
-    last_asset_name: Option<String>,
+    last_asset: Option<AssetInfo>,
     limit: Option<u8>,
-) -> StdResult<AssetsResponse> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let entry = last_asset_name.map(AssetEntry::from);
-    let start_bound = entry.as_ref().map(Bound::exclusive);
-
-    let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
-        .range(deps.storage, start_bound, None, Order::Ascending)
-        .take(limit)
-        .collect();
-
-    let names_and_configs = res?;
-    Ok(AssetsResponse {
-        assets: names_and_configs,
+) -> ProxyResult<AssetsInfoResponse> {
+    let oracle = Oracle::new();
+    let assets = oracle.paged_asset_info(deps, last_asset, limit)?;
+    Ok(AssetsInfoResponse {
+        assets: assets
+            .into_iter()
+            .map(|(a, (p, c))| {
+                (
+                    a,
+                    OracleAsset {
+                        complexity: c,
+                        price_source: p,
+                    },
+                )
+            })
+            .collect(),
     })
+}
+
+/// get the human-readable asset pricing information
+pub fn query_oracle_asset_config(
+    deps: Deps,
+    last_asset: Option<AssetEntry>,
+    limit: Option<u8>,
+) -> ProxyResult<AssetsConfigResponse> {
+    let oracle = Oracle::new();
+    let assets = oracle.paged_asset_config(deps, last_asset, limit)?;
+    Ok(AssetsConfigResponse { assets })
 }
 
 /// Returns the whitelisted modules
@@ -50,244 +59,318 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     Ok(resp)
 }
 
-/// Returns the value of a specified asset.
-pub fn compute_holding_value(deps: Deps, env: &Env, asset_entry: String) -> ProxyResult<Uint128> {
-    compute_token_value(deps, env, asset_entry, None)
-}
-
 /// Returns the value of the amount of the specified asset
-/// @param amount: The amount of the asset to compute the value of. If None, the holding value of the calling account is returned.
-pub fn compute_token_value(
+/// @param amount: The amount of the asset to compute the value of. If None, balance of the proxy account is used.
+pub fn query_token_value(
     deps: Deps,
-    env: &Env,
-    asset_entry: String,
-    amount: Option<Uint128>,
-) -> ProxyResult<Uint128> {
-    let mut vault_asset: ProxyAsset =
-        VAULT_ASSETS.load(deps.storage, &AssetEntry::from(asset_entry))?;
+    env: Env,
+    asset_entry: AssetEntry,
+) -> ProxyResult<TokenValueResponse> {
+    let oracle = Oracle::new();
     let ans_host = ANS_HOST.load(deps.storage)?;
-    let value = vault_asset.value(deps, env, &ans_host, amount)?;
-    Ok(value)
+    let asset_info = asset_entry.resolve(&deps.querier, &ans_host)?;
+    let balance = asset_info.query_balance(&deps.querier, env.contract.address)?;
+    let value = oracle.asset_value(deps, Asset::new(asset_info, balance))?;
+
+    Ok(TokenValueResponse { value })
 }
 
 /// Computes the total value locked in this contract
-pub fn compute_total_value(deps: Deps, env: Env) -> ProxyResult<Uint128> {
-    // Get all assets from storage
-    let mut all_assets = VAULT_ASSETS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
-
-    let mut total_value = Uint128::zero();
-    let ans_host = ANS_HOST.load(deps.storage)?;
-    // Calculate their value iteratively
-    for vault_asset_entry in all_assets.iter_mut() {
-        total_value += vault_asset_entry.1.value(deps, &env, &ans_host, None)?;
-    }
-    Ok(total_value)
-}
-
-pub fn query_total_value(deps: Deps, env: Env) -> ProxyResult<TotalValueResponse> {
-    let value = compute_total_value(deps, env)?;
-    Ok(TotalValueResponse { value })
-}
-
-pub fn query_proxy_asset_validity(deps: Deps) -> StdResult<ValidityResponse> {
-    // assets that resolve and have valid value-references
-    let mut checked_assets: HashSet<String> = HashSet::new();
-    // assets that don't resolve, they have a missing dependency
-    let mut unresolvable_assets: HashSet<String> = HashSet::new();
-    // assets that are missing
-    let mut missing_assets: HashSet<String> = HashSet::new();
-    let mut base_asset: Option<String> = None;
-
-    let assets = VAULT_ASSETS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<(AssetEntry, ProxyAsset)>>>()?;
-    for (_, asset) in assets {
-        resolve_asset(
-            deps,
-            &mut checked_assets,
-            &mut unresolvable_assets,
-            &mut missing_assets,
-            asset,
-            &mut base_asset,
-        )?;
-    }
-
-    let unresolvable_assets_resp = {
-        if unresolvable_assets.is_empty() {
-            None
-        } else {
-            Some(
-                unresolvable_assets
-                    .into_iter()
-                    .map(|asset| asset.into())
-                    .collect(),
-            )
-        }
-    };
-
-    let missing_assets_resp = {
-        if missing_assets.is_empty() {
-            None
-        } else {
-            Some(
-                missing_assets
-                    .into_iter()
-                    .map(|asset| asset.into())
-                    .collect(),
-            )
-        }
-    };
-
-    Ok(ValidityResponse {
-        unresolvable_assets: unresolvable_assets_resp,
-        missing_dependencies: missing_assets_resp,
-    })
-}
-
-pub fn resolve_asset(
-    deps: Deps,
-    checked_assets: &mut HashSet<String>,
-    unresolvable_assets: &mut HashSet<String>,
-    missing_assets: &mut HashSet<String>,
-    proxy_asset: ProxyAsset,
-    base: &mut Option<String>,
-) -> StdResult<()> {
-    let ProxyAsset {
-        asset: entry,
-        value_reference,
-    } = proxy_asset;
-    // key already checked?
-    if checked_assets.contains(entry.as_str()) || unresolvable_assets.contains(entry.as_str()) {
-        return Ok(());
-    }
-
-    match value_reference {
-        None => {
-            if base.is_some() {
-                if entry.as_str() != base.as_ref().unwrap() {
-                    return Err(StdError::generic_err(format!(
-                        "All assets accept the base asset must have a value reference. One of these assets is missing it: {}, {}",
-                        base.as_ref().unwrap(),
-                        entry.as_str()
-                    )));
-                }
-            } else {
-                *base = Some(entry.to_string());
-            }
-        }
-        Some(value_ref) => {
-            let asset_dependencies = get_value_ref_dependencies(&value_ref, entry.to_string());
-            let mut loaded_dependencies = vec![];
-            for asset in asset_dependencies {
-                match try_load_asset(deps, missing_assets, asset) {
-                    Some(proxy_asset) => {
-                        // successfully loaded dependency
-                        loaded_dependencies.push(proxy_asset)
-                    }
-                    None => {
-                        // current asset unresolvable because it has dependencies that can't be loaded.
-                        unresolvable_assets.insert(entry.to_string());
-                    }
-                }
-            }
-            // proceed with dependencies that resolved and add entry as checked
-            checked_assets.insert(entry.to_string());
-            for dep in loaded_dependencies {
-                resolve_asset(
-                    deps,
-                    checked_assets,
-                    unresolvable_assets,
-                    missing_assets,
-                    dep,
-                    base,
-                )?
-            }
-        }
-    }
-    Ok(())
-}
-
-pub fn try_load_asset(
-    deps: Deps,
-    missing_assets: &mut HashSet<String>,
-    key: AssetEntry,
-) -> Option<ProxyAsset> {
-    let maybe_proxy_asset = VAULT_ASSETS.load(deps.storage, &key);
-    match maybe_proxy_asset {
-        Ok(asset) => Some(asset),
-        Err(_) => {
-            missing_assets.insert(key.to_string());
-            None
-        }
-    }
-}
-
-pub fn get_value_ref_dependencies(value_reference: &ValueRef, entry: String) -> Vec<AssetEntry> {
-    match value_reference {
-        abstract_sdk::os::objects::proxy_asset::ValueRef::Pool { pair } => {
-            // Check if the other asset in the pool resolves
-            let other_pool_asset: AssetEntry = other_asset_name(entry.as_str(), &pair.contract)
-                .unwrap()
-                .into();
-            vec![other_pool_asset]
-        }
-        abstract_sdk::os::objects::proxy_asset::ValueRef::LiquidityToken {} => {
-            // check if both tokens of pool resolve
-            let maybe_pair: UncheckedContractEntry = entry.try_into().unwrap();
-            let other_pool_asset_names = get_pair_asset_names(maybe_pair.contract.as_str());
-            let asset1: AssetEntry = other_pool_asset_names[0].into();
-            let asset2: AssetEntry = other_pool_asset_names[1].into();
-            vec![asset1, asset2]
-        }
-        abstract_sdk::os::objects::proxy_asset::ValueRef::ValueAs {
-            asset,
-            multiplier: _,
-        } => vec![asset.clone()],
-        abstract_sdk::os::objects::proxy_asset::ValueRef::External { api_name: _ } => todo!(),
-    }
+pub fn query_total_value(deps: Deps, env: Env) -> ProxyResult<AccountValue> {
+    let mut oracle = Oracle::new();
+    oracle
+        .account_value(deps, &env.contract.address)
+        .map_err(Into::into)
 }
 
 pub fn query_base_asset(deps: Deps) -> ProxyResult<BaseAssetResponse> {
-    let res: Result<Vec<(AssetEntry, ProxyAsset)>, _> = VAULT_ASSETS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect();
-
-    let maybe_base_asset: Vec<(AssetEntry, ProxyAsset)> = res?
-        .into_iter()
-        .filter(|(_, p)| p.value_reference.is_none())
-        .collect();
-    if maybe_base_asset.len() != 1 {
-        Err(ProxyError::MissingBaseAsset)
-    } else {
-        Ok(BaseAssetResponse {
-            base_asset: maybe_base_asset[0].1.to_owned(),
-        })
-    }
+    let oracle = Oracle::new();
+    let base_asset = oracle.base_asset(deps)?;
+    Ok(BaseAssetResponse { base_asset })
 }
 
 pub fn query_holding_amount(
     deps: Deps,
     env: Env,
-    identifier: String,
+    identifier: AssetEntry,
 ) -> ProxyResult<HoldingAmountResponse> {
-    let vault_asset: AssetEntry = identifier.into();
     let ans_host = ANS_HOST.load(deps.storage)?;
-    let asset_info = vault_asset.resolve(&deps.querier, &ans_host)?;
+    let asset_info = identifier.resolve(&deps.querier, &ans_host)?;
     Ok(HoldingAmountResponse {
         amount: asset_info.query_balance(&deps.querier, env.contract.address)?,
     })
 }
 
-pub fn query_token_value(
-    deps: Deps,
-    env: Env,
-    identifier: String,
-    amount: Option<Uint128>,
-) -> ProxyResult<TokenValueResponse> {
-    Ok(TokenValueResponse {
-        // Default the value calculation to one so that the caller doesn't need to provide a default
-        value: compute_token_value(deps, &env, identifier, amount.or(Some(Uint128::one())))?,
-    })
+#[cfg(test)]
+mod test {
+    use abstract_os::objects::price_source::{PriceSource, UncheckedPriceSource};
+
+    use abstract_testing::{prelude::*, MockAnsHost};
+    use cosmwasm_std::testing::{mock_dependencies, MOCK_CONTRACT_ADDR};
+    use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
+    use cosmwasm_std::{coin, Decimal, DepsMut, OwnedDeps};
+
+    use abstract_os::proxy::{AssetConfigResponse, ExecuteMsg, InstantiateMsg, TokenValueResponse};
+
+    use crate::contract::{execute, instantiate, query};
+
+    use super::*;
+
+    const TEST_CREATOR: &str = "creator";
+
+    type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
+
+    pub fn base_asset() -> (AssetEntry, UncheckedPriceSource) {
+        (AssetEntry::from(USD), UncheckedPriceSource::None)
+    }
+
+    pub fn asset_as_half() -> (AssetEntry, UncheckedPriceSource) {
+        let asset = AssetEntry::from(EUR);
+        let price_source = UncheckedPriceSource::ValueAs {
+            asset: AssetEntry::new(USD),
+            multiplier: Decimal::percent(50),
+        };
+        (asset, price_source)
+    }
+
+    fn mock_init(deps: DepsMut) {
+        let info = mock_info(TEST_CREATOR, &[]);
+        let msg = InstantiateMsg {
+            os_id: 0,
+            ans_host_address: TEST_ANS_HOST.to_string(),
+        };
+        let _res = instantiate(deps, mock_env(), info, msg).unwrap();
+    }
+
+    pub fn execute_as_admin(deps: &mut MockDeps, msg: ExecuteMsg) -> ProxyResult {
+        let info = mock_info(TEST_CREATOR, &[]);
+        execute(deps.as_mut(), mock_env(), info, msg)
+    }
+
+    #[test]
+    fn query_base_asset() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateAssets {
+                to_add: vec![base_asset()],
+                to_remove: vec![],
+            },
+        )
+        .unwrap();
+
+        let base_asset: BaseAssetResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::BaseAsset {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            base_asset,
+            BaseAssetResponse {
+                base_asset: cw_asset::AssetInfoBase::Native(USD.to_string())
+            }
+        );
+    }
+
+    #[test]
+    fn query_config() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::AddModule {
+                module: "test_module".to_string(),
+            },
+        )
+        .unwrap();
+
+        let config: ConfigResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::Config {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            config,
+            ConfigResponse {
+                modules: vec!["test_module".to_string()],
+            }
+        );
+    }
+
+    #[test]
+    fn query_oracle() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateAssets {
+                to_add: vec![base_asset()],
+                to_remove: vec![],
+            },
+        )
+        .unwrap();
+
+        // mint tokens to the contract
+        deps.querier
+            .update_balance(MOCK_CONTRACT_ADDR, vec![coin(1000, USD)]);
+
+        // get the balance of the asset
+        // returns HoldingAmountResponse
+        let holding_amount: HoldingAmountResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::HoldingAmount {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(holding_amount.amount.u128(), 1000);
+
+        // get the value of the asset
+        // returns AccountValue
+        let account_value: AccountValue = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::TotalValue {},
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        // equal to balance as it's the base asset
+        assert_eq!(
+            account_value.total_value,
+            Asset::new(AssetInfo::native(USD), 1000u128)
+        );
+
+        // get the token value
+        // returns TokenValueResponse
+        let token_value: TokenValueResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::TokenValue {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(token_value.value.u128(), 1000u128);
+
+        // query USD asset config
+        let asset_config: AssetConfigResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::AssetConfig {
+                    identifier: AssetEntry::from(USD),
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(asset_config.price_source, UncheckedPriceSource::None);
+    }
+
+    #[test]
+    fn query_asset_configs() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateAssets {
+                to_add: vec![base_asset(), asset_as_half()],
+                to_remove: vec![],
+            },
+        )
+        .unwrap();
+
+        let assets: AssetsConfigResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::AssetsConfig {
+                    start_after: None,
+                    limit: None,
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            assets,
+            AssetsConfigResponse {
+                assets: vec![asset_as_half(), base_asset()]
+            }
+        );
+    }
+
+    #[test]
+    fn query_asset_infos() {
+        let mut deps = mock_dependencies();
+        deps.querier = MockAnsHost::new().with_defaults().to_querier();
+        mock_init(deps.as_mut());
+        execute_as_admin(
+            &mut deps,
+            ExecuteMsg::UpdateAssets {
+                to_add: vec![base_asset(), asset_as_half()],
+                to_remove: vec![],
+            },
+        )
+        .unwrap();
+
+        let assets: AssetsInfoResponse = from_binary(
+            &query(
+                deps.as_ref(),
+                mock_env(),
+                abstract_os::proxy::QueryMsg::AssetsInfo {
+                    start_after: None,
+                    limit: None,
+                },
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            assets,
+            AssetsInfoResponse {
+                assets: vec![
+                    (
+                        AssetInfo::native(EUR),
+                        OracleAsset {
+                            complexity: 1,
+                            price_source: PriceSource::ValueAs {
+                                asset: AssetInfo::native(USD),
+                                multiplier: Decimal::percent(50),
+                            },
+                        }
+                    ),
+                    (
+                        AssetInfo::native(USD),
+                        OracleAsset {
+                            complexity: 0,
+                            price_source: PriceSource::None,
+                        }
+                    ),
+                ]
+            }
+        );
+    }
 }

@@ -12,7 +12,7 @@
             },
             "amount": "0"
         },
-        "value_reference": {
+        "price_source": {
             "pool": {
                 "pair_address": "terra156v8s539wtz0sjpn8y8a8lfg8fhmwa7fy22aff"
             }
@@ -23,7 +23,7 @@
             },
             "amount": "0"
         },
-        "value_reference": {
+        "price_source": {
             "liquidity": {
                 "pool_address": "terra156v8s539wtz0sjpn8y8a8lfg8fhmwa7fy22aff"
             }
@@ -42,7 +42,7 @@
         },
         "amount": "0"
     },
-    "value_reference": {
+    "price_source": {
         "pool": {
             "pair_address": "terra1tndcaqxkpc5ce9qee5ggqf430mr2z3pefe5wj6"
         }
@@ -53,7 +53,7 @@
         },
         "amount": "0"
     },
-    "value_reference": {
+    "price_source": {
         "liquidity": {
             "pool_address": "terra1tndcaqxkpc5ce9qee5ggqf430mr2z3pefe5wj6"
         }

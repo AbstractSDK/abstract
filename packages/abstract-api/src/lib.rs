@@ -93,6 +93,18 @@ pub mod mock {
         api.instantiate(deps, mock_env(), info, init_msg)
     }
 
+    pub fn mock_init_custom(deps: DepsMut, api: MockApiContract) -> Result<Response, MockError> {
+        let info = mock_info(TEST_ADMIN, &[]);
+        let init_msg = InstantiateMsg {
+            base: BaseInstantiateMsg {
+                ans_host_address: TEST_ANS_HOST.into(),
+                version_control_address: TEST_VERSION_CONTROL.into(),
+            },
+            app: MockInitMsg,
+        };
+        api.instantiate(deps, mock_env(), info, init_msg)
+    }
+
     fn mock_init_handler(
         _deps: DepsMut,
         _env: Env,

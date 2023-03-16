@@ -26,7 +26,7 @@ impl PoolAddress {
         match self {
             PoolAddress::Contract(addr) => Ok(addr.clone()),
             _ => Err(AbstractOsError::Assert(
-                "Pool address not a contract address pool ID.".into(),
+                "Pool address not a contract address.".into(),
             )),
         }
     }
@@ -35,7 +35,7 @@ impl PoolAddress {
         match self {
             PoolAddress::Id(id) => Ok(*id),
             _ => Err(AbstractOsError::Assert(
-                "Pool address not an numerical pool ID.".into(),
+                "Pool address not an numerical ID.".into(),
             )),
         }
     }

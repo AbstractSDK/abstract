@@ -9,7 +9,6 @@ use crate::{
 };
 use cosmwasm_std::{Addr, QuerierWrapper, StdError};
 use cw_asset::AssetInfo;
-use std::collections::BTreeMap;
 
 /// Struct that stores the ans-host contract address.
 /// Implements `AbstractNameService` feature
@@ -28,14 +27,13 @@ impl AnsHost {
     pub fn query_contracts(
         &self,
         querier: &QuerierWrapper,
-        contracts: Vec<ContractEntry>,
-    ) -> AbstractResult<BTreeMap<ContractEntry, Addr>> {
-        let mut resolved_contracts: BTreeMap<ContractEntry, Addr> = BTreeMap::new();
-
+        contracts: &[ContractEntry],
+    ) -> AbstractResult<Vec<Addr>> {
+        let mut resolved_contracts: Vec<Addr> = Vec::new();
         // Query over keys
-        for key in contracts.into_iter() {
-            let result = self.query_contract(querier, &key)?;
-            resolved_contracts.insert(key, result);
+        for key in contracts.iter() {
+            let result = self.query_contract(querier, key)?;
+            resolved_contracts.push(result);
         }
         Ok(resolved_contracts)
     }
@@ -59,13 +57,13 @@ impl AnsHost {
     pub fn query_assets(
         &self,
         querier: &QuerierWrapper,
-        assets: Vec<AssetEntry>,
-    ) -> AbstractResult<BTreeMap<AssetEntry, AssetInfo>> {
-        let mut resolved_assets: BTreeMap<AssetEntry, AssetInfo> = BTreeMap::new();
+        assets: &[AssetEntry],
+    ) -> AbstractResult<Vec<AssetInfo>> {
+        let mut resolved_assets = Vec::new();
 
-        for asset in assets.into_iter() {
-            let result = self.query_asset(querier, &asset)?;
-            resolved_assets.insert(asset, result);
+        for asset in assets.iter() {
+            let result = self.query_asset(querier, asset)?;
+            resolved_assets.push(result);
         }
         Ok(resolved_assets)
     }
@@ -88,13 +86,13 @@ impl AnsHost {
     pub fn query_assets_reverse(
         &self,
         querier: &QuerierWrapper,
-        assets: Vec<AssetInfo>,
+        assets: &[AssetInfo],
     ) -> AbstractResult<Vec<AssetEntry>> {
-        // AssetInfo does not implement PartialEq, so we can't use a BTreeMap
+        // AssetInfo does not implement PartialEq, so we can't use a Vec
         let mut resolved_assets = vec![];
 
-        for asset in assets.into_iter() {
-            let result = self.query_asset_reverse(querier, &asset)?;
+        for asset in assets.iter() {
+            let result = self.query_asset_reverse(querier, asset)?;
             resolved_assets.push(result);
         }
         Ok(resolved_assets)

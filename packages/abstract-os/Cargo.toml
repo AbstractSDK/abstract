@@ -36,3 +36,5 @@ boot-core = { workspace = true, optional = true }
 [dev-dependencies]
 speculoos = { workspace = true }
 rstest = { workspace = true }
+anyhow = { workspace = true }
+abstract-testing = {path = "../abstract-testing"}

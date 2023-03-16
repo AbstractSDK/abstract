@@ -10,6 +10,7 @@ pub(crate) mod contract_entry;
 pub(crate) mod dex_asset_pairing;
 pub(crate) mod lp_token;
 
+pub mod oracle;
 pub mod pool;
 
 pub use pool::*;
@@ -24,7 +25,7 @@ pub mod module;
 pub mod module_reference;
 pub mod module_version;
 pub mod paged_map;
-pub mod proxy_asset;
+pub mod price_source;
 pub mod time_weighted_average;
 
 pub use self::core::OsId;
