@@ -7,7 +7,7 @@ use abstract_sdk::{
     AbstractSdkResult, Resolve,
 };
 
-#[cfg(feature = "phoenix-1")]
+#[cfg(feature = "terra")]
 use astroport::generator::{
     ConfigResponse, Cw20HookMsg, ExecuteMsg as GeneratorExecuteMsg, QueryMsg as GeneratorQueryMsg,
     RewardInfoResponse,
@@ -15,7 +15,7 @@ use astroport::generator::{
 
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128,
+    to_binary, wasm_execute, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, Env,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::AssetInfo;
@@ -55,6 +55,7 @@ impl CwStakingAdapter for Astroport {
     fn fetch_data(
         &mut self,
         deps: Deps,
+        env: Env,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
@@ -119,7 +120,7 @@ impl CwStakingAdapter for Astroport {
         .into()])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> StdResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, StakingError> {
         let ConfigResponse { astro_token, .. } = querier
             .query_wasm_smart::<ConfigResponse>(
                 self.generator_contract_address.clone(),
@@ -149,7 +150,7 @@ impl CwStakingAdapter for Astroport {
         querier: &QuerierWrapper,
         staker: Addr,
         _unbonding_period: Option<Duration>,
-    ) -> StdResult<StakeResponse> {
+    ) -> Result<StakeResponse, StakingError> {
         let stake_balance: Uint128 = querier
             .query_wasm_smart(
                 self.generator_contract_address.clone(),
@@ -175,14 +176,14 @@ impl CwStakingAdapter for Astroport {
         &self,
         _querier: &QuerierWrapper,
         _staker: Addr,
-    ) -> Result<UnbondingResponse, StdError> {
+    ) -> Result<UnbondingResponse, StakingError> {
         Ok(UnbondingResponse { claims: vec![] })
     }
 
     fn query_reward_tokens(
         &self,
         querier: &QuerierWrapper,
-    ) -> StdResult<crate::msg::RewardTokensResponse> {
+    ) -> Result<crate::msg::RewardTokensResponse, StakingError> {
         let reward_info: RewardInfoResponse = querier
             .query_wasm_smart(
                 self.generator_contract_address.clone(),

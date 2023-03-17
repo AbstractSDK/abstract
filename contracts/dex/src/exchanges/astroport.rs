@@ -216,7 +216,7 @@ impl DEX for Astroport {
             .collect::<Result<Vec<_>, _>>()?;
 
         let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
-            assets: vec![astroport_assets[0].clone(), astroport_assets[1].clone()],
+            assets: [astroport_assets[0].clone(), astroport_assets[1].clone()],
             slippage_tolerance: None,
             receiver: None,
             auto_stake: None,
