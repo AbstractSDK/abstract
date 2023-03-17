@@ -15,7 +15,7 @@ use astroport::generator::{
 
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, Env,
+    to_binary, wasm_execute, Addr, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128,
 };
 use cw20::Cw20ExecuteMsg;
 use cw_asset::AssetInfo;
@@ -55,7 +55,7 @@ impl CwStakingAdapter for Astroport {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        env: Env,
+        _env: Env,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {

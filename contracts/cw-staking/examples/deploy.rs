@@ -1,10 +1,11 @@
-use abstract_boot::{ModuleDeployer, VCExecFns};
+use abstract_boot::{AnsHost, ApiDeployer, VCExecFns, VersionControl};
 use abstract_sdk::os;
 use abstract_sdk::os::objects::module::{Module, ModuleInfo, ModuleVersion};
 use boot_core::{instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *};
 use cosmwasm_std::{Addr, Empty};
-use cw_staking::msg::CW_STAKING;
-use cw_staking::CwStakingApi;
+use cw_staking::boot::CwStakingApi;
+use cw_staking::CW_STAKING;
+use os::{ANS_HOST, VERSION_CONTROL};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -22,18 +23,15 @@ fn deploy_cw_staking(
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let abstract_version: Version = std::env::var("ABSTRACT_VERSION")
-        .expect("Missing ABSTRACT_VERSION")
-        .parse()
-        .unwrap();
-    let deployer = ModuleDeployer::load_from_version_control(
-        chain.clone(),
-        &abstract_version,
-        &Addr::unchecked(std::env::var("VERSION_CONTROL").expect("VERSION_CONTROL not set")),
-    )?;
+    let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
+    version_control.set_address(&Addr::unchecked(
+        std::env::var("VERSION_CONTROL").expect("VERSION_CONTROL not set"),
+    ));
+
+    let ans_host = AnsHost::new(ANS_HOST, chain.clone());
 
     if let Some(prev_version) = prev_version {
-        let Module { info, reference } = deployer.version_control.module(ModuleInfo::from_id(
+        let Module { info, reference } = version_control.module(ModuleInfo::from_id(
             CW_STAKING,
             ModuleVersion::from(prev_version),
         )?)?;
@@ -42,32 +40,28 @@ fn deploy_cw_staking(
             version: ModuleVersion::from(CONTRACT_VERSION),
             ..info
         };
-        deployer
-            .version_control
-            .add_modules(vec![(new_info, reference)])?;
+        version_control.add_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
         let mut cw_staking = CwStakingApi::new(CW_STAKING, chain);
         cw_staking.set_code_id(code_id);
         let init_msg = os::api::InstantiateMsg {
             app: Empty {},
             base: os::api::BaseInstantiateMsg {
-                ans_host_address: deployer.ans_host.address()?.into(),
-                version_control_address: deployer.version_control.address()?.into(),
+                ans_host_address: ans_host.address()?.into(),
+                version_control_address: version_control.address()?.into(),
             },
         };
         cw_staking
             .as_instance_mut()
             .instantiate(&init_msg, None, None)?;
 
-        deployer
-            .version_control
-            .register_apis(vec![cw_staking.as_instance_mut()], &module_version)?;
+        version_control.register_apis(vec![cw_staking.as_instance_mut()], &module_version)?;
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
         let mut cw_staking = CwStakingApi::new(CW_STAKING, chain);
 
-        deployer.deploy_api(cw_staking.as_instance_mut(), module_version, Empty {})?;
+        cw_staking.deploy(module_version, Empty {})?;
     }
 
     Ok(())

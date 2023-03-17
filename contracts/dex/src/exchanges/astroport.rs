@@ -48,7 +48,6 @@ impl DEX for Astroport {
                 pair_address.to_string(),
                 &astroport::pair::ExecuteMsg::Swap {
                     offer_asset: cw_asset_to_astroport(&offer_asset)?,
-                    ask_asset_info: None,
                     belief_price,
                     max_spread,
                     to: None,
@@ -62,7 +61,6 @@ impl DEX for Astroport {
                     contract: pair_address.to_string(),
                     amount: offer_asset.amount,
                     msg: to_binary(&astroport::pair::Cw20HookMsg::Swap {
-                        ask_asset_info: None,
                         belief_price,
                         max_spread,
                         to: None,
@@ -133,14 +131,17 @@ impl DEX for Astroport {
             offer_assets = vec![offer_asset, Asset::new(ask_asset, simulated_received)];
         }
 
-        let astroport_assets = offer_assets
+        let mut astroport_assets = offer_assets
             .iter()
             .map(cw_asset_to_astroport)
             .collect::<Result<Vec<_>, _>>()?;
 
         // execute msg
         let msg = astroport::pair::ExecuteMsg::ProvideLiquidity {
-            assets: astroport_assets,
+            assets: [
+                astroport_assets.swap_remove(0),
+                astroport_assets.swap_remove(0),
+            ],
             slippage_tolerance: max_spread,
             auto_stake: Some(false),
             receiver: None,
@@ -262,7 +263,6 @@ impl DEX for Astroport {
             pair_address.to_string(),
             &astroport::pair::QueryMsg::Simulation {
                 offer_asset: cw_asset_to_astroport(&offer_asset)?,
-                ask_asset_info: None,
             },
         )?)?;
         // commission paid in result asset

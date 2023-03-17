@@ -26,9 +26,9 @@ export = []
 default = ["all", "export"]
 boot = ["dep:boot-core", "dep:abstract-boot"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:cw20-stake", "dep:wyndex", "dep:wyndex-stake", "dep:cw-controllers"]
-osmosis = ["dep:osmosis-std"]
+# osmosis = ["dep:osmosis-std"]
 terra = ["dep:astroport"]
-all = ["juno", "osmosis", "terra", "boot"]
+all = ["juno", "terra", "boot"]
 
 
 [dependencies]
