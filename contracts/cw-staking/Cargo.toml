@@ -73,6 +73,11 @@ semver = { version = "1.0"}
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 log = "0.4.14"
+speculoos = { workspace = true }
 boot-core = { workspace = true , features = ["daemon"] }
 abstract-boot = { workspace = true }
 clap = { workspace = true }
+cw-staking = { path = "." , features = ["boot"]}
+abstract-sdk = { workspace = true, features = ["test-utils"] }
+abstract-testing = { workspace = true }
+wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git"}

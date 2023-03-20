@@ -18,11 +18,13 @@ pub mod host_staking {
 
 #[cfg(feature = "boot")]
 pub mod boot {
-    use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+    use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
     use crate::CW_STAKING;
-    use abstract_boot::ApiDeployer;
-    use boot_core::boot_contract;
+    use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
+    use abstract_os::objects::AnsAsset;
+    use abstract_os::{api, MANAGER};
     use boot_core::ContractWrapper;
+    use boot_core::{boot_contract, ContractInstance};
     use boot_core::{BootEnvironment, Contract, IndexResponse, TxResponse};
     use cosmwasm_std::{Addr, Empty};
 
@@ -51,6 +53,49 @@ pub mod boot {
 
         pub fn load(chain: Chain, addr: &Addr) -> Self {
             Self(Contract::new(CW_STAKING, chain).with_address(Some(addr)))
+        }
+
+        /// Swap using Abstract's OS (registered in daemon_state).
+        pub fn stake(
+            &self,
+            stake_asset: AnsAsset,
+            provider: String,
+            duration: Option<cw_utils::Duration>,
+        ) -> Result<(), AbstractBootError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let stake_msg = crate::msg::ExecuteMsg::App(api::ApiRequestMsg {
+                proxy_address: None,
+                request: CwStakingExecuteMsg {
+                    provider,
+                    action: CwStakingAction::Stake {
+                        staking_token: stake_asset,
+                        unbonding_period: duration,
+                    },
+                },
+            });
+            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            Ok(())
+        }
+
+        pub fn unstake(
+            &self,
+            stake_asset: AnsAsset,
+            provider: String,
+            duration: Option<cw_utils::Duration>,
+        ) -> Result<(), AbstractBootError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let stake_msg = crate::msg::ExecuteMsg::App(api::ApiRequestMsg {
+                proxy_address: None,
+                request: CwStakingExecuteMsg {
+                    provider,
+                    action: CwStakingAction::Unstake {
+                        staking_token: stake_asset,
+                        unbonding_period: duration,
+                    },
+                },
+            });
+            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            Ok(())
         }
     }
 }

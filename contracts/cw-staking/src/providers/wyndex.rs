@@ -15,6 +15,7 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
+use wyndex_stake::msg::StakedResponse;
 use wyndex_stake::{
     msg::{
         BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg, ReceiveDelegationMsg as ReceiveMsg,
@@ -25,7 +26,7 @@ use wyndex_stake::{
 pub const WYNDEX: &str = "wyndex";
 
 pub const WYND_TOKEN: &str = "juno>wynd";
-// Source https://github.com/wasmswap/wasmswap-contracts
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WynDex {
     lp_token: LpToken,
@@ -129,11 +130,6 @@ impl CwStakingAdapter for WynDex {
             &wyndex_stake::msg::QueryMsg::BondingInfo {},
         )?;
 
-        let _distibution_info_resp: BondingInfoResponse = querier.query_wasm_smart(
-            self.staking_contract_address.clone(),
-            &wyndex_stake::msg::QueryMsg::BondingInfo {},
-        )?;
-
         Ok(StakingInfoResponse {
             staking_contract_address: self.staking_contract_address.clone(),
             staking_token: AssetInfo::Cw20(self.lp_token_address.clone()),
@@ -170,11 +166,32 @@ impl CwStakingAdapter for WynDex {
         })?;
 
         let amount = if let Some(bonding_info) = stake_balance_info {
+            // panic!("Stake balance query returned None. This should never happen.Stake balance query returned None. This should never happen.");
+            eprintln!("bonding_info: {:?}", bonding_info);
+            eprintln!(
+                "bonding_info.total_stake(): {:?}",
+                bonding_info.total_stake()
+            );
+            eprintln!(
+                "total_locked: {:?}",
+                bonding_info.total_locked(self.env.as_ref().unwrap())
+            );
+            eprintln!(
+                "total_unlocked: {:?}",
+                bonding_info.total_unlocked(self.env.as_ref().unwrap())
+            );
             bonding_info.total_stake()
-                - bonding_info.total_locked(self.env.as_ref().unwrap())
-                - bonding_info.total_unlocked(self.env.as_ref().unwrap())
+            // - bonding_info.total_locked(self.env.as_ref().unwrap())
+            // - bonding_info.total_unlocked(self.env.as_ref().unwrap())
         } else {
-            Uint128::zero()
+            let res: StakedResponse = querier.query_wasm_smart(
+                self.staking_contract_address.clone(),
+                &wyndex_stake::msg::QueryMsg::Staked {
+                    address: staker.to_string(),
+                    unbonding_period,
+                },
+            )?;
+            res.stake
         };
         Ok(StakeResponse { amount })
     }
