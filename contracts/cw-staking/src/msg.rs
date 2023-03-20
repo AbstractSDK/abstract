@@ -47,6 +47,8 @@ pub enum CwStakingAction {
     },
     /// Claim rewards for a given token
     ClaimRewards { staking_token: AssetEntry },
+    /// Claim matured unbonding tokens
+    Claim { staking_token: AssetEntry },
 }
 
 #[cosmwasm_schema::cw_serde]

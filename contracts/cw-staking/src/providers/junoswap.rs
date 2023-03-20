@@ -92,6 +92,10 @@ impl CwStakingAdapter for JunoSwap {
         })])
     }
 
+    fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, StakingError> {
+        Ok(vec![])
+    }
+
     fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, StakingError> {
         let msg = StakeCw20ExecuteMsg::Claim {};
 

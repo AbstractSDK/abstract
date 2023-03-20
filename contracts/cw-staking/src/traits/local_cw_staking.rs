@@ -36,7 +36,10 @@ pub trait LocalCwStaking: AbstractNameService + Execution {
                 staking_token,
                 unbonding_period,
             } => provider.unstake(deps.as_ref(), staking_token.amount, unbonding_period)?,
-            CwStakingAction::ClaimRewards { staking_token: _ } => provider.claim(deps.as_ref())?,
+            CwStakingAction::ClaimRewards { staking_token: _ } => {
+                provider.claim_rewards(deps.as_ref())?
+            }
+            CwStakingAction::Claim { staking_token: _ } => provider.claim(deps.as_ref())?,
         };
 
         self.executor(deps.as_ref())
@@ -52,5 +55,6 @@ fn staking_asset_from_action(action: &CwStakingAction) -> AssetEntry {
         CwStakingAction::Stake { staking_token, .. } => staking_token.name.clone(),
         CwStakingAction::Unstake { staking_token, .. } => staking_token.name.clone(),
         CwStakingAction::ClaimRewards { staking_token } => staking_token.clone(),
+        CwStakingAction::Claim { staking_token } => staking_token.clone(),
     }
 }

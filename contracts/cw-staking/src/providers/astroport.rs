@@ -108,6 +108,10 @@ impl CwStakingAdapter for Astroport {
     }
 
     fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, StakingError> {
+        Ok(vec![])
+    }
+
+    fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, StakingError> {
         let msg = GeneratorExecuteMsg::ClaimRewards {
             lp_tokens: vec![self.lp_token_address.clone().into()],
         };

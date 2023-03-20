@@ -66,6 +66,9 @@ pub trait CwStakingAdapter: Identify {
     /// Claim rewards on the staking contract
     ///
     /// * `deps` - the dependencies
+    fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
+
+    /// Claim matured unbonding claims on the staking contract
     fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
 
     fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse>;
