@@ -25,8 +25,6 @@ use wyndex_stake::{
 
 pub const WYNDEX: &str = "wyndex";
 
-pub const WYND_TOKEN: &str = "juno>wynd";
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WynDex {
     lp_token: LpToken,
