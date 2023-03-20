@@ -12,7 +12,7 @@ pub trait Chargeable {
     /// Charge a fee on the asset and returns the amount charged.
     fn charge_fee(&mut self, fee: Fee) -> AbstractSdkResult<Uint128>;
     /// Charge a fee on the asset and returns the fee transfer message.
-    fn charge_usage_fee(&mut self, fee: UsageFee) -> AbstractSdkResult<CosmosMsg>;
+    fn charge_usage_fee(&mut self, fee: UsageFee) -> AbstractSdkResult<Option<CosmosMsg>>;
 }
 
 impl Chargeable for Asset {
@@ -22,10 +22,16 @@ impl Chargeable for Asset {
         Ok(fee_amount)
     }
 
-    fn charge_usage_fee(&mut self, fee: UsageFee) -> AbstractSdkResult<CosmosMsg> {
+    /// returns a fee message if fee > 0
+    fn charge_usage_fee(&mut self, fee: UsageFee) -> AbstractSdkResult<Option<CosmosMsg>> {
         let fee_amount = fee.compute(self.amount);
+        if fee_amount.is_zero() {
+            return Ok(None);
+        }
         self.amount -= fee_amount;
-        Ok(Asset::new(self.info.clone(), fee_amount).transfer_msg(fee.recipient())?)
+        Ok(Some(
+            Asset::new(self.info.clone(), fee_amount).transfer_msg(fee.recipient())?,
+        ))
     }
 }
 
@@ -61,9 +67,23 @@ mod tests {
         assert_eq!(asset.amount.u128(), 900);
         assert_eq!(
             msg,
-            Asset::new(info, 100u128)
-                .transfer_msg(Addr::unchecked("recipient"))
-                .unwrap()
+            Some(
+                Asset::new(info, 100u128)
+                    .transfer_msg(Addr::unchecked("recipient"))
+                    .unwrap()
+            )
         );
+
+        // test zero fee
+        let fee = UsageFee::new(
+            &MockApi::default(),
+            Decimal::zero(),
+            Addr::unchecked("recipient"),
+        )
+        .unwrap();
+
+        let msg = asset.charge_usage_fee(fee).unwrap();
+        assert_eq!(asset.amount.u128(), 900);
+        assert_eq!(msg, None);
     }
 }
