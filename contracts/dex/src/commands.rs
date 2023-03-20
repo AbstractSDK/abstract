@@ -131,7 +131,9 @@ pub trait LocalDex: AbstractNameService + Execution {
             belief_price,
             max_spread,
         )?;
-        swap_msgs.push(fee_msg);
+        // insert fee msg
+        fee_msg.map(|f|swap_msgs.push(f));
+
         Ok(swap_msgs)
     }
 
