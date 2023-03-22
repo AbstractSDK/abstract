@@ -39,7 +39,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
         set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
         migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
     }
-    Ok(Response::default())
+    Ok(ManagerResponse::action("migrate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -88,7 +88,10 @@ pub fn instantiate(
     ROOT.set(deps.branch(), Some(root))?;
     STATUS.save(deps.storage, &true)?;
     OS_FACTORY.set(deps, Some(info.sender))?;
-    Ok(Response::new())
+    Ok(ManagerResponse::new(
+        "instantiate",
+        vec![("os_id", msg.os_id.to_string()), ("owner", msg.root_user)],
+    ))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
