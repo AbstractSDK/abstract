@@ -10,7 +10,7 @@ use abstract_os::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use boot_core::{BootError, BootUpload, ContractInstance, Deploy, Mock, StateInterface};
+use boot_core::{BootError, BootUpload, ContractInstance, Deploy, Mock, StateInterface, CallAs};
 use boot_cw_plus::Cw20;
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use wyndex::{
@@ -240,7 +240,7 @@ impl Deploy<Mock> for WynDex {
         state.set_address(RAW_EUR_PAIR, &raw_eur_pair);
 
         // set allowance
-        raw.increase_allowance(&raw_eur_pair, 10_000u128, None)?;
+        raw.call_as(&owner).increase_allowance(&raw_eur_pair, 10_000u128, None)?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
