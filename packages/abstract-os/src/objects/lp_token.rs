@@ -21,9 +21,15 @@ pub struct LpToken {
 
 impl LpToken {
     pub fn new<T: ToString, U: Into<AssetEntry> + Clone>(dex_name: T, assets: Vec<U>) -> Self {
+        let mut assets = assets
+            .into_iter()
+            .map(|a| a.into())
+            .collect::<Vec<AssetEntry>>();
+        // sort the asset name
+        assets.sort_unstable();
         Self {
             dex: dex_name.to_string(),
-            assets: assets.into_iter().map(|a| Into::into(a)).collect(),
+            assets,
         }
     }
 }
@@ -45,10 +51,13 @@ impl TryFrom<AssetEntry> for LpToken {
         let dex_name = segments[0].to_string();
 
         // get the assets, like "crab,junox" and split them
-        let assets: Vec<AssetEntry> = segments[1]
+        let mut assets: Vec<AssetEntry> = segments[1]
             .split(ASSET_DELIMITER)
             .map(AssetEntry::from)
             .collect();
+
+        // sort the assets on name
+        assets.sort_unstable();
 
         if assets.len() < 2 {
             return Err(StdError::generic_err(format!(
@@ -104,9 +113,9 @@ mod test {
         #[test]
         fn new_works() {
             let dex_name = "junoswap";
-            let assets = vec![AssetEntry::from("crab"), AssetEntry::from("junox")];
+            let mut assets = vec![AssetEntry::from("junox"), AssetEntry::from("crab")];
             let actual = LpToken::new(dex_name, assets.clone());
-
+            assets.sort();
             let expected = LpToken {
                 dex: dex_name.to_string(),
                 assets,
