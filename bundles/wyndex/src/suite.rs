@@ -598,7 +598,7 @@ impl Suite {
         let amount = self
             .app()
             .wrap()
-            .query_balance(&Addr::unchecked(sender), denom)?
+            .query_balance(Addr::unchecked(sender), denom)?
             .amount;
         Ok(amount.into())
     }
