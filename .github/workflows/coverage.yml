@@ -8,7 +8,7 @@ env:
 jobs:
   check_changes:
     name: Check for Rust changes
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     container:
       image: rust:latest
     outputs:
@@ -38,7 +38,7 @@ jobs:
   test:
     name: coverage
     if: ${{ needs.check_changes.outputs.rust_changes == 'true' }}
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: check_changes
     container:
       image: xd009642/tarpaulin:develop-nightly
