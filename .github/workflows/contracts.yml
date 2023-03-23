@@ -23,7 +23,6 @@ jobs:
   check_changes:
     name: Check for Rust changes
     runs-on: self-hosted
-    # TODO: different image?
     container:
       image: rust:latest
     outputs:
@@ -121,8 +120,6 @@ jobs:
     name: Features
     # needs: compile
     runs-on: self-hosted
-    container:
-        image: rust:nightly
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
