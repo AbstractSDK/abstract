@@ -32,7 +32,7 @@ jobs:
           tag_exists_error: false
         # Push the created tag to the repository
       - name: Push tag to repository
-        if : ${{ github.event.inputs.manual_version }}
+        if : ${{ github.event.inputs.manual_version && !env.TAG_EXISTS }}
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
