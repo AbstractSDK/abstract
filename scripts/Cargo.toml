@@ -3,6 +3,8 @@ name = "abstract-boot-scripts"
 version = { workspace = true }
 edition = { workspace = true }
 
+[lib]
+
 
 [dependencies]
 cosmwasm-std = { workspace = true }
