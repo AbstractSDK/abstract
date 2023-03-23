@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+
+env: 
+  CODECOV_TOKEN: 7f09ca79-34d7-4a5a-b6fd-b3b477a7b2e9
+
 name: test
 jobs:
   required:
