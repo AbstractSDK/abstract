@@ -120,6 +120,8 @@ jobs:
     name: Features
     # needs: compile
     runs-on: self-hosted
+    container:
+        image: rust:latest
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
