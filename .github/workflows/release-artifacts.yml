@@ -5,33 +5,47 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. v1.0, v20.15.10
       - "v[0-9]+.[0-9]+.[0-9]+-rc*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
       - "v[0-9]+.[0-9]+.[0-9]+-beta*" # Push events to matching v*, i.e. v1.0-rc1, v20.15.10-rc5
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      manual_version:
-        description: Specify a version to release
-        type: string
-        default: "v0.0.0"
-        required: false
 
 
 jobs:
+  # # tries to create a tag, fails if it already exists
+  # create-tag: 
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     tag: ${{ steps.tag_create.outputs.tag }}
+  #     tag_exists: ${{ steps.check_tag_exists.outputs.tag_exists }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     # Check if the tag already exists
+  #     - name: Check if tag exists
+  #       id: check_tag_exists
+  #       env:
+  #         TAG: ${{ github.event.inputs.manual_version }}
+  #       run: |
+  #         echo "{tag_exists}={$(git tag --list | grep -q "^${{ env.TAG }}$" && echo true || echo false)} >> $GITHUB_OUTPUT"
+  #     # Create tag if manually triggered and tag doesn't exist
+  #     - uses: rickstaa/action-create-tag@v1
+  #       if: ${{ github.event.inputs.manual_version && steps.check_tag_exists.outputs.tag_exists == 'false' }}
+  #       id: "tag_create"
+  #       with:
+  #         tag: ${{ github.event.inputs.manual_version }}
+  #     # Push the created tag to the repository
+  #     # - name: Push tag to repository
+  #     #   if: ${{ github.event.inputs.manual_version && steps.check_tag_exists.outputs.tag_exists == 'false' }}
+  #     #   run: |
+  #     #     git config --global user.name "GitHub Actions Bot"
+  #     #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+  #     #     git push --tags
+
+  # Checks out the tag which is either created by the create-tag job or already exists
   release-artifacts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
       - name: Install latest stable
         uses: ATiltedTree/setup-rust@v1
         with:
           rust-version: stable
-          # components: rustfmt, clippy
-      # https://docs.docker.com/build/ci/github-actions/configure-builder/#ssh-authentication
-      - name: Print ssh thing
-        run: |
-          echo ${{ env.SSH_AUTH_SOCK }}
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Generate Cargo.lock
@@ -42,7 +56,7 @@ jobs:
           docker run --rm -v "$(pwd)":/code \
           --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
           --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-          abstractos/workspace-optimizer:0.12.10
+          cosmwasm/workspace-optimizer:0.12.12
           tar -zcvf cosmwasm-artifacts.tar.gz artifacts
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -52,63 +66,61 @@ jobs:
             *.wasm
           body_path: CHANGELOG.md
 
-  publish-schemas:
-    runs-on: ubuntu-latest
-    #    container:
-    #      image: ubuntu:latest
-    env:
-      NAMESPACE: abstract
-      GH_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-    strategy:
-      matrix:
-        package: [ etf ]
-    #        package: [ etf, dex, proxy, tendermint-staking ]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: ${{ secrets.ABSTRACT_SSH_PRIVATE_KEY }}
-      - name: Install latest stable
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: stable
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Generate the schemas for ${{ matrix.package }}
-        run: |
-          cargo schema --package ${{ matrix.package }}
+  # publish-schemas:
+  #   runs-on: ubuntu-latest
+  #   #    container:
+  #   #      image: ubuntu:latest
+  #   env:
+  #     NAMESPACE: abstract
+  #     GH_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+  #   strategy:
+  #     matrix:
+  #       package: [ etf ]
+  #   #        package: [ etf, dex, proxy, tendermint-staking ]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Get latest tag
-        id: get-latest-tag
-        uses: "WyriHaximus/github-action-get-previous-tag@v1"
-        with:
-          fallback: ${{ github.event.inputs.manual_version }}
-      - uses: actions/github-script@v6
-        env:
-          LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
-        id: get-latest-without-v
-        with:
-          script: |
-            const tag = process.env.LATEST_TAG
-            const tagWithoutV = tag.replace('v', '')
-            return tagWithoutV
-          result-encoding: string
+  #     - name: Install latest stable
+  #       uses: ATiltedTree/setup-rust@v1
+  #       with:
+  #         rust-version: stable
+  #     - name: Setup Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     - name: Generate the schemas for ${{ matrix.package }}
+  #       run: |
+  #         cargo schema --package ${{ matrix.package }}
 
-      - name: Create pull request
-        uses: car-on-sale/action-pull-request-another-repo@v1.3.0
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-          LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
-        with:
-          source_folder: 'schema/'
-          destination_repo: 'Abstract-OS/schemas'
-          destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
-          destination_base_branch: mainline
-          destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}/${{ github.sha }}
-          user_email: '32375605+adairrr@users.noreply.github.com'
-          user_name: 'adairrr'
-          pull_request_reviewers: 'adairrr'
-          commit_msg: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
-          pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
+  #     - name: Get latest tag
+  #       id: get-latest-tag
+  #       uses: "WyriHaximus/github-action-get-previous-tag@v1"
+  #       with:
+  #         fallback: ${{ github.event.inputs.manual_version }}
+  #     - uses: actions/github-script@v6
+  #       env:
+  #         LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
+  #       id: get-latest-without-v
+  #       with:
+  #         script: |
+  #           const tag = process.env.LATEST_TAG
+  #           const tagWithoutV = tag.replace('v', '')
+  #           return tagWithoutV
+  #         result-encoding: string
+
+  #     - name: Create pull request
+  #       uses: car-on-sale/action-pull-request-another-repo@v1.3.0
+  #       env:
+  #         API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+  #         LATEST_VERSION: ${{ steps.get-latest-without-v.outputs.result }}
+  #       with:
+  #         source_folder: 'schema/'
+  #         destination_repo: 'Abstract-OS/schemas'
+  #         destination_folder: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}
+  #         destination_base_branch: mainline
+  #         destination_head_branch: ${{ env.NAMESPACE }}/${{ matrix.package }}/${{ env.LATEST_VERSION }}/${{ github.sha }}
+  #         user_email: '32375605+adairrr@users.noreply.github.com'
+  #         user_name: 'adairrr'
+  #         pull_request_reviewers: 'adairrr'
+  #         commit_msg: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
+  #         pr_title: 'Update ${{ env.NAMESPACE }}:${{ matrix.package }} to ${{ env.LATEST_VERSION }}'
