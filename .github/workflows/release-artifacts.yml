@@ -28,15 +28,15 @@ jobs:
         if : ${{ github.event.inputs.manual_version }}
         id: "tag_create"
         with:
-          tag: ${{ github.event.inputs.manual_version }}
           tag_exists_error: false
+          tag: ${{ github.event.inputs.manual_version }}
         # Push the created tag to the repository
-      - name: Push tag to repository
-        if : ${{ github.event.inputs.manual_version && !env.TAG_EXISTS }}
-        run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git push --tags
+      # - name: Push tag to repository
+      #   if : ${{ github.event.inputs.manual_version && !env.TAG_EXISTS }}
+      #   run: |
+      #     git config --global user.name "GitHub Actions Bot"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git push --tags
 
   # Checks out the tag which is either created by the create-tag job or already exists
   release-artifacts:
