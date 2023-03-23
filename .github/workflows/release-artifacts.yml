@@ -29,8 +29,8 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Install Git
         run: |
-          apt-get update
-          apt-get install -y git
+          sudo apt-get update
+          sudo apt-get install -y git
       - name: Generate Cargo.lock
         run: |
           cargo fetch --verbose
