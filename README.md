@@ -47,22 +47,3 @@ SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
 VERSION=0.4.0 \
   cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; echo $outdir; mkdir -p "$outdir"; cp -a "schema/." "$outdir"; }'
   ```
-
-# Contract Migrate Ability
-
-Migratable contracts are always a security risk. Therefore we'll outline all the migratable contracts and who's allowed
-to do it here.
-
-## Migratable
-
-- Manager (root)
-- Proxy (root)
-- Add-ons (root)
-- OS Factory (Abstract)
-- Module Factory (Abstract)
-- Version Control (Abstract)
-- AnsHost
-
-## Not Migratable
-
-- Apis
