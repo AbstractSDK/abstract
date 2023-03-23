@@ -14,9 +14,10 @@ on:
         default: "v0.0.0"
         required: false
 
+
 jobs:
   release-artifacts:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -45,7 +46,7 @@ jobs:
           body_path: CHANGELOG.md
 
   publish-schemas:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     #    container:
     #      image: ubuntu:latest
     env:
