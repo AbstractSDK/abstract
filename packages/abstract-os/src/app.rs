@@ -17,6 +17,7 @@ pub type MigrateMsg<AppMsg = Empty> = EndpointMigrateMsg<BaseMigrateMsg, AppMsg>
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
+#[allow(unused_imports)]
 use cw_controllers::AdminResponse;
 use serde::Serialize;
 
