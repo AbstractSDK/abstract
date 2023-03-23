@@ -30,7 +30,7 @@ jobs:
         env:
           TAG: ${{ github.event.inputs.manual_version }}
         run: |
-          echo "::set-output name=tag_exists::$(git tag --list | grep -q "^${{ env.TAG }}$" && echo true || echo false)"
+          echo "{tag_exists}={$(git tag --list | grep -q "^${{ env.TAG }}$" && echo true || echo false)} >> $GITHUB_OUTPUT"
       # Create tag if manually triggered and tag doesn't exist
       - uses: rickstaa/action-create-tag@v1
         if: ${{ github.event.inputs.manual_version && steps.check_tag_exists.outputs.tag_exists == 'false' }}
