@@ -36,6 +36,12 @@ jobs:
           --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
           cosmwasm/workspace-optimizer:0.12.12
           tar -zcvf cosmwasm-artifacts.tar.gz artifacts
+      # Create tag if manually triggered
+      - uses: rickstaa/action-create-tag@v1
+        if : ${{ github.event.inputs.manual_version }}
+        id: "tag_create"
+        with:
+          tag: ${{ github.event.inputs.manual_version }}
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
