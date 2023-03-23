@@ -16,9 +16,17 @@ ignore:
   - "tests"
   - "**/examples"
   - "**/schema.rs"
+  - "scripts"
+  - "packages/abstract-boot"
+  - "packages/abstract-testing"
+  # Ignore token implementation
+  - "contracts/token"
+  # Ignore protobuf generated files
+  - "contracts/native/module-factory/src/response.rs"
+  - "contracts/native/os-factory/src/response.rs"
 
 
 # Make comments less noisy
 comment:
   layout: "files"
-  require_changes: yes
+  require_changes: true
