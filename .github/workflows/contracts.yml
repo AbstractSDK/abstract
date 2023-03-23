@@ -119,17 +119,15 @@ jobs:
   # Run with all features enabled
   features:
     name: Features
-    needs: compile
+    # needs: compile
     runs-on: self-hosted
     container:
         image: rust:nightly
     steps:
       - name: Setup | Checkout
         uses: actions/checkout@v3
-      - name: Setup | Rust
-        uses: ATiltedTree/setup-rust@v1
-        with:
-          rust-version: nightly
+      - name: Install nightly
+        uses: dtolnay/rust-toolchain@nightly
       - name: Build | Compile
-        run: cargo +nightly check --all-features 
+        run: cargo check --all-features 
 
