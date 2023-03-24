@@ -11,7 +11,7 @@ use cosmwasm_std::{Deps, Uint128};
 
 use os::{
     objects::oracle::AccountValue,
-    proxy::{BaseAssetResponse, TokenValueResponse},
+    proxy::{BaseAssetResponse, TokenValueResponse, AssetsInfoResponse},
 };
 
 /// Retrieve asset-registration information from the OS.
@@ -70,41 +70,21 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         Ok(response)
     }
 
-    // List ProxyAssets smart
-    // pub fn enabled_assets_list(&self) -> AbstractSdkResult<(Vec<AssetInfo>, AssetInfo)> {
-    //     let querier = self.deps.querier;
-    //     let proxy_address = self.base.proxy_address(self.deps)?;
+    /// List enabled assets (AssetInfos)
+    pub fn assets_list(&self) -> AbstractSdkResult<AssetsInfoResponse> {
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
 
-    //     let mut asset_keys = vec![];
-    //     let mut base_asset: Option<AssetInfo> = None;
-    //     let mut resp: AssetsResponse = querier.query_wasm_smart(
-    //         &proxy_address,
-    //         &QueryMsg::Assets {
-    //             start_after: None,
-    //             limit: None,
-    //         },
-    //     )?;
-    //     while !resp.assets.is_empty() {
-    //         let start_after = resp.assets.last().unwrap().0.clone();
-    //         for (k, v) in resp.assets {
-    //             match v.price_source {
-    //                 PriceSource::None => {
-    //                 base_asset = Some(v.asset.clone());
-    //             },
-    //             _ => {}
-    //         }
-    //             asset_keys.push(k);
-    //         }
-    //         resp = querier.query_wasm_smart(
-    //             &proxy_address,
-    //             &QueryMsg::Assets {
-    //                 start_after: Some(start_after.to_string()),
-    //                 limit: None,
-    //             },
-    //         )?;
-    //     }
-    //     Ok((asset_keys, base_asset.unwrap()))
-    // }
+        let resp: AssetsInfoResponse = querier.query_wasm_smart(
+            &proxy_address,
+            &QueryMsg::AssetsInfo {
+                start_after: None,
+                limit: None,
+            },
+        )?;
+        
+        Ok(resp)
+    }
 
     // /// List ProxyAssets raw
     // pub fn proxy_assets_list(&self) -> AbstractSdkResult<Vec<(AssetEntry, ProxyAsset)>> {
