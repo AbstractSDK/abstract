@@ -11,7 +11,7 @@ use cosmwasm_std::{Deps, Uint128};
 
 use os::{
     objects::oracle::AccountValue,
-    proxy::{BaseAssetResponse, TokenValueResponse, AssetsInfoResponse},
+    proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
 };
 
 /// Retrieve asset-registration information from the OS.
@@ -82,7 +82,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
                 limit: None,
             },
         )?;
-        
+
         Ok(resp)
     }
 
