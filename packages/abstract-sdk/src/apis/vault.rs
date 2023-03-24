@@ -10,7 +10,7 @@ use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
 use os::{
-    objects::oracle::AccountValue,
+    objects::oracle::{AccountValue, self},
     proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
 };
 
@@ -79,7 +79,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
             proxy_address,
             &QueryMsg::AssetsInfo {
                 start_after: None,
-                limit: None,
+                limit: Some(oracle::LIST_SIZE_LIMIT),
             },
         )?;
 
