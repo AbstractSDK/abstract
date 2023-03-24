@@ -15,9 +15,8 @@ use super::{
 
 pub type Complexity = u8;
 
-const LIST_SIZE_LIMIT: usize = 15;
+pub const LIST_SIZE_LIMIT: u8 = 15;
 const DEFAULT_PAGE_LIMIT: u8 = 5;
-const MAX_PAGE_LIMIT: u8 = 20;
 
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
@@ -407,7 +406,7 @@ impl<'a> Oracle<'a> {
         last_asset: Option<AssetInfo>,
         limit: Option<u8>,
     ) -> AbstractResult<Vec<(AssetInfo, (PriceSource, Complexity))>> {
-        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
         let res: Result<Vec<(AssetInfo, (PriceSource, Complexity))>, _> = self
@@ -426,7 +425,7 @@ impl<'a> Oracle<'a> {
         last_asset: Option<AssetEntry>,
         limit: Option<u8>,
     ) -> AbstractResult<Vec<(AssetEntry, UncheckedPriceSource)>> {
-        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
         let res: Result<Vec<(AssetEntry, UncheckedPriceSource)>, _> = self
