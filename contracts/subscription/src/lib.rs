@@ -12,10 +12,10 @@ pub mod boot {
     use crate::msg::*;
     use abstract_boot::AppDeployer;
     use abstract_os::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
+    use boot_core::ContractWrapper;
     use boot_core::{boot_contract, BootEnvironment, Contract};
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
-    use boot_core::ContractWrapper;
     use std::str::FromStr;
 
     #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
