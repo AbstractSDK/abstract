@@ -10,7 +10,7 @@ use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
 use os::{
-    objects::oracle::{AccountValue, self},
+    objects::oracle::{self, AccountValue},
     proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
 };
 
