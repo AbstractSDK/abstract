@@ -15,7 +15,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-boot = ["dep:boot-core","dep:abstract-boot"]
+boot = ["export","dep:boot-core","dep:abstract-boot"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
