@@ -76,7 +76,7 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         let proxy_address = self.base.proxy_address(self.deps)?;
 
         let resp: AssetsInfoResponse = querier.query_wasm_smart(
-            &proxy_address,
+            proxy_address,
             &QueryMsg::AssetsInfo {
                 start_after: None,
                 limit: None,
