@@ -5,7 +5,7 @@ pub mod msg;
 pub mod response;
 pub mod state;
 
-pub const ETF: &str = "abstract:etf";
+pub const ETF_ID: &str = "abstract:etf";
 
 #[cfg(feature = "boot")]
 pub mod boot {

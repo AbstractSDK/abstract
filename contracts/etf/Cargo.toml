@@ -1,5 +1,5 @@
 [package]
-name = "etf"
+name = "abstract-etf"
 version = {workspace = true}
 authors = {workspace = true}
 edition = {workspace = true}
@@ -15,7 +15,6 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-
 boot = ["export","dep:abstract-boot","dep:boot-core"]
 
 [dependencies]
@@ -39,3 +38,12 @@ abstract-boot = { workspace = true , optional = true }
 
 [dev-dependencies]
 cw20 = {workspace = true}
+abstract-etf = { path = ".", features = ["boot"] }
+wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git", branch = "main" }
+dex = { git = "https://github.com/Abstract-OS/apis.git", features = ["juno", "boot"] }
+cw-staking = { git = "https://github.com/Abstract-OS/apis.git", features = ["juno", "boot"] }
+abstract-boot = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+boot-cw-plus = { workspace = true }
+anyhow = {workspace = true}
+speculoos = {workspace = true}

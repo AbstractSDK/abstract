@@ -7,7 +7,7 @@ use cw_storage_plus::Item;
 #[cosmwasm_schema::cw_serde]
 pub struct State {
     pub liquidity_token_addr: Addr,
-    pub provider_addr: Addr,
+    pub manager_addr: Addr,
 }
 
 pub const STATE: Item<State> = Item::new("\u{0}{5}state");

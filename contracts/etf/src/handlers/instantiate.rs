@@ -1,4 +1,3 @@
-use crate::contract::INSTANTIATE_REPLY_ID;
 use crate::contract::{EtfApp, EtfResult, DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL};
 use crate::msg::EtfInstantiateMsg;
 use crate::state::{State, FEE, STATE};
@@ -9,6 +8,8 @@ use cosmwasm_std::{
 use cw20::MinterResponse;
 use cw20_base::msg::InstantiateMsg as TokenInstantiateMsg;
 
+pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
+
 pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
@@ -18,7 +19,7 @@ pub fn instantiate_handler(
 ) -> EtfResult {
     let state: State = State {
         liquidity_token_addr: Addr::unchecked(""),
-        provider_addr: deps.api.addr_validate(msg.provider_addr.as_str())?,
+        manager_addr: deps.api.addr_validate(msg.manager_addr.as_str())?,
     };
 
     let lp_token_name: String = msg
@@ -38,7 +39,7 @@ pub fn instantiate_handler(
             admin: None,
             code_id: msg.token_code_id,
             msg: to_binary(&TokenInstantiateMsg {
-                name: lp_token_name,
+                name: lp_token_name.clone(),
                 symbol: lp_token_symbol,
                 decimals: 6,
                 initial_balances: vec![],
@@ -49,7 +50,7 @@ pub fn instantiate_handler(
                 marketing: None,
             })?,
             funds: vec![],
-            label: "White Whale Vault LP".to_string(),
+            label: format!("Abstract ETF Shares: {}", lp_token_name),
         }
         .into(),
         gas_limit: None,

@@ -28,7 +28,8 @@ pub fn receive_cw20(
                     token: msg_info.sender.to_string(),
                 });
             }
-            execute::try_withdraw_liquidity(deps, env, dapp, cw20_msg.sender, cw20_msg.amount)
+            let sender = deps.as_ref().api.addr_validate(&cw20_msg.sender)?;
+            execute::try_withdraw_liquidity(deps, env, dapp, sender, cw20_msg.amount)
         }
         DepositHookMsg::ProvideLiquidity {} => {
             // Construct deposit asset

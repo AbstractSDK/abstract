@@ -16,7 +16,7 @@
 //!                deposit_asset: "juno".to_string(),
 //!                base: BaseInstantiateMsg{ans_host_address: "juno1...".to_string()},
 //!                fee: Decimal::percent(10),
-//!                provider_addr: "juno1...".to_string(),
+//!                manager_addr: "juno1...".to_string(),
 //!                token_code_id: 3,
 //!                etf_lp_token_name: Some("demo_etf".to_string()),
 //!                etf_lp_token_symbol: Some("DEMO".to_string()),
@@ -55,8 +55,8 @@ pub struct EtfInstantiateMsg {
     pub token_code_id: u64,
     /// Fee charged on withdrawal
     pub fee: Decimal,
-    /// Address of the service provider which receives the fee.
-    pub provider_addr: String,
+    /// Address of the ETFs manager which receives the fee.
+    pub manager_addr: String,
     /// Name of the etf token
     pub token_name: Option<String>,
     /// Symbol of the etf token
