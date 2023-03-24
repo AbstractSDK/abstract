@@ -9,7 +9,7 @@ use crate::{
 use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
-use os::{objects::oracle::AccountValue, proxy::TokenValueResponse};
+use os::{objects::oracle::AccountValue, proxy::{TokenValueResponse, BaseAssetResponse}};
 
 /// Retrieve asset-registration information from the OS.
 /// Query asset values and balances.
@@ -53,6 +53,18 @@ impl<'a, T: VaultInterface> Vault<'a, T> {
         )?)?;
 
         Ok(response.value)
+    }
+
+    /// Return the proxy's base asset
+    pub fn base_asset(&self) -> AbstractSdkResult<BaseAssetResponse> {
+        let querier = self.deps.querier;
+        let proxy_address = self.base.proxy_address(self.deps)?;
+        let response: BaseAssetResponse = querier.query(&wasm_smart_query(
+            proxy_address.to_string(),
+            &QueryMsg::BaseAsset {},
+        )?)?;
+
+        Ok(response)
     }
 
     // List ProxyAssets smart
