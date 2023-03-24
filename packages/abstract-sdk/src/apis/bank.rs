@@ -136,7 +136,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 }
 
 /// Transfer an asset into an actual transferable asset.
-pub trait Transferable: Resolve {
+pub trait Transferable {
     fn transferable_asset<T: AbstractNameService>(
         self,
         base: &T,
@@ -171,6 +171,16 @@ impl Transferable for Asset {
         _deps: Deps,
     ) -> AbstractSdkResult<Asset> {
         Ok(self)
+    }
+}
+
+impl Transferable for Coin {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        _base: &T,
+        _deps: Deps,
+    ) -> AbstractSdkResult<Asset> {
+        Ok(Asset::from(self))
     }
 }
 
