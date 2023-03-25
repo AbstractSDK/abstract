@@ -11,17 +11,17 @@ pub fn instantiate_reply(deps: DepsMut, _env: Env, etf: EtfApp, reply: Reply) ->
         Message::parse_from_bytes(data.as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-    let liquidity_token = res.get_contract_address();
+    let share_token_address = res.get_contract_address();
 
     let api = deps.api;
     STATE.update(deps.storage, |mut meta| -> StdResult<_> {
-        meta.liquidity_token_addr = api.addr_validate(liquidity_token)?;
+        meta.share_token_address = api.addr_validate(share_token_address)?;
         Ok(meta)
     })?;
 
     Ok(etf.custom_tag_response(
         Response::default(),
         "instantiate_reply",
-        vec![("liquidity_token_addr", liquidity_token)],
+        vec![("share_token_address", share_token_address)],
     ))
 }

@@ -18,7 +18,7 @@ pub fn instantiate_handler(
     msg: EtfInstantiateMsg,
 ) -> EtfResult {
     let state: State = State {
-        liquidity_token_addr: Addr::unchecked(""),
+        share_token_address: Addr::unchecked(""),
         manager_addr: deps.api.addr_validate(msg.manager_addr.as_str())?,
     };
 

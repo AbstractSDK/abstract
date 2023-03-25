@@ -26,7 +26,7 @@ pub fn execute_handler(
     msg: EtfExecuteMsg,
 ) -> EtfResult {
     match msg {
-        EtfExecuteMsg::ProvideLiquidity { asset } => {
+        EtfExecuteMsg::Deposit { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
             try_provide_liquidity(deps, info, vault, asset, None)
@@ -92,7 +92,7 @@ pub fn try_provide_liquidity(
     let account_value = vault.query_total_value()?;
     let total_value = account_value.total_value.amount;
     // Get total supply of LP tokens and calculate share
-    let total_share = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
+    let total_share = query_supply(&deps.querier, state.share_token_address.clone())?;
 
     let share = if total_share == Uint128::zero() || total_value.is_zero() {
         // Initial share = deposit amount
@@ -108,7 +108,7 @@ pub fn try_provide_liquidity(
 
     // mint LP token to liq_manager
     let mint_lp = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: state.liquidity_token_addr.to_string(),
+        contract_addr: state.share_token_address.to_string(),
         msg: to_binary(&Cw20ExecuteMsg::Mint {
             recipient: liq_manager.to_string(),
             amount: share,
@@ -147,7 +147,7 @@ pub fn try_withdraw_liquidity(
     let mut attrs = vec![("liquidity_tokens", amount.to_string())];
 
     // Calculate share of pool and requested pool value
-    let total_share: Uint128 = query_supply(&deps.querier, state.liquidity_token_addr.clone())?;
+    let total_share: Uint128 = query_supply(&deps.querier, state.share_token_address.clone())?;
 
     // Get manager fee in LP tokens
     let manager_fee = fee.compute(amount);
@@ -159,7 +159,7 @@ pub fn try_withdraw_liquidity(
     if !manager_fee.is_zero() {
         // LP token fee
         let lp_token_manager_fee = Asset {
-            info: AssetInfo::Cw20(state.liquidity_token_addr.clone()),
+            info: AssetInfo::Cw20(state.share_token_address.clone()),
             amount: manager_fee,
         };
         // Construct manager fee msg
@@ -186,7 +186,7 @@ pub fn try_withdraw_liquidity(
 
     // LP burn msg
     let burn_msg: CosmosMsg = wasm_execute(
-        state.liquidity_token_addr,
+        state.share_token_address,
         // Burn exludes fee
         &Cw20ExecuteMsg::Burn {
             amount: (amount - manager_fee),

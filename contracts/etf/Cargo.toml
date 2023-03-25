@@ -45,5 +45,6 @@ cw-staking = { git = "https://github.com/Abstract-OS/apis.git", features = ["jun
 abstract-boot = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 boot-cw-plus = { workspace = true }
+semver = {workspace = true}
 anyhow = {workspace = true}
 speculoos = {workspace = true}

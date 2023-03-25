@@ -1,6 +1,6 @@
+use abstract_etf::contract::EtfApp;
+use abstract_etf::msg::StateResponse;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use etf::contract::EtfApp;
-use etf::msg::StateResponse;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 

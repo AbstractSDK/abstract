@@ -15,7 +15,7 @@ pub mod boot {
     use boot_core::ContractWrapper;
     use boot_core::{boot_contract, BootEnvironment, Contract};
 
-    #[boot_contract(EtfInstantiateMsg, EtfExecuteMsg, EtfQueryMsg, MigrateMsg)]
+    #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
     pub struct ETF<Chain>;
 
     impl<Chain: BootEnvironment> AppDeployer<Chain> for ETF<Chain> {}
@@ -28,7 +28,8 @@ pub mod boot {
                     crate::contract::execute,
                     crate::contract::instantiate,
                     crate::contract::query,
-                ),
+                )
+                .with_reply(crate::contract::reply),
             ));
             Self(contract)
         }

@@ -1,7 +1,7 @@
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::EtfError;
 use crate::handlers::execute;
-use crate::msg::DepositHookMsg;
+use crate::msg::Cw20HookMsg;
 use crate::state::{State, STATE};
 use cosmwasm_std::from_binary;
 use cosmwasm_std::DepsMut;
@@ -21,9 +21,9 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> EtfResult {
     match from_binary(&cw20_msg.msg)? {
-        DepositHookMsg::WithdrawLiquidity {} => {
+        Cw20HookMsg::Claim {} => {
             let state: State = STATE.load(deps.storage)?;
-            if msg_info.sender != state.liquidity_token_addr {
+            if msg_info.sender != state.share_token_address {
                 return Err(EtfError::NotLPToken {
                     token: msg_info.sender.to_string(),
                 });
@@ -31,7 +31,7 @@ pub fn receive_cw20(
             let sender = deps.as_ref().api.addr_validate(&cw20_msg.sender)?;
             execute::try_withdraw_liquidity(deps, env, dapp, sender, cw20_msg.amount)
         }
-        DepositHookMsg::ProvideLiquidity {} => {
+        Cw20HookMsg::Deposit {} => {
             // Construct deposit asset
             let asset = Asset {
                 info: AssetInfo::Cw20(msg_info.sender.clone()),

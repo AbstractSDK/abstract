@@ -6,7 +6,7 @@ use cw_storage_plus::Item;
 /// BaseState is initialized in contract
 #[cosmwasm_schema::cw_serde]
 pub struct State {
-    pub liquidity_token_addr: Addr,
+    pub share_token_address: Addr,
     pub manager_addr: Addr,
 }
 

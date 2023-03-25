@@ -41,8 +41,10 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
 
+pub type InstantiateMsg = app::InstantiateMsg<EtfInstantiateMsg>;
 pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;
+pub type MigrateMsg = app::MigrateMsg;
 
 impl app::AppExecuteMsg for EtfExecuteMsg {}
 
@@ -67,8 +69,9 @@ pub struct EtfInstantiateMsg {
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 #[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum EtfExecuteMsg {
-    /// Provide liquidity to the attached proxy using a native token.
-    ProvideLiquidity { asset: AssetUnchecked },
+    /// Deposit asset into the ETF
+    #[cfg_attr(feature = "boot", payable)]
+    Deposit { asset: AssetUnchecked },
     /// Set the withdraw fee
     SetFee { fee: Decimal },
 }
@@ -85,13 +88,13 @@ pub enum EtfQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum DepositHookMsg {
-    WithdrawLiquidity {},
-    ProvideLiquidity {},
+pub enum Cw20HookMsg {
+    Deposit {},
+    Claim {},
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
-    pub liquidity_token: String,
+    pub share_token_address: String,
     pub fee: Decimal,
 }
