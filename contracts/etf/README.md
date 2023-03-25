@@ -1,6 +1,5 @@
-# Vault Pooling Dapp
+# ETF dApp
 
-This dApp is used for locking and claiming assets held in another contract.
+This dApp is used for buying shares in a portfolio Abstract Account. The owner of the account has permissions to manage the asset allocations. By holding the shares the owner has the right to receive a share of the portfolio's assets, in proportion to the number of shares held.
 
-# Tests
-The test cases covered by this dapp are located in [the README file under src/tests/](src/tests/README.md).
+This App could be used to create a Cosmos version of the [Enzyme Finance](https://enzyme.finance/) protocol.
