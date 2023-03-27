@@ -27,7 +27,7 @@ pub fn os_store_as_expected(
                 &version_control::QueryMsg::OsCore { account_id },
             )
             .unwrap();
-        if core.account.ne(os_store.get(&account_id).unwrap()) {
+        if account_base.account.ne(os_store.get(&account_id).unwrap()) {
             return false;
         }
     }

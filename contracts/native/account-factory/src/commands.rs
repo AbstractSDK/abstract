@@ -213,7 +213,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let proxy_address = res.get_contract_address();
 
     // construct Account base
-    let core = AccountBase {
+    let account_base = AccountBase {
         manager: context.os_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
@@ -224,7 +224,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
             account_id: config.next_acct_id,
-            base: core,
+            base: account_base,
         })?,
     });
 
@@ -337,7 +337,7 @@ pub fn execute_update_config(
 //     sub_addr: &Addr,
 // ) -> Result<(), OsFactoryError> {
 //     if let Some(received_payment) = maybe_received_payment {
-//         // Forward payment to subscription module and registers the OS
+//         // Forward payment to subscription module and registers the Account
 //         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
 //             AssetInfoBase::Cw20(_) => received_payment.send_msg(
 //                 sub_addr,

@@ -139,7 +139,7 @@ mod tests {
         use super::*;
         use cosmwasm_std::testing::mock_dependencies;
 
-        fn test_core() -> AccountBase {
+        fn test_account_base() -> AccountBase {
             AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
@@ -149,11 +149,11 @@ mod tests {
         #[test]
         fn test_proxy_address() {
             let address = Addr::unchecked(TEST_PROXY);
-            let core = test_core();
+            let account_base = test_account_base();
 
             let deps = mock_dependencies();
 
-            assert_that!(core.proxy_address(deps.as_ref()))
+            assert_that!(account_base.proxy_address(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(address);
         }
@@ -161,31 +161,31 @@ mod tests {
         #[test]
         fn test_manager_address() {
             let manager_addrsess = Addr::unchecked(TEST_MANAGER);
-            let core = test_core();
+            let account_base = test_account_base();
 
             let deps = mock_dependencies();
 
-            assert_that!(core.manager_address(deps.as_ref()))
+            assert_that!(account_base.manager_address(deps.as_ref()))
                 .is_ok()
                 .is_equal_to(manager_addrsess);
         }
 
         #[test]
         fn test_account() {
-            let core = test_core();
+            let account_base = test_account_base();
 
             let deps = mock_dependencies();
 
-            assert_that!(core.account_base(deps.as_ref()))
+            assert_that!(account_base.account_base(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(core);
+                .is_equal_to(account_base);
         }
 
         #[test]
         fn should_identify_self_as_abstract_proxy() {
-            let core = test_core();
+            let account_base = test_account_base();
 
-            assert_that!(core.module_id()).is_equal_to(PROXY);
+            assert_that!(account_base.module_id()).is_equal_to(PROXY);
         }
     }
 }

@@ -27,37 +27,39 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
-        let core = self.core(account_id)?;
-        if &core.manager != maybe_manager {
+        let account_base = self.account_base(account_id)?;
+        if &account_base.manager != maybe_manager {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
                 account_id,
             ))
         } else {
-            Ok(core)
+            Ok(account_base)
         }
     }
 
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
-        let core = self.core(account_id)?;
-        if &core.proxy != maybe_proxy {
+        let account_base = self.account_base(account_id)?;
+        if &account_base.proxy != maybe_proxy {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
-            Ok(core)
+            Ok(account_base)
         }
     }
 
     pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
-        self.core(account_id).map(|core| core.proxy)
+        self.account_base(account_id)
+            .map(|account_base| account_base.proxy)
     }
 
     pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
-        self.core(account_id).map(|core| core.manager)
+        self.account_base(account_id)
+            .map(|account_base| account_base.manager)
     }
 
-    pub fn core(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
+    pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
@@ -68,7 +70,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
                 account_id,
                 version_control_addr: self.base.abstract_registry(self.deps)?,
             }),
-            Some(core) => Ok(core),
+            Some(account_base) => Ok(account_base),
         }
     }
 

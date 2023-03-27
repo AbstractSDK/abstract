@@ -39,7 +39,7 @@ done
 for con in $CORE_CONTRACTS; do
   (
     cd "contracts/account/$con"
-    echo "Publishing core $con"
+    echo "Publishing account base $con"
     cargo publish
   )
 done

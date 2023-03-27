@@ -102,7 +102,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AccountBaseResponse {
-    pub account: AccountBase,
+    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -14,22 +14,22 @@ pub struct VcResponse;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
-pub fn add_os(
+pub fn add_account(
     deps: DepsMut,
     msg_info: MessageInfo,
     account_id: AccountId,
-    core: AccountBase,
+    account_base: AccountBase,
 ) -> VCResult {
     // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &core)?;
+    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
 
     Ok(VcResponse::new(
         "add_os",
         vec![
             ("account_id", account_id.to_string().as_str()),
-            ("manager", core.manager.as_ref()),
-            ("proxy", core.proxy.as_ref()),
+            ("manager", account_base.manager.as_ref()),
+            ("proxy", account_base.proxy.as_ref()),
         ],
     ))
 }

@@ -40,7 +40,7 @@ pub fn execute_create_module(
     let version_registry = binding.module_registry(deps.as_ref());
     let os_registry = binding.os_registry(deps.as_ref());
     // assert that sender is manager
-    let core = os_registry.assert_manager(&info.sender)?;
+    let account_base = os_registry.assert_manager(&info.sender)?;
 
     let new_module = version_registry.query_module(module_info)?;
 
@@ -57,7 +57,7 @@ pub fn execute_create_module(
     CONTEXT.save(
         deps.storage,
         &Context {
-            core: Some(core.clone()),
+            account_base: Some(account_base.clone()),
             module: Some(new_module.clone()),
         },
     )?;
@@ -67,14 +67,14 @@ pub fn execute_create_module(
             block_height,
             *code_id,
             owner_init_msg.unwrap(),
-            Some(core.manager),
+            Some(account_base.manager),
             CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
         ModuleReference::Api(addr) => {
             let module_id = new_module.info.id_with_version();
             let register_msg: CosmosMsg<Empty> = wasm_execute(
-                core.manager.into_string(),
+                account_base.manager.into_string(),
                 &ManagerMsg::RegisterModule {
                     module_addr: addr.to_string(),
                     module: new_module,
@@ -91,7 +91,7 @@ pub fn execute_create_module(
             block_height,
             *code_id,
             owner_init_msg.unwrap(),
-            Some(core.manager),
+            Some(account_base.manager),
             CREATE_STANDALONE_RESPONSE_ID,
             new_module.info,
         ),
@@ -136,7 +136,7 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
     let module_address = res.get_contract_address();
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
-        context.core.unwrap().manager.into_string(),
+        context.account_base.unwrap().manager.into_string(),
         &ManagerMsg::RegisterModule {
             module_addr: module_address.to_string(),
             module: context.module.unwrap(),
@@ -215,7 +215,7 @@ fn clear_context(deps: DepsMut) -> Result<(), StdError> {
     CONTEXT.save(
         deps.storage,
         &Context {
-            core: None,
+            account_base: None,
             module: None,
         },
     )

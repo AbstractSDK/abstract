@@ -92,7 +92,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         self.base.executor(self.deps).execute(transfer_msgs?)
     }
 
-    /// Transfer the **funds** (deposit) into the OS from the current contract.
+    /// Transfer the **funds** (deposit) into the Account from the current contract.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds

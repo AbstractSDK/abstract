@@ -50,7 +50,7 @@ fn proper_initialization() {
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    // OS 0 has proxy and subscriber module
+    // Account 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
     let manager = env.os_store.get(&0u32).unwrap().manager.clone();
 

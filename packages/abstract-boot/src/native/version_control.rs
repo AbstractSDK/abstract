@@ -166,7 +166,7 @@ where
         account_id: AccountId,
     ) -> Result<AccountBase, crate::AbstractBootError> {
         let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
-        Ok(resp.account)
+        Ok(resp.account_base)
     }
 
     /// Retrieves an API's address from version control given the module **id** and **version**.

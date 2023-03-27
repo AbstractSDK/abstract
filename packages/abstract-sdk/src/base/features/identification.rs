@@ -85,7 +85,7 @@ mod test {
                 .with_contract_item(TEST_PROXY, MANAGER, &Some(Addr::unchecked(TEST_MANAGER)))
                 .build();
 
-            let expected_core = AccountBase {
+            let expected_account_base = AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER),
                 proxy: Addr::unchecked(TEST_PROXY),
             };
@@ -93,7 +93,7 @@ mod test {
             let binding = MockBinding;
             assert_that!(binding.account_base(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(expected_core);
+                .is_equal_to(expected_account_base);
         }
 
         #[test]

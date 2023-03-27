@@ -47,7 +47,7 @@ impl<
         _deps: Deps,
     ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
         Err(AbstractSdkError::generic_err(
-            "OS core not available on stateless ibc deployment",
+            "Account base not available on stateless ibc deployment",
         ))
     }
 

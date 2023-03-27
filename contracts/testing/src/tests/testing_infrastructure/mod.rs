@@ -52,7 +52,7 @@ pub mod env {
         account_id: &u32,
     ) -> AnyResult<HashMap<String, Addr>> {
         let manager_addr: Addr = os_store.get(account_id).unwrap().manager.clone();
-        // Check OS
+        // Check Account
         let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
             &ManagerMsgs::QueryMsg::ModuleInfos {
