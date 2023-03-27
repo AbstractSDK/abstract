@@ -39,15 +39,14 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 
     /// Transfer the provided **funds** from the OS' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
-    ///
     /// ```rust
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
     /// # use abstract_os::objects::AnsAsset;
     /// # use abstract_os::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
-    ///     features::{Identification, AbstractNameService, ModuleIdentification},
-    ///     TransferInterface, AbstractSdkResult,
-    /// };
+    /// #    features::{Identification, AbstractNameService, ModuleIdentification},
+    /// #    TransferInterface, AbstractSdkResult,
+    /// # };
     /// #
     /// # struct MockModule;
     /// # impl Identification for MockModule {
@@ -67,12 +66,8 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     /// #     unimplemented!("Not needed for this example")
     /// #  }
     /// # }
-    ///
-    /// fn _transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
-    ///     // check that the caller has the rights to the asset
-    ///     // ...
+    /// fn transfer_asset_to_sender(app: MockModule, deps: DepsMut, info: MessageInfo, requested_asset: AnsAsset) -> AbstractSdkResult<Response> {
     ///     let bank = app.bank(deps.as_ref());
-    ///
     ///     let transfer_msg = bank.transfer(vec![requested_asset.clone()], &info.sender)?;
     ///
     ///     Ok(Response::new()
@@ -95,20 +90,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<CosmosMsg>, _>>();
         self.base.executor(self.deps).execute(transfer_msgs?)
-    }
-
-    /// Transfer **coins** from the OS' vault to the **recipient**.
-    /// The caller must be a whitelisted module or trader.
-    pub fn transfer_coins(
-        &self,
-        coins: Vec<Coin>,
-        recipient: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        let send_msg = CosmosMsg::Bank(BankMsg::Send {
-            to_address: recipient.to_string(),
-            amount: coins,
-        });
-        self.base.executor(self.deps).execute(vec![send_msg])
     }
 
     /// Transfer the **funds** (deposit) into the OS from the current contract.
@@ -136,7 +117,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
 }
 
 /// Transfer an asset into an actual transferable asset.
-pub trait Transferable: Resolve {
+pub trait Transferable {
     fn transferable_asset<T: AbstractNameService>(
         self,
         base: &T,
@@ -174,6 +155,16 @@ impl Transferable for Asset {
     }
 }
 
+impl Transferable for Coin {
+    fn transferable_asset<T: AbstractNameService>(
+        self,
+        _base: &T,
+        _deps: Deps,
+    ) -> AbstractSdkResult<Asset> {
+        Ok(Asset::from(self))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -195,7 +186,7 @@ mod test {
 
             let bank = app.bank(deps.as_ref());
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.transfer_coins(coins.clone(), &expected_recipient);
+            let actual_res = bank.transfer(coins.clone(), &expected_recipient);
 
             assert_that!(actual_res).is_ok();
 

@@ -15,9 +15,8 @@ use super::{
 
 pub type Complexity = u8;
 
-const LIST_SIZE_LIMIT: usize = 15;
+pub const LIST_SIZE_LIMIT: u8 = 15;
 const DEFAULT_PAGE_LIMIT: u8 = 5;
-const MAX_PAGE_LIMIT: u8 = 20;
 
 /// Struct for calculating asset prices/values for a smart contract.
 pub struct Oracle<'a> {
@@ -332,20 +331,12 @@ impl<'a> Oracle<'a> {
         // no need to validate config as its assets are validated on add operations
 
         // fist check that a base asset is registered
-        let base_asset = self.complexity.load(deps.storage, 0)?;
-        let base_asset_len = base_asset.len();
-        if base_asset_len != 1 {
-            return Err(StdError::generic_err(format!(
-                "{base_asset_len} base assets registered, must be 1"
-            ))
-            .into());
-        }
+        let base_asset = self.base_asset(deps)?;
 
         // Then start with lowest complexity assets and keep track of all the encountered assets.
         // If an asset has a dependency that is not in the list of encountered assets
         // then the oracle is not configured correctly.
-        let mut encountered_assets: HashSet<String> =
-            base_asset.iter().map(ToString::to_string).collect();
+        let mut encountered_assets: HashSet<String> = HashSet::from([base_asset.to_string()]);
         let max_complexity = self.highest_complexity(deps)?;
         // if only base asset, just return
         if max_complexity == 0 {
@@ -407,7 +398,7 @@ impl<'a> Oracle<'a> {
         last_asset: Option<AssetInfo>,
         limit: Option<u8>,
     ) -> AbstractResult<Vec<(AssetInfo, (PriceSource, Complexity))>> {
-        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
         let res: Result<Vec<(AssetInfo, (PriceSource, Complexity))>, _> = self
@@ -426,7 +417,7 @@ impl<'a> Oracle<'a> {
         last_asset: Option<AssetEntry>,
         limit: Option<u8>,
     ) -> AbstractResult<Vec<(AssetEntry, UncheckedPriceSource)>> {
-        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(MAX_PAGE_LIMIT) as usize;
+        let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT).min(LIST_SIZE_LIMIT) as usize;
         let start_bound = last_asset.as_ref().map(Bound::exclusive);
 
         let res: Result<Vec<(AssetEntry, UncheckedPriceSource)>, _> = self
@@ -456,7 +447,10 @@ impl<'a> Oracle<'a> {
     }
 
     pub fn base_asset(&self, deps: Deps) -> AbstractResult<AssetInfo> {
-        let base_asset = self.complexity.load(deps.storage, 0)?;
+        let base_asset = self.complexity.load(deps.storage, 0);
+        let Ok(base_asset) = base_asset else {
+            return Err(StdError::generic_err("No base asset registered").into());
+        };
         let base_asset_len = base_asset.len();
         if base_asset_len != 1 {
             return Err(StdError::generic_err(format!(
