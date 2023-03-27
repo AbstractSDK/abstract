@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
-    os::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
+    core::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
     Execution,
 };
 use cosmwasm_std::{
@@ -38,7 +38,7 @@ impl<
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Self::Error> {
         match msg {
-            ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
+            ExecuteMsg::Module(request) => self.execute_handler()?(deps, env, info, self, request),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
@@ -78,15 +78,15 @@ impl<
         let channel = packet.dest.channel_id;
         let PacketMsg {
             client_chain,
-            os_id,
+            account_id,
             action,
             ..
         } = from_slice(&packet.data)?;
         // fill the local proxy address
-        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, os_id))?;
+        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id))?;
         match action {
             HostAction::Internal(InternalAction::Register { os_proxy_address }) => {
-                receive_register(deps, env, self, channel, os_id, os_proxy_address)
+                receive_register(deps, env, self, channel, account_id, os_proxy_address)
             }
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
@@ -97,7 +97,8 @@ impl<
             HostAction::Balances {} => self.receive_balances(deps),
             HostAction::SendAllBack {} => {
                 // address of the proxy on the client chain
-                let client_proxy_address = CLIENT_PROXY.load(deps.storage, (&channel, os_id))?;
+                let client_proxy_address =
+                    CLIENT_PROXY.load(deps.storage, (&channel, account_id))?;
                 self.receive_send_all_back(deps, env, client_proxy_address, client_chain)
             }
             HostAction::App { msg } => {
@@ -128,7 +129,7 @@ impl<
             } => self.update_config(deps, info, ans_host_address, cw1_code_id),
             BaseExecuteMsg::RecoverAccount {
                 closed_channel,
-                os_id,
+                account_id,
                 msgs,
             } => {
                 let closed_channels = CLOSED_CHANNELS.load(deps.storage)?;
@@ -136,8 +137,9 @@ impl<
                     return Err(HostError::ChannelNotClosed {});
                 }
                 self.admin.assert_admin(deps.as_ref(), &info.sender)?;
-                self.proxy_address = ACCOUNTS.may_load(deps.storage, (&closed_channel, os_id))?;
-                ACCOUNTS.remove(deps.storage, (&closed_channel, os_id));
+                self.proxy_address =
+                    ACCOUNTS.may_load(deps.storage, (&closed_channel, account_id))?;
+                ACCOUNTS.remove(deps.storage, (&closed_channel, account_id));
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
                     .execute_with_response(msgs, "recover_account")

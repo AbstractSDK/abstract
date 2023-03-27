@@ -4,12 +4,12 @@ use crate::{
 };
 use abstract_macros::abstract_response;
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
-    os::{
+    core::{
         manager::ExecuteMsg as ManagerMsg,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
         MODULE_FACTORY,
     },
+    feature_objects::VersionControlContract,
     *,
 };
 use cosmwasm_std::{
@@ -24,16 +24,16 @@ pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
 #[abstract_response(MODULE_FACTORY)]
 struct ModuleFactoryResponse;
 
-/// Function that starts the creation of the OS
+/// Function that starts the creation of the Account
 pub fn execute_create_module(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     module_info: ModuleInfo,
-    root_init_msg: Option<Binary>,
+    owner_init_msg: Option<Binary>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-    // Verify sender is active OS manager
+    // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
 
@@ -49,7 +49,7 @@ pub fn execute_create_module(
     // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
     // let init_msg = ModuleInitMsg {
     //     fixed_init: fixed_binary,
-    //     root_init: root_init_msg,
+    //     owner_init: owner_init_msg,
     // }
     // .format()?;
 
@@ -66,7 +66,7 @@ pub fn execute_create_module(
         ModuleReference::App(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            root_init_msg.unwrap(),
+            owner_init_msg.unwrap(),
             Some(core.manager),
             CREATE_APP_RESPONSE_ID,
             new_module.info,
@@ -90,7 +90,7 @@ pub fn execute_create_module(
         ModuleReference::Standalone(code_id) => instantiate_contract(
             block_height,
             *code_id,
-            root_init_msg.unwrap(),
+            owner_init_msg.unwrap(),
             Some(core.manager),
             CREATE_STANDALONE_RESPONSE_ID,
             new_module.info,
@@ -227,7 +227,7 @@ mod test {
     use speculoos::prelude::*;
 
     use crate::contract::{execute, instantiate};
-    use abstract_os::module_factory::{ExecuteMsg, InstantiateMsg};
+    use abstract_core::module_factory::{ExecuteMsg, InstantiateMsg};
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
@@ -263,7 +263,7 @@ mod test {
 
     mod instantiate_contract {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion;
+        use abstract_core::objects::module::ModuleVersion;
         use cosmwasm_std::{testing::mock_info, to_binary};
 
         #[test]
@@ -321,7 +321,7 @@ mod test {
 
     mod update_factory_binaries {
         use super::*;
-        use abstract_os::{objects::module::ModuleVersion, AbstractOsError};
+        use abstract_core::{objects::module::ModuleVersion, AbstractError};
         use abstract_testing::map_tester::*;
         use abstract_testing::prelude::TEST_ADMIN;
 
@@ -400,7 +400,7 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .is_equal_to(ModuleFactoryError::AbstractOs(AbstractOsError::Assert(
+                .is_equal_to(ModuleFactoryError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
 

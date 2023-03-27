@@ -1,7 +1,7 @@
+mod account_creation;
 mod common_integration;
 mod instantiate;
 mod module_uploader;
-mod os_creation;
 mod upload;
 mod verify;
 
@@ -10,7 +10,7 @@ pub mod env {
 
     pub use super::{common_integration::*, module_uploader::*, os_creation::init_os};
     use super::{os_creation::init_primary_os, upload::upload_base_contracts};
-    use abstract_sdk::os::{
+    use abstract_sdk::core::{
         manager::{self as ManagerMsgs, ManagerModuleInfo},
         version_control::Core,
     };
@@ -29,7 +29,7 @@ pub mod env {
             let (code_ids, native_contracts) = upload_base_contracts(app);
             let mut os_store: HashMap<u32, Core> = HashMap::new();
 
-            init_os(app, sender, &native_contracts, &mut os_store).expect("created first os");
+            init_os(app, sender, &native_contracts, &mut os_store).expect("created first account");
 
             init_primary_os(app, sender, &native_contracts, &mut os_store).unwrap();
 
@@ -49,9 +49,9 @@ pub mod env {
     pub fn get_os_state(
         app: &App,
         os_store: &HashMap<u32, Core>,
-        os_id: &u32,
+        account_id: &u32,
     ) -> AnyResult<HashMap<String, Addr>> {
-        let manager_addr: Addr = os_store.get(os_id).unwrap().manager.clone();
+        let manager_addr: Addr = os_store.get(account_id).unwrap().manager.clone();
         // Check OS
         let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,
@@ -91,7 +91,7 @@ pub mod env {
         module_name: &str,
         encapsuled_msg: &T,
     ) -> AnyResult<AppResponse> {
-        let msg = abstract_sdk::os::manager::ExecuteMsg::ExecOnModule {
+        let msg = abstract_sdk::core::manager::ExecuteMsg::ExecOnModule {
             module_id: module_name.into(),
             exec_msg: to_binary(encapsuled_msg)?,
         };

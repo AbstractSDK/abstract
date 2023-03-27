@@ -1,6 +1,6 @@
+use core::{objects::AssetEntry, AbstractError};
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
-use os::{objects::AssetEntry, AbstractOsError};
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
@@ -19,8 +19,8 @@ impl Display for EndpointError {
 
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
-    #[error("Abstract OS error in the sdk: {0}")]
-    AbstractOs(#[from] AbstractOsError),
+    #[error("Abstract Account error in the sdk: {0}")]
+    Abstract(#[from] AbstractError),
 
     #[error("Std error encountered in sdk: {0}")]
     Std(#[from] cosmwasm_std::StdError),
@@ -31,10 +31,10 @@ pub enum AbstractSdkError {
     // #[error("cw math overflow error: {0}")]
     // Overflow(#[from] OverflowError),
 
-    // #[error("Semver error encountered while handling os object: {0}")]
+    // #[error("Semver error encountered while handling account object: {0}")]
     // Semver(#[from] SemverError),
 
-    // #[error("Semver error encountered while handling os object: {0}")]
+    // #[error("Semver error encountered while handling account object: {0}")]
     // CwSemver(#[from] CwSemverError),
     #[error("Missing handler for {endpoint}")]
     MissingHandler { endpoint: String },
@@ -47,27 +47,27 @@ pub enum AbstractSdkError {
     MissingDependency { module: String },
 
     // missing asset error
-    #[error("Asset {asset} is not registered on your OS. Please register it first.")]
+    #[error("Asset {asset} is not registered on your Account. Please register it first.")]
     MissingAsset { asset: AssetEntry },
 
     // caller not Manager error
-    #[error("Address {0} is not the Manager of OS {1}.")]
+    #[error("Address {0} is not the Manager of Account {1}.")]
     NotManager(Addr, u32),
 
     // caller not Proxy error
-    #[error("Address {0} is not the Proxy of OS {1}.")]
+    #[error("Address {0} is not the Proxy of Account {1}.")]
     NotProxy(Addr, u32),
 
-    // unknown OS id error
-    #[error("Unknown OS id {os_id} on version control {version_control_addr}. Please ensure that you are using the correct OS id and version control address.")]
-    UnknownOsId {
-        os_id: u32,
+    // unknown Account id error
+    #[error("Unknown Account id {account_id} on version control {version_control_addr}. Please ensure that you are using the correct Account id and version control address.")]
+    UnknownAccountId {
+        account_id: u32,
         version_control_addr: Addr,
     },
 
-    // failed to query os id
-    #[error("Failed to query OS id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
-    FailedToQueryOsId { contract_addr: Addr },
+    // failed to query account id
+    #[error("Failed to query Account id on contract {contract_addr}. Please ensure that the contract is a Manager or Proxy contract.")]
+    FailedToQueryAccountId { contract_addr: Addr },
 
     // module not found in version registry
     #[error("Module {module} not found in version registry {registry_addr}.")]

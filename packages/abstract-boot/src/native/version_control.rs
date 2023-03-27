@@ -1,10 +1,10 @@
-use crate::{deployment, OS};
-pub use abstract_os::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
-use abstract_os::{
+use crate::{deployment, AbstractAccount};
+pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
+use abstract_core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
-        OsId,
+        AccountId,
     },
     version_control::*,
     VERSION_CONTROL,
@@ -27,7 +27,7 @@ where
 {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("version_control");
+        contract = contract.with_wasm_path("abstract_version_control");
         Self(contract)
     }
 
@@ -42,24 +42,24 @@ where
         Ok(modules.swap_remove(0))
     }
 
-    pub fn register_core(
+    pub fn register_base(
         &self,
-        os: &OS<Chain>,
+        account: &AbstractAccount<Chain>,
         version: &str,
     ) -> Result<(), crate::AbstractBootError> {
-        let manager = os.manager.as_instance();
+        let manager = account.manager.as_instance();
         let manager_module = (
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Core(manager.code_id()?),
+            ModuleReference::AccountBase(manager.code_id()?),
         );
         self.add_modules(vec![manager_module])?;
 
         log::info!("Module {} registered", manager.id);
 
-        let proxy = os.proxy.as_instance();
+        let proxy = account.proxy.as_instance();
         let proxy_module = (
             ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
-            ModuleReference::Core(proxy.code_id()?),
+            ModuleReference::AccountBase(proxy.code_id()?),
         );
         self.add_modules(vec![proxy_module])?;
 
@@ -67,14 +67,14 @@ where
         Ok(())
     }
 
-    /// Register core modules
-    pub fn register_cores(
+    /// Register account modules
+    pub fn register_account_mods(
         &self,
         apps: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), crate::AbstractBootError> {
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
-            ModuleReference::Core(c.code_id().unwrap())
+            ModuleReference::AccountBase(c.code_id().unwrap())
         })?;
         self.add_modules(to_register)?;
         Ok(())
@@ -161,9 +161,12 @@ where
         modules_to_register
     }
 
-    pub fn get_os_core(&self, os_id: OsId) -> Result<Core, crate::AbstractBootError> {
-        let resp: OsCoreResponse = self.query(&QueryMsg::OsCore { os_id })?;
-        Ok(resp.os_core)
+    pub fn get_account(
+        &self,
+        account_id: AccountId,
+    ) -> Result<AccountBase, crate::AbstractBootError> {
+        let resp: AccountBaseResponse = self.query(&QueryMsg::AccountBase { account_id })?;
+        Ok(resp.account)
     }
 
     /// Retrieves an API's address from version control given the module **id** and **version**.

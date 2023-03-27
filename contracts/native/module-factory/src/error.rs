@@ -1,4 +1,4 @@
-use abstract_os::AbstractOsError;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -11,7 +11,7 @@ pub enum ModuleFactoryError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
@@ -22,12 +22,12 @@ pub enum ModuleFactoryError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("Calling contract is not a registered OS Manager")]
+    #[error("Calling contract is not a registered Account Manager")]
     UnknownCaller(),
 
     #[error("Reply ID does not match any known Reply ID")]
     UnexpectedReply(),
 
-    #[error("This module type can not be installed on your OS")]
+    #[error("This module type can not be installed on your Account")]
     ModuleNotInstallable {},
 }

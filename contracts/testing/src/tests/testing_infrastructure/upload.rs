@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use abstract_sdk::os::{
-    objects::module_reference::ModuleReference, ANS_HOST, MANAGER, MODULE_FACTORY, OS_FACTORY,
+use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
+use abstract_sdk::core::{
+    objects::module_reference::ModuleReference, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
     PROXY, VERSION_CONTROL,
 };
 use cw_multi_test::{App, ContractWrapper};
-use super::{common_integration::NativeContracts, instantiate::init_native_contracts};
+use std::collections::HashMap;
 
 /// Uploads:
 /// - CW Token
@@ -17,7 +17,7 @@ use super::{common_integration::NativeContracts, instantiate::init_native_contra
 /// - AnsHost
 /// - Module Factory
 /// - Version Control
-/// - Os Factory
+/// - Account Factory
 pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeContracts) {
     let mut code_ids: HashMap<String, u64> = HashMap::new();
     let mut modules: HashMap<String, ModuleReference> = HashMap::new();
@@ -67,18 +67,18 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
     let version_control_code_id = app.store_code(version_control_contract);
     code_ids.insert(VERSION_CONTROL.into(), version_control_code_id);
 
-    // Upload os_factory Contract
+    // Upload account_factory Contract
     let os_factory_contract = Box::new(
         ContractWrapper::new_with_empty(
-            os_factory::contract::execute,
-            os_factory::contract::instantiate,
-            os_factory::contract::query,
+            account_factory::contract::execute,
+            account_factory::contract::instantiate,
+            account_factory::contract::query,
         )
-        .with_reply_empty(os_factory::contract::reply),
+        .with_reply_empty(account_factory::contract::reply),
     );
 
     let os_factory_code_id = app.store_code(os_factory_contract);
-    code_ids.insert(OS_FACTORY.into(), os_factory_code_id);
+    code_ids.insert(ACCOUNT_FACTORY.into(), os_factory_code_id);
 
     // Upload module_factory Contract
     let module_factory_contract = Box::new(

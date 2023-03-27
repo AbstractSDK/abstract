@@ -8,5 +8,5 @@ pub use crate::apis::respond::AbstractResponse;
 pub use abstract_name_service::AbstractNameService;
 pub use abstract_registry_access::AbstractRegistryAccess;
 pub use dependencies::Dependencies;
-pub use identification::Identification;
+pub use identification::AccountIdentification;
 pub use module_identification::ModuleIdentification;

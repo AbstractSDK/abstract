@@ -2,14 +2,14 @@ use crate::{
     state::{AppContract, AppState},
     AppError, Handler, InstantiateEndpoint,
 };
-use abstract_os::{
+use abstract_core::{
     app::{BaseInstantiateMsg, InstantiateMsg},
     objects::module_version::set_module_data,
 };
 use abstract_sdk::{
+    core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
     cw_helpers::cosmwasm_std::wasm_smart_query,
     feature_objects::AnsHost,
-    os::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use cw2::set_contract_version;
@@ -52,7 +52,7 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let Some(core) = resp.core else {
+        let Some(core) = resp.account else {
             return Err(
                 StdError::generic_err("context of module factory not properly set.").into(),
             );
@@ -72,7 +72,7 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-        handler(deps, env, info, self, msg.app)
+        handler(deps, env, info, self, msg.module)
     }
 }
 
@@ -96,7 +96,7 @@ mod test {
             base: BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
             },
-            app: MockInitMsg {},
+            module: MockInitMsg {},
         };
 
         let res = MOCK_APP

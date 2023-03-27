@@ -1,9 +1,9 @@
 //! # Fee helpers
 //! Helper trait that lets you easily charge fees on assets
 
+use core::objects::fee::{Fee, UsageFee};
 use cosmwasm_std::{CosmosMsg, Uint128};
 use cw_asset::Asset;
-use os::objects::fee::{Fee, UsageFee};
 
 use crate::AbstractSdkResult;
 

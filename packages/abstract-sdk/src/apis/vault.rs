@@ -1,28 +1,28 @@
 //! # Vault
-//! The Vault object provides function for querying balances and asset values for the OS.
+//! The Vault object provides function for querying balances and asset values for the Account.
 
 use crate::{
     cw_helpers::cosmwasm_std::wasm_smart_query,
-    features::{AbstractNameService, Identification},
+    features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
-use abstract_os::{objects::AssetEntry, proxy::QueryMsg};
+use abstract_core::{objects::AssetEntry, proxy::QueryMsg};
 use cosmwasm_std::{Deps, Uint128};
 
-use os::{
+use abstract_core::{
     objects::oracle::{self, AccountValue},
     proxy::{AssetsInfoResponse, BaseAssetResponse, TokenValueResponse},
 };
 
-/// Retrieve asset-registration information from the OS.
+/// Retrieve asset-registration information from the Account.
 /// Query asset values and balances.
-pub trait VaultInterface: AbstractNameService + Identification {
+pub trait VaultInterface: AbstractNameService + AccountIdentification {
     fn vault<'a>(&'a self, deps: Deps<'a>) -> Vault<Self> {
         Vault { base: self, deps }
     }
 }
 
-impl<T> VaultInterface for T where T: AbstractNameService + Identification {}
+impl<T> VaultInterface for T where T: AbstractNameService + AccountIdentification {}
 
 #[derive(Clone)]
 pub struct Vault<'a, T: VaultInterface> {

@@ -2,12 +2,12 @@
 //! An entry (value) in the ans_host key-value store.
 
 use crate::AbstractSdkResult;
-use cosmwasm_std::{Addr, QuerierWrapper};
-use cw_asset::{Asset, AssetInfo};
-use os::objects::{
+use core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
+use cosmwasm_std::{Addr, QuerierWrapper};
+use cw_asset::{Asset, AssetInfo};
 
 /// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
@@ -201,7 +201,7 @@ mod tests {
     use super::*;
     use cosmwasm_std::Binary;
 
-    use abstract_os::ans_host::state::ASSET_ADDRESSES;
+    use abstract_core::ans_host::state::ASSET_ADDRESSES;
     use abstract_testing::prelude::{wrap_querier, MockDeps, MockQuerierBuilder, TEST_ANS_HOST};
     use cosmwasm_std::{
         testing::{mock_dependencies, MockQuerier},
@@ -364,7 +364,7 @@ mod tests {
     mod pool_metadata {
         use super::*;
 
-        use os::objects::PoolType;
+        use core::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -420,8 +420,8 @@ mod tests {
 
     mod pools {
         use super::*;
-        use abstract_os::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-        use os::objects::{PoolAddress, PoolType};
+        use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
+        use core::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -472,7 +472,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use os::ans_host::state::CONTRACT_ADDRESSES;
+        use core::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -545,7 +545,7 @@ mod tests {
 
     mod channel_entry {
         use super::*;
-        use os::ans_host::state::CHANNELS;
+        use core::ans_host::state::CHANNELS;
 
         #[test]
         fn exists() {
@@ -581,7 +581,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use os::ans_host::state::REV_ASSET_ADDRESSES;
+        use core::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

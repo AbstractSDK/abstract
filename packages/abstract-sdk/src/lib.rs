@@ -9,8 +9,8 @@
 
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
+pub extern crate abstract_core as core;
 pub extern crate abstract_macros as macros;
-pub extern crate abstract_os as os;
 
 mod ans_resolve;
 mod apis;
@@ -39,12 +39,12 @@ pub use ans_resolve::Resolve;
 
 /// Common state-store namespaces.
 pub mod namespaces {
-    pub use abstract_os::objects::common_namespace::*;
+    pub use abstract_core::objects::common_namespace::*;
 }
 
 /// Abstract reserved version control entries.
 pub mod register {
-    pub use abstract_os::registry::*;
+    pub use abstract_core::registry::*;
 }
 
 #[cfg(feature = "test-utils")]

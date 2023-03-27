@@ -1,5 +1,5 @@
 use abstract_boot::Abstract;
-use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::gov_type::GovernanceDetails;
 use boot_core::{
     networks::{ChainInfo, NetworkInfo, NetworkKind},
     *,
@@ -27,21 +27,21 @@ pub const HARPOON_4: NetworkInfo = NetworkInfo {
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Script that registers the first OS in abstract (our OS)
+/// Script that registers the first Account in abstract (our Account)
 pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
     // let network = LOCAL_JUNO;
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain, abstract_os_version);
+    let deployment = Abstract::new(chain, abstract_version);
 
     // NOTE: this assumes that the deployment has been deployed
 
     deployment
-        .os_factory
-        .create_default_os(GovernanceDetails::Monarchy {
+        .account_factory
+        .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;
 

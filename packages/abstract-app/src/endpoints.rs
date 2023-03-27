@@ -94,7 +94,7 @@ mod test {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         let actual_init = instantiate(
             deps.as_mut(),
@@ -112,7 +112,7 @@ mod test {
 
         assert_that!(actual_init).is_equal_to(expected_init);
 
-        let exec_msg = app::ExecuteMsg::App(MockExecMsg);
+        let exec_msg = app::ExecuteMsg::Module(MockExecMsg);
 
         let actual_exec = execute(
             deps.as_mut(),
@@ -130,7 +130,7 @@ mod test {
 
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
-        let query_msg = app::QueryMsg::App(MockQueryMsg);
+        let query_msg = app::QueryMsg::Module(MockQueryMsg);
 
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
 
@@ -140,7 +140,7 @@ mod test {
 
         let migrate_msg = app::MigrateMsg {
             base: app::BaseMigrateMsg {},
-            app: MockMigrateMsg,
+            module: MockMigrateMsg,
         };
 
         let actual_migrate = migrate(deps.as_mut(), mock_env(), migrate_msg.clone());

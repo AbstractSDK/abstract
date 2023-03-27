@@ -1,7 +1,7 @@
 use crate::{ApiContract, ApiError};
 use abstract_sdk::{
     feature_objects::AnsHost,
-    features::{AbstractNameService, AbstractRegistryAccess, Identification},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkError, AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps, StdError};
@@ -20,37 +20,40 @@ impl<
     }
 }
 
-/// Retrieve identifying information about the calling OS
+/// Retrieve identifying information about the calling Account
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         ReceiveMsg,
-    > Identification
+    > AccountIdentification
     for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        if let Some(target) = &self.target_os {
+        if let Some(target) = &self.target_account {
             Ok(target.proxy.clone())
         } else {
-            Err(StdError::generic_err("No target OS specified to execute on.").into())
+            Err(StdError::generic_err("No target Account specified to execute on.").into())
         }
     }
 
     fn manager_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        if let Some(target) = &self.target_os {
+        if let Some(target) = &self.target_account {
             Ok(target.manager.clone())
         } else {
-            Err(StdError::generic_err("No OS manager specified.").into())
+            Err(StdError::generic_err("No Account manager specified.").into())
         }
     }
 
-    fn os_core(&self, _deps: Deps) -> AbstractSdkResult<abstract_sdk::os::version_control::Core> {
-        if let Some(target) = &self.target_os {
+    fn account_base(
+        &self,
+        _deps: Deps,
+    ) -> AbstractSdkResult<abstract_sdk::core::version_control::AccountBase> {
+        if let Some(target) = &self.target_account {
             Ok(target.clone())
         } else {
-            Err(StdError::generic_err("No OS core specified.").into())
+            Err(StdError::generic_err("No Account base specified.").into())
         }
     }
 }
@@ -71,9 +74,9 @@ impl<
 }
 #[cfg(test)]
 mod tests {
-    use abstract_os::{
+    use abstract_core::{
         api::{ApiRequestMsg, ExecuteMsg},
-        version_control::Core,
+        version_control::AccountBase,
     };
     use abstract_sdk::base::ExecuteEndpoint;
     use abstract_testing::prelude::*;
@@ -102,8 +105,8 @@ mod tests {
         assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
         let manager = api.manager_address(deps.as_ref())?;
         assert_that!(manager.as_str()).is_equal_to(TEST_MANAGER);
-        let os_core = api.os_core(deps.as_ref())?;
-        assert_that!(os_core).is_equal_to(Core {
+        let account = api.account_base(deps.as_ref())?;
+        assert_that!(account).is_equal_to(AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),
             proxy: Addr::unchecked(TEST_PROXY),
         });
@@ -129,7 +132,7 @@ mod tests {
 
         mock_init_custom(deps.as_mut(), featured_api()).unwrap();
 
-        let msg = ExecuteMsg::App(ApiRequestMsg {
+        let msg = ExecuteMsg::Module(ApiRequestMsg {
             proxy_address: None,
             request: MockExecMsg,
         });
@@ -153,7 +156,7 @@ mod tests {
         let res = MOCK_API.manager_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_API.os_core(deps.as_ref());
+        let res = MOCK_API.account_base(deps.as_ref());
         assert_that!(res).is_err();
     }
 }

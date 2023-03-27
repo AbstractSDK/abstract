@@ -1,13 +1,13 @@
 use crate::ApiError;
-use abstract_os::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
         AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
     },
+    core::version_control::AccountBase,
     feature_objects::AnsHost,
     namespaces::BASE_STATE,
-    os::version_control::Core,
     AbstractSdkError,
 };
 use cosmwasm_std::{Addr, Empty, StdError, StdResult, Storage};
@@ -41,8 +41,8 @@ pub struct ApiContract<
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> WhitelistedTraders
     pub traders: Map<'static, Addr, HashSet<Addr>>,
-    /// The OS on which commands are executed. Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
-    pub target_os: Option<Core>,
+    /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
+    pub target_account: Option<AccountBase>,
 }
 
 /// Constructor
@@ -63,7 +63,7 @@ impl<
             contract: AbstractContract::new(name, version, metadata),
             base_state: Item::new(BASE_STATE),
             traders: Map::new(TRADER_NAMESPACE),
-            target_os: None,
+            target_account: None,
         }
     }
 
@@ -125,13 +125,13 @@ impl<
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the OS associated with this API.
-    /// Set each time in the [`abstract_os::api::ExecuteMsg::Base`] handler.
+    /// Return the address of the proxy for the Account associated with this API.
+    /// Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
     pub fn target(&self) -> Result<&Addr, ApiError> {
         Ok(&self
-            .target_os
+            .target_account
             .as_ref()
-            .ok_or_else(|| StdError::generic_err("No target OS specified to execute on."))?
+            .ok_or_else(|| StdError::generic_err("No target Account specified to execute on."))?
             .proxy)
     }
 }
@@ -172,7 +172,7 @@ mod tests {
     fn set_and_get_target() -> ApiMockResult {
         let mut mock = get_mock();
         let target = Addr::unchecked("target");
-        mock.target_os = Some(Core {
+        mock.target_account = Some(AccountBase {
             proxy: target.clone(),
             manager: Addr::unchecked("manager"),
         });

@@ -1,4 +1,4 @@
-use abstract_sdk::os::ibc_client::{
+use abstract_sdk::core::ibc_client::{
     AccountResponse, ConfigResponse, ExecuteMsg, InstantiateMsg, ListAccountsResponse, QueryMsg,
 };
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};

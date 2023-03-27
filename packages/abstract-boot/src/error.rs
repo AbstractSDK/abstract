@@ -1,4 +1,4 @@
-use abstract_os::AbstractOsError;
+use abstract_core::AbstractError;
 use boot_core::BootError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum AbstractBootError {
     #[error(transparent)]
-    AbstractOs(#[from] AbstractOsError),
+    Abstract(#[from] AbstractError),
 
     #[error(transparent)]
     Boot(#[from] BootError),

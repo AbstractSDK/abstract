@@ -21,7 +21,7 @@ pub mod state;
 pub mod mock {
     use crate::{ApiContract, ApiError};
     use abstract_boot::ApiDeployer;
-    use abstract_os::api::{self, *};
+    use abstract_core::api::{self, *};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
@@ -45,7 +45,7 @@ pub mod mock {
         Api(#[from] ApiError),
 
         #[error("{0}")]
-        Abstract(#[from] abstract_os::AbstractOsError),
+        Abstract(#[from] abstract_core::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -56,12 +56,13 @@ pub mod mock {
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockExecMsg;
-    impl abstract_os::api::ApiExecuteMsg for MockExecMsg {}
+
+    impl abstract_core::api::ApiExecuteMsg for MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryMsg;
 
-    impl abstract_os::api::ApiQueryMsg for MockQueryMsg {}
+    impl abstract_core::api::ApiQueryMsg for MockQueryMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
@@ -88,7 +89,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         api.instantiate(deps, mock_env(), info, init_msg)
     }
@@ -100,7 +101,7 @@ pub mod mock {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         api.instantiate(deps, mock_env(), info, init_msg)
     }
@@ -139,7 +140,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_api_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_os::api::*;
+        use ::abstract_core::api::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_api::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockApiContract, MockError};
 
@@ -177,9 +178,9 @@ pub mod mock {
             MOCK_API.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_os::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_os::api::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_os::api::InstantiateMsg<MockInitMsg>;
+        type Exec = ::abstract_core::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Query = ::abstract_core::api::QueryMsg<MockQueryMsg>;
+        type Init = ::abstract_core::api::InstantiateMsg<MockInitMsg>;
         #[boot_core::boot_contract(Init, Exec, Query, Empty)]
         pub struct $name ;
 

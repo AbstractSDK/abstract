@@ -1,11 +1,11 @@
 use crate::error::OsmoError;
+use abstract_core::ibc_host::ExecuteMsg;
 use abstract_ibc_host::chains::OSMOSIS;
 use abstract_ibc_host::Host;
 use abstract_macros::abstract_response;
-use abstract_os::ibc_host::ExecuteMsg;
 use abstract_sdk::{
     base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint},
-    os::{
+    core::{
         abstract_ica::StdAck,
         dex::DexAction,
         ibc_host::{InstantiateMsg, MigrateMsg, QueryMsg},

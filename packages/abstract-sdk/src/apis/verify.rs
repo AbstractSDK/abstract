@@ -1,13 +1,13 @@
 //! # Verification
-//! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an OS, OS admin, etc.
+//! The `Verify` struct provides helper functions that enable the contract to verify if the sender is an Abstract Account, Account admin, etc.
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
-use abstract_os::{
-    manager::state::OS_ID,
-    version_control::{state::OS_ADDRESSES, Core},
+use abstract_core::{
+    manager::state::ACCOUNT_ID,
+    version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{Addr, Deps};
 
-/// Verify if an addresses is associated with an OS.
+/// Verify if an addresses is associated with an Abstract Account.
 pub trait OsVerification: AbstractRegistryAccess {
     fn os_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
         OsRegistry { base: self, deps }
@@ -16,7 +16,7 @@ pub trait OsVerification: AbstractRegistryAccess {
 
 impl<T> OsVerification for T where T: AbstractRegistryAccess {}
 
-/// Endpoint for OS address verification
+/// Endpoint for Account address verification
 #[derive(Clone)]
 pub struct OsRegistry<'a, T: OsVerification> {
     base: &'a T,
@@ -25,54 +25,57 @@ pub struct OsRegistry<'a, T: OsVerification> {
 
 impl<'a, T: OsVerification> OsRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
-    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<Core> {
-        let os_id = self.os_id(maybe_manager)?;
-        let core = self.core(os_id)?;
+    pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
+        let account_id = self.account_id(maybe_manager)?;
+        let core = self.core(account_id)?;
         if &core.manager != maybe_manager {
-            Err(AbstractSdkError::NotManager(maybe_manager.clone(), os_id))
+            Err(AbstractSdkError::NotManager(
+                maybe_manager.clone(),
+                account_id,
+            ))
         } else {
             Ok(core)
         }
     }
 
     /// Verify if the provided proxy address is indeed a user.
-    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<Core> {
-        let os_id = self.os_id(maybe_proxy)?;
-        let core = self.core(os_id)?;
+    pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
+        let account_id = self.account_id(maybe_proxy)?;
+        let core = self.core(account_id)?;
         if &core.proxy != maybe_proxy {
-            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), os_id))
+            Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
             Ok(core)
         }
     }
 
-    pub fn proxy_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
-        self.core(os_id).map(|core| core.proxy)
+    pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
+        self.core(account_id).map(|core| core.proxy)
     }
 
-    pub fn manager_address(&self, os_id: u32) -> AbstractSdkResult<Addr> {
-        self.core(os_id).map(|core| core.manager)
+    pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
+        self.core(account_id).map(|core| core.manager)
     }
 
-    pub fn core(&self, os_id: u32) -> AbstractSdkResult<Core> {
-        let maybe_os = OS_ADDRESSES.query(
+    pub fn core(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
+        let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
-            os_id,
+            account_id,
         )?;
-        match maybe_os {
-            None => Err(AbstractSdkError::UnknownOsId {
-                os_id,
+        match maybe_account {
+            None => Err(AbstractSdkError::UnknownAccountId {
+                account_id,
                 version_control_addr: self.base.abstract_registry(self.deps)?,
             }),
             Some(core) => Ok(core),
         }
     }
 
-    fn os_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
-        OS_ID
+    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
+        ACCOUNT_ID
             .query(&self.deps.querier, maybe_core_contract_addr.clone())
-            .map_err(|_| AbstractSdkError::FailedToQueryOsId {
+            .map_err(|_| AbstractSdkError::FailedToQueryAccountId {
                 contract_addr: maybe_core_contract_addr.clone(),
             })
     }
@@ -103,12 +106,12 @@ mod test {
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                // Setup the addresses as if the OS was registered
-                .os("not_manager", "not_proxy", TEST_OS_ID)
-                // update the proxy to be proxy of a different OS
-                .os(TEST_MANAGER, TEST_PROXY, 1)
+                // Setup the addresses as if the Account was registered
+                .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
+                // update the proxy to be proxy of a different Account
+                .account(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
-                .with_contract_item("not_proxy", OS_ID, &1)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &1)
                 .build();
 
             let binding = MockBinding;
@@ -128,8 +131,8 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
+                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -140,8 +143,8 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
-                .matches(|e| e.to_string().contains("Unknown OS id 0"));
+                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
+                .matches(|e| e.to_string().contains("Unknown Account id 0"));
         }
 
         #[test]
@@ -149,11 +152,11 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
-                    (TEST_OS_ID, test_core()),
+                    ACCOUNT_ADDRESSES,
+                    (TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
 
@@ -171,13 +174,13 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_PROXY, OS_ID, &TEST_OS_ID)
+                .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (
-                        TEST_OS_ID,
-                        Core {
+                        TEST_ACCOUNT_ID,
+                        AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
                         },
@@ -205,12 +208,12 @@ mod test {
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                // Setup the addresses as if the OS was registered
-                .os("not_manager", "not_proxy", TEST_OS_ID)
-                // update the proxy to be proxy of a different OS
-                .os(TEST_MANAGER, TEST_PROXY, 1)
+                // Setup the addresses as if the Account was registered
+                .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
+                // update the proxy to be proxy of a different Account
+                .account(TEST_MANAGER, TEST_PROXY, 1)
                 .builder()
-                .with_contract_item("not_manager", OS_ID, &1)
+                .with_contract_item("not_manager", ACCOUNT_ID, &1)
                 .build();
 
             let binding = MockBinding;
@@ -230,8 +233,8 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, OS_ADDRESSES, TEST_OS_ID)
+                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -242,10 +245,10 @@ mod test {
 
             assert_that!(res)
                 .is_err()
-                .matches(|e| matches!(e, AbstractSdkError::UnknownOsId { .. }))
+                .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
                 .matches(|e| {
                     e.to_string().contains(&format!(
-                        "Unknown OS id {TEST_OS_ID} on version control {TEST_VERSION_CONTROL}"
+                        "Unknown Account id {TEST_ACCOUNT_ID} on version control {TEST_VERSION_CONTROL}"
                     ))
                 });
         }
@@ -255,11 +258,11 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
-                    (TEST_OS_ID, test_core()),
+                    ACCOUNT_ADDRESSES,
+                    (TEST_ACCOUNT_ID, test_core()),
                 )
                 .build();
 
@@ -277,13 +280,13 @@ mod test {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
-                .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+                .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
-                    OS_ADDRESSES,
+                    ACCOUNT_ADDRESSES,
                     (
-                        TEST_OS_ID,
-                        Core {
+                        TEST_ACCOUNT_ID,
+                        AccountBase {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),
                         },

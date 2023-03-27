@@ -1,23 +1,23 @@
 //! # Executor
-//! The executor provides function for executing commands on the OS.
+//! The executor provides function for executing commands on the Account.
 //!
 
 use crate::{
-    features::{Identification, ModuleIdentification},
+    features::{AccountIdentification, ModuleIdentification},
     AbstractSdkResult,
 };
+use abstract_core::proxy::ExecuteMsg;
 use abstract_macros::with_abstract_event;
-use abstract_os::proxy::ExecuteMsg;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
-/// Execute an arbitrary `CosmosMsg` action on the OS.
-pub trait Execution: Identification + ModuleIdentification {
+/// Execute an arbitrary `CosmosMsg` action on the Account.
+pub trait Execution: AccountIdentification + ModuleIdentification {
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
 }
 
-impl<T> Execution for T where T: Identification + ModuleIdentification {}
+impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
 
 #[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
@@ -26,7 +26,7 @@ pub struct Executor<'a, T: Execution> {
 }
 
 impl<'a, T: Execution> Executor<'a, T> {
-    /// Execute the msgs on the OS.
+    /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     pub fn execute(&self, msgs: Vec<CosmosMsg>) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -37,7 +37,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         .into())
     }
 
-    /// Execute the msgs on the OS.
+    /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// The execution will be executed in a submessage and the reply will be sent to the provided `reply_on`.
     pub fn execute_with_reply(
@@ -56,7 +56,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         Ok(sub_msg)
     }
 
-    /// Execute the msgs on the OS.
+    /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     /// Return a "standard" response for the executed messages. (with the provided action).
     pub fn execute_with_response(

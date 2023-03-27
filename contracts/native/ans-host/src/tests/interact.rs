@@ -3,7 +3,7 @@ use crate::error::AnsHostError;
 use crate::tests::common::TEST_CREATOR;
 use crate::tests::instantiate::mock_instantiate;
 use crate::tests::mock_querier::mock_dependencies;
-use abstract_os::ans_host::*;
+use abstract_core::ans_host::*;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cw_asset::AssetInfo;
 use std::convert::TryInto;

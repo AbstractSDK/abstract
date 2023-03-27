@@ -1,5 +1,5 @@
 use crate::{ans_resolve::Resolve, AbstractSdkResult};
-use abstract_os::objects::ans_host::AnsHost;
+use abstract_core::objects::ans_host::AnsHost;
 use cosmwasm_std::Deps;
 
 /// Trait that enables APIs that depend on the Abstract Name Service.

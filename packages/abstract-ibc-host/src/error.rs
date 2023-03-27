@@ -1,5 +1,5 @@
-use abstract_os::AbstractOsError;
-use abstract_sdk::{os::abstract_ica::SimpleIcaError, AbstractSdkError};
+use abstract_core::AbstractError;
+use abstract_sdk::{core::abstract_ica::SimpleIcaError, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use cw_utils::ParseReplyError;
@@ -11,7 +11,7 @@ pub enum HostError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

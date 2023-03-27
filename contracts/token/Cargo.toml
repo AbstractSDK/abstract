@@ -29,8 +29,8 @@ schemars = {workspace = true}
 serde = {workspace = true}
 cosmwasm-schema = { workspace = true }
 
-abstract-os = {workspace = true}
-abstract-sdk = {workspace = true}
+abstract-core =  { workspace = true }
+abstract-sdk = { workspace = true }
 
 [dev-dependencies]
 # we only need to enable this if we use integration tests

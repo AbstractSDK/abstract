@@ -1,5 +1,5 @@
 use crate::{state::AppContract, AppError, Handler, QueryEndpoint};
-use abstract_os::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
+use abstract_core::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
@@ -25,12 +25,12 @@ impl<
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
             QueryMsg::Base(msg) => self.base_query(deps, env, msg).map_err(Into::into),
-            QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
         }
     }
 }
 /// Where we dispatch the queries for the AppContract
-/// These BaseQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
+/// These BaseQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
         CustomInitMsg,
@@ -82,7 +82,7 @@ mod test {
         #[test]
         fn without_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::App(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg);
 
             let res = query_helper(deps.as_ref(), msg);
 
@@ -110,7 +110,7 @@ mod test {
         #[test]
         fn with_handler() {
             let deps = mock_init();
-            let msg = AppQueryMsg::App(MockQueryMsg);
+            let msg = AppQueryMsg::Module(MockQueryMsg);
 
             let with_mocked_query = MOCK_APP.with_query(mock_query_handler);
             let res = with_mocked_query.query(deps.as_ref(), mock_env(), msg);

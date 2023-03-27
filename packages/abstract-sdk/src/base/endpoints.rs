@@ -10,18 +10,18 @@
 //! ## Message format
 //! Each Abstract module accepts a fixed message format that can be customized by the developer to add their own functionality.
 //!
-//! The base massage format is defined [here](abstract_os::base) as follows:
+//! The base massage format is defined [here](abstract_core::base) as follows:
 //! ```rust
 //! use abstract_ica::IbcResponseMsg;
 //! use cosmwasm_std::Empty;
 //!
 //! /// EndpointMsg to the Base.
 //! #[cosmwasm_schema::cw_serde]
-//! pub enum ExecuteMsg<BaseMsg, AppMsg, ReceiveMsg = Empty> {
+//! pub enum ExecuteMsg<BaseMsg, ModuleMsg, ReceiveMsg = Empty> {
 //!     /// A base configuration message.
 //!     Base(BaseMsg),
 //!     /// An app request.
-//!     App(AppMsg),
+//!     App(ModuleMsg),
 //!     /// IbcReceive to process IBC callbacks
 //!     IbcCallback(IbcResponseMsg),
 //!     /// Receive endpoint for CW20 / external service integrations
@@ -29,27 +29,27 @@
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub struct InstantiateMsg<BaseMsg, AppMsg = Empty> {
+//! pub struct InstantiateMsg<BaseMsg, ModuleMsg = Empty> {
 //!     /// base instantiate msg
 //!     pub base: BaseMsg,
 //!     /// custom instantiate msg
-//!     pub app: AppMsg,
+//!     pub app: ModuleMsg,
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub enum QueryMsg<BaseMsg, AppMsg = Empty> {
+//! pub enum QueryMsg<BaseMsg, ModuleMsg = Empty> {
 //!     /// A query message to the base.
 //!     Base(BaseMsg),
 //!     /// Custom query
-//!     App(AppMsg),
+//!     App(ModuleMsg),
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
-//! pub struct MigrateMsg<BaseMsg = Empty, AppMsg = Empty> {
+//! pub struct MigrateMsg<BaseMsg = Empty, ModuleMsg = Empty> {
 //!     /// base migrate msg
 //!     pub base: BaseMsg,
 //!     /// custom migrate msg
-//!     pub app: AppMsg,
+//!     pub app: ModuleMsg,
 //! }
 //!
 //! ```
@@ -65,7 +65,7 @@
 //!
 //!
 //! ```rust,ignore
-//! use abstract_sdk::os::app::{ExecuteMsg, AppExecuteMsg};
+//! use abstract_sdk::core::app::{ExecuteMsg, AppExecuteMsg};
 //! use abstract_app::{AppContract, AppError};
 //! # use abstract_sdk::base::ExecuteEndpoint;
 //! # use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
@@ -75,7 +75,7 @@
 //! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
 //! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
 //!     
-//!     // Expected entrypoint ExecuteMsg type, imported from abstract_os.
+//!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
 //!     // type that is inserted into the expected execute message.
 //!     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;

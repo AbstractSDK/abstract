@@ -21,11 +21,11 @@ The Abstract APIs are objects that can only be retrieved if a contract or featur
 
 #### Example
 
-The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the OS through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
+The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,no_run
 use abstract_sdk::{TransferInterface,AbstractSdkResult};
-use abstract_os::objects::AnsAsset;
+use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 // Trait to retrieve the Splitter object
@@ -74,14 +74,14 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 The API can then be used by any contract that implements its required traits, in this case the `TransferInterface`.
 
 ```rust,no_run
-  # use abstract_sdk::features::{Identification, AbstractNameService, ModuleIdentification};
+  # use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
   # use abstract_sdk::AbstractSdkResult;
   # pub struct MyContract {
   #     
   # }
-  # impl Identification for MyContract {
+  # impl AccountIdentification for MyContract {
   #     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
   #         Ok(Addr::unchecked("just_an_example"))
   #     }

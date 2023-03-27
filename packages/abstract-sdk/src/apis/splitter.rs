@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::{AbstractSdkResult, TransferInterface};
-use abstract_os::objects::AnsAsset;
+use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
 // Trait to retrieve the Splitter object

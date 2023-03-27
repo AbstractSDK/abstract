@@ -2,7 +2,7 @@ use crate::{
     state::{ApiContract, ApiState},
     ApiError,
 };
-use abstract_os::{api::InstantiateMsg, objects::module_version::set_module_data};
+use abstract_core::{api::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{endpoints::InstantiateEndpoint, Handler},
     feature_objects::AnsHost,
@@ -48,13 +48,13 @@ impl<
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())
         };
-        handler(deps, env, info, self, msg.app)
+        handler(deps, env, info, self, msg.module)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use abstract_os::{
+    use abstract_core::{
         api::{BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
@@ -84,7 +84,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: TEST_VERSION_CONTROL.into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg)?;
         assert_that!(&res.messages.len()).is_equal_to(0);
@@ -131,7 +131,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: "5".into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(
@@ -152,7 +152,7 @@ mod tests {
                 ans_host_address: TEST_ANS_HOST.into(),
                 version_control_address: "4".into(),
             },
-            app: MockInitMsg,
+            module: MockInitMsg,
         };
         let res = api.instantiate(deps.as_mut(), env, info, init_msg);
         assert_that!(&res).is_err_containing(

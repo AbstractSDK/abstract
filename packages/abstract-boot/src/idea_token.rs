@@ -1,4 +1,4 @@
-use abstract_os::abstract_token::*;
+use abstract_core::abstract_token::*;
 use boot_core::{
     boot_contract, BootEnvironment, Contract, TxResponse,
     {BootExecute, BootInstantiate, ContractInstance},
@@ -11,13 +11,13 @@ pub struct Idea<Chain>;
 impl<Chain: BootEnvironment> Idea<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         Self(
-            Contract::new(name, chain).with_wasm_path("abstract_token"), // .with_mock(Box::new(
-                                                                         //     ContractWrapper::new_with_empty(
-                                                                         //         ::contract::execute,
-                                                                         //         ::contract::instantiate,
-                                                                         //         ::contract::query,
-                                                                         //     ),
-                                                                         // ))
+            Contract::new(name, chain).with_wasm_path("abstract_abstract_token"), // .with_mock(Box::new(
+                                                                                  //     ContractWrapper::new_with_empty(
+                                                                                  //         ::contract::execute,
+                                                                                  //         ::contract::instantiate,
+                                                                                  //         ::contract::query,
+                                                                                  //     ),
+                                                                                  // ))
         )
     }
     pub fn send(

@@ -1,12 +1,12 @@
 #![allow(unused)]
 use crate::{AbstractSdkResult, ModuleInterface};
-use abstract_os::objects::module::ModuleId;
+use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
-use abstract_os::app as msg;
+use abstract_core::app as msg;
 
-/// Interact with other modules on the OS.
+/// Interact with other modules on the Account.
 pub trait AppInterface: ModuleInterface {
     fn apps<'a>(&'a self, deps: Deps<'a>) -> App<Self> {
         App { base: self, deps }
@@ -91,7 +91,7 @@ mod tests {
 
     mod app_request {
         use crate::mock_module::MockModuleExecuteMsg;
-        use os::app;
+        use core::app;
 
         use super::*;
 
@@ -117,7 +117,7 @@ mod tests {
             let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
             let expected_msg: app::ExecuteMsg<_, Empty> =
-                app::ExecuteMsg::App(MockModuleExecuteMsg {});
+                app::ExecuteMsg::Module(MockModuleExecuteMsg {});
 
             assert_that!(res)
                 .is_ok()
@@ -130,7 +130,7 @@ mod tests {
     }
 
     mod app_configure {
-        use os::app;
+        use core::app;
 
         use super::*;
 

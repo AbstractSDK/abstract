@@ -1,20 +1,20 @@
-use abstract_os::{
+use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
         AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
         ListChannelsResponse,
     },
-    objects::OsId,
+    objects::AccountId,
 };
 use cosmwasm_std::{Deps, Order, StdResult};
 
 pub fn query_latest_ibc_query_result(
     deps: Deps,
     host_chain: String,
-    os_id: OsId,
+    account_id: AccountId,
 ) -> StdResult<LatestQueryResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    LATEST_QUERIES.load(deps.storage, (&channel, os_id))
+    LATEST_QUERIES.load(deps.storage, (&channel, account_id))
 }
 
 // TODO: paging
@@ -22,8 +22,8 @@ pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     let accounts = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
         .map(|r| {
-            let ((channel_id, os_id), account) = r?;
-            Ok(AccountInfo::convert(channel_id, os_id, account))
+            let ((channel_id, account_id), account) = r?;
+            Ok(AccountInfo::convert(channel_id, account_id, account))
         })
         .collect::<StdResult<_>>()?;
     Ok(ListAccountsResponse { accounts })
@@ -49,8 +49,12 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
-pub fn query_account(deps: Deps, host_chain: String, os_id: OsId) -> StdResult<AccountResponse> {
+pub fn query_account(
+    deps: Deps,
+    host_chain: String,
+    account_id: AccountId,
+) -> StdResult<AccountResponse> {
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    let account = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
+    let account = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
     Ok(account.into())
 }

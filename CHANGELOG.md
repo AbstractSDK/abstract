@@ -1,4 +1,4 @@
-# Abstract-OS Changelog
+# Abstract Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- Errors now need to implement `From<AbstractOsError>` and `From<AbstractSdkError>`
+- Errors now need to implement `From<AbstractError>` and `From<AbstractSdkError>`
 
 ### Fixed
 

@@ -23,7 +23,7 @@ ignore:
   - "contracts/token"
   # Ignore protobuf generated files
   - "contracts/native/module-factory/src/response.rs"
-  - "contracts/native/os-factory/src/response.rs"
+  - "contracts/native/account-factory/src/response.rs"
 
 
 # Make comments less noisy

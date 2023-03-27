@@ -1,6 +1,6 @@
 use crate::error::IbcClientError;
-use abstract_os::objects::OsId;
-use abstract_sdk::os::{
+use abstract_core::objects::AccountId;
+use abstract_sdk::core::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
@@ -54,7 +54,7 @@ pub fn ibc_channel_connect(
     let packet = PacketMsg {
         action: HostAction::Internal(InternalAction::WhoAmI),
         client_chain: cfg.chain,
-        os_id: 0,
+        account_id: 0,
         callback_info: None,
         retries: 0,
     };
@@ -125,7 +125,7 @@ pub fn ibc_packet_ack(
     }
 
     let PacketMsg {
-        os_id,
+        account_id,
         callback_info,
         action,
         ..
@@ -133,9 +133,9 @@ pub fn ibc_packet_ack(
     match action {
         HostAction::Dispatch { .. } => acknowledge_dispatch(deps, env, callback_info, msg),
         HostAction::Query { .. } => {
-            acknowledge_query(deps, env, channel_id, os_id, callback_info, msg)
+            acknowledge_query(deps, env, channel_id, account_id, callback_info, msg)
         }
-        HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, os_id, res),
+        HostAction::Balances { .. } => acknowledge_balances(deps, env, channel_id, account_id, res),
         HostAction::App { msg: _ } => {
             let response = IbcBasicResponse::new().add_attribute("action", "acknowledge_app");
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
@@ -147,7 +147,7 @@ pub fn ibc_packet_ack(
         }
         HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
         HostAction::Internal(InternalAction::Register { .. }) => {
-            acknowledge_register(deps, channel_id, os_id, res)
+            acknowledge_register(deps, channel_id, account_id, res)
         }
     }
 }
@@ -184,7 +184,7 @@ fn acknowledge_query(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: OsId,
+    account_id: AccountId,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
@@ -193,7 +193,7 @@ fn acknowledge_query(
     // store IBC response for later querying from the smart contract??
     LATEST_QUERIES.save(
         deps.storage,
-        (&channel_id, os_id),
+        (&channel_id, account_id),
         &LatestQueryResponse {
             last_update_time: env.block.time,
             response: msg,
@@ -233,7 +233,7 @@ fn acknowledge_who_am_i(
 fn acknowledge_register(
     deps: DepsMut,
     channel_id: String,
-    os_id: OsId,
+    account_id: AccountId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -246,7 +246,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, os_id), |acct| {
+    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| {
         match acct {
             Some(mut acct) => {
                 // set the account the first time
@@ -267,7 +267,7 @@ fn acknowledge_balances(
     deps: DepsMut,
     env: Env,
     channel_id: String,
-    os_id: OsId,
+    account_id: AccountId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -280,7 +280,7 @@ fn acknowledge_balances(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, os_id), |acct| match acct {
+    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| match acct {
         Some(acct) => {
             if let Some(old) = acct.remote_addr {
                 if old != account {
@@ -313,9 +313,9 @@ pub fn ibc_packet_timeout(
 mod tests {
     use super::*;
     use crate::contract::instantiate;
-    use abstract_sdk::os::ibc_client::InstantiateMsg;
+    use abstract_sdk::core::ibc_client::InstantiateMsg;
 
-    use abstract_sdk::os::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
+    use abstract_sdk::core::abstract_ica::{APP_ORDER, BAD_APP_ORDER, IBC_APP_VERSION};
     use abstract_testing::addresses::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{
@@ -400,7 +400,7 @@ mod tests {
     //     // check for empty account
     //     let account_query = QueryMsg::Account {
     //         chain: TEST_CHAIN.into(),
-    //         os_id: TEST_OS_ID,
+    //         account_id: TEST_ACCOUNT_ID,
     //     };
     //     let r = query_helper(deps.as_ref(), account_query.clone()).unwrap();
     //     let acct: AccountResponse = from_slice(&r).unwrap();

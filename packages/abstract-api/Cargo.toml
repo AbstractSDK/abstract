@@ -1,6 +1,6 @@
 [package]
 name = "abstract-api"
-version = "0.12.0"
+version = "0.13.0"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -25,9 +25,9 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-os = { workspace = true }
+abstract-core =  { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-abstract-boot = { version = "0.12.0",workspace = true, optional = true }
+abstract-boot = { version = "0.13.0", workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
 
 [dev-dependencies]

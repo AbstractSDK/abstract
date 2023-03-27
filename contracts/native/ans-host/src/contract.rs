@@ -1,8 +1,8 @@
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_os::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
-use abstract_os::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_core::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
+use abstract_core::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
@@ -10,8 +10,9 @@ use semver::Version;
 pub type AnsHostResult = Result<Response, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-use abstract_os::objects::module_version::{migrate_module_data, set_module_data};
-use abstract_os::ANS_HOST;
+
+use abstract_core::objects::module_version::{migrate_module_data, set_module_data};
+use abstract_core::ANS_HOST;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(

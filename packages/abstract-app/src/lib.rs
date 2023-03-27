@@ -14,7 +14,7 @@ use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use abstract_boot::AppDeployer;
-    pub use abstract_os::app;
+    pub use abstract_core::app;
     use boot_core::{BootEnvironment, ContractWrapper};
     pub use cosmwasm_std::testing::*;
     use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
@@ -41,7 +41,7 @@ pub mod mock {
     pub struct MockReceiveMsg;
 
     use crate::{AppContract, AppError};
-    use abstract_os::{module_factory::ContextResponse, version_control::Core};
+    use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
@@ -58,7 +58,7 @@ pub mod mock {
         DappError(#[from] AppError),
 
         #[error("{0}")]
-        AbstractOs(#[from] abstract_os::AbstractOsError),
+        Abstract(#[from] abstract_core::AbstractError),
 
         #[error("{0}")]
         AbstractSdk(#[from] AbstractSdkError),
@@ -81,9 +81,9 @@ pub mod mock {
     pub fn app_base_mock_querier() -> MockQuerierBuilder {
         MockQuerierBuilder::default().with_smart_handler(TEST_MODULE_FACTORY, |msg| {
             match from_binary(msg).unwrap() {
-                abstract_os::module_factory::QueryMsg::Context {} => {
+                abstract_core::module_factory::QueryMsg::Context {} => {
                     let resp = ContextResponse {
-                        core: Some(Core {
+                        account: Some(AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),
@@ -108,7 +108,7 @@ pub mod mock {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
             },
-            app: MockInitMsg {},
+            module: MockInitMsg {},
         };
 
         MOCK_APP
@@ -141,7 +141,7 @@ pub mod mock {
     #[macro_export]
     macro_rules! gen_app_mock {
     ($name:ident,$id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_os::app;
+        use ::abstract_core::app;
         use ::abstract_app::mock::{MockExecMsg, MockInitMsg, MockMigrateMsg, MockQueryMsg, MockReceiveMsg};
 
         type Exec = app::ExecuteMsg<MockExecMsg, MockReceiveMsg>;

@@ -2,13 +2,13 @@
 # until this file is merged into main. This is due to oddities of the labeller Github Action.
 "core":
   # Match all of core folders
-  - contracts/core/**/*
+  - contracts/account/**/*
 "native":
   # Match all of native folders
   - contracts/native/**/*
 "breaking?":
-  # Match all of abstract-os folders
-  - packages/abstract-os/**/*
+  # Match all of abstract_core folders
+  - packages/abstract_core/**/*
 "sdk":
   # Match all of sdk folders
   - packages/abstract-sdk/**/*

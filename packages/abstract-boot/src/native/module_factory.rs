@@ -1,9 +1,9 @@
-use abstract_os::module_factory::*;
+use abstract_core::module_factory::*;
 
 // use crate::api::get_api_init_msgs;
 use boot_core::{BootEnvironment, Contract, TxResponse};
 
-pub use abstract_os::module_factory::{
+pub use abstract_core::module_factory::{
     ExecuteMsgFns as MFactoryExecFns, QueryMsgFns as MFactoryQueryFns,
 };
 use boot_core::{boot_contract, BootExecute};
@@ -14,7 +14,7 @@ pub struct ModuleFactory<Chain>;
 impl<Chain: BootEnvironment> ModuleFactory<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("module_factory");
+        contract = contract.with_wasm_path("abstract_module_factory");
         Self(contract)
     }
 

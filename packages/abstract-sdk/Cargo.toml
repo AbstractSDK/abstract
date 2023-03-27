@@ -1,6 +1,6 @@
 [package]
 name = "abstract-sdk"
-version = "0.12.0"
+version = "0.13.0"
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Helpers for Abstract contracts"
@@ -26,7 +26,7 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
-abstract-os = { workspace = true }
+abstract-core =  { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true}
 

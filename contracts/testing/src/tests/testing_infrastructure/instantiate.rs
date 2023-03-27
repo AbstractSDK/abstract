@@ -1,20 +1,19 @@
 use super::common_integration::NativeContracts;
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
-use abstract_sdk::os::{
-    ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
+use abstract_sdk::core::{
+    account_factory as OSFactoryMsg, ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
-    os_factory as OSFactoryMsg,
     version_control::{self as VCMsg, ModulesResponse},
-    ANS_HOST, MODULE_FACTORY, OS_FACTORY, VERSION_CONTROL,
+    ACCOUNT_FACTORY, ANS_HOST, MODULE_FACTORY, VERSION_CONTROL,
 };
 use cosmwasm_std::{Addr, Timestamp};
 use cw_multi_test::{App, Executor};
 use std::collections::HashMap;
 
-/// Creates the basic contract instances needed to test the os.
+/// Creates the basic contract instances needed to test the account.
 ///
 
 pub fn init_native_contracts(
@@ -95,14 +94,14 @@ pub fn init_native_contracts(
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),
     };
-    // Instantiate os factory Contract
+    // Instantiate account factory Contract
     let os_factory_instance = app
         .instantiate_contract(
-            *code_ids.get(OS_FACTORY).unwrap(),
+            *code_ids.get(ACCOUNT_FACTORY).unwrap(),
             owner.clone(),
             &os_factory_msg,
             &[],
-            "os_factory",
+            "account_factory",
             None,
         )
         .unwrap();
@@ -130,7 +129,7 @@ pub fn init_native_contracts(
         token: token_instance,
         ans_host: ans_host_instance,
         version_control: version_control_instance,
-        os_factory: os_factory_instance,
+        account_factory: os_factory_instance,
         module_factory: module_factory_instance,
     }
 }
@@ -141,7 +140,7 @@ fn add_contracts_to_version_control_and_set_factory(
     code_ids: &HashMap<String, ModuleReference>,
     version: &String,
     version_control: &Addr,
-    os_factory: &Addr,
+    account_factory: &Addr,
 ) {
     let modules = code_ids
         .iter()
@@ -169,7 +168,7 @@ fn add_contracts_to_version_control_and_set_factory(
         .unwrap();
     println!("{:?}", resp);
     let msg = VCMsg::ExecuteMsg::SetFactory {
-        new_factory: os_factory.to_string(),
+        new_factory: account_factory.to_string(),
     };
     app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
         .unwrap();

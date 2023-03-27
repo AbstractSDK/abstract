@@ -3,9 +3,9 @@ pub extern crate boot_core;
 
 pub mod idea_token;
 
-mod core;
+mod account;
 
-pub use crate::core::*;
+pub use crate::account::*;
 
 mod ibc_hosts;
 

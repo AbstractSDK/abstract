@@ -1,5 +1,5 @@
 use crate::{state::ApiContract, ApiError};
-use abstract_os::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_core::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
 use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,
@@ -7,7 +7,7 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::os::common_module::app_msg`
+/// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
         CustomInitMsg,
@@ -20,7 +20,7 @@ impl<
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
         match msg {
-            QueryMsg::App(msg) => self.query_handler()?(deps, env, self, msg),
+            QueryMsg::Module(msg) => self.query_handler()?(deps, env, self, msg),
             QueryMsg::Base(msg) => self.base_query(deps, env, msg),
         }
     }

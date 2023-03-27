@@ -1,7 +1,7 @@
 use crate::state::{Config, ADMIN, CONFIG};
 use abstract_sdk::{
+    core::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     feature_objects::VersionControlContract,
-    os::abstract_token::{ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg},
     *,
 };
 use cosmwasm_std::{

@@ -15,9 +15,9 @@ fi
 
 # these are imported by other packages
 # BASE_PACKAGES="abstract-ica abstract-macros"
-UTILS_PACKAGES="abstract-os abstract-sdk abstract-testing"
+UTILS_PACKAGES="abstract_core abstract-sdk abstract-testing"
 CORE_CONTRACTS="proxy manager"
-NATIVE_CONTRACTS="ans-host os-factory module-factory version-control"
+NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
 ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 
 # for pack in $BASE_PACKAGES; do
@@ -38,7 +38,7 @@ done
 
 for con in $CORE_CONTRACTS; do
   (
-    cd "contracts/core/$con"
+    cd "contracts/account/$con"
     echo "Publishing core $con"
     cargo publish
   )

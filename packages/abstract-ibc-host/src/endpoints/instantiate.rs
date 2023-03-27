@@ -2,11 +2,11 @@ use crate::{
     state::{Host, HostState, CLOSED_CHANNELS},
     HostError,
 };
-use abstract_os::objects::module_version::set_module_data;
+use abstract_core::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
+    core::ibc_host::InstantiateMsg,
     feature_objects::AnsHost,
-    os::ibc_host::InstantiateMsg,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -54,6 +54,6 @@ impl<
             return Ok(Response::new())
         };
         self.admin.set(deps.branch(), Some(info.sender.clone()))?;
-        handler(deps, env, info, self, msg.app)
+        handler(deps, env, info, self, msg.module)
     }
 }

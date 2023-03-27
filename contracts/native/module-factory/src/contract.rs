@@ -1,6 +1,6 @@
 use crate::{commands, error::ModuleFactoryError, state::*};
-use abstract_os::objects::module_version::migrate_module_data;
-use abstract_sdk::os::{
+use abstract_core::objects::module_version::migrate_module_data;
+use abstract_sdk::core::{
     module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
 };
 use cosmwasm_std::{
@@ -109,7 +109,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let context: Context = CONTEXT.load(deps.storage)?;
     let resp = ContextResponse {
-        core: context.core,
+        account: context.core,
         module: context.module,
     };
 

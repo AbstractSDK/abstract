@@ -1,10 +1,10 @@
 use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
+use abstract_core::objects::AccountId;
 use abstract_macros::abstract_response;
-use abstract_os::objects::OsId;
-use abstract_sdk::os::{
+use abstract_sdk::core::{
     objects::{module::ModuleInfo, module_reference::ModuleReference},
-    version_control::{state::*, Core},
+    version_control::{state::*, AccountBase},
     VERSION_CONTROL,
 };
 use cosmwasm_std::{DepsMut, Empty, MessageInfo};
@@ -12,17 +12,22 @@ use cosmwasm_std::{DepsMut, Empty, MessageInfo};
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
 
-/// Add new OS to version control contract
-/// Only Factory can add OS
-pub fn add_os(deps: DepsMut, msg_info: MessageInfo, os_id: OsId, core: Core) -> VCResult {
-    // Only Factory can add new OS
+/// Add new Account to version control contract
+/// Only Factory can add Account
+pub fn add_os(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    account_id: AccountId,
+    core: AccountBase,
+) -> VCResult {
+    // Only Factory can add new Account
     FACTORY.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    OS_ADDRESSES.save(deps.storage, os_id, &core)?;
+    ACCOUNT_ADDRESSES.save(deps.storage, account_id, &core)?;
 
     Ok(VcResponse::new(
         "add_os",
         vec![
-            ("os_id", os_id.to_string().as_str()),
+            ("account_id", account_id.to_string().as_str()),
             ("manager", core.manager.as_ref()),
             ("proxy", core.proxy.as_ref()),
         ],
@@ -90,13 +95,13 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::Addr;
 
-    use abstract_os::version_control::*;
+    use abstract_core::version_control::*;
 
     use crate::contract;
     use speculoos::prelude::*;
 
     use super::*;
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_OS_FACTORY, TEST_VERSION};
+    use abstract_testing::prelude::{TEST_ACCOUNT_FACTORY, TEST_ADMIN, TEST_VERSION};
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -112,14 +117,14 @@ mod test {
         contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
     }
 
-    /// Initialize the version_control with admin and updated os_factory
+    /// Initialize the version_control with admin and updated account_factory
     fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
         execute_as_admin(
             deps,
             ExecuteMsg::SetFactory {
-                new_factory: TEST_OS_FACTORY.to_string(),
+                new_factory: TEST_ACCOUNT_FACTORY.to_string(),
             },
         )
     }
@@ -206,8 +211,8 @@ mod test {
 
     mod add_modules {
         use super::*;
-        use abstract_os::objects::{module::*, module_reference::ModuleReference};
-        use abstract_os::AbstractOsError;
+        use abstract_core::objects::{module::*, module_reference::ModuleReference};
+        use abstract_core::AbstractError;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE, ModuleVersion::Version(TEST_VERSION.into())).unwrap()
@@ -285,7 +290,7 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::AbstractOs(AbstractOsError::Assert(
+                .is_equal_to(&VCError::Abstract(AbstractError::Assert(
                     "Module version must be set to a specific version".into(),
                 )));
             Ok(())
@@ -348,7 +353,7 @@ mod test {
                 assert_that!(&res)
                     .named(&format!("ModuleInfo validation failed for {bad_module}"))
                     .is_err()
-                    .is_equal_to(&VCError::AbstractOs(AbstractOsError::FormattingError {
+                    .is_equal_to(&VCError::Abstract(AbstractError::FormattingError {
                         object: "module name".into(),
                         expected: "with content".into(),
                         actual: "empty".into(),
@@ -367,13 +372,13 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init_with_factory(deps.as_mut())?;
 
-            let test_core: Core = Core {
+            let test_core: AccountBase = AccountBase {
                 manager: Addr::unchecked(TEST_MANAGER_ADDR),
                 proxy: Addr::unchecked(TEST_PROXY_ADDR),
             };
-            let msg = ExecuteMsg::AddOs {
-                os_id: 0,
-                core: test_core.clone(),
+            let msg = ExecuteMsg::AddAccount {
+                account_id: 0,
+                base: test_core.clone(),
             };
 
             // as other
@@ -389,10 +394,10 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as factory
-            execute_as(deps.as_mut(), TEST_OS_FACTORY, msg)?;
+            execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg)?;
 
-            let os = OS_ADDRESSES.load(&deps.storage, 0)?;
-            assert_that!(&os).is_equal_to(&test_core);
+            let account = ACCOUNT_ADDRESSES.load(&deps.storage, 0)?;
+            assert_that!(&account).is_equal_to(&test_core);
             Ok(())
         }
     }
@@ -428,7 +433,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::SetFactory {
-                new_factory: TEST_OS_FACTORY.into(),
+                new_factory: TEST_ACCOUNT_FACTORY.into(),
             };
 
             // as other
@@ -439,7 +444,7 @@ mod test {
 
             execute_as_admin(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
-            assert_that!(new_factory).is_equal_to(&Some(TEST_OS_FACTORY.into()));
+            assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
             Ok(())
         }
     }

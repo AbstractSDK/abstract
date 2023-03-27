@@ -1,5 +1,5 @@
 use crate::error::VCError;
-use abstract_sdk::os::{
+use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
         state::{ADMIN, FACTORY},
@@ -64,7 +64,10 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
-        ExecuteMsg::AddOs { os_id, core } => add_os(deps, info, os_id, core),
+        ExecuteMsg::AddAccount {
+            account_id,
+            base: core,
+        } => add_os(deps, info, account_id, core),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
@@ -75,7 +78,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::OsCore { os_id } => queries::handle_os_address_query(deps, os_id),
+        QueryMsg::AccountBase { account_id } => queries::handle_os_address_query(deps, account_id),
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();

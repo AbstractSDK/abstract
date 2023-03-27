@@ -6,6 +6,7 @@ use cosmwasm_std::{Empty, Response};
 pub use error::HostError;
 
 pub use crate::state::Host;
+pub mod account_commands;
 pub mod chains;
 pub mod endpoints;
 pub mod error;
@@ -13,7 +14,6 @@ pub mod error;
 pub mod features;
 mod handler;
 pub(crate) mod host_commands;
-pub mod os_commands;
 mod schema;
 pub mod state;
 

@@ -29,7 +29,7 @@ cw2 = { workspace = true }
 serde = { workspace = true }
 semver = { workspace = true }
 thiserror = { workspace = true }
-abstract-os = { workspace = true }
+abstract-core =  { workspace = true }
 cw-asset = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-sdk = { workspace = true }

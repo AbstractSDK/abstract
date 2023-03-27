@@ -1,5 +1,5 @@
 use crate::{AppContract, AppError, Handler, MigrateEndpoint};
-use abstract_os::{
+use abstract_core::{
     app::MigrateMsg,
     objects::module_version::{get_module_data, set_module_data},
 };
@@ -49,7 +49,7 @@ impl<
             set_contract_version(deps.storage, name, version_string)?;
         }
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.app);
+            return migrate_fn(deps, env, self, msg.module);
         }
         Ok(Response::default())
     }

@@ -1,12 +1,12 @@
 //! # Bank
-//! The Bank object handles asset transfers to and from the OS.
+//! The Bank object handles asset transfers to and from the Account.
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
+use core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
 use cw_asset::Asset;
-use os::objects::{AnsAsset, AssetEntry};
 
-/// Query and Transfer assets from and to the Abstract OS.
+/// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + Execution {
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
@@ -37,19 +37,19 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(Asset::new(resolved_info, balance))
     }
 
-    /// Transfer the provided **funds** from the OS' vault to the **recipient**.
+    /// Transfer the provided **funds** from the Account' vault to the **recipient**.
     /// The caller must be a whitelisted module or trader.
     /// ```rust
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
-    /// # use abstract_os::objects::AnsAsset;
-    /// # use abstract_os::objects::ans_host::AnsHost;
+    /// # use abstract_core::objects::AnsAsset;
+    /// # use abstract_core::objects::ans_host::AnsHost;
     /// # use abstract_sdk::{
-    /// #    features::{Identification, AbstractNameService, ModuleIdentification},
-    /// #    TransferInterface, AbstractSdkResult,
-    /// # };
+    ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
+    ///     TransferInterface, AbstractSdkResult,
+    /// };
     /// #
     /// # struct MockModule;
-    /// # impl Identification for MockModule {
+    /// # impl AccountIdentification for MockModule {
     /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
     /// #       unimplemented!("Not needed for this example")
     /// #   }
@@ -106,7 +106,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map_err(Into::into)
     }
 
-    /// Deposit coins into the OS
+    /// Deposit coins into the Account
     pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
         Ok(CosmosMsg::Bank(BankMsg::Send {
@@ -175,7 +175,7 @@ mod test {
 
     mod transfer_coins {
         use super::*;
-        use os::proxy::ExecuteMsg::ModuleAction;
+        use core::proxy::ExecuteMsg::ModuleAction;
 
         #[test]
         fn transfer_asset_to_sender() {

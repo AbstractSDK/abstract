@@ -1,6 +1,6 @@
 # Abstract scripts
 **alpha software**
-A useful repo for interacting with abstract-os smart-contracts.
+A useful repo for interacting with abstract_core smart-contracts.
 
 ## Binaries
 The binaries located in [`src/bin/`](src/bin/) are executable files that interact with an available blockchain node. 

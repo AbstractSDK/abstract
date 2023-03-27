@@ -2,10 +2,8 @@
 set -o errexit -o nounset -o pipefail
 command -v shellcheck >/dev/null && shellcheck "$0"
 
-NATIVE_CONTRACTS="ans-host version-control os-factory module-factory"
-CORE_CONTRACTS="manager proxy"
-MODULES="apis/dex apis/tendermint-staking apps/etf"
-
+NATIVE_CONTRACTS="ans-host version-control account-factory module-factory"
+ACCOUNT_CONTRACTS="manager proxy"
 
 for pack in $NATIVE_CONTRACTS; do
   (
@@ -15,18 +13,9 @@ for pack in $NATIVE_CONTRACTS; do
   )
 done
 
-for pack in $CORE_CONTRACTS; do
+for pack in $ACCOUNT_CONTRACTS; do
   (
-    cd "contracts/core/$pack"
-    echo "Wasming $pack"
-    RUSTFLAGS='-C link-arg=-s' cargo wasm
-  )
-done
-
-
-for pack in $MODULES; do
-  (
-    cd "contracts/modules/$pack"
+    cd "contracts/account/$pack"
     echo "Wasming $pack"
     RUSTFLAGS='-C link-arg=-s' cargo wasm
   )

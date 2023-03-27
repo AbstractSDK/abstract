@@ -4,9 +4,7 @@ use crate::{
     ibc::PACKET_LIFETIME,
 };
 use abstract_sdk::{
-    feature_objects::VersionControlContract,
-    features::Identification,
-    os::{
+    core::{
         ibc_client::{
             state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
             CallbackInfo,
@@ -15,6 +13,8 @@ use abstract_sdk::{
         objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
     },
+    feature_objects::VersionControlContract,
+    features::AccountIdentification,
     Execution, OsVerification, Resolve,
 };
 use cosmwasm_std::{
@@ -87,14 +87,14 @@ pub fn execute_send_packet(
     // Set max retries
     retries = retries.min(MAX_RETRIES);
 
-    // get os_id
-    let os_id = core.os_id(deps.as_ref())?;
+    // get account_id
+    let account_id = core.account_id(deps.as_ref())?;
     // ensure the channel exists and loads it.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
         retries,
         client_chain: cfg.chain,
-        os_id,
+        account_id,
         callback_info,
         action,
     };
@@ -125,13 +125,13 @@ pub fn execute_register_os(
 
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let os_id = core.os_id(deps.as_ref())?;
+    let account_id = core.account_id(deps.as_ref())?;
 
     // construct a packet to send
     let packet = PacketMsg {
         retries: 0u8,
         client_chain: cfg.chain,
-        os_id,
+        account_id,
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             os_proxy_address: core.proxy.into_string(),
@@ -140,7 +140,7 @@ pub fn execute_register_os(
 
     // save a default value to account
     let account = AccountData::default();
-    ACCOUNTS.save(deps.storage, (&channel_id, os_id), &account)?;
+    ACCOUNTS.save(deps.storage, (&channel_id, account_id), &account)?;
 
     let msg = IbcMsg::SendPacket {
         channel_id,
@@ -167,18 +167,18 @@ pub fn execute_send_funds(
         .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
-    // get os_id of OS
-    let os_id = core.os_id(deps.as_ref())?;
+    // get account_id of Account
+    let account_id = core.account_id(deps.as_ref())?;
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
-    let data = ACCOUNTS.load(deps.storage, (&channel, os_id))?;
+    let data = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
 
     let remote_addr = match data.remote_addr {
         Some(addr) => addr,
         None => {
             return Err(StdError::generic_err(
-                "We don't have the remote address for this channel or OS",
+                "We don't have the remote address for this channel or Account",
             )
             .into())
         }
@@ -219,7 +219,7 @@ fn clear_accounts(store: &mut dyn Storage) {
 mod test {
     use super::*;
     use crate::contract;
-    use abstract_os::{ibc_client::*, AbstractResult};
+    use abstract_core::{ibc_client::*, AbstractResult};
     use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -262,7 +262,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_os::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 

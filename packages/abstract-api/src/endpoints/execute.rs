@@ -1,7 +1,7 @@
 use crate::{error::ApiError, state::ApiContract, ApiResult};
-use abstract_os::{
+use abstract_core::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
-    version_control::Core,
+    version_control::AccountBase,
 };
 use abstract_sdk::{
     base::{
@@ -34,7 +34,7 @@ impl<
         msg: Self::ExecuteMsg,
     ) -> Result<Response, Error> {
         match msg {
-            ExecuteMsg::App(request) => self.handle_app_msg(deps, env, info, request),
+            ExecuteMsg::Module(request) => self.handle_app_msg(deps, env, info, request),
             ExecuteMsg::Base(exec_msg) => self
                 .base_execute(deps, env, info, exec_msg)
                 .map_err(From::from),
@@ -106,7 +106,7 @@ impl<
                     // If the sender is a trader, return the core.
                     requested_core
                 } else {
-                    // If the sender is NOT a trader, check that it is a manager of some OS.
+                    // If the sender is NOT a trader, check that it is a manager of some Account.
                     os_registry
                         .assert_manager(sender)
                         .map_err(unauthorized_sender)?
@@ -116,7 +116,7 @@ impl<
                 .assert_manager(sender)
                 .map_err(unauthorized_sender)?,
         };
-        self.target_os = Some(core);
+        self.target_account = Some(core);
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
@@ -135,7 +135,7 @@ impl<
                 api: self.module_id().to_string(),
                 sender: info.sender.to_string(),
             })?;
-        self.target_os = Some(core);
+        self.target_account = Some(core);
 
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];
@@ -171,7 +171,7 @@ impl<
         to_add: Vec<String>,
         to_remove: Vec<String>,
     ) -> ApiResult {
-        let Core {
+        let AccountBase {
             // Manager can only change traders for associated proxy
             proxy,
             ..
@@ -208,7 +208,7 @@ impl<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_os::api;
+    use abstract_core::api;
 
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
@@ -375,10 +375,10 @@ mod tests {
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single trader, TEST_TRADER
-        /// TEST_MANAGER and TEST_PROXY are the OS core
+        /// TEST_MANAGER and TEST_PROXY are the Account base
         ///
-        /// Note that the querier needs to mock the OS core, as the proxy will
-        /// query the OS core to get the list of traders.
+        /// Note that the querier needs to mock the Account base, as the proxy will
+        /// query the Account base to get the list of traders.
         fn setup_with_traders(mut deps: DepsMut, traders: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 
@@ -398,7 +398,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -428,7 +428,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -445,7 +445,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -462,7 +462,7 @@ mod tests {
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
                 request: MockExecMsg,
             });
@@ -477,12 +477,12 @@ mod tests {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
             deps.querier = mocked_os_querier_builder()
-                .os("some_other_manager", other_proxy, 69420u32)
+                .account("some_other_manager", other_proxy, 69420u32)
                 .build();
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
-            let msg = ExecuteMsg::App(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(ApiRequestMsg {
                 proxy_address: Some(other_proxy.into()),
                 request: MockExecMsg,
             });

@@ -1,6 +1,6 @@
 mod common;
 use abstract_boot::*;
-use abstract_os::{module_factory, objects::module::ModuleInfo};
+use abstract_core::{module_factory, objects::module::ModuleInfo};
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::init_test_env;
 use cosmwasm_std::Addr;
@@ -10,10 +10,10 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_test_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
@@ -27,18 +27,18 @@ fn instantiate() -> AResult {
     Ok(())
 }
 
-/// This test calls the factory as the root user, which is not allowed because he is not a manager.
+/// This test calls the factory as the owner, which is not allowed because he is not a manager.
 #[test]
 fn caller_must_be_manager() -> AResult {
-    let sender = Addr::unchecked(common::ROOT_USER);
+    let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut core) = init_test_env(chain)?;
-    deployment.deploy(&mut core)?;
+    let (mut deployment, mut account) = init_test_env(chain)?;
+    deployment.deploy(&mut account)?;
 
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(
         "publisher:test",
-        abstract_os::objects::module::ModuleVersion::Latest,
+        abstract_core::objects::module::ModuleVersion::Latest,
     )?;
 
     let res = factory.install_module(test_module, None).unwrap_err();

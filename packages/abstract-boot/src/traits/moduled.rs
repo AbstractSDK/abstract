@@ -1,5 +1,5 @@
-// use abstract_os::objects::module::{ModuleInfo, ModuleVersion};
-// use abstract_os::objects::module_reference::ModuleReference;
+// use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+// use abstract_core::objects::module_reference::ModuleReference;
 // use boot_core::interface::{ContractInstance, CwInterface};
 // use boot_core::{BootEnvironment, Contract};
 

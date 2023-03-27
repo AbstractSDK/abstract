@@ -1,4 +1,4 @@
-use abstract_os::{
+use abstract_core::{
     ans_host::*,
     objects::{
         pool_id::UncheckedPoolAddress, PoolMetadata, UncheckedChannelEntry, UncheckedContractEntry,
@@ -24,7 +24,7 @@ where
 {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
-        contract = contract.with_wasm_path("ans_host");
+        contract = contract.with_wasm_path("abstract_ans_host");
         Self(contract)
     }
 

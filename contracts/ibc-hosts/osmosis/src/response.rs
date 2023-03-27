@@ -1,4 +1,4 @@
-use abstract_sdk::os::dex::OfferAsset;
+use abstract_sdk::interfaces::dex::OfferAsset;
 
 /// Return the data field for each message
 #[cosmwasm_schema::cw_serde]

@@ -1,5 +1,7 @@
-use abstract_boot::{OSFactory, OsFactoryQueryFns, VersionControl, OS};
-use abstract_os::{manager, os_factory, proxy, MANAGER, OS_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
+use abstract_core::{
+    account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
+};
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
@@ -14,34 +16,35 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let _abstract_os_version: Version = VERSION.parse().unwrap();
+    let _abstract_version: Version = VERSION.parse().unwrap();
 
     let _version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
 
     // Upload the new core contracts
-    let _os_core = OS::new(chain.clone(), None);
-    // os_core.upload()?;
-    // os_core.register(&version_control, VERSION)?;
+    let _account = AbstractAccount::new(chain.clone(), None);
+    // account.upload()?;
+    // account.register(&version_control, VERSION)?;
 
     // Register the cores
-    // version_control.register_cores(vec![os_core.proxy.as_instance()], &abstract_os_version)?;
+    // version_control.register_account_mods(vec![account.proxy.as_instance()], &abstract_version)?;
 
-    let os_factory = OSFactory::new(OS_FACTORY, chain.clone());
-    let os_factory::ConfigResponse { next_os_id, .. } = OsFactoryQueryFns::config(&os_factory)?;
-    let latest_os_id = next_os_id - 1;
+    let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
+    let account_factory::ConfigResponse { next_acct_id, .. } =
+        OsFactoryQueryFns::config(&account_factory)?;
+    let latest_acct_id = next_acct_id - 1;
 
-    for os_id in 1..=latest_os_id {
-        let os = OS::new(chain.clone(), Some(os_id));
+    for account_id in 1..=latest_acct_id {
+        let account = AbstractAccount::new(chain.clone(), Some(account_id));
         // todo: check admin
 
         // Upgrade manager first
-        os.manager.upgrade(vec![(
+        account.manager.upgrade(vec![(
             ModuleInfo::from_id_latest(MANAGER)?,
             Some(to_binary(&manager::MigrateMsg {}).unwrap()),
         )])?;
 
         // Then upgrade proxy
-        os.manager.upgrade(vec![(
+        account.manager.upgrade(vec![(
             ModuleInfo::from_id_latest(PROXY)?,
             Some(to_binary(&proxy::MigrateMsg {}).unwrap()),
         )])?;
@@ -50,23 +53,23 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // // Deregister the app
     // version_control.remove_module(ModuleInfo::from_id(
     //     MANAGER,
-    //     ModuleVersion::Version(abstract_os_version.to_string()),
+    //     ModuleVersion::Version(abstract_version.to_string()),
     // )?)?;
 
     // Register the cores
-    // version_control.register_cores(vec![os_core.manager.as_instance()], &abstract_os_version)?;
+    // version_control.register_account_mods(vec![account.manager.as_instance()], &abstract_version)?;
 
     // let mut vc = VersionControl::new(VERSION_CONTROL, chain);
     //
     // vc.upload()?;
     //
-    // vc.migrate(&abstract_os::version_control::MigrateMsg {}, vc.code_id()?)?;
+    // vc.migrate(&abstract_core::version_control::MigrateMsg {}, vc.code_id()?)?;
 
     //     ans_host.instantiate(&ans_host::InstantiateMsg {}, Some(&sender), None)?;
     //
     //     ans_host.as_instance();
     //
-    //     // ans_host.query(&abstract_os::ans_host::QueryMsg::DexPools { dex: None, asset_pair: None })?;
+    //     // ans_host.query(&abstract_core::ans_host::QueryMsg::DexPools { dex: None, asset_pair: None })?;
     //
     Ok(())
 }
@@ -79,7 +82,7 @@ struct Arguments {
     network_id: String,
 }
 
-use abstract_os::{manager::ExecuteMsgFns, objects::module::ModuleInfo};
+use abstract_core::{manager::ExecuteMsgFns, objects::module::ModuleInfo};
 use clap::Parser;
 use cosmwasm_std::to_binary;
 use semver::Version;

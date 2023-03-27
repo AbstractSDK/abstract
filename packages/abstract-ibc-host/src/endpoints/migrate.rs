@@ -1,8 +1,8 @@
 use crate::{Host, HostError};
-use abstract_os::objects::module_version::{get_module_data, set_module_data};
+use abstract_core::objects::module_version::{get_module_data, set_module_data};
 use abstract_sdk::{
     base::{Handler, MigrateEndpoint},
-    os::ibc_host::MigrateMsg,
+    core::ibc_host::MigrateMsg,
 };
 use cosmwasm_std::{Response, StdError};
 use cw2::set_contract_version;
@@ -44,7 +44,7 @@ impl<
         }
 
         if let Some(migrate_fn) = self.maybe_migrate_handler() {
-            return migrate_fn(deps, env, self, msg.app);
+            return migrate_fn(deps, env, self, msg.module);
         }
         Ok(Response::default())
     }

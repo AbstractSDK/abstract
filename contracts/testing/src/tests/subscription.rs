@@ -1,6 +1,13 @@
-use std::str::FromStr;
-use abstract_os::app;
-use abstract_sdk::os::{
+use super::{
+    common::{DEFAULT_VERSION, TEST_CREATOR},
+    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
+};
+use crate::tests::{
+    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
+    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
+};
+use abstract_core::app;
+use abstract_sdk::core::{
     objects::module::{ModuleInfo, ModuleVersion},
     subscription as msgs,
     subscription::{
@@ -14,14 +21,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_controllers::AdminError;
 use cw_multi_test::{App, ContractWrapper, Executor};
-use crate::tests::{
-    common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
-    testing_infrastructure::env::{exec_msg_on_manager, mint_tokens},
-};
-use super::{
-    common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
-};
+use std::str::FromStr;
 
 pub fn register_subscription(
     app: &mut App,
@@ -54,7 +54,7 @@ fn proper_initialization() {
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    // OS 0 has proxy and subscriber module
+    // Account 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
 
     let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
@@ -83,12 +83,12 @@ fn proper_initialization() {
         config.subscription,
         state::SubscriptionConfig {
             version_control_address: env.native_contracts.version_control,
-            factory_address: env.native_contracts.os_factory,
+            factory_address: env.native_contracts.account_factory,
             payment_asset: cw_asset::AssetInfoBase::native("uusd"),
             subscription_cost_per_block: Decimal::from_str(SUBSCRIPTION_COST).unwrap(),
             subscription_per_block_emissions: EmissionType::IncomeBased(AssetInfoBase::Cw20(
                 env.native_contracts.token
-            ))
+            )),
         }
     );
 
@@ -146,7 +146,7 @@ fn add_and_remove_contributors() {
         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
     }
     let msg: msgs::ExecuteMsg = msgs::SubscriptionExecuteMsg::UpdateContributor {
-        contributor_os_id: contributing_os1,
+        contributor_acct_id: contributing_os1,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(100u64.into()),
         expiration_block: Some((app.block_info().height + 500).into()),
@@ -183,7 +183,7 @@ fn add_and_remove_contributors() {
     );
 
     let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::UpdateContributor {
-        contributor_os_id: contributing_os2,
+        contributor_acct_id: contributing_os2,
         base_per_block: Some(Decimal::from_str(DEFAULT_PAY).unwrap()),
         weight: Some(200u64.into()),
         expiration_block: Some((app.block_info().height + 500).into()),
@@ -196,7 +196,7 @@ fn add_and_remove_contributors() {
         .query_wasm_smart(
             subscription_addr,
             &app::QueryMsg::App(msgs::SubscriptionQueryMsg::ContributorState {
-                os_id: contributing_os2,
+                account_id: contributing_os2,
             }),
         )
         .unwrap();
@@ -212,12 +212,12 @@ fn add_and_remove_contributors() {
     );
 
     let msg = app::ExecuteMsg::<_>::App(msgs::SubscriptionExecuteMsg::RemoveContributor {
-        os_id: contributing_os1,
+        account_id: contributing_os1,
     });
 
     let resp =
         exec_msg_on_manager(&mut app, &random_user, &manager_addr, SUBSCRIPTION, &msg).unwrap_err();
-    // Only OS root can change stuff on module
+    // Only account owner can change stuff on module
     assert_eq!(
         AdminError::NotAdmin {}.to_string(),
         resp.source().unwrap().to_string()
@@ -282,12 +282,12 @@ fn add_and_remove_contributors() {
 //         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
 //     }
 
-//     // Payments got forwarded to os 0
+//     // Payments got forwarded to account 0
 //     let abstract_balance = app.wrap().query_balance(&proxy_addr, "uusd").unwrap();
-//     // 50 os' were created
+//     // 50 account' were created
 //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         // Can only claim after tallying
@@ -303,7 +303,7 @@ fn add_and_remove_contributors() {
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         .unwrap();
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         // Can only claim after tallying
@@ -396,7 +396,7 @@ fn add_and_remove_contributors() {
 //     );
 //     send_compensations_until_done(&mut app, &sender, &subscription_addr);
 
-//     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+//     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 //     let _resp = app
 //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 //         .unwrap();
@@ -550,12 +550,12 @@ fn add_and_remove_contributors() {
 // //         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
 // //     }
 
-// //     // Payments got forwarded to os 0
+// //     // Payments got forwarded to account 0
 // //     let abstract_balance = app.wrap().query_balance(&proxy_addr, "uusd").unwrap();
-// //     // 50 os' were created
+// //     // 50 account' were created
 // //     assert_eq!(abstract_balance.amount.u128(), 5_000u128);
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         // Can only claim after tallying
@@ -571,7 +571,7 @@ fn add_and_remove_contributors() {
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         .unwrap();
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         // Can only claim after tallying
@@ -663,7 +663,7 @@ fn add_and_remove_contributors() {
 // //         }
 // //     );
 
-// //     let msg = msgs::ExecuteMsg::ClaimEmissions { os_id: 2 };
+// //     let msg = msgs::ExecuteMsg::ClaimEmissions { account_id: 2 };
 // //     let resp = app
 // //         .execute_contract(sender.clone(), subscription_addr.clone(), &msg, &[])
 // //         .unwrap();

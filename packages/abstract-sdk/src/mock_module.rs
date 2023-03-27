@@ -1,14 +1,16 @@
-use abstract_os::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::StaticDependency;
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
 
-use crate::features::{AbstractNameService, Dependencies, Identification, ModuleIdentification};
+use crate::features::{
+    AbstractNameService, AccountIdentification, Dependencies, ModuleIdentification,
+};
 use crate::AbstractSdkResult;
-use abstract_os::objects::ans_host::AnsHost;
-use os::objects::module::ModuleId;
+use abstract_core::objects::ans_host::AnsHost;
+use core::objects::module::ModuleId;
 
 // We implement the following traits here for the mock module (in this package) to avoid a circular dependency
-impl Identification for MockModule {
+impl AccountIdentification for MockModule {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(Addr::unchecked(TEST_PROXY))
     }
@@ -54,10 +56,10 @@ pub struct MockModuleExecuteMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryMsg {}
 
-impl abstract_os::api::ApiExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_core::api::ApiExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_os::api::ApiQueryMsg for MockModuleQueryMsg {}
+impl abstract_core::api::ApiQueryMsg for MockModuleQueryMsg {}
 
-impl abstract_os::app::AppExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_core::app::AppExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_os::app::AppQueryMsg for MockModuleQueryMsg {}
+impl abstract_core::app::AppQueryMsg for MockModuleQueryMsg {}

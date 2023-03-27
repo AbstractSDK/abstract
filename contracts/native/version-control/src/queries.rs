@@ -1,14 +1,14 @@
 use crate::error::VCError;
-use abstract_os::objects::OsId;
-use abstract_os::version_control::ModuleFilter;
-use abstract_sdk::os::{
+use abstract_core::objects::AccountId;
+use abstract_core::version_control::ModuleFilter;
+use abstract_sdk::core::{
     objects::{
         module::{Module, ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
     },
     version_control::{
-        state::MODULE_LIBRARY, state::OS_ADDRESSES, ModulesListResponse, ModulesResponse,
-        OsCoreResponse,
+        state::ACCOUNT_ADDRESSES, state::MODULE_LIBRARY, AccountBaseResponse, ModulesListResponse,
+        ModulesResponse,
     },
 };
 use cosmwasm_std::{to_binary, Binary, Deps, Order, StdError, StdResult};
@@ -17,13 +17,13 @@ use cw_storage_plus::Bound;
 const DEFAULT_LIMIT: u8 = 10;
 const MAX_LIMIT: u8 = 20;
 
-pub fn handle_os_address_query(deps: Deps, os_id: OsId) -> StdResult<Binary> {
-    let os_address = OS_ADDRESSES.load(deps.storage, os_id);
+pub fn handle_os_address_query(deps: Deps, account_id: AccountId) -> StdResult<Binary> {
+    let os_address = ACCOUNT_ADDRESSES.load(deps.storage, account_id);
     match os_address {
         Err(_) => Err(StdError::generic_err(
-            VCError::MissingOsId { id: os_id }.to_string(),
+            VCError::MissingAccountId { id: account_id }.to_string(),
         )),
-        Ok(core) => to_binary(&OsCoreResponse { os_core: core }),
+        Ok(base) => to_binary(&AccountBaseResponse { account: base }),
     }
 }
 
@@ -182,7 +182,7 @@ mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{DepsMut, StdError};
 
-    use abstract_os::version_control::*;
+    use abstract_core::version_control::*;
 
     use crate::contract;
     use crate::contract::VCResult;
@@ -210,7 +210,7 @@ mod test {
 
     mod module {
         use super::*;
-        use abstract_os::objects::module::ModuleVersion::Latest;
+        use abstract_core::objects::module::ModuleVersion::Latest;
 
         use cosmwasm_std::from_binary;
 

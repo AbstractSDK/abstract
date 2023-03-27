@@ -1,7 +1,7 @@
 use crate::{AppContract, AppError};
 use abstract_sdk::{
     feature_objects::AnsHost,
-    features::{AbstractNameService, Identification},
+    features::{AbstractNameService, AccountIdentification},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -35,7 +35,7 @@ impl<
         CustomQueryMsg,
         CustomMigrateMsg,
         ReceiveMsg,
-    > Identification
+    > AccountIdentification
     for AppContract<
         Error,
         CustomInitMsg,

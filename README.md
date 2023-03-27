@@ -1,4 +1,4 @@
-# Abstract OS 
+# Abstract 
 
 <a href="https://codecov.io/gh/Abstract-OS/contracts" > 
  <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 

@@ -1,5 +1,5 @@
 use crate::base::Handler;
-use os::objects::dependency::StaticDependency;
+use core::objects::dependency::StaticDependency;
 
 /// Retrieve the dependencies of a module.
 pub trait Dependencies: Sized {

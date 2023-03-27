@@ -2,7 +2,7 @@ use crate::{
     AbstractContract, AppError, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
-use abstract_os::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     feature_objects::AnsHost,
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},

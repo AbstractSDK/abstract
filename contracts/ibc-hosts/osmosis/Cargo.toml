@@ -21,8 +21,8 @@ export = []
 cosmwasm-std = { version =  "1.1", features = ["stargate"]}
 thiserror = {workspace = true}
 # dex = {workspace = true, default-features = false ,features = ["osmosis"] }
-abstract-os = { workspace = true }
-abstract-ibc-host = { workspace = true}
+abstract-core =  { workspace = true }
+abstract-ibc-host = { workspace = true }
 abstract-sdk = {workspace = true}
 cosmwasm-schema = { workspace = true }
 abstract-macros = { workspace = true }

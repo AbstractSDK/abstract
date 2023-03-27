@@ -1,10 +1,10 @@
 use crate::addresses::{
-    test_core, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID, TEST_MODULE_RESPONSE, TEST_OS_ID,
-    TEST_PROXY, TEST_VERSION_CONTROL,
+    test_core, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
+    TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
-use abstract_os::{
-    manager::state::{OS_ID, OS_MODULES},
-    version_control::state::OS_ADDRESSES,
+use abstract_core::{
+    manager::state::{ACCOUNT_ID, OS_MODULES},
+    version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
     from_binary, testing::MockQuerier, to_binary, Addr, Binary, ContractResult, Empty,
@@ -319,9 +319,9 @@ impl MockQuerierBuilder {
 ///   - "admin" -> TEST_MANAGER
 /// - TEST_MANAGER
 ///   - "os_modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
-///   - "os_id" -> TEST_OS_ID
+///   - "account_id" -> TEST_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
-///   - "os_core" -> { TEST_PROXY, TEST_MANAGER }
+///   - "account" -> { TEST_PROXY, TEST_MANAGER }
 pub fn mock_querier() -> MockQuerier {
     let raw_handler = |contract: &str, key: &Binary| {
         let _str_key = std::str::from_utf8(&key.0).unwrap();
@@ -343,15 +343,15 @@ pub fn mock_querier() -> MockQuerier {
         .with_fallback_raw_handler(raw_handler)
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
-            OS_ADDRESSES,
-            (TEST_OS_ID, test_core()),
+            ACCOUNT_ADDRESSES,
+            (TEST_ACCOUNT_ID, test_core()),
         )
         .with_contract_item(
             TEST_PROXY,
             Item::new("admin"),
             &Some(Addr::unchecked(TEST_MANAGER)),
         )
-        .with_contract_item(TEST_MANAGER, OS_ID, &TEST_OS_ID)
+        .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
         .with_smart_handler(TEST_MODULE_ADDRESS, |msg| {
             let Empty {} = from_binary(msg).unwrap();
             Ok(to_binary(TEST_MODULE_RESPONSE).unwrap())
@@ -370,31 +370,32 @@ pub fn wrap_querier(querier: &MockQuerier) -> QuerierWrapper<'_, Empty> {
 
 #[cfg(test)]
 mod tests {
-    use crate::addresses::{TEST_MODULE_ID, TEST_OS_ID};
+    use crate::addresses::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 
     use super::*;
-    use abstract_os::{
-        manager::state::OS_MODULES, proxy::state::OS_ID, version_control::state::OS_ADDRESSES,
+    use abstract_core::{
+        manager::state::OS_MODULES, proxy::state::ACCOUNT_ID,
+        version_control::state::ACCOUNT_ADDRESSES,
     };
     use cosmwasm_std::testing::mock_dependencies;
     use speculoos::prelude::*;
 
-    mod os_core {
+    mod account {
         use super::*;
-        use abstract_os::version_control::Core;
+        use abstract_core::version_control::AccountBase;
 
         #[test]
         fn should_return_os_address() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
-            let actual = OS_ADDRESSES.query(
+            let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_VERSION_CONTROL),
-                TEST_OS_ID,
+                TEST_ACCOUNT_ID,
             );
 
-            let expected = Core {
+            let expected = AccountBase {
                 proxy: Addr::unchecked(TEST_PROXY),
                 manager: Addr::unchecked(TEST_MANAGER),
             };
@@ -403,16 +404,17 @@ mod tests {
         }
     }
 
-    mod os_id {
+    mod account_id {
         use super::*;
 
         #[test]
-        fn should_return_test_os_id_with_test_manager() {
+        fn should_return_test_acct_id_with_test_manager() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
-            let actual = OS_ID.query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER));
+            let actual =
+                ACCOUNT_ID.query(&wrap_querier(&deps.querier), Addr::unchecked(TEST_MANAGER));
 
-            assert_that!(actual).is_ok().is_equal_to(TEST_OS_ID);
+            assert_that!(actual).is_ok().is_equal_to(TEST_ACCOUNT_ID);
         }
     }
 

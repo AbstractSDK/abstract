@@ -1,5 +1,5 @@
-use abstract_boot::{Abstract, OS};
-use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_boot::{Abstract, AbstractAccount};
+use abstract_core::objects::gov_type::GovernanceDetails;
 
 use boot_core::{
     networks::{parse_network, NetworkInfo},
@@ -13,7 +13,7 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_os_version: Version = ABSTRACT_VERSION.parse().unwrap();
+    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
@@ -21,16 +21,16 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
 
     // log::info!("Your balance is: {}", );
 
-    let mut os_core = OS::new(chain.clone(), None);
+    let mut account = AbstractAccount::new(chain.clone(), None);
 
-    let mut deployment = Abstract::new(chain, abstract_os_version);
+    let mut deployment = Abstract::new(chain, abstract_version);
 
-    deployment.deploy(&mut os_core)?;
+    deployment.deploy(&mut account)?;
 
-    // CReate the Abstract OS because it's needed for the fees for the dex module
+    // CReate the Abstract Account because it's needed for the fees for the dex module
     deployment
-        .os_factory
-        .create_default_os(GovernanceDetails::Monarchy {
+        .account_factory
+        .create_default_account(GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         })?;
 
