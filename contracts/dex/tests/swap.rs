@@ -1,6 +1,6 @@
 mod common;
 
-use abstract_boot::{Abstract, ApiDeployer, OS};
+use abstract_boot::{Abstract, AbstractAccount, ApiDeployer};
 use boot_core::Deploy;
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use common::create_default_os;
@@ -18,7 +18,7 @@ fn swap_native() -> anyhow::Result<()> {
     let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
     let _wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
-    let _root_os = create_default_os(&deployment.os_factory)?;
+    let _root_os = create_default_os(&deployment.account_factory)?;
     let mut exchange_api = DexApi::new(EXCHANGE, chain.clone());
 
     exchange_api.deploy(
@@ -29,7 +29,7 @@ fn swap_native() -> anyhow::Result<()> {
         },
     )?;
 
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;
     let _manager_addr = os.manager.address()?;
     // mint to proxy
@@ -52,7 +52,9 @@ fn swap_native() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = OS::new(chain.clone(), Some(0)).proxy.address()?;
+    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0))
+        .proxy
+        .address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 

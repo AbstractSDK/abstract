@@ -1,20 +1,16 @@
 mod common;
 
-use abstract_boot::{Abstract, ApiDeployer, OS};
+use abstract_boot::{Abstract, ApiDeployer};
 use abstract_core::objects::{AnsAsset, AssetEntry};
-use abstract_testing::ROOT_USER;
 use boot_core::{instantiate_default_mock_env, ContractInstance};
-use boot_core::{BootQuery, CallAs, Deploy};
+use boot_core::{CallAs, Deploy};
 use common::create_default_os;
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
+use cosmwasm_std::{Addr, Empty};
 use cw_staking::CW_STAKING;
-use cw_staking::{
-    boot::CwStakingApi,
-    msg::{CwStakingExecuteMsg, CwStakingQueryMsgFns},
-};
+use cw_staking::{boot::CwStakingApi, msg::CwStakingQueryMsgFns};
 
 use speculoos::*;
-use wyndex_bundle::{EUR, EUR_USD_LP, USD, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
+use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER};
 
 #[test]
 fn stake_lp() -> anyhow::Result<()> {
@@ -24,22 +20,22 @@ fn stake_lp() -> anyhow::Result<()> {
     let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
-    let _root_os = create_default_os(&deployment.os_factory)?;
+    let _root_os = create_default_os(&deployment.account_factory)?;
     let mut staking_api = CwStakingApi::new(CW_STAKING, chain.clone());
 
     staking_api.deploy("1.0.0".parse()?, Empty {})?;
 
-    let os = create_default_os(&deployment.os_factory)?;
+    let os = create_default_os(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;
     let _manager_addr = os.manager.address()?;
 
-    // transfer some LP tokens to the OS, as if it provided liquidity
+    // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
     wyndex
         .eur_usd_lp
         .call_as(&Addr::unchecked(WYNDEX_OWNER))
         .transfer(1000, proxy_addr.to_string())?;
 
-    // install exchange on OS
+    // install exchange on AbstractAccount
     os.manager.install_module(CW_STAKING, &Empty {})?;
     // load exchange data into type
     staking_api.set_address(&Addr::unchecked(

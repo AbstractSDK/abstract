@@ -1,8 +1,7 @@
 use abstract_boot::{AnsHost, ApiDeployer, VCExecFns, VersionControl};
 use abstract_sdk::core::objects::module::{Module, ModuleInfo, ModuleVersion};
-use abstract_sdk::os;
+use abstract_sdk::core::{api, ANS_HOST, VERSION_CONTROL};
 use boot_core::{instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *};
-use core::{ANS_HOST, VERSION_CONTROL};
 use cosmwasm_std::{Addr, Empty};
 use cw_staking::boot::CwStakingApi;
 use cw_staking::CW_STAKING;
@@ -44,9 +43,9 @@ fn deploy_cw_staking(
     } else if let Some(code_id) = code_id {
         let mut cw_staking = CwStakingApi::new(CW_STAKING, chain);
         cw_staking.set_code_id(code_id);
-        let init_msg = core::api::InstantiateMsg {
-            app: Empty {},
-            base: core::api::BaseInstantiateMsg {
+        let init_msg = api::InstantiateMsg {
+            module: Empty {},
+            base: api::BaseInstantiateMsg {
                 ans_host_address: ans_host.address()?.into(),
                 version_control_address: version_control.address()?.into(),
             },
