@@ -35,7 +35,7 @@ cosmwasm-schema = { workspace = true }
 cw-storage-plus = {workspace = true}
 
 abstract-boot = { workspace = true , optional = true }
-abstract-os = { workspace = true }
+abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-api = { workspace = true }
 boot-core = { workspace = true , optional = true }

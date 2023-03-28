@@ -1,6 +1,6 @@
 use abstract_api::ApiError;
-use abstract_os::objects::DexAssetPairing;
-use abstract_os::AbstractOsError;
+use abstract_core::objects::DexAssetPairing;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -12,7 +12,7 @@ pub enum DexError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    AbstractOs(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

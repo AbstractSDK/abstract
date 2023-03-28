@@ -1,7 +1,7 @@
 mod common;
 
 use abstract_boot::{Abstract, ApiDeployer, OS};
-use abstract_os::objects::{AnsAsset, AssetEntry};
+use abstract_core::objects::{AnsAsset, AssetEntry};
 use abstract_testing::ROOT_USER;
 use boot_core::{instantiate_default_mock_env, ContractInstance};
 use boot_core::{BootQuery, CallAs, Deploy};

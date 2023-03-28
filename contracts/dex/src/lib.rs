@@ -23,7 +23,7 @@ pub mod host_exchange {
 pub mod boot {
     use crate::{msg::*, EXCHANGE};
     use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
-    use abstract_os::{
+    use abstract_core::{
         api::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
@@ -62,7 +62,7 @@ pub mod boot {
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 
-            let swap_msg = crate::msg::ExecuteMsg::App(api::ApiRequestMsg {
+            let swap_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
                 proxy_address: None,
                 request: DexExecuteMsg {
                     dex,

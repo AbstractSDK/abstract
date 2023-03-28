@@ -1,8 +1,8 @@
 //! # Tendermint Staking Api
 //!
-//! `abstract_os::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
+//! `abstract_core::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
-use abstract_os::api;
+use abstract_core::api;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 

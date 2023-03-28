@@ -1,6 +1,6 @@
 use crate::contract::{DexApi, DexResult};
 use crate::{msg::DexInstantiateMsg, state::SWAP_FEE};
-use abstract_os::objects::fee::UsageFee;
+use abstract_core::objects::fee::UsageFee;
 use abstract_sdk::OsVerification;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 

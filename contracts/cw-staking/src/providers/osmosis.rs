@@ -20,7 +20,7 @@ pub mod fns {
 
     use super::*;
     const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
-    use abstract_os::objects::LpToken;
+    use abstract_core::objects::LpToken;
     use abstract_sdk::Resolve;
     use cosmwasm_std::Env;
     use osmosis_std::{
@@ -43,7 +43,7 @@ pub mod fns {
             deps: cosmwasm_std::Deps,
             env: Env,
             ans_host: &abstract_sdk::feature_objects::AnsHost,
-            staking_asset: abstract_os::objects::AssetEntry,
+            staking_asset: abstract_core::objects::AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
             let provider_staking_contract_entry = self.staking_entry(&staking_asset);
 

@@ -5,8 +5,8 @@ use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
 use crate::{contract::CwStakingResult, error::StakingError};
 use abstract_sdk::{
+    core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
-    os::objects::{AssetEntry, LpToken},
     AbstractSdkError, Resolve,
 };
 use cosmwasm_std::{
@@ -15,7 +15,7 @@ use cosmwasm_std::{
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_utils::Duration;
-use wyndex_stake::msg::{DistributionDataResponse, StakedResponse};
+use wyndex_stake::msg::DistributionDataResponse;
 use wyndex_stake::{
     msg::{
         BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg, ReceiveDelegationMsg as ReceiveMsg,

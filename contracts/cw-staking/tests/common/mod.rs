@@ -1,7 +1,7 @@
 pub const ROOT_USER: &str = "root_user";
 use abstract_boot::OSFactory;
 use abstract_boot::OS;
-use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::gov_type::GovernanceDetails;
 
 use boot_core::Mock;
 use cosmwasm_std::Addr;

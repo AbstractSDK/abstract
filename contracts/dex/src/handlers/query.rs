@@ -9,7 +9,7 @@ use crate::{
     exchanges::exchange_resolver,
     LocalDex,
 };
-use abstract_os::objects::{AssetEntry, DexAssetPairing};
+use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 

@@ -1,7 +1,7 @@
 pub const ROOT_USER: &str = "root_user";
 use abstract_boot::OSFactory;
 use abstract_boot::OS;
-use abstract_os::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::gov_type::GovernanceDetails;
 
 use boot_core::Mock;
 use cosmwasm_std::Addr;
@@ -35,7 +35,7 @@ pub fn create_default_os(factory: &OSFactory<Mock>) -> anyhow::Result<OS<Mock>> 
 //                 swap_fee: Decimal::percent(1),
 //                 recipient_os: 0,
 //             },
-//             base: abstract_os::api::BaseInstantiateMsg {
+//             base: abstract_core::api::BaseInstantiateMsg {
 //                 ans_host_address: deployment.ans_host.addr_str()?,
 //                 version_control_address: deployment.version_control.addr_str()?,
 //             },

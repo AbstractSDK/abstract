@@ -10,7 +10,7 @@ use cosmwasm_std::Addr;
 
 #[cfg(feature = "osmosis")]
 use ::{
-    abstract_os::objects::PoolAddress,
+    abstract_core::objects::PoolAddress,
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },

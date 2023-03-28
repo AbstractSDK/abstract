@@ -7,17 +7,17 @@ use crate::{
     },
     EXCHANGE,
 };
-use abstract_os::objects::{module::ModuleId, AssetEntry};
+use abstract_core::objects::{module::ModuleId, AssetEntry};
 use abstract_sdk::ApiInterface;
 use abstract_sdk::{
-    features::{Dependencies, Identification},
+    features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex api in your module.
-pub trait DexInterface: Identification + Dependencies {
+pub trait DexInterface: AccountIdentification + Dependencies {
     /// Construct a new dex interface
     /// Params:
     /// - deps: the deps object
@@ -32,7 +32,7 @@ pub trait DexInterface: Identification + Dependencies {
     }
 }
 
-impl<T: Identification + Dependencies> DexInterface for T {}
+impl<T: AccountIdentification + Dependencies> DexInterface for T {}
 
 #[derive(Clone)]
 pub struct Dex<'a, T: DexInterface> {
@@ -149,7 +149,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 mod test {
     use super::*;
     use crate::msg::ExecuteMsg;
-    use abstract_os::api::ApiRequestMsg;
+    use abstract_core::api::ApiRequestMsg;
     use abstract_sdk::mock_module::MockModule;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::wasm_execute;

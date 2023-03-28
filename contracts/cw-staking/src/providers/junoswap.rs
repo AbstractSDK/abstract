@@ -4,8 +4,8 @@ use crate::traits::cw_staking_adapter::CwStakingAdapter;
 use crate::traits::identify::Identify;
 use crate::{error::StakingError, msg::RewardTokensResponse};
 use abstract_sdk::{
+    core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
-    os::objects::{AssetEntry, LpToken},
     AbstractSdkError, Resolve,
 };
 use cosmwasm_std::{

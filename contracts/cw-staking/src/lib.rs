@@ -21,8 +21,8 @@ pub mod boot {
     use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
     use crate::CW_STAKING;
     use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
-    use abstract_os::objects::AnsAsset;
-    use abstract_os::{api, MANAGER};
+    use abstract_core::objects::AnsAsset;
+    use abstract_core::{api, MANAGER};
     use boot_core::ContractWrapper;
     use boot_core::{boot_contract, ContractInstance};
     use boot_core::{BootEnvironment, Contract, IndexResponse, TxResponse};
@@ -63,7 +63,7 @@ pub mod boot {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::App(api::ApiRequestMsg {
+            let stake_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,
@@ -84,7 +84,7 @@ pub mod boot {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::App(api::ApiRequestMsg {
+            let stake_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,

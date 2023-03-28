@@ -50,7 +50,7 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 
 abstract-sdk = { workspace = true }
-abstract-os = { workspace = true }
+abstract-core = { workspace = true }
 abstract-api = { workspace = true }
 abstract-boot = { workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }

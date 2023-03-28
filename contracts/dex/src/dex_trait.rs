@@ -1,7 +1,7 @@
 use crate::error::DexError;
-use abstract_os::objects::{DexAssetPairing, PoolAddress, PoolReference};
+use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
+use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::AnsHost;
-use abstract_sdk::os::objects::AssetEntry;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 

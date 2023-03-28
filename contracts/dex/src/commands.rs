@@ -2,11 +2,11 @@ use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
 use crate::{error::DexError, DEX};
-use abstract_os::objects::{DexAssetPairing, PoolReference};
+use abstract_core::objects::{DexAssetPairing, PoolReference};
+use abstract_sdk::core::objects::AnsAsset;
+use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::fees::Chargeable;
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::os::objects::AnsAsset;
-use abstract_sdk::os::objects::AssetEntry;
 use abstract_sdk::Execution;
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, StdError, StdResult, WasmMsg};
 use cw20::Cw20ExecuteMsg;
@@ -132,7 +132,9 @@ pub trait LocalDex: AbstractNameService + Execution {
             max_spread,
         )?;
         // insert fee msg
-        fee_msg.map(|f|swap_msgs.push(f));
+        if let Some(f) = fee_msg {
+            swap_msgs.push(f)
+        }
 
         Ok(swap_msgs)
     }

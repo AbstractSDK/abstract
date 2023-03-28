@@ -4,7 +4,7 @@ use crate::{
     error::DexError,
     DEX,
 };
-use abstract_os::objects::PoolAddress;
+use abstract_core::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use astroport::pair::{PoolResponse, SimulationResponse};
 use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};

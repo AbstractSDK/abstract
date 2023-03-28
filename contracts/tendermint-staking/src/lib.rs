@@ -8,7 +8,7 @@ pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 #[cfg(feature = "boot")]
 pub mod boot {
     use abstract_boot::ApiDeployer;
-    use abstract_os::api::InstantiateMsg;
+    use abstract_core::api::InstantiateMsg;
     use boot_core::ContractWrapper;
     use boot_core::{boot_contract, BootEnvironment, Contract};
     use cosmwasm_std::Empty;
