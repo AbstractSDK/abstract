@@ -42,11 +42,13 @@ pub fn try_provide_liquidity(
     msg_info: MessageInfo,
     app: EtfApp,
     asset: Asset,
+    // optional sender address
+    // set if called from CW20 hook
     sender: Option<String>,
 ) -> EtfResult {
     let state = STATE.load(deps.storage)?;
-    // Get the liquidity manager address
-    let liq_manager = match sender {
+    // Get the depositor address
+    let depositor = match sender {
         Some(addr) => deps.api.addr_validate(&addr)?,
         None => {
             // Check if deposit matches claimed deposit.
@@ -76,7 +78,7 @@ pub fn try_provide_liquidity(
         asset_info: vault.base_asset()?.base_asset,
     };
 
-    // Assert deposited asset and claimed asset infos are the same
+    // Assert deposited info and claimed asset info are the same
     deposit_info.assert(&asset.info)?;
 
     // Init vector for logging
@@ -106,11 +108,11 @@ pub fn try_provide_liquidity(
         (total_share * value_increase) - total_share
     };
 
-    // mint LP token to liq_manager
+    // mint LP token to depositor
     let mint_lp = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: state.share_token_address.to_string(),
         msg: to_binary(&Cw20ExecuteMsg::Mint {
-            recipient: liq_manager.to_string(),
+            recipient: depositor.to_string(),
             amount: share,
         })?,
         funds: vec![],
