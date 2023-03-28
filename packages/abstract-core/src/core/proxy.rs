@@ -6,9 +6,9 @@
 //! The proxy is part of the Core Account contracts along with the [`crate::manager`] contract.
 //! This contract is responsible for executing Cosmos messages and calculating the value of its internal assets.
 //!
-//! ## Proxy assets
-//! [Proxy assets](crate::objects::proxy_asset) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
-//! After configuring the proxy assets [`QueryMsg::TotalValue`] can be called to get the total holding value.
+//! ## Price Sources
+//! [price sources](crate::objects::price_source) are what allow the proxy contract to provide value queries for its assets. It needs to be configured using the [`ExecuteMsg::UpdateAssets`] endpoint.
+//! After configuring the price sources [`QueryMsg::TotalValue`] can be called to get the total holding value.
 
 #[allow(unused_imports)]
 use crate::{
@@ -39,7 +39,6 @@ pub mod state {
     pub const ANS_HOST: Item<AnsHost> = Item::new("\u{0}{6}ans_host");
     pub const STATE: Item<State> = Item::new("\u{0}{5}state");
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    // pub const VAULT_ASSETS: Map<&AssetEntry, ProxyAsset> = Map::new("proxy_assets");
 }
 
 #[cosmwasm_schema::cw_serde]
