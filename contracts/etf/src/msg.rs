@@ -39,10 +39,11 @@
 use abstract_os::app;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
+use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
 
 pub type InstantiateMsg = app::InstantiateMsg<EtfInstantiateMsg>;
-pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg>;
+pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg, Cw20ReceiveMsg>;
 pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;
 pub type MigrateMsg = app::MigrateMsg;
 
