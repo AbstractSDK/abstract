@@ -26,7 +26,7 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
-        pub core: Option<AccountBase>,
+        pub account_base: Option<AccountBase>,
         pub module: Option<Module>,
     }
 
@@ -96,7 +96,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
-    pub account: Option<AccountBase>,
+    pub account_base: Option<AccountBase>,
     pub module: Option<Module>,
 }
 

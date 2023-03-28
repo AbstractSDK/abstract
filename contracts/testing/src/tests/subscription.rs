@@ -126,7 +126,7 @@ fn add_and_remove_contributors() {
 
     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
 
-    // OS 0 has proxy and subscriber module
+    // Account 0 has proxy and subscriber module
     assert_eq!(os_state.len(), 2);
 
     let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
@@ -246,14 +246,14 @@ fn add_and_remove_contributors() {
 
 // / On creation the contract next-pay-day is set to 6 sec before the current time.
 // / In the case that now > next-pay-day we want to check that
-// / 1. New OS can not claim emission
+// / 1. New Account can not claim emission
 // / 2. Contributor can not collect income
 // / 3. We can successfully collect the income.
 // / This is tested in actions_before_first_month()
 // /
 // / While collecting the income we want to check that
-// / 4. New OS's can't be created
-// / 5. OS cannot claim emissions
+// / 4. New Account's can't be created
+// / 5. Account cannot claim emissions
 // /
 // / After collecting the income the next-pay-day will be moved by one MONTH
 
@@ -314,7 +314,7 @@ fn add_and_remove_contributors() {
 //         "cannot claim emissions before income is collected"
 //     );
 
-//     // Map is locked so no new OS's are allowed to be created
+//     // Map is locked so no new Account's are allowed to be created
 //     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap_err();
 //     assert_eq!(
 //         resp.source().unwrap().source().unwrap().to_string(),
@@ -582,7 +582,7 @@ fn add_and_remove_contributors() {
 // //         "cannot claim emissions before income is collected"
 // //     );
 
-// //     // Map is locked so no new OS's are allowed to be created
+// //     // Map is locked so no new Account's are allowed to be created
 // //     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap_err();
 // //     assert_eq!(
 // //         resp.to_string(),

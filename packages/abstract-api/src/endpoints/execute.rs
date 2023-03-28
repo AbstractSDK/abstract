@@ -89,7 +89,7 @@ impl<
 
         let os_registry = self.os_registry(deps.as_ref());
 
-        let core = match request.proxy_address {
+        let account_base = match request.proxy_address {
             // The sender must either be a trader or manager.
             Some(requested_proxy) => {
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
@@ -103,7 +103,7 @@ impl<
                     .map_err(unauthorized_sender)?;
 
                 if traders.contains(sender) {
-                    // If the sender is a trader, return the core.
+                    // If the sender is a trader, return the account_base.
                     requested_core
                 } else {
                     // If the sender is NOT a trader, check that it is a manager of some Account.
@@ -116,7 +116,7 @@ impl<
                 .assert_manager(sender)
                 .map_err(unauthorized_sender)?,
         };
-        self.target_account = Some(core);
+        self.target_account = Some(account_base);
         self.execute_handler()?(deps, env, info, self, request.request)
     }
 
@@ -128,14 +128,14 @@ impl<
         info: MessageInfo,
     ) -> ApiResult {
         // Only the manager can remove the API as a dependency.
-        let core = self
+        let account_base = self
             .os_registry(deps)
             .assert_manager(&info.sender)
             .map_err(|_| ApiError::UnauthorizedApiRequest {
                 api: self.module_id().to_string(),
                 sender: info.sender.to_string(),
             })?;
-        self.target_account = Some(core);
+        self.target_account = Some(account_base);
 
         let dependencies = self.dependencies();
         let mut msgs: Vec<CosmosMsg> = vec![];

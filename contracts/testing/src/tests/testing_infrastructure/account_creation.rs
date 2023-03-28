@@ -50,20 +50,20 @@ pub fn init_os(
         &native_contracts.account_factory,
         &account_factory::QueryMsg::Config {},
     )?;
-    let account_id = resp.next_acct_id - 1;
+    let account_id = resp.next_account_id - 1;
 
-    // Check OS
+    // Check Account
     let core: AccountBaseResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
         &version_control::QueryMsg::OsCore { account_id },
     )?;
 
-    os_store.insert(account_id, core.account);
+    os_store.insert(account_id, account_base.account);
     assert!(os_store_as_expected(app, native_contracts, os_store));
     Ok(())
 }
 
-/// Instantiate the first OS which has the subscriber module.
+/// Instantiate the first Account which has the subscriber module.
 /// Update the factory using this new address
 pub fn init_primary_os(
     app: &mut App,
@@ -73,7 +73,7 @@ pub fn init_primary_os(
 ) -> AnyResult<()> {
     register_subscription(app, sender, &native_contracts.version_control)?;
 
-    let core = os_store.get(&0u32).unwrap();
+    let account_base = os_store.get(&0u32).unwrap();
 
     let init_msg = to_binary(&app::InstantiateMsg {
         app: SubInitMsg {
@@ -110,7 +110,7 @@ pub fn init_primary_os(
     };
 
     let resp = app
-        .execute_contract(sender.clone(), core.manager.clone(), &msg, &[])
+        .execute_contract(sender.clone(), account_base.manager.clone(), &msg, &[])
         .unwrap();
 
     let msg = abstract_sdk::core::account_factory::ExecuteMsg::UpdateConfig {
@@ -143,7 +143,7 @@ fn proper_initialization() {
 
     // TODO: review on release
     // init_os(&mut app, &sender, &native_contracts, &mut os_store)
-    //     .expect_err("first OS needs to have subscriptions");
+    //     .expect_err("first Account needs to have subscriptions");
 
     init_primary_os(&mut app, &sender, &native_contracts, &mut os_store).unwrap();
 }

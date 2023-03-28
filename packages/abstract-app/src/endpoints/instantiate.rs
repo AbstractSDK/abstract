@@ -52,7 +52,7 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let Some(core) = resp.account else {
+        let Some(account_base) = resp.account_base else {
             return Err(
                 StdError::generic_err("context of module factory not properly set.").into(),
             );
@@ -60,14 +60,14 @@ impl<
 
         // Base state
         let state = AppState {
-            proxy_address: core.proxy.clone(),
+            proxy_address: account_base.proxy.clone(),
             ans_host,
         };
         let (name, version, metadata) = self.info();
         set_module_data(deps.storage, name, version, self.dependencies(), metadata)?;
         set_contract_version(deps.storage, name, version)?;
         self.base_state.save(deps.storage, &state)?;
-        self.admin.set(deps.branch(), Some(core.manager))?;
+        self.admin.set(deps.branch(), Some(account_base.manager))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
             return Ok(Response::new())

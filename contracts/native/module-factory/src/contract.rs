@@ -38,7 +38,7 @@ pub fn instantiate(
     CONTEXT.save(
         deps.storage,
         &Context {
-            core: None,
+            account_base: None,
             module: None,
         },
     )?;
@@ -109,7 +109,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let context: Context = CONTEXT.load(deps.storage)?;
     let resp = ContextResponse {
-        account: context.core,
+        account_base: context.account_base,
         module: context.module,
     };
 

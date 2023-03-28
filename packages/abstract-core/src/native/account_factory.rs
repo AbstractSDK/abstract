@@ -22,7 +22,7 @@ pub mod state {
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
-        pub next_acct_id: AccountId,
+        pub next_account_id: AccountId,
     }
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -98,7 +98,7 @@ pub struct ConfigResponse {
     pub version_control_contract: String,
     pub module_factory_address: String,
     pub subscription_address: Option<String>,
-    pub next_acct_id: AccountId,
+    pub next_account_id: AccountId,
 }
 
 /// We currently take no arguments for migrations

@@ -41,9 +41,9 @@ where
 {
     if let Some(account_id) = account_id {
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
-        let core = version_control.get_account(account_id).unwrap();
-        chain.state().set_address(MANAGER, &core.manager);
-        chain.state().set_address(PROXY, &core.proxy);
+        let account_base = version_control.get_account(account_id).unwrap();
+        chain.state().set_address(MANAGER, &account_base.manager);
+        chain.state().set_address(PROXY, &account_base.proxy);
         let manager = Manager::new(MANAGER, chain.clone());
         let proxy = Proxy::new(PROXY, chain);
         (manager, proxy)

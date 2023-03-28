@@ -97,12 +97,12 @@ mod test {
 
     #[test]
     fn core() {
-        let core = ModuleReference::AccountBase(1);
-        assert_eq!(core.unwrap_account().unwrap(), 1);
-        assert!(core.unwrap_native().is_err());
-        assert!(core.unwrap_api().is_err());
-        assert!(core.unwrap_app().is_err());
-        assert!(core.unwrap_standalone().is_err());
+        let account_base = ModuleReference::AccountBase(1);
+        assert_eq!(account_base.unwrap_account().unwrap(), 1);
+        assert!(account_base.unwrap_native().is_err());
+        assert!(account_base.unwrap_api().is_err());
+        assert!(account_base.unwrap_app().is_err());
+        assert!(account_base.unwrap_standalone().is_err());
     }
     #[test]
     fn native() {
@@ -151,8 +151,8 @@ mod test {
         let api = ModuleReference::Api(Addr::unchecked("addr"));
         assert_eq!(api.unwrap_addr().unwrap(), Addr::unchecked("addr"));
 
-        let core = ModuleReference::AccountBase(1);
-        assert!(core.unwrap_addr().is_err());
+        let account_base = ModuleReference::AccountBase(1);
+        assert!(account_base.unwrap_addr().is_err());
     }
 
     #[test]
@@ -165,8 +165,8 @@ mod test {
         let api = ModuleReference::Api(Addr::unchecked("addr"));
         assert_that!(api.validate(deps.as_ref())).is_ok();
 
-        let core = ModuleReference::AccountBase(1);
-        assert_that!(core.validate(deps.as_ref())).is_ok();
+        let account_base = ModuleReference::AccountBase(1);
+        assert_that!(account_base.validate(deps.as_ref())).is_ok();
 
         let app = ModuleReference::App(1);
         assert_that!(app.validate(deps.as_ref())).is_ok();

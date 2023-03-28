@@ -95,7 +95,7 @@ pub fn execute_create_account(
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         Ok(OsFactoryResponse::new(
             "create_account",
-            vec![("account_id", &config.next_acct_id.to_string())],
+            vec![("account_id", &config.next_account_id.to_string())],
         )
         // Create manager
         .add_submessage(SubMsg {
@@ -106,9 +106,9 @@ pub fn execute_create_account(
                 funds: vec![],
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract Account: {}", config.next_acct_id),
+                label: format!("Abstract Account: {}", config.next_account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
-                    account_id: config.next_acct_id,
+                    account_id: config.next_account_id,
                     owner: owner.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
                     subscription_address: config.subscription_address.map(Addr::into),
@@ -164,9 +164,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Proxy of Account: {}", config.next_acct_id),
+                label: format!("Proxy of Account: {}", config.next_account_id),
                 msg: to_binary(&ProxyInstantiateMsg {
-                    account_id: config.next_acct_id,
+                    account_id: config.next_account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
             }
@@ -213,7 +213,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let proxy_address = res.get_contract_address();
 
     // construct Account base
-    let core = AccountBase {
+    let account_base = AccountBase {
         manager: context.os_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
@@ -223,8 +223,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
-            account_id: config.next_acct_id,
-            base: core,
+            account_id: config.next_account_id,
+            account_base,
         })?,
     });
 
@@ -251,7 +251,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     });
 
     // Update id sequence
-    config.next_acct_id += 1;
+    config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(OsFactoryResponse::new(
@@ -337,19 +337,19 @@ pub fn execute_update_config(
 //     sub_addr: &Addr,
 // ) -> Result<(), OsFactoryError> {
 //     if let Some(received_payment) = maybe_received_payment {
-//         // Forward payment to subscription module and registers the OS
+//         // Forward payment to subscription module and registers the Account
 //         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
 //             AssetInfoBase::Cw20(_) => received_payment.send_msg(
 //                 sub_addr,
 //                 to_binary(&SubDepositHook::Pay {
-//                     account_id: config.next_acct_id,
+//                     account_id: config.next_account_id,
 //                 })?,
 //             )?,
 //             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
 //                 contract_addr: sub_addr.into(),
 //                 msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
 //                     SubscriptionExecuteMsg::Pay {
-//                         account_id: config.next_acct_id,
+//                         account_id: config.next_account_id,
 //                     },
 //                 ))?,
 //                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],

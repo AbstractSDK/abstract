@@ -29,7 +29,7 @@ fn instantiate() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 0,
+        next_account_id: 0,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -65,7 +65,7 @@ fn create_one_os() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 1,
+        next_account_id: 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -80,7 +80,7 @@ fn create_one_os() -> AResult {
 
     let os_list = version_control.account_base(0)?;
 
-    assert_that!(&os_list.account).is_equal_to(AccountBase {
+    assert_that!(&os_list.account_base).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     });
@@ -130,7 +130,7 @@ fn create_two_os_s() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 2,
+        next_account_id: 2,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -143,13 +143,13 @@ fn create_two_os_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let os_1 = version_control.account_base(0)?.account;
+    let os_1 = version_control.account_base(0)?.account_base;
     assert_that!(&os_1).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
-    let os_2 = version_control.account_base(1)?.account;
+    let os_2 = version_control.account_base(1)?.account_base;
     assert_that!(&os_2).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
@@ -180,7 +180,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let account = version_control.account_base(0)?.account;
+    let account = version_control.account_base(0)?.account_base;
 
     let os_1 = AbstractAccount::new(chain, Some(0));
     assert_that!(AccountBase {

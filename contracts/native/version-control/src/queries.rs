@@ -23,7 +23,7 @@ pub fn handle_os_address_query(deps: Deps, account_id: AccountId) -> StdResult<B
         Err(_) => Err(StdError::generic_err(
             VCError::MissingAccountId { id: account_id }.to_string(),
         )),
-        Ok(base) => to_binary(&AccountBaseResponse { account: base }),
+        Ok(base) => to_binary(&AccountBaseResponse { account_base: base }),
     }
 }
 

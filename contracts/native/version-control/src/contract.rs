@@ -66,8 +66,8 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::AddAccount {
             account_id,
-            base: core,
-        } => add_os(deps, info, account_id, core),
+            account_base: base,
+        } => add_account(deps, info, account_id, base),
         ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
         ExecuteMsg::SetFactory { new_factory } => {
             authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())

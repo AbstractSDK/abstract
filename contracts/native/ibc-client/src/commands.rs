@@ -76,7 +76,7 @@ pub fn execute_send_packet(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     // Verify that the sender is a proxy contract
-    let core = version_control
+    let account_base = version_control
         .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
@@ -88,7 +88,7 @@ pub fn execute_send_packet(
     retries = retries.min(MAX_RETRIES);
 
     // get account_id
-    let account_id = core.account_id(deps.as_ref())?;
+    let account_id = account_base.account_id(deps.as_ref())?;
     // ensure the channel exists and loads it.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
@@ -119,13 +119,13 @@ pub fn execute_register_os(
 
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
-    let core = version_control
+    let account_base = version_control
         .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let account_id = core.account_id(deps.as_ref())?;
+    let account_id = account_base.account_id(deps.as_ref())?;
 
     // construct a packet to send
     let packet = PacketMsg {
@@ -134,7 +134,7 @@ pub fn execute_register_os(
         account_id,
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
-            os_proxy_address: core.proxy.into_string(),
+            os_proxy_address: account_base.proxy.into_string(),
         }),
     };
 
@@ -163,12 +163,12 @@ pub fn execute_send_funds(
     // Verify that the sender is a proxy contract
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
-    let core = version_control
+    let account_base = version_control
         .os_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // get account_id of Account
-    let account_id = core.account_id(deps.as_ref())?;
+    let account_id = account_base.account_id(deps.as_ref())?;
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
@@ -205,7 +205,7 @@ pub fn execute_send_funds(
     }
 
     // let these messages be executed by proxy
-    let proxy_msg = core.executor(deps.as_ref()).execute(transfers)?;
+    let proxy_msg = account_base.executor(deps.as_ref()).execute(transfers)?;
 
     Ok(IbcClientResponse::action("handle_send_funds").add_message(proxy_msg))
 }
