@@ -30,6 +30,10 @@ pub struct AppContract<
     CustomMigrateMsg: 'static = Empty,
     Receive: 'static = Empty,
 > {
+    // Custom state for every App
+    pub admin: Admin<'static>,
+    pub(crate) base_state: Item<'static, AppState>,
+    
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<
         Self,
@@ -40,9 +44,6 @@ pub struct AppContract<
         CustomMigrateMsg,
         Receive,
     >,
-    // Custom state for every App
-    pub admin: Admin<'static>,
-    pub(crate) base_state: Item<'static, AppState>,
 }
 
 /// Constructor
