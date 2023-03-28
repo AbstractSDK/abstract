@@ -16,7 +16,7 @@ pub fn os_store_as_expected(
             &account_factory::QueryMsg::Config {},
         )
         .unwrap();
-    let max_acct_id = resp.next_acct_id - 1;
+    let max_acct_id = resp.next_account_id - 1;
 
     for account_id in 0..max_acct_id {
         // Check Account

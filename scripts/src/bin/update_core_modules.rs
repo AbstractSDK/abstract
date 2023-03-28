@@ -29,9 +29,10 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     // version_control.register_account_mods(vec![account.proxy.as_instance()], &abstract_version)?;
 
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
-    let account_factory::ConfigResponse { next_acct_id, .. } =
-        OsFactoryQueryFns::config(&account_factory)?;
-    let latest_acct_id = next_acct_id - 1;
+    let account_factory::ConfigResponse {
+        next_account_id, ..
+    } = OsFactoryQueryFns::config(&account_factory)?;
+    let latest_acct_id = next_account_id - 1;
 
     for account_id in 1..=latest_acct_id {
         let account = AbstractAccount::new(chain.clone(), Some(account_id));

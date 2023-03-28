@@ -29,7 +29,7 @@ fn instantiate() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 0,
+        next_account_id: 0,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -65,7 +65,7 @@ fn create_one_os() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 1,
+        next_account_id: 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -130,7 +130,7 @@ fn create_two_os_s() -> AResult {
         version_control_contract: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         subscription_address: None,
-        next_acct_id: 2,
+        next_account_id: 2,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);

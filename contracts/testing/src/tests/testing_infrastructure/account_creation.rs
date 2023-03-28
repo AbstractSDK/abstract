@@ -50,7 +50,7 @@ pub fn init_os(
         &native_contracts.account_factory,
         &account_factory::QueryMsg::Config {},
     )?;
-    let account_id = resp.next_acct_id - 1;
+    let account_id = resp.next_account_id - 1;
 
     // Check Account
     let core: AccountBaseResponse = app.wrap().query_wasm_smart(

@@ -40,6 +40,9 @@ wasm-module module:
 #  RUSTFLAGS='-C link-arg=-s' cargo ws exec --no-bail cargo wasm
 #  if [[ {{chain}} == "terra" ]]; then RUSTFLAGS='-C link-arg=-s' cargo wasm --package dex --features terra --no-default-features; fi
 
+run-script script chain:
+  (cd scripts && cargo run --bin {{script}} -- --network-id {{chain}})
+
 full-deploy chain:
   (cd scripts && cargo run --bin full_deploy -- --network-id {{chain}})
 

@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Only Factory can call this
     AddAccount {
         account_id: AccountId,
-        base: AccountBase,
+        account_base: AccountBase,
     },
     /// Sets a new Admin
     SetAdmin { new_admin: String },

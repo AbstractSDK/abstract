@@ -27,7 +27,7 @@ pub fn instantiate(
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
         subscription_address: None,
-        next_acct_id: 0u32,
+        next_account_id: 0u32,
     };
 
     set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -116,7 +116,7 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         ans_host_contract: state.ans_host_contract.into(),
         subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
-        next_acct_id: state.next_acct_id,
+        next_account_id: state.next_account_id,
     };
 
     Ok(resp)

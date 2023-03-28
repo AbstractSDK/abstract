@@ -378,7 +378,7 @@ mod test {
             };
             let msg = ExecuteMsg::AddAccount {
                 account_id: 0,
-                base: test_core.clone(),
+                account_base: test_core.clone(),
             };
 
             // as other
