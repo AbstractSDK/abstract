@@ -37,18 +37,19 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
 use abstract_os::app;
+use abstract_sdk::base::{InstantiateEndpoint, ExecuteEndpoint, QueryEndpoint, MigrateEndpoint};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
-use cw20::Cw20ReceiveMsg;
 use cw_asset::AssetUnchecked;
 
-pub type InstantiateMsg = app::InstantiateMsg<EtfInstantiateMsg>;
-pub type ExecuteMsg = app::ExecuteMsg<EtfExecuteMsg, Cw20ReceiveMsg>;
-pub type QueryMsg = app::QueryMsg<EtfQueryMsg>;
-pub type MigrateMsg = app::MigrateMsg;
+use crate::contract::EtfApp;
+
+pub type InstantiateMsg = <EtfApp as InstantiateEndpoint>::InstantiateMsg;
+pub type ExecuteMsg = <EtfApp as ExecuteEndpoint>::ExecuteMsg;
+pub type QueryMsg = <EtfApp as QueryEndpoint>::QueryMsg;
+pub type MigrateMsg = <EtfApp as MigrateEndpoint>::MigrateMsg;
 
 impl app::AppExecuteMsg for EtfExecuteMsg {}
-
 impl app::AppQueryMsg for EtfQueryMsg {}
 
 /// Init msg
