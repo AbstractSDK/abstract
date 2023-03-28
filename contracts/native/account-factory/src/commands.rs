@@ -224,7 +224,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
             account_id: config.next_account_id,
-            account_base: account_base,
+            account_base,
         })?,
     });
 
