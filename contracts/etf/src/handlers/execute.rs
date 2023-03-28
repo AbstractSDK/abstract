@@ -22,16 +22,16 @@ pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    vault: EtfApp,
+    app: EtfApp,
     msg: EtfExecuteMsg,
 ) -> EtfResult {
     match msg {
         EtfExecuteMsg::Deposit { asset } => {
             // Check asset
             let asset = asset.check(deps.api, None)?;
-            try_provide_liquidity(deps, info, vault, asset, None)
+            try_provide_liquidity(deps, info, app, asset, None)
         }
-        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, vault, fee),
+        EtfExecuteMsg::SetFee { fee } => set_fee(deps, info, app, fee),
     }
 }
 
