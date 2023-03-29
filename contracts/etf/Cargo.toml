@@ -29,7 +29,7 @@ schemars = { workspace = true}
 protobuf = {workspace = true}
 cw-asset= {workspace = true}
 
-abstract-os = {workspace = true}
+abstract-core = {workspace = true}
 abstract-app = {workspace = true}
 abstract-sdk = {workspace = true}
 boot-core = { workspace = true , optional = true }

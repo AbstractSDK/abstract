@@ -11,7 +11,7 @@ pub const ETF_ID: &str = "abstract:etf";
 pub mod boot {
     use crate::msg::*;
     use abstract_boot::AppDeployer;
-    use abstract_os::app::MigrateMsg;
+    use abstract_core::app::MigrateMsg;
     use boot_core::ContractWrapper;
     use boot_core::{boot_contract, BootEnvironment, Contract};
 

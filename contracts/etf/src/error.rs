@@ -1,5 +1,5 @@
 use abstract_app::AppError;
-use abstract_os::AbstractOsError;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{OverflowError, StdError};
 use cw_asset::AssetError;
@@ -12,7 +12,7 @@ pub enum EtfError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

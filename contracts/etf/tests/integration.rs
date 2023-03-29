@@ -2,15 +2,17 @@
 // mod test_utils;
 
 use abstract_boot::{
-    Abstract, AbstractBootError, AppDeployer, ManagerQueryFns, ProxyExecFns, ProxyQueryFns, OS,
+    Abstract, AbstractAccount, AbstractBootError, AppDeployer, ManagerQueryFns, ProxyExecFns,
+    ProxyQueryFns,
 };
-use abstract_etf::boot::ETF;
-use abstract_etf::msg::{Cw20HookMsg, EtfExecuteMsgFns, EtfQueryMsgFns};
-use abstract_etf::ETF_ID;
+use abstract_etf::{
+    boot::ETF,
+    msg::{Cw20HookMsg, EtfExecuteMsgFns, EtfQueryMsgFns},
+    ETF_ID,
+};
 
-use abstract_os::objects::price_source::UncheckedPriceSource;
-use abstract_os::objects::AssetEntry;
-use abstract_sdk::os as abstract_os;
+use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
+use abstract_sdk::core as abstract_core;
 
 use abstract_boot::boot_core::*;
 use abstract_testing::prelude::TEST_ADMIN;
@@ -30,20 +32,20 @@ const ETF_MANAGER: &str = "etf_manager";
 const ETF_TOKEN: &str = "etf_token";
 
 pub struct EtfEnv<Chain: BootEnvironment> {
-    pub os: OS<Chain>,
+    pub os: AbstractAccount<Chain>,
     pub etf: ETF<Chain>,
     pub share_token: Cw20<Chain>,
     pub wyndex: WynDex,
-    pub abstract_os: Abstract<Chain>,
+    pub abstract_core: Abstract<Chain>,
 }
 
 fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractBootError> {
     let version: Version = "1.0.0".parse().unwrap();
     // Deploy abstract
     let abstract_ = Abstract::deploy_on(mock.clone(), version.clone())?;
-    // create first OS
-    abstract_.os_factory.create_default_os(
-        abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
+    // create first AbstractAccount
+    abstract_.account_factory.create_default_account(
+        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;
@@ -58,9 +60,9 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractBootError> {
     // upload the etf token code
     let etf_toke_code_id = etf_token.upload()?.uploaded_code_id()?;
 
-    // Create an OS that we will turn into a etf
-    let os = abstract_.os_factory.create_default_os(
-        abstract_os::objects::gov_type::GovernanceDetails::Monarchy {
+    // Create an AbstractAccount that we will turn into a etf
+    let os = abstract_.account_factory.create_default_account(
+        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: mock.sender.to_string(),
         },
     )?;
@@ -68,15 +70,15 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractBootError> {
     // install etf
     os.manager.install_module(
         ETF_ID,
-        &abstract_os::app::InstantiateMsg {
-            app: abstract_etf::msg::EtfInstantiateMsg {
+        &abstract_core::app::InstantiateMsg {
+            module: abstract_etf::msg::EtfInstantiateMsg {
                 fee: Decimal::percent(5),
                 manager_addr: ETF_MANAGER.into(),
                 token_code_id: etf_toke_code_id,
                 token_name: Some("Test ETF Shares".into()),
                 token_symbol: Some("TETF".into()),
             },
-            base: abstract_os::app::BaseInstantiateMsg {
+            base: abstract_core::app::BaseInstantiateMsg {
                 ans_host_address: abstract_.ans_host.addr_str()?,
             },
         },
@@ -96,7 +98,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractBootError> {
         os,
         etf,
         share_token: etf_token,
-        abstract_os: abstract_,
+        abstract_core: abstract_,
         wyndex,
     })
 }

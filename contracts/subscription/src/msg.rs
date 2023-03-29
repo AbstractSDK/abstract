@@ -1,12 +1,12 @@
 //! # Subscription Add-On
 //!
-//! `abstract_os::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
+//! `abstract_core::subscription` provides OS owners with a tool to easily create smart-contract subscriptions for their products.
 //!
 //! ## Description
 //! The subscription contract has three main uses.
-//! 1. Provide a way to earn income with a subscription-style modal.  
-//! 2. Distribute income and native assets to project contributors. (optional)  
-//! 3. Distribute a native asset to your active users. (optional)  
+//! 1. Provide a way to earn income with a subscription-style modal.
+//! 2. Distribute income and native assets to project contributors. (optional)
+//! 3. Distribute a native asset to your active users. (optional)
 //!
 //! ## Income
 //! The income of the instance can change over time as subscribers join and leave.
@@ -31,7 +31,7 @@ use crate::state::{
     Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
     SubscriptionState,
 };
-use abstract_os::{app, objects::OsId};
+use abstract_core::{app, objects::AccountId};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw_asset::{Asset, AssetInfoUnchecked};
@@ -75,26 +75,26 @@ pub struct ContributionInstantiateMsg {
 #[cfg_attr(feature = "boot", impl_into(ExecuteMsg))]
 pub enum SubscriptionExecuteMsg {
     Pay {
-        os_id: OsId,
+        os_id: AccountId,
     },
     Unsubscribe {
         os_ids: Vec<u32>,
     },
     ClaimCompensation {
         // os_id the OS
-        os_id: OsId,
+        os_id: AccountId,
     },
     ClaimEmissions {
-        os_id: OsId,
+        os_id: AccountId,
     },
     UpdateContributor {
-        contributor_os_id: OsId,
+        contributor_os_id: AccountId,
         base_per_block: Option<Decimal>,
         weight: Option<Uint64>,
         expiration_block: Option<Uint64>,
     },
     RemoveContributor {
-        os_id: OsId,
+        os_id: AccountId,
     },
     UpdateSubscriptionConfig {
         payment_asset: Option<AssetInfoUnchecked>,
@@ -124,14 +124,14 @@ pub enum SubscriptionQueryMsg {
     #[returns(SubscriptionFeeResponse)]
     Fee {},
     #[returns(SubscriberStateResponse)]
-    SubscriberState { os_id: OsId },
+    SubscriberState { os_id: AccountId },
     #[returns(ContributorStateResponse)]
-    ContributorState { os_id: OsId },
+    ContributorState { os_id: AccountId },
 }
 
 #[cosmwasm_schema::cw_serde]
 pub enum DepositHookMsg {
-    Pay { os_id: OsId },
+    Pay { os_id: AccountId },
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -15,7 +15,7 @@ resolver = "2"
 
 [workspace.package]
 version = "0.11.0"
-authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
+authors = ["CyberHoward <cyberhoward@protonmail.com>", "Adair <adair@abstract.money>", "Abstract Money <contact@abstract.money>"]
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
@@ -46,11 +46,11 @@ boot-core = { version = "0.8.0" }
 boot-cw-plus = { version = "0.8.0" }
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { version = "0.12.0", git = "https://github.com/Abstract-OS/contracts" , branch = "update/etf_patches"}
-abstract-os = { version = "0.12.0", git = "https://github.com/Abstract-OS/contracts", branch = "update/etf_patches"}
-abstract-boot = { version = "0.12.0", git = "https://github.com/Abstract-OS/contracts", branch = "update/etf_patches"}
-abstract-sdk = { version = "0.12.0" , git = "https://github.com/Abstract-OS/contracts", branch = "update/etf_patches"}
-abstract-app = { version = "0.12.0" , git = "https://github.com/Abstract-OS/contracts", branch = "update/etf_patches"}
+abstract-testing = { version = "0.13.0", git = "https://github.com/Abstract-OS/contracts" }
+abstract-core = { version = "0.13.0", git = "https://github.com/Abstract-OS/contracts"}
+abstract-boot = { version = "0.13.0", git = "https://github.com/Abstract-OS/contracts"}
+abstract-sdk = { version = "0.13.0" , git = "https://github.com/Abstract-OS/contracts"}
+abstract-app = { version = "0.13.0" , git = "https://github.com/Abstract-OS/contracts"}
 
 ## Testing
 rstest = "0.16.0"

@@ -32,7 +32,7 @@ semver = {workspace = true}
 
 abstract-sdk = {workspace = true}
 abstract-app = {workspace = true}
-abstract-os = {workspace = true}
+abstract-core = {workspace = true}
 boot-core = { workspace = true , optional = true }
 
 abstract-boot = { workspace = true , optional = true }

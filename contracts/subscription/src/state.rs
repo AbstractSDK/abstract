@@ -1,5 +1,5 @@
-use abstract_os::{
-    objects::{core::OsId, time_weighted_average::TimeWeightedAverage},
+use abstract_core::{
+    objects::{core::AccountId, time_weighted_average::TimeWeightedAverage},
     AbstractResult,
 };
 use cosmwasm_std::{Addr, Api, Decimal, StdError, StdResult, Uint128, Uint64};
@@ -95,8 +95,8 @@ pub struct Subscriber {
 pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");
 pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
 pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
-pub const SUBSCRIBERS: Map<OsId, Subscriber> = Map::new("subscribed");
-pub const DORMANT_SUBSCRIBERS: Map<OsId, Subscriber> = Map::new("un-subscribed");
+pub const SUBSCRIBERS: Map<AccountId, Subscriber> = Map::new("subscribed");
+pub const DORMANT_SUBSCRIBERS: Map<AccountId, Subscriber> = Map::new("un-subscribed");
 
 // #### CONTRIBUTION SECTION ####
 

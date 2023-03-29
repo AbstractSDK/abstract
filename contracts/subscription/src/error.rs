@@ -1,6 +1,6 @@
 use abstract_app::AppError;
-use abstract_os::objects::OsId;
-use abstract_os::AbstractOsError;
+use abstract_core::objects::AccountId;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
 use cw_asset::{AssetError, AssetInfo};
@@ -13,7 +13,7 @@ pub enum SubscriptionError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    AbstractOs(#[from] AbstractOsError),
+    Abstract(#[from] AbstractError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
@@ -85,7 +85,7 @@ pub enum SubscriptionError {
     ContributorNotManager,
 
     #[error("no os found with id {0}")]
-    OsNotFound(OsId),
+    OsNotFound(AccountId),
 
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,

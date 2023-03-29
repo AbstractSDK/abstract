@@ -3,20 +3,18 @@ use crate::error::EtfError;
 use crate::msg::EtfExecuteMsg;
 use crate::state::{State, FEE, STATE};
 use abstract_app::state::AppState;
-use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
-use abstract_sdk::features::AbstractResponse;
-use abstract_sdk::os::objects::deposit_info::DepositInfo;
-use abstract_sdk::os::objects::fee::Fee;
-use abstract_sdk::*;
+use abstract_sdk::{
+    core::objects::deposit_info::DepositInfo, core::objects::fee::Fee,
+    core::proxy::AssetsInfoResponse, cw_helpers::cosmwasm_std::wasm_smart_query,
+    features::AbstractResponse, *,
+};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response,
     Uint128, WasmMsg,
 };
 use cosmwasm_std::{QuerierWrapper, StdResult};
-use cw20::Cw20ExecuteMsg;
-use cw20::{Cw20QueryMsg, TokenInfoResponse};
+use cw20::{Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
 use cw_asset::{Asset, AssetInfo};
-use os::proxy::AssetsInfoResponse;
 
 pub fn execute_handler(
     deps: DepsMut,

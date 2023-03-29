@@ -6,12 +6,12 @@ use crate::state::{
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
-use abstract_os::objects::OsId;
-use abstract_sdk::os::manager::state::OS_ID;
-use abstract_sdk::os::manager::ExecuteMsg as ManagerMsg;
-use abstract_sdk::os::objects::common_namespace::ADMIN_NAMESPACE;
-use abstract_sdk::os::version_control::state::OS_ADDRESSES;
-use abstract_sdk::os::version_control::Core;
+use abstract_core::objects::AccountId;
+use abstract_sdk::core::manager::state::ACCOUNT_ID;
+use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
+use abstract_sdk::core::objects::common_namespace::ADMIN_NAMESPACE;
+use abstract_sdk::core::version_control::state::ACCOUNT_ADDRESSES;
+use abstract_sdk::core::version_control::AccountBase;
 use abstract_sdk::Execution;
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo,
@@ -54,7 +54,7 @@ pub fn try_pay(
     env: Env,
     msg_info: MessageInfo,
     asset: Asset,
-    os_id: OsId,
+    os_id: AccountId,
 ) -> SubscriptionResult {
     // Load all needed states
     let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
@@ -110,7 +110,7 @@ pub fn try_pay(
             if msg_info.sender != config.factory_address {
                 return Err(SubscriptionError::CallerNotFactory {});
             }
-            let manager_addr = OS_ADDRESSES
+            let manager_addr = ACCOUNT_ADDRESSES
                 .query(&deps.querier, config.version_control_address, os_id)?
                 .unwrap()
                 .manager;
@@ -142,7 +142,7 @@ pub fn unsubscribe(
     deps: DepsMut,
     env: Env,
     app: SubscriptionApp,
-    os_ids: Vec<OsId>,
+    os_ids: Vec<AccountId>,
 ) -> SubscriptionResult {
     let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
@@ -176,7 +176,7 @@ pub fn unsubscribe(
 fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
     Ok(CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: manager_address.to_string(),
-        msg: to_binary(&ManagerMsg::SuspendOs {
+        msg: to_binary(&ManagerMsg::SuspendAccount {
             new_status: new_suspend_status,
         })?,
         funds: vec![],
@@ -188,13 +188,13 @@ pub fn claim_subscriber_emissions(
     app: &SubscriptionApp,
     deps: Deps,
     env: &Env,
-    os_id: OsId,
+    os_id: AccountId,
 ) -> SubscriptionResult {
     let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
 
-    let subscriber_proxy_address = OS_ADDRESSES
+    let subscriber_proxy_address = ACCOUNT_ADDRESSES
         .query(
             &deps.querier,
             subscription_config.version_control_address,
@@ -255,7 +255,7 @@ pub fn update_contributor_compensation(
     env: Env,
     msg_info: MessageInfo,
     app: SubscriptionApp,
-    contributor_os_id: OsId,
+    contributor_os_id: AccountId,
     base_per_block: Option<Decimal>,
     weight: Option<u32>,
     expiration_block: Option<u64>,
@@ -265,7 +265,7 @@ pub fn update_contributor_compensation(
     // Load all needed states
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let contributor_addr = OS_ADDRESSES
+    let contributor_addr = ACCOUNT_ADDRESSES
         .query(
             &deps.querier,
             sub_config.version_control_address,
@@ -312,7 +312,7 @@ pub fn update_contributor_compensation(
             let compensation =
                 Compensation::default().overwrite(base_per_block, weight, expiration_block);
 
-            let os_id = OS_ID
+            let os_id = ACCOUNT_ID
                 .query(&deps.querier, contributor_addr.clone())
                 .map_err(|_| SubscriptionError::ContributorNotManager)?;
             let subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
@@ -350,7 +350,11 @@ pub fn update_contributor_compensation(
 }
 
 /// Removes the specified contributor
-pub fn remove_contributor(deps: DepsMut, msg_info: MessageInfo, os_id: OsId) -> SubscriptionResult {
+pub fn remove_contributor(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    os_id: AccountId,
+) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let manager_address =
@@ -376,7 +380,7 @@ pub fn try_claim_compensation(
     app: SubscriptionApp,
     deps: DepsMut,
     env: Env,
-    os_id: OsId,
+    os_id: AccountId,
 ) -> SubscriptionResult {
     let config = load_contribution_config(deps.storage)?;
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
@@ -409,7 +413,7 @@ pub fn try_claim_compensation(
     };
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
-    let Core {
+    let AccountBase {
         manager: contributor_address,
         proxy: contributor_proxy_address,
     } = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?;
@@ -621,7 +625,7 @@ fn expired_sub_msgs(
     deps: Deps,
     env: &Env,
     subscriber: &mut Subscriber,
-    os_id: OsId,
+    os_id: AccountId,
     app: &SubscriptionApp,
 ) -> Result<Option<Vec<SubMsg>>, SubscriptionError> {
     if subscriber.expiration_block <= env.block.height {
@@ -641,13 +645,13 @@ fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, S
     }
 }
 
-/// Get the [`abstract_sdk::os::version_control::Core`] object for an os-id.
+/// Get the [`abstract_sdk::core::version_control::AccountBase`] object for an os-id.
 pub(crate) fn get_os_core(
     querier: &QuerierWrapper,
-    os_id: OsId,
+    os_id: AccountId,
     version_control_addr: &Addr,
-) -> StdResult<Core> {
-    let maybe_os = OS_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
+) -> StdResult<AccountBase> {
+    let maybe_os = ACCOUNT_ADDRESSES.query(querier, version_control_addr.clone(), os_id)?;
     match maybe_os {
         None => Err(StdError::generic_err(format!(
             "OS with id {os_id} is not active."

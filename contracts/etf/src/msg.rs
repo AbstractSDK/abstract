@@ -2,9 +2,9 @@
 //!
 //! `crate::msg` is an app which allows users to deposit into or withdraw from a [`crate::proxy`] contract.
 //!
-//! ## Description  
+//! ## Description
 //! This contract uses the proxy's value calculation configuration to get the value of the assets held in the proxy and the relative value of the deposit asset.
-//! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.  
+//! It then mints LP tokens that are claimable for an equal portion of the proxy assets at a later date.
 //!
 //! ---
 //! **WARNING:** This mint/burn mechanism can be mis-used by flash-loan attacks if the assets contained are of low-liquidity compared to the etf's size.
@@ -36,8 +36,8 @@
 //!
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
-use abstract_os::app;
-use abstract_sdk::base::{InstantiateEndpoint, ExecuteEndpoint, QueryEndpoint, MigrateEndpoint};
+use abstract_core::app;
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Decimal;
 use cw_asset::AssetUnchecked;
