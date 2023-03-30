@@ -43,7 +43,7 @@ impl<'a> Oracle<'a> {
         }
     }
 
-    /// Updates the assets in the Oracle. 
+    /// Updates the assets in the Oracle.
     /// First adds the provided assets to the oracle, then removes the provided assets from the oracle.
     pub fn update_assets(
         &self,
@@ -63,7 +63,10 @@ impl<'a> Oracle<'a> {
             )));
         }
 
-        let mut all: Vec<AssetEntry> = to_add.iter().map(|(a,_)|a.clone()).collect::<Vec<AssetEntry>>();
+        let mut all: Vec<AssetEntry> = to_add
+            .iter()
+            .map(|(a, _)| a.clone())
+            .collect::<Vec<AssetEntry>>();
         all.extend(to_remove.clone());
         all.dedup();
         if all.len() != to_add.len() + to_remove.len() {
@@ -707,7 +710,12 @@ mod tests {
         let oracle = Oracle::new();
 
         // fails because base asset is not set.
-        let res = oracle.update_assets(deps.as_mut(), &ans, vec![asset_as_half()], vec![asset_as_half().0]);
+        let res = oracle.update_assets(
+            deps.as_mut(),
+            &ans,
+            vec![asset_as_half()],
+            vec![asset_as_half().0],
+        );
         assert_that!(res).is_err();
         Ok(())
     }
