@@ -318,7 +318,7 @@ impl MockQuerierBuilder {
 /// - TEST_PROXY
 ///   - "admin" -> TEST_MANAGER
 /// - TEST_MANAGER
-///   - "account_modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
+///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
 ///   - "account_id" -> TEST_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
 ///   - "account" -> { TEST_PROXY, TEST_MANAGER }
