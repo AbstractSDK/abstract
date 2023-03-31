@@ -43,6 +43,8 @@ impl<'a> Oracle<'a> {
         }
     }
 
+    /// Updates the assets in the Oracle.
+    /// First adds the provided assets to the oracle, then removes the provided assets from the oracle.
     pub fn update_assets(
         &self,
         mut deps: DepsMut,
@@ -60,10 +62,23 @@ impl<'a> Oracle<'a> {
                 "Oracle list size limit exceeded",
             )));
         }
-        // remove assets from oracle
-        self.remove_assets(deps.branch(), ans, to_remove)?;
+
+        let mut all: Vec<AssetEntry> = to_add
+            .iter()
+            .map(|(a, _)| a.clone())
+            .collect::<Vec<AssetEntry>>();
+        all.extend(to_remove.clone());
+        all.dedup();
+        if all.len() != to_add.len() + to_remove.len() {
+            return Err(crate::AbstractError::Std(StdError::generic_err(
+                "Duplicate assets in update",
+            )));
+        }
+
         // add assets to oracle
         self.add_assets(deps.branch(), ans, to_add)?;
+        // remove assets from oracle
+        self.remove_assets(deps.branch(), ans, to_remove)?;
         // validate the oracle configuration
         // Each asset must have a valid price source
         // and there can only be one base asset.
@@ -683,6 +698,25 @@ mod tests {
         let asset_value =
             oracle.asset_value(deps.as_ref(), Asset::new(AssetInfo::native(EUR), 1000u128))?;
         assert_that!(asset_value.u128()).is_equal_to(500u128);
+        Ok(())
+    }
+
+    #[test]
+    fn reject_duplicate_entries() -> AResult {
+        let mut deps = mock_dependencies();
+        let mock_ans = MockAnsHost::new().with_defaults();
+        deps.querier = mock_ans.to_querier();
+        let ans = get_ans();
+        let oracle = Oracle::new();
+
+        // fails because base asset is not set.
+        let res = oracle.update_assets(
+            deps.as_mut(),
+            &ans,
+            vec![asset_as_half()],
+            vec![asset_as_half().0],
+        );
+        assert_that!(res).is_err();
         Ok(())
     }
 
