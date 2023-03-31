@@ -1,6 +1,6 @@
 use crate::{AbstractAccount, Manager, Proxy};
 pub use abstract_core::account_factory::{
-    ExecuteMsgFns as OsFactoryExecFns, QueryMsgFns as OsFactoryQueryFns,
+    ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
 use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
@@ -11,7 +11,7 @@ use boot_core::{
 };
 use cosmwasm_std::Addr;
 
-/// A helper struct that contains fields from [`abstract_core::manager::state::OsInfo`]
+/// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
     name: String,
@@ -31,14 +31,14 @@ impl<Chain: BootEnvironment> AccountFactory<Chain> {
 
     pub fn create_new_account(
         &self,
-        os_details: AccountDetails,
+        account_details: AccountDetails,
         governance_details: GovernanceDetails,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         let AccountDetails {
             name,
             link,
             description,
-        } = os_details;
+        } = account_details;
 
         let result = self.execute(
             &ExecuteMsg::CreateAccount {

@@ -38,9 +38,9 @@ pub fn execute_create_module(
     let binding = VersionControlContract::new(config.version_control_address);
 
     let version_registry = binding.module_registry(deps.as_ref());
-    let os_registry = binding.os_registry(deps.as_ref());
+    let account_registry = binding.account_registry(deps.as_ref());
     // assert that sender is manager
-    let account_base = os_registry.assert_manager(&info.sender)?;
+    let account_base = account_registry.assert_manager(&info.sender)?;
 
     let new_module = version_registry.query_module(module_info)?;
 

@@ -5,7 +5,7 @@ use crate::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
 };
-use abstract_core::manager::state::OS_MODULES;
+use abstract_core::manager::state::ACCOUNT_MODULES;
 use core::objects::module::ModuleId;
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
@@ -31,7 +31,8 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
     /// Use `Modules::api_request(..)` instead.
     pub fn module_address(&self, module_id: ModuleId) -> AbstractSdkResult<Addr> {
         let manager_addr = self.base.manager_address(self.deps)?;
-        let maybe_module_addr = OS_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
+        let maybe_module_addr =
+            ACCOUNT_MODULES.query(&self.deps.querier, manager_addr, module_id)?;
         let Some(module_addr) = maybe_module_addr else {
             return Err(crate::AbstractSdkError::MissingModule { module: module_id.to_string() });
         };

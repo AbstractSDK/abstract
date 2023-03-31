@@ -32,8 +32,9 @@ pub mod state {
         pub module_factory_address: Addr,
         pub subscription_address: Option<Addr>,
     }
+
     #[cosmwasm_schema::cw_serde]
-    pub struct OsInfo {
+    pub struct AccountInfo {
         pub name: String,
         pub governance_type: String,
         pub chain_id: String,
@@ -46,19 +47,19 @@ pub mod state {
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
-    pub const INFO: Item<OsInfo> = Item::new("\u{0}{4}info");
+    pub const INFO: Item<AccountInfo> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Account owner
     pub const OWNER: Admin = Admin::new("owner");
     /// Enabled Abstract modules
-    pub const OS_MODULES: Map<ModuleId, Addr> = Map::new("os_modules");
+    pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
 }
 
-use self::state::OsInfo;
+use self::state::AccountInfo;
 use crate::objects::{
     core::AccountId,
     module::{Module, ModuleInfo},
@@ -95,7 +96,7 @@ pub enum ExecuteMsg {
         module_id: String,
         exec_msg: Binary,
     },
-    /// Updates the `OS_MODULES` map
+    /// Updates the `ACCOUNT_MODULES` map
     /// Only callable by account factory or owner.
     UpdateModuleAddresses {
         to_add: Option<Vec<(String, String)>>,
@@ -188,7 +189,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InfoResponse {
-    pub info: OsInfo,
+    pub info: AccountInfo,
 }
 
 #[cosmwasm_schema::cw_serde]

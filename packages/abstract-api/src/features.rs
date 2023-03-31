@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn custom_exec() {
         let mut deps = mock_dependencies();
-        deps.querier = mocked_os_querier_builder().build();
+        deps.querier = mocked_account_querier_builder().build();
 
         mock_init_custom(deps.as_mut(), featured_api()).unwrap();
 
@@ -146,7 +146,7 @@ mod tests {
     #[test]
     fn targets_not_set() {
         let mut deps = mock_dependencies();
-        deps.querier = mocked_os_querier_builder().build();
+        deps.querier = mocked_account_querier_builder().build();
 
         mock_init(deps.as_mut()).unwrap();
 

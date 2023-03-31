@@ -11,7 +11,7 @@ use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
 use semver::Version;
 
-pub type OsFactoryResult = Result<Response, AccountFactoryError>;
+pub type AccountFactoryResult = Result<Response, AccountFactoryError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -21,7 +21,7 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> OsFactoryResult {
+) -> AccountFactoryResult {
     let config = Config {
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
@@ -45,7 +45,12 @@ pub fn instantiate(
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> OsFactoryResult {
+pub fn execute(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> AccountFactoryResult {
     match msg {
         ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
@@ -86,7 +91,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> O
 
 /// This just stores the result for future query
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> OsFactoryResult {
+pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
     match msg {
         Reply {
             id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,

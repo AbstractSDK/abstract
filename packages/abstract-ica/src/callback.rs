@@ -17,8 +17,11 @@ impl IbcResponseMsg {
         to_binary(&msg)
     }
 
-    /// creates a cosmos_msg sending this struct to the named contract
-    pub fn into_cosmos_msg<T: Into<String>, C>(self, contract_addr: T) -> StdResult<CosmosMsg<C>>
+    /// creates a cosmaccount_msg sending this struct to the named contract
+    pub fn into_cosmaccount_msg<T: Into<String>, C>(
+        self,
+        contract_addr: T,
+    ) -> StdResult<CosmosMsg<C>>
     where
         C: Clone + std::fmt::Debug + PartialEq + JsonSchema,
     {
@@ -57,13 +60,13 @@ mod test {
     }
 
     #[test]
-    fn into_cosmos_msg_should_build_wasm_execute() {
+    fn into_cosmaccount_msg_should_build_wasm_execute() {
         let msg = IbcResponseMsg {
             id: "my-id".to_string(),
             msg: StdAck::Result(Binary::default()),
         };
 
-        let actual = msg.clone().into_cosmos_msg("my-addr").unwrap();
+        let actual = msg.clone().into_cosmaccount_msg("my-addr").unwrap();
         let funds = vec![];
         let payload = to_binary(&IbcCallbackMsg::IbcCallback(msg)).unwrap();
         let expected: CosmosMsg = WasmMsg::Execute {

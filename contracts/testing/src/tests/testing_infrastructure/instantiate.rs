@@ -1,7 +1,8 @@
 use super::common_integration::NativeContracts;
 use crate::tests::common::{DEFAULT_VERSION, TEST_CREATOR};
 use abstract_sdk::core::{
-    account_factory as OSFactoryMsg, ans_host as AnsHostMsg, module_factory as ModuleFactoryMsg,
+    account_factory as AccountFactoryMsg, ans_host as AnsHostMsg,
+    module_factory as ModuleFactoryMsg,
     objects::{
         module::{ModuleInfo, ModuleVersion},
         module_reference::ModuleReference,
@@ -89,17 +90,17 @@ pub fn init_native_contracts(
         )
         .unwrap();
 
-    let os_factory_msg = OSFactoryMsg::InstantiateMsg {
+    let account_factory_msg = AccountFactoryMsg::InstantiateMsg {
         ans_host_address: ans_host_instance.to_string(),
         module_factory_address: module_factory_instance.to_string(),
         version_control_address: version_control_instance.to_string(),
     };
     // Instantiate account factory Contract
-    let os_factory_instance = app
+    let account_factory_instance = app
         .instantiate_contract(
             *code_ids.get(ACCOUNT_FACTORY).unwrap(),
             owner.clone(),
-            &os_factory_msg,
+            &account_factory_msg,
             &[],
             "account_factory",
             None,
@@ -117,7 +118,7 @@ pub fn init_native_contracts(
         modules,
         &DEFAULT_VERSION.to_string(),
         &version_control_instance,
-        &os_factory_instance,
+        &account_factory_instance,
     );
 
     app.update_block(|b| {
@@ -129,7 +130,7 @@ pub fn init_native_contracts(
         token: token_instance,
         ans_host: ans_host_instance,
         version_control: version_control_instance,
-        account_factory: os_factory_instance,
+        account_factory: account_factory_instance,
         module_factory: module_factory_instance,
     }
 }

@@ -27,7 +27,7 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub os_manager_address: Addr,
+        pub account_manager_address: Addr,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);

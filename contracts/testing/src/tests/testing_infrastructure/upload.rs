@@ -68,7 +68,7 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
     code_ids.insert(VERSION_CONTROL.into(), version_control_code_id);
 
     // Upload account_factory Contract
-    let os_factory_contract = Box::new(
+    let account_factory_contract = Box::new(
         ContractWrapper::new_with_empty(
             account_factory::contract::execute,
             account_factory::contract::instantiate,
@@ -77,8 +77,8 @@ pub fn upload_base_contracts(app: &mut App) -> (HashMap<String, u64>, NativeCont
         .with_reply_empty(account_factory::contract::reply),
     );
 
-    let os_factory_code_id = app.store_code(os_factory_contract);
-    code_ids.insert(ACCOUNT_FACTORY.into(), os_factory_code_id);
+    let account_factory_code_id = app.store_code(account_factory_contract);
+    code_ids.insert(ACCOUNT_FACTORY.into(), account_factory_code_id);
 
     // Upload module_factory Contract
     let module_factory_contract = Box::new(

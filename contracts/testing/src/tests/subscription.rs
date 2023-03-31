@@ -1,6 +1,8 @@
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, init_os, mock_app, register_app, AbstractEnv},
+    testing_infrastructure::env::{
+        get_account_state, init_os, mock_app, register_app, AbstractEnv,
+    },
 };
 use crate::tests::{
     common::{DEFAULT_PAY, RANDOM_USER, SUBSCRIPTION_COST},
@@ -52,12 +54,12 @@ fn proper_initialization() {
     let sender = Addr::unchecked(TEST_CREATOR);
     let env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
 
     // Account 0 has proxy and subscriber module
-    assert_eq!(os_state.len(), 2);
+    assert_eq!(account_state.len(), 2);
 
-    let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
+    let subscription_addr = account_state.get(SUBSCRIPTION).unwrap();
 
     let config: msgs::ConfigResponse = app
         .wrap()
@@ -124,14 +126,14 @@ fn add_and_remove_contributors() {
 
     let mut env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
 
     // Account 0 has proxy and subscriber module
-    assert_eq!(os_state.len(), 2);
+    assert_eq!(account_state.len(), 2);
 
-    let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
-    let manager_addr = env.os_store.get(&0).unwrap().manager.clone();
-    let proxy_addr = env.os_store.get(&0).unwrap().proxy.clone();
+    let subscription_addr = account_state.get(SUBSCRIPTION).unwrap();
+    let manager_addr = env.account_store.get(&0).unwrap().manager.clone();
+    let proxy_addr = env.account_store.get(&0).unwrap().proxy.clone();
     mint_tokens(
         &mut app,
         &sender,
@@ -143,7 +145,13 @@ fn add_and_remove_contributors() {
     let contributing_os1 = 3u32;
     let contributing_os2 = 4u32;
     for _ in 0..5u32 {
-        init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
+        init_os(
+            &mut app,
+            &sender,
+            &env.native_contracts,
+            &mut env.account_store,
+        )
+        .unwrap();
     }
     let msg: msgs::ExecuteMsg = msgs::SubscriptionExecuteMsg::UpdateContributor {
         contributor_acct_id: contributing_os1,
@@ -264,10 +272,10 @@ fn add_and_remove_contributors() {
 //     let _random_user = Addr::unchecked(RANDOM_USER);
 //     let mut env = AbstractEnv::new(&mut app, &sender);
 
-//     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
-//     let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
-//     let manager_addr = env.os_store.get(&0).unwrap().manager.clone();
-//     let proxy_addr = env.os_store.get(&0).unwrap().proxy.clone();
+//     let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
+//     let subscription_addr = account_state.get(SUBSCRIPTION).unwrap();
+//     let manager_addr = env.account_store.get(&0).unwrap().manager.clone();
+//     let proxy_addr = env.account_store.get(&0).unwrap().proxy.clone();
 
 //     mint_tokens(
 //         &mut app,
@@ -279,7 +287,7 @@ fn add_and_remove_contributors() {
 
 //     let _contributing_os = 12u32;
 //     for _ in 0..50u32 {
-//         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
+//         init_os(&mut app, &sender, &env.native_contracts, &mut env.account_store).unwrap();
 //     }
 
 //     // Payments got forwarded to account 0
@@ -315,7 +323,7 @@ fn add_and_remove_contributors() {
 //     );
 
 //     // Map is locked so no new Account's are allowed to be created
-//     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap_err();
+//     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.account_store).unwrap_err();
 //     assert_eq!(
 //         resp.source().unwrap().source().unwrap().to_string(),
 //         "Generic error: Can not save to map while locked. Proceed with operation first."
@@ -404,7 +412,7 @@ fn add_and_remove_contributors() {
 //     let new_balance = token_balance(
 //         &app,
 //         &env.native_contracts.token,
-//         &env.os_store.get(&2).unwrap().proxy,
+//         &env.account_store.get(&2).unwrap().proxy,
 //     );
 //     // user_emissions_share * total_emissions / amount of users
 //     // 64 = 0.25 * 12830 / 50
@@ -435,10 +443,10 @@ fn add_and_remove_contributors() {
 //     let _random_user = Addr::unchecked(RANDOM_USER);
 //     let mut env = AbstractEnv::new(&mut app, &sender);
 
-//     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
-//     let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
-//     let manager_addr = env.os_store.get(&0).unwrap().manager.clone();
-//     let proxy_addr = env.os_store.get(&0).unwrap().proxy.clone();
+//     let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
+//     let subscription_addr = account_state.get(SUBSCRIPTION).unwrap();
+//     let manager_addr = env.account_store.get(&0).unwrap().manager.clone();
+//     let proxy_addr = env.account_store.get(&0).unwrap().proxy.clone();
 
 //     mint_tokens(
 //         &mut app,
@@ -449,7 +457,7 @@ fn add_and_remove_contributors() {
 //     );
 
 //     for _ in 0..50u32 {
-//         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
+//         init_os(&mut app, &sender, &env.native_contracts, &mut env.account_store).unwrap();
 //     }
 
 //     let msg = msgs::ExecuteMsg::UpdateContributor {
@@ -533,10 +541,10 @@ fn add_and_remove_contributors() {
 // //         .unwrap();
 // //     let mut env = AbstractEnv::new(&mut app, &sender);
 
-// //     let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
-// //     let subscription_addr = os_state.get(SUBSCRIPTION).unwrap();
-// //     let manager_addr = env.os_store.get(&0).unwrap().manager.clone();
-// //     let proxy_addr = env.os_store.get(&0).unwrap().proxy.clone();
+// //     let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
+// //     let subscription_addr = account_state.get(SUBSCRIPTION).unwrap();
+// //     let manager_addr = env.account_store.get(&0).unwrap().manager.clone();
+// //     let proxy_addr = env.account_store.get(&0).unwrap().proxy.clone();
 
 // //     mint_tokens(
 // //         &mut app,
@@ -547,7 +555,7 @@ fn add_and_remove_contributors() {
 // //     );
 
 // //     for _ in 0..50u32 {
-// //         init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap();
+// //         init_os(&mut app, &sender, &env.native_contracts, &mut env.account_store).unwrap();
 // //     }
 
 // //     // Payments got forwarded to account 0
@@ -583,7 +591,7 @@ fn add_and_remove_contributors() {
 // //     );
 
 // //     // Map is locked so no new Account's are allowed to be created
-// //     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.os_store).unwrap_err();
+// //     let resp = init_os(&mut app, &sender, &env.native_contracts, &mut env.account_store).unwrap_err();
 // //     assert_eq!(
 // //         resp.to_string(),
 // //         "Generic error: Can not save to map while locked. Proceed with operation first."
@@ -671,7 +679,7 @@ fn add_and_remove_contributors() {
 // //     let new_balance = token_balance(
 // //         &app,
 // //         &env.native_contracts.token,
-// //         &env.os_store.get(&2).unwrap().proxy,
+// //         &env.account_store.get(&2).unwrap().proxy,
 // //     );
 // //     assert_eq!(new_balance, 256);
 

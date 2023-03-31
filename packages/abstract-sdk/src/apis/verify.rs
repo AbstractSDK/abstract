@@ -9,7 +9,7 @@ use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
 pub trait OsVerification: AbstractRegistryAccess {
-    fn os_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
+    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
         OsRegistry { base: self, deps }
     }
 }
@@ -107,7 +107,7 @@ mod test {
         #[test]
         fn not_proxy_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder()
+            deps.querier = mocked_account_querier_builder()
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
@@ -119,7 +119,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked("not_proxy"));
 
             assert_that!(res)
@@ -129,7 +129,7 @@ mod test {
         }
 
         #[test]
-        fn inactive_os_fails() {
+        fn inactive_account_fails() {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
@@ -140,7 +140,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
@@ -165,7 +165,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res).is_ok().is_equal_to(test_core());
@@ -193,7 +193,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
             assert_that!(res)
@@ -209,7 +209,7 @@ mod test {
         #[test]
         fn not_manager_fails() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder()
+            deps.querier = mocked_account_querier_builder()
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
@@ -221,7 +221,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked("not_manager"));
 
             assert_that!(res)
@@ -231,7 +231,7 @@ mod test {
         }
 
         #[test]
-        fn inactive_os_fails() {
+        fn inactive_account_fails() {
             let mut deps = mock_dependencies();
 
             deps.querier = MockQuerierBuilder::default()
@@ -242,7 +242,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)
@@ -271,7 +271,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res).is_ok().is_equal_to(test_core());
@@ -299,7 +299,7 @@ mod test {
             let binding = MockBinding;
 
             let res = binding
-                .os_registry(deps.as_ref())
+                .account_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
             assert_that!(res)

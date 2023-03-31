@@ -8,8 +8,8 @@ mod verify;
 pub mod env {
     use std::collections::HashMap;
 
-    pub use super::{common_integration::*, module_uploader::*, os_creation::init_os};
-    use super::{os_creation::init_primary_os, upload::upload_base_contracts};
+    pub use super::{account_creation::init_os, common_integration::*, module_uploader::*};
+    use super::{account_creation::init_primary_os, upload::upload_base_contracts};
     use abstract_sdk::core::{
         manager::{self as ManagerMsgs, ManagerModuleInfo},
         version_control::Core,
@@ -18,20 +18,22 @@ pub mod env {
     use cosmwasm_std::{attr, to_binary, Addr, Uint128};
     use cw_multi_test::{App, AppResponse, Executor};
     use serde::Serialize;
+
     pub struct AbstractEnv {
         pub native_contracts: NativeContracts,
         pub code_ids: HashMap<String, u64>,
-        pub os_store: HashMap<u32, Core>,
+        pub account_store: HashMap<u32, Core>,
     }
 
     impl AbstractEnv {
         pub fn new(app: &mut App, sender: &Addr) -> Self {
             let (code_ids, native_contracts) = upload_base_contracts(app);
-            let mut os_store: HashMap<u32, Core> = HashMap::new();
+            let mut account_store: HashMap<u32, Core> = HashMap::new();
 
-            init_os(app, sender, &native_contracts, &mut os_store).expect("created first account");
+            init_os(app, sender, &native_contracts, &mut account_store)
+                .expect("created first account");
 
-            init_primary_os(app, sender, &native_contracts, &mut os_store).unwrap();
+            init_primary_os(app, sender, &native_contracts, &mut account_store).unwrap();
 
             app.update_block(|b| {
                 b.time = b.time.plus_seconds(6);
@@ -41,17 +43,17 @@ pub mod env {
             AbstractEnv {
                 native_contracts,
                 code_ids,
-                os_store,
+                account_store,
             }
         }
     }
 
-    pub fn get_os_state(
+    pub fn get_account_state(
         app: &App,
-        os_store: &HashMap<u32, Core>,
+        account_store: &HashMap<u32, Core>,
         account_id: &u32,
     ) -> AnyResult<HashMap<String, Addr>> {
-        let manager_addr: Addr = os_store.get(account_id).unwrap().manager.clone();
+        let manager_addr: Addr = account_store.get(account_id).unwrap().manager.clone();
         // Check Account
         let mut resp: ManagerMsgs::ModuleInfosResponse = app.wrap().query_wasm_smart(
             &manager_addr,

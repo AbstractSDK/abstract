@@ -1,4 +1,6 @@
-use abstract_sdk::core::manager::state::{OsInfo, ACCOUNT_ID, CONFIG, INFO, OS_MODULES, OWNER};
+use abstract_sdk::core::manager::state::{
+    AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO, OWNER,
+};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
@@ -28,8 +30,8 @@ pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) ->
     to_binary(&ModuleVersionsResponse { versions })
 }
 
-pub fn handle_os_info_query(deps: Deps) -> StdResult<Binary> {
-    let info: OsInfo = INFO.load(deps.storage)?;
+pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
+    let info: AccountInfo = INFO.load(deps.storage)?;
     to_binary(&InfoResponse { info })
 }
 
@@ -55,7 +57,7 @@ pub fn handle_module_info_query(
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start_bound = last_module_id.as_deref().map(Bound::exclusive);
 
-    let res: Result<Vec<(String, Addr)>, _> = OS_MODULES
+    let res: Result<Vec<(String, Addr)>, _> = ACCOUNT_MODULES
         .range(deps.storage, start_bound, None, Order::Ascending)
         .take(limit)
         .collect();
@@ -113,7 +115,7 @@ pub fn query_module_addresses(
 
     // Query over
     for module in module_names.iter() {
-        let result: StdResult<Addr> = OS_MODULES
+        let result: StdResult<Addr> = ACCOUNT_MODULES
             .query(&deps.querier, manager_addr.clone(), module)?
             .ok_or_else(|| {
                 StdError::generic_err(format!("Module {module} not present in Account"))

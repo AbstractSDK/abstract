@@ -1,5 +1,5 @@
 use crate::{
-    contract::OsFactoryResult, error::AccountFactoryError,
+    contract::AccountFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
 use abstract_core::{
@@ -32,14 +32,14 @@ pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 use abstract_sdk::core::{MANAGER, PROXY};
 
 #[abstract_response(ACCOUNT_FACTORY)]
-struct OsFactoryResponse;
+struct AccountFactoryResponse;
 
 pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
     cw20_msg: Cw20ReceiveMsg,
-) -> OsFactoryResult {
+) -> AccountFactoryResult {
     match from_binary(&cw20_msg.msg)? {
         ExecuteMsg::CreateAccount {
             governance,
@@ -69,7 +69,7 @@ pub fn execute_create_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
-) -> OsFactoryResult {
+) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     if let Some(_sub_addr) = &config.subscription_address {
@@ -93,7 +93,7 @@ pub fn execute_create_account(
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
-        Ok(OsFactoryResponse::new(
+        Ok(AccountFactoryResponse::new(
             "create_account",
             vec![("account_id", &config.next_account_id.to_string())],
         )
@@ -131,7 +131,7 @@ pub fn execute_create_account(
 }
 
 /// instantiates the Treasury contract of the newly created DAO
-pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFactoryResult {
+pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
     // Get address of Manager contract
@@ -144,7 +144,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     CONTEXT.save(
         deps.storage,
         &Context {
-            os_manager_address: deps.api.addr_validate(manager_address)?,
+            account_manager_address: deps.api.addr_validate(manager_address)?,
         },
     )?;
 
@@ -152,7 +152,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> OsFact
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
     if let ModuleReference::AccountBase(proxy_code_id) = module.reference {
-        Ok(OsFactoryResponse::new(
+        Ok(AccountFactoryResponse::new(
             "create_manager",
             vec![("manager_address", manager_address.to_string())],
         )
@@ -201,7 +201,7 @@ fn query_module(
 pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: SubMsgResult,
-) -> OsFactoryResult {
+) -> AccountFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
 
@@ -214,7 +214,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     // construct Account base
     let account_base = AccountBase {
-        manager: context.os_manager_address.clone(),
+        manager: context.account_manager_address.clone(),
         proxy: deps.api.addr_validate(proxy_address)?,
     };
 
@@ -233,7 +233,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::AddModule {
-            module: context.os_manager_address.to_string(),
+            module: context.account_manager_address.to_string(),
         })?,
     });
 
@@ -241,26 +241,26 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: proxy_address.to_string(),
         funds: vec![],
         msg: to_binary(&ProxyExecMsg::SetAdmin {
-            admin: context.os_manager_address.to_string(),
+            admin: context.account_manager_address.to_string(),
         })?,
     });
 
     let set_manager_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::UpdateAdmin {
-        contract_addr: context.os_manager_address.to_string(),
-        admin: context.os_manager_address.to_string(),
+        contract_addr: context.account_manager_address.to_string(),
+        admin: context.account_manager_address.to_string(),
     });
 
     // Update id sequence
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
-    Ok(OsFactoryResponse::new(
+    Ok(AccountFactoryResponse::new(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
     .add_message(wasm_execute(
-        context.os_manager_address.to_string(),
+        context.account_manager_address.to_string(),
         &UpdateModuleAddresses {
             to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
             to_remove: None,
@@ -283,7 +283,7 @@ pub fn execute_update_config(
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
     subscription_address: Option<String>,
-) -> OsFactoryResult {
+) -> AccountFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
@@ -314,7 +314,7 @@ pub fn execute_update_config(
         ADMIN.set(deps, Some(addr))?;
     }
 
-    Ok(OsFactoryResponse::action("update_config"))
+    Ok(AccountFactoryResponse::action("update_config"))
 }
 
 // fn query_subscription_fee(
@@ -335,7 +335,7 @@ pub fn execute_update_config(
 //     config: &Config,
 //     msgs: &mut Vec<CosmosMsg>,
 //     sub_addr: &Addr,
-// ) -> Result<(), OsFactoryError> {
+// ) -> Result<(), AccountFactoryError> {
 //     if let Some(received_payment) = maybe_received_payment {
 //         // Forward payment to subscription module and registers the Account
 //         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
@@ -360,6 +360,6 @@ pub fn execute_update_config(
 //         msgs.push(forward_payment_to_module);
 //         Ok(())
 //     } else {
-//         Err(OsFactoryError::NoPaymentReceived {})
+//         Err(AccountFactoryError::NoPaymentReceived {})
 //     }
 // }

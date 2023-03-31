@@ -47,7 +47,7 @@ pub fn execute_ibc_action(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
     let manager_address = ADMIN.get(deps.as_ref())?.unwrap();
-    let ibc_client_address = abstract_sdk::core::manager::state::OS_MODULES
+    let ibc_client_address = abstract_sdk::core::manager::state::ACCOUNT_MODULES
         .query(&deps.querier, manager_address, IBC_CLIENT)?
         .ok_or_else(|| {
             StdError::generic_err(format!(
@@ -422,7 +422,7 @@ mod test {
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
                     TEST_MANAGER,
-                    manager::state::OS_MODULES,
+                    manager::state::ACCOUNT_MODULES,
                     (IBC_CLIENT, Addr::unchecked("ibc_client_addr")),
                 )
                 .build();
