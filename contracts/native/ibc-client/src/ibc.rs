@@ -259,7 +259,7 @@ fn acknowledge_register(
         }
     })?;
 
-    Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_who_am_i"))
+    Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_register"))
 }
 
 // receive PacketMsg::Balances response

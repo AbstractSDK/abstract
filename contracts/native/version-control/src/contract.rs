@@ -106,5 +106,5 @@ fn authorized_set_admin<C: std::clone::Clone + std::fmt::Debug + std::cmp::Parti
 
     let new_admin_addr = deps.api.addr_validate(&new_admin)?;
     admin_to_update.set(deps, Some(new_admin_addr))?;
-    Ok(Response::new().add_attribute("Set admin item to:", new_admin))
+    Ok(Response::new().add_attribute("set_admin", new_admin))
 }

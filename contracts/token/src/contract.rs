@@ -226,5 +226,5 @@ fn update_whitelist(
         config.transfers_restricted = restict;
     };
     CONFIG.save(deps.storage, &config)?;
-    Ok(Response::new().add_attribute("action", "updated contract addresses"))
+    Ok(Response::new().add_attribute("action", "updated_contract_addresses"))
 }
