@@ -77,7 +77,7 @@ pub fn execute_send_packet(
 
     // Verify that the sender is a proxy contract
     let account_base = version_control
-        .os_registry(deps.as_ref())
+        .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // Can only call non-internal actions
@@ -120,7 +120,7 @@ pub fn execute_register_os(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let account_base = version_control
-        .os_registry(deps.as_ref())
+        .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // ensure the channel exists (not found if not registered)
@@ -134,7 +134,7 @@ pub fn execute_register_os(
         account_id,
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
-            os_proxy_address: account_base.proxy.into_string(),
+            account_proxy_address: account_base.proxy.into_string(),
         }),
     };
 
@@ -164,7 +164,7 @@ pub fn execute_send_funds(
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
     let account_base = version_control
-        .os_registry(deps.as_ref())
+        .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
     // get account_id of Account

@@ -38,7 +38,7 @@ pub struct BaseMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
-    Register { os_proxy_address: String },
+    Register { account_proxy_address: String },
     WhoAmI,
 }
 

@@ -66,7 +66,7 @@ pub struct CallbackInfo {
 impl CallbackInfo {
     pub fn to_callback_msg(self, ack_data: &Binary) -> StdResult<CosmosMsg> {
         let msg: StdAck = from_slice(ack_data)?;
-        IbcResponseMsg { id: self.id, msg }.into_cosmos_msg(self.receiver)
+        IbcResponseMsg { id: self.id, msg }.into_cosmos_account_msg(self.receiver)
     }
 }
 

@@ -1,6 +1,6 @@
 use super::{
     common::{DEFAULT_VERSION, TEST_CREATOR},
-    testing_infrastructure::env::{get_os_state, mock_app, register_api, AbstractEnv},
+    testing_infrastructure::env::{get_account_state, mock_app, register_api, AbstractEnv},
 };
 use abstract_sdk::core::objects::module::ModuleVersion;
 use abstract_sdk::core::{api, api::BaseInstantiateMsg, manager as ManagerMsgs};
@@ -48,11 +48,11 @@ fn proper_initialization() {
     let sender = Addr::unchecked(TEST_CREATOR);
     let env = AbstractEnv::new(&mut app, &sender);
 
-    let os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
 
     // Account 0 has proxy and subscriber module
-    assert_eq!(os_state.len(), 2);
-    let manager = env.os_store.get(&0u32).unwrap().manager.clone();
+    assert_eq!(account_state.len(), 2);
+    let manager = env.account_store.get(&0u32).unwrap().manager.clone();
 
     register_and_create_dex_api(
         &mut app,
@@ -91,7 +91,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
 
     let _resp: abstract_sdk::core::version_control::ModuleResponse = app
         .wrap()
@@ -116,7 +116,7 @@ fn proper_initialization() {
     )
     .unwrap();
 
-    let _os_state = get_os_state(&app, &env.os_store, &0u32).unwrap();
+    let _account_state = get_account_state(&app, &env.account_store, &0u32).unwrap();
 
     register_and_create_dex_api(
         &mut app,

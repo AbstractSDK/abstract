@@ -3,7 +3,7 @@ use crate::addresses::{
     TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
 use abstract_core::{
-    manager::state::{ACCOUNT_ID, OS_MODULES},
+    manager::state::{ACCOUNT_ID, ACCOUNT_MODULES},
     version_control::state::ACCOUNT_ADDRESSES,
 };
 use cosmwasm_std::{
@@ -318,7 +318,7 @@ impl MockQuerierBuilder {
 /// - TEST_PROXY
 ///   - "admin" -> TEST_MANAGER
 /// - TEST_MANAGER
-///   - "os_modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
+///   - "modules:TEST_MODULE_ID" -> TEST_MODULE_ADDRESS
 ///   - "account_id" -> TEST_ACCOUNT_ID
 /// - TEST_VERSION_CONTROL
 ///   - "account" -> { TEST_PROXY, TEST_MANAGER }
@@ -358,7 +358,7 @@ pub fn mock_querier() -> MockQuerier {
         })
         .with_contract_map_entry(
             TEST_MANAGER,
-            OS_MODULES,
+            ACCOUNT_MODULES,
             (TEST_MODULE_ID, Addr::unchecked(TEST_MODULE_ADDRESS)),
         )
         .build()
@@ -374,7 +374,7 @@ mod tests {
 
     use super::*;
     use abstract_core::{
-        manager::state::OS_MODULES, proxy::state::ACCOUNT_ID,
+        manager::state::ACCOUNT_MODULES, proxy::state::ACCOUNT_ID,
         version_control::state::ACCOUNT_ADDRESSES,
     };
     use cosmwasm_std::testing::mock_dependencies;
@@ -385,7 +385,7 @@ mod tests {
         use abstract_core::version_control::AccountBase;
 
         #[test]
-        fn should_return_os_address() {
+        fn should_return_account_address() {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
@@ -418,7 +418,7 @@ mod tests {
         }
     }
 
-    mod os_modules {
+    mod account_modules {
         use super::*;
 
         #[test]
@@ -426,7 +426,7 @@ mod tests {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
-            let actual = OS_MODULES.query(
+            let actual = ACCOUNT_MODULES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_MANAGER),
                 TEST_MODULE_ID,
@@ -443,7 +443,7 @@ mod tests {
         //     let mut deps = mock_dependencies();
         //     deps.querier = querier();
         //
-        //     let actual = OS_MODULES.query(
+        //     let actual = ACCOUNT_MODULES.query(
         //         &wrap_querier(&deps.querier),
         //         Addr::unchecked(TEST_MANAGER),
         //         "unknown_module",

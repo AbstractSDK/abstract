@@ -9,7 +9,7 @@ use cw_asset::AssetInfo;
 use cw_storage_plus::Item;
 
 /// A mock querier setup with the proper responses for proxy/manager/accountId.
-pub fn mocked_os_querier_builder() -> AbstractMockQuerierBuilder {
+pub fn mocked_account_querier_builder() -> AbstractMockQuerierBuilder {
     AbstractMockQuerierBuilder::default().account(TEST_MANAGER, TEST_PROXY, TEST_ACCOUNT_ID)
 }
 

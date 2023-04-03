@@ -1,7 +1,7 @@
 use super::common_integration::NativeContracts;
-use super::{upload::upload_base_contracts, verify::os_store_as_expected};
+use super::{upload::upload_base_contracts, verify::account_store_as_expected};
 use crate::tests::{
-    common::{OS_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
+    common::{ACCOUNT_NAME, SUBSCRIPTION_COST, TEST_CREATOR},
     subscription::register_subscription,
     testing_infrastructure::common_integration::mock_app,
 };
@@ -9,7 +9,7 @@ use abstract_sdk::core::SUBSCRIPTION;
 use abstract_sdk::core::*;
 use abstract_sdk::core::{
     app::BaseInstantiateMsg, objects::module::ModuleInfo,
-    subscription::InstantiateMsg as SubInitMsg, version_control::Core,
+    subscription::InstantiateMsg as SubInitMsg, version_control::AccountBase,
 };
 use abstract_sdk::core::{objects::module::ModuleVersion, version_control::AccountBaseResponse};
 use anyhow::Result as AnyResult;
@@ -20,13 +20,13 @@ use cw_multi_test::App;
 use cw_multi_test::Executor;
 use std::{collections::HashMap, str::FromStr};
 
-pub fn init_os(
+pub fn init_account(
     app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
-    os_store: &mut HashMap<u32, Core>,
+    account_store: &mut HashMap<u32, AccountBase>,
 ) -> AnyResult<()> {
-    let funds = if os_store.is_empty() {
+    let funds = if account_store.is_empty() {
         vec![]
     } else {
         vec![Coin::new(43200, "uusd")]
@@ -39,7 +39,7 @@ pub fn init_os(
             governance: abstract_sdk::core::objects::gov_type::GovernanceDetails::Monarchy {
                 monarch: sender.to_string(),
             },
-            name: OS_NAME.to_string(),
+            name: ACCOUNT_NAME.to_string(),
             description: None,
             link: None,
         },
@@ -55,11 +55,15 @@ pub fn init_os(
     // Check Account
     let core: AccountBaseResponse = app.wrap().query_wasm_smart(
         &native_contracts.version_control,
-        &version_control::QueryMsg::OsCore { account_id },
+        &version_control::QueryMsg::OsAccountBase { account_id },
     )?;
 
-    os_store.insert(account_id, account_base.account);
-    assert!(os_store_as_expected(app, native_contracts, os_store));
+    account_store.insert(account_id, account_base.account);
+    assert!(account_store_as_expected(
+        app,
+        native_contracts,
+        account_store,
+    ));
     Ok(())
 }
 
@@ -69,11 +73,11 @@ pub fn init_primary_os(
     app: &mut App,
     sender: &Addr,
     native_contracts: &NativeContracts,
-    os_store: &mut HashMap<u32, Core>,
+    account_store: &mut HashMap<u32, AccountBase>,
 ) -> AnyResult<()> {
     register_subscription(app, sender, &native_contracts.version_control)?;
 
-    let account_base = os_store.get(&0u32).unwrap();
+    let account_base = account_store.get(&0u32).unwrap();
 
     let init_msg = to_binary(&app::InstantiateMsg {
         app: SubInitMsg {
@@ -137,13 +141,14 @@ fn proper_initialization() {
     let mut app = mock_app();
     let sender = Addr::unchecked(TEST_CREATOR);
     let (_code_ids, native_contracts) = upload_base_contracts(&mut app);
-    let mut os_store: HashMap<u32, Core> = HashMap::new();
+    let mut account_store: HashMap<u32, AccountBase> = HashMap::new();
 
-    init_os(&mut app, &sender, &native_contracts, &mut os_store).expect("created first account");
+    init_account(&mut app, &sender, &native_contracts, &mut account_store)
+        .expect("created first account");
 
     // TODO: review on release
-    // init_os(&mut app, &sender, &native_contracts, &mut os_store)
+    // init_os(&mut app, &sender, &native_contracts, &mut account_store)
     //     .expect_err("first Account needs to have subscriptions");
 
-    init_primary_os(&mut app, &sender, &native_contracts, &mut os_store).unwrap();
+    init_primary_os(&mut app, &sender, &native_contracts, &mut account_store).unwrap();
 }

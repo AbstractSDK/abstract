@@ -1,5 +1,5 @@
 use abstract_core::{
-    manager::state::{DEPENDENTS, OS_MODULES},
+    manager::state::{ACCOUNT_MODULES, DEPENDENTS},
     objects::{dependency::Dependency, module_version::MODULE},
 };
 use cosmwasm_std::{Deps, DepsMut, StdError, Storage};
@@ -32,7 +32,7 @@ pub fn assert_migrate_requirements(
         if migrating.iter().any(|(m, _)| m == &dependent_module) {
             continue;
         }
-        let dependent_address = OS_MODULES.load(deps.storage, &dependent_module)?;
+        let dependent_address = ACCOUNT_MODULES.load(deps.storage, &dependent_module)?;
         let module_data = MODULE.query(&deps.querier, dependent_address)?;
         // filter the dependencies and assert version comparison when applicable
         let mut applicable_bounds = module_data
@@ -115,7 +115,7 @@ pub fn assert_dependency_requirements(
     dependent: &str,
 ) -> ManagerResult<()> {
     for dep in dependencies {
-        let dep_addr = OS_MODULES
+        let dep_addr = ACCOUNT_MODULES
             .may_load(deps.storage, &dep.id)?
             .ok_or_else(|| ManagerError::DependencyNotMet(dep.id.clone(), dependent.to_string()))?;
 
@@ -129,7 +129,7 @@ pub fn assert_dependency_requirements(
 
 pub fn load_module_dependencies(deps: Deps, module_id: &str) -> ManagerResult<Vec<Dependency>> {
     let querier = &deps.querier;
-    let module_addr = OS_MODULES.load(deps.storage, module_id)?;
+    let module_addr = ACCOUNT_MODULES.load(deps.storage, module_id)?;
     let module_data = MODULE.query(querier, module_addr)?;
     Ok(module_data.dependencies)
 }

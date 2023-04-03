@@ -139,7 +139,7 @@ pub fn receive_register<
     host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
     channel: String,
     account_id: AccountId,
-    os_proxy_address: String,
+    account_proxy_address: String,
 ) -> Result<IbcReceiveResponse, HostError> {
     let cfg = host.base_state.load(deps.storage)?;
     let init_msg = cw1_whitelist::msg::InstantiateMsg {
@@ -156,7 +156,7 @@ pub fn receive_register<
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &os_proxy_address)?;
+    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &account_proxy_address)?;
     // store the account info for the reply handler
     PENDING.save(deps.storage, &(channel, account_id))?;
 

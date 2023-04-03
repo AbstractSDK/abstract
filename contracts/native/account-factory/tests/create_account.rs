@@ -1,5 +1,7 @@
 mod common;
-use abstract_boot::{AbstractAccount, OsFactoryExecFns, OsFactoryQueryFns, VCQueryFns, *};
+use abstract_boot::{
+    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
+};
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
@@ -46,17 +48,17 @@ fn create_one_os() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let os_creation = factory.create_account(
+    let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
         String::from("first_os"),
-        Some(String::from("os_description")),
-        Some(String::from("os_link_of_at_least_11_char")),
+        Some(String::from("account_description")),
+        Some(String::from("account_link_of_at_least_11_char")),
     )?;
 
-    let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
@@ -78,9 +80,9 @@ fn create_one_os() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let os_list = version_control.account_base(0)?;
+    let account_list = version_control.account_base(0)?;
 
-    assert_that!(&os_list.account_base).is_equal_to(AccountBase {
+    assert_that!(&account_list.account_base).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager),
         proxy: Addr::unchecked(proxy),
     });
@@ -89,7 +91,7 @@ fn create_one_os() -> AResult {
 }
 
 #[test]
-fn create_two_os_s() -> AResult {
+fn create_two_account_s() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
@@ -99,29 +101,29 @@ fn create_two_os_s() -> AResult {
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
     // first account
-    let os_1 = factory.create_account(
+    let account_1 = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
         String::from("first_os"),
-        Some(String::from("os_description")),
-        Some(String::from("os_link_of_at_least_11_char")),
+        Some(String::from("account_description")),
+        Some(String::from("account_link_of_at_least_11_char")),
     )?;
     // second account
-    let os_2 = factory.create_account(
+    let account_2 = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
         String::from("second_os"),
-        Some(String::from("os_description")),
-        Some(String::from("os_link_of_at_least_11_char")),
+        Some(String::from("account_description")),
+        Some(String::from("account_link_of_at_least_11_char")),
     )?;
 
-    let manager1 = os_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy1 = os_1.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let manager2 = os_2.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy2 = os_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
@@ -143,14 +145,14 @@ fn create_two_os_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let os_1 = version_control.account_base(0)?.account_base;
-    assert_that!(&os_1).is_equal_to(AccountBase {
+    let account_1 = version_control.account_base(0)?.account_base;
+    assert_that!(&account_1).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
-    let os_2 = version_control.account_base(1)?.account_base;
-    assert_that!(&os_2).is_equal_to(AccountBase {
+    let account_2 = version_control.account_base(1)?.account_base;
+    assert_that!(&account_2).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
     });
@@ -168,24 +170,24 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
-    let os_creation = factory.create_account(
+    let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
             monarch: owner.to_string(),
         },
         String::from("first_os"),
-        Some(String::from("os_description")),
-        Some(String::from("os_link_of_at_least_11_char")),
+        Some(String::from("account_description")),
+        Some(String::from("account_link_of_at_least_11_char")),
     )?;
 
-    let manager = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy = os_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
     let account = version_control.account_base(0)?.account_base;
 
-    let os_1 = AbstractAccount::new(chain, Some(0));
+    let account_1 = AbstractAccount::new(chain, Some(0));
     assert_that!(AccountBase {
-        manager: os_1.manager.address()?,
-        proxy: os_1.proxy.address()?,
+        manager: account_1.manager.address()?,
+        proxy: account_1.proxy.address()?,
     })
     .is_equal_to(&account);
 
@@ -195,9 +197,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
     })
     .is_equal_to(&account);
 
-    let os_config = os_1.manager.config()?;
+    let account_config = account_1.manager.config()?;
 
-    assert_that!(os_config).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),
@@ -223,14 +225,14 @@ fn sender_is_not_admin_external() -> AResult {
             governance_type: "some_gov_description".to_string(),
         },
         String::from("first_os"),
-        Some(String::from("os_description")),
-        Some(String::from("os_link_of_at_least_11_char")),
+        Some(String::from("account_description")),
+        Some(String::from("account_link_of_at_least_11_char")),
     )?;
 
     let account = AbstractAccount::new(chain, Some(0));
-    let os_config = account.manager.config()?;
+    let account_config = account.manager.config()?;
 
-    assert_that!(os_config).is_equal_to(abstract_core::manager::ConfigResponse {
+    assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: owner.into_string(),
         account_id: Uint64::from(0u64),
         version_control_address: version_control.address()?.into_string(),

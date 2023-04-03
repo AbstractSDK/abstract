@@ -87,13 +87,13 @@ impl<
             sender: sender.to_string(),
         };
 
-        let os_registry = self.os_registry(deps.as_ref());
+        let account_registry = self.account_registry(deps.as_ref());
 
         let account_base = match request.proxy_address {
             // The sender must either be a trader or manager.
             Some(requested_proxy) => {
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
-                let requested_core = os_registry.assert_proxy(&proxy_address)?;
+                let requested_core = account_registry.assert_proxy(&proxy_address)?;
 
                 // Load the traders for the given proxy address.
                 let traders = self
@@ -107,12 +107,12 @@ impl<
                     requested_core
                 } else {
                     // If the sender is NOT a trader, check that it is a manager of some Account.
-                    os_registry
+                    account_registry
                         .assert_manager(sender)
                         .map_err(unauthorized_sender)?
                 }
             }
-            None => os_registry
+            None => account_registry
                 .assert_manager(sender)
                 .map_err(unauthorized_sender)?,
         };
@@ -129,7 +129,7 @@ impl<
     ) -> ApiResult {
         // Only the manager can remove the API as a dependency.
         let account_base = self
-            .os_registry(deps)
+            .account_registry(deps)
             .assert_manager(&info.sender)
             .map_err(|_| ApiError::UnauthorizedApiRequest {
                 api: self.module_id().to_string(),
@@ -176,7 +176,7 @@ impl<
             proxy,
             ..
         } = self
-            .os_registry(deps.as_ref())
+            .account_registry(deps.as_ref())
             .assert_manager(&info.sender)?;
 
         let mut traders = self
@@ -371,7 +371,7 @@ mod tests {
 
         use super::*;
 
-        use abstract_testing::prelude::mocked_os_querier_builder;
+        use abstract_testing::prelude::mocked_account_querier_builder;
 
         /// This sets up the test with the following:
         /// TEST_PROXY has a single trader, TEST_TRADER
@@ -394,7 +394,7 @@ mod tests {
         #[test]
         fn not_traders_are_unauthorized() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder().build();
+            deps.querier = mocked_account_querier_builder().build();
 
             setup_with_traders(deps.as_mut(), vec![]);
 
@@ -422,9 +422,9 @@ mod tests {
         }
 
         #[test]
-        fn executing_as_os_manager_is_allowed() {
+        fn executing_as_account_manager_is_allowed() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder().build();
+            deps.querier = mocked_account_querier_builder().build();
 
             setup_with_traders(deps.as_mut(), vec![]);
 
@@ -441,7 +441,7 @@ mod tests {
         #[test]
         fn executing_as_trader_not_allowed_without_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder().build();
+            deps.querier = mocked_account_querier_builder().build();
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
@@ -458,7 +458,7 @@ mod tests {
         #[test]
         fn executing_as_trader_is_allowed_via_proxy() {
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder().build();
+            deps.querier = mocked_account_querier_builder().build();
 
             setup_with_traders(deps.as_mut(), vec![TEST_TRADER]);
 
@@ -476,7 +476,7 @@ mod tests {
         fn executing_as_trader_on_diff_proxy_should_err() {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
-            deps.querier = mocked_os_querier_builder()
+            deps.querier = mocked_account_querier_builder()
                 .account("some_other_manager", other_proxy, 69420u32)
                 .build();
 

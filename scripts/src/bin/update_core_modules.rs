@@ -1,4 +1,4 @@
-use abstract_boot::{AbstractAccount, AccountFactory, OsFactoryQueryFns, VersionControl};
+use abstract_boot::{AbstractAccount, AccountFactory, AccountFactoryQueryFns, VersionControl};
 use abstract_core::{
     account_factory, manager, proxy, ACCOUNT_FACTORY, MANAGER, PROXY, VERSION_CONTROL,
 };
@@ -31,7 +31,7 @@ pub fn migrate(network: NetworkInfo) -> anyhow::Result<()> {
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let account_factory::ConfigResponse {
         next_account_id, ..
-    } = OsFactoryQueryFns::config(&account_factory)?;
+    } = AccountFactoryQueryFns::config(&account_factory)?;
     let latest_acct_id = next_account_id - 1;
 
     for account_id in 1..=latest_acct_id {

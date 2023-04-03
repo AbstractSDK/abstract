@@ -78,7 +78,9 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::AccountBase { account_id } => queries::handle_os_address_query(deps, account_id),
+        QueryMsg::AccountBase { account_id } => {
+            queries::handle_account_address_query(deps, account_id)
+        }
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Config {} => {
             let admin = ADMIN.get(deps)?.unwrap().into_string();

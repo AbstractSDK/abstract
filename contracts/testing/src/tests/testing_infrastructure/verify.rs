@@ -4,10 +4,10 @@ use abstract_sdk::core::*;
 use cw_multi_test::App;
 use std::collections::HashMap;
 
-pub fn os_store_as_expected(
+pub fn account_store_as_expected(
     app: &App,
     native_contracts: &NativeContracts,
-    os_store: &HashMap<u32, Core>,
+    account_store: &HashMap<u32, Core>,
 ) -> bool {
     let resp: account_factory::ConfigResponse = app
         .wrap()
@@ -27,7 +27,10 @@ pub fn os_store_as_expected(
                 &version_control::QueryMsg::OsCore { account_id },
             )
             .unwrap();
-        if account_base.account.ne(os_store.get(&account_id).unwrap()) {
+        if account_base
+            .account
+            .ne(account_store.get(&account_id).unwrap())
+        {
             return false;
         }
     }

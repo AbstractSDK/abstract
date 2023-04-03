@@ -85,9 +85,9 @@ impl<
         // fill the local proxy address
         self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id))?;
         match action {
-            HostAction::Internal(InternalAction::Register { os_proxy_address }) => {
-                receive_register(deps, env, self, channel, account_id, os_proxy_address)
-            }
+            HostAction::Internal(InternalAction::Register {
+                account_proxy_address,
+            }) => receive_register(deps, env, self, channel, account_id, account_proxy_address),
             HostAction::Internal(InternalAction::WhoAmI) => {
                 let this_chain = self.base_state.load(deps.storage)?.chain;
                 receive_who_am_i(this_chain)
