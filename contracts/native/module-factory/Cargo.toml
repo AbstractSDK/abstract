@@ -42,12 +42,21 @@ cw-asset = { workspace = true }
 abstract-boot = {workspace = true}
 boot-core = { workspace = true}
 anyhow = { workspace = true }
-
 account-factory = { workspace = true }
 ans-host = { workspace = true }
 version-control = { workspace = true }
 proxy = { workspace = true }
 manager = { workspace = true }
-
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

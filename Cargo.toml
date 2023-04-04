@@ -84,6 +84,7 @@ rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
 lto = true

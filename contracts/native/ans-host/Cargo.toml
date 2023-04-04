@@ -20,7 +20,6 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 cw-controllers = { workspace = true }
@@ -34,11 +33,20 @@ cw-asset = { workspace = true }
 abstract-macros = { workspace = true }
 abstract-sdk = { workspace = true }
 
-
 [dev-dependencies]
 cw20 = { workspace = true }
 cosmwasm-schema = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }
-
 abstract-testing = { workspace = true }
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

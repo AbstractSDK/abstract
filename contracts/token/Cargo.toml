@@ -32,6 +32,13 @@ cosmwasm-schema = { workspace = true }
 abstract-core =  { workspace = true }
 abstract-sdk = { workspace = true }
 
-[dev-dependencies]
-# we only need to enable this if we use integration tests
-#cosmwasm-vm = { version = "0.10.1", default-features = false }
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

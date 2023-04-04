@@ -55,3 +55,14 @@ abstract-api ={ workspace = true, features = ["test-utils"]}
 abstract-app ={ workspace = true, features = ["test-utils"]}
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
