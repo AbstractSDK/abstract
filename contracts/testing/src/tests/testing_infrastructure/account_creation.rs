@@ -122,7 +122,6 @@ pub fn init_primary_os(
         ans_host_contract: None,
         version_control_contract: None,
         module_factory_address: None,
-        subscription_address: Some(resp.events[4].attributes[1].value.clone()),
     };
 
     app.execute_contract(

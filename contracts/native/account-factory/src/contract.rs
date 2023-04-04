@@ -5,7 +5,7 @@ use abstract_sdk::core::{
     ACCOUNT_FACTORY,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
 use cw_asset::Asset;
@@ -26,7 +26,6 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
-        subscription_address: None,
         next_account_id: 0u32,
     };
 
@@ -57,7 +56,6 @@ pub fn execute(
             admin,
             ans_host_contract,
             version_control_contract,
-            subscription_address,
             module_factory_address,
         } => commands::execute_update_config(
             deps,
@@ -67,7 +65,6 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
-            subscription_address,
         ),
         ExecuteMsg::CreateAccount {
             governance,
@@ -119,7 +116,6 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         owner: admin.into(),
         version_control_contract: state.version_control_contract.into(),
         ans_host_contract: state.ans_host_contract.into(),
-        subscription_address: state.subscription_address.map(Addr::into),
         module_factory_address: state.module_factory_address.into(),
         next_account_id: state.next_account_id,
     };

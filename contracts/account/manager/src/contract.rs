@@ -6,9 +6,10 @@ use crate::{
     validation::{validate_description, validate_link, validate_name_or_gov_type},
     versioning,
 };
+use abstract_core::manager::state::AccountInfo;
 use abstract_sdk::core::{
     manager::{
-        state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, STATUS},
+        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::{migrate_module_data, set_module_data},
@@ -52,18 +53,12 @@ pub fn instantiate(
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     set_module_data(deps.storage, MANAGER, CONTRACT_VERSION, &[], None::<String>)?;
 
-    let subscription_address = msg
-        .subscription_address
-        .map(|a| deps.api.addr_validate(&a))
-        .transpose()?;
-
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
             version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
             module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
-            subscription_address,
         },
     )?;
 
@@ -86,7 +81,7 @@ pub fn instantiate(
     // Set oner
     let owner = deps.api.addr_validate(&msg.owner)?;
     OWNER.set(deps.branch(), Some(owner))?;
-    STATUS.save(deps.storage, &true)?;
+    SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
@@ -100,14 +95,14 @@ pub fn instantiate(
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> ManagerResult {
     match msg {
-        ExecuteMsg::SuspendAccount { new_status } => {
-            update_subscription_status(deps, info, new_status)
-        }
+        ExecuteMsg::UpdateStatus {
+            is_suspended: suspension_status,
+        } => update_account_status(deps, info, suspension_status),
         msg => {
             // Block actions if user is not subscribed
-            let is_subscribed = STATUS.load(deps.storage)?;
-            if !is_subscribed {
-                return Err(ManagerError::NotSubscribed {});
+            let is_suspended = SUSPENSION_STATUS.load(deps.storage)?;
+            if is_suspended {
+                return Err(ManagerError::AccountSuspended {});
             }
 
             match msg {
@@ -143,12 +138,40 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     description,
                     link,
                 } => update_info(deps, info, name, description, link),
-                ExecuteMsg::EnableIBC { new_status } => enable_ibc(deps, info, new_status),
+                ExecuteMsg::UpdateSettings {
+                    ibc_enabled: new_status,
+                } => {
+                    let mut response: Response = ManagerResponse::action("update_settings");
+
+                    if let Some(ibc_enabled) = new_status {
+                        response = update_ibc_status(deps, info, ibc_enabled, response)?;
+                    } else {
+                        return Err(ManagerError::NoUpdates {});
+                    }
+
+                    Ok(response)
+                }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 _ => panic!(),
             }
         }
     }
+}
+
+fn update_account_status(
+    deps: DepsMut,
+    info: MessageInfo,
+    suspension_status: Option<bool>,
+) -> Result<Response, ManagerError> {
+    let mut response = ManagerResponse::action("update_status");
+
+    if let Some(suspension_status) = suspension_status {
+        response = update_suspension_status(deps, info, suspension_status, response)?;
+    } else {
+        return Err(ManagerError::NoUpdates {});
+    }
+
+    Ok(response)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]

@@ -34,6 +34,7 @@ fn instantiate() -> AResult {
         version_control_address: deployment.version_control.address()?.into_string(),
         module_factory_address: deployment.module_factory.address()?.into_string(),
         account_id: 0u32.into(),
+        is_suspended: false,
     });
     Ok(())
 }

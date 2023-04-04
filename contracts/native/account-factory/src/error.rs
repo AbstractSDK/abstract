@@ -28,9 +28,6 @@ pub enum AccountFactoryError {
     #[error("module {0} is required to be of kind {1}")]
     WrongModuleKind(String, String),
 
-    #[error("Bad subscription module configuration.")]
-    UnsupportedAsset(),
-
     #[error("Your payment does not match the required payment {0}")]
     WrongAmount(String),
 

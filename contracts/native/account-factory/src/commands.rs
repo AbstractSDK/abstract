@@ -72,14 +72,6 @@ pub fn execute_create_account(
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    if let Some(_sub_addr) = &config.subscription_address {
-        panic!("not implemented");
-        // let subscription_fee: SubscriptionFeeResponse =
-        //     query_subscription_fee(&deps.querier, sub_addr)?;
-        // if !subscription_fee.fee.amount.is_zero() {
-        //     forward_payment(asset, &config, &mut msgs, sub_addr)?;
-        // }
-    }
     // Get address of Account owner, depends on gov-type
     let owner: Addr = match &governance {
         GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
@@ -111,7 +103,6 @@ pub fn execute_create_account(
                     account_id: config.next_account_id,
                     owner: owner.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
-                    subscription_address: config.subscription_address.map(Addr::into),
                     module_factory_address: config.module_factory_address.to_string(),
                     name,
                     description,
@@ -282,7 +273,6 @@ pub fn execute_update_config(
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
-    subscription_address: Option<String>,
 ) -> AccountFactoryResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -303,10 +293,6 @@ pub fn execute_update_config(
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
     }
 
-    if let Some(subscription_address) = subscription_address {
-        config.subscription_address = Some(deps.api.addr_validate(&subscription_address)?);
-    }
-
     CONFIG.save(deps.storage, &config)?;
 
     if let Some(admin) = admin {
@@ -316,50 +302,3 @@ pub fn execute_update_config(
 
     Ok(AccountFactoryResponse::action("update_config"))
 }
-
-// fn query_subscription_fee(
-//     querier: &QuerierWrapper,
-//     subscription_address: &Addr,
-// ) -> StdResult<SubscriptionFeeResponse> {
-//     let subscription_fee_response: SubscriptionFeeResponse = querier.query(&wasm_smart_query(
-//         subscription_address.to_string(),
-//         &app::QueryMsg::App(SubscriptionQueryMsg::Fee {}),
-//     )?)?;
-//     Ok(subscription_fee_response)
-// }
-
-// Does not do any payment verifications.
-// This provides more flexibility on the subscription contract to handle different payment options
-// fn forward_payment(
-//     maybe_received_payment: Option<Asset>,
-//     config: &Config,
-//     msgs: &mut Vec<CosmosMsg>,
-//     sub_addr: &Addr,
-// ) -> Result<(), AccountFactoryError> {
-//     if let Some(received_payment) = maybe_received_payment {
-//         // Forward payment to subscription module and registers the Account
-//         let forward_payment_to_module: CosmosMsg<Empty> = match received_payment.info {
-//             AssetInfoBase::Cw20(_) => received_payment.send_msg(
-//                 sub_addr,
-//                 to_binary(&SubDepositHook::Pay {
-//                     account_id: config.next_account_id,
-//                 })?,
-//             )?,
-//             AssetInfoBase::Native(denom) => CosmosMsg::Wasm(WasmMsg::Execute {
-//                 contract_addr: sub_addr.into(),
-//                 msg: to_binary::<app::ExecuteMsg<SubscriptionExecuteMsg>>(&app::ExecuteMsg::App(
-//                     SubscriptionExecuteMsg::Pay {
-//                         account_id: config.next_account_id,
-//                     },
-//                 ))?,
-//                 funds: vec![Coin::new(received_payment.amount.u128(), denom)],
-//             }),
-//             _ => panic!("unsupported asset"),
-//         };
-
-//         msgs.push(forward_payment_to_module);
-//         Ok(())
-//     } else {
-//         Err(AccountFactoryError::NoPaymentReceived {})
-//     }
-// }

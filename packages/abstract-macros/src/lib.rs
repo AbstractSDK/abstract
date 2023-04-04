@@ -50,8 +50,6 @@ pub fn abstract_response(attrs: TokenStream, input: TokenStream) -> TokenStream 
     let visibility = resp_struct.vis.clone();
     let resp_name = resp_struct.ident.clone();
 
-    // if attributes.is_empty() {}
-
     let contract_name = attributes[0].clone();
 
     let struct_def = quote!(

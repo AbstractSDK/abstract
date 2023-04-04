@@ -21,7 +21,6 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub subscription_address: Option<Addr>,
         pub next_account_id: AccountId,
     }
 
@@ -66,8 +65,6 @@ pub enum ExecuteMsg {
         version_control_contract: Option<String>,
         // New module factory contract
         module_factory_address: Option<String>,
-        // New subscription contract
-        subscription_address: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
@@ -97,7 +94,6 @@ pub struct ConfigResponse {
     pub ans_host_contract: String,
     pub version_control_contract: String,
     pub module_factory_address: String,
-    pub subscription_address: Option<String>,
     pub next_account_id: AccountId,
 }
 

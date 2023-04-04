@@ -8,7 +8,9 @@ use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
-        manager::state::{AccountInfo, Subscribed, ACCOUNT_MODULES, CONFIG, INFO, OWNER, STATUS},
+        manager::state::{
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, OWNER, SUSPENSION_STATUS,
+        },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
         objects::{
@@ -27,9 +29,10 @@ use abstract_sdk::{
 use abstract_core::api::{
     BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
 };
+use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty, Env, MessageInfo,
-    StdResult, Storage, WasmMsg,
+    Response, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -135,7 +138,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(whitelist_dapp_on_proxy(
+            response = response.add_message(allowlist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
@@ -149,7 +152,7 @@ pub fn register_module(
             // assert version requirements
             let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
             versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(whitelist_dapp_on_proxy(
+            response = response.add_message(allowlist_dapp_on_proxy(
                 deps.as_ref(),
                 proxy_addr.into_string(),
                 module_address,
@@ -403,7 +406,7 @@ pub fn replace_api(
         old_api_addr.into_string(),
     )?);
     // Add new api to proxy
-    msgs.push(whitelist_dapp_on_proxy(
+    msgs.push(allowlist_dapp_on_proxy(
         deps.as_ref(),
         proxy_addr.into_string(),
         new_api_addr.into_string(),
@@ -435,34 +438,33 @@ pub fn update_info(
     Ok(ManagerResponse::action("update_info"))
 }
 
-pub fn update_subscription_status(
+pub fn update_suspension_status(
     deps: DepsMut,
-    info: MessageInfo,
-    new_status: Subscribed,
+    msg_info: MessageInfo,
+    is_suspended: SuspensionStatus,
+    response: Response,
 ) -> ManagerResult {
-    let config = CONFIG.load(deps.storage)?;
+    // only owner can update suspension status
+    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
-    // Only the subscription contract can load
-    if let Some(sub_addr) = config.subscription_address {
-        if sub_addr.eq(&info.sender) {
-            STATUS.save(deps.storage, &new_status)?;
-            return Ok(ManagerResponse::new(
-                "update_subscription_status",
-                vec![("new_status", new_status.to_string())],
-            ));
-        }
-    }
-    Err(ManagerError::CallerNotSubscriptionContract {})
+    SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
+
+    Ok(response.add_abstract_attributes(vec![("is_suspended", is_suspended.to_string())]))
 }
 
-pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> ManagerResult {
+pub fn update_ibc_status(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    ibc_enabled: bool,
+    response: Response,
+) -> ManagerResult {
     // only owner can update IBC status
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
 
-    let proxy_callback_msg = if enable_ibc {
+    let proxy_callback_msg = if ibc_enabled {
         // we have an IBC client so can't add more
         if maybe_client.is_some() {
             return Err(ManagerError::ModuleAlreadyInstalled(IBC_CLIENT.to_string()));
@@ -476,10 +478,9 @@ pub fn enable_ibc(deps: DepsMut, msg_info: MessageInfo, enable_ibc: bool) -> Man
         }
     };
 
-    Ok(
-        ManagerResponse::new("enable_ibc", vec![("new_status", enable_ibc.to_string())])
-            .add_message(proxy_callback_msg),
-    )
+    Ok(response
+        .add_abstract_attributes(vec![("ibc_enabled", ibc_enabled.to_string())])
+        .add_message(proxy_callback_msg))
 }
 
 fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
@@ -491,7 +492,7 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(whitelist_dapp_on_proxy(
+    Ok(allowlist_dapp_on_proxy(
         deps.as_ref(),
         proxy.into_string(),
         ibc_client_addr.to_string(),
@@ -562,7 +563,7 @@ fn upgrade_self(
     }
 }
 
-fn whitelist_dapp_on_proxy(
+fn allowlist_dapp_on_proxy(
     _deps: Deps,
     proxy_address: String,
     dapp_address: String,
@@ -635,7 +636,6 @@ mod test {
                 owner: TEST_OWNER.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                subscription_address: None,
                 governance_type: "monarchy".to_string(),
                 name: "test".to_string(),
                 description: None,
@@ -1259,7 +1259,7 @@ mod test {
         }
     }
 
-    mod enable_ibc {
+    mod ibc_enabled {
         use super::*;
 
         const TEST_IBC_CLIENT_ADDR: &str = "ibc_client";
@@ -1276,7 +1276,9 @@ mod test {
 
         #[test]
         fn only_owner() -> ManagerTestResult {
-            let msg = ExecuteMsg::EnableIBC { new_status: true };
+            let msg = ExecuteMsg::UpdateSettings {
+                ibc_enabled: Some(true),
+            };
 
             test_only_owner(msg)
         }
@@ -1286,7 +1288,9 @@ mod test {
             let mut deps = mock_dependencies();
             init_with_proxy(&mut deps);
 
-            let msg = ExecuteMsg::EnableIBC { new_status: false };
+            let msg = ExecuteMsg::UpdateSettings {
+                ibc_enabled: Some(false),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
@@ -1303,7 +1307,9 @@ mod test {
 
             mock_installed_ibc_client(&mut deps)?;
 
-            let msg = ExecuteMsg::EnableIBC { new_status: true };
+            let msg = ExecuteMsg::UpdateSettings {
+                ibc_enabled: Some(true),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res)
@@ -1320,7 +1326,9 @@ mod test {
 
             mock_installed_ibc_client(&mut deps)?;
 
-            let msg = ExecuteMsg::EnableIBC { new_status: false };
+            let msg = ExecuteMsg::UpdateSettings {
+                ibc_enabled: Some(false),
+            };
 
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
@@ -1374,94 +1382,86 @@ mod test {
         }
     }
 
-    mod update_subscription_status {
+    mod update_suspension_status {
         use super::*;
 
-        const SUBSCRIPTION: &str = "subscription";
-
-        fn mock_init_with_subscription(mut deps: DepsMut) -> ManagerResult {
-            let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
-
-            contract::instantiate(
-                deps.branch(),
-                mock_env(),
-                info,
-                InstantiateMsg {
-                    account_id: 1,
-                    owner: TEST_OWNER.to_string(),
-                    version_control_address: TEST_VERSION_CONTROL.to_string(),
-                    module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                    subscription_address: Some(SUBSCRIPTION.to_string()),
-                    governance_type: "monarchy".to_string(),
-                    name: "test".to_string(),
-                    description: None,
-                    link: None,
-                },
-            )
-        }
-
-        fn execute_as_subscription(deps: DepsMut, msg: ExecuteMsg) -> ManagerResult {
-            let info = mock_info(SUBSCRIPTION, &[]);
-            contract::execute(deps, mock_env(), info, msg)
-        }
-
         #[test]
-        fn only_subscription() -> ManagerTestResult {
-            let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
-
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
-
-            let res = execute_as(deps.as_mut(), "not subscsription", msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
-
-            Ok(())
-        }
-
-        #[test]
-        fn fails_without_subscription() -> ManagerTestResult {
+        fn only_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
+            let msg = ExecuteMsg::UpdateStatus {
+                is_suspended: Some(true),
+            };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as(deps.as_mut(), "not owner", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::CallerNotSubscriptionContract {});
+                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
 
             Ok(())
         }
 
         #[test]
-        fn subscribed() -> ManagerTestResult {
+        fn exec_fails_when_suspended() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
+            mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: true };
+            let msg = ExecuteMsg::UpdateStatus {
+                is_suspended: Some(true),
+            };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
+            assert_that!(res).is_ok();
+            let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_is_suspended).is_true();
 
-            assert_that(&res).is_ok();
-            let actual_status = STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_status).is_equal_to(true);
+            let update_info_msg = ExecuteMsg::UpdateInfo {
+                name: Some("asonetuh".to_string()),
+                description: None,
+                link: None,
+            };
+
+            let res = execute_as_owner(deps.as_mut(), update_info_msg);
+
+            assert_that(&res)
+                .is_err()
+                .is_equal_to(ManagerError::AccountSuspended {});
+
             Ok(())
         }
 
         #[test]
-        fn unsubscribed() -> ManagerTestResult {
+        fn suspend_account() -> ManagerTestResult {
             let mut deps = mock_dependencies();
-            mock_init_with_subscription(deps.as_mut())?;
+            mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SuspendAccount { new_status: false };
+            let msg = ExecuteMsg::UpdateStatus {
+                is_suspended: Some(true),
+            };
 
-            let res = execute_as_subscription(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
 
             assert_that(&res).is_ok();
-            let actual_status = STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_status).is_equal_to(false);
+            let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_is_suspended).is_true();
+            Ok(())
+        }
+
+        #[test]
+        fn unsuspend_account() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateStatus {
+                is_suspended: Some(false),
+            };
+
+            let res = execute_as_owner(deps.as_mut(), msg);
+
+            assert_that(&res).is_ok();
+            let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
+            assert_that(&actual_status).is_false();
             Ok(())
         }
     }
