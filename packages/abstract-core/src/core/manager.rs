@@ -115,8 +115,8 @@ pub enum ExecuteMsg {
         module_addr: String,
         module: Module,
     },
-    /// Remove a module
-    RemoveModule {
+    /// Uninstall a module given its ID.
+    UninstallModule {
         module_id: String,
     },
     /// Upgrade the module to a new version

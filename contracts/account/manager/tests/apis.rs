@@ -21,7 +21,7 @@ fn install_api(manager: &Manager<Mock>, api: &str) -> AResult {
 
 pub(crate) fn uninstall_module(manager: &Manager<Mock>, api: &str) -> AResult {
     manager
-        .remove_module(api.to_string())
+        .uninstall_module(api.to_string())
         .map_err(Into::<BootError>::into)?;
     Ok(())
 }

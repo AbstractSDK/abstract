@@ -126,7 +126,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     install_module(deps, info, env, module, init_msg)
                 }
-                ExecuteMsg::RemoveModule { module_id } => uninstall_module(deps, info, module_id),
+                ExecuteMsg::UninstallModule { module_id } => {
+                    uninstall_module(deps, info, module_id)
+                }
                 ExecuteMsg::RegisterModule {
                     module,
                     module_addr,
