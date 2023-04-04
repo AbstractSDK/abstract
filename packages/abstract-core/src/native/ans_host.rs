@@ -38,12 +38,11 @@ pub mod state {
     use crate::ans_host::{DexAssetPairing, DexName, UniquePoolId};
     use cosmwasm_std::Addr;
     use cw_asset::AssetInfo;
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        asset_entry::AssetEntry, common_namespace::ADMIN_NAMESPACE, contract_entry::ContractEntry,
-        pool_metadata::PoolMetadata, pool_reference::PoolReference, ChannelEntry,
+        asset_entry::AssetEntry, contract_entry::ContractEntry, pool_metadata::PoolMetadata,
+        pool_reference::PoolReference, ChannelEntry,
     };
 
     /// Ans host configuration
@@ -53,9 +52,6 @@ pub mod state {
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
-
-    /// Admin address store
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
@@ -84,6 +80,7 @@ pub mod state {
 pub struct InstantiateMsg {}
 
 /// AnsHost Execute msg
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -122,8 +119,6 @@ pub enum ExecuteMsg {
         // Pools to remove
         to_remove: Vec<UniquePoolId>,
     },
-    /// Sets a new Admin
-    SetAdmin { admin: String },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -160,6 +155,7 @@ pub struct PoolMetadataFilter {
 }
 
 /// AnsHost smart-query
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]

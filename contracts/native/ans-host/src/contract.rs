@@ -1,10 +1,11 @@
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_core::ans_host::state::{Config, ADMIN, CONFIG, REGISTERED_DEXES};
+use abstract_core::ans_host::state::{Config, CONFIG, REGISTERED_DEXES};
 use abstract_core::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
+use cw_ownable::initialize_owner;
 use semver::Version;
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
@@ -13,6 +14,7 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 use abstract_core::objects::module_version::{migrate_module_data, set_module_data};
 use abstract_core::ANS_HOST;
+use abstract_sdk::query_ownership;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -42,7 +44,7 @@ pub fn instantiate(
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
     // Setup the admin as the creator of the contract
-    ADMIN.set(deps, Some(info.sender))?;
+    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
     Ok(Response::default())
 }
@@ -98,6 +100,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             start_after,
             limit,
         } => queries::list_pool_metadata_entries(deps, filter, start_after, limit),
+        QueryMsg::Ownership {} => query_ownership!(deps),
     }
 }
 

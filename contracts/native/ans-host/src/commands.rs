@@ -14,8 +14,10 @@ use abstract_core::{
     ANS_HOST,
 };
 use abstract_macros::abstract_response;
-use cosmwasm_std::{Addr, DepsMut, Empty, Env, MessageInfo, StdError, StdResult, Storage};
+use abstract_sdk::execute_update_ownership;
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
+use cw_ownable::assert_owner;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -27,11 +29,10 @@ pub struct AnsHostResponse;
 pub fn handle_message(
     deps: DepsMut,
     info: MessageInfo,
-    _env: Env,
+    env: Env,
     message: ExecuteMsg,
 ) -> AnsHostResult {
     match message {
-        ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, admin),
         ExecuteMsg::UpdateContractAddresses { to_add, to_remove } => {
             update_contract_addresses(deps, info, to_add, to_remove)
         }
@@ -46,6 +47,9 @@ pub fn handle_message(
         }
         ExecuteMsg::UpdatePools { to_add, to_remove } => {
             update_pools(deps, info, to_add, to_remove)
+        }
+        ExecuteMsg::UpdateOwnership(action) => {
+            execute_update_ownership!(AnsHostResponse, deps, env, info, action)
         }
     }
 }
@@ -62,7 +66,7 @@ pub fn update_contract_addresses(
     to_remove: Vec<UncheckedContractEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_address) in to_add.into_iter() {
         let key = key.check();
@@ -90,7 +94,7 @@ pub fn update_asset_addresses(
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
 
     for (name, new_asset) in to_add.into_iter() {
         // validate asset
@@ -122,7 +126,7 @@ pub fn update_channels(
     to_remove: Vec<UncheckedChannelEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
         let key = key.check();
@@ -142,12 +146,12 @@ pub fn update_channels(
 /// Updates the dex registry with additions and removals
 fn update_dex_registry(
     deps: DepsMut,
-    info: MessageInfo,
+    msg_info: MessageInfo,
     to_add: Vec<String>,
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
 
     if !to_add.is_empty() {
         let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
@@ -177,12 +181,12 @@ fn update_dex_registry(
 
 fn update_pools(
     deps: DepsMut,
-    info: MessageInfo,
+    msg_info: MessageInfo,
     to_add: Vec<(UncheckedPoolAddress, PoolMetadata)>,
     to_remove: Vec<UniquePoolId>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
 
     let original_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
     let mut next_unique_pool_id = original_unique_pool_id;
@@ -362,21 +366,6 @@ fn validate_pool_assets(
     Ok(())
 }
 
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> AnsHostResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let admin_addr = deps.api.addr_validate(&admin)?;
-    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(AnsHostResponse::new(
-        "set_admin",
-        vec![
-            ("previous_admin", previous_admin.to_string()),
-            ("admin", admin),
-        ],
-    ))
-}
-
 #[cfg(test)]
 mod test {
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
@@ -421,7 +410,7 @@ mod test {
 
     mod update_dexes {
         use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage};
-        use cosmwasm_std::OwnedDeps;
+        use cosmwasm_std::{Empty, OwnedDeps};
 
         use super::*;
 
