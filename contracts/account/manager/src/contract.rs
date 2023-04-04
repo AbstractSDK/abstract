@@ -116,8 +116,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     governance_type,
                 } => set_owner_and_gov_type(deps, info, owner, governance_type),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                    // only factory/owner can add custom modules.
-                    // required to add Proxy after init by account factory.
+                    // only Account Factory/Owner can add custom modules.
+                    // required to add Proxy after init by Account Factory.
                     ACCOUNT_FACTORY
                         .assert_admin(deps.as_ref(), &info.sender)
                         .or_else(|_| OWNER.assert_admin(deps.as_ref(), &info.sender))?;

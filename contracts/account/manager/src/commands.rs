@@ -161,13 +161,14 @@ pub fn register_module(
     Ok(response)
 }
 
+/// Execute the [`exec_msg`] on the provided [`module_id`],
 pub fn exec_on_module(
     deps: DepsMut,
     msg_info: MessageInfo,
     module_id: String,
     exec_msg: Binary,
 ) -> ManagerResult {
-    // only owner can update module configs
+    // only owner can forward messages to modules
     OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
@@ -183,7 +184,7 @@ pub fn exec_on_module(
     Ok(response)
 }
 
-/// Checked load of a module addresss
+/// Checked load of a module address
 fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, ManagerError> {
     ACCOUNT_MODULES
         .may_load(storage, module_id)?
@@ -1102,19 +1103,19 @@ mod test {
 
             let msg = ExecuteMsg::ExecOnModule {
                 module_id: PROXY.to_string(),
-                exec_msg: to_binary(exec_msg.clone())?,
+                exec_msg: to_binary(&exec_msg)?,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
-            assert_that(&msgs).has_length(1);
+            assert_that!(&msgs).has_length(1);
 
             let expected_msg: CosmosMsg = wasm_execute(TEST_PROXY_ADDR, &exec_msg, vec![])?.into();
 
             let actual_msg = &msgs[0];
-            assert_that(&actual_msg.msg).is_equal_to(&expected_msg);
+            assert_that!(&actual_msg.msg).is_equal_to(&expected_msg);
 
             Ok(())
         }
