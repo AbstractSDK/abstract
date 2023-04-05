@@ -4,14 +4,14 @@ use abstract_core::{
     manager::*,
     objects::module::{ModuleInfo, ModuleVersion},
 };
-use boot_core::{boot_contract, BootEnvironment, BootExecute, Contract};
+use boot_core::{contract, BootExecute, Contract, CwEnv};
 use cosmwasm_std::{to_binary, Empty};
 use serde::Serialize;
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Manager<Chain>;
 
-impl<Chain: BootEnvironment> Manager<Chain> {
+impl<Chain: CwEnv> Manager<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_manager");

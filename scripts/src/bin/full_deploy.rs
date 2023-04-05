@@ -1,4 +1,4 @@
-use abstract_boot::{Abstract, AbstractAccount};
+use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
 
 use boot_core::{
@@ -18,14 +18,7 @@ fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
-
-    // log::info!("Your balance is: {}", );
-
-    let mut account = AbstractAccount::new(chain.clone(), None);
-
-    let mut deployment = Abstract::new(chain, abstract_version);
-
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, abstract_version)?;
 
     // CReate the Abstract Account because it's needed for the fees for the dex module
     deployment

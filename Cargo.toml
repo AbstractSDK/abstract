@@ -50,8 +50,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0"}
-boot-core = { version = "0.8.0" }
-boot-cw-plus = { version = "0.8.0" }
+boot-core = { version = "0.10.0" }
+boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT.git", tag = "v0.10.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md

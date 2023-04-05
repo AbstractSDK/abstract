@@ -1,12 +1,12 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use boot_core::{BootEnvironment, BootError::StdErr, Deploy, *};
+use boot_core::{BootError::StdErr, CwEnv, Deploy, *};
 
 use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying APIs
-pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
+pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
     + BootInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
     + BootUpload<Chain>
@@ -51,7 +51,7 @@ pub trait ApiDeployer<Chain: BootEnvironment, CustomInitMsg: Serialize>:
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: BootEnvironment>: ContractInstance<Chain> + BootUpload<Chain> {
+pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + BootUpload<Chain> {
     fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractBootError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().clone())?;

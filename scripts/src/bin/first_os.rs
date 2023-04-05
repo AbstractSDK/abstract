@@ -4,7 +4,7 @@ use boot_core::{
     networks::{ChainInfo, NetworkInfo, NetworkKind},
     *,
 };
-use semver::Version;
+
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -29,13 +29,12 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Script that registers the first Account in abstract (our Account)
 pub fn first_os(network: NetworkInfo) -> anyhow::Result<()> {
-    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
     // let network = LOCAL_JUNO;
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
 
-    let deployment = Abstract::new(chain, abstract_version);
+    let deployment = Abstract::new(chain);
 
     // NOTE: this assumes that the deployment has been deployed
 

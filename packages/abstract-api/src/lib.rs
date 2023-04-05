@@ -26,7 +26,7 @@ pub mod mock {
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
-    use boot_core::{BootEnvironment, ContractWrapper};
+    use boot_core::{ContractWrapper, CwEnv};
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         DepsMut, Empty, Env, MessageInfo, Response, StdError,
@@ -119,12 +119,12 @@ pub mod mock {
     type Exec = api::ExecuteMsg<MockExecMsg>;
     type Query = api::QueryMsg<MockQueryMsg>;
     type Init = api::InstantiateMsg<MockInitMsg>;
-    #[boot_core::boot_contract(Init, Exec, Query, Empty)]
+    #[boot_core::contract(Init, Exec, Query, Empty)]
     pub struct BootMockApi;
 
-    impl<Chain: BootEnvironment> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> {}
+    impl<Chain: CwEnv> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> {}
 
-    impl<Chain: boot_core::BootEnvironment> BootMockApi<Chain> {
+    impl<Chain: boot_core::CwEnv> BootMockApi<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(boot_core::Contract::new(name, chain).with_mock(Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query),
@@ -181,12 +181,12 @@ pub mod mock {
         type Exec = ::abstract_core::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = ::abstract_core::api::QueryMsg<MockQueryMsg>;
         type Init = ::abstract_core::api::InstantiateMsg<MockInitMsg>;
-        #[boot_core::boot_contract(Init, Exec, Query, Empty)]
+        #[boot_core::contract(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl<Chain: ::boot_core::BootEnvironment> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}
+        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}
 
-        impl<Chain: ::boot_core::BootEnvironment> $name <Chain> {
+        impl<Chain: ::boot_core::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
                     ::boot_core::Contract::new($id, chain).with_mock(Box::new(::boot_core::ContractWrapper::<

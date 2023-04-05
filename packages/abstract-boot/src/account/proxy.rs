@@ -5,12 +5,12 @@ use abstract_core::{
     proxy::*,
     MANAGER, PROXY,
 };
-use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
+use boot_core::{contract, Contract, ContractInstance, CwEnv};
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Proxy<Chain>;
 
-impl<Chain: BootEnvironment> Proxy<Chain> {
+impl<Chain: CwEnv> Proxy<Chain> {
     pub fn new(name: &str, chain: Chain) -> Self {
         let mut contract = Contract::new(name, chain);
         contract = contract.with_wasm_path("abstract_proxy");

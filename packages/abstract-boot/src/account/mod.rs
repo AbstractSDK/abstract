@@ -17,7 +17,7 @@ use std::collections::HashSet;
 
 use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
 use boot_core::{
-    BootEnvironment, {BootUpload, ContractInstance},
+    CwEnv, {BootUpload, ContractInstance},
 };
 use serde::Serialize;
 use speculoos::prelude::*;
@@ -25,12 +25,12 @@ use speculoos::prelude::*;
 use crate::{get_account_contracts, VersionControl};
 
 pub use self::{manager::*, proxy::*};
-pub struct AbstractAccount<Chain: BootEnvironment> {
+pub struct AbstractAccount<Chain: CwEnv> {
     pub manager: Manager<Chain>,
     pub proxy: Proxy<Chain>,
 }
 
-impl<Chain: BootEnvironment> AbstractAccount<Chain> {
+impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
         let (manager, proxy) = get_account_contracts(chain, account_id);
         Self { manager, proxy }

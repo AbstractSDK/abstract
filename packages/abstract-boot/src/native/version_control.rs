@@ -1,4 +1,4 @@
-use crate::{deployment, AbstractAccount};
+use crate::AbstractAccount;
 pub use abstract_core::version_control::{ExecuteMsgFns as VCExecFns, QueryMsgFns as VCQueryFns};
 use abstract_core::{
     objects::{
@@ -12,16 +12,15 @@ use abstract_core::{
 #[cfg(feature = "daemon")]
 use boot_core::Daemon;
 use boot_core::{
-    boot_contract, BootEnvironment, Contract, IndexResponse, TxResponse,
-    {BootQuery, ContractInstance},
+    contract, Contract, CwEnv, IndexResponse, TxResponse, {BootQuery, ContractInstance},
 };
 use cosmwasm_std::Addr;
 use semver::Version;
 
-#[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-pub struct VersionControl<Chain>;
+#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+pub struct VersionControl;
 
-impl<Chain: BootEnvironment> VersionControl<Chain>
+impl<Chain: CwEnv> VersionControl<Chain>
 where
     TxResponse<Chain>: IndexResponse,
 {
@@ -126,14 +125,6 @@ where
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
         self.add_modules(to_register)?;
-        Ok(())
-    }
-
-    pub fn register_deployment(
-        &self,
-        deployment: &deployment::Abstract<Chain>,
-    ) -> Result<(), crate::AbstractBootError> {
-        self.register_natives(deployment.contracts(), &deployment.version)?;
         Ok(())
     }
 

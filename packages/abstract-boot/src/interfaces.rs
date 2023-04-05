@@ -3,10 +3,10 @@ use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
-use boot_core::{BootEnvironment, IndexResponse, StateInterface, TxHandler};
+use boot_core::{CwEnv, IndexResponse, StateInterface, TxHandler};
 
 #[allow(clippy::type_complexity)]
-pub fn get_native_contracts<Chain: BootEnvironment>(
+pub fn get_native_contracts<Chain: CwEnv>(
     chain: Chain,
 ) -> (
     AnsHost<Chain>,
@@ -32,7 +32,7 @@ where
     )
 }
 
-pub fn get_account_contracts<Chain: BootEnvironment>(
+pub fn get_account_contracts<Chain: CwEnv>(
     chain: Chain,
     account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)

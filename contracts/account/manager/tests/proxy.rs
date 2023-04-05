@@ -2,8 +2,9 @@ mod common;
 use abstract_boot::*;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
-use boot_core::{instantiate_default_mock_env, ContractInstance};
-use common::{create_default_account, init_abstract_env, AResult, TEST_COIN};
+use abstract_testing::prelude::TEST_VERSION;
+use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
+use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use speculoos::prelude::*;
 
@@ -11,8 +12,7 @@ use speculoos::prelude::*;
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain)?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let modules = account.manager.module_infos(None, None)?.module_infos;
@@ -43,8 +43,7 @@ fn instantiate() -> AResult {
 fn exec_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain.clone())?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
@@ -87,8 +86,7 @@ fn exec_through_manager() -> AResult {
 fn migrate_proxy() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let (mut deployment, mut account) = init_abstract_env(chain)?;
-    deployment.deploy(&mut account)?;
+    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let new_version = "1.0.1".parse().unwrap();
