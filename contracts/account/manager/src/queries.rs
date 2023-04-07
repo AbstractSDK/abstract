@@ -33,7 +33,7 @@ pub fn handle_contract_versions_query(deps: Deps, env: Env, ids: Vec<String>) ->
 
 pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
     let info: AccountInfo = INFO.load(deps.storage)?;
-    to_binary(&InfoResponse { info })
+    to_binary(&InfoResponse { info: info.into() })
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {

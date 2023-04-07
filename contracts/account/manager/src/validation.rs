@@ -24,9 +24,9 @@ pub fn validate_link(link: &Option<String>) -> Result<(), ManagerError> {
 }
 
 /**
- * Validates that the title or gov type of the account is valid, i.e. len() between [MIN_TITLE_LENGTH, MAX_TITLE_LENGTH].
+ * Validates that the title of the account is valid, i.e. len() between [MIN_TITLE_LENGTH, MAX_TITLE_LENGTH].
  */
-pub fn validate_name_or_gov_type(title: &str) -> Result<(), ManagerError> {
+pub fn validate_name(title: &str) -> Result<(), ManagerError> {
     if title.len() < MIN_TITLE_LENGTH {
         Err(ManagerError::TitleInvalidShort(MIN_TITLE_LENGTH))
     } else if title.len() > MAX_TITLE_LENGTH {

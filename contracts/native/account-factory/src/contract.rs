@@ -73,10 +73,11 @@ pub fn execute(
             description,
         } => {
             let maybe_received_coin = info.funds.last().map(Asset::from);
+            let gov_details = governance.verify(deps.api)?;
             commands::execute_create_account(
                 deps,
                 env,
-                governance,
+                gov_details,
                 maybe_received_coin,
                 name,
                 description,

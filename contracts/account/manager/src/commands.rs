@@ -1,9 +1,10 @@
 use crate::validation::{validate_description, validate_link};
 use crate::{
     contract::ManagerResult, error::ManagerError, queries::query_module_cw2,
-    validation::validate_name_or_gov_type,
+    validation::validate_name,
 };
 use crate::{validation, versioning};
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
@@ -233,30 +234,30 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
     )
 }
 
-pub fn set_owner_and_gov_type(
+pub fn set_owner(
     deps: DepsMut,
     info: MessageInfo,
-    new_owner: String,
-    governance_type: Option<String>,
+    new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
+    // assert that the caller is the current owner
     OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    // verify the provided governance details
+    let verified_gov = new_owner.verify(deps.api)?;
+    let new_owner_addr = verified_gov.owner_address();
 
-    let owner_addr = deps.api.addr_validate(&new_owner)?;
+    // Update the account information
+    let mut acc_info = INFO.load(deps.storage)?;
+    acc_info.governance_details = verified_gov.clone();
+    INFO.save(deps.storage, &acc_info)?;
+    // Update the OWNER
     let previous_owner = OWNER.get(deps.as_ref())?.unwrap();
-
-    if let Some(new_gov_type) = governance_type {
-        let mut info = INFO.load(deps.storage)?;
-        validate_name_or_gov_type(&new_gov_type)?;
-        info.governance_type = new_gov_type;
-        INFO.save(deps.storage, &info)?;
-    }
-
-    OWNER.execute_update_admin::<Empty, Empty>(deps, info, Some(owner_addr))?;
+    OWNER.execute_update_admin::<Empty, Empty>(deps, info, Some(new_owner_addr.clone()))?;
     Ok(ManagerResponse::new(
         "update_owner",
         vec![
             ("previous_owner", previous_owner.to_string()),
-            ("owner", new_owner),
+            ("new_owner", new_owner_addr.to_string()),
+            ("governance_type", verified_gov.to_string()),
         ],
     ))
 }
@@ -431,7 +432,7 @@ pub fn update_info(
     OWNER.assert_admin(deps.as_ref(), &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
-        validate_name_or_gov_type(&name)?;
+        validate_name(&name)?;
         info.name = name;
     }
     validate_description(&description)?;
@@ -638,10 +639,11 @@ mod test {
             info,
             InstantiateMsg {
                 account_id: 1,
-                owner: TEST_OWNER.to_string(),
+                owner: GovernanceDetails::Monarchy {
+                    monarch: TEST_OWNER.to_string(),
+                },
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                governance_type: "monarchy".to_string(),
                 name: "test".to_string(),
                 description: None,
                 link: None,
@@ -701,8 +703,9 @@ mod test {
         #[test]
         fn only_owner() -> ManagerTestResult {
             let msg = ExecuteMsg::SetOwner {
-                owner: "new_owner".to_string(),
-                governance_type: None,
+                owner: GovernanceDetails::Monarchy {
+                    monarch: "test_owner".to_string(),
+                },
             };
 
             test_only_owner(msg)
@@ -714,14 +717,20 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::SetOwner {
-                owner: "INVALID".to_string(),
-                governance_type: None,
+                owner: GovernanceDetails::Monarchy {
+                    monarch: "INVALID".to_string(),
+                },
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that!(res)
-                .is_err()
-                .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
+            assert_that!(res).is_err().matches(|err| {
+                matches!(
+                    err,
+                    ManagerError::Abstract(abstract_core::AbstractError::Std(
+                        StdError::GenericErr { .. }
+                    ))
+                )
+            });
             Ok(())
         }
 
@@ -732,8 +741,9 @@ mod test {
 
             let new_owner = "new_owner";
             let msg = ExecuteMsg::SetOwner {
-                owner: new_owner.to_string(),
-                governance_type: None,
+                owner: GovernanceDetails::Monarchy {
+                    monarch: new_owner.to_string(),
+                },
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -754,14 +764,16 @@ mod test {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: TEST_OWNER.to_string(),
-                governance_type: Some(new_gov.clone()),
+                owner: GovernanceDetails::Monarchy {
+                    monarch: new_gov.to_string(),
+                },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that(&actual_info.governance_type).is_equal_to(new_gov);
+            assert_that(&actual_info.governance_details.owner_address().to_string())
+                .is_equal_to("new_gov".to_string());
 
             Ok(())
         }
@@ -1178,7 +1190,9 @@ mod test {
                 deps.as_mut().storage,
                 &AccountInfo {
                     name: prev_name.clone(),
-                    governance_type: "".to_string(),
+                    governance_details: GovernanceDetails::Monarchy {
+                        monarch: Addr::unchecked(""),
+                    },
                     chain_id: "".to_string(),
                     description: Some("description".to_string()),
                     link: Some("link".to_string()),

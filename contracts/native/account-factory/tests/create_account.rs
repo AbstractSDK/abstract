@@ -215,7 +215,7 @@ fn sender_is_not_admin_external() -> AResult {
     factory.create_account(
         GovernanceDetails::External {
             governance_address: owner.to_string(),
-            governance_type: "some_gov_description".to_string(),
+            governance_type: "some-gov-type".to_string(),
         },
         String::from("first_os"),
         Some(String::from("account_description")),

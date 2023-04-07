@@ -31,7 +31,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,
-        governance_details: GovernanceDetails,
+        governance_details: GovernanceDetails<String>,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         let AccountDetails {
             name,
@@ -65,7 +65,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
 
     pub fn create_default_account(
         &self,
-        governance_details: GovernanceDetails,
+        governance_details: GovernanceDetails<String>,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractBootError> {
         self.create_new_account(
             AccountDetails {

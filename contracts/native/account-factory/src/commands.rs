@@ -52,7 +52,9 @@ pub fn receive_cw20(
                 info: AssetInfo::Cw20(msg_info.sender),
                 amount: cw20_msg.amount,
             };
-            execute_create_account(deps, env, governance, Some(asset), name, description, link)
+            // verify input
+            let gov_details = governance.verify(deps.api)?;
+            execute_create_account(deps, env, gov_details, Some(asset), name, description, link)
         }
         _ => Err(AccountFactoryError::Std(StdError::generic_err(
             "unknown send msg hook",
@@ -64,22 +66,13 @@ pub fn receive_cw20(
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
-    governance: GovernanceDetails,
+    governance: GovernanceDetails<Addr>,
     _asset: Option<Asset>,
     name: String,
     description: Option<String>,
     link: Option<String>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
-
-    // Get address of Account owner, depends on gov-type
-    let owner: Addr = match &governance {
-        GovernanceDetails::Monarchy { monarch } => deps.api.addr_validate(monarch)?,
-        GovernanceDetails::External {
-            governance_address,
-            governance_type: _,
-        } => deps.api.addr_validate(governance_address)?,
-    };
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
@@ -101,13 +94,12 @@ pub fn execute_create_account(
                 label: format!("Abstract Account: {}", config.next_account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: config.next_account_id,
-                    owner: owner.to_string(),
                     version_control_address: config.version_control_contract.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
                     name,
                     description,
                     link,
-                    governance_type: governance.to_string(),
+                    owner: governance.into(),
                 })?,
             }
             .into(),

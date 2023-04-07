@@ -18,8 +18,9 @@ pub mod state {
     use std::collections::HashSet;
 
     pub use crate::objects::core::ACCOUNT_ID;
-    use crate::objects::module::ModuleId;
-    use cosmwasm_std::Addr;
+    use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
+    use cosmwasm_std::{Addr, Api};
+    use cw_address_like::AddressLike;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
@@ -33,12 +34,37 @@ pub mod state {
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct AccountInfo {
+    pub struct AccountInfo<T: AddressLike = Addr> {
         pub name: String,
-        pub governance_type: String,
+        pub governance_details: GovernanceDetails<T>,
         pub chain_id: String,
         pub description: Option<String>,
         pub link: Option<String>,
+    }
+
+    impl AccountInfo<String> {
+        pub fn verify(self, api: &dyn Api) -> Result<AccountInfo<Addr>, crate::AbstractError> {
+            let governance_details = self.governance_details.verify(api)?;
+            Ok(AccountInfo {
+                name: self.name,
+                governance_details,
+                chain_id: self.chain_id,
+                description: self.description,
+                link: self.link,
+            })
+        }
+    }
+
+    impl From<AccountInfo<Addr>> for AccountInfo<String> {
+        fn from(value: AccountInfo<Addr>) -> Self {
+            AccountInfo {
+                name: value.name,
+                governance_details: value.governance_details.into(),
+                chain_id: value.chain_id,
+                description: value.description,
+                link: value.link,
+            }
+        }
     }
 
     /// Suspension status
@@ -46,7 +72,7 @@ pub mod state {
     /// Configuration
     pub const CONFIG: Item<Config> = Item::new("\u{0}{6}config");
     /// Info about the Account
-    pub const INFO: Item<AccountInfo> = Item::new("\u{0}{4}info");
+    pub const INFO: Item<AccountInfo<Addr>> = Item::new("\u{0}{4}info");
     /// Contract Admin
     pub const ACCOUNT_FACTORY: Admin = Admin::new("\u{0}{7}factory");
     /// Account owner
@@ -62,6 +88,7 @@ use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::objects::{
     core::AccountId,
+    gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
@@ -74,10 +101,9 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub account_id: AccountId,
-    pub owner: String,
+    pub owner: GovernanceDetails<String>,
     pub version_control_address: String,
     pub module_factory_address: String,
-    pub governance_type: String,
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
@@ -122,10 +148,7 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
-    SetOwner {
-        owner: String,
-        governance_type: Option<String>,
-    },
+    SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
@@ -179,7 +202,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct InfoResponse {
-    pub info: AccountInfo,
+    pub info: AccountInfo<String>,
 }
 
 #[cosmwasm_schema::cw_serde]

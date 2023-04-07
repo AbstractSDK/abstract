@@ -3,7 +3,7 @@ use crate::{
     error::ManagerError,
     queries,
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
-    validation::{validate_description, validate_link, validate_name_or_gov_type},
+    validation::{validate_description, validate_link, validate_name},
     versioning,
 };
 use abstract_core::manager::state::AccountInfo;
@@ -65,11 +65,14 @@ pub fn instantiate(
     // Verify info
     validate_description(&msg.description)?;
     validate_link(&msg.link)?;
-    validate_name_or_gov_type(&msg.name)?;
+    validate_name(&msg.name)?;
+
+    let governance_details = msg.owner.verify(deps.api)?;
+    let owner = governance_details.owner_address();
 
     let account_info = AccountInfo {
         name: msg.name,
-        governance_type: msg.governance_type,
+        governance_details,
         chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
@@ -78,16 +81,15 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    // Set oner
-    let owner = deps.api.addr_validate(&msg.owner)?;
-    OWNER.set(deps.branch(), Some(owner))?;
+    // Set owner
+    OWNER.set(deps.branch(), Some(owner.clone()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
     Ok(ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
-            ("owner", msg.owner),
+            ("owner", owner.to_string()),
         ],
     ))
 }
@@ -106,10 +108,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetOwner {
-                    owner,
-                    governance_type,
-                } => set_owner_and_gov_type(deps, info, owner, governance_type),
+                ExecuteMsg::SetOwner { owner } => set_owner(deps, info, owner),
                 ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
                     // only Account Factory/Owner can add custom modules.
                     // required to add Proxy after init by Account Factory.

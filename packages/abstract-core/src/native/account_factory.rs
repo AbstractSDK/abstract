@@ -70,9 +70,7 @@ pub enum ExecuteMsg {
     /// [`crate::manager`] and [`crate::proxy`]
     CreateAccount {
         // Governance details
-        // Use [`crate::objects::GovernanceDetails::Monarchy`] to use a custom governance modal.
-        // TODO: add support for other types of gov.
-        governance: GovernanceDetails,
+        governance: GovernanceDetails<String>,
         name: String,
         description: Option<String>,
         link: Option<String>,
