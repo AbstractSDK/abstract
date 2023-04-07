@@ -13,14 +13,17 @@ pub enum ApiError {
     #[error("Sender: {sender} of request to {api} is not a Manager")]
     UnauthorizedApiRequest { api: String, sender: String },
 
-    #[error("Sender: {sender} of request to {api} is not a Manager or Trader")]
-    UnauthorizedTraderApiRequest { api: String, sender: String },
+    #[error("Sender: {sender} of request to {api} is not a Manager or Authorized Address")]
+    UnauthorizedAddressApiRequest { api: String, sender: String },
 
-    #[error("The trader you wished to remove: {} was not present.", trader)]
-    TraderNotPresent { trader: String },
+    #[error("The authorized address to remove: {} was not present.", address)]
+    AuthorizedAddressNotPresent { address: String },
 
-    #[error("The trader you wished to add: {} is already present", trader)]
-    TraderAlreadyPresent { trader: String },
+    #[error("The authorized address to add: {} is already present", address)]
+    AuthorizedAddressAlreadyPresent { address: String },
+
+    #[error("Maximum authorized addresses ({}) reached", max)]
+    TooManyAuthorizedAddresses { max: u32 },
 
     #[error("This api does not implement any custom queries")]
     NoCustomQueries,

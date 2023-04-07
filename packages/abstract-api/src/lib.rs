@@ -34,7 +34,7 @@ pub mod mock {
     use thiserror::Error;
 
     pub const TEST_METADATA: &str = "test_metadata";
-    pub const TEST_TRADER: &str = "test_trader";
+    pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";
 
     #[derive(Error, Debug, PartialEq)]
     pub enum MockError {

@@ -20,8 +20,6 @@ use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const TRADER_NAMESPACE: &str = "traders";
-
 /// Store channel information for proxy contract creation reply
 pub const PENDING: Item<(String, AccountId)> = Item::new("pending");
 /// Store the processing packet information for processing in Reply along with the channel id it came from

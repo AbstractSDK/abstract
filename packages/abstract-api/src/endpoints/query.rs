@@ -1,10 +1,12 @@
 use crate::{state::ApiContract, ApiError};
-use abstract_core::api::{ApiConfigResponse, ApiQueryMsg, BaseQueryMsg, QueryMsg, TradersResponse};
+use abstract_core::api::{
+    ApiConfigResponse, ApiQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+};
 use abstract_sdk::{
     base::{endpoints::QueryEndpoint, Handler},
     AbstractSdkError,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
@@ -39,13 +41,15 @@ impl<
             BaseQueryMsg::Config {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
-            BaseQueryMsg::Traders { proxy_address } => {
-                let traders = self
-                    .traders
-                    .may_load(deps.storage, deps.api.addr_validate(&proxy_address)?)?
+            BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
+                let proxy_address = deps.api.addr_validate(&proxy_address)?;
+                let authorized_addrs: Vec<Addr> = self
+                    .authorized_addresses
+                    .may_load(deps.storage, proxy_address)?
                     .unwrap_or_default();
-                to_binary(&TradersResponse {
-                    traders: traders.into_iter().collect(),
+
+                to_binary(&AuthorizedAddressesResponse {
+                    addresses: authorized_addrs,
                 })
                 .map_err(Into::into)
             }

@@ -27,7 +27,8 @@ use abstract_sdk::{
 };
 
 use abstract_core::api::{
-    BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg, QueryMsg as ApiQuery, TradersResponse,
+    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg,
+    QueryMsg as ApiQuery,
 };
 use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
 use cosmwasm_std::{
@@ -300,7 +301,7 @@ pub fn set_migrate_msgs_and_context(
     let id = module_info.id();
 
     match module.reference {
-        // upgrading an api is done by moving the traders to the new contract address and updating the permissions on the proxy.
+        // upgrading an api is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
         ModuleReference::Api(addr) => {
             versioning::assert_migrate_requirements(
                 deps.as_ref(),
@@ -364,7 +365,7 @@ fn get_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Binary) -> 
 }
 
 /// Replaces the current api with a different version
-/// Also moves all the trader permissions to the new contract and removes them from the old
+/// Also moves all the authorized address permissions to the new contract and removes them from the old
 pub fn replace_api(
     deps: DepsMut,
     new_api_addr: Addr,
@@ -373,29 +374,33 @@ pub fn replace_api(
     let mut msgs = vec![];
     // Makes sure we already have the api installed
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
-    let TradersResponse { traders } = deps.querier.query(&wasm_smart_query(
+    let AuthorizedAddressesResponse {
+        addresses: authorized_addresses,
+    } = deps.querier.query(&wasm_smart_query(
         old_api_addr.to_string(),
-        &<ApiQuery<Empty>>::Base(BaseQueryMsg::Traders {
+        &<ApiQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
     )?)?;
-    let traders_to_migrate: Vec<String> =
-        traders.into_iter().map(|addr| addr.into_string()).collect();
-    // Remove traders from old
+    let authorized_to_migrate: Vec<String> = authorized_addresses
+        .into_iter()
+        .map(|addr| addr.into_string())
+        .collect();
+    // Remove authorized addresses from old
     msgs.push(configure_api(
         &old_api_addr,
-        BaseExecuteMsg::UpdateTraders {
+        BaseExecuteMsg::UpdateAuthorizedAddresses {
             to_add: vec![],
-            to_remove: traders_to_migrate.clone(),
+            to_remove: authorized_to_migrate.clone(),
         },
     )?);
-    // Remove api as trader on dependencies
+    // Remove api as authorized address on dependencies
     msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
-    // Add traders to new
+    // Add authorized addresses to new
     msgs.push(configure_api(
         &new_api_addr,
-        BaseExecuteMsg::UpdateTraders {
-            to_add: traders_to_migrate,
+        BaseExecuteMsg::UpdateAuthorizedAddresses {
+            to_add: authorized_to_migrate,
             to_remove: vec![],
         },
     )?);

@@ -2,7 +2,7 @@ use crate::{ApiContract, ApiError};
 use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
 use abstract_sdk::{
     base::endpoints::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-    core::api::{ApiConfigResponse, TradersResponse},
+    core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
 };
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
@@ -46,7 +46,11 @@ impl<
             out_dir,
             "QueryMsg",
         );
-        export_schema_with_title(&schema_for!(TradersResponse), out_dir, "TradersResponse");
+        export_schema_with_title(
+            &schema_for!(AuthorizedAddressesResponse),
+            out_dir,
+            "AuthorizedAddressesResponse",
+        );
         export_schema_with_title(&schema_for!(ApiConfigResponse), out_dir, "ConfigResponse");
     }
 }

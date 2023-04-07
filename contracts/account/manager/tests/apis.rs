@@ -54,9 +54,9 @@ fn installing_one_api_should_succeed() -> AResult {
         version_control_address: deployment.version_control.address()?,
     });
 
-    // no traders registered
-    let traders = staking_api.traders(account.proxy.addr_str()?)?;
-    assert_that!(traders).is_equal_to(api::TradersResponse { traders: vec![] });
+    // no authorized addresses registered
+    let authorized = staking_api.authorized_addresses(account.proxy.addr_str()?)?;
+    assert_that!(authorized).is_equal_to(api::AuthorizedAddressesResponse { addresses: vec![] });
 
     Ok(())
 }
@@ -234,26 +234,27 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 // struct TestModule = AppContract
 
 #[test]
-fn not_trader_exec() -> AResult {
+fn unauthorized_exec() -> AResult {
     let sender = Addr::unchecked(OWNER);
-    let not_trader = Addr::unchecked("not_trader");
+    let unauthorized = Addr::unchecked("unauthorized");
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_api = init_mock_api(chain, &deployment, None)?;
     install_api(&account.manager, TEST_MODULE_ID)?;
-    // non-trader cannot execute
+    // non-authorized address cannot execute
     let res = staking_api
-        .call_as(&not_trader)
+        .call_as(&unauthorized)
         .execute(&MockExecMsg.into(), None)
         .unwrap_err();
     assert_that!(res.root().to_string()).contains(
-        "Sender: not_trader of request to tester:test-module-id is not a Manager or Trader",
+        "Sender: unauthorized of request to tester:test-module-id is not a Manager or Authorized Address",
     );
     // neither can the ROOT directly
     let res = staking_api.execute(&MockExecMsg.into(), None).unwrap_err();
-    assert_that!(&res.root().to_string())
-        .contains("Sender: owner of request to tester:test-module-id is not a Manager or Trader");
+    assert_that!(&res.root().to_string()).contains(
+        "Sender: owner of request to tester:test-module-id is not a Manager or Authorized Address",
+    );
     Ok(())
 }
 

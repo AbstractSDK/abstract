@@ -6,8 +6,7 @@ use abstract_core::{
     account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
 };
 use boot_core::{
-    contract, Contract, CwEnv, IndexResponse, StateInterface, TxResponse,
-    {BootExecute, ContractInstance},
+    contract, Contract, CwEnv, IndexResponse, StateInterface, {BootExecute, ContractInstance},
 };
 use cosmwasm_std::Addr;
 

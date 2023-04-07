@@ -274,7 +274,7 @@ fn uninstall_modules() -> AResult {
 }
 
 #[test]
-fn update_api_with_traders() -> AResult {
+fn update_api_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
@@ -286,8 +286,12 @@ fn update_api_with_traders() -> AResult {
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
     account.expect_modules(vec![api1.clone()])?;
 
-    // register a trader on API1
-    manager.update_api_traders(api_1::MOCK_API_ID, vec!["trader".to_string()], vec![])?;
+    // register a authorized address on API1
+    manager.update_api_authorized_addresses(
+        api_1::MOCK_API_ID,
+        vec!["authorizee".to_string()],
+        vec![],
+    )?;
 
     // upgrade api 1 to version 2
     manager.upgrade_module(
@@ -304,13 +308,13 @@ fn update_api_with_traders() -> AResult {
 
     let api = api_1::BootMockApi1V2::new(chain);
     use abstract_core::api::BaseQueryMsgFns as _;
-    let traders = api.traders(proxy.addr_str()?)?;
-    assert_that!(traders.traders).contains(Addr::unchecked("trader"));
+    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
+    assert_that!(authorized.addresses).contains(Addr::unchecked("authorizee"));
 
-    // assert that trader was removed from old API
+    // assert that authorized address was removed from old API
     api.set_address(&Addr::unchecked(api1));
-    let traders = api.traders(proxy.addr_str()?)?;
-    assert_that!(traders.traders).is_empty();
+    let authorized = api.authorized_addresses(proxy.addr_str()?)?;
+    assert_that!(authorized.addresses).is_empty();
     Ok(())
 }
 

@@ -106,8 +106,8 @@ mod tests {
         });
 
         let api = MOCK_API;
-        let no_traders_registered = api.traders.is_empty(&deps.storage);
-        assert!(no_traders_registered);
+        let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
+        assert!(none_authorized);
 
         let state = api.base_state.load(&deps.storage)?;
         assert_that!(state).is_equal_to(ApiState {

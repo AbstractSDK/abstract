@@ -177,7 +177,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account = version_control.account_base(0)?.account_base;
 
-    let account_1 = AbstractAccount::new(chain.clone(), Some(0));
+    let account_1 = AbstractAccount::new(chain, Some(0));
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
