@@ -82,7 +82,7 @@ abstract-ica = { version = "0.13.0", path = "packages/abstract-ica" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
-rstest = "0.16.0"
+rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
