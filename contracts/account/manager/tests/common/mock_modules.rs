@@ -11,8 +11,8 @@ use abstract_core::objects::dependency::StaticDependency;
 // use boot_core::{ContractWrapper};
 use boot_core::{Empty, Mock};
 
-pub type MockApiContract = ApiContract<ApiMockError, Empty, Empty, Empty>;
-pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty>;
+pub type MockApiContract = ApiContract<ApiMockError, Empty, Empty, Empty, Empty, Empty>;
+pub type MockAppContract = AppContract<AppMockError, Empty, Empty, Empty, Empty, Empty, Empty>;
 pub use self::api_1::*;
 pub use self::api_2::*;
 pub use self::app_1::*;

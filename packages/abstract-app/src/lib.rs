@@ -40,6 +40,9 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
 
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockSudoMsg;
+
     use crate::{AppContract, AppError};
     use abstract_core::{module_factory::ContextResponse, version_control::AccountBase};
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
@@ -71,6 +74,7 @@ pub mod mock {
         MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
+        MockSudoMsg,
         MockReceiveMsg,
     >;
 

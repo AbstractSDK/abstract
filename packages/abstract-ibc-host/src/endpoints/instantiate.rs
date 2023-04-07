@@ -1,7 +1,4 @@
-use crate::{
-    state::{Host, HostState, CLOSED_CHANNELS},
-    HostError,
-};
+use crate::state::{ContractError, Host, HostState, CLOSED_CHANNELS};
 use abstract_core::objects::module_version::set_module_data;
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
@@ -14,14 +11,23 @@ use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     > InstantiateEndpoint
-    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        SudoMsg,
+        ReceiveMsg,
+    >
 {
     /// Instantiate the api
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;

@@ -1,6 +1,6 @@
 use super::contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
-    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
+    MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, SudoHandlerFn,
 };
 use crate::{
     base::{
@@ -18,23 +18,20 @@ where
     Self: Sized + 'static,
 {
     type Error: From<AbstractSdkError>;
+    /// Custom init message for the contract
     type CustomInitMsg;
+    /// Custom execute message for the contract
     type CustomExecMsg;
+    /// Custom query message for the contract
     type CustomQueryMsg;
+    /// Custom migrate message for the contract
     type CustomMigrateMsg;
+    /// Sudo message for the contract
+    type SudoMsg;
+    /// Receive message for the contract
     type ReceiveMsg;
-    #[allow(clippy::type_complexity)]
-    fn contract(
-        &self,
-    ) -> &AbstractContract<
-        Self,
-        Self::Error,
-        Self::CustomInitMsg,
-        Self::CustomExecMsg,
-        Self::CustomQueryMsg,
-        Self::CustomMigrateMsg,
-        Self::ReceiveMsg,
-    >;
+
+    fn contract(&self) -> &AbstractContract<Self, Self::Error>;
 
     fn stored_version(&self, store: &dyn Storage) -> AbstractSdkResult<ContractVersion> {
         let contract = self.contract();
@@ -110,6 +107,18 @@ where
     ) -> AbstractSdkResult<MigrateHandlerFn<Self, Self::CustomMigrateMsg, Self::Error>> {
         let Some(handler) = self.maybe_migrate_handler() else {
             return Err(AbstractSdkError::MissingHandler { endpoint: "migrate".to_string() })
+        };
+        Ok(handler)
+    }
+
+    // Sudo
+    fn maybe_sudo_handler(&self) -> Option<SudoHandlerFn<Self, Self::SudoMsg, Self::Error>> {
+        let contract = self.contract();
+        contract.sudo_handler
+    }
+    fn sudo_handler(&self) -> AbstractSdkResult<SudoHandlerFn<Self, Self::SudoMsg, Self::Error>> {
+        let Some(handler) = self.maybe_sudo_handler() else {
+            return Err(AbstractSdkError::MissingHandler { endpoint: "sudo".to_string() })
         };
         Ok(handler)
     }

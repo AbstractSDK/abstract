@@ -1,7 +1,7 @@
 use crate::{
     error::HostError,
     host_commands::{receive_query, receive_register, receive_who_am_i},
-    state::{Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
+    state::{ContractError, Host, ACCOUNTS, CLIENT_PROXY, CLOSED_CHANNELS, PROCESSING_PACKET},
 };
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
@@ -19,14 +19,23 @@ type HostResult = Result<Response, HostError>;
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
-    for Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    for Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        SudoMsg,
+        ReceiveMsg,
+    >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -49,19 +58,19 @@ impl<
 
 /// The host contract base implementation.
 impl<
-        Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomExecMsg: DeserializeOwned,
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
-    > Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>
+    >
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg>
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.
-    pub fn handle_packet<
-        RequestError: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
-    >(
+    pub fn handle_packet<RequestError: ContractError>(
         mut self,
         deps: DepsMut,
         env: Env,

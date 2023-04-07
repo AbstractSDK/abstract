@@ -1,6 +1,6 @@
 use crate::{
     endpoints::reply::INIT_CALLBACK_ID,
-    state::{CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
+    state::{ContractError, CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
     Host, HostError,
 };
 use abstract_core::objects::AccountId;
@@ -127,16 +127,25 @@ pub fn receive_query(
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account
 pub fn receive_register<
-    Error: From<cosmwasm_std::StdError> + From<HostError> + From<abstract_sdk::AbstractSdkError>,
+    Error: ContractError,
     CustomExecMsg,
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
+    SudoMsg,
     ReceiveMsg,
 >(
     deps: DepsMut,
     env: Env,
-    host: Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg>,
+    host: Host<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        SudoMsg,
+        ReceiveMsg,
+    >,
     channel: String,
     account_id: AccountId,
     account_proxy_address: String,

@@ -1,29 +1,31 @@
 use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
-use crate::{error::ApiError, state::ApiContract, ApiResult};
+use crate::{
+    error::ApiError,
+    state::{ApiContract, ContractError},
+    ApiResult,
+};
 use abstract_core::{
     api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
 use abstract_sdk::{
-    base::{
-        endpoints::{ExecuteEndpoint, IbcCallbackEndpoint, ReceiveEndpoint},
-        Handler,
-    },
+    base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, AbstractSdkError, Execution, ModuleInterface, OsVerification,
+    AbstractResponse, Execution, ModuleInterface, OsVerification,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
 
 impl<
-        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomQueryMsg,
+        SudoMsg,
         ReceiveMsg: Serialize + JsonSchema,
     > ExecuteEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -48,13 +50,8 @@ impl<
 }
 
 /// The api-contract base implementation.
-impl<
-        Error: From<StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     fn base_execute(
         &mut self,

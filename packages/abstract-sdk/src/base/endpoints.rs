@@ -72,8 +72,8 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
@@ -122,6 +122,9 @@
 //!
 //! ## Reply
 //! The reply endpoint is used to handle internal replies. Each reply handler is matched with a reply-id. Both are supplied to the contract builder.
+//!
+//! ## Sudo
+//! The sudo endpoint can only be called by the chain's governance address.
 
 mod execute;
 mod ibc_callback;
@@ -130,6 +133,7 @@ pub(crate) mod migrate;
 mod query;
 mod receive;
 mod reply;
+mod sudo;
 
 // Provide endpoints under ::base::traits::
 pub use execute::ExecuteEndpoint;
@@ -139,3 +143,4 @@ pub use migrate::MigrateEndpoint;
 pub use query::QueryEndpoint;
 pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
+pub use sudo::SudoEndpoint;

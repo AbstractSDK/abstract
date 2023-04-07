@@ -1,4 +1,4 @@
-use crate::{AppContract, AppError};
+use crate::{state::ContractError, AppContract};
 use abstract_sdk::{
     feature_objects::AnsHost,
     features::{AbstractNameService, AccountIdentification},
@@ -7,11 +7,12 @@ use abstract_sdk::{
 use cosmwasm_std::{Addr, Deps};
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     > AbstractNameService
     for AppContract<
@@ -20,6 +21,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     >
 {
@@ -29,11 +31,12 @@ impl<
 }
 
 impl<
-        Error: From<cosmwasm_std::StdError> + From<AppError> + From<abstract_sdk::AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     > AccountIdentification
     for AppContract<
@@ -42,6 +45,7 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
+        SudoMsg,
         ReceiveMsg,
     >
 {

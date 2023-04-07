@@ -1,23 +1,21 @@
-use crate::{state::ApiContract, ApiError};
+use crate::state::{ApiContract, ContractError};
 use abstract_core::api::{
     ApiConfigResponse, ApiQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
 };
-use abstract_sdk::{
-    base::{endpoints::QueryEndpoint, Handler},
-    AbstractSdkError,
-};
+use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
 
 /// Where we dispatch the queries for the ApiContract
 /// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
+        Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
         CustomQueryMsg: ApiQueryMsg,
+        SudoMsg,
         ReceiveMsg,
     > QueryEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -28,13 +26,8 @@ impl<
     }
 }
 
-impl<
-        Error: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError>,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        ReceiveMsg,
-    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {

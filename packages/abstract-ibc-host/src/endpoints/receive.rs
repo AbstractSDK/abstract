@@ -1,4 +1,6 @@
-use crate::{state::ContractError, AppContract, IbcCallbackEndpoint};
+use abstract_sdk::base::ReceiveEndpoint;
+
+use crate::{state::ContractError, Host};
 
 impl<
         Error: ContractError,
@@ -8,8 +10,8 @@ impl<
         CustomMigrateMsg,
         SudoMsg,
         ReceiveMsg,
-    > IbcCallbackEndpoint
-    for AppContract<
+    > ReceiveEndpoint
+    for Host<
         Error,
         CustomInitMsg,
         CustomExecMsg,
