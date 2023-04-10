@@ -2,7 +2,7 @@ use cosmwasm_std::Addr;
 
 mod abstrct {
     use abstract_boot::Abstract;
-    use boot_core::{instantiate_default_mock_env, Deploy};
+    use abstract_boot::boot_core::{instantiate_default_mock_env, Deploy};
     use cosmwasm_std::Empty;
 
     use wyndex_bundle::{WynDex, WYNDEX_OWNER};

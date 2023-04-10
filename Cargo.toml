@@ -27,23 +27,23 @@ keywords = ["integration", "testing", "CosmWasm"]
 cosmwasm-std = { version = "1.1.9" }
 cosmwasm-schema = { version = "1.1.9" }
 cw-storage-plus = "1.0.1"
-cw20-base = { version = "1.0.1" }
-cw20 = { version = "1.0.1" }
+cw20-base = { git = "https://github.com/Abstract-OS/cw-plus.git" }
+cw20 = { git = "https://github.com/Abstract-OS/cw-plus.git" }
 
 cw-asset = { version = "3.0" }
 
 cw-semver = { version = "1.0"}
-boot-core = { version = "0.8.0" }
-boot-cw-plus = { version = "0.8.0" }
+boot-core = { git = "https://github.com/Abstract-OS/BOOT.git" }
+boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT.git" }
 
-abstract-macros = {version = "0.11" }
-abstract-ica = { version = "0.11" }
-abstract-os = { version = "0.12" }
-abstract-sdk = { version = "0.12" }
-abstract-app = { version = "0.12" }
-abstract-api = { version = "0.12" }
-abstract-ibc-host = { version = "0.11" }
-abstract-boot = {version = "0.12" }
+abstract-macros = {version = "0.13.2" }
+abstract-ica = { version = "0.13.2" }
+abstract-core = { version = "0.13.2" }
+abstract-sdk = { version = "0.13.2" }
+abstract-app = { version = "0.13.2" }
+abstract-api = { version = "0.13.2" }
+abstract-ibc-host = { version = "0.13.2" }
+abstract-boot = {version = "0.13.2" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }

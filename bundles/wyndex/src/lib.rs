@@ -3,16 +3,21 @@ pub mod suite;
 use std::fmt::Debug;
 
 use self::suite::{Suite, SuiteBuilder};
-use abstract_boot::Abstract;
-use abstract_os::{
+use abstract_boot::{
+    Abstract,
+    AbstractBootError,
+    boot_core::{BootError, Deploy, Mock, StateInterface, CallAs, ContractInstance},
+};
+use abstract_boot::boot_core::{BootInstantiate, BootUpload, CwEnv, TxResponse};
+use abstract_core::{
     ans_host::ExecuteMsgFns,
     objects::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use boot_core::{BootError, BootUpload, ContractInstance, Deploy, Mock, StateInterface, CallAs};
-use boot_cw_plus::Cw20;
+use boot_cw_plus::{Cw20Base, Cw20ExecuteMsgFns};
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
+use cw20::Cw20Coin;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::{DefaultStakeConfig, PartialStakeConfig},
@@ -45,13 +50,13 @@ pub struct WynDex {
     // incentivized pair
     // rewarded in wynd
     pub eur_usd_pair: Addr,
-    pub eur_usd_lp: Cw20<Mock>,
+    pub eur_usd_lp: Cw20Base<Mock>,
     pub wynd_token: AssetInfo,
     pub wynd_eur_pair: Addr,
-    pub wynd_eur_lp: Cw20<Mock>,
-    pub raw_token: Cw20<Mock>,
+    pub wynd_eur_lp: Cw20Base<Mock>,
+    pub raw_token: Cw20Base<Mock>,
     pub raw_eur_pair: Addr,
-    pub raw_eur_lp: Cw20<Mock>,
+    pub raw_eur_lp: Cw20Base<Mock>,
 }
 
 // Shitty implementation until https://github.com/Abstract-OS/BOOT/issues/60 is done
@@ -80,26 +85,48 @@ impl Debug for WynDex {
     }
 }
 
+/// Instantiate a new token instance with some initial balance given to the minter
+pub fn create_new_cw20<Chain: CwEnv, T: Into<Uint128>>(
+    cw20: &Cw20Base<Chain>,
+    minter: &Addr,
+    balance: T,
+) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
+    let msg = cw20_base::msg::InstantiateMsg {
+        decimals: 6,
+        mint: None,
+        symbol: "test".to_string(),
+        name: "test".to_string(),
+        initial_balances: vec![Cw20Coin {
+            address: minter.clone().into(),
+            amount: balance.into(),
+        }],
+        marketing: None,
+    };
+
+    cw20.instantiate(&msg, Some(minter), None)
+        .map_err(Into::into)
+}
+
 // Two step deploy process for WyndDex
 // First create Suite with SuiteBuilder, this uploads contracts and instantiates factory
 // Then create first pair and stake config and return WyndDex object
 impl Deploy<Mock> for WynDex {
-    type Error = BootError;
+    type Error = AbstractBootError;
     type DeployData = Empty;
 
-    fn deploy_on(chain: Mock, _: Empty) -> Result<Self, Self::Error> {
-        let eur_usd_lp: Cw20<Mock> = Cw20::new(EUR_USD_LP, chain.clone());
-        let wynd_eur_lp: Cw20<Mock> = Cw20::new(WYND_EUR_LP, chain.clone());
-        let raw_eur_lp: Cw20<Mock> = Cw20::new(RAW_EUR_LP, chain.clone());
+    fn store_on(chain: Mock) -> Result<Self, Self::Error> {
+        let eur_usd_lp: Cw20Base<Mock> = Cw20Base::new(EUR_USD_LP, chain.clone());
+        let wynd_eur_lp: Cw20Base<Mock> = Cw20Base::new(WYND_EUR_LP, chain.clone());
+        let raw_eur_lp: Cw20Base<Mock> = Cw20Base::new(RAW_EUR_LP, chain.clone());
 
         let owner = Addr::unchecked(WYNDEX_OWNER);
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
         let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
-        let mut raw = Cw20::new(RAW_TOKEN, chain.clone());
+        let mut raw = Cw20Base::new(RAW_TOKEN, chain.clone());
         raw.upload()?;
-        raw.create_new(&owner, Uint128::new(100_000_000_000))?;
+        create_new_cw20(&raw, &owner, Uint128::new(100_000_000_000))?;
         let raw_info = AssetInfo::Token(raw.addr_str()?);
 
         chain.set_balance(
@@ -240,7 +267,7 @@ impl Deploy<Mock> for WynDex {
         state.set_address(RAW_EUR_PAIR, &raw_eur_pair);
 
         // set allowance
-        raw.call_as(&owner).increase_allowance(&raw_eur_pair, 10_000u128, None)?;
+        raw.call_as(&owner).increase_allowance(10_000u128.into(), (&raw_eur_pair).to_string(), None)?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
@@ -290,14 +317,14 @@ impl Deploy<Mock> for WynDex {
         let state = chain.state.borrow();
         // load all addresses for Self from state
         let eur_usd_pair = state.get_address(EUR_USD_PAIR)?;
-        let eur_usd_lp: Cw20<Mock> = Cw20::new(EUR_USD_LP, chain.clone());
+        let eur_usd_lp: Cw20Base<Mock> = Cw20Base::new(EUR_USD_LP, chain.clone());
         let wynd_eur_pair = state.get_address(WYND_EUR_PAIR)?;
-        let wynd_eur_lp: Cw20<Mock> = Cw20::new(WYND_EUR_LP, chain.clone());
+        let wynd_eur_lp: Cw20Base<Mock> = Cw20Base::new(WYND_EUR_LP, chain.clone());
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
         let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
-        let raw = Cw20::new(RAW_TOKEN, chain.clone());
+        let raw = Cw20Base::new(RAW_TOKEN, chain.clone());
 
         Ok(Self {
             suite: Suite::load_from(&chain),
@@ -305,7 +332,7 @@ impl Deploy<Mock> for WynDex {
             eur_usd_lp,
             raw_token: raw,
             raw_eur_pair: state.get_address(RAW_EUR_PAIR)?,
-            raw_eur_lp: Cw20::new(RAW_EUR_LP, chain.clone()),
+            raw_eur_lp: Cw20Base::new(RAW_EUR_LP, chain.clone()),
             wynd_eur_pair,
             wynd_eur_lp,
             wynd_token: wynd_info,
