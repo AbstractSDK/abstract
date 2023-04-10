@@ -3,7 +3,7 @@ use std::cell::RefMut;
 
 use anyhow::Result as AnyResult;
 
-use boot_core::{Mock, StateInterface};
+use abstract_boot::boot_core::{Mock, StateInterface};
 use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};

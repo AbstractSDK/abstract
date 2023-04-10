@@ -1,4 +1,4 @@
-use boot_core::instantiate_default_mock_env;
+use abstract_boot::boot_core::instantiate_default_mock_env;
 use cosmwasm_std::{coin, testing::mock_env, Addr};
 use wyndex::asset::{AssetInfo, AssetInfoExt};
 use wyndex_bundle::suite::SuiteBuilder;
