@@ -71,7 +71,7 @@ pub enum ExecuteMsg {
 #[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleFilter {
-    pub provider: Option<String>,
+    pub namespace: Option<String>,
     pub name: Option<String>,
     pub version: Option<String>,
 }

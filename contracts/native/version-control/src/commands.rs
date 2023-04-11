@@ -49,7 +49,7 @@ pub fn add_modules(
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
-        if module.provider == ABSTRACT_NAMESPACE {
+        if module.namespace == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
             ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
         }
@@ -106,7 +106,7 @@ mod test {
     type VersionControlTestResult = Result<(), VCError>;
 
     const TEST_OTHER: &str = "test-other";
-    const TEST_MODULE: &str = "provider:test";
+    const TEST_MODULE: &str = "namespace:test";
 
     const TEST_PROXY_ADDR: &str = "proxy";
     const TEST_MANAGER_ADDR: &str = "manager";
@@ -326,22 +326,22 @@ mod test {
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    provider: "".to_string(),
+                    namespace: "".to_string(),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    provider: "".to_string(),
+                    namespace: "".to_string(),
                 },
                 ModuleInfo {
                     name: "".to_string(),
                     version: ModuleVersion::Version("0.0.1".to_string()),
-                    provider: "test".to_string(),
+                    namespace: "test".to_string(),
                 },
                 ModuleInfo {
                     name: "test-module".to_string(),
                     version: ModuleVersion::Version("aoeu".to_string()),
-                    provider: "".to_string(),
+                    namespace: "".to_string(),
                 },
             ];
 

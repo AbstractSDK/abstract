@@ -65,7 +65,7 @@ fn proper_initialization() {
                 },
                 deposit_asset: "test".into(),
                 fee: Decimal::from_str("0.91").unwrap(),
-                provider_addr: sender.to_string(),
+                namespace_addr: sender.to_string(),
                 token_code_id: env.code_ids.get(CW20).unwrap().clone(),
                 vault_lp_token_name: None,
                 vault_lp_token_symbol: None,

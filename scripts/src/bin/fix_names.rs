@@ -12,7 +12,7 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 const NETWORK: NetworkInfo = PISCO_1;
-const PROVIDER: &str = "abstract";
+const NAMESPACE: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_names() -> anyhow::Result<()> {
@@ -29,14 +29,14 @@ pub fn fix_names() -> anyhow::Result<()> {
         let ModuleInfo {
             version,
             name,
-            provider,
+            namespace,
         } = info.clone();
-        if provider == PROVIDER && name.to_string().contains('_') {
+        if namespace == NAMESPACE && name.to_string().contains('_') {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name: name.replace('_', "-"),
-                    provider,
+                    namespace,
                     version,
                 },
                 reference,

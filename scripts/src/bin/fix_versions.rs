@@ -14,7 +14,7 @@ use tokio::runtime::Runtime;
 const NETWORK: NetworkInfo = UNI_6;
 const WRONG_VERSION: &str = "0.1.0-rc.3";
 const NEW_VERSION: &str = env!("CARGO_PKG_VERSION");
-const PROVIDER: &str = "abstract";
+const NAMESPACE: &str = "abstract";
 
 /// Script that takes existing versions in Version control, removes them, and swaps them wit ha new version
 pub fn fix_versions() -> anyhow::Result<()> {
@@ -26,7 +26,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
 
     let ModulesListResponse { modules } = deployment.version_control.module_list(
         Some(ModuleFilter {
-            provider: Some(PROVIDER.to_string()),
+            namespace: Some(NAMESPACE.to_string()),
             version: Some(WRONG_VERSION.to_string()),
             ..Default::default()
         }),
@@ -38,14 +38,14 @@ pub fn fix_versions() -> anyhow::Result<()> {
         let ModuleInfo {
             version,
             name,
-            provider,
+            namespace,
         } = info.clone();
-        if version.to_string() == *WRONG_VERSION && provider == *PROVIDER {
+        if version.to_string() == *WRONG_VERSION && namespace == *NAMESPACE {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.add_modules(vec![(
                 ModuleInfo {
                     name,
-                    provider,
+                    namespace,
                     version: ModuleVersion::from(NEW_VERSION),
                 },
                 reference,

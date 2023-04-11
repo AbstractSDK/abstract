@@ -14,6 +14,10 @@ lint:
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
+  cargo fmt --all
+
+check:
+  cargo check --all-features
 
 refresh:
   cargo clean && cargo update
