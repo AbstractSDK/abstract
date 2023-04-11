@@ -36,7 +36,6 @@ pub mod state {
 
 use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
 use cosmwasm_schema::QueryResponses;
-use cw20::Cw20ReceiveMsg;
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
@@ -53,8 +52,6 @@ pub struct InstantiateMsg {
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
-    /// Handler called by the CW-20 contract on a send-call
-    Receive(Cw20ReceiveMsg),
     /// Update config
     UpdateConfig {
         // New admin

@@ -8,7 +8,7 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw_asset::Asset;
+
 use semver::Version;
 
 pub type AccountFactoryResult = Result<Response, AccountFactoryError>;
@@ -51,7 +51,6 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> AccountFactoryResult {
     match msg {
-        ExecuteMsg::Receive(msg) => commands::receive_cw20(deps, env, info, msg),
         ExecuteMsg::UpdateConfig {
             admin,
             ans_host_contract,
@@ -72,17 +71,8 @@ pub fn execute(
             name,
             description,
         } => {
-            let maybe_received_coin = info.funds.last().map(Asset::from);
             let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(
-                deps,
-                env,
-                gov_details,
-                maybe_received_coin,
-                name,
-                description,
-                link,
-            )
+            commands::execute_create_account(deps, env, gov_details, name, description, link)
         }
     }
 }
