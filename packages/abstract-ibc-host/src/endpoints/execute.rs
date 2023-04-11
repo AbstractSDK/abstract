@@ -24,8 +24,8 @@ impl<
         CustomExecMsg: Serialize + DeserializeOwned + JsonSchema,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg,
     > ExecuteEndpoint
     for Host<
         Error,
@@ -33,8 +33,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
@@ -63,10 +63,10 @@ impl<
         CustomInitMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg>
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
 {
     /// Takes ibc request, matches and executes
     /// This fn is the only way to get an Host instance.

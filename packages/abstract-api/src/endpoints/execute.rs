@@ -22,10 +22,10 @@ impl<
         CustomInitMsg,
         CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
         CustomQueryMsg,
-        SudoMsg,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg,
     > ExecuteEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -50,8 +50,8 @@ impl<
 }
 
 /// The api-contract base implementation.
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_execute(
         &mut self,

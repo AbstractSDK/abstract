@@ -11,10 +11,10 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema,
         CustomMigrateMsg: Serialize + JsonSchema,
-        SudoMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg: Serialize + JsonSchema,
     >
-    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg>
+    Host<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         export_schema_with_title(

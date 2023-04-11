@@ -14,10 +14,10 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomExecMsg,
         CustomQueryMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > InstantiateEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api

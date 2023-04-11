@@ -21,8 +21,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > ReplyEndpoint
     for Host<
         Error,
@@ -30,8 +30,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     fn reply(mut self, deps: DepsMut, env: Env, msg: Reply) -> Result<Response, Self::Error> {
@@ -67,8 +67,8 @@ pub fn reply_dispatch_callback<
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg,
     ReceiveMsg,
+    SudoMsg,
 >(
     deps: DepsMut,
     _env: Env,
@@ -78,8 +78,8 @@ pub fn reply_dispatch_callback<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >,
     reply: Reply,
 ) -> Result<Response, Error> {
@@ -110,8 +110,8 @@ pub fn reply_init_callback<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >,
 
     reply: Reply,

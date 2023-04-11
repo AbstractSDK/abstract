@@ -18,8 +18,8 @@ impl<
         CustomInitMsg: Serialize + JsonSchema,
         CustomQueryMsg: Serialize + JsonSchema + AppQueryMsg + QueryResponses,
         CustomMigrateMsg: Serialize + JsonSchema,
-        SudoMsg: Serialize + JsonSchema,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg: Serialize + JsonSchema,
     >
     AppContract<
         Error,
@@ -27,8 +27,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     pub fn export_schema(out_dir: &Path) {

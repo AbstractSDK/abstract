@@ -8,8 +8,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > SudoEndpoint
     for AppContract<
         Error,
@@ -17,8 +17,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
 }

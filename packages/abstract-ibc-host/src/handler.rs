@@ -6,8 +6,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > Handler
     for Host<
         Error,
@@ -15,17 +15,17 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     type Error = Error;
-    type CustomExecMsg = CustomExecMsg;
     type CustomInitMsg = CustomInitMsg;
+    type CustomExecMsg = CustomExecMsg;
     type CustomQueryMsg = CustomQueryMsg;
     type CustomMigrateMsg = CustomMigrateMsg;
-    type SudoMsg = SudoMsg;
     type ReceiveMsg = ReceiveMsg;
+    type SudoMsg = SudoMsg;
 
     fn contract(&self) -> &abstract_sdk::base::AbstractContract<Self, Self::Error> {
         &self.contract

@@ -22,8 +22,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > InstantiateEndpoint
     for AppContract<
         Error,
@@ -31,8 +31,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     type InstantiateMsg = InstantiateMsg<Self::CustomInitMsg>;

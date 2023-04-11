@@ -75,7 +75,7 @@ pub mod mock {
 
     /// Mock API type
     pub type MockApiContract =
-        ApiContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockSudoMsg, MockReceiveMsg>;
+        ApiContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockReceiveMsg, MockSudoMsg>;
 
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 

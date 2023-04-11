@@ -764,9 +764,7 @@ mod test {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: GovernanceDetails::Monarchy {
-                    monarch: new_gov.to_string(),
-                },
+                owner: GovernanceDetails::Monarchy { monarch: new_gov },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;

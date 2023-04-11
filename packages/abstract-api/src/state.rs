@@ -44,8 +44,8 @@ pub struct ApiContract<
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
-    SudoMsg: 'static = Empty,
     Receive: 'static = Empty,
+    SudoMsg: 'static = Empty,
 > where
     Self: Handler,
 {
@@ -58,8 +58,8 @@ pub struct ApiContract<
 }
 
 /// Constructor
-impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, SudoMsg, ReceiveMsg>
+impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub const fn new(
         name: &'static str,

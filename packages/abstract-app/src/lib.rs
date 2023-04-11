@@ -74,8 +74,8 @@ pub mod mock {
         MockExecMsg,
         MockQueryMsg,
         MockMigrateMsg,
-        MockSudoMsg,
         MockReceiveMsg,
+        MockSudoMsg,
     >;
 
     pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);

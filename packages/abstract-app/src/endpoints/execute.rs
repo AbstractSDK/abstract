@@ -17,8 +17,8 @@ impl<
         CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg: Serialize + JsonSchema,
+        SudoMsg,
     > ExecuteEndpoint
     for AppContract<
         Error,
@@ -26,8 +26,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
@@ -58,8 +58,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
     AppContract<
         Error,
@@ -67,8 +67,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     fn base_execute(

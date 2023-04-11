@@ -12,8 +12,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > AbstractNameService
     for AppContract<
         Error,
@@ -21,8 +21,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
@@ -36,8 +36,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     > AccountIdentification
     for AppContract<
         Error,
@@ -45,8 +45,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     fn proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr> {

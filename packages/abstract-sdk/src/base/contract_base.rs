@@ -15,8 +15,8 @@ pub trait MessageTypes {
     type CustomExecMsg;
     type CustomQueryMsg;
     type CustomMigrateMsg;
-    type SudoMsg;
     type ReceiveMsg;
+    type SudoMsg;
 }
 
 pub type InstantiateHandlerFn<Module, InitMsg, Error> =
@@ -34,11 +34,11 @@ pub type IbcCallbackHandlerFn<Module, Error> =
 pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
     fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
 
-pub type SudoHandlerFn<Module, SudoMsg, Error> =
-    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
-
 pub type ReceiveHandlerFn<App, Msg, Error> =
     fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
+
+pub type SudoHandlerFn<Module, SudoMsg, Error> =
+    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
 
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 
@@ -224,8 +224,8 @@ mod test {
         type CustomExecMsg = MockExecMsg;
         type CustomQueryMsg = MockQueryMsg;
         type CustomMigrateMsg = MockMigrateMsg;
-        type SudoMsg = MockSudoMsg;
         type ReceiveMsg = MockReceiveMsg;
+        type SudoMsg = MockSudoMsg;
 
         fn contract(&self) -> &AbstractContract<Self, Self::Error> {
             unimplemented!()

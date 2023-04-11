@@ -72,8 +72,8 @@
 //! # use schemars::JsonSchema;
 //! # use serde::Serialize;
 //!
-//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg: Serialize + JsonSchema >
-//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, SudoMsg, ReceiveMsg > {
+//! impl <Error: From<cosmwasm_std::StdError> + From<AppError> + 'static, CustomExecMsg: Serialize + JsonSchema + AppExecuteMsg, CustomInitMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg: Serialize + JsonSchema >
+//! ExecuteEndpoint for AppContract <Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, CustomMigrateMsg, ReceiveMsg, SudoMsg > {
 //!     
 //!     // Expected entrypoint ExecuteMsg type, imported from abstract_core.
 //!     // As you can see from the type definition, the `AppContract` accepts a custom `AppExecuteMsg`
@@ -104,9 +104,6 @@
 //! ```
 //! Two variants reside in the ExecuteMsg enum:
 //!
-//! #### Receive
-//! The receive endpoint is used to handle messages sent from external contracts, most commonly the [CW20](https://crates.io/crates/cw20) contract.
-//!
 //! #### IbcCallback
 //! The IbcCallback endpoint is used to handle IBC responses that indicate that a certain IBC action has been completed.
 //!
@@ -125,6 +122,9 @@
 //!
 //! ## Sudo
 //! The sudo endpoint can only be called by the chain's governance address.
+//!
+//! #### Receive
+//! The receive endpoint is used to handle messages sent from external contracts, most commonly the [CW20](https://crates.io/crates/cw20) contract.
 
 mod execute;
 mod ibc_callback;

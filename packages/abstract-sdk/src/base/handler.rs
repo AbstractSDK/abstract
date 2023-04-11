@@ -26,10 +26,10 @@ where
     type CustomQueryMsg;
     /// Custom migrate message for the contract
     type CustomMigrateMsg;
-    /// Sudo message for the contract
-    type SudoMsg;
     /// Receive message for the contract
     type ReceiveMsg;
+    /// Sudo message for the contract
+    type SudoMsg;
 
     fn contract(&self) -> &AbstractContract<Self, Self::Error>;
 

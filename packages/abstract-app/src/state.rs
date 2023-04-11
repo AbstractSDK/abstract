@@ -39,8 +39,8 @@ pub struct AppContract<
     CustomExecMsg: 'static,
     CustomQueryMsg: 'static,
     CustomMigrateMsg: 'static,
-    SudoMsg: 'static = Empty,
     Receive: 'static = Empty,
+    SudoMsg: 'static = Empty,
 > {
     // Custom state for every App
     pub admin: Admin<'static>,
@@ -57,8 +57,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
     AppContract<
         Error,
@@ -66,8 +66,8 @@ impl<
         CustomExecMsg,
         CustomQueryMsg,
         CustomMigrateMsg,
-        SudoMsg,
         ReceiveMsg,
+        SudoMsg,
     >
 {
     pub const fn new(
