@@ -2,14 +2,15 @@ use crate::error::VCError;
 use abstract_sdk::core::{
     objects::{module_version::migrate_module_data, module_version::set_module_data},
     version_control::{
-        state::{ADMIN, FACTORY},
-        ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+        state::FACTORY, ConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     VERSION_CONTROL,
 };
+use abstract_sdk::{execute_update_ownership, query_ownership};
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
 use cw_controllers::{Admin, AdminError};
+use cw_ownable::{assert_owner, get_ownership, initialize_owner, Ownership};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -38,12 +39,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(
-    mut deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    _msg: InstantiateMsg,
-) -> VCResult {
+pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, _msg: InstantiateMsg) -> VCResult {
     set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,
@@ -52,15 +48,17 @@ pub fn instantiate(
         &[],
         None::<String>,
     )?;
+
     // Setup the admin as the creator of the contract
-    ADMIN.set(deps.branch(), Some(info.sender))?;
+    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+
     FACTORY.set(deps, None)?;
 
     Ok(Response::default())
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> VCResult {
     match msg {
         ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
@@ -68,9 +66,9 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
-        ExecuteMsg::SetAdmin { new_admin } => set_admin(deps, info, new_admin),
-        ExecuteMsg::SetFactory { new_factory } => {
-            authorized_set_admin(deps, info, &ADMIN, &FACTORY, new_factory).map_err(|e| e.into())
+        ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
+        ExecuteMsg::UpdateOwnership(action) => {
+            execute_update_ownership!(VcResponse, deps, env, info, action)
         }
     }
 }
@@ -83,28 +81,19 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         }
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Config {} => {
-            let admin = ADMIN.get(deps)?.unwrap().into_string();
-            let factory = FACTORY.get(deps)?.unwrap().into_string();
-            to_binary(&ConfigResponse { admin, factory })
+            let Ownership { owner, .. } = get_ownership(deps.storage)?;
+
+            let factory = FACTORY.get(deps)?.unwrap();
+            to_binary(&ConfigResponse {
+                admin: owner.unwrap(),
+                factory,
+            })
         }
         QueryMsg::ModuleList {
             filter,
             start_after,
             limit,
         } => queries::handle_module_list_query(deps, start_after, limit, filter),
+        QueryMsg::Ownership {} => query_ownership!(deps),
     }
-}
-
-fn authorized_set_admin<C: std::clone::Clone + std::fmt::Debug + std::cmp::PartialEq>(
-    deps: DepsMut,
-    info: MessageInfo,
-    authorized_user: &Admin,
-    admin_to_update: &Admin,
-    new_admin: String,
-) -> Result<Response<C>, AdminError> {
-    authorized_user.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let new_admin_addr = deps.api.addr_validate(&new_admin)?;
-    admin_to_update.set(deps, Some(new_admin_addr))?;
-    Ok(Response::new().add_attribute("set_admin", new_admin))
 }

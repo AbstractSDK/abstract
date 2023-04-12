@@ -1,8 +1,14 @@
 use crate::commands::*;
 use crate::error::AnsHostError;
 use crate::queries;
-use abstract_core::ans_host::state::{Config, CONFIG, REGISTERED_DEXES};
-use abstract_core::ans_host::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use abstract_core::{
+    ans_host::{
+        state::{Config, CONFIG, REGISTERED_DEXES},
+        ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
+    },
+    objects::module_version::{migrate_module_data, set_module_data},
+    ANS_HOST,
+};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
 use cw_ownable::initialize_owner;
@@ -12,8 +18,6 @@ pub type AnsHostResult = Result<Response, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-use abstract_core::objects::module_version::{migrate_module_data, set_module_data};
-use abstract_core::ANS_HOST;
 use abstract_sdk::query_ownership;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]

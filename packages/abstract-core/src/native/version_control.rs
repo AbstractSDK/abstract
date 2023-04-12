@@ -45,9 +45,12 @@ pub struct AccountBase {
     pub proxy: Addr,
 }
 
+/// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {}
 
+/// Version Control Execute Msg
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
@@ -61,8 +64,6 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account_base: AccountBase,
     },
-    /// Sets a new Admin
-    SetAdmin { new_admin: String },
     /// Sets a new Factory
     SetFactory { new_factory: String },
 }
@@ -76,6 +77,8 @@ pub struct ModuleFilter {
     pub version: Option<String>,
 }
 
+/// Version Control Query Msg
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -117,8 +120,8 @@ pub struct ModulesListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub admin: String,
-    pub factory: String,
+    pub admin: Addr,
+    pub factory: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

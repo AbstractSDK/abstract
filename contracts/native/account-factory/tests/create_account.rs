@@ -70,8 +70,8 @@ fn create_one_os() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);
@@ -133,8 +133,8 @@ fn create_two_account_s() -> AResult {
 
     let vc_config = version_control.config()?;
     let expected = abstract_core::version_control::ConfigResponse {
-        admin: sender.into_string(),
-        factory: factory.address()?.into_string(),
+        admin: sender,
+        factory: factory.address()?,
     };
 
     assert_that!(&vc_config).is_equal_to(&expected);

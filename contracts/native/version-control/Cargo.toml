@@ -33,6 +33,7 @@ cw-semver = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-core =  { workspace = true }
 abstract-macros = { workspace = true }
+cw-ownable = { workspace = true }
 
 
 [dev-dependencies]

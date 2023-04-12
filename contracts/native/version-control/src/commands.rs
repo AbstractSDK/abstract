@@ -7,7 +7,8 @@ use abstract_sdk::core::{
     version_control::{state::*, AccountBase},
     VERSION_CONTROL,
 };
-use cosmwasm_std::{DepsMut, Empty, MessageInfo};
+use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cw_ownable::assert_owner;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -25,7 +26,7 @@ pub fn add_account(
     ACCOUNT_ADDRESSES.save(deps.storage, account_id, &account_base)?;
 
     Ok(VcResponse::new(
-        "add_os",
+        "add_account",
         vec![
             ("account_id", account_id.to_string().as_str()),
             ("manager", account_base.manager.as_ref()),
@@ -51,7 +52,7 @@ pub fn add_modules(
 
         if module.namespace == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
-            ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+            assert_owner(deps.storage, &msg_info.sender)?;
         }
         MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
     }
@@ -62,7 +63,7 @@ pub fn add_modules(
 /// Remove a module
 pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
     // Only Admin can update code-ids
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    assert_owner(deps.storage, &msg_info.sender)?;
     module.assert_version_variant()?;
     if MODULE_LIBRARY.has(deps.storage, &module) {
         MODULE_LIBRARY.remove(deps.storage, &module);
@@ -73,20 +74,6 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     Ok(VcResponse::new(
         "remove_module",
         vec![("module", &module.to_string())],
-    ))
-}
-
-pub fn set_admin(deps: DepsMut, info: MessageInfo, admin: String) -> VCResult {
-    let admin_addr = deps.api.addr_validate(&admin)?;
-    let previous_admin = ADMIN.get(deps.as_ref())?.unwrap();
-    // Admin is asserted here
-    ADMIN.execute_update_admin::<Empty, Empty>(deps, info, Some(admin_addr))?;
-    Ok(VcResponse::new(
-        "set_admin",
-        vec![
-            ("previous_admin", previous_admin.to_string()),
-            ("admin", admin),
-        ],
     ))
 }
 
@@ -121,7 +108,7 @@ mod test {
     fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})?;
-        execute_as_admin(
+        execute_as_owner(
             deps,
             ExecuteMsg::SetFactory {
                 new_factory: TEST_ACCOUNT_FACTORY.to_string(),
@@ -133,32 +120,38 @@ mod test {
         contract::execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
-    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
+    fn execute_as_owner(deps: DepsMut, msg: ExecuteMsg) -> VCResult {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn test_only_admin(msg: ExecuteMsg) -> VersionControlTestResult {
+    fn test_only_owner(msg: ExecuteMsg) -> VersionControlTestResult {
         let mut deps = mock_dependencies();
         mock_init(deps.as_mut())?;
 
-        let res = execute_as(deps.as_mut(), "not_admin", msg);
-        assert_that!(&res)
+        let _info = mock_info("not_owner", &[]);
+
+        let res = execute_as(deps.as_mut(), "not_owner", msg);
+        assert_that(&res)
             .is_err()
-            .is_equal_to(VCError::Admin(AdminError::NotAdmin {}));
+            .is_equal_to(VCError::Ownership(OwnershipError::NotOwner {}));
 
         Ok(())
     }
+
     use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
 
     mod set_admin_and_factory {
         use super::*;
 
         #[test]
         fn only_admin_admin() -> VersionControlTestResult {
-            let msg = ExecuteMsg::SetAdmin {
-                new_admin: "new_admin".to_string(),
-            };
-            test_only_admin(msg)
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: "new_admin".to_string(),
+                expiry: None,
+            });
+
+            test_only_owner(msg)
         }
 
         #[test]
@@ -166,7 +159,7 @@ mod test {
             let msg = ExecuteMsg::SetFactory {
                 new_factory: "new_factory".to_string(),
             };
-            test_only_admin(msg)
+            test_only_owner(msg)
         }
 
         #[test]
@@ -175,16 +168,23 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let new_admin = "new_admin";
-            let msg = ExecuteMsg::SetAdmin {
-                new_admin: new_admin.to_string(),
-            };
+            // First update to transfer
+            let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: new_admin.to_string(),
+                expiry: None,
+            });
 
-            let res = execute_as_admin(deps.as_mut(), msg);
-            assert_that!(&res).is_ok();
+            let transfer_res = execute_as_owner(deps.as_mut(), transfer_msg).unwrap();
+            assert_eq!(0, transfer_res.messages.len());
 
-            let actual_admin = ADMIN.get(deps.as_ref())?.unwrap();
+            // Then update and accept as the new owner
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            let accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+            assert_eq!(0, accept_res.messages.len());
 
-            assert_that!(&actual_admin).is_equal_to(Addr::unchecked(new_admin));
+            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
+                .is_some()
+                .is_equal_to(Addr::unchecked(new_admin));
 
             Ok(())
         }
@@ -199,7 +199,7 @@ mod test {
                 new_factory: new_factory.to_string(),
             };
 
-            let res = execute_as_admin(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), msg);
             assert_that!(&res).is_ok();
 
             let actual_factory = FACTORY.get(deps.as_ref())?.unwrap();
@@ -257,9 +257,9 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
 
-            execute_as_admin(deps.as_mut(), msg)?;
+            execute_as_owner(deps.as_mut(), msg)?;
 
             let module = MODULE_LIBRARY.load(&deps.storage, &rm_module);
             assert_that!(&module).is_err();
@@ -310,9 +310,9 @@ mod test {
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
             assert_that!(&res)
                 .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
 
-            execute_as_admin(deps.as_mut(), msg)?;
+            execute_as_owner(deps.as_mut(), msg)?;
             let module = MODULE_LIBRARY.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())
@@ -388,7 +388,7 @@ mod test {
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
 
             // as admin
-            let res = execute_as_admin(deps.as_mut(), msg.clone());
+            let res = execute_as_owner(deps.as_mut(), msg.clone());
             assert_that!(&res)
                 .is_err()
                 .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
@@ -407,23 +407,31 @@ mod test {
         use super::*;
 
         #[test]
-        fn set_admin() -> VersionControlTestResult {
+        fn update_admin() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::SetAdmin {
-                new_admin: TEST_OTHER.into(),
-            };
+            let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: TEST_OTHER.to_string(),
+                expiry: None,
+            });
 
             // as other
-            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
-            assert_that!(&res)
+            let transfer_res = execute_as(deps.as_mut(), TEST_OTHER, transfer_msg.clone());
+            assert_that!(&transfer_res)
                 .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner {}));
 
-            execute_as_admin(deps.as_mut(), msg)?;
-            let new_admin = ADMIN.query_admin(deps.as_ref())?.admin;
-            assert_that!(new_admin).is_equal_to(&Some(TEST_OTHER.into()));
+            execute_as_owner(deps.as_mut(), transfer_msg)?;
+
+            // Then update and accept as the new owner
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            let accept_res = execute_as(deps.as_mut(), TEST_OTHER, accept_msg).unwrap();
+            assert_eq!(0, accept_res.messages.len());
+
+            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
+                .is_some()
+                .is_equal_to(Addr::unchecked(TEST_OTHER));
             Ok(())
         }
 
@@ -436,16 +444,20 @@ mod test {
                 new_factory: TEST_ACCOUNT_FACTORY.into(),
             };
 
-            // as other
-            let res = execute_as(deps.as_mut(), TEST_OTHER, msg.clone());
-            assert_that!(&res)
-                .is_err()
-                .is_equal_to(&VCError::Admin(AdminError::NotAdmin {}));
+            test_only_owner(msg.clone())?;
 
-            execute_as_admin(deps.as_mut(), msg)?;
+            execute_as_owner(deps.as_mut(), msg)?;
             let new_factory = FACTORY.query_admin(deps.as_ref())?.admin;
             assert_that!(new_factory).is_equal_to(&Some(TEST_ACCOUNT_FACTORY.into()));
             Ok(())
         }
     }
+}
+
+pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCResult {
+    assert_owner(deps.storage, &info.sender)?;
+
+    let new_factory_addr = deps.api.addr_validate(&new_admin)?;
+    FACTORY.set(deps, Some(new_factory_addr))?;
+    Ok(Response::new().add_attribute("set_factory", new_admin))
 }
