@@ -2,10 +2,7 @@ use crate::{
     contract::AccountFactoryResult, error::AccountFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_core::{
-    objects::module::Module, version_control::ModulesResponse, AbstractResult, ACCOUNT_FACTORY,
-};
-use abstract_macros::abstract_response;
+use abstract_core::{objects::module::Module, version_control::ModulesResponse, AbstractResult};
 use abstract_sdk::{
     core::{
         manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
@@ -21,16 +18,15 @@ use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
+use cw_ownable::assert_owner;
 
 use protobuf::Message;
 
 pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
+use crate::contract::AccountFactoryResponse;
 use abstract_sdk::core::{MANAGER, PROXY};
-
-#[abstract_response(ACCOUNT_FACTORY)]
-struct AccountFactoryResponse;
 
 /// Function that starts the creation of the Account
 pub fn execute_create_account(
@@ -230,12 +226,11 @@ pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    admin: Option<String>,
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
 ) -> AccountFactoryResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    assert_owner(deps.storage, &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
@@ -255,11 +250,6 @@ pub fn execute_update_config(
     }
 
     CONFIG.save(deps.storage, &config)?;
-
-    if let Some(admin) = admin {
-        let addr = deps.api.addr_validate(&admin)?;
-        ADMIN.set(deps, Some(addr))?;
-    }
 
     Ok(AccountFactoryResponse::action("update_config"))
 }
