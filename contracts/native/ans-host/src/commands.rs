@@ -17,7 +17,6 @@ use abstract_macros::abstract_response;
 use abstract_sdk::execute_update_ownership;
 use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
-use cw_ownable::assert_owner;
 
 const MIN_POOL_ASSETS: usize = 2;
 const MAX_POOL_ASSETS: usize = 5;
@@ -66,7 +65,7 @@ pub fn update_contract_addresses(
     to_remove: Vec<UncheckedContractEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_address) in to_add.into_iter() {
         let key = key.check();
@@ -94,7 +93,7 @@ pub fn update_asset_addresses(
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (name, new_asset) in to_add.into_iter() {
         // validate asset
@@ -126,7 +125,7 @@ pub fn update_channels(
     to_remove: Vec<UncheckedChannelEntry>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
         let key = key.check();
@@ -151,7 +150,7 @@ fn update_dex_registry(
     to_remove: Vec<String>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     if !to_add.is_empty() {
         let register_dex = |mut dexes: Vec<String>| -> StdResult<Vec<String>> {
@@ -186,7 +185,7 @@ fn update_pools(
     to_remove: Vec<UniquePoolId>,
 ) -> AnsHostResult {
     // Only Admin can call this method
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     let original_unique_pool_id = CONFIG.load(deps.storage)?.next_unique_pool_id;
     let mut next_unique_pool_id = original_unique_pool_id;

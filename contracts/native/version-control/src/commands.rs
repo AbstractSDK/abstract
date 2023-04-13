@@ -8,7 +8,6 @@ use abstract_sdk::core::{
     VERSION_CONTROL,
 };
 use cosmwasm_std::{DepsMut, MessageInfo, Response};
-use cw_ownable::assert_owner;
 
 #[abstract_response(VERSION_CONTROL)]
 pub struct VcResponse;
@@ -52,7 +51,7 @@ pub fn add_modules(
 
         if module.namespace == ABSTRACT_NAMESPACE {
             // Only Admin can update abstract contracts
-            assert_owner(deps.storage, &msg_info.sender)?;
+            cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
         }
         MODULE_LIBRARY.save(deps.storage, &module, &mod_ref)?;
     }
@@ -63,7 +62,7 @@ pub fn add_modules(
 /// Remove a module
 pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> VCResult {
     // Only Admin can update code-ids
-    assert_owner(deps.storage, &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     module.assert_version_variant()?;
     if MODULE_LIBRARY.has(deps.storage, &module) {
         MODULE_LIBRARY.remove(deps.storage, &module);
@@ -455,7 +454,7 @@ mod test {
 }
 
 pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCResult {
-    assert_owner(deps.storage, &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let new_factory_addr = deps.api.addr_validate(&new_admin)?;
     FACTORY.set(deps, Some(new_factory_addr))?;

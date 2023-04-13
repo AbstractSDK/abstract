@@ -4,7 +4,6 @@ use crate::tests::mock_querier::mock_dependencies;
 use abstract_core::ans_host::*;
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{Addr, DepsMut};
-use cw_ownable::get_ownership;
 use speculoos::prelude::*;
 
 pub(crate) fn instantiate_msg() -> InstantiateMsg {
@@ -55,7 +54,7 @@ fn successful_update_ownership() {
     let accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
     assert_eq!(0, accept_res.messages.len());
 
-    assert_that!(get_ownership(&deps.storage).unwrap().owner)
+    assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
         .is_some()
         .is_equal_to(Addr::unchecked(new_admin))
 }

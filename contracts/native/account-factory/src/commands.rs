@@ -18,7 +18,6 @@ use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
-use cw_ownable::assert_owner;
 
 use protobuf::Message;
 
@@ -230,7 +229,7 @@ pub fn execute_update_config(
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
 ) -> AccountFactoryResult {
-    assert_owner(deps.storage, &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 

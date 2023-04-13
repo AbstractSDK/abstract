@@ -8,7 +8,6 @@ use cosmwasm_std::{
     to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::{get_contract_version, set_contract_version};
-use cw_ownable::{get_ownership, initialize_owner, Ownership};
 
 use abstract_macros::abstract_response;
 use abstract_sdk::{execute_update_ownership, query_ownership};
@@ -46,7 +45,7 @@ pub fn instantiate(
 
     CONFIG.save(deps.storage, &config)?;
     // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
     Ok(Response::new())
 }
 
@@ -111,7 +110,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state: Config = CONFIG.load(deps.storage)?;
-    let Ownership { owner, .. } = get_ownership(deps.storage)?;
+    let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
 
     let resp = ConfigResponse {
         owner: owner.unwrap(),
@@ -354,7 +353,7 @@ mod tests {
             let accept_msg = ExecuteMsg::UpdateOwnership(Action::AcceptOwnership);
             let _accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
 
-            assert_that!(get_ownership(&deps.storage).unwrap().owner)
+            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
                 .is_some()
                 .is_equal_to(cosmwasm_std::Addr::unchecked(new_admin));
 
@@ -383,7 +382,7 @@ mod tests {
         mock_init(deps.as_mut())?;
 
         let res = query(deps.as_ref(), mock_env(), QueryMsg::Ownership {}).unwrap();
-        let ownership: Ownership<Addr> = from_binary(&res).unwrap();
+        let ownership: cw_ownable::Ownership<Addr> = from_binary(&res).unwrap();
 
         assert_that!(ownership.owner)
             .is_some()

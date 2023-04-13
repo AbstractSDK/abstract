@@ -3,7 +3,6 @@ use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
-use cw_ownable::OwnershipError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -21,7 +20,7 @@ pub enum AccountFactoryError {
     Asset(#[from] AssetError),
 
     #[error("{0}")]
-    Ownership(#[from] OwnershipError),
+    Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),

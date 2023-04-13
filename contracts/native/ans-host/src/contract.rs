@@ -11,7 +11,6 @@ use abstract_core::{
 };
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw2::{get_contract_version, set_contract_version};
-use cw_ownable::initialize_owner;
 use semver::Version;
 
 pub type AnsHostResult = Result<Response, AnsHostError>;
@@ -48,7 +47,7 @@ pub fn instantiate(
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
     // Setup the admin as the creator of the contract
-    initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
     Ok(Response::default())
 }

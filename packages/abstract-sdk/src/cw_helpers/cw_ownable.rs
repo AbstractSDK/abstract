@@ -49,7 +49,7 @@ mod tests {
         Addr, Binary, StdError, StdResult,
     };
 
-    use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, Ownership, OwnershipError};
+    use cw_ownable::{cw_ownable_execute, cw_ownable_query, Action, OwnershipError};
     use thiserror::Error;
 
     const MOCK_CONTRACT: &str = "contract";
@@ -71,7 +71,7 @@ mod tests {
         #[error("{0}")]
         Std(#[from] StdError),
         #[error("{0}")]
-        Ownership(#[from] OwnershipError),
+        Ownership(#[from] cw_ownable::OwnershipError),
     }
 
     const NEW_OWNER: &str = "new_owner";
@@ -132,14 +132,14 @@ mod tests {
             QueryMsg::Ownership {} => query_ownership!(deps.as_ref()),
         };
 
-        let expected = Ownership {
+        let expected = cw_ownable::Ownership {
             owner: Some(Addr::unchecked(old_owner)),
             pending_owner: None,
             pending_expiry: None,
         };
 
         // Deserialize the query response
-        let actual: Ownership<Addr> = from_binary(&result.unwrap())?;
+        let actual: cw_ownable::Ownership<Addr> = from_binary(&result.unwrap())?;
 
         assert_eq!(actual, expected);
 

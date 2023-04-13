@@ -2,7 +2,6 @@ use abstract_core::{objects::AccountId, AbstractError};
 use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
-use cw_ownable::OwnershipError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -20,7 +19,7 @@ pub enum VCError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    Ownership(#[from] OwnershipError),
+    Ownership(#[from] cw_ownable::OwnershipError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),
