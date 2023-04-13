@@ -25,8 +25,13 @@ refresh:
 check-codecov:
   cat codecov.yml | curl --data-binary @- https://codecov.io/validate
 
+# Publish crates
 publish:
   ./publish/publish.sh
+
+# Next, add abstract-boot version then publish
+publish-2:
+  ./publish/publish-2.sh
 
 watch:
   cargo watch -x lcheck
