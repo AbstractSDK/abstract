@@ -33,17 +33,17 @@ cw20 = { git = "https://github.com/Abstract-OS/cw-plus.git" }
 cw-asset = { version = "3.0" }
 
 cw-semver = { version = "1.0"}
-boot-core = { git = "https://github.com/Abstract-OS/BOOT.git" }
+boot-core = { version = "0.10.0" }
 boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT.git" }
 
-abstract-macros = {version = "0.13.2" }
-abstract-ica = { version = "0.13.2" }
-abstract-core = { version = "0.13.2" }
-abstract-sdk = { version = "0.13.2" }
-abstract-app = { version = "0.13.2" }
-abstract-api = { version = "0.13.2" }
-abstract-ibc-host = { version = "0.13.2" }
-abstract-boot = {version = "0.13.2" }
+abstract-macros = {version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-ica = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-core = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-sdk = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-app = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-api = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-ibc-host = { version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
+abstract-boot = {version = "0.14", git = "https://github.com/Abstract-OS/contracts", branch = "update/0.14.0" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
