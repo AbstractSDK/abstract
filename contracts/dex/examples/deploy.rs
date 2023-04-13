@@ -1,7 +1,7 @@
 use abstract_boot::ApiDeployer;
 
-use boot_core::networks::{parse_network, NetworkInfo};
-use boot_core::*;
+use abstract_boot::boot_core::networks::{parse_network, NetworkInfo};
+use abstract_boot::boot_core::*;
 use cosmwasm_std::Decimal;
 use dex::boot::DexApi;
 use dex::msg::DexInstantiateMsg;

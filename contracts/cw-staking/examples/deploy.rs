@@ -1,7 +1,9 @@
+use abstract_boot::boot_core::{
+    instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *,
+};
 use abstract_boot::{AnsHost, ApiDeployer, VCExecFns, VersionControl};
 use abstract_sdk::core::objects::module::{Module, ModuleInfo, ModuleVersion};
 use abstract_sdk::core::{api, ANS_HOST, VERSION_CONTROL};
-use boot_core::{instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *};
 use cosmwasm_std::{Addr, Empty};
 use cw_staking::boot::CwStakingApi;
 use cw_staking::CW_STAKING;

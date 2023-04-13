@@ -20,22 +20,22 @@ pub mod host_staking {
 pub mod boot {
     use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
     use crate::CW_STAKING;
+    use abstract_boot::boot_core::ContractWrapper;
+    use abstract_boot::boot_core::{contract, ContractInstance};
+    use abstract_boot::boot_core::{Contract, CwEnv, IndexResponse, TxResponse};
     use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
     use abstract_core::objects::AnsAsset;
     use abstract_core::{api, MANAGER};
-    use boot_core::ContractWrapper;
-    use boot_core::{boot_contract, ContractInstance};
-    use boot_core::{BootEnvironment, Contract, IndexResponse, TxResponse};
     use cosmwasm_std::{Addr, Empty};
 
     /// Contract wrapper for interacting with BOOT
-    #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct CwStakingApi<Chain>;
+    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    pub struct CwStakingApi;
 
-    impl<Chain: BootEnvironment> ApiDeployer<Chain, Empty> for CwStakingApi<Chain> {}
+    impl<Chain: CwEnv> ApiDeployer<Chain, Empty> for CwStakingApi<Chain> {}
 
     /// implement chain-generic functions
-    impl<Chain: BootEnvironment> CwStakingApi<Chain>
+    impl<Chain: CwEnv> CwStakingApi<Chain>
     where
         TxResponse<Chain>: IndexResponse,
     {

@@ -22,27 +22,27 @@ pub mod host_exchange {
 #[cfg(feature = "boot")]
 pub mod boot {
     use crate::{msg::*, EXCHANGE};
+    use abstract_boot::boot_core::ContractWrapper;
+    use abstract_boot::boot_core::{contract, Contract, ContractInstance, CwEnv};
     use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
     use abstract_core::{
         api::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
-    use boot_core::ContractWrapper;
-    use boot_core::{boot_contract, BootEnvironment, Contract, ContractInstance};
     use cosmwasm_std::{Decimal, Empty};
 
-    #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexApi<Chain>;
 
     // Implement deployer trait
-    impl<Chain: BootEnvironment> ApiDeployer<Chain, DexInstantiateMsg> for DexApi<Chain> {}
+    impl<Chain: CwEnv> ApiDeployer<Chain, DexInstantiateMsg> for DexApi<Chain> {}
 
-    impl<Chain: BootEnvironment> DexApi<Chain> {
+    impl<Chain: CwEnv> DexApi<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(
                 Contract::new(name, chain)
-                    .with_wasm_path("dex")
+                    .with_wasm_path("abstract_dex_api")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
                         crate::contract::execute,
                         crate::contract::instantiate,
