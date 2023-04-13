@@ -27,11 +27,39 @@ pub enum VCError {
     #[error("Module {0} does not have a stored module reference")]
     ModuleNotFound(ModuleInfo),
 
+    #[error("Module {0} is in both approve and reject")]
+    InvalidApproveList(ModuleInfo),
+
     #[error("Module {0} cannot be updated")]
     NotUpdateableModule(ModuleInfo),
 
     #[error("Account ID {} is not in version control register", id)]
-    MissingAccountId { id: AccountId },
+    UnknownAccountId { id: AccountId },
+
+    #[error("Namespace {} is not in version control register", namespace)]
+    UnknownNamespace { namespace: String },
+
+    #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
+    AccountOwnerMismatch { sender: String, owner: String },
+
+    #[error("Namespace {} is already occupied by {}", namespace, id)]
+    NamespaceOccupied { namespace: String, id: AccountId },
+
+    #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
+    ExceedsNamespaceLimit { limit: usize, current: usize },
+
+    #[error(
+        "Decrease namespace limit not allowed: {}, current: {}",
+        limit,
+        current
+    )]
+    DecreaseNamespaceLimit { limit: u32, current: u32 },
+
+    #[error("As namespace owner you can only yank a module, not remove it.")]
+    OnlyYankAllowed,
+
+    #[error("No action specified")]
+    NoAction,
 }
 
 impl From<cw_semver::Error> for VCError {

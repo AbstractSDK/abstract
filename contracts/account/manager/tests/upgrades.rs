@@ -1,7 +1,7 @@
 mod common;
 
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
-use abstract_boot::{Abstract, AbstractAccount, Manager, ManagerExecFns};
+use abstract_boot::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCExecFns};
 use abstract_core::app::{self, BaseInstantiateMsg};
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_manager::error::ManagerError;
@@ -37,9 +37,12 @@ fn install_app_successful() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+    abstr
+        .version_control
+        .claim_namespaces(0, vec!["tester".to_string()])?;
+    deploy_modules(&chain);
 
     // dependency for mock_api1 not met
     let res = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1);
@@ -73,9 +76,12 @@ fn install_app_versions_not_met() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+    abstr
+        .version_control
+        .claim_namespaces(0, vec!["tester".to_string()])?;
+    deploy_modules(&chain);
 
     // install api 2
     let _api2 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -97,9 +103,12 @@ fn upgrade_app_() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+    abstr
+        .version_control
+        .claim_namespaces(0, vec!["tester".to_string()])?;
+    deploy_modules(&chain);
 
     // install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
@@ -247,9 +256,13 @@ fn uninstall_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
+    abstr
+        .version_control
+        .claim_namespaces(0, vec!["tester".to_string()])?;
+    deploy_modules(&chain);
+
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;
     let api2 = install_module_version(manager, &abstr, api_2::MOCK_API_ID, V1)?;
     let app1 = install_module_version(manager, &abstr, app_1::MOCK_APP_ID, V1)?;
@@ -278,9 +291,12 @@ fn update_api_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
-    deploy_modules(&chain);
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &account;
+    abstr
+        .version_control
+        .claim_namespaces(0, vec!["tester".to_string()])?;
+    deploy_modules(&chain);
 
     // install api 1
     let api1 = install_module_version(manager, &abstr, api_1::MOCK_API_ID, V1)?;

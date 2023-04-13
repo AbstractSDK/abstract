@@ -11,11 +11,12 @@ pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQue
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const OWNER: &str = "owner";
 pub mod addresses {
+    use abstract_core::objects::AccountId;
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
 
     pub const TEST_ADMIN: &str = "admin";
-    pub const TEST_ACCOUNT_ID: u32 = 0;
+    pub const TEST_ACCOUNT_ID: AccountId = 0;
     pub const TEST_VERSION: &str = "1.0.0";
     pub const TEST_PROXY: &str = "proxy_address";
     pub const TEST_MANAGER: &str = "manager_address";
@@ -25,6 +26,7 @@ pub mod addresses {
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
+    pub const TEST_NAMESPACE: &str = "tester";
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 
@@ -38,7 +40,7 @@ pub mod addresses {
     pub const USD: &str = "usd";
 
     /// TODO: static const?
-    pub fn test_core() -> AccountBase {
+    pub fn test_account_base() -> AccountBase {
         AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),
             proxy: Addr::unchecked(TEST_PROXY),

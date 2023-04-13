@@ -158,7 +158,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_core()),
+                    (TEST_ACCOUNT_ID, test_account_base()),
                 )
                 .build();
 
@@ -168,7 +168,7 @@ mod test {
                 .account_registry(deps.as_ref())
                 .assert_proxy(&Addr::unchecked(TEST_PROXY));
 
-            assert_that!(res).is_ok().is_equal_to(test_core());
+            assert_that!(res).is_ok().is_equal_to(test_account_base());
         }
 
         #[test]
@@ -264,7 +264,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_core()),
+                    (TEST_ACCOUNT_ID, test_account_base()),
                 )
                 .build();
 
@@ -274,7 +274,7 @@ mod test {
                 .account_registry(deps.as_ref())
                 .assert_manager(&Addr::unchecked(TEST_MANAGER));
 
-            assert_that!(res).is_ok().is_equal_to(test_core());
+            assert_that!(res).is_ok().is_equal_to(test_account_base());
         }
 
         #[test]

@@ -9,6 +9,17 @@ use std::fmt::{self, Display};
 /// ID of the module
 pub type ModuleId<'a> = &'a str;
 
+/// Module status
+#[cosmwasm_schema::cw_serde]
+pub enum ModuleStatus {
+    /// Modules in use
+    REGISTERED,
+    /// Pending modules
+    PENDING,
+    /// Yanked modules
+    YANKED,
+}
+
 /// Stores the namespace, name, and version of an Abstract module.
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfo {
@@ -25,7 +36,7 @@ const MAX_LENGTH: usize = 64;
 /// Validate attributes of a [`ModuleInfo`].
 /// We use the same conventions as Rust package names.
 /// See https://github.com/rust-lang/api-guidelines/discussions/29
-fn validate_name(name: &str) -> AbstractResult<()> {
+pub fn validate_name(name: &str) -> AbstractResult<()> {
     if name.is_empty() {
         return Err(AbstractError::FormattingError {
             object: "module name".into(),

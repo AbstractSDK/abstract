@@ -1,5 +1,5 @@
 use crate::addresses::{
-    test_core, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
+    test_account_base, TEST_ACCOUNT_ID, TEST_MANAGER, TEST_MODULE_ADDRESS, TEST_MODULE_ID,
     TEST_MODULE_RESPONSE, TEST_PROXY, TEST_VERSION_CONTROL,
 };
 use abstract_core::{
@@ -344,7 +344,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             ACCOUNT_ADDRESSES,
-            (TEST_ACCOUNT_ID, test_core()),
+            (TEST_ACCOUNT_ID, test_account_base()),
         )
         .with_contract_item(
             TEST_PROXY,

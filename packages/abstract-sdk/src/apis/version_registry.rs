@@ -7,7 +7,7 @@ use abstract_core::{
         module::{Module, ModuleInfo},
         module_reference::ModuleReference,
     },
-    version_control::{state::MODULE_LIBRARY, ModulesResponse, QueryMsg},
+    version_control::{state::REGISTERED_MODULES, ModulesResponse, QueryMsg},
 };
 use cosmwasm_std::Deps;
 
@@ -32,7 +32,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         module_info: &ModuleInfo,
     ) -> AbstractSdkResult<ModuleReference> {
         let registry_addr = self.base.abstract_registry(self.deps)?;
-        MODULE_LIBRARY
+        REGISTERED_MODULES
             .query(&self.deps.querier, registry_addr.clone(), module_info)?
             .ok_or_else(|| AbstractSdkError::ModuleNotFound {
                 module: module_info.to_string(),
