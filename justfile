@@ -10,7 +10,6 @@ format:
 
 lint:
   cargo clippy --all -- -D warnings
-#  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty
