@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "bundles/*",
-]
+members = ["bundles/*"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -14,8 +12,12 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.2.0"
-authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
+version = "0.3.0"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Riada <riada@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
@@ -32,21 +34,19 @@ cw20 = { git = "https://github.com/Abstract-OS/cw-plus.git" }
 
 cw-asset = { version = "3.0" }
 
-cw-semver = { version = "1.0"}
-boot-core = { git = "https://github.com/Abstract-OS/BOOT.git" }
+cw-semver = { version = "1.0" }
+boot-core = { version = "0.10.0" }
 boot-cw-plus = { git = "https://github.com/Abstract-OS/BOOT.git" }
 
-abstract-macros = {version = "0.13.2" }
-abstract-ica = { version = "0.13.2" }
-abstract-core = { version = "0.13.2" }
-abstract-sdk = { version = "0.13.2" }
-abstract-app = { version = "0.13.2" }
-abstract-api = { version = "0.13.2" }
-abstract-ibc-host = { version = "0.13.2" }
-abstract-boot = {version = "0.13.2" }
+abstract-macros = { version = "0.14" }
+abstract-ica = { version = "0.14" }
+abstract-core = { version = "0.14" }
+abstract-sdk = { version = "0.14" }
+abstract-app = { version = "0.14" }
+abstract-api = { version = "0.14" }
+abstract-ibc-host = { version = "0.14" }
+abstract-boot = { version = "0.14" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 anyhow = "1"
-# rstest = "0.16.0"
-# speculoos = "0.11.0"
