@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "contracts/*",
-]
+members = ["contracts/*"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -14,8 +12,12 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.11.0"
-authors = ["CyberHoward <cyberhoward@protonmail.com>", "Riada <riada@abstract.money>", "Abstract Money <contact@abstract.money>"]
+version = "0.14.0"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
@@ -47,11 +49,11 @@ boot-core = { version = "0.10.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { version = "0.13", git = "https://github.com/Abstract-OS/contracts.git" }
-abstract-core = { version = "0.13", git = "https://github.com/Abstract-OS/contracts.git"}
-abstract-boot = { version = "0.13", git = "https://github.com/Abstract-OS/contracts.git"}
-abstract-sdk = { version = "0.13", git = "https://github.com/Abstract-OS/contracts.git" }
-abstract-api = { version = "0.13", git = "https://github.com/Abstract-OS/contracts.git" }
+abstract-testing = { version = "0.14" }
+abstract-core = { version = "0.14" }
+abstract-boot = { version = "0.14" }
+abstract-sdk = { version = "0.14" }
+abstract-api = { version = "0.14" }
 
 ## Testing
 rstest = "0.16.0"

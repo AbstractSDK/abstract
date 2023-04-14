@@ -24,7 +24,7 @@ pub mod boot {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(
                 Contract::new(name, chain)
-                    .with_wasm_path("abstract_tendermint_staking")
+                    .with_wasm_path("abstract_tendermint_staking_api")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
                         crate::contract::execute,
                         crate::contract::instantiate,

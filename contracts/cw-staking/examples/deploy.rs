@@ -2,11 +2,11 @@ use abstract_boot::boot_core::{
     instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *,
 };
 use abstract_boot::{AnsHost, ApiDeployer, VCExecFns, VersionControl};
+use abstract_cw_staking_api::boot::CwStakingApi;
+use abstract_cw_staking_api::CW_STAKING;
 use abstract_sdk::core::objects::module::{Module, ModuleInfo, ModuleVersion};
 use abstract_sdk::core::{api, ANS_HOST, VERSION_CONTROL};
 use cosmwasm_std::{Addr, Empty};
-use cw_staking::boot::CwStakingApi;
-use cw_staking::CW_STAKING;
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;

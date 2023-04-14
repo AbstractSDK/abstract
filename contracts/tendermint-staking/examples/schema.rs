@@ -1,4 +1,4 @@
-use abstract_tendermint_staking::contract::TendermintStakeApi;
+use abstract_tendermint_staking_api::contract::TendermintStakeApi;
 use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;

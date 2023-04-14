@@ -42,7 +42,7 @@ pub mod boot {
         pub fn new(id: &str, chain: Chain) -> Self {
             Self(
                 Contract::new(id, chain)
-                    .with_wasm_path("cw_staking")
+                    .with_wasm_path("abstract_cw_staking_api")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
                         crate::contract::execute,
                         crate::contract::instantiate,
