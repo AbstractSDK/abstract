@@ -13,17 +13,17 @@ pub mod boot {
     use abstract_boot::AppDeployer;
     use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use boot_core::ContractWrapper;
-    use boot_core::{boot_contract, BootEnvironment, Contract};
+    use boot_core::{contract, Contract, CwEnv};
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
     use std::str::FromStr;
 
-    #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
-    pub struct Subscription<Chain>;
+    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+    pub struct Subscription;
 
-    impl<Chain: BootEnvironment> AppDeployer<Chain> for Subscription<Chain> {}
+    impl<Chain: CwEnv> AppDeployer<Chain> for Subscription<Chain> {}
 
-    impl<Chain: BootEnvironment> Subscription<Chain> {
+    impl<Chain: CwEnv> Subscription<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             let mut contract = Contract::new(name, chain);
             contract = contract.with_wasm_path("subscription").with_mock(Box::new(

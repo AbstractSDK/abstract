@@ -13,14 +13,14 @@ pub mod boot {
     use abstract_boot::AppDeployer;
     use abstract_core::app::MigrateMsg;
     use boot_core::ContractWrapper;
-    use boot_core::{boot_contract, BootEnvironment, Contract};
+    use boot_core::{contract, Contract, CwEnv};
 
-    #[boot_contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
     pub struct ETF<Chain>;
 
-    impl<Chain: BootEnvironment> AppDeployer<Chain> for ETF<Chain> {}
+    impl<Chain: CwEnv> AppDeployer<Chain> for ETF<Chain> {}
 
-    impl<Chain: BootEnvironment> ETF<Chain> {
+    impl<Chain: CwEnv> ETF<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             let mut contract = Contract::new(name, chain);
             contract = contract.with_wasm_path("etf").with_mock(Box::new(
