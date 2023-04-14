@@ -8,7 +8,6 @@ edition = "2021"
 
 
 [dependencies]
-# wyndex-tests = {package = "tests", git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2"}
 wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
 wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
 wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
