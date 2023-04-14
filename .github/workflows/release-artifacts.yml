@@ -8,35 +8,6 @@ on:
 
 
 jobs:
-  # # tries to create a tag, fails if it already exists
-  # create-tag: 
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     tag: ${{ steps.tag_create.outputs.tag }}
-  #     tag_exists: ${{ steps.check_tag_exists.outputs.tag_exists }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     # Check if the tag already exists
-  #     - name: Check if tag exists
-  #       id: check_tag_exists
-  #       env:
-  #         TAG: ${{ github.event.inputs.manual_version }}
-  #       run: |
-  #         echo "{tag_exists}={$(git tag --list | grep -q "^${{ env.TAG }}$" && echo true || echo false)} >> $GITHUB_OUTPUT"
-  #     # Create tag if manually triggered and tag doesn't exist
-  #     - uses: rickstaa/action-create-tag@v1
-  #       if: ${{ github.event.inputs.manual_version && steps.check_tag_exists.outputs.tag_exists == 'false' }}
-  #       id: "tag_create"
-  #       with:
-  #         tag: ${{ github.event.inputs.manual_version }}
-  #     # Push the created tag to the repository
-  #     # - name: Push tag to repository
-  #     #   if: ${{ github.event.inputs.manual_version && steps.check_tag_exists.outputs.tag_exists == 'false' }}
-  #     #   run: |
-  #     #     git config --global user.name "GitHub Actions Bot"
-  #     #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
-  #     #     git push --tags
-
   # Checks out the tag which is either created by the create-tag job or already exists
   release-artifacts:
     runs-on: ubuntu-latest
@@ -63,7 +34,7 @@ jobs:
         with:
           files: |
             cosmwasm-artifacts.tar.gz
-            *.wasm
+            artifacts/*.wasm
           body_path: CHANGELOG.md
 
   # publish-schemas:
