@@ -358,7 +358,6 @@ mod test {
 
     const TEST_OTHER: &str = "test-other";
     const TEST_OWNER: &str = "test-owner";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
 
     const TEST_PROXY_ADDR: &str = "proxy";
     const TEST_MANAGER_ADDR: &str = "manager";
