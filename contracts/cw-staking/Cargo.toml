@@ -23,7 +23,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 export = []
-default = ["all", "export"]
+default = ["export"]
 boot = ["dep:boot-core", "dep:abstract-boot"]
 juno = [
   "dep:wasmswap",
