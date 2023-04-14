@@ -21,19 +21,6 @@ When it is installed, run the following to generate schemas for each:
 cargo ws exec --no-bail cargo schema
 ```
 
-## Publishing
-
-### Packages
-
-To publish all the packages in the repo, execute the following steps:
-
-1. Update all occurrences of the version in the Cargo.toml files
-2. Publish using the following command
-
-```bash
-./publish/publish.sh
-```
-
 ### Schemas
 
 To publish the schemas to the [schema repo](https://github.com/Abstract-OS/schemas), run the following command:
@@ -51,3 +38,14 @@ VERSION=0.4.0 \
 ## CI
 
 Read the [CI](./CI.md) document for more information.
+
+## Formatting
+
+We use `rustfmt` and [`taplo`](https://taplo.tamasfe.dev/cli/introduction.html) to format our code. To format the code, run the following command:
+
+```bash
+# format rust code
+cargo fmt
+# format toml files
+find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
+```

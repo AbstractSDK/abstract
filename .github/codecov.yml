@@ -25,7 +25,6 @@ ignore:
   - "contracts/native/module-factory/src/response.rs"
   - "contracts/native/account-factory/src/response.rs"
 
-
 # Make comments less noisy
 comment:
   layout: "files"

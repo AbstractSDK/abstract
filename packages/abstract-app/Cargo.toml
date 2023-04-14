@@ -1,6 +1,6 @@
 [package]
 name = "abstract-app"
-version = "0.14.0"
+version = "0.14.1"
 edition = { workspace = true }
 license = { workspace = true }
 description = "base app contract implementation"
@@ -26,12 +26,13 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-abstract-boot = { version = "0.14.0", workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
+# Keep this as a version and update when publishing new versions
+abstract-boot = { version = "0.14.1", workspace = true, optional = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
 speculoos = { workspace = true }
-abstract-app ={ path = ".", features = ["test-utils"]}
+abstract-app = { path = ".", features = ["test-utils"] }

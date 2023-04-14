@@ -13,4 +13,3 @@ reorder_imports = true
 #struct_field_align_threshold = 20
 #struct_lit_single_line = true
 #report_todo = "Always"
-

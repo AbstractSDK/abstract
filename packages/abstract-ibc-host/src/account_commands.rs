@@ -35,7 +35,7 @@ impl<
             account: account.into(),
             balances,
         };
-        let acknowledgement = StdAck::success(&response);
+        let acknowledgement = StdAck::success(response);
         // and we are golden
         Ok(IbcReceiveResponse::new()
             .set_ack(acknowledgement)
@@ -52,7 +52,7 @@ impl<
 
         // let them know we're fine
         let response = DispatchResponse { results: vec![] };
-        let acknowledgement = StdAck::success(&response);
+        let acknowledgement = StdAck::success(response);
         // create the message to re-dispatch to the reflect contract
         let reflect_msg = cw1_whitelist::msg::ExecuteMsg::Execute { msgs };
         let wasm_msg = wasm_execute(reflect_addr, &reflect_msg, vec![])?;
@@ -79,7 +79,7 @@ impl<
     ) -> Result<IbcReceiveResponse, HostError> {
         // let them know we're fine
         let response = SendAllBackResponse {};
-        let acknowledgement = StdAck::success(&response);
+        let acknowledgement = StdAck::success(response);
 
         let wasm_msg =
             self.send_all_back(deps.as_ref(), env, client_proxy_address, client_chain)?;

@@ -1,6 +1,6 @@
 [package]
 name = "abstract-api"
-version = "0.14.0"
+version = "0.14.1"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -17,7 +17,7 @@ test-utils = ["dep:abstract-testing", "dep:abstract-boot", "dep:boot-core"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cosmwasm-schema = { workspace = true}
+cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
 schemars = { workspace = true }
@@ -25,13 +25,13 @@ cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw2 = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
-abstract-boot = { version = "0.14.0", workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
+# Keep this as a version and update when publishing new versions
+abstract-boot = { version = "0.14.1", workspace = true, optional = true }
 
 [dev-dependencies]
-abstract-testing = { workspace = true }
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
-abstract-api = {path = ".", features = ["test-utils"]}
+abstract-api = { path = ".", features = ["test-utils"] }

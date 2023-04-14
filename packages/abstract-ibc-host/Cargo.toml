@@ -30,4 +30,4 @@ thiserror = { workspace = true }
 cw2 = { workspace = true }
 semver = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }

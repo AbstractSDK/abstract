@@ -1,8 +1,8 @@
 [package]
 name = "token"
-version = {workspace = true}
-authors = {workspace = true}
-edition = {workspace = true}
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
 description = "Expanded implementation of a CosmWasm-20 compliant token for post intialization"
 license = "MIT"
 repository = "https://github.com/CosmWasm/cosmwasm-plus"
@@ -19,17 +19,17 @@ default = ["export"]
 export = []
 
 [dependencies]
-cw-controllers = {workspace = true}
-cw-storage-plus = {workspace = true}
-cw2 = {workspace = true}
-cw20 = {workspace = true}
-cw20-base = {workspace = true}
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
 cosmwasm-std = { workspace = true, features = ["iterator"] }
-schemars = {workspace = true}
-serde = {workspace = true}
+schemars = { workspace = true }
+serde = { workspace = true }
 cosmwasm-schema = { workspace = true }
 
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 
 [profile.release]

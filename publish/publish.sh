@@ -18,7 +18,7 @@ BASE_PACKAGES="abstract-ica abstract-macros"
 UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
 CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
-ALL_PACKAGES="abstract-boot"
+ALL_PACKAGES="abstract-boot abstract-api abstract-app abstract-ibc-host"
 
  for pack in $BASE_PACKAGES; do
    (
@@ -62,6 +62,6 @@ done
 
 echo "Everything is published!"
 
-VERSION=$(cat Cargo.toml | grep -m 1 version | sed 's/-/_/g' | grep -o '".*"' | sed 's/"//g');
-git tag v$VERSION
-git push origin v$VERSION
+VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
+git tag v"$VERSION"
+git push origin v"$VERSION"

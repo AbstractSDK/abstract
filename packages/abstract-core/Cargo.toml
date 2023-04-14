@@ -1,14 +1,12 @@
 [package]
 name = "abstract-core"
-version = "0.14.0"
+version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Abstract contract interfaces and storage layouts"
 license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"
-
-
 
 
 [features]
@@ -39,4 +37,4 @@ cw-ownable = { workspace = true }
 speculoos = { workspace = true }
 rstest = { workspace = true }
 anyhow = { workspace = true }
-abstract-testing = {path = "../abstract-testing"}
+abstract-testing = { path = "../abstract-testing" }

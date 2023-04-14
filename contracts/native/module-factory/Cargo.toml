@@ -9,10 +9,7 @@ readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"
 
 
-exclude = [
-  "contract.wasm",
-  "hash.txt",
-]
+exclude = ["contract.wasm", "hash.txt"]
 
 
 [lib]
@@ -26,21 +23,21 @@ export = []
 
 [dependencies]
 cosmwasm-std = { workspace = true }
-cw-controllers = {workspace = true}
+cw-controllers = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cw-storage-plus = {workspace = true}
-cw2 = {workspace = true}
-thiserror = {workspace = true}
-semver = {workspace = true}
-protobuf = {workspace = true}
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+thiserror = { workspace = true }
+semver = { workspace = true }
+protobuf = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-asset = { workspace = true }
 
 [dev-dependencies]
-abstract-boot = {workspace = true}
-boot-core = { workspace = true}
+abstract-boot = { workspace = true }
+boot-core = { workspace = true }
 anyhow = { workspace = true }
 account-factory = { workspace = true }
 ans-host = { workspace = true }

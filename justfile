@@ -7,10 +7,10 @@ test:
 
 format:
   cargo fmt --all
+  find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
 
 lint:
   cargo clippy --all --all-features -- -D warnings
-#  cargo clippy --all --all-targets --all-features -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
@@ -29,10 +29,6 @@ check-codecov:
 publish:
   ./publish/publish.sh
 
-# Next, add abstract-boot version then publish
-publish-2:
-  ./publish/publish-2.sh
-
 watch:
   cargo watch -x lcheck
 
@@ -44,10 +40,6 @@ wasm:
 
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}
-
-#wasm chain_name:
-#  RUSTFLAGS='-C link-arg=-s' cargo ws exec --no-bail cargo wasm
-#  if [[ {{chain}} == "terra" ]]; then RUSTFLAGS='-C link-arg=-s' cargo wasm --package dex --features terra --no-default-features; fi
 
 run-script script chain:
   (cd scripts && cargo run --bin {{script}} -- --network-id {{chain}})

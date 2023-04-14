@@ -19,6 +19,10 @@ jobs:
           components: rustfmt
       - name: cargo fmt --check
         run: cargo fmt --check
+      - name: install taplo-cli
+        run: cargo install taplo-cli --locked
+      - name: taplo fmt --check
+        run: find . -type f -iname "*.toml" -print0 | xargs -0 taplo format --check
   clippy:
     runs-on: ubuntu-latest
     name: ${{ matrix.toolchain }} / clippy
@@ -42,6 +46,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features -- -D warnings
   doc:
     runs-on: ubuntu-latest
     name: nightly / doc

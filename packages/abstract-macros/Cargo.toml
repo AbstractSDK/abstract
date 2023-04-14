@@ -1,6 +1,6 @@
 [package]
 name = "abstract-macros"
-version = "0.14.0"
+version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Macros for Abstract SDK"

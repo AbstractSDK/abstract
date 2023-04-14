@@ -1,6 +1,6 @@
 [package]
 name = "abstract-sdk"
-version = "0.14.0"
+version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 description = "Helpers for Abstract contracts"
@@ -26,13 +26,13 @@ schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 semver = { workspace = true }
-abstract-macros = { workspace = true}
+abstract-macros = { workspace = true }
 
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }
-cosmwasm-schema = {workspace = true, optional = true}
+cosmwasm-schema = { workspace = true, optional = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

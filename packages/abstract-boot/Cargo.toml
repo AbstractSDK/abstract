@@ -1,6 +1,6 @@
 [package]
 name = "abstract-boot"
-version = {workspace = true}
+version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
 description = "Abstract deployment helpers with BOOT"
@@ -8,7 +8,14 @@ description = "Abstract deployment helpers with BOOT"
 [features]
 default = ["integration"]
 daemon = ["boot-core/daemon"]
-integration = ["dep:ans-host", "dep:module-factory", "dep:account-factory", "dep:version-control", "dep:proxy", "dep:manager"]
+integration = [
+  "dep:ans-host",
+  "dep:module-factory",
+  "dep:account-factory",
+  "dep:version-control",
+  "dep:proxy",
+  "dep:manager",
+]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -30,9 +37,9 @@ serde_json = "1.0.79"
 speculoos = { workspace = true }
 
 # Keep these here
-module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.14.0", optional = true }
-account-factory = { package = "abstract-account-factory", path = "../../contracts/native/account-factory", default-features = false, version = "0.14.0", optional = true }
-ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false, version = "0.14.0", optional = true }
-version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.14.0", optional = true }
-proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.14.0", optional = true }
-manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.14.0", optional = true }
+module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.14.1", optional = true }
+account-factory = { package = "abstract-account-factory", path = "../../contracts/native/account-factory", default-features = false, version = "0.14.1", optional = true }
+ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false, version = "0.14.1", optional = true }
+version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.14.1", optional = true }
+proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.14.1", optional = true }
+manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.14.1", optional = true }

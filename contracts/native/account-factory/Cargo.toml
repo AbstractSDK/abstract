@@ -8,10 +8,7 @@ license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"
 
-exclude = [
-  "contract.wasm",
-  "hash.txt",
-]
+exclude = ["contract.wasm", "hash.txt"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,7 +18,7 @@ default = ["export"]
 export = []
 
 [dependencies]
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cosmwasm-schema = { workspace = true }

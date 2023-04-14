@@ -25,7 +25,7 @@ cw-utils = { workspace = true }
 cw2 = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }

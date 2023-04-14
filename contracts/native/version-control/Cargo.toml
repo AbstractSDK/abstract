@@ -8,10 +8,7 @@ license = { workspace = true }
 readme = "README.md"
 repository = "https://github.com/Abstract-OS/contracts"
 
-exclude = [
-  "contract.wasm",
-  "hash.txt",
-]
+exclude = ["contract.wasm", "hash.txt"]
 
 
 [lib]
@@ -31,7 +28,7 @@ serde = { workspace = true }
 thiserror = { workspace = true }
 cw-semver = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-core =  { workspace = true }
+abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-ownable = { workspace = true }
 
