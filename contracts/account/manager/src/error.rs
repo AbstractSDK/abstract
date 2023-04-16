@@ -34,11 +34,14 @@ pub enum ManagerError {
     #[error("Registering module fails because caller is not module factory")]
     CallerNotFactory {},
 
-    #[error("A migratemsg is required when when migrating this module")]
+    #[error("A migrate msg is required when when migrating this module")]
     MsgRequired {},
 
     #[error("{0} not upgradable")]
     NotUpgradeable(ModuleInfo),
+
+    #[error("Cannot migrate {} twice", module_id)]
+    DuplicateModuleMigration { module_id: String },
 
     #[error("Your account is currently suspended")]
     AccountSuspended {},
