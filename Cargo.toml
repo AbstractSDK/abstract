@@ -20,7 +20,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.14.1"
+version = "0.14.3"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -77,13 +77,13 @@ manager = { package = "abstract-manager", path = "contracts/account/manager" }
 osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
 abstract-ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 
-abstract-sdk = { version = "0.14.1", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.14.1", path = "packages/abstract-testing" }
-abstract-core = { version = "0.14.1", path = "packages/abstract-core" }
+abstract-sdk = { version = "0.14.3", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.14.3", path = "packages/abstract-testing" }
+abstract-core = { version = "0.14.3", path = "packages/abstract-core" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.14.1", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.14.1", path = "packages/abstract-ica" }
+abstract-macros = { version = "0.14.3", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.14.3", path = "packages/abstract-ica" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
