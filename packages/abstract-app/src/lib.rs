@@ -2,6 +2,7 @@ mod endpoints;
 pub mod error;
 pub mod features;
 pub(crate) mod handler;
+#[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;
 pub(crate) use abstract_sdk::base::*;

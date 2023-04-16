@@ -14,6 +14,7 @@ pub mod error;
 pub mod features;
 mod handler;
 pub(crate) mod host_commands;
+#[cfg(feature = "schema")]
 mod schema;
 pub mod state;
 

@@ -15,6 +15,7 @@ description = "base ibc-host contract implementation"
 # # use library feature to disable all instantiate/execute/query exports
 default = ["export"]
 export = []
+schema = []
 
 
 [dependencies]
