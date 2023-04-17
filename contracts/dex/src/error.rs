@@ -58,4 +58,7 @@ pub enum DexError {
 
     #[error("Asset pairing {} not found.", asset_pairing)]
     AssetPairingNotFound { asset_pairing: DexAssetPairing },
+
+    #[error("Invalid Generate Message")]
+    InvalidGenerateMessage,
 }

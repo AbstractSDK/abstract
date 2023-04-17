@@ -1,6 +1,6 @@
 use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, IBC_DEX_ID};
+use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use crate::LocalDex;
 use crate::{
     contract::{DexApi, DexResult},
@@ -20,14 +20,13 @@ pub fn execute_handler(
     env: Env,
     info: MessageInfo,
     api: DexApi,
-    msg: DexApiExecuteMsg,
+    msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
-        DexApiExecuteMsg::Request(msg) => {
-            let DexExecuteMsg {
-                dex: dex_name,
-                action,
-            } = msg;
+        DexExecuteMsg::Action {
+            dex: dex_name,
+            action,
+        } => {
             let exchange = exchange_resolver::identify_exchange(&dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
             if exchange.over_ibc() {
@@ -37,7 +36,7 @@ pub fn execute_handler(
                 handle_local_api_request(deps, env, info, api, action, dex_name)
             }
         }
-        DexApiExecuteMsg::UpdateFee {
+        DexExecuteMsg::UpdateFee {
             swap_fee,
             recipient_os_id,
         } => {

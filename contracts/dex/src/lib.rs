@@ -64,7 +64,7 @@ pub mod boot {
 
             let swap_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
                 proxy_address: None,
-                request: DexExecuteMsg {
+                request: DexExecuteMsg::Action {
                     dex,
                     action: DexAction::Swap {
                         offer_asset: AnsAsset::new(asset, offer_asset.1),

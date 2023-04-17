@@ -2,8 +2,8 @@
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
 use crate::{
     msg::{
-        AskAsset, DexAction, DexApiExecuteMsg, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset,
-        SimulateSwapResponse, SwapRouter,
+        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+        SwapRouter,
     },
     EXCHANGE,
 };
@@ -61,10 +61,10 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
         modules.request(
             self.dex_module_id(),
-            DexApiExecuteMsg::from(DexExecuteMsg {
+            DexExecuteMsg::Action {
                 dex: self.dex_name(),
                 action,
-            }),
+            },
         )
     }
 
@@ -178,7 +178,7 @@ mod test {
         let max_spread = Some(Decimal::percent(1));
         let belief_price = Some(Decimal::percent(2));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::Swap {
                 offer_asset: offer_asset.clone(),
@@ -222,7 +222,7 @@ mod test {
         let max_spread = Some(Decimal::percent(1));
         let router = Some(SwapRouter::Custom("custom_router".to_string()));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::CustomSwap {
                 offer_assets: offer_assets.clone(),
@@ -264,7 +264,7 @@ mod test {
         let assets = vec![OfferAsset::new("taco", 1000u128)];
         let max_spread = Some(Decimal::percent(1));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::ProvideLiquidity {
                 assets: assets.clone(),
@@ -305,7 +305,7 @@ mod test {
         let paired = vec![AssetEntry::new("bell")];
         let _max_spread = Some(Decimal::percent(1));
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::ProvideLiquiditySymmetric {
                 offer_asset: offer.clone(),
@@ -345,7 +345,7 @@ mod test {
         let lp_token = AssetEntry::new("taco");
         let withdraw_amount: Uint128 = 1000u128.into();
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg {
+        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
             dex: dex_name,
             action: DexAction::WithdrawLiquidity {
                 lp_token: lp_token.clone(),

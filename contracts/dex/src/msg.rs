@@ -15,11 +15,11 @@ pub type AskAsset = AnsAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
 
-pub type ExecuteMsg = api::ExecuteMsg<DexApiExecuteMsg>;
+pub type ExecuteMsg = api::ExecuteMsg<DexExecuteMsg>;
 pub type QueryMsg = api::QueryMsg<DexQueryMsg>;
 pub type InstantiateMsg = api::InstantiateMsg<DexInstantiateMsg>;
 
-impl api::ApiExecuteMsg for DexApiExecuteMsg {}
+impl api::ApiExecuteMsg for DexExecuteMsg {}
 impl api::ApiQueryMsg for DexQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
@@ -30,25 +30,15 @@ pub struct DexInstantiateMsg {
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
-pub enum DexApiExecuteMsg {
-    Request(DexExecuteMsg),
+pub enum DexExecuteMsg {
     UpdateFee {
         swap_fee: Option<Decimal>,
         recipient_os_id: Option<u32>,
     },
-}
-
-impl From<DexExecuteMsg> for DexApiExecuteMsg {
-    fn from(action: DexExecuteMsg) -> Self {
-        DexApiExecuteMsg::Request(action)
-    }
-}
-
-/// Dex Execute msg
-#[cosmwasm_schema::cw_serde]
-pub struct DexExecuteMsg {
-    pub dex: DexName,
-    pub action: DexAction,
+    Action {
+        dex: DexName,
+        action: DexAction,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -20,18 +20,21 @@ pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> De
             ask_asset,
             dex,
         } => simulate_swap(deps, env, api, offer_asset, ask_asset, dex.unwrap()),
-        DexQueryMsg::GenerateMessages {
-            message: DexExecuteMsg { dex, action },
-        } => {
-            let exchange_id = exchange_resolver::identify_exchange(&dex)?;
-            // if exchange is on an app-chain, execute the action on the app-chain
-            if exchange_id.over_ibc() {
-                return Err(DexError::IbcMsgQuery);
-            }
+        DexQueryMsg::GenerateMessages { message } => {
+            match message {
+                DexExecuteMsg::Action { dex, action } => {
+                    let exchange_id = exchange_resolver::identify_exchange(&dex)?;
+                    // if exchange is on an app-chain, execute the action on the app-chain
+                    if exchange_id.over_ibc() {
+                        return Err(DexError::IbcMsgQuery);
+                    }
 
-            let exchange = exchange_resolver::resolve_exchange(&dex)?;
-            let (messages, _) = api.resolve_dex_action(deps, action, exchange)?;
-            to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
+                    let exchange = exchange_resolver::resolve_exchange(&dex)?;
+                    let (messages, _) = api.resolve_dex_action(deps, action, exchange)?;
+                    to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
+                }
+                _ => Err(DexError::InvalidGenerateMessage {}),
+            }
         }
     }
 }
