@@ -24,7 +24,6 @@ impl<Chain: CwEnv> ModuleFactory<Chain> {
     ) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
         self.execute(
             &ExecuteMsg::UpdateConfig {
-                admin: None,
                 ans_host_address: Some(mem_addr),
                 version_control_address: None,
             },

@@ -34,6 +34,7 @@ abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 abstract-macros = { workspace = true }
 cw-asset = { workspace = true }
+cw-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-boot = { workspace = true }

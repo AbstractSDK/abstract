@@ -6,14 +6,10 @@
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
     use crate::{
-        objects::{
-            common_namespace::ADMIN_NAMESPACE,
-            module::{Module, ModuleInfo},
-        },
+        objects::module::{Module, ModuleInfo},
         version_control::AccountBase,
     };
     use cosmwasm_std::{Addr, Binary};
-    use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
     use schemars::JsonSchema;
     use serde::{Deserialize, Serialize};
@@ -30,7 +26,6 @@ pub mod state {
         pub module: Option<Module>,
     }
 
-    pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{7}context");
     pub const MODULE_INIT_BINARIES: Map<&ModuleInfo, Binary> = Map::new("module_init_binaries");
@@ -41,7 +36,7 @@ use crate::{
     version_control::AccountBase,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Binary;
+use cosmwasm_std::{Addr, Binary};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
@@ -51,12 +46,13 @@ pub struct InstantiateMsg {
     pub ans_host_address: String,
 }
 
+/// Module Factory Execute messages
+#[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update config
     UpdateConfig {
-        admin: Option<String>,
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
@@ -72,6 +68,8 @@ pub enum ExecuteMsg {
     },
 }
 
+/// Module factory query messages
+#[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
@@ -89,7 +87,7 @@ pub enum QueryMsg {
 // We define a custom struct for each query response
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub owner: String,
+    pub owner: Addr,
     pub ans_host_address: String,
     pub version_control_address: String,
 }

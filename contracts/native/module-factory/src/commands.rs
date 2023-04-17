@@ -1,13 +1,12 @@
+use crate::contract::ModuleFactoryResponse;
 use crate::{
     contract::ModuleFactoryResult, error::ModuleFactoryError,
     response::MsgInstantiateContractResponse, state::*,
 };
-use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
-        MODULE_FACTORY,
     },
     feature_objects::VersionControlContract,
     *,
@@ -20,9 +19,6 @@ use protobuf::Message;
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
-
-#[abstract_response(MODULE_FACTORY)]
-struct ModuleFactoryResponse;
 
 /// Function that starts the creation of the Account
 pub fn execute_create_module(
@@ -158,11 +154,10 @@ pub fn execute_update_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    admin: Option<String>,
     ans_host_address: Option<String>,
     version_control_address: Option<String>,
 ) -> ModuleFactoryResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     let mut config: Config = CONFIG.load(deps.storage)?;
 
@@ -178,11 +173,6 @@ pub fn execute_update_config(
 
     CONFIG.save(deps.storage, &config)?;
 
-    if let Some(admin) = admin {
-        let addr = deps.api.addr_validate(&admin)?;
-        ADMIN.set(deps, Some(addr))?;
-    }
-
     Ok(ModuleFactoryResponse::action("update_config"))
 }
 
@@ -194,7 +184,7 @@ pub fn update_factory_binaries(
     to_remove: Vec<ModuleInfo>,
 ) -> ModuleFactoryResult {
     // Only Admin can call this method
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
     for (key, binary) in to_add.into_iter() {
         // Update function for new or existing keys
@@ -233,8 +223,12 @@ mod test {
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
 
-    fn execute_helper(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
-        execute(deps, mock_env(), mock_info("admin", &[]), msg)
+    fn execute_as(deps: DepsMut, sender: &str, msg: ExecuteMsg) -> ModuleFactoryResult {
+        execute(deps, mock_env(), mock_info(sender, &[]), msg)
+    }
+
+    fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
+        execute_as(deps, "admin", msg)
     }
 
     fn mock_init(deps: DepsMut) -> ModuleFactoryResult {
@@ -256,9 +250,53 @@ mod test {
         let res = execute(deps.as_mut(), mock_env(), mock_info("not_admin", &[]), msg);
         assert_that!(&res)
             .is_err()
-            .matches(|e| matches!(e, ModuleFactoryError::Admin { .. }));
+            .is_equal_to(ModuleFactoryError::Ownership(
+                cw_ownable::OwnershipError::NotOwner {},
+            ));
 
         Ok(())
+    }
+
+    mod update_ownership {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: "new_owner".to_string(),
+                expiry: None,
+            });
+
+            test_only_admin(msg)
+        }
+
+        #[test]
+        fn update_owner() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_admin = "new_admin";
+            // First update to transfer
+            let transfer_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: new_admin.to_string(),
+                expiry: None,
+            });
+
+            let _transfer_res = execute_as_admin(deps.as_mut(), transfer_msg)?;
+
+            // Then update and accept as the new owner
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            let _accept_res = execute_as(deps.as_mut(), new_admin, accept_msg).unwrap();
+
+            assert_that!(cw_ownable::get_ownership(&deps.storage).unwrap().owner)
+                .is_some()
+                .is_equal_to(cosmwasm_std::Addr::unchecked(new_admin));
+
+            Ok(())
+        }
     }
 
     mod instantiate_contract {
@@ -414,7 +452,6 @@ mod test {
         #[test]
         fn only_admin() -> ModuleFactoryTestResult {
             let msg = ExecuteMsg::UpdateConfig {
-                admin: None,
                 ans_host_address: None,
                 version_control_address: None,
             };
@@ -423,25 +460,39 @@ mod test {
         }
 
         #[test]
-        fn update_admin() -> ModuleFactoryTestResult {
+        fn update_ans_host_address() -> ModuleFactoryTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let new_admin = "new_admin";
+            let new_ans_host = "new_ans_host";
             let msg = ExecuteMsg::UpdateConfig {
-                admin: Some(new_admin.to_string()),
-                ans_host_address: None,
+                ans_host_address: Some(new_ans_host.to_string()),
                 version_control_address: None,
             };
 
-            let res = execute_helper(deps.as_mut(), msg);
+            execute_as_admin(deps.as_mut(), msg)?;
 
-            assert_that!(res).is_ok();
+            assert_that!(CONFIG.load(&deps.storage)?.ans_host_address)
+                .is_equal_to(Addr::unchecked(new_ans_host.clone()));
 
-            assert_that!(ADMIN.get(deps.as_ref()))
-                .is_ok()
-                .is_some()
-                .is_equal_to(Addr::unchecked(new_admin.clone()));
+            Ok(())
+        }
+
+        #[test]
+        fn update_version_control_address() -> ModuleFactoryTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let new_vc = "new_version_control";
+            let msg = ExecuteMsg::UpdateConfig {
+                ans_host_address: None,
+                version_control_address: Some(new_vc.to_string()),
+            };
+
+            execute_as_admin(deps.as_mut(), msg)?;
+
+            assert_that!(CONFIG.load(&deps.storage)?.version_control_address)
+                .is_equal_to(Addr::unchecked(new_vc.clone()));
 
             Ok(())
         }
