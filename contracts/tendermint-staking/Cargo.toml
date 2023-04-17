@@ -27,3 +27,6 @@ abstract-api = { workspace = true }
 
 boot-core = { workspace = true, optional = true }
 abstract-boot = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-api ={ workspace = true , features = ["schema"]}
