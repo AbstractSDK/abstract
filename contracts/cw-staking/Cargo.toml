@@ -90,6 +90,7 @@ abstract-boot = { workspace = true }
 clap = { workspace = true }
 cw-staking = { path = ".", features = [
   "boot",
+  "juno",
 ], package = "abstract-cw-staking-api" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }

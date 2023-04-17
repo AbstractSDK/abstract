@@ -65,5 +65,5 @@ clap = { workspace = true }
 wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git", tag = "v0.3.0" }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
-dex = { path = ".", features = ["boot"], package = "abstract-dex-api" }
+dex = { path = ".", features = ["boot","juno"], package = "abstract-dex-api" }
 boot-cw-plus = { workspace = true }
