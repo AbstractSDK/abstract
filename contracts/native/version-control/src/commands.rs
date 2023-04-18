@@ -368,8 +368,8 @@ mod test {
                 ManagerQueryMsg::Config {} => {
                     let resp = ManagerConfigResponse {
                         owner: TEST_OWNER.to_owned(),
-                        version_control_address: TEST_VERSION_CONTROL.to_owned(),
-                        module_factory_address: TEST_MODULE_FACTORY.to_owned(),
+                        version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                        module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
                         account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
                         is_suspended: false,
                     };

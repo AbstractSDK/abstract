@@ -19,6 +19,7 @@ use abstract_core::{manager::ManagerModuleInfo, objects::AccountId};
 use boot_core::{
     CwEnv, {BootUpload, ContractInstance},
 };
+use cosmwasm_std::Addr;
 use serde::Serialize;
 use speculoos::prelude::*;
 
@@ -73,7 +74,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         // insert proxy in expected module addresses
         let expected_module_addrs = module_addrs
             .into_iter()
-            .chain(std::iter::once(self.proxy.address()?.into_string()))
+            .map(Addr::unchecked)
+            .chain(std::iter::once(self.proxy.address()?))
             .collect::<HashSet<_>>();
 
         let actual_module_addrs = manager_modules

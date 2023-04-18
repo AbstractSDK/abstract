@@ -20,7 +20,7 @@ fn instantiate() -> AResult {
     // assert proxy module
     assert_that!(&modules).has_length(1);
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
-        address: account.proxy.address()?.into_string(),
+        address: account.proxy.address()?,
         id: PROXY.to_string(),
         version: cw2::ContractVersion {
             contract: PROXY.into(),
@@ -31,8 +31,8 @@ fn instantiate() -> AResult {
     // assert manager config
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         owner: sender.to_string(),
-        version_control_address: deployment.version_control.address()?.into_string(),
-        module_factory_address: deployment.module_factory.address()?.into_string(),
+        version_control_address: deployment.version_control.address()?,
+        module_factory_address: deployment.module_factory.address()?,
         account_id: 0u32.into(),
         is_suspended: false,
     });

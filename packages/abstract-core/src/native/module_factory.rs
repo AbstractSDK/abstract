@@ -84,12 +84,12 @@ pub enum QueryMsg {
     Context {},
 }
 
-// We define a custom struct for each query response
+/// Module factory config response
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub owner: Addr,
-    pub ans_host_address: String,
-    pub version_control_address: String,
+    pub ans_host_address: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]

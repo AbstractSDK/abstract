@@ -114,7 +114,7 @@ pub fn query_contract(deps: Deps, _env: Env, keys: Vec<&ContractEntry>) -> StdRe
     to_binary(&ContractsResponse {
         contracts: contracts
             .into_iter()
-            .map(|(x, a)| (x.to_owned(), a.to_string()))
+            .map(|(x, a)| (x.to_owned(), a))
             .collect(),
     })
 }
@@ -143,9 +143,7 @@ pub fn query_contract_list(
         .take(limit)
         .collect();
 
-    to_binary(&ContractListResponse {
-        contracts: res?.into_iter().map(|(x, a)| (x, a.to_string())).collect(),
-    })
+    to_binary(&ContractListResponse { contracts: res? })
 }
 
 pub fn query_channel_list(
@@ -622,7 +620,10 @@ mod test {
 
         // Stage data for equality test
         let expected = ContractsResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")]),
+            contracts: create_contract_entry_and_string(vec![("foo", "foo", "foo")])
+                .into_iter()
+                .map(|(a, b)| (a, Addr::unchecked(b)))
+                .collect(),
         };
 
         // Assert
@@ -785,11 +786,17 @@ mod test {
             contracts: create_contract_entry_and_string(vec![
                 ("bar", "bar1", "bar2"),
                 ("foo", "foo1", "foo2"),
-            ]),
+            ])
+            .into_iter()
+            .map(|(a, b)| (a, Addr::unchecked(b)))
+            .collect(),
         };
 
         let expected_foo = ContractListResponse {
-            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")]),
+            contracts: create_contract_entry_and_string(vec![("foo", "foo1", "foo2")])
+                .into_iter()
+                .map(|(a, b)| (a, Addr::unchecked(b)))
+                .collect(),
         };
 
         // Assert
@@ -797,7 +804,7 @@ mod test {
         assert_that!(&res).is_equal_to(&expected);
         // Assert - sanity check for duplication
         assert_that!(&res_expect_foo).is_equal_to(&expected_foo);
-        assert!(res.contracts.len() == 2_usize);
+        assert_eq!(res.contracts.len(), 2_usize);
 
         Ok(())
     }
@@ -866,7 +873,7 @@ mod test {
         assert_that!(&res_all).is_equal_to(expected_all);
         assert_that!(&res_foobar).is_equal_to(expected_foobar);
         assert_that!(&res_bar).is_equal_to(expected_bar);
-        assert!(res_all.channels.len() == 3_usize);
+        assert_eq!(res_all.channels.len(), 3_usize);
 
         Ok(())
     }

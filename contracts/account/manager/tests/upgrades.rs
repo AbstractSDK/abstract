@@ -34,7 +34,7 @@ fn install_module_version(
         },
     )?;
 
-    Ok(manager.module_info(module)?.unwrap().address)
+    Ok(manager.module_info(module)?.unwrap().address.to_string())
 }
 
 #[test]
@@ -325,7 +325,7 @@ fn update_api_with_authorized_addrs() -> AResult {
     use abstract_core::manager::QueryMsgFns as _;
     let api_v2 = manager.module_addresses(vec![api_1::MOCK_API_ID.into()])?;
     // assert that the address actually changed
-    assert_that!(api_v2.modules[0].1).is_not_equal_to(api1.clone());
+    assert_that!(api_v2.modules[0].1).is_not_equal_to(Addr::unchecked(api1.clone()));
 
     let api = api_1::BootMockApi1V2::new(chain);
     use abstract_core::api::BaseQueryMsgFns as _;

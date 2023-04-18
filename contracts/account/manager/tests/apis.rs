@@ -38,7 +38,7 @@ fn installing_one_api_should_succeed() -> AResult {
     let modules = account.expect_modules(vec![staking_api.address()?.to_string()])?;
 
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
-        address: staking_api.addr_str()?,
+        address: staking_api.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
@@ -109,7 +109,7 @@ fn installation_of_duplicate_api_should_fail() -> AResult {
     // assert proxy module
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
-        address: staking_api.addr_str()?,
+        address: staking_api.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
@@ -142,7 +142,7 @@ fn reinstalling_api_should_be_allowed() -> AResult {
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
-        address: staking_api.addr_str()?,
+        address: staking_api.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
@@ -179,7 +179,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     // check staking api
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
-        address: staking_api.addr_str()?,
+        address: staking_api.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
@@ -213,7 +213,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
         // the address stored for BootMockApi was updated when we instantiated the new version, so this is the new address
-        address: new_staking_api.addr_str()?,
+        address: new_staking_api.address()?,
         id: TEST_MODULE_ID.to_string(),
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
@@ -225,8 +225,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     // assert that the new staking api has a different address
     assert_ne!(old_api_addr, new_staking_api.address()?);
 
-    assert_that!(modules[1].address)
-        .is_equal_to(new_staking_api.as_instance().address()?.to_string());
+    assert_that!(modules[1].address).is_equal_to(new_staking_api.as_instance().address()?);
 
     Ok(())
 }

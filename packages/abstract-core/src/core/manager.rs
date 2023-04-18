@@ -94,7 +94,7 @@ use crate::objects::{
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Binary, Uint64};
+use cosmwasm_std::{Addr, Binary, Uint64};
 use cw2::ContractVersion;
 
 /// Manager Migrate Msg
@@ -199,7 +199,7 @@ pub struct ModuleVersionsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleAddressesResponse {
-    pub modules: Vec<(String, String)>,
+    pub modules: Vec<(String, Addr)>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -207,20 +207,20 @@ pub struct ConfigResponse {
     pub account_id: Uint64,
     pub owner: String,
     pub is_suspended: SuspensionStatus,
-    pub version_control_address: String,
-    pub module_factory_address: String,
+    pub version_control_address: Addr,
+    pub module_factory_address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct InfoResponse {
-    pub info: AccountInfo<String>,
+    pub info: AccountInfo<Addr>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub id: String,
     pub version: ContractVersion,
-    pub address: String,
+    pub address: Addr,
 }
 
 #[cosmwasm_schema::cw_serde]
