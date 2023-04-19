@@ -27,3 +27,5 @@ docker*
 
 packages/**/schema
 contracts/**/schema
+
+release

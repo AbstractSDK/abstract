@@ -45,7 +45,7 @@ run-script script chain:
   (cd scripts && cargo run --bin {{script}} -- --network-id {{chain}})
 
 full-deploy chain:
-  (cd scripts && cargo run --bin full_deploy -- --network-id {{chain}})
+  just run-script full_deploy {{chain}}
 
 publish-schemas version:
   SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
