@@ -1,24 +1,18 @@
-use crate::contract::{VCResult, ABSTRACT_NAMESPACE};
-use crate::error::VCError;
-
-use abstract_core::objects::module::ModuleVersion;
-use abstract_core::version_control::Config;
-use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
-    objects::{
-        module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace, AccountId,
-    },
-    version_control::{namespaces_info, state::*, AccountBase},
-    VERSION_CONTROL,
-};
 use cosmwasm_std::{
     ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
     StdResult, Storage,
 };
 
-#[abstract_response(VERSION_CONTROL)]
-pub struct VcResponse;
+use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
+use abstract_sdk::core::{
+    manager::{ConfigResponse as ManagerConfigResponse, QueryMsg as ManagerQueryMsg},
+    objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
+    version_control::AccountBase,
+    version_control::{namespaces_info, state::*},
+};
+
+use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
+use crate::error::VCError;
 
 /// Add new Account to version control contract
 /// Only Factory can add Account
@@ -337,22 +331,24 @@ pub fn set_factory(deps: DepsMut, info: MessageInfo, new_admin: String) -> VCRes
 
 #[cfg(test)]
 mod test {
-    use abstract_testing::MockQuerierBuilder;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{from_binary, to_binary, Addr, Uint64};
-
-    use abstract_core::version_control::*;
-
-    use crate::contract;
+    use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
     use speculoos::prelude::*;
 
-    use super::*;
+    use abstract_core::version_control::*;
+    use abstract_testing::prelude::TEST_MODULE_ID;
     use abstract_testing::prelude::{
         TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_ADMIN, TEST_MODULE_FACTORY, TEST_NAMESPACE,
         TEST_VERSION, TEST_VERSION_CONTROL,
     };
-    use cw_controllers::AdminError;
-    use cw_ownable::OwnershipError;
+    use abstract_testing::MockQuerierBuilder;
+
+    use crate::contract;
+
+    use super::*;
+    use crate::test_common::*;
 
     type VersionControlTestResult = Result<(), VCError>;
 
@@ -378,20 +374,6 @@ mod test {
                 _ => panic!("unexpected message"),
             }
         })
-    }
-
-    /// Initialize the version_control with admin as creator and factory
-    fn mock_init(mut deps: DepsMut) -> VCResult {
-        let info = mock_info(TEST_ADMIN, &[]);
-        contract::instantiate(
-            deps.branch(),
-            mock_env(),
-            info,
-            InstantiateMsg {
-                is_testnet: true,
-                namespaces_limit: 10,
-            },
-        )
     }
 
     /// Initialize the version_control with admin and updated account_factory
@@ -607,12 +589,12 @@ mod test {
         }
     }
 
-    use abstract_testing::prelude::TEST_MODULE_ID;
-
     mod remove_namespaces {
-        use super::*;
-        use abstract_core::objects::module_reference::ModuleReference;
         use cosmwasm_std::attr;
+
+        use abstract_core::objects::module_reference::ModuleReference;
+
+        use super::*;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -665,7 +647,7 @@ mod test {
                     format!(
                         "({}, {}),({}, {})",
                         new_namespace2, TEST_ACCOUNT_ID, new_namespace3, TEST_ACCOUNT_ID
-                    )
+                    ),
                 )
             );
 
@@ -768,10 +750,11 @@ mod test {
     }
 
     mod add_modules {
-        use super::*;
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
+
+        use super::*;
 
         fn test_module() -> ModuleInfo {
             ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Version(TEST_VERSION.into()))
@@ -1339,7 +1322,6 @@ mod test {
     }
 
     mod configure {
-
         use super::*;
 
         #[test]

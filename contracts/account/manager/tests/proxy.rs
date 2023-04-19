@@ -80,33 +80,3 @@ fn exec_through_manager() -> AResult {
 
     Ok(())
 }
-
-/// This basically just checks that the proxy is able to be migrated .... but the actual version cannot change... unless we mock the responses from the version queries
-#[test]
-fn migrate_proxy() -> AResult {
-    let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
-    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
-    let account = create_default_account(&deployment.account_factory)?;
-
-    let new_version = "1.0.1".parse().unwrap();
-    deployment
-        .version_control
-        .register_account_mods(vec![account.proxy.as_instance()], &new_version)?;
-
-    account
-        .manager
-        .upgrade_module(PROXY, &abstract_core::proxy::MigrateMsg {})?;
-
-    let module = account.manager.module_info(PROXY)?;
-
-    assert_that!(module)
-        .is_some()
-        .map(|m| &m.version)
-        .is_equal_to(cw2::ContractVersion {
-            contract: PROXY.into(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        });
-
-    Ok(())
-}

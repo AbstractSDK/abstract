@@ -219,11 +219,11 @@ fn clear_accounts(store: &mut dyn Storage) {
 mod test {
     use super::*;
     use crate::contract;
-    use abstract_core::{ibc_client::*, AbstractResult};
+    use abstract_core::ibc_client::*;
     use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
-        Addr, Response,
+        Addr,
     };
     use speculoos::prelude::*;
 
@@ -239,7 +239,7 @@ mod test {
         execute_as(deps, TEST_ADMIN, msg)
     }
 
-    fn mock_init(deps: DepsMut) -> AbstractResult<Response> {
+    fn mock_init(deps: DepsMut) -> IbcClientResult {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),

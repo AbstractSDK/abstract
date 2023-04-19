@@ -1,7 +1,7 @@
 use cosmwasm_std::{OverflowError, StdError};
 use cw_asset::AssetError;
 use cw_semver::Error as CwSemverError;
-use semver::Error as SemverError;
+use semver::{Error as SemverError, Version};
 use thiserror::Error;
 
 /// Wrapper error for the Abstract framework.
@@ -28,6 +28,16 @@ pub enum AbstractError {
         expected: String,
         actual: String,
     },
+
+    #[error("Cannot downgrade contract {} from {} to {}", contract, from, to)]
+    CannotDowngradeContract {
+        contract: String,
+        from: Version,
+        to: Version,
+    },
+
+    #[error("Cannot rename contract from {} to {}", from, to)]
+    ContractNameMismatch { from: String, to: String },
 
     #[error("API {0} not installed on Account")]
     ApiNotInstalled(String),

@@ -1,10 +1,12 @@
 use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
-use abstract_core::objects::{module_version::migrate_module_data, oracle::Oracle};
+use abstract_core::objects::module_version::assert_contract_upgrade;
+use abstract_core::objects::oracle::Oracle;
+use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
-        objects::{core::ACCOUNT_ID, module_version::set_module_data},
+        objects::core::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -14,15 +16,20 @@ use abstract_sdk::{
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
-use cw2::{get_contract_version, set_contract_version};
 use semver::Version;
 
+const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+#[abstract_response(PROXY)]
+pub struct ProxyResponse;
+
+/// The result type for the proxy contract.
 pub type ProxyResult<T = Response> = Result<T, ProxyError>;
+
 /*
     The proxy is the bank account of the account. It owns the liquidity and acts as a proxy contract.
     Whitelisted dApps construct messages for this contract. The dApps are controlled by the Manager.
 */
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -32,8 +39,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ProxyResult {
     // Use CW2 to set the contract version, this is needed for migrations
-    set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-    set_module_data(deps.storage, PROXY, CONTRACT_VERSION, &[], None::<String>)?;
+    cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     STATE.save(deps.storage, &State { modules: vec![] })?;
     ANS_HOST.save(
@@ -64,12 +70,9 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ProxyResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
 
-    if storage_version < version {
-        set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, PROXY, CONTRACT_VERSION, None::<String>)?;
-    }
+    assert_contract_upgrade(deps.storage, PROXY, version)?;
+    cw2::set_contract_version(deps.storage, PROXY, CONTRACT_VERSION)?;
     Ok(Response::default())
 }
 
@@ -96,4 +99,100 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
         QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::contract;
+    use crate::test_common::*;
+    use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
+
+    mod migrate {
+        use super::*;
+        use abstract_core::AbstractError;
+
+        #[test]
+        fn disallow_same_version() -> ProxyResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
+                AbstractError::CannotDowngradeContract {
+                    contract: PROXY.to_string(),
+                    from: version.clone(),
+                    to: version,
+                },
+            ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> ProxyResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let big_version = "999.999.999";
+            cw2::set_contract_version(deps.as_mut().storage, PROXY, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
+                AbstractError::CannotDowngradeContract {
+                    contract: PROXY.to_string(),
+                    from: big_version.parse().unwrap(),
+                    to: version,
+                },
+            ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> ProxyResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res).is_err().is_equal_to(ProxyError::Abstract(
+                AbstractError::ContractNameMismatch {
+                    from: old_name.parse().unwrap(),
+                    to: PROXY.parse().unwrap(),
+                },
+            ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> ProxyResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut());
+
+            let small_version = "0.0.0";
+            cw2::set_contract_version(deps.as_mut().storage, PROXY, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(cw2::get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
+    }
 }

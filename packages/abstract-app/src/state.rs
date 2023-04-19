@@ -3,6 +3,7 @@ use crate::{
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn,
 };
 use abstract_core::objects::dependency::StaticDependency;
+use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
     feature_objects::AnsHost,
@@ -16,11 +17,20 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub trait ContractError:
-    From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
+    From<cosmwasm_std::StdError>
+    + From<AppError>
+    + From<AbstractSdkError>
+    + From<AbstractError>
+    + 'static
 {
 }
+
 impl<T> ContractError for T where
-    T: From<cosmwasm_std::StdError> + From<AppError> + From<AbstractSdkError> + 'static
+    T: From<cosmwasm_std::StdError>
+        + From<AppError>
+        + From<AbstractSdkError>
+        + From<AbstractError>
+        + 'static
 {
 }
 
@@ -32,6 +42,7 @@ pub struct AppState {
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }
+
 /// The state variables for our AppContract.
 pub struct AppContract<
     Error: ContractError,

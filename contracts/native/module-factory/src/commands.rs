@@ -216,9 +216,10 @@ mod test {
     use super::*;
     use speculoos::prelude::*;
 
-    use crate::contract::{execute, instantiate};
-    use abstract_core::module_factory::{ExecuteMsg, InstantiateMsg};
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
+    use crate::contract::execute;
+    use crate::test_common::*;
+    use abstract_core::module_factory::ExecuteMsg;
+
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 
     type ModuleFactoryTestResult = Result<(), ModuleFactoryError>;
@@ -229,18 +230,6 @@ mod test {
 
     fn execute_as_admin(deps: DepsMut, msg: ExecuteMsg) -> ModuleFactoryResult {
         execute_as(deps, "admin", msg)
-    }
-
-    fn mock_init(deps: DepsMut) -> ModuleFactoryResult {
-        instantiate(
-            deps,
-            mock_env(),
-            mock_info("admin", &[]),
-            InstantiateMsg {
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                ans_host_address: TEST_ANS_HOST.to_string(),
-            },
-        )
     }
 
     fn test_only_admin(msg: ExecuteMsg) -> ModuleFactoryTestResult {

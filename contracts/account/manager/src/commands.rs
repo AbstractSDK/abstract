@@ -672,51 +672,39 @@ fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> Std
     Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
 }
 
+pub fn update_account_status(
+    deps: DepsMut,
+    info: MessageInfo,
+    suspension_status: Option<bool>,
+) -> Result<Response, ManagerError> {
+    let mut response = ManagerResponse::action("update_status");
+
+    if let Some(suspension_status) = suspension_status {
+        response = update_suspension_status(deps, info, suspension_status, response)?;
+    } else {
+        return Err(ManagerError::NoUpdates {});
+    }
+
+    Ok(response)
+}
+
 #[cfg(test)]
 mod test {
+    use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
     };
     use cosmwasm_std::{Order, OwnedDeps, StdError, Storage};
 
-    use abstract_core::manager::InstantiateMsg;
-
     use crate::contract;
     use speculoos::prelude::*;
 
     use super::*;
+    use crate::test_common::mock_init;
 
     type ManagerTestResult = Result<(), ManagerError>;
 
-    const TEST_ACCOUNT_FACTORY: &str = "account_factory";
-    const TEST_OWNER: &str = "testowner";
-    const TEST_MODULE_FACTORY: &str = "module_factory";
-
-    const TEST_VERSION_CONTROL: &str = "version_control";
-
     const TEST_PROXY_ADDR: &str = "proxy";
-
-    /// Initialize the manager with the test owner as the owner
-    fn mock_init(mut deps: DepsMut) -> ManagerResult {
-        let info = mock_info(TEST_ACCOUNT_FACTORY, &[]);
-
-        contract::instantiate(
-            deps.branch(),
-            mock_env(),
-            info,
-            InstantiateMsg {
-                account_id: 1,
-                owner: GovernanceDetails::Monarchy {
-                    monarch: TEST_OWNER.to_string(),
-                },
-                version_control_address: TEST_VERSION_CONTROL.to_string(),
-                module_factory_address: TEST_MODULE_FACTORY.to_string(),
-                name: "test".to_string(),
-                description: None,
-                link: None,
-            },
-        )
-    }
 
     fn mock_installed_proxy(deps: DepsMut) -> StdResult<()> {
         let _info = mock_info(TEST_OWNER, &[]);
@@ -766,6 +754,7 @@ mod test {
 
     mod set_owner_and_gov_type {
         use super::*;
+        use abstract_core::manager;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -816,7 +805,7 @@ mod test {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that(&res).is_ok();
 
-            let actual_owner = OWNER.get(deps.as_ref())?.unwrap();
+            let actual_owner = manager::state::OWNER.get(deps.as_ref())?.unwrap();
 
             assert_that(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 

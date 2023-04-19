@@ -63,7 +63,7 @@ pub trait AppDeployer<Chain: CwEnv>: ContractInstance<Chain> + BootUpload<Chain>
 
         if version_check.is_ok() {
             return Err(StdErr(format!(
-                "API {} already exists with version {}",
+                "App {} already exists with version {}",
                 self.id(),
                 version
             ))

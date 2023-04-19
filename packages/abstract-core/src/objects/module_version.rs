@@ -15,11 +15,16 @@ of any CW2-compliant module.
 
 For more information on this specification, please check out the
 [README](https://github.com/CosmWasm/cw-plus/blob/main/packages/cw2/README.md).
-*/
+ */
 
 use super::dependency::{Dependency, StaticDependency};
-use cosmwasm_std::{Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery};
+use crate::AbstractError;
+use cosmwasm_std::{
+    ensure, ensure_eq, Empty, Querier, QuerierWrapper, QueryRequest, StdResult, Storage, WasmQuery,
+};
+use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
@@ -32,7 +37,7 @@ pub struct ModuleData {
     /// version is any string that this implementation knows. It may be simple counter "1", "2".
     /// or semantic version on release tags "v0.7.0", or some custom feature flag list.
     /// the only code that needs to understand the version parsing is code that knows how to
-    /// migrate from the given module (and is tied to it's implementation somehow)
+    /// migrate from the given module (and is tied to i's implementation somehow)
     pub version: String,
     /// dependencies store a list of modules that this module depends on, along with its version requirements.
     pub dependencies: Vec<Dependency>,
@@ -63,10 +68,60 @@ pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
     MODULE.save(store, &val).map_err(Into::into)
 }
 
+/// Assert that the new version is greater than the stored version.
+pub fn assert_contract_upgrade(
+    storage: &dyn Storage,
+    to_contract: impl ToString,
+    to_version: Version,
+) -> Result<(), AbstractError> {
+    let ContractVersion {
+        version: from_version,
+        contract,
+    } = get_contract_version(storage)?;
+
+    let to_contract = to_contract.to_string();
+
+    // Must be the same contract
+    ensure_eq!(
+        contract,
+        to_contract,
+        AbstractError::ContractNameMismatch {
+            from: contract,
+            to: to_contract,
+        }
+    );
+
+    let from_version = from_version.parse().unwrap();
+
+    // Must be a version upgrade
+    ensure!(
+        to_version > from_version,
+        AbstractError::CannotDowngradeContract {
+            contract,
+            from: from_version,
+            to: to_version,
+        }
+    );
+    Ok(())
+}
+
+/// Assert that the new version is greater than the stored version.
+pub fn assert_cw_contract_upgrade(
+    storage: &dyn Storage,
+    to_contract: impl ToString,
+    to_version: cw_semver::Version,
+) -> Result<(), AbstractError> {
+    assert_contract_upgrade(
+        storage,
+        to_contract,
+        to_version.to_string().parse().unwrap(),
+    )
+}
+
 /// Migrate the module data to the new state.
 /// If there was no moduleData stored, it will be set to the given values with an empty dependency array.
-/// If the metadata is None, the old metadata will be kept.
-/// If the metadata is Some, the old metadata will be overwritten.
+/// If the metadata is `None`, the old metadata will be kept.
+/// If the metadata is `Some`, the old metadata will be overwritten.
 pub fn migrate_module_data(
     store: &mut dyn Storage,
     name: &str,

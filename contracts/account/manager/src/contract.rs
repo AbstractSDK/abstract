@@ -7,19 +7,19 @@ use crate::{
     versioning,
 };
 use abstract_core::manager::state::AccountInfo;
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_sdk::core::{
     manager::{
         state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, OWNER, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::module_version::{migrate_module_data, set_module_data},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
 use cosmwasm_std::{
     ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
+use cw2::set_contract_version;
 use semver::Version;
 
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
@@ -35,11 +35,9 @@ pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, MANAGER, CONTRACT_VERSION, None::<String>)?;
-    }
+
+    assert_contract_upgrade(deps.storage, MANAGER, version)?;
+    set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     Ok(ManagerResponse::action("migrate"))
 }
 
@@ -51,7 +49,6 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-    set_module_data(deps.storage, MANAGER, CONTRACT_VERSION, &[], None::<String>)?;
 
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
@@ -157,22 +154,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
     }
 }
 
-fn update_account_status(
-    deps: DepsMut,
-    info: MessageInfo,
-    suspension_status: Option<bool>,
-) -> Result<Response, ManagerError> {
-    let mut response = ManagerResponse::action("update_status");
-
-    if let Some(suspension_status) = suspension_status {
-        response = update_suspension_status(deps, info, suspension_status, response)?;
-    } else {
-        return Err(ManagerError::NoUpdates {});
-    }
-
-    Ok(response)
-}
-
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
@@ -203,4 +184,108 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
 
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
     Ok(Response::new())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::contract;
+    use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
+
+    use crate::test_common::mock_init;
+
+    mod migrate {
+        use super::*;
+        use abstract_core::AbstractError;
+        use cw2::get_contract_version;
+
+        #[test]
+        fn disallow_same_version() -> ManagerResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: MANAGER.to_string(),
+                        from: version.clone(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> ManagerResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let big_version = "999.999.999";
+            set_contract_version(deps.as_mut().storage, MANAGER, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: MANAGER.to_string(),
+                        from: big_version.parse().unwrap(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> ManagerResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: MANAGER.parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> ManagerResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let small_version = "0.0.0";
+            set_contract_version(deps.as_mut().storage, MANAGER, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
+    }
 }

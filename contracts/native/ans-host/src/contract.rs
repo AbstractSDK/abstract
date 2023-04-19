@@ -6,18 +6,22 @@ use abstract_core::{
         state::{Config, CONFIG, REGISTERED_DEXES},
         ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
-    objects::module_version::{migrate_module_data, set_module_data},
+    objects::module_version::assert_contract_upgrade,
     ANS_HOST,
 };
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-use cw2::{get_contract_version, set_contract_version};
+use cw2::set_contract_version;
 use semver::Version;
 
-pub type AnsHostResult = Result<Response, AnsHostError>;
+use abstract_macros::abstract_response;
+use abstract_sdk::query_ownership;
+
+#[abstract_response(ANS_HOST)]
+pub struct AnsHostResponse;
+
+pub type AnsHostResult<T = Response> = Result<T, AnsHostError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-use abstract_sdk::query_ownership;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -27,13 +31,6 @@ pub fn instantiate(
     _msg: InstantiateMsg,
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        ANS_HOST,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
 
     // Initialize the config
     CONFIG.save(
@@ -46,10 +43,10 @@ pub fn instantiate(
     // Initialize the dexes
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
-    // Setup the admin as the creator of the contract
+    // Set up the admin as the creator of the contract
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
 
-    Ok(Response::default())
+    Ok(AnsHostResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -108,13 +105,114 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> AnsHostResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, ANS_HOST, CONTRACT_VERSION, None::<String>)?;
-    }
 
-    Ok(Response::default())
+    assert_contract_upgrade(deps.storage, ANS_HOST, version)?;
+    set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
+
+    Ok(AnsHostResponse::action("migrate"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_common::*;
+    use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
+
+    mod migrate {
+        use super::*;
+        use crate::contract;
+        use abstract_core::AbstractError;
+        use cw2::get_contract_version;
+
+        #[test]
+        fn disallow_same_version() -> AnsHostResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AnsHostError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: ANS_HOST.to_string(),
+                        from: version.clone(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> AnsHostResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let big_version = "999.999.999";
+            set_contract_version(deps.as_mut().storage, ANS_HOST, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AnsHostError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: ANS_HOST.to_string(),
+                        from: big_version.parse().unwrap(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> AnsHostResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(AnsHostError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: ANS_HOST.parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> AnsHostResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let small_version = "0.0.0";
+            set_contract_version(deps.as_mut().storage, ANS_HOST, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
+    }
 }

@@ -1,23 +1,23 @@
 use crate::{commands, error::IbcClientError, queries};
+use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::{
     ibc_client::{state::*, *},
     objects::{
         ans_host::AnsHost,
         module_version::{migrate_module_data, set_module_data},
     },
-    AbstractResult, IBC_CLIENT,
+    IBC_CLIENT,
 };
 use abstract_macros::abstract_response;
 use cosmwasm_std::{
     to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
 use cw_semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const MAX_RETRIES: u8 = 5;
 
-pub(crate) type IbcClientResult = Result<Response, IbcClientError>;
+pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
 
 #[abstract_response(IBC_CLIENT)]
 pub(crate) struct IbcClientResponse;
@@ -28,8 +28,8 @@ pub fn instantiate(
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
-) -> AbstractResult<Response> {
-    set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+) -> IbcClientResult {
+    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
     set_module_data(
         deps.storage,
         IBC_CLIENT,
@@ -109,28 +109,27 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
-    let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
-        migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
-    }
-    // type migration
-    Ok(Response::default())
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
+    let to_version: Version = CONTRACT_VERSION.parse().unwrap();
+
+    assert_cw_contract_upgrade(deps.storage, IBC_CLIENT, to_version)?;
+    cw2::set_contract_version(deps.storage, IBC_CLIENT, CONTRACT_VERSION)?;
+    migrate_module_data(deps.storage, IBC_CLIENT, CONTRACT_VERSION, None::<String>)?;
+    Ok(IbcClientResponse::action("migrate"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::queries::query_config;
+    use crate::test_common::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr,
     };
     use cw2::CONTRACT;
 
-    const CREATOR: &str = "creator";
+    use abstract_testing::addresses::TEST_CREATOR;
     use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use speculoos::prelude::*;
 
@@ -142,7 +141,7 @@ mod tests {
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };
-        let info = mock_info(CREATOR, &[]);
+        let info = mock_info(TEST_CREATOR, &[]);
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_that!(res.messages).is_empty();
 
@@ -153,7 +152,7 @@ mod tests {
         };
 
         let config_resp = query_config(deps.as_ref()).unwrap();
-        assert_that!(config_resp.admin.as_str()).is_equal_to(CREATOR);
+        assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_config).is_equal_to(expected_config);
@@ -166,5 +165,101 @@ mod tests {
         // ans host
         let actual_ans_host = ANS_HOST.load(deps.as_ref().storage).unwrap();
         assert_that!(actual_ans_host.address.as_str()).is_equal_to(TEST_ANS_HOST);
+    }
+
+    mod migrate {
+        use super::*;
+        use crate::contract;
+
+        use abstract_core::AbstractError;
+        use cosmwasm_std::testing::mock_dependencies;
+
+        #[test]
+        fn disallow_same_version() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(IbcClientError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: IBC_CLIENT.to_string(),
+                        from: version.to_string().parse().unwrap(),
+                        to: version.to_string().parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let big_version = "999.999.999";
+            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(IbcClientError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: IBC_CLIENT.to_string(),
+                        from: big_version.parse().unwrap(),
+                        to: version.to_string().parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            cw2::set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(IbcClientError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: IBC_CLIENT.parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> IbcClientResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let small_version = "0.0.0";
+            cw2::set_contract_version(deps.as_mut().storage, IBC_CLIENT, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(cw2::get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
     }
 }

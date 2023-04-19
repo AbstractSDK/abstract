@@ -106,7 +106,7 @@ pub mod app_1 {
         gen_app_mock!(
             BootMockApp1V1,
             MOCK_APP_ID,
-            "0.1.0",
+            "1.0.0",
             &[
                 StaticDependency::new(api_1::MOCK_API_ID, &[V1]),
                 StaticDependency::new(api_2::MOCK_API_ID, &[V1]),
@@ -119,7 +119,7 @@ pub mod app_1 {
         gen_app_mock!(
             BootMockApp1V2,
             MOCK_APP_ID,
-            "0.2.0",
+            "2.0.0",
             &[
                 StaticDependency::new(api_1::MOCK_API_ID, &[V2]),
                 StaticDependency::new(api_2::MOCK_API_ID, &[V2]),

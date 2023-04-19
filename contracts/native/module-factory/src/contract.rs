@@ -1,22 +1,19 @@
 use crate::{commands, error::ModuleFactoryError, state::*};
-use abstract_core::objects::module_version::migrate_module_data;
+use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{
-    module_factory::*, objects::module_version::set_module_data, MODULE_FACTORY,
-};
+use abstract_sdk::core::{module_factory::*, MODULE_FACTORY};
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
-use cw2::{get_contract_version, set_contract_version};
+use cw2::set_contract_version;
 use semver::Version;
-
-pub type ModuleFactoryResult<T = Response> = Result<T, ModuleFactoryError>;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Abstract module factory response
 #[abstract_response(MODULE_FACTORY)]
 pub struct ModuleFactoryResponse;
+
+pub type ModuleFactoryResult<T = Response> = Result<T, ModuleFactoryError>;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(
@@ -31,13 +28,6 @@ pub fn instantiate(
     };
 
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-    set_module_data(
-        deps.storage,
-        MODULE_FACTORY,
-        CONTRACT_VERSION,
-        &[],
-        None::<String>,
-    )?;
     CONFIG.save(deps.storage, &config)?;
     // Set context for after init
     CONTEXT.save(
@@ -47,8 +37,9 @@ pub fn instantiate(
             module: None,
         },
     )?;
+
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
-    Ok(Response::new())
+    Ok(ModuleFactoryResponse::action("instantiate"))
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -127,17 +118,113 @@ pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> StdResult<Response> {
+pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ModuleFactoryResult {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let storage_version: Version = get_contract_version(deps.storage)?.version.parse().unwrap();
-    if storage_version < version {
-        set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
-        migrate_module_data(
-            deps.storage,
-            MODULE_FACTORY,
-            CONTRACT_VERSION,
-            None::<String>,
-        )?;
+
+    assert_contract_upgrade(deps.storage, MODULE_FACTORY, version)?;
+    set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
+    Ok(ModuleFactoryResponse::action("migrate"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::contract;
+    use crate::test_common::*;
+    use cosmwasm_std::testing::*;
+    use speculoos::prelude::*;
+
+    mod migrate {
+        use super::*;
+        use abstract_core::AbstractError;
+        use cw2::get_contract_version;
+
+        #[test]
+        fn disallow_same_version() -> ModuleFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ModuleFactoryError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: MODULE_FACTORY.to_string(),
+                        from: version.clone(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_downgrade() -> ModuleFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let big_version = "999.999.999";
+            set_contract_version(deps.as_mut().storage, MODULE_FACTORY, big_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ModuleFactoryError::Abstract(
+                    AbstractError::CannotDowngradeContract {
+                        contract: MODULE_FACTORY.to_string(),
+                        from: big_version.parse().unwrap(),
+                        to: version,
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallow_name_change() -> ModuleFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let old_version = "0.0.0";
+            let old_name = "old:contract";
+            set_contract_version(deps.as_mut().storage, old_name, old_version)?;
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {});
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ModuleFactoryError::Abstract(
+                    AbstractError::ContractNameMismatch {
+                        from: old_name.parse().unwrap(),
+                        to: MODULE_FACTORY.parse().unwrap(),
+                    },
+                ));
+
+            Ok(())
+        }
+
+        #[test]
+        fn works() -> ModuleFactoryResult<()> {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let small_version = "0.0.0";
+            set_contract_version(deps.as_mut().storage, MODULE_FACTORY, small_version)?;
+
+            let version: Version = CONTRACT_VERSION.parse().unwrap();
+
+            let res = contract::migrate(deps.as_mut(), mock_env(), MigrateMsg {})?;
+            assert_that!(res.messages).has_length(0);
+
+            assert_that!(get_contract_version(&deps.storage)?.version)
+                .is_equal_to(version.to_string());
+            Ok(())
+        }
     }
-    Ok(Response::default())
 }
