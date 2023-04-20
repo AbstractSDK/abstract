@@ -51,7 +51,7 @@ fn create_one_os() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -102,7 +102,7 @@ fn create_two_account_s() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
     // second account
     let account_2 = factory.create_account(
@@ -111,7 +111,7 @@ fn create_two_account_s() -> AResult {
         },
         String::from("second_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -169,7 +169,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
@@ -219,7 +219,7 @@ fn sender_is_not_admin_external() -> AResult {
         },
         String::from("first_os"),
         Some(String::from("account_description")),
-        Some(String::from("account_link_of_at_least_11_char")),
+        Some(String::from("http://account_link_of_at_least_11_char")),
     )?;
 
     let account = AbstractAccount::new(chain, Some(0));

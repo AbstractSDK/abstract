@@ -25,11 +25,12 @@ use semver::Version;
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub(crate) const MIN_DESC_LENGTH: usize = 4;
+pub(crate) const MIN_DESC_LENGTH: usize = 1;
 pub(crate) const MAX_DESC_LENGTH: usize = 1024;
+/// Minimum link length is 11, because the shortest url could be http://a.be
 pub(crate) const MIN_LINK_LENGTH: usize = 11;
 pub(crate) const MAX_LINK_LENGTH: usize = 128;
-pub(crate) const MIN_TITLE_LENGTH: usize = 4;
+pub(crate) const MIN_TITLE_LENGTH: usize = 1;
 pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
