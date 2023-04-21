@@ -90,7 +90,6 @@ pub enum QueryMsg {
 /// Account Factory config response
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub owner: Addr,
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,

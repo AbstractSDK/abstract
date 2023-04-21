@@ -3,7 +3,7 @@ use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{module_factory::*, MODULE_FACTORY};
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -94,9 +94,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
     let state: Config = CONFIG.load(deps.storage)?;
-    let owner = cw_ownable::get_ownership(deps.storage)?.owner;
     let resp = ConfigResponse {
-        owner: owner.unwrap_or_else(|| Addr::unchecked("")),
         version_control_address: state.version_control_address,
         ans_host_address: state.ans_host_address,
     };

@@ -261,7 +261,6 @@ pub struct MigrateMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub next_unique_pool_id: UniquePoolId,
-    pub admin: Addr,
 }
 /// Query response
 #[cosmwasm_schema::cw_serde]

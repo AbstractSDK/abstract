@@ -206,7 +206,6 @@ pub struct NamespaceListResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub admin: Addr,
     pub factory: Addr,
 }
 

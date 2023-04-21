@@ -97,13 +97,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
         QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
         QueryMsg::Config {} => {
-            let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
-
             let factory = FACTORY.get(deps)?.unwrap();
-            to_binary(&ConfigResponse {
-                admin: owner.unwrap(),
-                factory,
-            })
+            to_binary(&ConfigResponse { factory })
         }
         QueryMsg::ModuleList {
             filter,

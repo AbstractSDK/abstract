@@ -29,11 +29,8 @@ pub fn query_config(deps: Deps) -> StdResult<Binary> {
         next_unique_pool_id,
     } = CONFIG.load(deps.storage)?;
 
-    let cw_ownable::Ownership { owner, .. } = cw_ownable::get_ownership(deps.storage)?;
-
     let res = ConfigResponse {
         next_unique_pool_id,
-        admin: owner.unwrap(),
     };
 
     to_binary(&res)
