@@ -18,7 +18,7 @@ pub mod mock {
     pub use abstract_core::app;
     use boot_core::{ContractWrapper, CwEnv};
     pub use cosmwasm_std::testing::*;
-    use cosmwasm_std::{from_binary, to_binary, Addr, StdError};
+    use cosmwasm_std::{from_binary, to_binary, Addr, Response, StdError};
 
     pub type AppTestResult = Result<(), MockError>;
 
@@ -79,7 +79,22 @@ pub mod mock {
         MockSudoMsg,
     >;
 
-    pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+    pub const BASIC_MOCK_APP: MockAppContract =
+        MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None);
+
+    pub const MOCK_APP: MockAppContract = MockAppContract::new(TEST_MODULE_ID, TEST_VERSION, None)
+        .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
+        .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
+        .with_query(|_, _, _, _| to_binary("mock_query").map_err(Into::into))
+        .with_sudo(|_, _, _, _| Ok(Response::new().set_data("mock_sudo".as_bytes())))
+        .with_receive(|_, _, _, _, _| Ok(Response::new().set_data("mock_receive".as_bytes())))
+        .with_ibc_callbacks(&[("c_id", |_, _, _, _, _, _| {
+            Ok(Response::new().set_data("mock_callback".as_bytes()))
+        })])
+        .with_replies(&[(1u64, |_, _, _, msg| {
+            Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
+        })])
+        .with_migrate(|_, _, _, _| Ok(Response::new().set_data("mock_migrate".as_bytes())));
 
     crate::export_endpoints!(MOCK_APP, MockAppContract);
 
@@ -116,7 +131,7 @@ pub mod mock {
             module: MockInitMsg {},
         };
 
-        MOCK_APP
+        BASIC_MOCK_APP
             .instantiate(deps.as_mut(), mock_env(), info, msg)
             .unwrap();
 
