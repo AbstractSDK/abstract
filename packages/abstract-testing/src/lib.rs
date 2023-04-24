@@ -8,7 +8,9 @@ use cosmwasm_std::{
     OwnedDeps,
 };
 pub use mock_ans::MockAnsHost;
-pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
+pub use mock_querier::{
+    map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder, MockQuerierOwnership,
+};
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const OWNER: &str = "owner";
 pub mod addresses {
@@ -42,7 +44,6 @@ pub mod addresses {
     pub const EUR: &str = "eur";
     pub const USD: &str = "usd";
 
-    /// TODO: static const?
     pub fn test_account_base() -> AccountBase {
         AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),

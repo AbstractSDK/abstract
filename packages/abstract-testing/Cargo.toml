@@ -24,6 +24,7 @@ cw-asset = { workspace = true }
 cw-multi-test = { workspace = true }
 rstest = { workspace = true }
 semver = { workspace = true }
+cw-ownable = { workspace = true }
 
 [dev-dependencies]
 abstract-sdk = { path = "../abstract-sdk", features = ["test-utils"] }

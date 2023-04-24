@@ -10,7 +10,7 @@ use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
         manager::state::{
-            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, OWNER, SUSPENSION_STATUS,
+            AccountInfo, SuspensionStatus, ACCOUNT_MODULES, CONFIG, INFO, SUSPENSION_STATUS,
         },
         manager::{CallbackMsg, ExecuteMsg},
         module_factory::ExecuteMsg as ModuleFactoryMsg,
@@ -86,7 +86,7 @@ pub fn install_module(
     init_msg: Option<Binary>,
 ) -> ManagerResult {
     // only owner can call this method
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     // Check if module is already enabled.
     if ACCOUNT_MODULES
@@ -172,7 +172,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -197,7 +197,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -231,30 +231,40 @@ pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String)
 
 pub fn set_owner(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
-    // assert that the caller is the current owner
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
     // verify the provided governance details
     let verified_gov = new_owner.verify(deps.api)?;
     let new_owner_addr = verified_gov.owner_address();
 
     // Update the account information
     let mut acc_info = INFO.load(deps.storage)?;
+
+    // Check that there are changes
+    if acc_info.governance_details == verified_gov {
+        return Err(ManagerError::NoUpdates {});
+    }
+
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
-    // Update the OWNER
-    let previous_owner = OWNER.get(deps.as_ref())?.unwrap();
-    OWNER.execute_update_admin::<Empty, Empty>(deps, info, Some(new_owner_addr.clone()))?;
-    Ok(ManagerResponse::new(
-        "update_owner",
-        vec![
-            ("previous_owner", previous_owner.to_string()),
-            ("new_owner", new_owner_addr.to_string()),
-            ("governance_type", verified_gov.to_string()),
-        ],
-    ))
+
+    // Update the Owner of the Account
+    let ownership = cw_ownable::update_ownership(
+        deps,
+        &env.block,
+        &info.sender,
+        cw_ownable::Action::TransferOwnership {
+            new_owner: new_owner_addr.into_string(),
+            expiry: None,
+        },
+    )?;
+
+    let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
+    attrs.extend(ownership.into_attributes());
+
+    Ok(ManagerResponse::new("update_owner", attrs))
 }
 
 /// Migrate modules through address updates or contract migrations
@@ -267,7 +277,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -498,7 +508,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    OWNER.assert_admin(deps.as_ref(), &info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -520,7 +530,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -534,7 +544,7 @@ pub fn update_ibc_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update IBC status
-    OWNER.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -689,7 +699,7 @@ pub fn update_account_status(
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use abstract_testing::prelude::*;
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
@@ -743,18 +753,17 @@ mod test {
         let res = execute_as(deps.as_mut(), "not_owner", msg);
         assert_that(&res)
             .is_err()
-            .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+            .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
         Ok(())
     }
 
-    use cw_controllers::AdminError;
+    use cw_ownable::OwnershipError;
 
     type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 
     mod set_owner_and_gov_type {
         use super::*;
-        use abstract_core::manager;
 
         #[test]
         fn only_owner() -> ManagerTestResult {
@@ -796,16 +805,19 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let new_owner = "new_owner";
-            let msg = ExecuteMsg::SetOwner {
+            let set_owner_msg = ExecuteMsg::SetOwner {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
             };
 
-            let res = execute_as_owner(deps.as_mut(), msg);
+            let res = execute_as_owner(deps.as_mut(), set_owner_msg);
             assert_that(&res).is_ok();
 
-            let actual_owner = manager::state::OWNER.get(deps.as_ref())?.unwrap();
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            execute_as(deps.as_mut(), new_owner, accept_msg)?;
+
+            let actual_owner = cw_ownable::get_ownership(&deps.storage)?.owner.unwrap();
 
             assert_that(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 
@@ -938,7 +950,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_account_factory", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
 
             Ok(())
         }
@@ -960,7 +972,7 @@ mod test {
             let res = execute_as(deps.as_mut(), "not_owner", msg);
             assert_that(&res)
                 .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
+                .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
             Ok(())
         }
@@ -1467,12 +1479,7 @@ mod test {
                 is_suspended: Some(true),
             };
 
-            let res = execute_as(deps.as_mut(), "not owner", msg);
-            assert_that(&res)
-                .is_err()
-                .is_equal_to(ManagerError::Admin(AdminError::NotAdmin {}));
-
-            Ok(())
+            test_only_owner(msg)
         }
 
         #[test]
@@ -1558,6 +1565,66 @@ mod test {
 
             assert_that!(upgraded_modules).has_length(1);
             assert_eq!(upgraded_modules[0].0, TEST_MODULE_ID);
+
+            Ok(())
+        }
+    }
+
+    mod update_ownership {
+        use super::*;
+
+        #[test]
+        fn allows_ownership_acceptance() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let pending_owner = "not_owner";
+            // mock pending owner
+            Item::new("ownership").save(
+                deps.as_mut().storage,
+                &cw_ownable::Ownership {
+                    owner: None,
+                    pending_expiry: None,
+                    pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership {});
+
+            execute_as(deps.as_mut(), pending_owner, msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn allows_renouncing() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::RenounceOwnership {});
+
+            execute_as_owner(deps.as_mut(), msg)?;
+
+            Ok(())
+        }
+
+        #[test]
+        fn disallows_ownership_transfer() -> ManagerTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let transfer_to = "not_owner";
+
+            let msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::TransferOwnership {
+                new_owner: transfer_to.to_string(),
+                expiry: None,
+            });
+
+            let res = execute_as_owner(deps.as_mut(), msg);
+
+            assert_that!(res)
+                .is_err()
+                .is_equal_to(ManagerError::MustUseSetOwner {});
 
             Ok(())
         }

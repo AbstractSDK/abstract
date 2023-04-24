@@ -35,6 +35,7 @@ abstract-core = { workspace = true }
 semver = { workspace = true }
 cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
+cw-ownable = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true }

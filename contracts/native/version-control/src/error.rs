@@ -1,6 +1,6 @@
 use abstract_core::{objects::AccountId, AbstractError};
 use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Addr, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -40,7 +40,10 @@ pub enum VCError {
     UnknownNamespace { namespace: String },
 
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
-    AccountOwnerMismatch { sender: String, owner: String },
+    AccountOwnerMismatch { sender: Addr, owner: Addr },
+
+    #[error("Account with ID {} has no owner", account_id)]
+    NoAccountOwner { account_id: AccountId },
 
     #[error("Namespace {} is already occupied by {}", namespace, id)]
     NamespaceOccupied { namespace: String, id: AccountId },

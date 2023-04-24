@@ -245,7 +245,7 @@ mod test {
         test_account_base, TEST_ACCOUNT_FACTORY, TEST_ACCOUNT_ID, TEST_MANAGER,
         TEST_MODULE_FACTORY, TEST_VERSION_CONTROL,
     };
-    use abstract_testing::MockQuerierBuilder;
+    use abstract_testing::{MockQuerierBuilder, MockQuerierOwnership};
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{Addr, DepsMut, StdError, Uint64};
 
@@ -272,7 +272,6 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_ADMIN.to_owned(),
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
                             account_id: Uint64::from(TEST_ACCOUNT_ID), // mock value, not used
@@ -287,7 +286,6 @@ mod test {
                 match from_binary(msg).unwrap() {
                     manager::QueryMsg::Config {} => {
                         let resp = manager::ConfigResponse {
-                            owner: TEST_OTHER.to_owned(),
                             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
                             module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
                             account_id: Uint64::from(TEST_OTHER_ACCOUNT_ID), // mock value, not used
@@ -298,6 +296,8 @@ mod test {
                     _ => panic!("unexpected message"),
                 }
             })
+            .with_owner(TEST_MANAGER, Some(TEST_ADMIN))
+            .with_owner(TEST_OTHER_MANAGER_ADDR, Some(TEST_OTHER))
     }
 
     fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {

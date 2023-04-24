@@ -1,4 +1,5 @@
 use crate::{addresses::*, mock_ans::MockAnsHost, MockQuerierBuilder};
+use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
 use abstract_core::{
     ans_host::state::ASSET_ADDRESSES,
     objects::{common_namespace::ADMIN_NAMESPACE, core::ACCOUNT_ID, AssetEntry},
@@ -6,6 +7,7 @@ use abstract_core::{
 };
 use cosmwasm_std::{testing::MockQuerier, Addr};
 use cw_asset::AssetInfo;
+use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 
 /// A mock querier setup with the proper responses for proxy/manager/accountId.
@@ -38,6 +40,16 @@ impl AbstractMockQuerierBuilder {
                 proxy,
                 Item::new(ADMIN_NAMESPACE),
                 &Some(Addr::unchecked(manager)),
+            )
+            // Setup the account owner as the test owner
+            .with_contract_item(
+                manager,
+                Item::new(OWNERSHIP_STORAGE_KEY),
+                &Some(Ownership {
+                    owner: Some(Addr::unchecked(TEST_OWNER)),
+                    pending_owner: None,
+                    pending_expiry: None,
+                }),
             )
             .with_contract_map_entry(
                 self.version_control,
