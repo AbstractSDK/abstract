@@ -62,7 +62,7 @@ speculoos = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-wyndex-bundle = { git = "https://github.com/Abstract-OS/integration-bundles.git", tag = "v0.3.0" }
+wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git", tag = "v0.3.0" }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 dex = { path = ".", features = ["boot","juno"], package = "abstract-dex-api" }
