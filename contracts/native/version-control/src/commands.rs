@@ -38,7 +38,7 @@ pub fn add_account(
 }
 
 /// Here we can add logic to allow subscribers to claim a namespace and upload contracts to that namespace
-pub fn add_modules(
+pub fn propose_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     modules: Vec<(ModuleInfo, ModuleReference)>,
@@ -71,7 +71,7 @@ pub fn add_modules(
         }
     }
 
-    Ok(VcResponse::action("add_modules"))
+    Ok(VcResponse::action("propose_modules"))
 }
 
 /// Approve and reject modules
@@ -745,7 +745,7 @@ mod test {
             // first add module
             let mut new_module = test_module();
             new_module.namespace = new_namespace1.to_string();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -764,7 +764,7 @@ mod test {
         }
     }
 
-    mod add_modules {
+    mod propose_modules {
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -785,7 +785,7 @@ mod test {
             mock_init_with_account(deps.as_mut(), true)?;
             let mut new_module = test_module();
             new_module.namespace = ABSTRACT_NAMESPACE.to_owned();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
@@ -801,7 +801,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -837,7 +837,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -887,7 +887,7 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -934,7 +934,7 @@ mod test {
             execute_as(
                 deps.as_mut(),
                 TEST_OWNER,
-                ExecuteMsg::AddModules {
+                ExecuteMsg::ProposeModules {
                     modules: vec![(new_module.clone(), ModuleReference::App(0))],
                 },
             )?;
@@ -976,7 +976,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1016,7 +1016,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the account owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1052,7 +1052,7 @@ mod test {
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
 
             // first add module as the owner
-            let add_modules_msg = ExecuteMsg::AddModules {
+            let add_modules_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(rm_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, add_modules_msg)?;
@@ -1090,7 +1090,7 @@ mod test {
                 TEST_MODULE_ID,
                 ModuleVersion::Version("non_compliant_version".into()),
             )?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(bad_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1099,7 +1099,7 @@ mod test {
                 .matches(|e| e.to_string().contains("Invalid version"));
 
             let latest_version_module = ModuleInfo::from_id(TEST_MODULE_ID, ModuleVersion::Latest)?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(latest_version_module, ModuleReference::App(0))],
             };
             let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1118,7 +1118,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
 
@@ -1163,7 +1163,7 @@ mod test {
             ];
 
             for bad_module in bad_modules {
-                let msg = ExecuteMsg::AddModules {
+                let msg = ExecuteMsg::ProposeModules {
                     modules: vec![(bad_module.clone(), ModuleReference::App(0))],
                 };
                 let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
@@ -1203,7 +1203,7 @@ mod test {
             // add a module as the owner
             let mut new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
             new_module.namespace = TEST_NAMESPACE.to_string();
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;
@@ -1230,7 +1230,7 @@ mod test {
 
             // add a module as the owner
             let new_module = ModuleInfo::from_id(TEST_MODULE_ID, TEST_VERSION.into())?;
-            let msg = ExecuteMsg::AddModules {
+            let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
             execute_as(deps.as_mut(), TEST_OWNER, msg)?;

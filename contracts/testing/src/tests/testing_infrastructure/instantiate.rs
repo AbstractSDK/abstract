@@ -153,7 +153,7 @@ fn add_contracts_to_version_control_and_set_factory(
         })
         .collect();
 
-    let msg = VCMsg::ExecuteMsg::AddModules { modules };
+    let msg = VCMsg::ExecuteMsg::ProposeModules { modules };
     app.execute_contract(owner.clone(), version_control.clone(), &msg, &[])
         .unwrap();
 

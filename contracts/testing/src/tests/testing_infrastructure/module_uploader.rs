@@ -14,7 +14,7 @@ pub fn register_app(
     contract: Box<dyn Contract<Empty>>,
 ) -> AnyResult<()> {
     let code_id = app.store_code(contract);
-    let msg = VCMsg::ExecuteMsg::AddModules {
+    let msg = VCMsg::ExecuteMsg::ProposeModules {
         modules: vec![(module, ModuleReference::App(code_id))],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;
@@ -28,7 +28,7 @@ pub fn register_api(
     module: ModuleInfo,
     address: Addr,
 ) -> AnyResult<()> {
-    let msg = VCMsg::ExecuteMsg::AddModules {
+    let msg = VCMsg::ExecuteMsg::ProposeModules {
         modules: vec![(module, ModuleReference::Api(address))],
     };
     app.execute_contract(sender.clone(), version_control.clone(), &msg, &[])?;

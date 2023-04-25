@@ -97,9 +97,13 @@ pub enum ExecuteMsg {
     /// Yank a version of a module so that it may not be installed
     /// Only callable by Admin
     YankModule { module: ModuleInfo },
-    /// Add new modules
-    AddModules { modules: Vec<ModuleMapEntry> },
+    /// Propose new modules to the version registry
+    /// Namespaces need to be claimed by the Account before proposing modules
+    /// Once proposed, the modules need to be approved by the Admin via [`ExecuteMsg::ApproveOrRejectModules`]
+    ProposeModules { modules: Vec<ModuleMapEntry> },
     /// Approve or reject modules
+    /// This takes the modules in the pending_modules map and
+    /// moves them to the registered_modules map or yanked_modules map
     ApproveOrRejectModules {
         approves: Vec<ModuleInfo>,
         rejects: Vec<ModuleInfo>,

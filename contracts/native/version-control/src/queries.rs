@@ -374,7 +374,7 @@ mod test {
         }
 
         fn add_module(deps: DepsMut, new_module_info: ModuleInfo) {
-            let add_msg = ExecuteMsg::AddModules {
+            let add_msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module_info, ModuleReference::App(0))],
             };
 
@@ -491,12 +491,12 @@ mod test {
     }
 
     /// Add the provided modules to the version control
-    fn add_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
+    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
         let modules = new_module_infos
             .into_iter()
             .map(|info| (info, ModuleReference::App(0)))
             .collect();
-        let add_msg = ExecuteMsg::AddModules { modules };
+        let add_msg = ExecuteMsg::ProposeModules { modules };
         let res = execute_as_admin(deps, add_msg);
         assert_that!(&res).is_ok();
     }
@@ -522,14 +522,14 @@ mod test {
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        add_modules(deps.branch(), cw_mods);
+        propose_modules(deps.branch(), cw_mods);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        add_modules(deps, fortytwo_mods);
+        propose_modules(deps, fortytwo_mods);
     }
 
     mod modules {
@@ -646,7 +646,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -693,7 +693,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -755,7 +755,7 @@ mod test {
                 ModuleInfo::from_id("snth:module3", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            add_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods);
 
             let filtered_namespace = "dne".to_string();
 
@@ -815,7 +815,7 @@ mod test {
             let filtered_namespace = "cw-plus".to_string();
             let filtered_name = "module2".to_string();
 
-            add_modules(
+            propose_modules(
                 deps.as_mut(),
                 vec![ModuleInfo::from_id(
                     format!("{filtered_namespace}:{filtered_name}").as_str(),

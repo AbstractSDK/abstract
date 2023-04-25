@@ -51,7 +51,7 @@ where
             ModuleInfo::from_id(&manager.id, ModuleVersion::Version(version.to_string()))?,
             ModuleReference::AccountBase(manager.code_id()?),
         );
-        self.add_modules(vec![manager_module])?;
+        self.propose_modules(vec![manager_module])?;
 
         log::info!("Module {} registered", manager.id);
 
@@ -60,7 +60,7 @@ where
             ModuleInfo::from_id(&proxy.id, ModuleVersion::Version(version.to_string()))?,
             ModuleReference::AccountBase(proxy.code_id()?),
         );
-        self.add_modules(vec![proxy_module])?;
+        self.propose_modules(vec![proxy_module])?;
 
         log::info!("Module {} registered", proxy.id);
         Ok(())
@@ -75,7 +75,7 @@ where
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
             ModuleReference::AccountBase(c.code_id().unwrap())
         })?;
-        self.add_modules(to_register)?;
+        self.propose_modules(to_register)?;
         Ok(())
     }
 
@@ -88,7 +88,7 @@ where
         let to_register = self.contracts_into_module_entries(natives, version, |c| {
             ModuleReference::Native(c.address().unwrap())
         })?;
-        self.add_modules(to_register)?;
+        self.propose_modules(to_register)?;
         Ok(())
     }
 
@@ -100,7 +100,7 @@ where
         let to_register = self.contracts_into_module_entries(apps, version, |c| {
             ModuleReference::App(c.code_id().unwrap())
         })?;
-        self.add_modules(to_register)?;
+        self.propose_modules(to_register)?;
         Ok(())
     }
 
@@ -112,7 +112,7 @@ where
         let to_register = self.contracts_into_module_entries(apis, version, |c| {
             ModuleReference::Api(c.address().unwrap())
         })?;
-        self.add_modules(to_register)?;
+        self.propose_modules(to_register)?;
         Ok(())
     }
 
@@ -124,7 +124,7 @@ where
         let to_register = self.contracts_into_module_entries(standalones, version, |c| {
             ModuleReference::Standalone(c.code_id().unwrap())
         })?;
-        self.add_modules(to_register)?;
+        self.propose_modules(to_register)?;
         Ok(())
     }
 

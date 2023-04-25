@@ -42,7 +42,7 @@ pub fn fix_versions() -> anyhow::Result<()> {
         } = info.clone();
         if version.to_string() == *WRONG_VERSION && namespace == *NAMESPACE {
             deployment.version_control.remove_module(info)?;
-            deployment.version_control.add_modules(vec![(
+            deployment.version_control.propose_modules(vec![(
                 ModuleInfo {
                     name,
                     namespace,
