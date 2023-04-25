@@ -1,6 +1,6 @@
 # Abstract-SDK
 
-<!-- [![](https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github)](https://github.com/Abstract-OS/contracts)   -->
+<!-- [![](https://img.shields.io/badge/github-8da0cb?style=for-the-badge&labelColor=555555&logo=github)](https://github.com/AbstractSDK/contracts)   -->
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 

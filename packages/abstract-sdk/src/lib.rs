@@ -1,5 +1,5 @@
-#![doc(html_logo_url = "https://raw.githubusercontent.com/Abstract-OS/assets/mainline/logo.svg")]
-#![doc = include_str!("../README.md")]
+#![doc(html_logo_url = "https://raw.githubusercontent.com/AbstractSDK/assets/mainline/logo.svg")]
+#![doc = include_str ! ("../README.md")]
 #![doc(test(attr(
     warn(unused),
     deny(warnings),

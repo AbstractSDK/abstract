@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Helpers for Abstract contracts"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/Abstract-OS/contracts/tree/main/packages/abstract-sdk"
+repository = "https://github.com/AbstractSDK/contracts/tree/main/packages/abstract-sdk"
 resolver = "2"
 
 

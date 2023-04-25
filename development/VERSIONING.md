@@ -28,15 +28,18 @@ Most of the versioning information is contained within the workspace level [`Car
 
 ### Contracts
 
-1. Upgrade the versions in the [`contracts`](https://github.com/Abstract-OS/contracts) repository to the new version via global find + replace (but be careful).
+1. Upgrade the versions in the [`contracts`](https://github.com/AbstractSDK/contracts) repository to the new version via
+   global find + replace (but be careful).
 2. Run just publish to publish the packages to the new version.
 3. Run just schema
 
 ### Modules
 
-1. Upgrade the Abstract packages in the [`apis`](https://github.com/Abstract-OS/apis) repository to the new version in the base Cargo.toml
+1. Upgrade the Abstract packages in the [`apis`](https://github.com/AbstractSDK/apis) repository to the new version in
+   the base Cargo.toml
 2. Run just publish
-3. Upgrade the Abstract packages in the [`apps`](https://github.com/Abstract-OS/apps) repository to the new version in the base Cargo.toml
+3. Upgrade the Abstract packages in the [`apps`](https://github.com/AbstractSDK/apps) repository to the new version in
+   the base Cargo.toml
 4. Run just publish
 
 ### Abstract.js

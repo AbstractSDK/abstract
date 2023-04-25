@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Macros for Abstract SDK"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/Abstract-OS/contracts/tree/main/packages/abstract-macros"
+repository = "https://github.com/AbstractSDK/contracts/tree/main/packages/abstract-macros"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

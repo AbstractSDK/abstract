@@ -1,10 +1,10 @@
 # Abstract 
 
-<a href="https://codecov.io/gh/Abstract-OS/contracts" > 
- <img src="https://codecov.io/gh/Abstract-OS/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
+<a href="https://codecov.io/gh/AbstractSDK/contracts" > 
+ <img src="https://codecov.io/gh/AbstractSDK/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-<!-- ![alt text](https://github.com/Abstract-OS/contracts/blob/main/architecture.png?raw=true) -->
+<!-- ![alt text](https://github.com/AbstractSDK/contracts/blob/main/architecture.png?raw=true) -->
 
 # Manual Schema Generation
 
@@ -23,7 +23,7 @@ cargo ws exec --no-bail cargo schema
 
 ### Schemas
 
-To publish the schemas to the [schema repo](https://github.com/Abstract-OS/schemas), run the following command:
+To publish the schemas to the [schema repo](https://github.com/AbstractSDK/schemas), run the following command:
 
 ```shell
 cargo 

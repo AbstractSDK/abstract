@@ -5,7 +5,7 @@ We use a separate [rust-ci]() repository for CI jobs.
 ## Add the remote rust-ci repo
 
 ```shell
-git remote add ci https://github.com/Abstract-OS/rust-ci.git
+git remote add ci https://github.com/AbstractSDK/rust-ci.git
 ```
 
 Then fetch the remote repo:

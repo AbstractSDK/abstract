@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract Proxy Contract"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/Abstract-OS/contracts"
+repository = "https://github.com/AbstractSDK/contracts"
 
 
 exclude = ["contract.wasm", "hash.txt"]

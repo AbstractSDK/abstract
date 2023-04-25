@@ -6,7 +6,7 @@ edition = { workspace = true }
 description = "Abstract contract interfaces and storage layouts"
 license = { workspace = true }
 readme = "README.md"
-repository = "https://github.com/Abstract-OS/contracts"
+repository = "https://github.com/AbstractSDK/contracts"
 
 
 [features]

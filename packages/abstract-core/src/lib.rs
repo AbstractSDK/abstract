@@ -17,7 +17,7 @@
 //! ### Assets
 //! [`cw-asset`](https://crates.io/crates/cw-asset) is used for asset-management.
 //! If a message requests a String value for an Asset field then you need to provide the human-readable ans_host key.
-//! The full list of supported assets and contracts is given [here](https://github.com/Abstract-OS/scripts/tree/main/resources/ans_host).
+//! The full list of supported assets and contracts is given [here](https://github.com/AbstractSDK/scripts/tree/main/resources/ans_host).
 //! The contract will handel address retrieval internally.
 //!
 //! ## State
