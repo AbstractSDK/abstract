@@ -350,6 +350,7 @@ impl WynDex {
     ///   - EUR
     ///   - USD
     ///   - WYND
+    ///   - RAW
     ///   - EUR/USD LP
     ///   - EUR/WYND LP
     /// - Register the staking contract
@@ -363,6 +364,7 @@ impl WynDex {
     ) -> Result<(), BootError> {
         let eur_asset = AssetEntry::new(EUR);
         let usd_asset = AssetEntry::new(USD);
+        let raw_asset = AssetEntry::new(RAW_TOKEN);
         let wynd_asset = AssetEntry::new(WYND_TOKEN);
         let eur_usd_lp_asset = LpToken::new(WYNDEX, vec![EUR, USD]);
         let eur_wynd_lp_asset = LpToken::new(WYNDEX, vec![WYND_TOKEN, EUR]);
@@ -391,6 +393,10 @@ impl WynDex {
                     (
                         WYND_TOKEN.to_string(),
                         cw_asset::AssetInfoBase::native(self.wynd_token.to_string()),
+                    ),
+                    (
+                        RAW_TOKEN.to_string(),
+                        cw_asset::AssetInfoBase::native(self.raw_token.addr_str()?),
                     ),
                 ],
                 vec![],
