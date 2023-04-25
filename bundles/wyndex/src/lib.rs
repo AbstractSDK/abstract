@@ -395,8 +395,8 @@ impl WynDex {
                         cw_asset::AssetInfoBase::native(self.wynd_token.to_string()),
                     ),
                     (
-                        RAW_TOKEN.to_string(),
-                        cw_asset::AssetInfoBase::native(self.raw_token.addr_str()?),
+                        raw_asset.to_string(),
+                        cw_asset::AssetInfoBase::cw20(self.raw_token.addr_str()?),
                     ),
                 ],
                 vec![],
