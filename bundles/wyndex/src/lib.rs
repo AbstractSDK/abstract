@@ -368,6 +368,7 @@ impl WynDex {
         let wynd_asset = AssetEntry::new(WYND_TOKEN);
         let eur_usd_lp_asset = LpToken::new(WYNDEX, vec![EUR, USD]);
         let eur_wynd_lp_asset = LpToken::new(WYNDEX, vec![WYND_TOKEN, EUR]);
+        let eur_raw_lp_asset = LpToken::new(WYNDEX, vec![RAW_TOKEN, EUR]);
 
         // Register addresses on ANS
         abstrct
@@ -389,6 +390,10 @@ impl WynDex {
                     (
                         eur_wynd_lp_asset.to_string(),
                         cw_asset::AssetInfoBase::cw20(self.wynd_eur_lp.addr_str()?),
+                    ),
+                    (
+                        eur_raw_lp_asset.to_string(),
+                        cw_asset::AssetInfoBase::cw20(self.raw_eur_lp.addr_str()?),
                     ),
                     (
                         WYND_TOKEN.to_string(),
