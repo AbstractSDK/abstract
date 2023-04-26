@@ -59,7 +59,7 @@ pub struct WynDex {
     pub raw_eur_lp: Cw20Base<Mock>,
 }
 
-// Shitty implementation until https://github.com/Abstract-OS/BOOT/issues/60 is done
+// Shitty implementation until https://github.com/AbstractSDK/cw-orchestrator/issues/60 is done
 impl PartialEq for WynDex {
     fn eq(&self, other: &Self) -> bool {
         self.suite == other.suite
