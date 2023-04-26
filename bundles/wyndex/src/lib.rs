@@ -436,7 +436,11 @@ impl WynDex {
                     ),
                     (
                         PoolAddressBase::contract(self.wynd_eur_pair.to_string()),
-                        PoolMetadata::constant_product(WYNDEX, vec![wynd_asset, eur_asset]),
+                        PoolMetadata::constant_product(WYNDEX, vec![wynd_asset, eur_asset.clone()]),
+                    ),
+                    (
+                        PoolAddressBase::contract(self.raw_eur_pair.to_string()),
+                        PoolMetadata::constant_product(WYNDEX, vec![raw_asset, eur_asset]),
                     ),
                 ],
                 vec![],
