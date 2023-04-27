@@ -218,7 +218,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    fn execute_chunked<T, MsgBuilder>(
+    pub fn execute_chunked<T, MsgBuilder>(
         &self,
         items: &[T],
         chunk_size: usize,

@@ -1,6 +1,8 @@
 use abstract_boot::Abstract;
 use abstract_core::objects::gov_type::GovernanceDetails;
 
+use boot_core::networks::juno::JUNO_CHAIN;
+use boot_core::networks::NetworkKind;
 use boot_core::{
     networks::{parse_network, NetworkInfo},
     *,
@@ -12,11 +14,22 @@ use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn full_deploy(network: NetworkInfo) -> anyhow::Result<()> {
+pub const JUNO_1: NetworkInfo = NetworkInfo {
+    kind: NetworkKind::Mainnet,
+    id: "juno-1",
+    gas_denom: "ujuno",
+    gas_price: 0.0025,
+    grpc_urls: &["http://juno-grpc.polkachu.com:12690"],
+    chain_info: JUNO_CHAIN,
+    lcd_url: None,
+    fcd_url: None,
+};
+
+fn full_deploy(_network: NetworkInfo) -> anyhow::Result<()> {
     let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
+    let options = DaemonOptionsBuilder::default().network(JUNO_1).build();
     let (sender, chain) = instantiate_daemon_env(&rt, options?)?;
     let deployment = Abstract::deploy_on(chain, abstract_version)?;
 

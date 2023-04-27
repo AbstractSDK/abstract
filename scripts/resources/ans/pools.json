@@ -348,7 +348,7 @@
           "contract": "juno1q0f3nlghr350e7lhmxej3ev0j25m5caws5y4kyr5huawwr24hfkq74fsnq"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -361,7 +361,7 @@
           "contract": "juno1x9r54vejw4hnxe7xm4haaf0ymf825frm30xqf9cud6cmnrgkx9lsxpj475"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -374,7 +374,7 @@
           "contract": "juno1gqy6rzary8vwnslmdavqre6jdhakcd4n2z4r803ajjmdq08r66hq7zcwrj"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -387,7 +387,7 @@
           "contract": "juno1tndfgq4kfgm6wwvfem3uwqcpf4ac3cqfcf5df4efagucm32ywaasugr9mq"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -400,7 +400,7 @@
           "contract": "juno13lulw8mm9w8ww99dvr35tfaw5tdmwvc7xn6nsn28pnlre8uw7j6srce67z"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "cosmoshub>atom",
@@ -413,7 +413,7 @@
           "contract": "juno16r20f55kp59l0v5ne6hzell3qu27jhuzrqmu59w2nxzcsnj90y0sh2m6p5"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -426,7 +426,7 @@
           "contract": "juno16xrz7kd26j0qmdg706qyesqs56g2f6dulplsajtl0t9z8frd8tfqsx2lkj"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -439,7 +439,7 @@
           "contract": "juno1u2pl8ql778655wakqmnhpln65q9pughd6jnrp93xwf4zakqjdh6qx3y9yt"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -452,7 +452,7 @@
           "contract": "juno17uv02azt545ag23xq7whw6z3r3chw7jwztnr9lypugy62drq3caqeyd2r3"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -465,7 +465,7 @@
           "contract": "juno16k0f2mksg7swautzgfynve2ns3kq95ggp0z9t5dvxg56q45x67nqckmzru"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -478,7 +478,7 @@
           "contract": "juno1a7hvexlmhwwflnsr7uyf373q2etwmzm233lsj75rydrmra4rhvps582hu4"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -491,7 +491,7 @@
           "contract": "juno1z62rxfn9gh4wzndk48hfnfkmjca0f85j2cy77q68n2hyz7qdqcwq2jzjga"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -504,7 +504,7 @@
           "contract": "juno10hw5a052a9jcmcgzx27ssyddf2unrk35ltfz3a7hl63hfd8e7dsqvfue4d"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -517,7 +517,7 @@
           "contract": "juno1nmy9v6pc2lwhsexmpsdekcgdwd7zmmqguxndnqfdv220jvhk9j5shw5e36"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -530,7 +530,7 @@
           "contract": "juno158nznrq0dhh6m29jkkgxctlura7nskemujsvjxahmlw4d7erjvasw49tu4"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>howl",
@@ -543,7 +543,7 @@
           "contract": "juno1dpqgt3ja2kdxs94ltjw9ncdsexts9e3dx5qpnl20zvgdguzjelhqstf8zg"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>kleo",
@@ -556,7 +556,7 @@
           "contract": "juno1f9c60hyvzys5h7q0y4e995n8r9cchgpy8p3k4kw3sqsmut95ankq0chfv0"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wyjuno",
@@ -569,7 +569,7 @@
           "contract": "juno1h6x5jlvn6jhpnu63ufe4sgv4utyk8hsfl5rqnrpg2cvp6ccuq4lqwqnzra"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -582,7 +582,7 @@
           "contract": "juno16vvu2fjrgg6rnddrcvtaeukzl3weau63gc3d3c7mvq05ygnzklvs3peqmt"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -595,7 +595,7 @@
           "contract": "juno1mz5uz38h89dxj6c8w69rg7l060p8vq8pfetykk2gvrrxhjcsa5yqru9g7v"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -608,7 +608,7 @@
           "contract": "juno1a7lmc8e04hcs4y2275cultvg83u636ult4pmnwktr6l9nhrh2e8qzxfdwf"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -621,7 +621,7 @@
           "contract": "juno17jv00cm4f3twr548jzayu57g9txvd4zdh54mdg9qpjs7samlphjsykylsq"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -634,7 +634,7 @@
           "contract": "juno17ckp36lmgtt7jtuggdv2j39eh4alcnl35szu6quh747nujags07swwq0nh"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -647,7 +647,7 @@
           "contract": "juno177xtcl6dax47kg3xptr5n48kd7twmzm49ltugfxuc76x9v05qq6q63hsm9"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -660,7 +660,7 @@
           "contract": "juno1ls5un4a8zyn4f05k0ekq5aa9uhn88y8362ww38elqfpcwllme0jqelamke"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -673,7 +673,7 @@
           "contract": "juno1ptdt6dg7ke6rn5k8xr8kh87zjnxhp832l5q07y3c9htz8z88cptqlthu5f"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -686,7 +686,7 @@
           "contract": "juno1p3eed298qx3nyhs3grld07jrf9vjsjsmdd2kmmh3crk87emjcx5stp409y"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -699,7 +699,7 @@
           "contract": "juno1syxlvk6pjpuxplqxwxr6n6fveqaz069dzya0ass9vrfwn9qxpvpqhq7msy"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -712,7 +712,7 @@
           "contract": "juno1s00g9axpxgmwcrlc6xqcxzcjmaqpxhftkx62xfh64xends8ls5dqyyjnnl"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -725,7 +725,7 @@
           "contract": "juno1rcssjyqgr6vzalss77d43v30c2qpyzzg607ua8gte2shqgtvu24sg8gs8r"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -738,7 +738,7 @@
           "contract": "juno18zk9xqj9xjm0ry39jjam8qsysj7qh49xwt4qdfp9lgtrk08sd58s2n54ve"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -751,7 +751,7 @@
           "contract": "juno1jtendlawm8rv96hnfuwn04y8uhwzp9epcxy5f0ms973pspueqcgsy3qzt0"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -764,7 +764,7 @@
           "contract": "juno1ndw52eaajcn8wpx7e503ly3j07666hhufx6cyp0s9v703rvzrpksfujv3h"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>juno",
@@ -777,7 +777,7 @@
           "contract": "juno14ke9xn3qfmnjsrh9lh6rfu7zmm90duvj4lpkcrrnzemh0tjpwarqfk97n6"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>wynd",
@@ -790,7 +790,7 @@
           "contract": "juno1kx2mgqr4gry7lnjyv4fqd32uua5lkec7m3r5lv8y84qkkcacupdqn2u68w"
         },
         {
-          "dex": "wynd",
+          "dex": "wyndex",
           "pool_type": "ConstantProduct",
           "assets": [
             "juno>howl",

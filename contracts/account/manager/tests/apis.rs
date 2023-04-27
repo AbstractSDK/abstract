@@ -7,7 +7,7 @@ use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{api::BaseQueryMsgFns, *};
 use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
 use boot_core::{
-    BootError, Mock, {instantiate_default_mock_env, CallAs, ContractInstance},
+    BootError, Mock, TxHandler, {instantiate_default_mock_env, CallAs, ContractInstance},
 };
 use boot_core::{BootExecute, Deploy};
 use common::{create_default_account, init_mock_api, AResult, TEST_COIN};

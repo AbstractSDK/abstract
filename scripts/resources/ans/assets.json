@@ -1128,211 +1128,211 @@
         }
       ],
       [
-        "wynd/juno>czar,juno>wynd",
+        "wyndex/juno>czar,juno>wynd",
         {
           "cw20": "juno1r8lzdyydak2832m35wzg9g7l6z8whpm68t950cgncv2wnug8lhwseulms4"
         }
       ],
       [
-        "wynd/juno>aqua,juno>juno",
+        "wyndex/juno>aqua,juno>juno",
         {
           "cw20": "juno1e2gc84wkm7d738gn49mjnc25j6979a0sjf3d6qpmdjhzrh2x0zdq2a866u"
         }
       ],
       [
-        "wynd/axelar>usdc,juno>juno",
+        "wyndex/axelar>usdc,juno>juno",
         {
           "cw20": "juno1jn6t0dsxryht8ljxulavxrfd22l87dvac8e9a99a7tuj29ysxksqffhf5k"
         }
       ],
       [
-        "wynd/juno>sejuno,juno>wynd",
+        "wyndex/juno>sejuno,juno>wynd",
         {
           "cw20": "juno1au3mzqfams8axufpemtvufw78zetl3pl5qn4cn9r2tz9pgly79ws92kr46"
         }
       ],
       [
-        "wynd/cosmoshub>atom,juno>sejuno",
+        "wyndex/cosmoshub>atom,juno>sejuno",
         {
           "cw20": "juno107v6e3vga87v3y777wcgznrlu6jyljzdpgecaegec9ccyqsx97pszq3598"
         }
       ],
       [
-        "wynd/cosmoshub>atom,juno>wynd",
+        "wyndex/cosmoshub>atom,juno>wynd",
         {
           "cw20": "juno1k5vhzkssgh35zlv9hqaasetslgqyal6jane86umrqvrjav9eg3hq3pxa0l"
         }
       ],
       [
-        "wynd/juno>aqu,juno>wynd",
+        "wyndex/juno>aqu,juno>wynd",
         {
           "cw20": "juno14kjhrjmdzkwgy4pvm5xeuj58960y5ku95sup2apstla3jzf829lqq5zkws"
         }
       ],
       [
-        "wynd/juno>juno,osmosis>osmo",
+        "wyndex/juno>juno,osmosis>osmo",
         {
           "cw20": "juno1yhtyn2dv5k7ladzrznxlep2xm6q7dsd332wak3hhdrw0staer0ps83q8jw"
         }
       ],
       [
-        "wynd/cosmoshub>atom,juno>juno",
+        "wyndex/cosmoshub>atom,juno>juno",
         {
           "cw20": "juno1an2xhen0fzme85dpy7vx60f6ecrufqj6vqkh8gdvlyhfhjmp24qqqleeav"
         }
       ],
       [
-        "wynd/juno>wynd,stargaze>stars",
+        "wyndex/juno>wynd,stargaze>stars",
         {
           "cw20": "juno1n965ux7p8qhph9j3g378qqr9fa5qup7jz089k0xjzqg99e787ekq84g8we"
         }
       ],
       [
-        "wynd/juno>ampjuno,juno>juno",
+        "wyndex/juno>ampjuno,juno>juno",
         {
           "cw20": "juno14x9pd4m2yrayep025yzyt9wjrnt8r6ktuxdalt8ym88ald3gqc8qc5pxwf"
         }
       ],
       [
-        "wynd/juno>casa,juno>juno",
+        "wyndex/juno>casa,juno>juno",
         {
           "cw20": "juno1865zypawnh26yl9ggs74k0hywv4ewqeslykkvdymyw34s5davrksmmcrda"
         }
       ],
       [
-        "wynd/juno>casa,juno>wynd",
+        "wyndex/juno>casa,juno>wynd",
         {
           "cw20": "juno1p3flq9tm9hqr9uexay26avull3d5z28md4qlazq5kg69pxphfeksuhenzs"
         }
       ],
       [
-        "wynd/juno>ampjuno,juno>wynd",
+        "wyndex/juno>ampjuno,juno>wynd",
         {
           "cw20": "juno17c67j5wwamq9hn8q6anfqfm8dpnx0xpyuhc3hw6u0fedeg2s2tks8pweq4"
         }
       ],
       [
-        "wynd/juno>howl,juno>juno",
+        "wyndex/juno>howl,juno>juno",
         {
           "cw20": "juno1h9vzec27pjcav2yj0a6mvxlquqxtr8r5tjyu2w9vyngkwldstsjssupuzr"
         }
       ],
       [
-        "wynd/juno>juno,juno>kleo",
+        "wyndex/juno>juno,juno>kleo",
         {
           "cw20": "juno1gam7gpevdt0n7k7cepkqcxn4cyjqes9tfym8ac64hnryxpvfpddqlgkvlw"
         }
       ],
       [
-        "wynd/juno>juno,juno>wyjuno",
+        "wyndex/juno>juno,juno>wyjuno",
         {
           "cw20": "juno129lz7c0n5na7hdq5zrv2mmfsshg0yhqccfttkjnx2cz94nm8x52s6e5enl"
         }
       ],
       [
-        "wynd/juno>juno,juno>neta",
+        "wyndex/juno>juno,juno>neta",
         {
           "cw20": "juno1uu3cewmpynvgsdu3lfqv2rh2n5nwtrguahkw64wjk99eg8r6fsss0e757x"
         }
       ],
       [
-        "wynd/juno>juno,juno>seasy",
+        "wyndex/juno>juno,juno>seasy",
         {
           "cw20": "juno10zj5zme4g0zj6hc79tkld5p47gjpe8qvxlky650gwan4tf0a4u8qzg5kc9"
         }
       ],
       [
-        "wynd/juno>juno,juno>rac",
+        "wyndex/juno>juno,juno>rac",
         {
           "cw20": "juno1as45s9detrnjwsn9vgcejz6erxttdtvu6kga4xrge3ny4lyfmjqq7lpgsj"
         }
       ],
       [
-        "wynd/juno>juno,juno>wynd",
+        "wyndex/juno>juno,juno>wynd",
         {
           "cw20": "juno1stg339rrg9guqsuv205yayq2ttzwz4583luc9pznvexe7rtrtrksdxstg3"
         }
       ],
       [
-        "wynd/juno>juno,juno>phmn",
+        "wyndex/juno>juno,juno>phmn",
         {
           "cw20": "juno1qwpr47n9djzm7erghmatudva8chvg63ejuvqzhfvq7u4ckl62t2sh8uk4k"
         }
       ],
       [
-        "wynd/juno>canlab,juno>juno",
+        "wyndex/juno>canlab,juno>juno",
         {
           "cw20": "juno1ev8qxfpen3yh9cxc9m5yu4qkuujlaxztw83kdh7txextvc5q8gdqpqxxzc"
         }
       ],
       [
-        "wynd/juno>juno,juno>sejuno",
+        "wyndex/juno>juno,juno>sejuno",
         {
           "cw20": "juno1kqeqglacd8l48347tttjlqc4yvxpcvhdekqrtrhv76frjh96gruqx36efv"
         }
       ],
       [
-        "wynd/juno>canlab,juno>wynd",
+        "wyndex/juno>canlab,juno>wynd",
         {
           "cw20": "juno1h52qvcp5phaqmhzeu9urzsfvtehn9d98ql6xj05sr6z78zjgjv6sletkec"
         }
       ],
       [
-        "wynd/juno>glto,juno>juno",
+        "wyndex/juno>glto,juno>juno",
         {
           "cw20": "juno1gf7d9kp59na60zr9z4yl5chmf0x7ype3xutszc9gg270l2mtac9sratca6"
         }
       ],
       [
-        "wynd/juno>juno,juno>sgnl",
+        "wyndex/juno>juno,juno>sgnl",
         {
           "cw20": "juno1flax8ja0u2lzuv5qundw9k7hmc5ttf3jh98lgk4ttnx5s7jdq5dq6qzts3"
         }
       ],
       [
-        "wynd/juno>bjuno,juno>juno",
+        "wyndex/juno>bjuno,juno>juno",
         {
           "cw20": "juno1kpqf3lm2drxzf98xw5ptsqdd483wgtjdsr4dvcr3j89tv6rqvw2q9y383s"
         }
       ],
       [
-        "wynd/juno>wynd,osmosis>osmo",
+        "wyndex/juno>wynd,osmosis>osmo",
         {
           "cw20": "juno1dx6djxrsr4f4mqjn3vsp6v0yrg78stv3d8qyp66k209qmzn7r3eqne7mwf"
         }
       ],
       [
-        "wynd/juno>juno,juno>muse",
+        "wyndex/juno>juno,juno>muse",
         {
           "cw20": "juno18khfnt4052e9s2y2c5kra5n9uw84hh8qc6k5t4aey70erlz500cqfum00n"
         }
       ],
       [
-        "wynd/axelar>usdc,juno>wynd",
+        "wyndex/axelar>usdc,juno>wynd",
         {
           "cw20": "juno13ld2eq3w8k6rap5n5vsmwr8c4zhqhtfu9vjx0gqmhpefefl97nxq4u4pap"
         }
       ],
       [
-        "wynd/juno>aqu,juno>juno",
+        "wyndex/juno>aqu,juno>juno",
         {
           "cw20": "juno14kdxq8eumdgj0sxg9h4sca8cga34avkanv9psujrxsn42350m7hshyuwm0"
         }
       ],
       [
-        "wynd/juno>czar,juno>juno",
+        "wyndex/juno>czar,juno>juno",
         {
           "cw20": "juno1k58efu65v6m0kgnq0fpgk8fxhsqah74r4lsuyk68308a35xxyels2qkl5z"
         }
       ],
       [
-        "wynd/juno>aqua,juno>wynd",
+        "wyndex/juno>aqua,juno>wynd",
         {
           "cw20": "juno1yw5mpl9rq64y6wt88ual5fneckksuudhl9u9c0w2gvvj99q7vmdsvmvu3a"
         }
       ],
       [
-        "wynd/juno>howl,juno>wynd",
+        "wyndex/juno>howl,juno>wynd",
         {
           "cw20": "juno1jsevsuqxyda73m4zpu295tw08gw0p8qe58mah2p7xq9uyh7zzkxqpws63c"
         }

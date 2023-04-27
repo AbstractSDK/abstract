@@ -52,246 +52,246 @@
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>czar,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>czar,juno>wynd"
         },
         "juno15aqhjcm4x886pje3ae8mxl46wft5spuwp3fpcscz0x2g6n00dqns49v22y"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>aqua,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>aqua,juno>juno"
         },
         "juno1n9nylsg6jdcdjc7m5f29kycdpy9xhjgd68kh2vn8j7xztqruxy4sgwlaul"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/axelar>usdc,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/axelar>usdc,juno>juno"
         },
         "juno1pawjm34dunptcs8wt2m5tgcyexyzc02pdl9xl52jvcqlpwcgus5sen5yrk"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>sejuno,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>sejuno,juno>wynd"
         },
         "juno153a72ges9fq52kvutgztr59udxhv4eq025p5za3xl0yvq22a7j8qfw6pmp"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/cosmoshub>atom,juno>sejuno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/cosmoshub>atom,juno>sejuno"
         },
         "juno1kzpq7ynt44yrkt2uhej4v4km6a0g8dc3t6m4r7j95n4dm7na3sjq7mdtna"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/cosmoshub>atom,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/cosmoshub>atom,juno>wynd"
         },
         "juno1dhl0fxmkwp9m8m0c2mhqhs8utcpswp8ud9eh448ex9cjmqkm96zqa52m7p"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>aqu,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>aqu,juno>wynd"
         },
         "juno1y4w2wt56km2htw6un5rsejts0gvgem5u4t7my4mq45rsjk4xvltqvhg0sj"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,osmosis>osmo"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,osmosis>osmo"
         },
         "juno1u4h488kf6xhmelsuwm0gj7dhh8mfjm7n5pyu8c0l0xwy3pvrpc3ql2p6q2"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/cosmoshub>atom,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/cosmoshub>atom,juno>juno"
         },
         "juno1nfs4xjxum3fqd564yxj44ragxmh8ey7ugl50avquyt7zrvcwlf8q3juqqg"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>wynd,stargaze>stars"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>wynd,stargaze>stars"
         },
         "juno1dqaqj5xzlm2pz3x54cc40hwkurradm6fgjj83pp8qkjrqht2y7pqg6ch6l"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>ampjuno,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>ampjuno,juno>juno"
         },
         "juno1w0xpg7mwfh3wjkfv90gyu7k4vqwnepcwe9mletyjsk9lpwlvqg7qseq6v3"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>casa,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>casa,juno>juno"
         },
         "juno1gwp34xxvu2zwee4e6d5uqlp9sd635c5swgg2qmhtel8et4mngcast5jf96"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>casa,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>casa,juno>wynd"
         },
         "juno1p0xfltk5m85eqtuc5q5xsf3nf8zkpc635sf6wsay7nqg9vakeznsk9ll0r"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>ampjuno,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>ampjuno,juno>wynd"
         },
         "juno10sc6f842cguwrekeca40k9lpcsrt5r8hc6zpx60d43r9tpxxm00qftj50t"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>howl,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>howl,juno>juno"
         },
         "juno1tfryulnedmfs9hqs9hyvupramfddv90pz3dpp7h886tl6kuftflskypwh7"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>kleo"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>kleo"
         },
         "juno1d4qcgcc0yw65e7cyw3vta80s0wvttn2p3uwzhq0hyamjtt96ytwsl0mvlt"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>wyjuno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>wyjuno"
         },
         "juno1qkqah87ks56v20nqwtjvrfa08p85d8qszjd9zck7h6ln37mzrsksgy7fh9"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>neta"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>neta"
         },
         "juno1tlhf68k8aksl30mdf5yngudk6z8w4qqzvvauzr92w3gwm7er9p9qxvudu7"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>seasy"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>seasy"
         },
         "juno1un4052t70d64zj3qepch5qehqymuy653kqzgrl8eqzf3ns0p4kassg7pea"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>rac"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>rac"
         },
         "juno1lkek4vzhum6vx4v36akftzqw60ul76lmrktkzl84quf3wq66uctqy734aj"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>wynd"
         },
         "juno1zvxvs3tzfqd4eqt6g5dq9wsusy0ap5vk34nklqfl0u938sf3y7hql08umf"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>phmn"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>phmn"
         },
         "juno1sjkc38sy6aj3e8jerr40nhqm5xdcdc99ejtp46smjxs63tk3dj5svg0kqt"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>canlab,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>canlab,juno>juno"
         },
         "juno1wjcak50p8y7ajyu5n4u88s8ah58fa520442flthy7dq55v6fatqqrd395z"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>sejuno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>sejuno"
         },
         "juno1shgke28jvl3ycfdlkx0mkvnmrunlvujd80q7zk499s9vx0zcqcvs2zsz3y"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>canlab,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>canlab,juno>wynd"
         },
         "juno1l6vy80rm9x2r63rgcj5u3an7ge035udu986jf2dm65mx8yz0hw6su64ghn"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>glto,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>glto,juno>juno"
         },
         "juno14l8dhtl8rfwu4d97q6mp0ycnnhlrhssgjknkr2p9e34g0nxvcczqlur0yp"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>sgnl"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>sgnl"
         },
         "juno1r2haw70fwu0z8s5n6em5gd097f8mplyxqs5uz3zch69h3llk64xssqp64l"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>bjuno,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>bjuno,juno>juno"
         },
         "juno1l2auxggxa5n9yled8zrf4zxtahergzgs2t9vykf66uckwwk9n3zq2j3yq7"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>wynd,osmosis>osmo"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>wynd,osmosis>osmo"
         },
         "juno1d0mqxg0glg2u47q0uvcvw33fg8l5yg9vx5ean3qg3n3ng4tenecs4a7guy"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>juno,juno>muse"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>juno,juno>muse"
         },
         "juno182rvmpzq2hcvsr0xqnugvm4tz59l7hdgkhnnqnwklc3th8wmxxcsxeu5fx"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/axelar>usdc,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/axelar>usdc,juno>wynd"
         },
         "juno1vntf38qmdx9aqskjnxdpcmtap0gymtcxnyf3pjcvn8a63j8q53tssrgzz8"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>aqu,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>aqu,juno>juno"
         },
         "juno164cd6wpepkxp4ndwkvwe9nqp9krc37lwn70t7xy3h7jaa4ypeksszu2w3w"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>czar,juno>juno"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>czar,juno>juno"
         },
         "juno122kx9l5z9lld74hjka0mg7exwxuwj2d0plwx03pwg3z4433vct8s4e9jr8"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>aqua,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>aqua,juno>wynd"
         },
         "juno1zhe3sptqs7ajcxy725fnd6ar9mtj67rzjfmad6zldyn92n6mfj5qztqr4u"
       ],
       [
         {
-          "protocol": "wynd",
-          "contract": "staking/wynd/juno>howl,juno>wynd"
+          "protocol": "wyndex",
+          "contract": "staking/wyndex/juno>howl,juno>wynd"
         },
         "juno19jayj30q6t8ruu58q8ayj7py5czzf9pm84s25qs3pnuakd5a50cswc5m2c"
       ]
