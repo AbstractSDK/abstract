@@ -94,5 +94,5 @@ cw-staking = { path = ".", features = [
 ], package = "abstract-cw-staking-api" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
-wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git", tag = "v0.3.0" }
+wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git"}
 boot-cw-plus = { workspace = true }

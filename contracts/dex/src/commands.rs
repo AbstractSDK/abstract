@@ -242,6 +242,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
 }
+
 pub(crate) fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
     let mut msgs = vec![];
     for asset in assets {

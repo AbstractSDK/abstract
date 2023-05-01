@@ -72,8 +72,7 @@ pub mod boot {
                         max_spread: Some(Decimal::percent(30)),
                         belief_price: None,
                     },
-                }
-                .into(),
+                },
             });
             manager.execute_on_module(EXCHANGE, swap_msg)?;
             Ok(())
