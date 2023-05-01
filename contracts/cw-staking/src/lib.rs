@@ -24,7 +24,7 @@ pub mod boot {
     use abstract_boot::boot_core::{contract, ContractInstance};
     use abstract_boot::boot_core::{Contract, CwEnv, IndexResponse, TxResponse};
     use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
-    use abstract_core::objects::AnsAsset;
+    use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_core::{api, MANAGER};
     use cosmwasm_std::{Addr, Empty};
 
@@ -95,6 +95,44 @@ pub mod boot {
                 },
             });
             manager.execute_on_module(CW_STAKING, stake_msg)?;
+            Ok(())
+        }
+
+        pub fn claim(
+            &self,
+            stake_asset: AssetEntry,
+            provider: String,
+        ) -> Result<(), AbstractBootError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let claim_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+                proxy_address: None,
+                request: CwStakingExecuteMsg {
+                    provider,
+                    action: CwStakingAction::Claim {
+                        staking_token: stake_asset,
+                    },
+                },
+            });
+            manager.execute_on_module(CW_STAKING, claim_msg)?;
+            Ok(())
+        }
+
+        pub fn claim_rewards(
+            &self,
+            stake_asset: AssetEntry,
+            provider: String,
+        ) -> Result<(), AbstractBootError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let claim_rewards_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+                proxy_address: None,
+                request: CwStakingExecuteMsg {
+                    provider,
+                    action: CwStakingAction::ClaimRewards {
+                        staking_token: stake_asset,
+                    },
+                },
+            });
+            manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;
             Ok(())
         }
     }

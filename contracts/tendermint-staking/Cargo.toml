@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-boot = ["dep:abstract-boot", "dep:boot-core"]
+boot = ["dep:abstract-boot", "dep:boot-core", "export"]
 
 
 # Keep as is until TendermintStake updates.
@@ -29,4 +29,4 @@ boot-core = { workspace = true, optional = true }
 abstract-boot = { workspace = true, optional = true }
 
 [dev-dependencies]
-abstract-api ={ workspace = true , features = ["schema"]}
+abstract-api = { workspace = true, features = ["schema"] }
