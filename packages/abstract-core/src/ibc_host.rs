@@ -149,3 +149,39 @@ pub struct AccountInfo {
     pub account: String,
     pub channel_id: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use abstract_testing::prelude::*;
+    use speculoos::prelude::*;
+
+    #[test]
+    fn test_into_packet() {
+        // Create an instance of HostAction (assuming a valid variant is `SomeAction`)
+        let host_action = HostAction::SendAllBack {};
+
+        // Create required parameters
+        let retries = 5u8;
+        let client_chain = String::from("test_client_chain");
+        let callback_info = Some(CallbackInfo {
+            id: "15".to_string(),
+            receiver: "receiver".to_string(),
+        });
+
+        // Call into_packet function
+        let packet_msg = host_action.clone().into_packet(
+            TEST_ACCOUNT_ID,
+            retries,
+            client_chain.clone(),
+            callback_info.clone(),
+        );
+
+        // Check if the returned PacketMsg has the expected values
+        assert_that!(packet_msg.client_chain).is_equal_to(client_chain);
+        assert_that!(packet_msg.retries).is_equal_to(retries);
+        assert_that!(packet_msg.callback_info).is_equal_to(callback_info);
+        assert_that!(packet_msg.account_id).is_equal_to(TEST_ACCOUNT_ID);
+        assert_that!(packet_msg.action).is_equal_to(host_action);
+    }
+}

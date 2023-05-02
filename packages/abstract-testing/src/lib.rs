@@ -35,7 +35,14 @@ pub mod addresses {
 
     pub const TEST_MODULE_RESPONSE: &str = "test_module_response";
 
+    pub const TEST_CHAIN: &str = "chain";
     pub const TEST_DEX: &str = "test_dex";
+    pub const TEST_ASSET_1: &str = "chain>asset1";
+    pub const TEST_ASSET_2: &str = "chain>asset2";
+    pub const TEST_LP_TOKEN_NAME: &str = "test_dex/chain>asset1,chain>asset2";
+    pub const TEST_LP_TOKEN_ADDR: &str = "test_dex_asset1_asset2_lp_token";
+    pub const TEST_POOL_ADDR: &str = "test_pool_address";
+    pub const TEST_UNIQUE_ID: u64 = 69u64;
     pub const TTOKEN: &str = "test_token";
     pub const EUR_USD_PAIR: &str = "dex:eur_usd_pair";
     pub const EUR_USD_LP: &str = "dex/eur,usd";
@@ -60,6 +67,7 @@ pub mod prelude {
     pub use addresses::*;
     pub use mock_querier::{map_key, mock_querier, raw_map_key, wrap_querier, MockQuerierBuilder};
 
+    pub use super::MockAnsHost;
     pub use super::MockDeps;
 
     pub use cosmwasm_std::{

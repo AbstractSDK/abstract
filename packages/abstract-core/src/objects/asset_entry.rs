@@ -1,3 +1,4 @@
+use crate::{AbstractError, AbstractResult};
 use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
@@ -6,7 +7,8 @@ use std::fmt::Display;
 
 pub const CHAIN_DELIMITER: &str = ">";
 
-/// May key to retrieve information on an asset
+/// An unchecked ANS asset entry. This is a string that is formatted as
+/// `src_chain>[intermediate_chain>]asset_name`
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
 )]
@@ -26,22 +28,31 @@ impl AssetEntry {
     /// Retrieve the source chain of the asset
     /// Example: osmosis>juno>crab returns osmosis
     /// Returns string to remain consistent with [`Self::asset_name`]
-    pub fn src_chain(&self) -> String {
-        self.0
-            .split(CHAIN_DELIMITER)
-            .next()
-            .unwrap_or("")
-            .to_string()
+    pub fn src_chain(&self) -> AbstractResult<String> {
+        let mut split = self.0.splitn(2, CHAIN_DELIMITER);
+
+        match split.next() {
+            Some(src_chain) => {
+                if src_chain.is_empty() {
+                    return self.entry_formatting_error();
+                }
+                // Ensure there's at least one more element (asset_name)
+                let maybe_asset_name = split.next();
+                if maybe_asset_name.is_some() && maybe_asset_name != Some("") {
+                    Ok(src_chain.to_string())
+                } else {
+                    self.entry_formatting_error()
+                }
+            }
+            None => self.entry_formatting_error(),
+        }
     }
 
-    /// Retrieve the asset name without the src chain
-    /// Example: osmosis>juno>crab returns juno>crab
-    pub fn asset_name(&self) -> String {
-        self.0
-            .split(CHAIN_DELIMITER)
-            .skip(1)
-            .collect::<Vec<&str>>()
-            .join(CHAIN_DELIMITER)
+    fn entry_formatting_error(&self) -> AbstractResult<String> {
+        Err(AbstractError::EntryFormattingError {
+            actual: self.0.clone(),
+            expected: "src_chain>asset_name".to_string(),
+        })
     }
 }
 
@@ -102,6 +113,7 @@ impl KeyDeserialize for &AssetEntry {
 #[cfg(test)]
 mod test {
     use super::*;
+    use rstest::rstest;
     use speculoos::prelude::*;
 
     #[test]
@@ -110,6 +122,44 @@ mod test {
         assert_that!(entry.as_str()).is_equal_to("crab");
         entry.format();
         assert_that!(entry.as_str()).is_equal_to("crab");
+    }
+
+    #[test]
+    fn test_src_chain() -> AbstractResult<()> {
+        // technically invalid, but we don't care here
+        let entry = AssetEntry::new("CRAB");
+        assert_that!(entry.src_chain())
+            .is_err()
+            .is_equal_to(AbstractError::EntryFormattingError {
+                actual: "crab".to_string(),
+                expected: "src_chain>asset_name".to_string(),
+            });
+        let entry = AssetEntry::new("osmosis>crab");
+        assert_that!(entry.src_chain())
+            .is_ok()
+            .is_equal_to("osmosis".to_string());
+        let entry = AssetEntry::new("osmosis>juno>crab");
+        assert_that!(entry.src_chain())
+            .is_ok()
+            .is_equal_to("osmosis".to_string());
+
+        Ok(())
+    }
+
+    #[rstest]
+    #[case("CRAB")]
+    #[case("")]
+    #[case(">")]
+    #[case("juno>")]
+    fn test_src_chain_error(#[case] input: &str) {
+        let entry = AssetEntry::new(input);
+
+        assert_that!(entry.src_chain())
+            .is_err()
+            .is_equal_to(AbstractError::EntryFormattingError {
+                actual: input.to_ascii_lowercase(),
+                expected: "src_chain>asset_name".to_string(),
+            });
     }
 
     #[test]

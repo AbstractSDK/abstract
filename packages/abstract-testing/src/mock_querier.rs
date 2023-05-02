@@ -125,7 +125,7 @@ impl MockQuerierBuilder {
     ///        _ => panic!("unexpected message"),
     ///    };
     ///
-    ///   Ok(to_binary(&msg).unwrap())
+    ///   Ok(to_binary(&res).unwrap())
     /// }).build();
     /// ```
     pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self

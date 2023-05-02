@@ -181,6 +181,7 @@ pub struct AccountInfo {
 }
 
 impl AccountInfo {
+    /// Use the provided *channel_id* and *account_id* to create a new [`AccountInfo`] based off of the provided *input* [`AccountData`].
     pub fn convert(channel_id: String, account_id: AccountId, input: AccountData) -> Self {
         AccountInfo {
             channel_id,
@@ -209,5 +210,79 @@ impl From<AccountData> for AccountResponse {
             remote_addr: input.remote_addr,
             remote_balance: input.remote_balance,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use abstract_testing::prelude::*;
+    use cosmwasm_std::to_binary;
+    use speculoos::prelude::*;
+
+    // ... (other test functions)
+
+    #[test]
+    fn test_account_info_convert() {
+        let channel_id = "channel-123".to_string();
+        let input = AccountData {
+            last_update_time: Default::default(),
+            remote_addr: None,
+            remote_balance: vec![],
+        };
+
+        let expected = AccountInfo {
+            channel_id: channel_id.clone(),
+            account_id: TEST_ACCOUNT_ID,
+            last_update_time: input.last_update_time,
+            remote_addr: input.clone().remote_addr,
+            remote_balance: input.clone().remote_balance,
+        };
+
+        let actual = AccountInfo::convert(channel_id, TEST_ACCOUNT_ID, input);
+
+        assert_that!(actual).is_equal_to(expected);
+    }
+
+    #[test]
+    fn test_account_response_from() {
+        let input = AccountData::default();
+
+        let expected = AccountResponse {
+            last_update_time: input.last_update_time,
+            remote_addr: input.clone().remote_addr,
+            remote_balance: input.clone().remote_balance,
+        };
+
+        let actual = AccountResponse::from(input);
+
+        assert_that!(actual).is_equal_to(expected);
+    }
+
+    #[test]
+    fn test_callback_info_to_callback_msg() {
+        let receiver = "receiver".to_string();
+        let callback_id = "15".to_string();
+        let callback_info = CallbackInfo {
+            id: callback_id,
+            receiver: receiver,
+        };
+        let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
+
+        let actual = callback_info.to_callback_msg(&ack_data.clone()).unwrap();
+
+        let _funds: Vec<Coin> = vec![];
+
+        assert_that!(actual).matches(|e| {
+            matches!(
+                e,
+                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                    contract_addr: _receiver,
+                    // we can't test the message because the fields in it are private
+                    msg: _,
+                    funds: _
+                })
+            )
+        });
     }
 }

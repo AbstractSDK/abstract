@@ -11,6 +11,7 @@ pub type DexName = String;
 
 /// A key for the token that represents Liquidity Pool shares on a dex
 /// @todo: move into dex package
+/// Will be formatted as "dex_name/asset1,asset2" when serialized
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
 )]
@@ -43,7 +44,7 @@ impl TryFrom<AssetEntry> for LpToken {
 
         if segments.len() != 2 {
             return Err(StdError::generic_err(format!(
-                "Invalid asset entry: {asset}"
+                "Invalid LP token asset entry: {asset}"
             )));
         }
 
