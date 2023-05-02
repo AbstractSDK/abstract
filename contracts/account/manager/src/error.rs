@@ -36,7 +36,7 @@ pub enum ManagerError {
     InvalidModuleName {},
 
     #[error("Registering module fails because caller is not module factory")]
-    CallerNotFactory {},
+    CallerNotModuleFactory {},
 
     #[error("A migrate msg is required when when migrating this module")]
     MsgRequired {},
@@ -114,6 +114,9 @@ pub enum ManagerError {
 
     #[error("No updates were included")]
     NoUpdates {},
+
+    #[error("invalid configuration action, {}", error)]
+    InvalidConfigAction { error: StdError },
 
     #[error("Must use SetOwner to change owner")]
     MustUseSetOwner {},

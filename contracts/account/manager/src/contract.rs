@@ -7,6 +7,7 @@ use crate::{
     versioning,
 };
 use abstract_core::manager::state::AccountInfo;
+
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_sdk::core::{
     manager::{
@@ -106,15 +107,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             }
 
             match msg {
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
-                ExecuteMsg::UpdateModuleAddresses { to_add, to_remove } => {
-                    // only Account Factory/Owner can add custom modules.
-                    // required to add Proxy after init by Account Factory.
-                    ACCOUNT_FACTORY
-                        .assert_admin(deps.as_ref(), &info.sender)
-                        .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
-                    update_module_addresses(deps, to_add, to_remove)
+                ExecuteMsg::UpdateInternalConfig(config) => {
+                    update_internal_config(deps, info, config)
                 }
+                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     install_module(deps, info, env, module, init_msg)
                 }

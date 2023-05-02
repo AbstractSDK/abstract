@@ -1,3 +1,4 @@
+use abstract_core::manager::ExecuteMsg;
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
     ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
@@ -7,7 +8,7 @@ use protobuf::Message;
 use abstract_sdk::core::{MANAGER, PROXY};
 use abstract_sdk::{
     core::{
-        manager::{ExecuteMsg::UpdateModuleAddresses, InstantiateMsg as ManagerInstantiateMsg},
+        manager::{InstantiateMsg as ManagerInstantiateMsg, InternalConfigAction},
         objects::{
             gov_type::GovernanceDetails, module::Module, module::ModuleInfo,
             module_reference::ModuleReference,
@@ -204,19 +205,24 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
 
+    let add_proxy_address_msg = wasm_execute(
+        context.account_manager_address.to_string(),
+        &ExecuteMsg::UpdateInternalConfig(
+            to_binary(&InternalConfigAction::UpdateModuleAddresses {
+                to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
+                to_remove: None,
+            })
+            .unwrap(),
+        ),
+        vec![],
+    )?;
+
     Ok(AccountFactoryResponse::new(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
-    .add_message(wasm_execute(
-        context.account_manager_address.to_string(),
-        &UpdateModuleAddresses {
-            to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
-            to_remove: None,
-        },
-        vec![],
-    )?)
+    .add_message(add_proxy_address_msg)
     .add_message(whitelist_manager)
     .add_message(set_proxy_admin_msg)
     .add_message(set_manager_admin_msg))
