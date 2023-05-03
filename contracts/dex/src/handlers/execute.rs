@@ -38,7 +38,7 @@ pub fn execute_handler(
         }
         DexExecuteMsg::UpdateFee {
             swap_fee,
-            recipient_account_id,
+            recipient_account: recipient_account_id,
         } => {
             // only previous OS can change the owner
             adapter.account_registry(deps.as_ref())

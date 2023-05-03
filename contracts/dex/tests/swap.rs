@@ -31,7 +31,7 @@ fn setup_mock() -> anyhow::Result<(
         "1.0.0".parse()?,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
-            recipient_os: 0,
+            recipient_account: 0,
         },
     )?;
 

@@ -24,7 +24,7 @@ fn deploy_dex(network: NetworkInfo) -> anyhow::Result<()> {
         version,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
-            recipient_os: 0,
+            recipient_account: 0,
         },
     )?;
     Ok(())

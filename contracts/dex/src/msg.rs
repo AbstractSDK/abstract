@@ -22,7 +22,7 @@ impl adapter::AdapterQueryMsg for DexQueryMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct DexInstantiateMsg {
     pub swap_fee: Decimal,
-    pub recipient_os: u32,
+    pub recipient_account: u32,
 }
 
 /// Dex Execute msg
@@ -30,7 +30,7 @@ pub struct DexInstantiateMsg {
 pub enum DexExecuteMsg {
     UpdateFee {
         swap_fee: Option<Decimal>,
-        recipient_account_id: Option<u32>,
+        recipient_account: Option<u32>,
     },
     Action {
         dex: DexName,

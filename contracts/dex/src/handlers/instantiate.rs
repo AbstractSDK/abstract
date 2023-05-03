@@ -13,7 +13,7 @@ pub fn instantiate_handler(
 ) -> DexResult {
     let recipient = adapter
         .account_registry(deps.as_ref())
-        .proxy_address(msg.recipient_os)?;
+        .proxy_address(msg.recipient_account)?;
     let fee = UsageFee::new(deps.api, msg.swap_fee, recipient)?;
     SWAP_FEE.save(deps.storage, &fee)?;
     Ok(Response::default())
