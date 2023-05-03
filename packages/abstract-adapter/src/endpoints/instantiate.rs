@@ -1,5 +1,5 @@
-use crate::state::{ApiContract, ApiState, ContractError};
-use abstract_core::{api::InstantiateMsg, objects::module_version::set_module_data};
+use crate::state::{AdapterContract, ApiState, ContractError};
+use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
     feature_objects::AnsHost,
@@ -17,7 +17,7 @@ impl<
         ReceiveMsg,
         SudoMsg,
     > InstantiateEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     type InstantiateMsg = InstantiateMsg<CustomInitMsg>;
     /// Instantiate the api
@@ -52,7 +52,7 @@ impl<
 #[cfg(test)]
 mod tests {
     use abstract_core::{
-        api::{BaseInstantiateMsg, InstantiateMsg},
+        adapter::{BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
     use abstract_sdk::{base::InstantiateEndpoint, feature_objects::AnsHost};
@@ -64,14 +64,14 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::{
-        mock::{ApiMockResult, MockInitMsg, MOCK_API, MOCK_DEP, TEST_METADATA},
+        mock::{AdapterMockResult, MockInitMsg, MOCK_ADAPTER, MOCK_DEP, TEST_METADATA},
         state::ApiState,
     };
     use abstract_testing::prelude::*;
 
     #[test]
-    fn successful() -> ApiMockResult {
-        let api = MOCK_API.with_dependencies(&[MOCK_DEP]);
+    fn successful() -> AdapterMockResult {
+        let api = MOCK_ADAPTER.with_dependencies(&[MOCK_DEP]);
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -102,7 +102,7 @@ mod tests {
             version: TEST_VERSION.into(),
         });
 
-        let api = MOCK_API;
+        let api = MOCK_ADAPTER;
         let none_authorized = api.authorized_addresses.is_empty(&deps.storage);
         assert!(none_authorized);
 
@@ -117,8 +117,8 @@ mod tests {
     }
 
     #[test]
-    fn invalid_ans_host() -> ApiMockResult {
-        let api = MOCK_API;
+    fn invalid_ans_host() -> AdapterMockResult {
+        let api = MOCK_ADAPTER;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();
@@ -138,8 +138,8 @@ mod tests {
     }
 
     #[test]
-    fn invalid_version_control() -> ApiMockResult {
-        let api = MOCK_API;
+    fn invalid_version_control() -> AdapterMockResult {
+        let api = MOCK_ADAPTER;
         let env = mock_env();
         let info = mock_info(TEST_MANAGER, &[]);
         let mut deps = mock_dependencies();

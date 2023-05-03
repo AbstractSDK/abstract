@@ -1,6 +1,6 @@
 //! Base of an Abstract Module and its features.  
 //!
-//! Is used by the `abstract-api`, `abstract-ibc-host` and `abstract-app` crates.
+//! Is used by the `abstract-adapter`, `abstract-ibc-host` and `abstract-app` crates.
 
 mod contract_base;
 mod endpoints;

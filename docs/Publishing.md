@@ -20,4 +20,4 @@ file.
 3. `abstract-sdk`
 4. All contracts in `./contracts`
 5. `abstract-boot`
-6. `abstract-api`, `abstract-app` and `abstract-ibc-host`
+6. `abstract-adapter`, `abstract-app` and `abstract-ibc-host`

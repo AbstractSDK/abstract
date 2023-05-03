@@ -229,19 +229,19 @@ mod test {
         fn remove() {
             let mut deps = mock_dependencies();
 
-            let dex_api = "dex";
+            let dex_adapter = "dex";
             let autocompounder = "autocompounder";
 
             // dex -> autocompounder
-            initialize_dependents(deps.as_mut(), dex_api, vec![autocompounder.to_string()]);
+            initialize_dependents(deps.as_mut(), dex_adapter, vec![autocompounder.to_string()]);
 
-            let actual_dex_dependents = DEPENDENTS.load(&deps.storage, dex_api).unwrap();
+            let actual_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
             assert_that(&actual_dex_dependents).has_length(1);
             assert_that(&actual_dex_dependents).contains(autocompounder.to_string());
 
             // the autocompounder depends on the dex
             let autocompounder_dependencies = vec![Dependency {
-                id: dex_api.to_string(),
+                id: dex_adapter.to_string(),
                 // no version requirements
                 version_req: vec![],
             }];
@@ -254,7 +254,7 @@ mod test {
 
             assert_that(&res).is_ok();
 
-            let remaining_dex_dependents = DEPENDENTS.load(&deps.storage, dex_api).unwrap();
+            let remaining_dex_dependents = DEPENDENTS.load(&deps.storage, dex_adapter).unwrap();
             assert_that(&remaining_dex_dependents).is_empty();
         }
     }

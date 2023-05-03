@@ -71,7 +71,7 @@ macro_rules! export_endpoints {
 #[cfg(test)]
 mod test {
     use crate::mock::*;
-    use abstract_core::api::{self, ApiRequestMsg};
+    use abstract_core::adapter::{self, AdapterRequestMsg};
     use abstract_sdk::base::{
         ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint, ReplyEndpoint, SudoEndpoint,
     };
@@ -84,13 +84,13 @@ mod test {
 
     #[test]
     fn exports_endpoints() {
-        export_endpoints!(MOCK_API, MockApiContract);
+        export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
         let mut deps = mock_dependencies();
 
         // init
-        let init_msg = api::InstantiateMsg {
-            base: api::BaseInstantiateMsg {
+        let init_msg = adapter::InstantiateMsg {
+            base: adapter::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
             },
@@ -102,7 +102,7 @@ mod test {
             mock_info(TEST_ADMIN, &[]),
             init_msg.clone(),
         );
-        let expected_init = MOCK_API.instantiate(
+        let expected_init = MOCK_ADAPTER.instantiate(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
@@ -111,14 +111,14 @@ mod test {
         assert_that!(actual_init).is_equal_to(expected_init);
 
         // exec
-        let exec_msg = api::ExecuteMsg::Module(ApiRequestMsg::new(None, MockExecMsg));
+        let exec_msg = adapter::ExecuteMsg::Module(AdapterRequestMsg::new(None, MockExecMsg));
         let actual_exec = execute(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
             exec_msg.clone(),
         );
-        let expected_exec = MOCK_API.execute(
+        let expected_exec = MOCK_ADAPTER.execute(
             deps.as_mut(),
             mock_env(),
             mock_info(TEST_ADMIN, &[]),
@@ -127,15 +127,15 @@ mod test {
         assert_that!(actual_exec).is_equal_to(expected_exec);
 
         // query
-        let query_msg = api::QueryMsg::Module(MockQueryMsg);
+        let query_msg = adapter::QueryMsg::Module(MockQueryMsg);
         let actual_query = query(deps.as_ref(), mock_env(), query_msg.clone());
-        let expected_query = MOCK_API.query(deps.as_ref(), mock_env(), query_msg);
+        let expected_query = MOCK_ADAPTER.query(deps.as_ref(), mock_env(), query_msg);
         assert_that!(actual_query).is_equal_to(expected_query);
 
         // sudo
         let sudo_msg = MockSudoMsg {};
         let actual_sudo = sudo(deps.as_mut(), mock_env(), sudo_msg.clone());
-        let expected_sudo = MOCK_API.sudo(deps.as_mut(), mock_env(), sudo_msg);
+        let expected_sudo = MOCK_ADAPTER.sudo(deps.as_mut(), mock_env(), sudo_msg);
         assert_that!(actual_sudo).is_equal_to(expected_sudo);
 
         // reply
@@ -144,7 +144,7 @@ mod test {
             result: SubMsgResult::Err("test".into()),
         };
         let actual_reply = reply(deps.as_mut(), mock_env(), reply_msg.clone());
-        let expected_reply = MOCK_API.reply(deps.as_mut(), mock_env(), reply_msg);
+        let expected_reply = MOCK_ADAPTER.reply(deps.as_mut(), mock_env(), reply_msg);
         assert_that!(actual_reply).is_equal_to(expected_reply);
     }
 }

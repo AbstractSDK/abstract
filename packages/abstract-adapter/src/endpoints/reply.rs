@@ -1,16 +1,16 @@
 use abstract_sdk::base::ReplyEndpoint;
 
-use crate::{state::ContractError, ApiContract};
+use crate::{state::ContractError, AdapterContract};
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     ReplyEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::mock::{reply, ApiMockResult};
+    use crate::mock::{reply, AdapterMockResult};
     use abstract_sdk::AbstractSdkError;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env},
@@ -19,7 +19,7 @@ mod tests {
     use speculoos::prelude::*;
 
     #[test]
-    fn endpoint() -> ApiMockResult {
+    fn endpoint() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();
@@ -38,7 +38,7 @@ mod tests {
     }
 
     #[test]
-    fn no_matching_id() -> ApiMockResult {
+    fn no_matching_id() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();

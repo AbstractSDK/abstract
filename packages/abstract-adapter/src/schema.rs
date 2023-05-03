@@ -5,25 +5,25 @@ use cosmwasm_std::Empty;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use abstract_core::api::{ApiExecuteMsg, ApiQueryMsg};
+use abstract_core::adapter::{AdapterExecuteMsg, AdapterQueryMsg};
 use abstract_sdk::{
     base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-    core::api::{ApiConfigResponse, AuthorizedAddressesResponse},
+    core::adapter::{AdapterConfigResponse, AuthorizedAddressesResponse},
 };
 
-use crate::{ApiContract, ApiError};
+use crate::{AdapterContract, AdapterError};
 
 impl<
         Error: From<cosmwasm_std::StdError>
-            + From<ApiError>
+            + From<AdapterError>
             + From<abstract_sdk::AbstractSdkError>
             + 'static,
-        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
+        CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomInitMsg: Serialize + JsonSchema,
-        CustomQueryMsg: Serialize + JsonSchema + ApiQueryMsg + QueryResponses,
+        CustomQueryMsg: Serialize + JsonSchema + AdapterQueryMsg + QueryResponses,
         ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
-    > ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
         // write out the module schema
@@ -55,6 +55,10 @@ impl<
             out_dir,
             "AuthorizedAddressesResponse",
         );
-        export_schema_with_title(&schema_for!(ApiConfigResponse), out_dir, "ConfigResponse");
+        export_schema_with_title(
+            &schema_for!(AdapterConfigResponse),
+            out_dir,
+            "ConfigResponse",
+        );
     }
 }

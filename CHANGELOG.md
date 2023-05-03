@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- Fixed wasming with `write_api` error in the `abstract-api` and `abstract-app`
+- Fixed wasming with `write_api` error in the `abstract-adapter` and `abstract-app`
 
 ## [0.5.0] - 2022-01-08
 
@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 #### Abstract SDK
 
-- Better querying of app and api directly vs message construction
+- Better querying of app and adapter directly vs message construction
 
 ### Changed
 

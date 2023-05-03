@@ -1,9 +1,9 @@
-use crate::{state::ContractError, ApiContract};
+use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::base::IbcCallbackEndpoint;
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     IbcCallbackEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
 }
 
@@ -11,17 +11,17 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 
 // #[cfg(test)]
 // mod tests {
-//     use abstract_core::{api::{ExecuteMsg, BaseExecuteMsg, self}, abstract_ica::IbcResponseMsg};
+//     use abstract_core::{adapter::{ExecuteMsg, BaseExecuteMsg, self}, abstract_ica::IbcResponseMsg};
 //     use abstract_sdk::base::ExecuteEndpoint;
 //     use abstract_testing::prelude::{TEST_MANAGER, mocked_account_querier_builder};
 //     use cosmwasm_std::{testing::{mock_dependencies, mock_env, mock_info}, DepsMut, Response};
 //     use speculoos::prelude::*;
-//     use crate::mock::{ApiMockResult, MockReceiveMsg, execute, MOCK_API, mock_init, MockExecMsg, MockError};
+//     use crate::mock::{ApiMockResult, MockReceiveMsg, execute, MOCK_ADAPTER, mock_init, MockExecMsg, MockError};
 
 //     fn setup_with_traders(mut deps: DepsMut, traders: Vec<&str>) {
 //         mock_init(deps.branch()).unwrap();
 
-//         let _api = MOCK_API;
+//         let _api = MOCK_ADAPTER;
 //         let msg = BaseExecuteMsg::UpdateTraders {
 //             to_add: traders.into_iter().map(Into::into).collect(),
 //             to_remove: vec![],
@@ -35,7 +35,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 //         sender: &str,
 //         msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
 //     ) -> Result<Response, MockError> {
-//         MOCK_API.execute(deps, mock_env(), mock_info(sender, &[]), msg)
+//         MOCK_ADAPTER.execute(deps, mock_env(), mock_info(sender, &[]), msg)
 //     }
 
 //     fn base_execute_as(
@@ -43,7 +43,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 //         sender: &str,
 //         msg: BaseExecuteMsg,
 //     ) -> Result<Response, MockError> {
-//         execute_as(deps, sender, api::ExecuteMsg::Base(msg))
+//         execute_as(deps, sender, adapter::ExecuteMsg::Base(msg))
 //     }
 
 //     #[test]

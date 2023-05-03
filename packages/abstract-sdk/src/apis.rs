@@ -1,4 +1,4 @@
-pub mod api;
+pub mod adapter;
 pub mod app;
 pub mod bank;
 pub mod execution;

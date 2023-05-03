@@ -13,7 +13,7 @@ resolver = "2"
 [features]
 # for quicker tests, cargo test --lib
 
-# Expose MockModule for testing with other APIs
+# Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
 
 [dependencies]

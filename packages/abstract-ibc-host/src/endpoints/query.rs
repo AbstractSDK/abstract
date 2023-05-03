@@ -10,7 +10,7 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
 /// Where we dispatch the queries for the Host
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
+/// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: ContractError,
         CustomInitMsg,

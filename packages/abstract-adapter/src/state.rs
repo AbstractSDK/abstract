@@ -1,4 +1,4 @@
-use crate::ApiError;
+use crate::AdapterError;
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_sdk::{
     base::{
@@ -20,11 +20,11 @@ pub const AUTHORIZED_ADDRESSES_NAMESPACE: &str = "authorized_addresses";
 pub const MAXIMUM_AUTHORIZED_ADDRESSES: u32 = 15;
 
 pub trait ContractError:
-    From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static
+    From<cosmwasm_std::StdError> + From<AdapterError> + From<AbstractSdkError> + 'static
 {
 }
 impl<T> ContractError for T where
-    T: From<cosmwasm_std::StdError> + From<ApiError> + From<AbstractSdkError> + 'static
+    T: From<cosmwasm_std::StdError> + From<AdapterError> + From<AbstractSdkError> + 'static
 {
 }
 
@@ -38,8 +38,8 @@ pub struct ApiState {
     pub ans_host: AnsHost,
 }
 
-/// The state variables for our ApiContract.
-pub struct ApiContract<
+/// The state variables for our AdapterContract.
+pub struct AdapterContract<
     Error: ContractError,
     CustomInitMsg: 'static,
     CustomExecMsg: 'static,
@@ -53,13 +53,13 @@ pub struct ApiContract<
     pub(crate) base_state: Item<'static, ApiState>,
     /// Map ProxyAddr -> AuthorizedAddrs
     pub authorized_addresses: Map<'static, Addr, Vec<Addr>>,
-    /// The Account on which commands are executed. Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
+    /// The Account on which commands are executed. Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
     pub target_account: Option<AccountBase>,
 }
 
 /// Constructor
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub const fn new(
         name: &'static str,
@@ -78,9 +78,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         self.base_state.load(store)
     }
 
-    /// Return the address of the proxy for the Account associated with this API.
-    /// Set each time in the [`abstract_core::api::ExecuteMsg::Base`] handler.
-    pub fn target(&self) -> Result<&Addr, ApiError> {
+    /// Return the address of the proxy for the Account associated with this Adapter.
+    /// Set each time in the [`abstract_core::adapter::ExecuteMsg::Base`] handler.
+    pub fn target(&self) -> Result<&Addr, AdapterError> {
         Ok(&self
             .target_account
             .as_ref()
@@ -155,11 +155,11 @@ mod tests {
     use cosmwasm_std::Response;
 
     use super::*;
-    use crate::mock::{ApiMockResult, MOCK_API, TEST_METADATA};
+    use crate::mock::{AdapterMockResult, MOCK_ADAPTER, TEST_METADATA};
 
     #[test]
-    fn set_and_get_target() -> ApiMockResult {
-        let mut mock = MOCK_API;
+    fn set_and_get_target() -> AdapterMockResult {
+        let mut mock = MOCK_ADAPTER;
         let target = Addr::unchecked("target");
         mock.target_account = Some(AccountBase {
             proxy: target.clone(),
@@ -171,7 +171,7 @@ mod tests {
 
     #[test]
     fn builder_functions() {
-        crate::mock::MockApiContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+        crate::mock::MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| cosmwasm_std::to_binary("mock_query").map_err(Into::into))

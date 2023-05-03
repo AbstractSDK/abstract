@@ -56,9 +56,9 @@ pub struct MockModuleExecuteMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryMsg {}
 
-impl abstract_core::api::ApiExecuteMsg for MockModuleExecuteMsg {}
+impl abstract_core::adapter::AdapterExecuteMsg for MockModuleExecuteMsg {}
 
-impl abstract_core::api::ApiQueryMsg for MockModuleQueryMsg {}
+impl abstract_core::adapter::AdapterQueryMsg for MockModuleQueryMsg {}
 
 impl abstract_core::app::AppExecuteMsg for MockModuleExecuteMsg {}
 

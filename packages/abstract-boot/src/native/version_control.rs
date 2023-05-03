@@ -104,13 +104,13 @@ where
         Ok(())
     }
 
-    pub fn register_apis(
+    pub fn register_adapters(
         &self,
-        apis: Vec<&Contract<Chain>>,
+        adapters: Vec<&Contract<Chain>>,
         version: &Version,
     ) -> Result<(), crate::AbstractBootError> {
-        let to_register = self.contracts_into_module_entries(apis, version, |c| {
-            ModuleReference::Api(c.address().unwrap())
+        let to_register = self.contracts_into_module_entries(adapters, version, |c| {
+            ModuleReference::Adapter(c.address().unwrap())
         })?;
         self.propose_modules(to_register)?;
         Ok(())
@@ -160,15 +160,15 @@ where
         Ok(resp.account_base)
     }
 
-    /// Retrieves an API's address from version control given the module **id** and **version**.
-    pub fn get_api_addr(
+    /// Retrieves an Adapter's address from version control given the module **id** and **version**.
+    pub fn get_adapter_addr(
         &self,
         id: &str,
         version: ModuleVersion,
     ) -> Result<Addr, crate::AbstractBootError> {
         let module: Module = self.module(ModuleInfo::from_id(id, version)?)?;
 
-        Ok(module.reference.unwrap_api()?)
+        Ok(module.reference.unwrap_adapter()?)
     }
 
     /// Retrieves an APP's code id from version control given the module **id** and **version**.
@@ -230,7 +230,7 @@ impl VersionControl<Daemon> {
     //     Ok(())
     // }
 
-    // pub fn update_apis(&self) -> anyhow::Result<()> {
+    // pub fn update_adapters(&self) -> anyhow::Result<()> {
     //     for contract_name in chain_state.keys() {
     //         if !API_CONTRACTS.contains(&contract_name.as_str()) {
     //             continue;

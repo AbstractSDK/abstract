@@ -1,10 +1,10 @@
 [package]
-name = "abstract-api"
+name = "abstract-adapter"
 version = "0.14.3"
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-description = "base api contract implementation"
+description = "base adapter contract implementation"
 resolver = "2"
 
 
@@ -35,4 +35,4 @@ abstract-boot = { version = "0.14.3", workspace = true, optional = true }
 [dev-dependencies]
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
-abstract-api = { path = ".", features = ["test-utils"] }
+abstract-adapter = { path = ".", features = ["test-utils"] }

@@ -11,7 +11,7 @@ const NETWORK: NetworkInfo = networks::UNI_6;
 
 const _MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub fn deploy_api() -> anyhow::Result<()> {
+pub fn deploy_adapter() -> anyhow::Result<()> {
     let rt = Arc::new(tokio::runtime::Runtime::new().unwrap());
 
     let daemon_options = DaemonOptionsBuilder::default().network(NETWORK).build()?;
@@ -73,7 +73,7 @@ fn main() {
 
     let _args = Arguments::parse();
 
-    if let Err(ref err) = deploy_api() {
+    if let Err(ref err) = deploy_adapter() {
         log::error!("{}", err);
         err.chain()
             .skip(1)

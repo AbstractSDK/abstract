@@ -67,7 +67,7 @@ pub fn execute_create_module(
             CREATE_APP_RESPONSE_ID,
             new_module.info,
         ),
-        ModuleReference::Api(addr) => {
+        ModuleReference::Adapter(addr) => {
             let module_id = new_module.info.id_with_version();
             let register_msg: CosmosMsg<Empty> = wasm_execute(
                 account_base.manager.into_string(),

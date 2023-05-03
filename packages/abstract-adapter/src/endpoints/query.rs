@@ -1,21 +1,21 @@
-use crate::state::{ApiContract, ContractError};
-use abstract_core::api::{
-    ApiConfigResponse, ApiQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+use crate::state::{AdapterContract, ContractError};
+use abstract_core::adapter::{
+    AdapterConfigResponse, AdapterQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
 };
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
 
-/// Where we dispatch the queries for the ApiContract
-/// These ApiQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
+/// Where we dispatch the queries for the AdapterContract
+/// These AdapterQueryMsg declarations can be found in `abstract_sdk::core::common_module::app_msg`
 impl<
         Error: ContractError,
         CustomInitMsg,
         CustomExecMsg,
-        CustomQueryMsg: ApiQueryMsg,
+        CustomQueryMsg: AdapterQueryMsg,
         ReceiveMsg,
         SudoMsg,
     > QueryEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     type QueryMsg = QueryMsg<CustomQueryMsg>;
     fn query(&self, deps: Deps, env: Env, msg: Self::QueryMsg) -> Result<Binary, Error> {
@@ -27,7 +27,7 @@ impl<
 }
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
@@ -49,9 +49,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
     }
 
-    fn dapp_config(&self, deps: Deps) -> StdResult<ApiConfigResponse> {
+    fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
-        Ok(ApiConfigResponse {
+        Ok(AdapterConfigResponse {
             version_control_address: state.version_control,
             ans_host_address: state.ans_host.address,
             dependencies: self

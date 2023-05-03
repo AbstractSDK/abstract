@@ -12,12 +12,16 @@ The versioning setup is based on the dependency graph of the project, which is s
 
 Form the graph we can draw some conclusions:
 
-1. `abstract-api` and `abstract-app` depend on `abstract-boot` and are the top-level packages within Abstract. Hence they can be independently versioned.
-2. `abstract-boot` depends on all the contracts in the repository. The contracts should share their version with `abstract-boot`.
+1. `abstract-adapter` and `abstract-app` depend on `abstract-boot` and are the top-level packages within Abstract. Hence
+   they can be independently versioned.
+2. `abstract-boot` depends on all the contracts in the repository. The contracts should share their version
+   with `abstract-boot`.
 
 ## Versioning
 
-Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the lower level packages. The only exceptions are `abstract-api` and `abstract-app`, which can be versioned independently.
+Most of the versioning information is contained within the workspace level [`Cargo.toml`](./Cargo.toml). The version
+defined in the `[workspace]` section is used as the version for all contracts in the workspace, as well as the lower
+level packages. The only exceptions are `abstract-adapter` and `abstract-app`, which can be versioned independently.
 
 ## Updating Dependencies
 
@@ -35,7 +39,7 @@ Most of the versioning information is contained within the workspace level [`Car
 
 ### Modules
 
-1. Upgrade the Abstract packages in the [`apis`](https://github.com/AbstractSDK/apis) repository to the new version in
+1. Upgrade the Abstract packages in the [`adapters`](https://github.com/AbstractSDK/adapters) repository to the new version in
    the base Cargo.toml
 2. Run just publish
 3. Upgrade the Abstract packages in the [`apps`](https://github.com/AbstractSDK/apps) repository to the new version in

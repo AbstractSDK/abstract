@@ -37,4 +37,4 @@ account-factory = { path = "../native/account-factory" }
 module-factory = { path = "../native/module-factory" }
 version-control = { path = "../native/version-control" }
 subscription = { path = "../modules/apps/subscription" }
-dex = { path = "../modules/apis/dex" }
+dex = { path = "../modules/adapters/dex" }

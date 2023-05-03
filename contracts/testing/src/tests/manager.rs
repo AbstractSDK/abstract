@@ -3,7 +3,7 @@ use super::{
     testing_infrastructure::env::{get_account_state, mock_app, register_api, AbstractEnv},
 };
 use abstract_sdk::core::objects::module::ModuleVersion;
-use abstract_sdk::core::{api, api::BaseInstantiateMsg, manager as ManagerMsgs};
+use abstract_sdk::core::{adapter::BaseInstantiateMsg, api, manager as ManagerMsgs};
 use abstract_sdk::core::{objects::module::ModuleInfo, EXCHANGE};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{to_binary, Addr, Empty};
@@ -28,17 +28,17 @@ pub fn register_and_create_dex_api(
         dex::contract::query,
     ));
     let code_id = app.store_code(contract);
-    let msg = api::InstantiateMsg {
+    let msg = adapter::InstantiateMsg {
         base: BaseInstantiateMsg {
             ans_host_address: ans_host.to_string(),
             version_control_address: version_control.to_string(),
         },
         app: Empty {},
     };
-    let api_addr = app
+    let adapter_addr = app
         .instantiate_contract(code_id, sender.clone(), &msg, &[], "api".to_owned(), None)
         .unwrap();
-    register_api(app, sender, version_control, module, api_addr).unwrap();
+    register_api(app, sender, version_control, module, adapter_addr).unwrap();
     Ok(())
 }
 
@@ -68,7 +68,7 @@ fn proper_initialization() {
         &ManagerMsgs::ExecuteMsg::InstallModule {
             module: ModuleInfo::from_id(EXCHANGE, ModuleVersion::Latest).unwrap(),
             init_msg: Some(
-                to_binary(&api::InstantiateMsg {
+                to_binary(&adapter::InstantiateMsg {
                     base: BaseInstantiateMsg {
                         ans_host_address: env.native_contracts.ans_host.to_string(),
                         version_control_address: env.native_contracts.version_control.to_string(),

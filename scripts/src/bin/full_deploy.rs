@@ -40,7 +40,7 @@ fn full_deploy(_network: NetworkInfo) -> anyhow::Result<()> {
             monarch: sender.to_string(),
         })?;
 
-    // let _dex = DexApi::new("dex", chain);
+    // let _dex = DexAdapter::new("dex", chain);
 
     // deployment.deploy_modules()?;
 

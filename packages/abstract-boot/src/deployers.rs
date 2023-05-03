@@ -5,10 +5,10 @@ use boot_core::{BootError::StdErr, CwEnv, Deploy, *};
 use semver::Version;
 use serde::Serialize;
 
-/// Trait for deploying APIs
-pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
+/// Trait for deploying Adapters
+pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
-    + BootInstantiate<Chain, InstantiateMsg = abstract_core::api::InstantiateMsg<CustomInitMsg>>
+    + BootInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
     + BootUpload<Chain>
 {
     fn deploy(
@@ -22,11 +22,11 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
         // check for existing version
         let version_check = abstr
             .version_control
-            .get_api_addr(&self.id(), ModuleVersion::from(version.to_string()));
+            .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
             return Err(StdErr(format!(
-                "API {} already exists with version {}",
+                "Adapter {} already exists with version {}",
                 self.id(),
                 version
             ))
@@ -34,9 +34,9 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
         };
 
         self.upload()?;
-        let init_msg = abstract_core::api::InstantiateMsg {
+        let init_msg = abstract_core::adapter::InstantiateMsg {
             module: custom_init_msg,
-            base: abstract_core::api::BaseInstantiateMsg {
+            base: abstract_core::adapter::BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.address()?.into(),
                 version_control_address: abstr.version_control.address()?.into(),
             },
@@ -45,7 +45,7 @@ pub trait ApiDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
 
         abstr
             .version_control
-            .register_apis(vec![self.as_instance()], &version)?;
+            .register_adapters(vec![self.as_instance()], &version)?;
         Ok(())
     }
 }

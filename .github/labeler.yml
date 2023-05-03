@@ -12,9 +12,9 @@
 "sdk":
   # Match all of sdk folders
   - packages/abstract-sdk/**/*
-"api_base":
-  # Match all of api base folders
-  - packages/abstract-api/**/*
+"adapter_base":
+  # Match all of adapter base folders
+  - packages/abstract-adapter/**/*
 "app_base":
   # Match all of app base folders
   - packages/abstract-app/**/*

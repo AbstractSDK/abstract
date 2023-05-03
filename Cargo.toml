@@ -62,7 +62,7 @@ tokio = { version = "1.4", features = ["full"] }
 ## crates in order of publishing ## see docs/Publishing.md
 
 abstract-ibc-host = { path = "packages/abstract-ibc-host" }
-abstract-api = { path = "packages/abstract-api" }
+abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise

@@ -1,13 +1,13 @@
-//! # Abstract api
+//! # Abstract Adapter
 //!
 //! Basis for an interfacing contract to an external service.
 use cosmwasm_std::{Empty, Response};
 
-pub type ApiResult<C = Empty> = Result<Response<C>, ApiError>;
+pub type AdapterResult<C = Empty> = Result<Response<C>, AdapterError>;
 // Default to Empty
 
-pub use crate::state::ApiContract;
-pub use error::ApiError;
+pub use crate::state::AdapterContract;
+pub use error::AdapterError;
 
 pub mod endpoints;
 pub mod error;
@@ -20,10 +20,10 @@ pub mod state;
 
 #[cfg(feature = "test-utils")]
 pub mod mock {
-    use crate::{ApiContract, ApiError};
-    use abstract_boot::ApiDeployer;
+    use crate::{AdapterContract, AdapterError};
+    use abstract_boot::AdapterDeployer;
     use abstract_core::{
-        api::{self, *},
+        adapter::{self, *},
         objects::dependency::StaticDependency,
     };
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
@@ -46,7 +46,7 @@ pub mod mock {
         Std(#[from] StdError),
 
         #[error(transparent)]
-        Api(#[from] ApiError),
+        Adapter(#[from] AdapterError),
 
         #[error("{0}")]
         Abstract(#[from] abstract_core::AbstractError),
@@ -61,12 +61,12 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockExecMsg;
 
-    impl abstract_core::api::ApiExecuteMsg for MockExecMsg {}
+    impl abstract_core::adapter::AdapterExecuteMsg for MockExecMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockQueryMsg;
 
-    impl abstract_core::api::ApiQueryMsg for MockQueryMsg {}
+    impl abstract_core::adapter::AdapterQueryMsg for MockQueryMsg {}
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockReceiveMsg;
@@ -74,15 +74,21 @@ pub mod mock {
     #[cosmwasm_schema::cw_serde]
     pub struct MockSudoMsg;
 
-    /// Mock API type
-    pub type MockApiContract =
-        ApiContract<MockError, MockInitMsg, MockExecMsg, MockQueryMsg, MockReceiveMsg, MockSudoMsg>;
+    /// Mock Adapter type
+    pub type MockAdapterContract = AdapterContract<
+        MockError,
+        MockInitMsg,
+        MockExecMsg,
+        MockQueryMsg,
+        MockReceiveMsg,
+        MockSudoMsg,
+    >;
 
     pub const MOCK_DEP: StaticDependency = StaticDependency::new("module_id", &[">0.0.0"]);
 
     /// use for testing
-    pub const MOCK_API: MockApiContract =
-        MockApiContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+    pub const MOCK_ADAPTER: MockAdapterContract =
+        MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_instantiate(|_, _, _, _, _| Ok(Response::new().set_data("mock_init".as_bytes())))
             .with_execute(|_, _, _, _, _| Ok(Response::new().set_data("mock_exec".as_bytes())))
             .with_query(|_, _, _, _| to_binary("mock_query").map_err(Into::into))
@@ -95,12 +101,12 @@ pub mod mock {
                 Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()))
             })]);
 
-    pub type ApiMockResult = Result<(), MockError>;
+    pub type AdapterMockResult = Result<(), MockError>;
     // export these for upload usage
-    crate::export_endpoints!(MOCK_API, MockApiContract);
+    crate::export_endpoints!(MOCK_ADAPTER, MockAdapterContract);
 
     pub fn mock_init(deps: DepsMut) -> Result<Response, MockError> {
-        let api = MOCK_API;
+        let adapter = MOCK_ADAPTER;
         let info = mock_info(TEST_ADMIN, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
@@ -109,10 +115,13 @@ pub mod mock {
             },
             module: MockInitMsg,
         };
-        api.instantiate(deps, mock_env(), info, init_msg)
+        adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    pub fn mock_init_custom(deps: DepsMut, api: MockApiContract) -> Result<Response, MockError> {
+    pub fn mock_init_custom(
+        deps: DepsMut,
+        adapter: MockAdapterContract,
+    ) -> Result<Response, MockError> {
         let info = mock_info(TEST_ADMIN, &[]);
         let init_msg = InstantiateMsg {
             base: BaseInstantiateMsg {
@@ -121,18 +130,19 @@ pub mod mock {
             },
             module: MockInitMsg,
         };
-        api.instantiate(deps, mock_env(), info, init_msg)
+        adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
-    type Exec = api::ExecuteMsg<MockExecMsg>;
-    type Query = api::QueryMsg<MockQueryMsg>;
-    type Init = api::InstantiateMsg<MockInitMsg>;
+    type Exec = adapter::ExecuteMsg<MockExecMsg>;
+    type Query = adapter::QueryMsg<MockQueryMsg>;
+    type Init = adapter::InstantiateMsg<MockInitMsg>;
+
     #[boot_core::contract(Init, Exec, Query, Empty)]
-    pub struct BootMockApi;
+    pub struct BootMockAdapter;
 
-    impl<Chain: CwEnv> ApiDeployer<Chain, MockInitMsg> for BootMockApi<Chain> {}
+    impl<Chain: CwEnv> AdapterDeployer<Chain, MockInitMsg> for BootMockAdapter<Chain> {}
 
-    impl<Chain: boot_core::CwEnv> BootMockApi<Chain> {
+    impl<Chain: boot_core::CwEnv> BootMockAdapter<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(boot_core::Contract::new(name, chain).with_mock(Box::new(
                 ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query),
@@ -140,29 +150,29 @@ pub mod mock {
         }
     }
 
-    /// Generate a BOOT instance for a mock api
+    /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)
     /// - $version: version of the contract (&str)
     /// - $deps: dependencies of the contract (&[StaticDependency])
     #[macro_export]
-    macro_rules! gen_api_mock {
+    macro_rules! gen_adapter_mock {
     ($name:ident, $id:expr, $version:expr, $deps:expr) => {
-        use ::abstract_core::api::*;
+        use ::abstract_core::adapter::*;
         use ::cosmwasm_std::Empty;
-        use ::abstract_api::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockApiContract, MockError};
+        use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
 
-        const MOCK_API: ::abstract_api::mock::MockApiContract = ::abstract_api::mock::MockApiContract::new($id, $version, None)
+        const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
         .with_dependencies($deps);
 
         fn instantiate(
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
-        ) -> Result<::cosmwasm_std::Response, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::InstantiateEndpoint;
-            MOCK_API.instantiate(deps, env, info, msg)
+            MOCK_ADAPTER.instantiate(deps, env, info, msg)
         }
 
         /// Execute entrypoint
@@ -170,29 +180,29 @@ pub mod mock {
             deps: ::cosmwasm_std::DepsMut,
             env: ::cosmwasm_std::Env,
             info: ::cosmwasm_std::MessageInfo,
-            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
-        ) -> Result<::cosmwasm_std::Response, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg,
+        ) -> Result<::cosmwasm_std::Response, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::ExecuteEndpoint;
-            MOCK_API.execute(deps, env, info, msg)
+            MOCK_ADAPTER.execute(deps, env, info, msg)
         }
 
         /// Query entrypoint
         fn query(
             deps: ::cosmwasm_std::Deps,
             env: ::cosmwasm_std::Env,
-            msg: <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
-        ) -> Result<::cosmwasm_std::Binary, <::abstract_api::mock::MockApiContract as ::abstract_sdk::base::Handler>::Error> {
+            msg: <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::QueryEndpoint>::QueryMsg,
+        ) -> Result<::cosmwasm_std::Binary, <::abstract_adapter::mock::MockAdapterContract as ::abstract_sdk::base::Handler>::Error> {
             use ::abstract_sdk::base::QueryEndpoint;
-            MOCK_API.query(deps, env, msg)
+            MOCK_ADAPTER.query(deps, env, msg)
         }
 
-        type Exec = ::abstract_core::api::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
-        type Query = ::abstract_core::api::QueryMsg<MockQueryMsg>;
-        type Init = ::abstract_core::api::InstantiateMsg<MockInitMsg>;
+        type Exec = ::abstract_core::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
+        type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
+        type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
         #[boot_core::contract(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::ApiDeployer<Chain, MockInitMsg> for $name <Chain> {}
+        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::AdapterDeployer<Chain, MockInitMsg> for $name <Chain> {}
 
         impl<Chain: ::boot_core::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {

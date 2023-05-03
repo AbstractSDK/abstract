@@ -1,6 +1,6 @@
 /*!
 Most of the CW* specs are focused on the *public interfaces*
-of the module. The APIs used for `ExecuteMsg` or `QueryMsg`.
+of the module. The Adapters used for `ExecuteMsg` or `QueryMsg`.
 However, when we wish to migrate or inspect smart module info,
 we need some form of smart module information embedded on state.
 

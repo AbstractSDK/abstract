@@ -1,9 +1,9 @@
-use crate::{state::ContractError, ApiContract};
+use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::base::{AbstractContract, Handler};
 use cosmwasm_std::Empty;
 
 impl<Error: ContractError, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg> Handler
-    for ApiContract<Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, InitMsg, ExecMsg, QueryMsg, ReceiveMsg, SudoMsg>
 {
     type Error = Error;
     type CustomInitMsg = InitMsg;

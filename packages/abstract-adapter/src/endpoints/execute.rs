@@ -1,11 +1,11 @@
 use crate::state::MAXIMUM_AUTHORIZED_ADDRESSES;
 use crate::{
-    error::ApiError,
-    state::{ApiContract, ContractError},
-    ApiResult,
+    error::AdapterError,
+    state::{AdapterContract, ContractError},
+    AdapterResult,
 };
 use abstract_core::{
-    api::{ApiExecuteMsg, ApiRequestMsg, BaseExecuteMsg, ExecuteMsg},
+    adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
 use abstract_sdk::{
@@ -20,12 +20,12 @@ use serde::Serialize;
 impl<
         Error: ContractError,
         CustomInitMsg,
-        CustomExecMsg: Serialize + JsonSchema + ApiExecuteMsg,
+        CustomExecMsg: Serialize + JsonSchema + AdapterExecuteMsg,
         CustomQueryMsg,
         ReceiveMsg: Serialize + JsonSchema,
         SudoMsg,
     > ExecuteEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     type ExecuteMsg = ExecuteMsg<CustomExecMsg, ReceiveMsg>;
 
@@ -51,7 +51,7 @@ impl<
 
 /// The api-contract base implementation.
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
-    ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn base_execute(
         &mut self,
@@ -59,7 +59,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         env: Env,
         info: MessageInfo,
         message: BaseExecuteMsg,
-    ) -> ApiResult {
+    ) -> AdapterResult {
         match message {
             BaseExecuteMsg::UpdateAuthorizedAddresses { to_add, to_remove } => {
                 self.update_authorized_addresses(deps, info, to_add, to_remove)
@@ -77,11 +77,11 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         deps: DepsMut,
         env: Env,
         info: MessageInfo,
-        request: ApiRequestMsg<CustomExecMsg>,
+        request: AdapterRequestMsg<CustomExecMsg>,
     ) -> Result<Response, Error> {
         let sender = &info.sender;
-        let unauthorized_sender = |_| ApiError::UnauthorizedAddressApiRequest {
-            api: self.module_id().to_string(),
+        let unauthorized_sender = |_| AdapterError::UnauthorizedAddressAdapterRequest {
+            adapter: self.module_id().to_string(),
             sender: sender.to_string(),
         };
 
@@ -124,13 +124,13 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         deps: Deps,
         env: Env,
         info: MessageInfo,
-    ) -> ApiResult {
-        // Only the manager can remove the API as a dependency.
+    ) -> AdapterResult {
+        // Only the manager can remove the Adapter as a dependency.
         let account_base = self
             .account_registry(deps)
             .assert_manager(&info.sender)
-            .map_err(|_| ApiError::UnauthorizedApiRequest {
-                api: self.module_id().to_string(),
+            .map_err(|_| AdapterError::UnauthorizedAdapterRequest {
+                adapter: self.module_id().to_string(),
                 sender: info.sender.to_string(),
             })?;
         self.target_account = Some(account_base);
@@ -139,14 +139,14 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         let mut msgs: Vec<CosmosMsg> = vec![];
         let modules = self.modules(deps);
         for dep in dependencies {
-            let api_addr = modules.module_address(dep.id);
+            let adapter_addr = modules.module_address(dep.id);
             // just skip if dep is already removed. This means all the authorized addresses are already removed.
-            if api_addr.is_err() {
+            if adapter_addr.is_err() {
                 continue;
             };
             msgs.push(
                 wasm_execute(
-                    api_addr?.into_string(),
+                    adapter_addr?.into_string(),
                     &BaseExecuteMsg::UpdateAuthorizedAddresses {
                         to_add: vec![],
                         to_remove: vec![env.contract.address.to_string()],
@@ -157,7 +157,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             );
         }
         self.executor(deps)
-            .execute_with_response(msgs, "remove_api_from_dependencies")
+            .execute_with_response(msgs, "remove_adapter_from_dependencies")
             .map_err(Into::into)
     }
 
@@ -168,7 +168,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         info: MessageInfo,
         to_add: Vec<String>,
         to_remove: Vec<String>,
-    ) -> ApiResult {
+    ) -> AdapterResult {
         let AccountBase {
             // Manager can only change authorized addresses for associated proxy
             proxy,
@@ -186,7 +186,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         for authorized in to_add {
             let authorized_addr = deps.api.addr_validate(authorized.as_str())?;
             if authorized_addrs.contains(&authorized_addr) {
-                return Err(ApiError::AuthorizedAddressAlreadyPresent {
+                return Err(AdapterError::AuthorizedAddressAlreadyPresent {
                     address: authorized,
                 });
             } else {
@@ -198,7 +198,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         for deauthorized in to_remove {
             let deauthorized_addr = deps.api.addr_validate(deauthorized.as_str())?;
             if !authorized_addrs.contains(&deauthorized_addr) {
-                return Err(ApiError::AuthorizedAddressNotPresent {
+                return Err(AdapterError::AuthorizedAddressNotPresent {
                     address: deauthorized,
                 });
             } else {
@@ -207,7 +207,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         }
 
         if authorized_addrs.len() > MAXIMUM_AUTHORIZED_ADDRESSES as usize {
-            return Err(ApiError::TooManyAuthorizedAddresses {
+            return Err(AdapterError::TooManyAuthorizedAddresses {
                 max: MAXIMUM_AUTHORIZED_ADDRESSES,
             });
         }
@@ -225,7 +225,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_core::api;
+    use abstract_core::adapter;
 
     use abstract_testing::prelude::*;
     use cosmwasm_std::{
@@ -241,7 +241,7 @@ mod tests {
         sender: &str,
         msg: ExecuteMsg<MockExecMsg, MockReceiveMsg>,
     ) -> Result<Response, MockError> {
-        MOCK_API.execute(deps, mock_env(), mock_info(sender, &[]), msg)
+        MOCK_ADAPTER.execute(deps, mock_env(), mock_info(sender, &[]), msg)
     }
 
     fn base_execute_as(
@@ -249,7 +249,7 @@ mod tests {
         sender: &str,
         msg: BaseExecuteMsg,
     ) -> Result<Response, MockError> {
-        execute_as(deps, sender, api::ExecuteMsg::Base(msg))
+        execute_as(deps, sender, adapter::ExecuteMsg::Base(msg))
     }
 
     mod update_authorized_addresses {
@@ -258,20 +258,20 @@ mod tests {
         use super::*;
 
         fn load_test_proxy_authorized_addresses(storage: &dyn Storage) -> Vec<Addr> {
-            MOCK_API
+            MOCK_ADAPTER
                 .authorized_addresses
                 .load(storage, Addr::unchecked(TEST_PROXY))
                 .unwrap()
         }
 
         #[test]
-        fn authorize_address() -> ApiMockResult {
+        fn authorize_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_API;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
@@ -279,7 +279,7 @@ mod tests {
 
             base_execute_as(deps.as_mut(), TEST_MANAGER, msg)?;
 
-            let api = MOCK_API;
+            let api = MOCK_ADAPTER;
             assert_that!(api.authorized_addresses.is_empty(&deps.storage)).is_false();
 
             let test_proxy_authorized_addrs = load_test_proxy_authorized_addresses(&deps.storage);
@@ -291,13 +291,13 @@ mod tests {
         }
 
         #[test]
-        fn revoke_address_authorization() -> ApiMockResult {
+        fn revoke_address_authorization() -> AdapterMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_API;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
@@ -320,13 +320,13 @@ mod tests {
         }
 
         #[test]
-        fn add_existing_authorized_address() -> ApiMockResult {
+        fn add_existing_authorized_address() -> AdapterMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_API;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![TEST_AUTHORIZED_ADDRESS.into()],
                 to_remove: vec![],
@@ -345,7 +345,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::AuthorizedAddressAlreadyPresent {
+                    MockError::Adapter(AdapterError::AuthorizedAddressAlreadyPresent {
                         address: _test_authorized_address_string
                     })
                 )
@@ -355,13 +355,13 @@ mod tests {
         }
 
         #[test]
-        fn remove_authorized_address_dne() -> ApiMockResult {
+        fn remove_authorized_address_dne() -> AdapterMockResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_querier();
 
             mock_init(deps.as_mut())?;
 
-            let _api = MOCK_API;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: vec![],
                 to_remove: vec![TEST_AUTHORIZED_ADDRESS.into()],
@@ -372,7 +372,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::AuthorizedAddressNotPresent {
+                    MockError::Adapter(AdapterError::AuthorizedAddressNotPresent {
                         address: _test_authorized_address_string
                     })
                 )
@@ -383,7 +383,7 @@ mod tests {
     }
 
     mod execute_app {
-        use crate::mock::{MOCK_API, TEST_AUTHORIZED_ADDRESS};
+        use crate::mock::{MOCK_ADAPTER, TEST_AUTHORIZED_ADDRESS};
 
         use super::*;
 
@@ -398,7 +398,7 @@ mod tests {
         fn setup_with_authorized_addresses(mut deps: DepsMut, authorized: Vec<&str>) {
             mock_init(deps.branch()).unwrap();
 
-            let _api = MOCK_API;
+            let _api = MOCK_ADAPTER;
             let msg = BaseExecuteMsg::UpdateAuthorizedAddresses {
                 to_add: authorized.into_iter().map(Into::into).collect(),
                 to_remove: vec![],
@@ -414,7 +414,7 @@ mod tests {
 
             setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::Module(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -429,7 +429,7 @@ mod tests {
             assert_that!(res).is_err().matches(|e| {
                 matches!(
                     e,
-                    MockError::Api(ApiError::UnauthorizedAddressApiRequest {
+                    MockError::Adapter(AdapterError::UnauthorizedAddressAdapterRequest {
                         sender: _unauthorized,
                         ..
                     })
@@ -444,7 +444,7 @@ mod tests {
 
             setup_with_authorized_addresses(deps.as_mut(), vec![]);
 
-            let msg = ExecuteMsg::Module(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -461,7 +461,7 @@ mod tests {
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
-            let msg = ExecuteMsg::Module(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: None,
                 request: MockExecMsg,
             });
@@ -478,7 +478,7 @@ mod tests {
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
-            let msg = ExecuteMsg::Module(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: Some(TEST_PROXY.into()),
                 request: MockExecMsg,
             });
@@ -498,7 +498,7 @@ mod tests {
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);
 
-            let msg = ExecuteMsg::Module(ApiRequestMsg {
+            let msg = ExecuteMsg::Module(AdapterRequestMsg {
                 proxy_address: Some(other_proxy.into()),
                 request: MockExecMsg,
             });

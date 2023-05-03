@@ -39,8 +39,8 @@ pub enum AbstractError {
     #[error("Cannot rename contract from {} to {}", from, to)]
     ContractNameMismatch { from: String, to: String },
 
-    #[error("API {0} not installed on Account")]
-    ApiNotInstalled(String),
+    #[error("Adapter {0} not installed on Account")]
+    AdapterNotInstalled(String),
 
     #[error("App {0} not installed on Account")]
     AppNotInstalled(String),

@@ -1,21 +1,21 @@
-use crate::state::{ApiContract, ContractError};
+use crate::state::{AdapterContract, ContractError};
 use abstract_sdk::base::ReceiveEndpoint;
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     ReceiveEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::mock::{execute, ApiMockResult, MockReceiveMsg};
-    use abstract_core::api::ExecuteMsg;
+    use crate::mock::{execute, AdapterMockResult, MockReceiveMsg};
+    use abstract_core::adapter::ExecuteMsg;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use speculoos::prelude::*;
 
     #[test]
-    fn endpoint() -> ApiMockResult {
+    fn endpoint() -> AdapterMockResult {
         let env = mock_env();
         let info = mock_info("sender", &[]);
         let mut deps = mock_dependencies();

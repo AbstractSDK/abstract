@@ -3,7 +3,7 @@
 The Abstract IBC architecture aims to provide developers with a set of Abstract-SDK supported actions to simplify IBC usage. 
 
 # Message flow
-IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed api/app. They result
+IBC actions are instantiated in a custom contract (with proxy execute permissions) or an installed adapter/app. They result
 in a call to the Account's proxy contract on the `ExecuteMsg::IbcAction { msgs: Vec<IbcClientMsg> }` endpoint.
 
 These `IbcClientMsg` messages are then called on the Account's client contract. Note that the client contract must be enabled
@@ -40,7 +40,7 @@ pub struct IbcResponseMsg {
 
 The response ID can then be matched in the receiving contract to identify the action that has finished, along with
 parsing the Binary response for successful actions.
-This functionality is already provided by the app and api contract implementations.
+This functionality is already provided by the app and adapter contract implementations.
 
 > Abstract's packages provide an easy entrypoint to this functionality.
 

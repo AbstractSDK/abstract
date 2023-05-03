@@ -27,9 +27,9 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 
-use abstract_core::api::{
-    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as ApiExecMsg,
-    QueryMsg as ApiQuery,
+use abstract_core::adapter::{
+    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
+    QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::state::ACCOUNT_FACTORY;
 use abstract_core::manager::InternalConfigAction;
@@ -148,7 +148,7 @@ pub fn register_module(
             )?)
         }
         Module {
-            reference: ModuleReference::Api(_),
+            reference: ModuleReference::Adapter(_),
             info,
         } => {
             let id = info.id();
@@ -345,10 +345,13 @@ pub fn set_migrate_msgs_and_context(
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
     let migrate_msgs = match requested_module.reference {
-        // upgrading an api is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
-        ModuleReference::Api(new_api_addr) => {
-            handle_api_migration(deps, requested_module.info, old_module_addr, new_api_addr)?
-        }
+        // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
+        ModuleReference::Adapter(new_adapter_addr) => handle_adapter_migration(
+            deps,
+            requested_module.info,
+            old_module_addr,
+            new_adapter_addr,
+        )?,
         ModuleReference::App(code_id) => handle_app_migration(
             deps,
             migrate_msg,
@@ -370,12 +373,12 @@ pub fn set_migrate_msgs_and_context(
     Ok(())
 }
 
-/// Handle API module migration and return the migration messages
-fn handle_api_migration(
+/// Handle Adapter module migration and return the migration messages
+fn handle_adapter_migration(
     mut deps: DepsMut,
     module_info: ModuleInfo,
-    old_api_addr: Addr,
-    new_api_addr: Addr,
+    old_adapter_addr: Addr,
+    new_adapter_addr: Addr,
 ) -> ManagerResult<Vec<CosmosMsg>> {
     let module_id = module_info.id();
     versioning::assert_migrate_requirements(
@@ -384,16 +387,16 @@ fn handle_api_migration(
         module_info.version.try_into()?,
     )?;
     let old_deps = versioning::load_module_dependencies(deps.as_ref(), &module_id)?;
-    // Update the address of the api internally
+    // Update the address of the adapter internally
     update_module_addresses(
         deps.branch(),
-        Some(vec![(module_id.clone(), new_api_addr.to_string())]),
+        Some(vec![(module_id.clone(), new_adapter_addr.to_string())]),
         None,
     )?;
 
     add_module_upgrade_to_context(deps.storage, &module_id, old_deps)?;
 
-    replace_api(deps, new_api_addr, old_api_addr)
+    replace_adapter(deps, new_adapter_addr, old_adapter_addr)
 }
 
 /// Handle app module migration and return the migration messages
@@ -448,21 +451,21 @@ fn build_module_migrate_msg(module_addr: Addr, new_code_id: u64, migrate_msg: Bi
     migration_msg
 }
 
-/// Replaces the current api with a different version
+/// Replaces the current adapter with a different version
 /// Also moves all the authorized address permissions to the new contract and removes them from the old
-pub fn replace_api(
+pub fn replace_adapter(
     deps: DepsMut,
-    new_api_addr: Addr,
-    old_api_addr: Addr,
+    new_adapter_addr: Addr,
+    old_adapter_addr: Addr,
 ) -> Result<Vec<CosmosMsg>, ManagerError> {
     let mut msgs = vec![];
-    // Makes sure we already have the api installed
+    // Makes sure we already have the adapter installed
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
     let AuthorizedAddressesResponse {
         addresses: authorized_addresses,
     } = deps.querier.query(&wasm_smart_query(
-        old_api_addr.to_string(),
-        &<ApiQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
+        old_adapter_addr.to_string(),
+        &<AdapterQuery<Empty>>::Base(BaseQueryMsg::AuthorizedAddresses {
             proxy_address: proxy_addr.to_string(),
         }),
     )?)?;
@@ -471,32 +474,35 @@ pub fn replace_api(
         .map(|addr| addr.into_string())
         .collect();
     // Remove authorized addresses from old
-    msgs.push(configure_api(
-        &old_api_addr,
+    msgs.push(configure_adapter(
+        &old_adapter_addr,
         BaseExecuteMsg::UpdateAuthorizedAddresses {
             to_add: vec![],
             to_remove: authorized_to_migrate.clone(),
         },
     )?);
-    // Remove api as authorized address on dependencies
-    msgs.push(configure_api(&old_api_addr, BaseExecuteMsg::Remove {})?);
+    // Remove adapter as authorized address on dependencies
+    msgs.push(configure_adapter(
+        &old_adapter_addr,
+        BaseExecuteMsg::Remove {},
+    )?);
     // Add authorized addresses to new
-    msgs.push(configure_api(
-        &new_api_addr,
+    msgs.push(configure_adapter(
+        &new_adapter_addr,
         BaseExecuteMsg::UpdateAuthorizedAddresses {
             to_add: authorized_to_migrate,
             to_remove: vec![],
         },
     )?);
-    // Remove api permissions from proxy
+    // Remove adapter permissions from proxy
     msgs.push(remove_module_from_proxy(
         proxy_addr.to_string(),
-        old_api_addr.into_string(),
+        old_adapter_addr.into_string(),
     )?);
-    // Add new api to proxy
+    // Add new adapter to proxy
     msgs.push(add_module_to_proxy(
         proxy_addr.into_string(),
-        new_api_addr.into_string(),
+        new_adapter_addr.into_string(),
     )?);
 
     Ok(msgs)
@@ -679,9 +685,12 @@ fn remove_module_from_proxy(
 }
 
 #[inline(always)]
-fn configure_api(api_address: impl Into<String>, message: BaseExecuteMsg) -> StdResult<CosmosMsg> {
-    let api_msg: ApiExecMsg<Empty> = message.into();
-    Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+fn configure_adapter(
+    adapter_address: impl Into<String>,
+    message: BaseExecuteMsg,
+) -> StdResult<CosmosMsg> {
+    let adapter_msg: AdapterExecMsg<Empty> = message.into();
+    Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
 }
 
 pub fn update_account_status(

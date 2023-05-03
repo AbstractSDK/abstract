@@ -1,55 +1,55 @@
 #![allow(dead_code)]
 
 use crate::{AbstractSdkResult, ModuleInterface};
-use abstract_core::{api::ApiRequestMsg, objects::module::ModuleId};
+use abstract_core::{adapter::AdapterRequestMsg, objects::module::ModuleId};
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
-pub trait ApiInterface: ModuleInterface {
-    fn apis<'a>(&'a self, deps: Deps<'a>) -> Api<Self> {
-        Api { base: self, deps }
+pub trait AdapterInterface: ModuleInterface {
+    fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapter<Self> {
+        Adapter { base: self, deps }
     }
 }
 
-impl<T> ApiInterface for T where T: ModuleInterface {}
+impl<T> AdapterInterface for T where T: ModuleInterface {}
 
 #[derive(Clone)]
-pub struct Api<'a, T: ApiInterface> {
+pub struct Adapter<'a, T: AdapterInterface> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: ApiInterface> Api<'a, T> {
-    /// Interactions with Abstract APIs
-    /// Construct an api request message.
-    pub fn request<M: Serialize + Into<abstract_core::api::ExecuteMsg<M, Empty>>>(
+impl<'a, T: AdapterInterface> Adapter<'a, T> {
+    /// Interactions with Abstract Adapters
+    /// Construct an adapter request message.
+    pub fn request<M: Serialize + Into<abstract_core::adapter::ExecuteMsg<M, Empty>>>(
         &self,
-        api_id: ModuleId,
+        adapter_id: ModuleId,
         message: M,
     ) -> AbstractSdkResult<CosmosMsg> {
         let modules = self.base.modules(self.deps);
-        modules.assert_module_dependency(api_id)?;
-        let api_msg = abstract_core::api::ExecuteMsg::<_>::Module(ApiRequestMsg::new(
+        modules.assert_module_dependency(adapter_id)?;
+        let adapter_msg = abstract_core::adapter::ExecuteMsg::<_>::Module(AdapterRequestMsg::new(
             Some(self.base.proxy_address(self.deps)?.into_string()),
             message,
         ));
-        let api_address = modules.module_address(api_id)?;
-        Ok(wasm_execute(api_address, &api_msg, vec![])?.into())
+        let adapter_address = modules.module_address(adapter_id)?;
+        Ok(wasm_execute(adapter_address, &adapter_msg, vec![])?.into())
     }
 
-    /// Smart query an API
+    /// Smart query an Adapter
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
-        api_id: ModuleId,
-        message: impl Into<abstract_core::api::QueryMsg<Q>>,
+        adapter_id: ModuleId,
+        message: impl Into<abstract_core::adapter::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
-        let api_msg: abstract_core::api::QueryMsg<Q> = message.into();
+        let adapter_msg: abstract_core::adapter::QueryMsg<Q> = message.into();
         let modules = self.base.modules(self.deps);
-        let api_address = modules.module_address(api_id)?;
+        let adapter_address = modules.module_address(adapter_id)?;
         self.deps
             .querier
-            .query_wasm_smart(api_address, &api_msg)
+            .query_wasm_smart(adapter_address, &adapter_msg)
             .map_err(Into::into)
     }
 }
@@ -72,7 +72,7 @@ mod tests {
         deps.querier = abstract_testing::mock_querier();
         let app = MockModule::new();
 
-        let _mods = app.apis(deps.as_ref());
+        let _mods = app.adapters(deps.as_ref());
 
         let res = modules_fn(&app, deps.as_ref());
 
@@ -80,15 +80,15 @@ mod tests {
             .is_err()
             .matches(|e| e.to_string().contains(&fake_module.to_string()));
     }
-    mod api_request {
+    mod adapter_request {
         use super::*;
-        use core::api::{self, ApiRequestMsg};
+        use core::adapter::{self, AdapterRequestMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
-                    let mods = app.apis(deps);
+                    let mods = app.adapters(deps);
                     mods.request(FAKE_MODULE_ID, MockModuleExecuteMsg {})
                 },
                 FAKE_MODULE_ID,
@@ -96,19 +96,20 @@ mod tests {
         }
 
         #[test]
-        fn expected_api_request() {
+        fn expected_adapter_request() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
-            let mods = app.apis(deps.as_ref());
+            let mods = app.adapters(deps.as_ref());
 
             let res = mods.request(TEST_MODULE_ID, MockModuleExecuteMsg {});
 
-            let expected_msg: api::ExecuteMsg<_, Empty> = api::ExecuteMsg::Module(ApiRequestMsg {
-                proxy_address: Some(TEST_PROXY.into()),
-                request: MockModuleExecuteMsg {},
-            });
+            let expected_msg: adapter::ExecuteMsg<_, Empty> =
+                adapter::ExecuteMsg::Module(AdapterRequestMsg {
+                    proxy_address: Some(TEST_PROXY.into()),
+                    request: MockModuleExecuteMsg {},
+                });
 
             assert_that!(res)
                 .is_ok()
@@ -127,7 +128,7 @@ mod tests {
         fn should_return_err_if_not_dependency() {
             fail_when_not_dependency_test(
                 |app, deps| {
-                    let mods = app.apis(deps);
+                    let mods = app.adapters(deps);
                     mods.query::<_, Empty>(FAKE_MODULE_ID, Empty {})
                 },
                 FAKE_MODULE_ID,
@@ -135,12 +136,12 @@ mod tests {
         }
 
         #[test]
-        fn expected_api_query() {
+        fn expected_adapter_query() {
             let mut deps = mock_dependencies();
             deps.querier = abstract_testing::mock_querier();
             let app = MockModule::new();
 
-            let mods = app.apis(deps.as_ref());
+            let mods = app.adapters(deps.as_ref());
 
             let inner_msg = Empty {};
 

@@ -1,21 +1,21 @@
 use abstract_sdk::base::SudoEndpoint;
 
-use crate::{state::ContractError, ApiContract};
+use crate::{state::ContractError, AdapterContract};
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     SudoEndpoint
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::mock::{sudo, ApiMockResult};
+    use crate::mock::{sudo, AdapterMockResult};
     use cosmwasm_std::testing::{mock_dependencies, mock_env};
     use speculoos::prelude::*;
 
     #[test]
-    fn endpoint() -> ApiMockResult {
+    fn endpoint() -> AdapterMockResult {
         let env = mock_env();
         let mut deps = mock_dependencies();
         deps.querier = abstract_testing::mock_querier();

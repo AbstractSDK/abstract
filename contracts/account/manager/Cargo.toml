@@ -50,7 +50,7 @@ module-factory = { workspace = true }
 rstest = { workspace = true }
 speculoos = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
-abstract-api = { workspace = true, features = ["test-utils"] }
+abstract-adapter = { workspace = true, features = ["test-utils"] }
 abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }

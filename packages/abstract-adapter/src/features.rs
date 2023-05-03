@@ -1,4 +1,4 @@
-use crate::{state::ContractError, ApiContract};
+use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::{
     feature_objects::AnsHost,
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
@@ -8,7 +8,7 @@ use cosmwasm_std::{Addr, Deps, StdError};
 
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AbstractNameService
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
         Ok(self.base_state.load(deps.storage)?.ans_host)
@@ -18,7 +18,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 /// Retrieve identifying information about the calling Account
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AccountIdentification
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
         if let Some(target) = &self.target_account {
@@ -51,7 +51,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 /// Get the version control contract
 impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
     AbstractRegistryAccess
-    for ApiContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
+    for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<Addr> {
         Ok(self.state(deps.storage)?.version_control)
@@ -60,7 +60,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 #[cfg(test)]
 mod tests {
     use abstract_core::{
-        api::{ApiRequestMsg, ExecuteMsg},
+        adapter::{AdapterRequestMsg, ExecuteMsg},
         version_control::AccountBase,
     };
     use abstract_sdk::base::ExecuteEndpoint;
@@ -72,7 +72,7 @@ mod tests {
     use speculoos::prelude::*;
 
     use crate::mock::{
-        mock_init, mock_init_custom, MockApiContract, MockError, MockExecMsg, MOCK_API,
+        mock_init, mock_init_custom, MockAdapterContract, MockError, MockExecMsg, MOCK_ADAPTER,
         TEST_METADATA,
     };
 
@@ -82,31 +82,31 @@ mod tests {
         deps: DepsMut,
         _env: Env,
         _info: MessageInfo,
-        api: MockApiContract,
+        adapter: MockAdapterContract,
         _msg: MockExecMsg,
     ) -> Result<Response, MockError> {
-        let proxy = api.proxy_address(deps.as_ref())?;
+        let proxy = adapter.proxy_address(deps.as_ref())?;
         // assert with test values
         assert_that!(proxy.as_str()).is_equal_to(TEST_PROXY);
-        let manager = api.manager_address(deps.as_ref())?;
+        let manager = adapter.manager_address(deps.as_ref())?;
         assert_that!(manager.as_str()).is_equal_to(TEST_MANAGER);
-        let account = api.account_base(deps.as_ref())?;
+        let account = adapter.account_base(deps.as_ref())?;
         assert_that!(account).is_equal_to(AccountBase {
             manager: Addr::unchecked(TEST_MANAGER),
             proxy: Addr::unchecked(TEST_PROXY),
         });
-        let ans = api.ans_host(deps.as_ref())?;
+        let ans = adapter.ans_host(deps.as_ref())?;
         assert_that!(ans).is_equal_to(AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
-        let regist = api.abstract_registry(deps.as_ref())?;
+        let regist = adapter.abstract_registry(deps.as_ref())?;
         assert_that!(regist.as_str()).is_equal_to(TEST_VERSION_CONTROL);
 
-        api.target()?;
+        adapter.target()?;
 
         Ok(Response::default())
     }
 
-    pub fn featured_api() -> MockApiContract {
-        MockApiContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
+    pub fn featured_adapter() -> MockAdapterContract {
+        MockAdapterContract::new(TEST_MODULE_ID, TEST_VERSION, Some(TEST_METADATA))
             .with_execute(feature_exec_fn)
     }
 
@@ -115,15 +115,19 @@ mod tests {
         let mut deps = mock_dependencies();
         deps.querier = mocked_account_querier_builder().build();
 
-        mock_init_custom(deps.as_mut(), featured_api()).unwrap();
+        mock_init_custom(deps.as_mut(), featured_adapter()).unwrap();
 
-        let msg = ExecuteMsg::Module(ApiRequestMsg {
+        let msg = ExecuteMsg::Module(AdapterRequestMsg {
             proxy_address: None,
             request: MockExecMsg,
         });
 
-        let res =
-            featured_api().execute(deps.as_mut(), mock_env(), mock_info(TEST_MANAGER, &[]), msg);
+        let res = featured_adapter().execute(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(TEST_MANAGER, &[]),
+            msg,
+        );
 
         assert_that!(res).is_ok();
     }
@@ -135,13 +139,13 @@ mod tests {
 
         mock_init(deps.as_mut()).unwrap();
 
-        let res = MOCK_API.proxy_address(deps.as_ref());
+        let res = MOCK_ADAPTER.proxy_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_API.manager_address(deps.as_ref());
+        let res = MOCK_ADAPTER.manager_address(deps.as_ref());
         assert_that!(res).is_err();
 
-        let res = MOCK_API.account_base(deps.as_ref());
+        let res = MOCK_ADAPTER.account_base(deps.as_ref());
         assert_that!(res).is_err();
     }
 }

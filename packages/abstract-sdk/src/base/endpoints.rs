@@ -53,7 +53,7 @@
 //! }
 //!
 //! ```
-//! Every `Base` variant or field is implemented by the base contract such as the [App](https://crates.io/crates/abstract-app), [API](https://crates.io/crates/abstract-api) and [IBC-host](https://crates.io/crates/abstract-ibc-host) contracts.
+//! Every `Base` variant or field is implemented by the base contract such as the [App](https://crates.io/crates/abstract-app), [API](https://crates.io/crates/abstract-adapter) and [IBC-host](https://crates.io/crates/abstract-ibc-host) contracts.
 //! These contracts then expose a type that requires the missing `App` variant types to be provided. The rust type system
 //! is then smart enough to accept the correct message type for each custom endpoint.
 //!
@@ -93,7 +93,7 @@
 //!                 .base_execute(deps, env, info, exec_msg)
 //!                 .map_err(From::from),
 //!             // handle the other messages with a custom handler set by the developer
-//!             // by passing `self` to the handlers we expose all the features and APIs that the base contract provides through the SDK.
+//!             // by passing `self` to the handlers we expose all the features and Adapters that the base contract provides through the SDK.
 //!             ExecuteMsg::App(request) => self.execute_handler()?(deps, env, info, self, request),
 //!             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
 //!             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),

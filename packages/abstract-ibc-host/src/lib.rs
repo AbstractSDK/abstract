@@ -1,4 +1,4 @@
-//! # Abstract Api
+//! # Abstract Adapter
 //!
 //! Basis for an interfacing contract to an external service.
 use cosmwasm_std::{Empty, Response};
@@ -19,4 +19,4 @@ mod schema;
 pub mod state;
 
 // Default to Empty
-pub type ApiResult<C = Empty> = Result<Response<C>, HostError>;
+pub type AdapterResult<C = Empty> = Result<Response<C>, HostError>;
