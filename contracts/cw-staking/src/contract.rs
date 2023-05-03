@@ -6,12 +6,14 @@ use cosmwasm_std::{Empty, Response};
 
 const MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type CwStakingAdapter = AdapterContract<StakingError, Empty, CwStakingExecuteMsg, CwStakingQueryMsg>;
+pub type CwStakingAdapter =
+    AdapterContract<StakingError, Empty, CwStakingExecuteMsg, CwStakingQueryMsg>;
 pub type CwStakingResult<T = Response> = Result<T, StakingError>;
 
-pub const CW_STAKING_ADAPTER: CwStakingAdapter = CwStakingAdapter::new(CW_STAKING, MODULE_VERSION, None)
-    .with_execute(handlers::execute_handler)
-    .with_query(handlers::query_handler);
+pub const CW_STAKING_ADAPTER: CwStakingAdapter =
+    CwStakingAdapter::new(CW_STAKING, MODULE_VERSION, None)
+        .with_execute(handlers::execute_handler)
+        .with_query(handlers::query_handler);
 
 // Export the endpoints for this contract
 #[cfg(feature = "export")]

@@ -8,7 +8,7 @@ use crate::{
     EXCHANGE,
 };
 use abstract_core::objects::{module::ModuleId, AssetEntry};
-use abstract_sdk::{AdapterInterface};
+use abstract_sdk::AdapterInterface;
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
@@ -158,7 +158,7 @@ mod test {
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
         AdapterRequestMsg {
             proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
-            request: request.into(),
+            request,
         }
         .into()
     }

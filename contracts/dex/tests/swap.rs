@@ -84,7 +84,7 @@ fn swap_raw() -> anyhow::Result<()> {
     wyndex
         .raw_token
         .call_as(&owner)
-        .transfer(10_000u128.into(), (&proxy_addr).to_string())?;
+        .transfer(10_000u128.into(), proxy_addr.to_string())?;
 
     // swap 100 RAW to EUR
     dex_adapter.swap((RAW_TOKEN, 100), EUR, wyndex_bundle::WYNDEX.into())?;
@@ -97,9 +97,7 @@ fn swap_raw() -> anyhow::Result<()> {
     assert_that!(eur_balance.u128()).is_equal_to(10098);
 
     // assert that OS 0 received the swap fee
-    let account0_proxy = AbstractAccount::new(chain.clone(), Some(0))
-        .proxy
-        .address()?;
+    let account0_proxy = AbstractAccount::new(chain, Some(0)).proxy.address()?;
     let os0_raw_balance = wyndex.raw_token.balance(account0_proxy.to_string())?;
     assert_that!(os0_raw_balance.balance.u128()).is_equal_to(1);
 

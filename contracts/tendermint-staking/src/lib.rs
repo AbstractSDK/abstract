@@ -10,7 +10,7 @@ pub mod boot {
     use abstract_boot::{
         boot_core::ContractWrapper,
         boot_core::{contract, Contract, CwEnv},
-        AdapterDeployer
+        AdapterDeployer,
     };
     use abstract_core::adapter::InstantiateMsg;
     use cosmwasm_std::Empty;

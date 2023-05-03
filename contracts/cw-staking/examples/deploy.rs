@@ -1,16 +1,13 @@
 use abstract_boot::boot_core::{
     instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *,
 };
-use abstract_boot::{AnsHost, AdapterDeployer, VCExecFns, VersionControl};
+use abstract_boot::{AdapterDeployer, AnsHost, VCExecFns, VersionControl};
 use abstract_cw_staking::boot::CwStakingAdapter;
 use abstract_cw_staking::CW_STAKING;
-use abstract_sdk::{
-    core::{
-        objects::module::{Module, ModuleInfo, ModuleVersion},
-        adapter,
-        ANS_HOST,
-        VERSION_CONTROL
-    }
+use abstract_sdk::core::{
+    adapter,
+    objects::module::{Module, ModuleInfo, ModuleVersion},
+    ANS_HOST, VERSION_CONTROL,
 };
 use cosmwasm_std::{Addr, Empty};
 use semver::Version;
@@ -47,7 +44,7 @@ fn deploy_cw_staking(
             version: ModuleVersion::from(CONTRACT_VERSION),
             ..info
         };
-        version_control.add_modules(vec![(new_info, reference)])?;
+        version_control.propose_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
         let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
         cw_staking.set_code_id(code_id);

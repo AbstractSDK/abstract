@@ -11,5 +11,9 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     DexAdapter::export_schema(&out_dir);
-    export_schema_with_title(&schema_for!(SimulateSwapResponse), &out_dir, "AdapterResponse");
+    export_schema_with_title(
+        &schema_for!(SimulateSwapResponse),
+        &out_dir,
+        "AdapterResponse",
+    );
 }

@@ -2,11 +2,7 @@ use abstract_boot::AdapterDeployer;
 
 use abstract_boot::boot_core::networks::{parse_network, NetworkInfo};
 use abstract_boot::boot_core::*;
-use abstract_dex_adapter::{
-    boot::DexAdapter,
-    msg::DexInstantiateMsg,
-    EXCHANGE
-};
+use abstract_dex_adapter::{boot::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
 use cosmwasm_std::Decimal;
 use semver::Version;
 use std::sync::Arc;

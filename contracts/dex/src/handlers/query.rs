@@ -13,7 +13,12 @@ use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
-pub fn query_handler(deps: Deps, env: Env, adapter: &DexAdapter, msg: DexQueryMsg) -> DexResult<Binary> {
+pub fn query_handler(
+    deps: Deps,
+    env: Env,
+    adapter: &DexAdapter,
+    msg: DexQueryMsg,
+) -> DexResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwap {
             offer_asset,

@@ -40,8 +40,8 @@ fn handle_local_request(
     provider_name: String,
 ) -> CwStakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
-    let response =
-        Response::new().add_submessage(adapter.resolve_staking_action(deps, env, action, provider)?);
+    let response = Response::new()
+        .add_submessage(adapter.resolve_staking_action(deps, env, action, provider)?);
     Ok(adapter.custom_tag_response(
         response,
         "handle_local_request",

@@ -2,7 +2,10 @@
 //!
 //! [`abstract_dex_adapter`] is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
-use abstract_core::{adapter, objects::{AnsAsset, AssetEntry, DexAssetPairing}};
+use abstract_core::{
+    adapter,
+    objects::{AnsAsset, AssetEntry, DexAssetPairing},
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
 

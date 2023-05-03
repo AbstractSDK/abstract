@@ -41,7 +41,8 @@ pub fn execute_handler(
             recipient_account: recipient_account_id,
         } => {
             // only previous OS can change the owner
-            adapter.account_registry(deps.as_ref())
+            adapter
+                .account_registry(deps.as_ref())
                 .assert_proxy(&info.sender)?;
             if let Some(swap_fee) = swap_fee {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
@@ -51,7 +52,9 @@ pub fn execute_handler(
 
             if let Some(account_id) = recipient_account_id {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
-                let recipient = adapter.account_registry(deps.as_ref()).proxy_address(account_id)?;
+                let recipient = adapter
+                    .account_registry(deps.as_ref())
+                    .proxy_address(account_id)?;
                 fee.set_recipient(deps.api, recipient)?;
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
