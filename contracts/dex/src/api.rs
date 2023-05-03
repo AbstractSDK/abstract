@@ -57,9 +57,9 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         self.dex_module_id
     }
     fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
-        let modules = self.base.adapters(self.deps);
+        let adapters = self.base.adapters(self.deps);
 
-        modules.request(
+        adapters.request(
             self.dex_module_id(),
             DexExecuteMsg::Action {
                 dex: self.dex_name(),
