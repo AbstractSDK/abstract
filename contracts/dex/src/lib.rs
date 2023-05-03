@@ -24,25 +24,25 @@ pub mod boot {
     use crate::{msg::*, EXCHANGE};
     use abstract_boot::boot_core::ContractWrapper;
     use abstract_boot::boot_core::{contract, Contract, ContractInstance, CwEnv};
-    use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
+    use abstract_boot::{AbstractBootError, AdapterDeployer, Manager};
     use abstract_core::{
-        api::{self},
+        adapter::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
     use cosmwasm_std::{Decimal, Empty};
 
     #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct DexApi<Chain>;
+    pub struct DexAdapter<Chain>;
 
     // Implement deployer trait
-    impl<Chain: CwEnv> ApiDeployer<Chain, DexInstantiateMsg> for DexApi<Chain> {}
+    impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
-    impl<Chain: CwEnv> DexApi<Chain> {
+    impl<Chain: CwEnv> DexAdapter<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
             Self(
                 Contract::new(name, chain)
-                    .with_wasm_path("abstract_dex_api")
+                    .with_wasm_path("abstract_dex_adapter")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
                         crate::contract::execute,
                         crate::contract::instantiate,
@@ -62,7 +62,7 @@ pub mod boot {
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 
-            let swap_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: DexExecuteMsg::Action {
                     dex,

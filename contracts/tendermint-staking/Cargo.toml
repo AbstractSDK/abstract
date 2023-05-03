@@ -1,5 +1,5 @@
 [package]
-name = "abstract-tendermint-staking-api"
+name = "abstract-tendermint-staking-adapter"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
@@ -23,10 +23,10 @@ cosmwasm-schema = { workspace = true }
 thiserror = { workspace = true }
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-api = { workspace = true }
+abstract-adapter = { workspace = true }
 
 boot-core = { workspace = true, optional = true }
 abstract-boot = { workspace = true, optional = true }
 
 [dev-dependencies]
-abstract-api = { workspace = true, features = ["schema"] }
+abstract-adapter = { workspace = true, features = ["schema"] }

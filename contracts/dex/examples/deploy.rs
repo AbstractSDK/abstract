@@ -1,10 +1,12 @@
-use abstract_boot::ApiDeployer;
+use abstract_boot::AdapterDeployer;
 
 use abstract_boot::boot_core::networks::{parse_network, NetworkInfo};
 use abstract_boot::boot_core::*;
-use abstract_dex_api::boot::DexApi;
-use abstract_dex_api::msg::DexInstantiateMsg;
-use abstract_dex_api::EXCHANGE;
+use abstract_dex_adapter::{
+    boot::DexAdapter,
+    msg::DexInstantiateMsg,
+    EXCHANGE
+};
 use cosmwasm_std::Decimal;
 use semver::Version;
 use std::sync::Arc;
@@ -17,7 +19,7 @@ fn deploy_dex(network: NetworkInfo) -> anyhow::Result<()> {
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
-    let mut dex = DexApi::new(EXCHANGE, chain);
+    let mut dex = DexAdapter::new(EXCHANGE, chain);
     dex.deploy(
         version,
         DexInstantiateMsg {

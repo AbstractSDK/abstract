@@ -1,6 +1,6 @@
-# TendermintStake Api
+# TendermintStake Adapter
 
-Api to easily delegate and claim rewards from validators.
+Adapter module to easily delegate and claim rewards from validators.
 
 # Features
 

@@ -1,4 +1,4 @@
-use abstract_api::ApiError;
+use abstract_adapter::AdapterError;
 use abstract_core::objects::DexAssetPairing;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
@@ -21,7 +21,7 @@ pub enum DexError {
     Asset(#[from] AssetError),
 
     #[error("{0}")]
-    ApiError(#[from] ApiError),
+    AdapterError(#[from] AdapterError),
 
     #[error("DEX {0} is not a known dex on this network.")]
     UnknownDex(String),

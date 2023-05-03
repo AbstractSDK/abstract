@@ -4,7 +4,7 @@ use crate::msg::{
 };
 use crate::state::SWAP_FEE;
 use crate::{
-    contract::{DexApi, DexResult},
+    contract::{DexAdapter, DexResult},
     error::DexError,
     exchanges::exchange_resolver,
     LocalDex,
@@ -13,13 +13,13 @@ use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
-pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> DexResult<Binary> {
+pub fn query_handler(deps: Deps, env: Env, adapter: &DexAdapter, msg: DexQueryMsg) -> DexResult<Binary> {
     match msg {
         DexQueryMsg::SimulateSwap {
             offer_asset,
             ask_asset,
             dex,
-        } => simulate_swap(deps, env, api, offer_asset, ask_asset, dex.unwrap()),
+        } => simulate_swap(deps, env, adapter, offer_asset, ask_asset, dex.unwrap()),
         DexQueryMsg::GenerateMessages { message } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
@@ -30,7 +30,7 @@ pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> De
                     }
 
                     let exchange = exchange_resolver::resolve_exchange(&dex)?;
-                    let (messages, _) = api.resolve_dex_action(deps, action, exchange)?;
+                    let (messages, _) = adapter.resolve_dex_action(deps, action, exchange)?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
                 _ => Err(DexError::InvalidGenerateMessage {}),
@@ -42,13 +42,13 @@ pub fn query_handler(deps: Deps, env: Env, api: &DexApi, msg: DexQueryMsg) -> De
 pub fn simulate_swap(
     deps: Deps,
     _env: Env,
-    api: &DexApi,
+    adapter: &DexAdapter,
     mut offer_asset: OfferAsset,
     mut ask_asset: AssetEntry,
     dex: String,
 ) -> DexResult<Binary> {
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
-    let ans = api.name_service(deps);
+    let ans = adapter.name_service(deps);
     let fee = SWAP_FEE.load(deps.storage)?;
 
     // format input
@@ -71,9 +71,9 @@ pub fn simulate_swap(
     let pool_info =
         DexAssetPairing::new(offer_asset.name.clone(), ask_asset.clone(), exchange.name());
 
-    // compute api fee
-    let api_fee = fee.compute(offer_asset.amount);
-    offer_asset.amount -= api_fee;
+    // compute adapter fee
+    let adapter_fee = fee.compute(offer_asset.amount);
+    offer_asset.amount -= adapter_fee;
 
     let (return_amount, spread_amount, commission_amount, fee_on_input) = exchange
         .simulate_swap(deps, pair_address, swap_offer_asset, ask_asset_info)
@@ -88,7 +88,7 @@ pub fn simulate_swap(
         return_amount,
         spread_amount,
         commission: (commission_asset, commission_amount),
-        api_fee,
+        usage_fee: adapter_fee,
     };
     to_binary(&resp).map_err(From::from)
 }

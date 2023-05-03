@@ -1,11 +1,8 @@
-//! # Decentralized Exchange Api
+//! # Decentralized Exchange Adapter
 //!
-//! `abstract_core::dex` is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
+//! [`abstract_dex_adapter`] is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
 
-use abstract_core::{
-    api,
-    objects::{AnsAsset, AssetEntry, DexAssetPairing},
-};
+use abstract_core::{adapter, objects::{AnsAsset, AssetEntry, DexAssetPairing}};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
 
@@ -15,12 +12,12 @@ pub type AskAsset = AnsAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
 
-pub type ExecuteMsg = api::ExecuteMsg<DexExecuteMsg>;
-pub type QueryMsg = api::QueryMsg<DexQueryMsg>;
-pub type InstantiateMsg = api::InstantiateMsg<DexInstantiateMsg>;
+pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
+pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;
+pub type InstantiateMsg = adapter::InstantiateMsg<DexInstantiateMsg>;
 
-impl api::ApiExecuteMsg for DexExecuteMsg {}
-impl api::ApiQueryMsg for DexQueryMsg {}
+impl adapter::AdapterExecuteMsg for DexExecuteMsg {}
+impl adapter::AdapterQueryMsg for DexQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub struct DexInstantiateMsg {
@@ -33,7 +30,7 @@ pub struct DexInstantiateMsg {
 pub enum DexExecuteMsg {
     UpdateFee {
         swap_fee: Option<Decimal>,
-        recipient_os_id: Option<u32>,
+        recipient_account_id: Option<u32>,
     },
     Action {
         dex: DexName,
@@ -41,8 +38,8 @@ pub enum DexExecuteMsg {
     },
 }
 
-#[cosmwasm_schema::cw_serde]
 /// Possible actions to perform on the DEX
+#[cosmwasm_schema::cw_serde]
 pub enum DexAction {
     /// Provide arbitrary liquidity
     ProvideLiquidity {
@@ -114,8 +111,8 @@ pub struct SimulateSwapResponse {
     pub spread_amount: Uint128,
     /// Commission charged for the swap
     pub commission: (AssetEntry, Uint128),
-    /// API fee charged for the swap (paid in offer asset)
-    pub api_fee: Uint128,
+    /// Adapter fee charged for the swap (paid in offer asset)
+    pub usage_fee: Uint128,
 }
 
 /// Response from GenerateMsgs

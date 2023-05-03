@@ -1,5 +1,5 @@
 [package]
-name = "abstract-dex-api"
+name = "abstract-dex-adapter"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
@@ -36,7 +36,7 @@ cw-storage-plus = { workspace = true }
 abstract-boot = { workspace = true, optional = true }
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-api = { workspace = true }
+abstract-adapter = { workspace = true }
 boot-core = { workspace = true, optional = true }
 
 # Juno dexes #
@@ -65,5 +65,5 @@ clap = { workspace = true }
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
-dex = { path = ".", features = ["boot", "juno"], package = "abstract-dex-api" }
+dex = { path = ".", features = ["boot", "juno"], package = "abstract-dex-adapter" }
 boot-cw-plus = { workspace = true }

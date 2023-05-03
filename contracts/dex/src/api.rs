@@ -8,7 +8,7 @@ use crate::{
     EXCHANGE,
 };
 use abstract_core::objects::{module::ModuleId, AssetEntry};
-use abstract_sdk::ApiInterface;
+use abstract_sdk::{AdapterInterface};
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies},
     AbstractSdkResult,
@@ -16,7 +16,7 @@ use abstract_sdk::{
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
 
-/// Interact with the dex api in your module.
+/// Interact with the dex adapter in your module.
 pub trait DexInterface: AccountIdentification + Dependencies {
     /// Construct a new dex interface
     /// Params:
@@ -57,7 +57,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         self.dex_module_id
     }
     fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
-        let modules = self.base.apis(self.deps);
+        let modules = self.base.adapters(self.deps);
 
         modules.request(
             self.dex_module_id(),
@@ -128,8 +128,8 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 
 impl<'a, T: DexInterface> Dex<'a, T> {
     fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
-        let modules = self.base.apis(self.deps);
-        modules.query(EXCHANGE, query_msg)
+        let adapters = self.base.adapters(self.deps);
+        adapters.query(EXCHANGE, query_msg)
     }
     pub fn simulate_swap(
         &self,
@@ -149,14 +149,14 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 mod test {
     use super::*;
     use crate::msg::ExecuteMsg;
-    use abstract_core::api::ApiRequestMsg;
+    use abstract_core::adapter::AdapterRequestMsg;
     use abstract_sdk::mock_module::MockModule;
     use cosmwasm_std::testing::mock_dependencies;
     use cosmwasm_std::wasm_execute;
     use speculoos::prelude::*;
 
     fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
-        ApiRequestMsg {
+        AdapterRequestMsg {
             proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
             request: request.into(),
         }
