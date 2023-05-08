@@ -1,0 +1,56 @@
+{
+  "juno": {
+    "uni-6": {
+      "code_ids": {
+        "abstract:account-factory": 1582,
+        "abstract:ans-host": 1580,
+        "abstract:cw-staking": 1594,
+        "abstract:dex": 1593,
+        "abstract:etf": 1636,
+        "abstract:manager": 1584,
+        "abstract:module-factory": 1583,
+        "abstract:proxy": 1585,
+        "abstract:tendermint-staking": 1595,
+        "abstract:version-control": 1581
+      },
+      "default": {
+        "abstract:account-factory": "juno16csudmjzkcucfj8tfw60kzet76vd9yys67gjnw6fwudzz3epfa7qpps6z0",
+        "abstract:ans-host": "juno1e7f9f2h42juvuvg5za6zu8acafjt2tww6rq97v2ege04efzdzymsurm96k",
+        "abstract:cw-staking": "juno1l6h40xwg072zml0ccyjlq4kwgxuc8jy2ngyys89mcxk2zk4cpmsqwc7sr6",
+        "abstract:dex": "juno1fv07jmuedt9e3363dzpmmlhttgcuypuu2rglenk24pew6jjnt7wsersptx",
+        "abstract:manager": "juno1tcdcu4z2a8wt0ps6hse53ad2hx4rz7gpnx0fsl5nx9u8cujculrqmjfr39",
+        "abstract:module-factory": "juno1nmv2st6rsf4fvuqhvl3d8fc88gv44rujr3yjfhns6ee02s3fdk3qs35ux8",
+        "abstract:proxy": "juno1uhcmr7clj4vv7hlwlfpq4729tqgpkwgwv2y9tj99wx9cw656whfsut9awz",
+        "abstract:tendermint-staking": "juno15tgz2wkxc8jg0vh5re6rqjy5zmpa9gd3uc49xrgnl3ue38vjm64qqjetg8",
+        "abstract:version-control": "juno1hl4h9qf6g4ysh4e7fkx8lcvsymtfc8ntxwhuvnxja7ugz357sukq74pdmn"
+      }
+    }
+  },
+  "terra": {
+    "pisco-1": {
+      "code_ids": {
+        "abstract:account-factory": 8508,
+        "abstract:ans-host": 8506,
+        "abstract:cw-staking": 8568,
+        "abstract:dex": 8520,
+        "abstract:etf": 8576,
+        "abstract:manager": 8510,
+        "abstract:module-factory": 8509,
+        "abstract:proxy": 8511,
+        "abstract:tendermint-staking": 8574,
+        "abstract:version-control": 8507
+      },
+      "default": {
+        "abstract:account-factory": "terra1rvqtackkr6d8cmhgw3m4y8nyhs9mtk035kacjntps57828fqh4nqfp4wet",
+        "abstract:ans-host": "terra1j4pmsj5ut4h3twhhu7f6ntp5mxu5sjnf2nd62ug4e0el0e5e7hfsctkgh6",
+        "abstract:cw-staking": "terra1y7qnqrawlm4zkc2u43ns4r3wmj3u4xzwz0srkye39rv693zdml6q66w3s5",
+        "abstract:dex": "terra1s6qalhnrl4wj83hurkvash9a6ay6jhxa9r9vjp85uj8074yf52yqgp8944",
+        "abstract:manager": "terra1yhryvq67nrfmqxd8cgz38zl6l347gf3n4ahs2v6wf08qwrmm6aus4f949v",
+        "abstract:module-factory": "terra1uj4rkn0dgfjl94pdzmjg42uplhn60gdtx2m85tsgp9vm8dnm85qqzfxry7",
+        "abstract:proxy": "terra19s8jm8pqf5d9fjtctcatl33ug3wu33npkxnh7rlf7wcre36q4a4sphj5hd",
+        "abstract:tendermint-staking": "terra1tgk92tn9m0utyexhntjankc5hwpjdl7jg7u5twlulze3h2wrucwq2s93sh",
+        "abstract:version-control": "terra176q7gvqq8hnft7u2z3gmf0uaht0stypc95fl3r0m3h8877te4kjq0rws67"
+      }
+    }
+  }
+}
