@@ -202,7 +202,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                     address: deauthorized,
                 });
             } else {
-                authorized_addrs.retain(|addr| addr != &deauthorized_addr);
+                authorized_addrs.retain(|addr| addr != deauthorized_addr);
             }
         }
 

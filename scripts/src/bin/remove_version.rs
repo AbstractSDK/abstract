@@ -30,7 +30,7 @@ pub fn deploy_adapter() -> anyhow::Result<()> {
     for version in old_versions {
         let res = version_control.remove_module(ModuleInfo {
             name: "autocompounder".to_string(),
-            namespace: "4t2".into(),
+            namespace: "4t2".try_into()?,
             version: ModuleVersion::from(version),
         });
 
@@ -40,7 +40,7 @@ pub fn deploy_adapter() -> anyhow::Result<()> {
 
         let res = version_control.remove_module(ModuleInfo {
             name: "cw_staking".to_string(),
-            namespace: "4t2".into(),
+            namespace: "4t2".try_into()?,
             version: ModuleVersion::from(version),
         });
 

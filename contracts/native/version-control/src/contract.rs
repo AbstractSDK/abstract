@@ -1,7 +1,8 @@
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use cw_semver::Version;
 
 use abstract_core::objects::module_version::assert_cw_contract_upgrade;
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::version_control::Config;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{
@@ -89,13 +90,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
     match msg {
         QueryMsg::AccountBase { account_id } => {
-            queries::handle_account_address_query(deps, account_id)
+            to_binary(&queries::handle_account_address_query(deps, account_id)?)
         }
-        QueryMsg::Modules { infos } => queries::handle_modules_query(deps, infos),
-        QueryMsg::Namespaces { accounts } => queries::handle_namespaces_query(deps, accounts),
+        QueryMsg::Modules { infos } => to_binary(&queries::handle_modules_query(deps, infos)?),
+        QueryMsg::Namespaces { accounts } => {
+            to_binary(&queries::handle_namespaces_query(deps, accounts)?)
+        }
         QueryMsg::Config {} => {
             let factory = FACTORY.get(deps)?.unwrap();
             to_binary(&ConfigResponse { factory })
@@ -104,14 +107,28 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             filter,
             start_after,
             limit,
-        } => queries::handle_module_list_query(deps, start_after, limit, filter),
+        } => to_binary(&queries::handle_module_list_query(
+            deps,
+            start_after,
+            limit,
+            filter,
+        )?),
         QueryMsg::NamespaceList {
             filter,
             start_after,
             limit,
-        } => queries::handle_namespace_list_query(deps, start_after, limit, filter),
-        QueryMsg::Ownership {} => query_ownership!(deps),
+        } => {
+            let start_after = start_after.map(Namespace::try_from).transpose()?;
+            to_binary(&queries::handle_namespace_list_query(
+                deps,
+                start_after,
+                limit,
+                filter,
+            )?)
+        }
+        QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),
     }
+    .map_err(Into::into)
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-use crate::AbstractResult;
+use crate::{AbstractError, AbstractResult};
 
 use super::module::validate_name;
 
@@ -13,8 +13,13 @@ use super::module::validate_name;
 pub struct Namespace(String);
 
 impl Namespace {
-    pub fn new(namespace: &str) -> Self {
-        Self(namespace.to_owned())
+    pub fn new(namespace: &str) -> AbstractResult<Self> {
+        validate_name(namespace)?;
+        Ok(Self(namespace.to_owned()))
+    }
+    /// Create an instance without validating. Not for use in production code.
+    pub fn unchecked(namespace: impl ToString) -> Self {
+        Self(namespace.to_string())
     }
     pub fn as_str(&self) -> &str {
         &self.0
@@ -26,20 +31,26 @@ impl Namespace {
     }
 }
 
-impl From<&str> for Namespace {
-    fn from(namespace: &str) -> Self {
+impl TryFrom<&str> for Namespace {
+    type Error = AbstractError;
+
+    fn try_from(namespace: &str) -> AbstractResult<Self> {
         Self::new(namespace)
     }
 }
 
-impl From<String> for Namespace {
-    fn from(namespace: String) -> Self {
-        Self::new(&namespace)
+impl TryFrom<String> for Namespace {
+    type Error = AbstractError;
+
+    fn try_from(namespace: String) -> AbstractResult<Self> {
+        Self::try_from(&namespace)
     }
 }
 
-impl From<&String> for Namespace {
-    fn from(namespace: &String) -> Self {
+impl TryFrom<&String> for Namespace {
+    type Error = AbstractError;
+
+    fn try_from(namespace: &String) -> AbstractResult<Self> {
         Self::new(namespace)
     }
 }
@@ -79,6 +90,35 @@ impl KeyDeserialize for &Namespace {
     }
 }
 
+impl<'a> PrimaryKey<'a> for Namespace {
+    type Prefix = ();
+
+    type SubPrefix = ();
+
+    type Suffix = Self;
+
+    type SuperSuffix = Self;
+
+    fn key(&self) -> Vec<cw_storage_plus::Key> {
+        self.0.key()
+    }
+}
+
+impl<'a> Prefixer<'a> for Namespace {
+    fn prefix(&self) -> Vec<Key> {
+        self.0.prefix()
+    }
+}
+
+impl KeyDeserialize for Namespace {
+    type Output = Namespace;
+
+    #[inline(always)]
+    fn from_vec(value: Vec<u8>) -> StdResult<Self::Output> {
+        Ok(Namespace(String::from_vec(value)?))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -86,37 +126,37 @@ mod test {
 
     #[test]
     fn test_namespace() {
-        let namespace = Namespace::new("test");
+        let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_from_string() {
-        let namespace = Namespace::from("test".to_string());
+        let namespace = Namespace::try_from("test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_from_str() {
-        let namespace = Namespace::from("test");
+        let namespace = Namespace::try_from("test").unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_from_ref_string() {
-        let namespace = Namespace::from(&"test".to_string());
+        let namespace = Namespace::try_from(&"test".to_string()).unwrap();
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_to_string() {
-        let namespace = Namespace::new("test");
+        let namespace = Namespace::new("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
     #[test]
     fn string_key_works() {
-        let k = &Namespace::new("test");
+        let k = &Namespace::new("test").unwrap();
         let path = k.key();
         assert_eq!(1, path.len());
         assert_eq!(b"test", path[0].as_ref());

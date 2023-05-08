@@ -1,8 +1,10 @@
-use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 use cosmwasm_std::{Addr, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
+
+use abstract_core::objects::namespace::Namespace;
+use abstract_core::{objects::AccountId, AbstractError};
+use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VCError {
@@ -37,7 +39,7 @@ pub enum VCError {
     UnknownAccountId { id: AccountId },
 
     #[error("Namespace {} is not in version control register", namespace)]
-    UnknownNamespace { namespace: String },
+    UnknownNamespace { namespace: Namespace },
 
     #[error("Account owner mismatch sender: {}, owner: {}", sender, owner)]
     AccountOwnerMismatch { sender: Addr, owner: Addr },

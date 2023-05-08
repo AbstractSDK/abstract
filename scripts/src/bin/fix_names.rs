@@ -8,6 +8,7 @@ use boot_core::{
     *,
 };
 
+use abstract_core::objects::namespace::Namespace;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -31,7 +32,7 @@ pub fn fix_names() -> anyhow::Result<()> {
             name,
             namespace,
         } = info.clone();
-        if namespace == NAMESPACE && name.to_string().contains('_') {
+        if namespace == Namespace::unchecked(NAMESPACE) && name.to_string().contains('_') {
             deployment.version_control.remove_module(info)?;
             deployment.version_control.propose_modules(vec![(
                 ModuleInfo {

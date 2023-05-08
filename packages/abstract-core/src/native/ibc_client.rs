@@ -265,7 +265,7 @@ mod tests {
         let callback_id = "15".to_string();
         let callback_info = CallbackInfo {
             id: callback_id,
-            receiver: receiver,
+            receiver,
         };
         let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
 

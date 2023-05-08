@@ -190,7 +190,7 @@ fn acknowledge_query(
 ) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
-    // store IBC response for later querying from the smart contract??
+    // store IBC response for later querying from the smart contract?
     LATEST_QUERIES.save(
         deps.storage,
         (&channel_id, account_id),
