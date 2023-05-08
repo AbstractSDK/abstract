@@ -76,6 +76,10 @@ pub enum TemplateQueryMsg {
     Config {},
 }
 
+/// Template migrate msg
+#[cosmwasm_schema::cw_serde]
+pub enum TemplateMigrateMsg { }
+
 #[cosmwasm_schema::cw_serde]
 pub enum Cw20HookMsg {
     Deposit {},

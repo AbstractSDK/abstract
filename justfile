@@ -1,9 +1,13 @@
+# Build everything
 build:
-  cargo build
+  cargo build --all-features
 
 # Test everything
 test:
   cargo nextest run
+
+watch-test:
+  cargo watch -x "nextest run"
 
 format:
   cargo fmt --all
@@ -13,7 +17,7 @@ lint:
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
-  cargo fmt --all
+  just format
 
 refresh:
   cargo clean && cargo update
@@ -32,30 +36,24 @@ watch:
 check:
   cargo check --all-features
 
-watch-test:
-  cargo watch -x "nextest run"
-
-# `just wasm-contract etf--features export,terra --no-default-features`
+# `just wasm-contract template --features export,terra --no-default-features`
 wasm-contract module +args='':
-  RUSTFLAGS='-C link-arg=-s' cargo wasm --package abstract-{{module}}-app {{args}}
+  RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}-app {{args}}
 
 # Wasm all the contracts in the repository for the given chain
 wasm chain_name:
-  just wasm-contract etf --features export --no-default-features
-#  just wasm-contract subscription --features export --no-default-features
+  just wasm-contract template --features export --no-default-features
 
-# Deploy a module to the chain
+# Deploy your module to the chain
 # ??? deploy-module module +args='': (wasm-module module)
 # `just deploy-module dex pisco-1`
 deploy-contract module network +args='':
-  cargo deploy --package abstract-{{module}}-app -- --network-id {{network}} {{args}}
+  cargo deploy --package {{module}}-app -- --network-id {{network}} {{args}}
 
 # Deploy all the apis
 deploy network +args='':
-  just wasm-contract etf
-  just wasm-contract subscription
-  just deploy-contract etf {{network}}
-#  just deploy-contract subscription {{network}}
+  just wasm-contract template
+  just deploy-contract template {{network}}
 
 # Transfer the schemas to the Abstract schemas repo.
 # TODO: git

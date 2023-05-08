@@ -6,14 +6,17 @@ use crate::{
     },
     error::TemplateError,
     msg::{TemplateExecuteMsg, TemplateInstantiateMsg, TemplateQueryMsg},
-    TEMPLATE_ID,
+    TEMPLATE_MOD_ID,
     dependencies::TEMPLATE_DEPS,
 };
 use abstract_app::AppContract;
-use cosmwasm_std::{Empty, Response};
+use cosmwasm_std::{Response};
 use cw20::Cw20ReceiveMsg;
+use crate::msg::TemplateMigrateMsg;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The version of your module to be uploaded
+const MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The type of the result returned by your app's entrypoints.
 pub type TemplateResult<T = Response> = Result<T, TemplateError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
@@ -22,15 +25,16 @@ pub type TemplateApp = AppContract<
     TemplateInstantiateMsg,
     TemplateExecuteMsg,
     TemplateQueryMsg,
-    Empty,
+    TemplateMigrateMsg,
     Cw20ReceiveMsg,
 >;
 
-const TEMPLATE_APP: TemplateApp = TemplateApp::new(TEMPLATE_ID, CONTRACT_VERSION, None)
+const TEMPLATE_APP: TemplateApp = TemplateApp::new(TEMPLATE_MOD_ID, MODULE_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
     .with_receive(handlers::receive_handler)
+    .with_migrate(handlers::migrate_handler)
     .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)])
     .with_dependencies(TEMPLATE_DEPS);
 
