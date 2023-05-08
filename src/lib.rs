@@ -1,10 +1,10 @@
 pub mod contract;
+pub mod dependencies;
 pub mod error;
 mod handlers;
+#[cfg(feature = "interface")]
+pub mod interface;
 pub mod msg;
 pub mod state;
-pub mod dependencies;
-#[cfg(feature = "interface")]
-mod interface;
 
 pub const TEMPLATE_ID: &str = "yournamespace:template";

@@ -1,21 +1,10 @@
-use abstract_app::state::AppState;
-use abstract_sdk::{
-    *, core::objects::deposit_info::DepositInfo,
-    core::objects::fee::Fee, core::proxy::AssetsInfoResponse,
-    cw_helpers::cosmwasm_std::wasm_smart_query, features::AbstractResponse,
-};
-use cosmwasm_std::{
-    Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, to_binary, Uint128,
-    wasm_execute, WasmMsg,
-};
-use cosmwasm_std::{QuerierWrapper, StdResult};
-use cw20::{Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
-use cw_asset::{Asset, AssetInfo};
+use abstract_sdk::features::AbstractResponse;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::contract::{TemplateApp, TemplateResult};
-use crate::error::TemplateError;
+
 use crate::msg::TemplateExecuteMsg;
-use crate::state::{Config, CONFIG};
+use crate::state::CONFIG;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -35,8 +24,5 @@ fn update_config(deps: DepsMut, msg_info: MessageInfo, app: TemplateApp) -> Temp
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let mut _config = CONFIG.load(deps.storage)?;
 
-    Ok(app.tag_response(
-        Response::default(),
-        "update_config",
-    ))
+    Ok(app.tag_response(Response::default(), "update_config"))
 }

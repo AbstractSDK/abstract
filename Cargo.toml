@@ -31,7 +31,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-interface = ["export", "dep:abstract-boot", "dep:cw-orch"]
+interface = ["export", "dep:abstract-boot", "dep:boot-core"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
@@ -50,8 +50,7 @@ abstract-core = { version = "0.14" }
 abstract-app = { version = "0.14" }
 abstract-sdk = { version = "0.14" }
 # TODO: once stable, this should be updated to the stable release
-cw-orch = { path = "../BOOT/cw-orch", optional = true }
-#cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "fix/uploadable", optional = true }
+boot-core = { version = "0.10", optional = true }
 
 abstract-boot = { version = "0.14", optional = true }
 
@@ -60,9 +59,7 @@ abstract-boot = { version = "0.14", optional = true }
 #cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "fix/uploadable", features = [
 #  "daemon",
 #] }
-cw-orch = { path = "../BOOT/cw-orch", features = [
-  "daemon",
-] }
+boot-core = { version = "0.10", features = ["daemon"] }
 template-app = { path = ".", features = ["interface"], package = "template-app" }
 speculoos = "0.11.0"
 abstract-boot = { version = "0.14", features = ["daemon"] }

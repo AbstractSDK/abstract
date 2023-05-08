@@ -1,18 +1,9 @@
-use abstract_sdk::AbstractResponse;
 use crate::{
     contract::{TemplateApp, TemplateResult},
-    error::TemplateError,
-    handlers::execute,
     msg::Cw20HookMsg,
-    state::{Config, CONFIG}
 };
-use cosmwasm_std::{
-    from_binary,
-    Response,
-    DepsMut,
-    Env,
-    MessageInfo
-};
+use abstract_sdk::AbstractResponse;
+use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo, Response};
 use cw20::Cw20ReceiveMsg;
 
 /// handler function invoked when the vault dapp contract receives
@@ -28,7 +19,11 @@ pub fn receive_cw20(
     match from_binary(&cw20_msg.msg)? {
         Cw20HookMsg::Deposit {} => {
             // Do nothing, just return
-            Ok(app.custom_tag_response(Response::default(), "receive_cw20", vec![("method", "deposit")]))
+            Ok(app.custom_tag_response(
+                Response::default(),
+                "receive_cw20",
+                vec![("method", "deposit")],
+            ))
         }
     }
 }

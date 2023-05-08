@@ -13,8 +13,14 @@ pub(crate) const DEFAULT_LP_TOKEN_SYMBOL: &str = "etfLP";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type TemplateResult<T = Response> = Result<T, TemplateError>;
 
-pub type TemplateApp =
-    AppContract<TemplateError, TemplateInstantiateMsg, TemplateExecuteMsg, TemplateQueryMsg, Empty, Cw20ReceiveMsg>;
+pub type TemplateApp = AppContract<
+    TemplateError,
+    TemplateInstantiateMsg,
+    TemplateExecuteMsg,
+    TemplateQueryMsg,
+    Empty,
+    Cw20ReceiveMsg,
+>;
 
 const TEMPLATE_APP: TemplateApp = TemplateApp::new(TEMPLATE_ID, CONTRACT_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

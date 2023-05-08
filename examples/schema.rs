@@ -1,8 +1,7 @@
-use template_app::contract::TemplateApp;
-use template_app::msg::StateResponse;
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;
+use template_app::contract::TemplateApp;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -12,5 +11,4 @@ fn main() {
 
     #[cfg(feature = "schema")]
     TemplateApp::export_schema(&out_dir);
-    export_schema(&schema_for!(StateResponse), &out_dir);
 }

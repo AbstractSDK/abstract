@@ -1,16 +1,16 @@
 use std::sync::Arc;
 
 use abstract_boot::{
+    boot_core::networks::{parse_network, NetworkInfo},
+    boot_core::*,
     AppDeployer,
-    cw_orch::*,
-    cw_orch::networks::{NetworkInfo, parse_network},
 };
 use semver::Version;
 
-use template_app::TEMPLATE_ID;
 use clap::Parser;
+use template_app::interface::Template;
+use template_app::TEMPLATE_ID;
 use tokio::runtime::Runtime;
-use template_app::interface::boot::Template;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

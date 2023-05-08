@@ -14,7 +14,7 @@
 // use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 // use abstract_sdk::core as abstract_core;
 //
-// use abstract_boot::cw_orch::*;
+// use abstract_boot::boot_core::*;
 // use abstract_testing::prelude::TEST_ADMIN;
 // use boot_cw_plus::{Cw20Base, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 // use cosmwasm_std::{coin, Addr, Decimal, Empty};

@@ -39,8 +39,6 @@
 use abstract_core::app;
 use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Decimal;
-use cw_asset::AssetUnchecked;
 
 use crate::contract::TemplateApp;
 
@@ -55,21 +53,20 @@ impl app::AppQueryMsg for TemplateQueryMsg {}
 
 /// Template instantiate message
 #[cosmwasm_schema::cw_serde]
-pub struct TemplateInstantiateMsg {
-}
+pub struct TemplateInstantiateMsg {}
 
 /// Template execute messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(boot_core::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum TemplateExecuteMsg {
     // TODO: add attrs to update
-    UpdateConfig {}
+    UpdateConfig {},
 }
 
 /// Template query messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[cfg_attr(feature = "interface", derive(boot_core::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum TemplateQueryMsg {
@@ -85,5 +82,4 @@ pub enum Cw20HookMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {
-}
+pub struct ConfigResponse {}

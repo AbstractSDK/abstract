@@ -1,9 +1,7 @@
-use abstract_core::objects::fee::Fee;
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, ReplyOn, Response, SubMsg, to_binary, wasm_execute, WasmMsg};
-use cw20::MinterResponse;
+use cosmwasm_std::{wasm_execute, DepsMut, Env, MessageInfo, Response, SubMsg};
 
-use crate::contract::{DEFAULT_LP_TOKEN_NAME, DEFAULT_LP_TOKEN_SYMBOL, TemplateApp, TemplateResult};
-use crate::msg::{ExecuteMsg, TemplateExecuteMsg, TemplateInstantiateMsg};
+use crate::contract::{TemplateApp, TemplateResult};
+use crate::msg::TemplateInstantiateMsg;
 use crate::state::{Config, CONFIG};
 
 pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
