@@ -28,6 +28,15 @@ exclude = ["contract.wasm", "hash.txt"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+# Example of customizing binaries in Cargo.toml.
+[[bin]]
+name = "schema"
+required-features = ["schema"]
+
+[[bin]]
+name = "deploy"
+required-features = ["interface"]
+
 [features]
 default = ["export"]
 export = []
