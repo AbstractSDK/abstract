@@ -1,6 +1,6 @@
-# Apps
+# Abstract App Module Template
 
-Apps are composable smart-contracts that enable features or transform OSs into standalone products.
+Apps are composable smart-contracts that enable features or transform Accounts into standalone products.
 Every app is instantiated for each OS individually and is migratable.
 Apps are allowed to perform actions on the proxy contract.
 
@@ -14,3 +14,9 @@ Therefore the the base state includes
 - AnsHost address (configurable)
 
 The proxy and manager addresses are not configurable after instantiation.
+
+## Setup
+```shell
+chmod +x ./template-setup.sh
+./template-setup.sh
+```
