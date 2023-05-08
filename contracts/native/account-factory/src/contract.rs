@@ -65,7 +65,7 @@ pub fn execute(
             description,
         } => {
             let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(deps, env, gov_details, name, description, link)
+            commands::execute_create_account(deps, env, info, gov_details, name, description, link)
         }
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)

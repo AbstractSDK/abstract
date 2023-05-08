@@ -13,6 +13,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub account: AbstractAccount<Chain>,
 }
 
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
 #[cfg(feature = "integration")]
 use boot_core::ContractWrapper;
@@ -131,6 +132,14 @@ impl<Chain: CwEnv> boot_core::Deploy<Chain> for Abstract<Chain> {
         deployment
             .version_control
             .register_natives(deployment.contracts(), &version)?;
+
+        // Create the first abstract account in integration environments
+        #[cfg(feature = "integration")]
+        deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
+                monarch: chain.sender().to_string(),
+            })?;
         Ok(deployment)
     }
 
@@ -165,7 +174,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 1,
+                namespace_limit: 1,
             },
             Some(sender),
             None,

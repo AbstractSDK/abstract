@@ -15,7 +15,7 @@ pub mod pool;
 
 pub use pool::*;
 
-pub mod core;
+pub mod account_id;
 pub mod dependency;
 pub mod deposit_info;
 pub mod deposit_manager;
@@ -29,7 +29,7 @@ pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
 
-pub use self::core::AccountId;
+pub use account_id::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;
 pub use asset_entry::AssetEntry;
 pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};

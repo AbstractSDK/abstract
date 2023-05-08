@@ -14,7 +14,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub is_testnet: bool,
-    pub namespaces_limit: u32,
+    pub namespace_limit: u32,
 }
 
 pub mod state {
@@ -22,7 +22,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        common_namespace::ADMIN_NAMESPACE, core::AccountId, module::ModuleInfo,
+        account_id::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
         module_reference::ModuleReference,
     };
 
@@ -64,7 +64,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 }
 
 use crate::objects::{
-    core::AccountId,
+    account_id::AccountId,
     module::{Module, ModuleInfo, ModuleStatus},
     module_reference::ModuleReference,
     namespace::Namespace,
@@ -84,7 +84,7 @@ pub struct AccountBase {
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     pub is_testnet: bool,
-    pub namespaces_limit: u32,
+    pub namespace_limit: u32,
 }
 
 /// Version Control Execute Msg

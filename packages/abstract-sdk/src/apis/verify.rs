@@ -111,9 +111,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, 2)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &1)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &2)
                 .build();
 
             let binding = MockBinding;
@@ -146,7 +146,10 @@ mod test {
             assert_that!(res)
                 .is_err()
                 .matches(|e| matches!(e, AbstractSdkError::UnknownAccountId { .. }))
-                .matches(|e| e.to_string().contains("Unknown Account id 0"));
+                .matches(|e| {
+                    e.to_string()
+                        .contains(format!("Unknown Account id {}", TEST_ACCOUNT_ID).as_str())
+                });
         }
 
         #[test]

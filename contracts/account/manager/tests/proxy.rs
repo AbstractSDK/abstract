@@ -2,7 +2,7 @@ mod common;
 use abstract_boot::*;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_manager::contract::CONTRACT_VERSION;
-use abstract_testing::prelude::TEST_VERSION;
+use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_VERSION};
 use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
@@ -32,7 +32,7 @@ fn instantiate() -> AResult {
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: 0u32.into(),
+        account_id: TEST_ACCOUNT_ID.into(),
         is_suspended: false,
     });
     Ok(())

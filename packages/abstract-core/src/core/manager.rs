@@ -17,8 +17,8 @@
 pub mod state {
     use std::collections::HashSet;
 
+    pub use crate::objects::account_id::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    pub use crate::objects::core::ACCOUNT_ID;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Api};
     use cw_address_like::AddressLike;
@@ -91,7 +91,7 @@ pub mod state {
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::objects::{
-    core::AccountId,
+    account_id::AccountId,
     gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };

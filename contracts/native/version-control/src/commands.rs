@@ -3,14 +3,19 @@ use cosmwasm_std::{
     StdResult, Storage,
 };
 
-use abstract_core::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-use abstract_core::{objects::module::ModuleVersion, objects::AccountId, version_control::Config};
-use abstract_sdk::core::{
-    objects::{module::ModuleInfo, module_reference::ModuleReference, namespace::Namespace},
-    version_control::AccountBase,
-    version_control::{namespaces_info, state::*},
+use abstract_sdk::{
+    core::{
+        objects::{
+            common_namespace::OWNERSHIP_STORAGE_KEY,
+            module::{ModuleInfo, ModuleVersion},
+            module_reference::ModuleReference,
+            namespace::Namespace,
+            AccountId,
+        },
+        version_control::{namespaces_info, state::*, AccountBase, Config},
+    },
+    cw_helpers::cosmwasm_std::wasm_raw_query,
 };
-use abstract_sdk::cw_helpers::cosmwasm_std::wasm_raw_query;
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};
 use crate::error::VCError;
@@ -188,7 +193,8 @@ pub fn claim_namespaces(
     }
 
     let Config {
-        namespaces_limit, ..
+        namespace_limit: namespaces_limit,
+        ..
     } = CONFIG.load(deps.storage)?;
     let limit = namespaces_limit as usize;
     let existing_namespace_count = namespaces_info()
@@ -205,14 +211,14 @@ pub fn claim_namespaces(
     }
 
     for namespace in namespaces_to_claim.iter() {
-        let item = Namespace::try_from(namespace)?;
-        if let Some(id) = namespaces_info().may_load(deps.storage, &item)? {
+        let namespace = Namespace::try_from(namespace)?;
+        if let Some(id) = namespaces_info().may_load(deps.storage, &namespace)? {
             return Err(VCError::NamespaceOccupied {
                 namespace: namespace.to_string(),
                 id,
             });
         }
-        namespaces_info().save(deps.storage, &item, &account_id)?;
+        namespaces_info().save(deps.storage, &namespace, &account_id)?;
     }
 
     Ok(VcResponse::new(
@@ -272,22 +278,22 @@ pub fn remove_namespaces(
     ))
 }
 
-pub fn update_namespaces_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
+pub fn update_namespace_limit(deps: DepsMut, info: MessageInfo, new_limit: u32) -> VCResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
     let mut config = CONFIG.load(deps.storage)?;
-    let previous_limit = config.namespaces_limit;
-    if previous_limit > new_limit {
-        return Err(VCError::DecreaseNamespaceLimit {
+    let previous_limit = config.namespace_limit;
+    ensure!(
+        new_limit > previous_limit,
+        VCError::DecreaseNamespaceLimit {
             limit: new_limit,
             current: previous_limit,
-        });
-    }
-
-    config.namespaces_limit = new_limit;
+        }
+    );
+    config.namespace_limit = new_limit;
     CONFIG.save(deps.storage, &config)?;
 
     Ok(VcResponse::new(
-        "update_namespaces_limit",
+        "update_namespace_limit",
         vec![
             ("previous_limit", previous_limit.to_string()),
             ("limit", new_limit.to_string()),
@@ -356,7 +362,7 @@ mod test {
     use crate::contract;
 
     use super::*;
-    use crate::test_common::*;
+    use crate::testing::*;
     use abstract_core::manager::QueryMsg as ManagerQueryMsg;
     use abstract_testing::prelude::*;
     use abstract_testing::MockQuerierOwnership;
@@ -401,7 +407,7 @@ mod test {
             info,
             InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(
@@ -421,7 +427,7 @@ mod test {
             admin_info,
             InstantiateMsg {
                 is_testnet,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(
@@ -535,6 +541,8 @@ mod test {
 
     mod claim_namespaces {
         use super::*;
+        use abstract_core::objects;
+        use objects::ABSTRACT_ACCOUNT_ID;
 
         #[test]
         fn claim_namespaces_by_owner() -> VersionControlTestResult {
@@ -601,6 +609,116 @@ mod test {
                     namespace: new_namespace1.to_string(),
                     id: TEST_ACCOUNT_ID,
                 });
+            Ok(())
+        }
+
+        #[test]
+        fn cannot_claim_abstract() -> VCResult<()> {
+            let mut deps = mock_dependencies();
+            let account_1_manager = "manager2";
+            deps.querier = mock_manager_querier()
+                // add manager 2
+                .with_smart_handler(account_1_manager, |msg| match from_binary(msg).unwrap() {
+                    ManagerQueryMsg::Config {} => {
+                        let resp = ManagerConfigResponse {
+                            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                            module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                            account_id: Uint64::one(),
+                            is_suspended: false,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    ManagerQueryMsg::Ownership {} => {
+                        let resp = cw_ownable::Ownership {
+                            owner: Some(Addr::unchecked(TEST_OWNER)),
+                            pending_expiry: None,
+                            pending_owner: None,
+                        };
+                        Ok(to_binary(&resp).unwrap())
+                    }
+                    _ => panic!("unexpected message"),
+                })
+                .with_owner(account_1_manager, Some(TEST_OWNER))
+                .build();
+            mock_init_with_account(deps.as_mut(), true)?;
+
+            // Add account 1
+            execute_as(
+                deps.as_mut(),
+                TEST_ACCOUNT_FACTORY,
+                ExecuteMsg::AddAccount {
+                    account_id: 1,
+                    account_base: AccountBase {
+                        manager: Addr::unchecked(account_1_manager),
+                        proxy: Addr::unchecked("proxy2"),
+                    },
+                },
+            )?;
+
+            // Attempt to claim the abstract namespace with account 1
+            let claim_abstract_msg = ExecuteMsg::ClaimNamespaces {
+                account_id: 1,
+                namespaces: vec![Namespace::try_from(ABSTRACT_NAMESPACE)?.to_string()],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::NamespaceOccupied {
+                    namespace: Namespace::try_from("abstract")?.to_string(),
+                    id: ABSTRACT_ACCOUNT_ID,
+                });
+            Ok(())
+        }
+    }
+
+    mod update_namespace_limit {
+        use super::*;
+
+        #[test]
+        fn only_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+
+            let res = execute_as(deps.as_mut(), TEST_OTHER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::Ownership(OwnershipError::NotOwner));
+
+            Ok(())
+        }
+
+        #[test]
+        fn updates_limit() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 100 };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res).is_ok();
+
+            assert_that!(CONFIG.load(&deps.storage).unwrap().namespace_limit).is_equal_to(100);
+
+            Ok(())
+        }
+
+        #[test]
+        fn no_decrease() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            mock_init(deps.as_mut())?;
+
+            let msg = ExecuteMsg::UpdateNamespaceLimit { new_limit: 0 };
+
+            let res = execute_as_admin(deps.as_mut(), msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(VCError::DecreaseNamespaceLimit {
+                    current: 10,
+                    limit: 0,
+                });
+
             Ok(())
         }
     }

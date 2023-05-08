@@ -269,7 +269,7 @@ mod test {
     const TEST_ADMIN: &str = "testadmin";
 
     const TEST_OTHER: &str = "testother";
-    const TEST_OTHER_ACCOUNT_ID: u32 = 1;
+    const TEST_OTHER_ACCOUNT_ID: u32 = 2;
     const TEST_OTHER_PROXY_ADDR: &str = "proxy1";
     const TEST_OTHER_MANAGER_ADDR: &str = "manager1";
 
@@ -315,7 +315,7 @@ mod test {
             info,
             InstantiateMsg {
                 is_testnet: true,
-                namespaces_limit: 10,
+                namespace_limit: 10,
             },
         )?;
         execute_as_admin(
@@ -1016,7 +1016,7 @@ mod test {
             assert_that!(res).is_ok().map(|res| {
                 let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
                 println!("{:?}", resp);
-                assert_that!(resp).has_length(5);
+                assert_that!(resp).has_length(6);
                 res
             });
 

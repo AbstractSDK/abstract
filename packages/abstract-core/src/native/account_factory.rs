@@ -12,7 +12,7 @@ pub mod state {
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::core::AccountId;
+    use crate::objects::account_id::AccountId;
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -36,7 +36,7 @@ pub mod state {
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
-use crate::objects::{core::AccountId, gov_type::GovernanceDetails};
+use crate::objects::{account_id::AccountId, gov_type::GovernanceDetails};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]

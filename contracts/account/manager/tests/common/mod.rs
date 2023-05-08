@@ -1,7 +1,8 @@
 #![allow(unused)]
 pub mod mock_modules;
 
-pub const OWNER: &str = "owner";
+pub use abstract_testing::addresses::TEST_OWNER;
+pub const OWNER: &str = TEST_OWNER;
 pub const TEST_COIN: &str = "ucoin";
 
 use ::abstract_manager::contract::CONTRACT_VERSION;

@@ -8,6 +8,8 @@ use crate::{AbstractError, AbstractResult};
 
 use super::module::validate_name;
 
+pub const ABSTRACT_NAMESPACE: &str = "abstract";
+
 /// Represents an Abstract namespace for modules
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Namespace(String);

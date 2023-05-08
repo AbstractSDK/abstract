@@ -6,6 +6,8 @@ use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
+use abstract_testing::addresses::TEST_ACCOUNT_ID;
+use abstract_testing::prelude::TEST_OWNER;
 use boot_core::{
     Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
 };
@@ -17,7 +19,6 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 
 #[test]
 fn instantiate() -> AResult {
-    let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_state, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
@@ -28,7 +29,7 @@ fn instantiate() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        next_account_id: 0,
+        next_account_id: 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -36,8 +37,7 @@ fn instantiate() -> AResult {
 }
 
 #[test]
-fn create_one_os() -> AResult {
-    let _not_owner = Addr::unchecked("not_owner");
+fn create_one_account() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
@@ -48,7 +48,7 @@ fn create_one_os() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-        String::from("first_os"),
+        String::from("first_account"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
@@ -61,7 +61,7 @@ fn create_one_os() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        next_account_id: 1,
+        next_account_id: 2,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -73,7 +73,7 @@ fn create_one_os() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_list = version_control.account_base(0)?;
+    let account_list = version_control.account_base(TEST_ACCOUNT_ID)?;
 
     assert_that!(&account_list.account_base).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager),
@@ -85,7 +85,6 @@ fn create_one_os() -> AResult {
 
 #[test]
 fn create_two_account_s() -> AResult {
-    let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
@@ -113,16 +112,19 @@ fn create_two_account_s() -> AResult {
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let account_1_id = TEST_ACCOUNT_ID;
 
     let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let account_2_id = TEST_ACCOUNT_ID + 1;
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        next_account_id: 2,
+        // we created two accounts
+        next_account_id: account_2_id + 1,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -134,13 +136,13 @@ fn create_two_account_s() -> AResult {
 
     assert_that!(&vc_config).is_equal_to(&expected);
 
-    let account_1 = version_control.account_base(0)?.account_base;
+    let account_1 = version_control.account_base(account_1_id)?.account_base;
     assert_that!(&account_1).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager1),
         proxy: Addr::unchecked(proxy1),
     });
 
-    let account_2 = version_control.account_base(1)?.account_base;
+    let account_2 = version_control.account_base(account_2_id)?.account_base;
     assert_that!(&account_2).is_equal_to(AccountBase {
         manager: Addr::unchecked(manager2),
         proxy: Addr::unchecked(proxy2),
@@ -151,7 +153,6 @@ fn create_two_account_s() -> AResult {
 
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
-    let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
@@ -160,7 +161,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let version_control = &deployment.version_control;
     let account_creation = factory.create_account(
         GovernanceDetails::Monarchy {
-            monarch: owner.to_string(),
+            monarch: TEST_OWNER.to_string(),
         },
         String::from("first_os"),
         Some(String::from("account_description")),
@@ -170,9 +171,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
     let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
 
-    let account = version_control.account_base(0)?.account_base;
+    let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
-    let account_1 = AbstractAccount::new(chain, Some(0));
+    let account_1 = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
@@ -188,7 +189,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_config = account_1.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        account_id: Uint64::from(0u64),
+        account_id: Uint64::from(TEST_ACCOUNT_ID),
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
@@ -199,7 +200,6 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
 #[test]
 fn sender_is_not_admin_external() -> AResult {
-    let owner = Addr::unchecked("owner");
     let sender = Addr::unchecked(common::OWNER);
     let (_, chain) = instantiate_default_mock_env(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
@@ -208,7 +208,7 @@ fn sender_is_not_admin_external() -> AResult {
     let version_control = &deployment.version_control;
     factory.create_account(
         GovernanceDetails::External {
-            governance_address: owner.to_string(),
+            governance_address: TEST_OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
         String::from("first_os"),
@@ -216,11 +216,11 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("http://account_link_of_at_least_11_char")),
     )?;
 
-    let account = AbstractAccount::new(chain, Some(0));
+    let account = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        account_id: Uint64::from(0u64),
+        account_id: Uint64::from(TEST_ACCOUNT_ID),
         is_suspended: false,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,

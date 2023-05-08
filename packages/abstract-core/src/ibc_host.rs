@@ -13,7 +13,7 @@ use crate::{
         MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
     },
     ibc_client::CallbackInfo,
-    objects::core::AccountId,
+    objects::account_id::AccountId,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};

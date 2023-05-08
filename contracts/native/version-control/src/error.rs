@@ -47,14 +47,14 @@ pub enum VCError {
     #[error("Account with ID {} has no owner", account_id)]
     NoAccountOwner { account_id: AccountId },
 
-    #[error("Namespace {} is already occupied by {}", namespace, id)]
+    #[error("Namespace {} is already occupied by account {}", namespace, id)]
     NamespaceOccupied { namespace: String, id: AccountId },
 
     #[error("Exceeds namespace limit: {}, current: {}", limit, current)]
     ExceedsNamespaceLimit { limit: usize, current: usize },
 
     #[error(
-        "Decrease namespace limit not allowed: {}, current: {}",
+        "Decreasing namespace limit is not allowed: {}, current: {}",
         limit,
         current
     )]
