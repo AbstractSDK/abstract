@@ -1,6 +1,6 @@
 [alias]
 wasm = "build --release --target wasm32-unknown-unknown"
 unit-test = "test --lib"
-schema = "run --bin schema --features schema"
-# Use the command in the justfile to deploye
-internal-deploy = "run --bin deploy --features interface"
+schema = "run --example schema --features schema"
+# Use the `just deploy` command
+internal-deploy = "run --example deploy --features interface"

@@ -1,4 +1,4 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, SubMsg, wasm_execute};
+use cosmwasm_std::{wasm_execute, DepsMut, Env, MessageInfo, Response, SubMsg};
 
 use crate::contract::{TemplateApp, TemplateResult};
 use crate::msg::TemplateInstantiateMsg;

@@ -8,10 +8,7 @@ use abstract_boot::{
 use semver::Version;
 
 use clap::Parser;
-use template_app::{
-    interface::Template,
-    TEMPLATE_MOD_ID
-};
+use template_app::{interface::Template, TEMPLATE_MOD_ID};
 use tokio::runtime::Runtime;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -1,18 +1,15 @@
+use crate::msg::TemplateMigrateMsg;
 use crate::{
-    handlers,
-    replies::{
-        self,
-        INSTANTIATE_REPLY_ID
-    },
-    error::TemplateError,
-    msg::{TemplateExecuteMsg, TemplateInstantiateMsg, TemplateQueryMsg},
-    TEMPLATE_MOD_ID,
     dependencies::TEMPLATE_DEPS,
+    error::TemplateError,
+    handlers,
+    msg::{TemplateExecuteMsg, TemplateInstantiateMsg, TemplateQueryMsg},
+    replies::{self, INSTANTIATE_REPLY_ID},
+    TEMPLATE_MOD_ID,
 };
 use abstract_app::AppContract;
-use cosmwasm_std::{Response};
+use cosmwasm_std::Response;
 use cw20::Cw20ReceiveMsg;
-use crate::msg::TemplateMigrateMsg;
 
 /// The version of your module to be uploaded
 const MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
