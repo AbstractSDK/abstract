@@ -1,5 +1,6 @@
 use abstract_sdk::core::objects::dependency::StaticDependency;
 
+// This is an example dependency on another app or adapter module
 const EXAMPLE_DEP: StaticDependency = StaticDependency::new("example:dep", &[">=0.3.0"]);
 
 /// Dependencies for the app

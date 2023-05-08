@@ -1,10 +1,9 @@
-use cosmwasm_std::{wasm_execute, DepsMut, Env, MessageInfo, Response, SubMsg};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, SubMsg, wasm_execute};
 
 use crate::contract::{TemplateApp, TemplateResult};
 use crate::msg::TemplateInstantiateMsg;
+use crate::replies::INSTANTIATE_REPLY_ID;
 use crate::state::{Config, CONFIG};
-
-pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
 
 pub fn instantiate_handler(
     deps: DepsMut,

@@ -9,7 +9,7 @@ use cw20::Cw20ReceiveMsg;
 /// handler function invoked when the vault dapp contract receives
 /// a transaction. In this case it is triggered when either a LP tokens received
 /// by the contract or when the deposit asset is a cw20 asset.
-pub fn receive_cw20(
+pub fn receive_handler(
     _deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
