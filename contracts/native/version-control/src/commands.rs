@@ -57,8 +57,11 @@ pub fn propose_modules(
         {
             return Err(VCError::NotUpdateableModule(module));
         }
+
         module.validate()?;
+
         mod_ref.validate(deps.as_ref())?;
+
         // version must be set in order to add the new version
         module.assert_version_variant()?;
 
@@ -69,6 +72,14 @@ pub fn propose_modules(
             // Only owner can add modules
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
+
+        // verify contract admin is None if module is Adapter
+        if let ModuleReference::Adapter(ref addr) = mod_ref {
+            if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
+                return Err(VCError::AdminMustBeNone);
+            }
+        }
+
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
         } else {
@@ -920,6 +931,7 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = test_module();
+
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -951,11 +963,57 @@ mod test {
         }
 
         #[test]
+        fn try_add_module_to_approval_with_admin() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            let contract_addr = Addr::unchecked("contract");
+            // create mock with ContractInfo response for contract with admin set
+            deps.querier = mock_manager_querier()
+                .with_contract_admin(&contract_addr, Addr::unchecked("admin"))
+                .build();
+
+            mock_init_with_account(deps.as_mut(), false)?;
+            let new_module = test_module();
+
+            let mod_ref = ModuleReference::Adapter(contract_addr);
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), mod_ref)],
+            };
+
+            // try while no namespace
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg.clone());
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::UnknownNamespace {
+                    namespace: new_module.namespace.clone(),
+                });
+
+            // add namespaces
+            execute_as(
+                deps.as_mut(),
+                TEST_OWNER,
+                ExecuteMsg::ClaimNamespaces {
+                    account_id: TEST_ACCOUNT_ID,
+                    namespaces: vec![new_module.namespace.to_string()],
+                },
+            )?;
+
+            // assert we got admin must be none error
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res)
+                .is_err()
+                .is_equal_to(&VCError::AdminMustBeNone);
+
+            Ok(())
+        }
+
+        #[test]
         fn add_module_to_approval() -> VersionControlTestResult {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), false)?;
             let new_module = test_module();
+
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };
@@ -1237,6 +1295,8 @@ mod test {
             deps.querier = mock_manager_querier().build();
             mock_init_with_account(deps.as_mut(), true)?;
             let new_module = ModuleInfo::from_id(&abstract_contract_id, TEST_VERSION.into())?;
+
+            // let mod_ref = ModuleReference::
             let msg = ExecuteMsg::ProposeModules {
                 modules: vec![(new_module.clone(), ModuleReference::App(0))],
             };

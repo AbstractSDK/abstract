@@ -9,3 +9,8 @@ mod splitter;
 pub mod vault;
 pub mod verify;
 pub mod version_registry;
+
+#[cfg(feature = "stargaze")]
+pub mod distribution;
+#[cfg(feature = "stargaze")]
+pub mod grant;
