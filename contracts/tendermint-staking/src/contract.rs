@@ -1,36 +1,36 @@
 use crate::msg::{TendermintStakingExecuteMsg, TendermintStakingQueryMsg};
 use crate::staking::*;
 use crate::{error::TendermintStakeError, TENDERMINT_STAKING};
-use abstract_api::ApiContract;
+use abstract_adapter::AdapterContract;
 use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, Empty, Env, MessageInfo, Response};
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub type TendermintStakeApi = ApiContract<
+pub type TendermintStakeAdapter = AdapterContract<
     TendermintStakeError,
     Empty,
     TendermintStakingExecuteMsg,
     TendermintStakingQueryMsg,
 >;
 
-const STAKING_API: TendermintStakeApi =
-    TendermintStakeApi::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
+const STAKING_ADAPTER: TendermintStakeAdapter =
+    TendermintStakeAdapter::new(TENDERMINT_STAKING, CONTRACT_VERSION, None)
         .with_execute(handle_request);
 
 pub type TendermintStakeResult = Result<Response, TendermintStakeError>;
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_api::export_endpoints!(STAKING_API, TendermintStakeApi);
+abstract_adapter::export_endpoints!(STAKING_ADAPTER, TendermintStakeAdapter);
 
 pub fn handle_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    api: TendermintStakeApi,
+    adapter: TendermintStakeAdapter,
     msg: TendermintStakingExecuteMsg,
 ) -> TendermintStakeResult {
-    let executor = api.executor(deps.as_ref());
+    let executor = adapter.executor(deps.as_ref());
     let msg = match msg {
         TendermintStakingExecuteMsg::Delegate { validator, amount } => {
             executor.execute(vec![delegate_to(&deps.querier, &validator, amount.u128())?])
@@ -38,12 +38,12 @@ pub fn handle_request(
         TendermintStakingExecuteMsg::UndelegateFrom { validator, amount } => {
             let undelegate_msg = match amount {
                 Some(amount) => undelegate_from(&deps.querier, &validator, amount.u128())?,
-                None => undelegate_all_from(&deps.querier, api.target()?, &validator)?,
+                None => undelegate_all_from(&deps.querier, adapter.target()?, &validator)?,
             };
             executor.execute(vec![undelegate_msg])
         }
         TendermintStakingExecuteMsg::UndelegateAll {} => {
-            executor.execute(undelegate_all(&deps.querier, api.target()?)?)
+            executor.execute(undelegate_all(&deps.querier, adapter.target()?)?)
         }
 
         TendermintStakingExecuteMsg::Redelegate {
@@ -62,7 +62,7 @@ pub fn handle_request(
                     &deps.querier,
                     &source_validator,
                     &destination_validator,
-                    api.target()?,
+                    adapter.target()?,
                 )?,
             };
             executor.execute(vec![redelegate_msg])
@@ -77,7 +77,7 @@ pub fn handle_request(
             executor.execute(vec![withdraw_rewards(&validator)])
         }
         TendermintStakingExecuteMsg::WithdrawAllRewards {} => {
-            executor.execute(withdraw_all_rewards(&deps.querier, api.target()?)?)
+            executor.execute(withdraw_all_rewards(&deps.querier, adapter.target()?)?)
         }
     }?;
     Ok(Response::new().add_message(msg))

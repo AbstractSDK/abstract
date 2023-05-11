@@ -1,6 +1,6 @@
 [package]
-name = "abstract-cw-staking-api"
-description = "Cw-staking is a Abstract api for staking tokens."
+name = "abstract-cw-staking"
+description = "Cw-staking is a Abstract adapter for staking tokens."
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -51,7 +51,7 @@ serde = { workspace = true }
 
 abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
-abstract-api = { workspace = true }
+abstract-adapter = { workspace = true }
 abstract-boot = { workspace = true, optional = true }
 boot-core = { workspace = true, optional = true }
 
@@ -91,7 +91,7 @@ clap = { workspace = true }
 cw-staking = { path = ".", features = [
   "boot",
   "juno",
-], package = "abstract-cw-staking-api" }
+], package = "abstract-cw-staking" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }

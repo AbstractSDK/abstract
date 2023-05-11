@@ -1,4 +1,4 @@
-use abstract_api::ApiError;
+use abstract_adapter::AdapterError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -10,7 +10,7 @@ pub enum StakingError {
     Std(#[from] StdError),
 
     #[error("{0}")]
-    ApiError(#[from] ApiError),
+    AdapterError(#[from] AdapterError),
 
     #[error("{0}")]
     AbstractError(#[from] AbstractSdkError),

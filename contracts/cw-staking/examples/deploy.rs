@@ -1,11 +1,14 @@
 use abstract_boot::boot_core::{
     instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *,
 };
-use abstract_boot::{AnsHost, ApiDeployer, VCExecFns, VersionControl};
-use abstract_cw_staking_api::boot::CwStakingApi;
-use abstract_cw_staking_api::CW_STAKING;
-use abstract_sdk::core::objects::module::{Module, ModuleInfo, ModuleVersion};
-use abstract_sdk::core::{api, ANS_HOST, VERSION_CONTROL};
+use abstract_boot::{AdapterDeployer, AnsHost, VCExecFns, VersionControl};
+use abstract_cw_staking::boot::CwStakingAdapter;
+use abstract_cw_staking::CW_STAKING;
+use abstract_sdk::core::{
+    adapter,
+    objects::module::{Module, ModuleInfo, ModuleVersion},
+    ANS_HOST, VERSION_CONTROL,
+};
 use cosmwasm_std::{Addr, Empty};
 use semver::Version;
 use std::sync::Arc;
@@ -41,13 +44,13 @@ fn deploy_cw_staking(
             version: ModuleVersion::from(CONTRACT_VERSION),
             ..info
         };
-        version_control.add_modules(vec![(new_info, reference)])?;
+        version_control.propose_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
-        let mut cw_staking = CwStakingApi::new(CW_STAKING, chain);
+        let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
         cw_staking.set_code_id(code_id);
-        let init_msg = api::InstantiateMsg {
+        let init_msg = adapter::InstantiateMsg {
             module: Empty {},
-            base: api::BaseInstantiateMsg {
+            base: adapter::BaseInstantiateMsg {
                 ans_host_address: ans_host.address()?.into(),
                 version_control_address: version_control.address()?.into(),
             },
@@ -56,11 +59,11 @@ fn deploy_cw_staking(
             .as_instance_mut()
             .instantiate(&init_msg, None, None)?;
 
-        version_control.register_apis(vec![cw_staking.as_instance_mut()], &module_version)?;
+        version_control.register_adapters(vec![cw_staking.as_instance_mut()], &module_version)?;
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
-        let mut cw_staking = CwStakingApi::new(CW_STAKING, chain);
+        let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
 
         cw_staking.deploy(module_version, Empty {})?;
     }

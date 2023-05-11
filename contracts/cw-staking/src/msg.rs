@@ -1,8 +1,8 @@
-//! # Staking Api
+//! # Staking Adapter
 //!
 //! `4t2::cw-staking`
 
-use abstract_core::api;
+use abstract_core::adapter;
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty, Uint128};
@@ -15,15 +15,15 @@ pub type ProviderName = String;
 /// The callback id for staking over ibc
 pub const IBC_STAKING_PROVIDER_ID: u32 = 22335;
 
-pub type ExecuteMsg = api::ExecuteMsg<CwStakingExecuteMsg>;
-pub type InstantiateMsg = api::InstantiateMsg<Empty>;
-pub type QueryMsg = api::QueryMsg<CwStakingQueryMsg>;
+pub type ExecuteMsg = adapter::ExecuteMsg<CwStakingExecuteMsg>;
+pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;
+pub type QueryMsg = adapter::QueryMsg<CwStakingQueryMsg>;
 
-impl api::ApiExecuteMsg for CwStakingExecuteMsg {}
+impl adapter::AdapterExecuteMsg for CwStakingExecuteMsg {}
 
-impl api::ApiQueryMsg for CwStakingQueryMsg {}
+impl adapter::AdapterQueryMsg for CwStakingQueryMsg {}
 
-/// A request message that's sent to this staking api
+/// A request message that's sent to this staking adapter
 #[cosmwasm_schema::cw_serde]
 pub struct CwStakingExecuteMsg {
     /// The name of the staking provider

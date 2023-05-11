@@ -23,26 +23,26 @@ pub mod boot {
     use abstract_boot::boot_core::ContractWrapper;
     use abstract_boot::boot_core::{contract, ContractInstance};
     use abstract_boot::boot_core::{Contract, CwEnv, IndexResponse, TxResponse};
-    use abstract_boot::{AbstractBootError, ApiDeployer, Manager};
+    use abstract_boot::{AbstractBootError, AdapterDeployer, Manager};
     use abstract_core::objects::{AnsAsset, AssetEntry};
-    use abstract_core::{api, MANAGER};
+    use abstract_core::{adapter, MANAGER};
     use cosmwasm_std::{Addr, Empty};
 
     /// Contract wrapper for interacting with BOOT
     #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct CwStakingApi;
+    pub struct CwStakingAdapter<Chain>;
 
-    impl<Chain: CwEnv> ApiDeployer<Chain, Empty> for CwStakingApi<Chain> {}
+    impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for CwStakingAdapter<Chain> {}
 
     /// implement chain-generic functions
-    impl<Chain: CwEnv> CwStakingApi<Chain>
+    impl<Chain: CwEnv> CwStakingAdapter<Chain>
     where
         TxResponse<Chain>: IndexResponse,
     {
         pub fn new(id: &str, chain: Chain) -> Self {
             Self(
                 Contract::new(id, chain)
-                    .with_wasm_path("abstract_cw_staking_api")
+                    .with_wasm_path("abstract_cw_staking")
                     .with_mock(Box::new(ContractWrapper::new_with_empty(
                         crate::contract::execute,
                         crate::contract::instantiate,
@@ -63,7 +63,7 @@ pub mod boot {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+            let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,
@@ -84,7 +84,7 @@ pub mod boot {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+            let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,
@@ -104,7 +104,7 @@ pub mod boot {
             provider: String,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let claim_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+            let claim_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,
@@ -123,7 +123,7 @@ pub mod boot {
             provider: String,
         ) -> Result<(), AbstractBootError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let claim_rewards_msg = crate::msg::ExecuteMsg::Module(api::ApiRequestMsg {
+            let claim_rewards_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: CwStakingExecuteMsg {
                     provider,

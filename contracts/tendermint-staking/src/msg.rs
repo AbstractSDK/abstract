@@ -1,16 +1,16 @@
-//! # Tendermint Staking Api
+//! # Tendermint Staking Adapter
 //!
 //! `abstract_core::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
-use abstract_core::api;
+use abstract_core::adapter;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 
-pub type ExecuteMsg = api::ExecuteMsg<TendermintStakingExecuteMsg>;
-pub type QueryMsg = api::QueryMsg<TendermintStakingQueryMsg>;
+pub type ExecuteMsg = adapter::ExecuteMsg<TendermintStakingExecuteMsg>;
+pub type QueryMsg = adapter::QueryMsg<TendermintStakingQueryMsg>;
 
-impl api::ApiExecuteMsg for TendermintStakingExecuteMsg {}
-impl api::ApiQueryMsg for TendermintStakingQueryMsg {}
+impl adapter::AdapterExecuteMsg for TendermintStakingExecuteMsg {}
+impl adapter::AdapterQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]

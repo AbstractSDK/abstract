@@ -1,6 +1,6 @@
 use crate::msg::CwStakingQueryMsg;
 use crate::{
-    contract::{CwStakingApi, CwStakingResult},
+    contract::{CwStakingAdapter, CwStakingResult},
     providers::resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
@@ -9,7 +9,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 pub fn query_handler(
     deps: Deps,
     env: Env,
-    app: &CwStakingApi,
+    app: &CwStakingAdapter,
     msg: CwStakingQueryMsg,
 ) -> CwStakingResult<Binary> {
     let name_service = app.name_service(deps);

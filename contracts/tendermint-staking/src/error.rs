@@ -1,4 +1,4 @@
-use abstract_api::ApiError;
+use abstract_adapter::AdapterError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use thiserror::Error;
@@ -12,5 +12,5 @@ pub enum TendermintStakeError {
     AbstractSdk(#[from] AbstractSdkError),
 
     #[error("{0}")]
-    ApiError(#[from] ApiError),
+    AdapterError(#[from] AdapterError),
 }

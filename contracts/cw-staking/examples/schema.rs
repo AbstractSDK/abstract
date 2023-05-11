@@ -1,4 +1,4 @@
-use abstract_cw_staking_api::contract::CwStakingApi;
+use abstract_cw_staking::contract::CwStakingAdapter;
 use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;
@@ -9,5 +9,5 @@ fn main() {
     create_dir_all(&out_dir).unwrap();
     remove_schemas(&out_dir).unwrap();
 
-    CwStakingApi::export_schema(&out_dir);
+    CwStakingAdapter::export_schema(&out_dir);
 }

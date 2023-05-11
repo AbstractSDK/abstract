@@ -1,6 +1,6 @@
 # CosmWasm Staking
 
-An Abstract-API contract that handles staking and unbonding interactions with staking providers. 
+An Abstract Adapter module that handles staking and unbonding interactions with staking providers. 
 
 ## Naming Convention
 

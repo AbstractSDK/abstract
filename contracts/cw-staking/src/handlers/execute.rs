@@ -1,4 +1,4 @@
-use crate::contract::{CwStakingApi, CwStakingResult};
+use crate::contract::{CwStakingAdapter, CwStakingResult};
 use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID};
 use crate::providers::resolver::{self, is_over_ibc};
 use crate::LocalCwStaking;
@@ -14,7 +14,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    api: CwStakingApi,
+    adapter: CwStakingAdapter,
     msg: CwStakingExecuteMsg,
 ) -> CwStakingResult {
     let CwStakingExecuteMsg {
@@ -23,26 +23,26 @@ pub fn execute_handler(
     } = msg;
     // if provider is on an app-chain, execute the action on the app-chain
     if is_over_ibc(&provider_name)? {
-        handle_ibc_request(&deps, info, &api, provider_name, &action)
+        handle_ibc_request(&deps, info, &adapter, provider_name, &action)
     } else {
         // the action can be executed on the local chain
-        handle_local_request(deps, env, info, api, action, provider_name)
+        handle_local_request(deps, env, info, adapter, action, provider_name)
     }
 }
 
-/// Handle an api request that can be executed on the local chain
+/// Handle an adapter request that can be executed on the local chain
 fn handle_local_request(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    api: CwStakingApi,
+    adapter: CwStakingAdapter,
     action: CwStakingAction,
     provider_name: String,
 ) -> CwStakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
-    let response =
-        Response::new().add_submessage(api.resolve_staking_action(deps, env, action, provider)?);
-    Ok(api.custom_tag_response(
+    let response = Response::new()
+        .add_submessage(adapter.resolve_staking_action(deps, env, action, provider)?);
+    Ok(adapter.custom_tag_response(
         response,
         "handle_local_request",
         vec![("provider", provider_name)],
@@ -53,13 +53,13 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    api: &CwStakingApi,
+    adapter: &CwStakingAdapter,
     provider_name: ProviderName,
     action: &CwStakingAction,
 ) -> CwStakingResult {
     let host_chain = provider_name.clone();
-    let ans = api.name_service(deps.as_ref());
-    let ibc_client = api.ibc_client(deps.as_ref());
+    let ans = adapter.name_service(deps.as_ref());
+    let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
@@ -81,7 +81,7 @@ fn handle_ibc_request(
 
     // call both messages on the proxy
     let response = Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]);
-    Ok(api.custom_tag_response(
+    Ok(adapter.custom_tag_response(
         response,
         "handle_ibc_request",
         vec![("provider", provider_name)],

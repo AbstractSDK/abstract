@@ -14,9 +14,9 @@ then
 fi
 
 # these are imported by other packages
-APIS="dex cw-staking tendermint-staking"
+ADAPTERS="dex cw-staking tendermint-staking"
 
- for pack in $APIS; do
+ for pack in $ADAPTERS; do
    (
      cd "contracts/$pack"
      echo "Publishing base $pack"

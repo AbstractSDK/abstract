@@ -3,7 +3,7 @@ use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use crate::LocalDex;
 use crate::{
-    contract::{DexApi, DexResult},
+    contract::{DexAdapter, DexResult},
     state::SWAP_FEE,
 };
 use abstract_core::ibc_client::CallbackInfo;
@@ -19,7 +19,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    api: DexApi,
+    adapter: DexAdapter,
     msg: DexExecuteMsg,
 ) -> DexResult {
     match msg {
@@ -30,18 +30,19 @@ pub fn execute_handler(
             let exchange = exchange_resolver::identify_exchange(&dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
             if exchange.over_ibc() {
-                handle_ibc_api_request(&deps, info, &api, dex_name, &action)
+                handle_ibc_request(&deps, info, &adapter, dex_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_api_request(deps, env, info, api, action, dex_name)
+                handle_local_request(deps, env, info, adapter, action, dex_name)
             }
         }
         DexExecuteMsg::UpdateFee {
             swap_fee,
-            recipient_os_id,
+            recipient_account: recipient_account_id,
         } => {
             // only previous OS can change the owner
-            api.account_registry(deps.as_ref())
+            adapter
+                .account_registry(deps.as_ref())
                 .assert_proxy(&info.sender)?;
             if let Some(swap_fee) = swap_fee {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
@@ -49,9 +50,11 @@ pub fn execute_handler(
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
 
-            if let Some(os_id) = recipient_os_id {
+            if let Some(account_id) = recipient_account_id {
                 let mut fee = SWAP_FEE.load(deps.storage)?;
-                let recipient = api.account_registry(deps.as_ref()).proxy_address(os_id)?;
+                let recipient = adapter
+                    .account_registry(deps.as_ref())
+                    .proxy_address(account_id)?;
                 fee.set_recipient(deps.api, recipient)?;
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
@@ -60,31 +63,32 @@ pub fn execute_handler(
     }
 }
 
-/// Handle an api request that can be executed on the local chain
-fn handle_local_api_request(
+/// Handle an adapter request that can be executed on the local chain
+fn handle_local_request(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    api: DexApi,
+    adapter: DexAdapter,
     action: DexAction,
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) = api.resolve_dex_action(deps.as_ref(), action, exchange)?;
-    let proxy_msg = api.executor(deps.as_ref()).execute(msgs)?;
+    let (msgs, _) = adapter.resolve_dex_action(deps.as_ref(), action, exchange)?;
+    let proxy_msg = adapter.executor(deps.as_ref()).execute(msgs)?;
     Ok(Response::new().add_message(proxy_msg))
 }
 
-fn handle_ibc_api_request(
+// Handle an adapter request that can be executed on an IBC chain
+fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    api: &DexApi,
+    adapter: &DexAdapter,
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
     let host_chain = dex_name;
-    let ans = api.name_service(deps.as_ref());
-    let ibc_client = api.ibc_client(deps.as_ref());
+    let ans = adapter.name_service(deps.as_ref());
+    let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)

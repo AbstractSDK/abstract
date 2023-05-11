@@ -32,7 +32,7 @@ watch-test:
 
 # `just wasm-module cw-staking --features export,terra --no-default-features`
 wasm-contract module +args='':
-  RUSTFLAGS='-C link-arg=-s' cargo wasm --package abstract-{{module}}-api {{args}}
+  RUSTFLAGS='-C link-arg=-s' cargo wasm --package abstract-{{module}} {{args}}
 
 # Wasm all the contracts in the repository for the given chain
 wasm chain_name:
@@ -45,7 +45,7 @@ wasm chain_name:
 # ??? deploy-module module +args='': (wasm-module module)
 # `just deploy-module dex pisco-1`
 deploy-contract module network +args='':
-  cargo deploy --package abstract-{{module}}-api -- --network-id {{network}} {{args}}
+  cargo deploy --package abstract-{{module}} -- --network-id {{network}} {{args}}
 
 # Deploy all the apis
 deploy network +args='':
