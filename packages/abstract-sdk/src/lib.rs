@@ -27,7 +27,7 @@ pub use crate::apis::{
     version_registry::*,
 };
 
-#[cfg(feature = "stargaze")]
+#[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, grant::*};
 
 pub mod features {

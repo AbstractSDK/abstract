@@ -10,7 +10,7 @@ pub mod vault;
 pub mod verify;
 pub mod version_registry;
 
-#[cfg(feature = "stargaze")]
+#[cfg(feature = "stargate")]
 pub mod distribution;
-#[cfg(feature = "stargaze")]
+#[cfg(feature = "stargate")]
 pub mod grant;

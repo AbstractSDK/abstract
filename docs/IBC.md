@@ -58,7 +58,7 @@ expected to be implemented. By providing the type-information about what specifi
 any `HostAction::App(Binary)` calls will be deserialized to the expected type. For example, the `osmosis-host` contract
 is defined as `pub type OsmoHost<'a> = Host<'a, abstract_sdk::core::dex::RequestMsg>`. Therefore any packets sent
 to this host with an `HostAction::App(Binary)` variant will be deserialized to
-a `abstract_sdk::core::dex::RequestMsg` which can then be parsed into the local stargaze messages that are
+a `abstract_sdk::core::dex::RequestMsg` which can then be parsed into the local stargate messages that are
 required to perform the specified DEX action on the associated proxy contract.
 
 > If a channel to the host is closed, it is added to a `closed_channels` list. Any proxy contracts instantiated under this channel are now locked. The `SendAllBack` action is allowed to be called freely, enabling users to get any funds that were left in the proxy back. 

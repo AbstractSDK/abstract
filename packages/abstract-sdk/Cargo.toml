@@ -12,7 +12,7 @@ resolver = "2"
 # for quicker tests, cargo test --lib
 [features]
 default = []
-stargaze = ["dep:cosmos-sdk-proto", "dep:prost-types"]
+stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
