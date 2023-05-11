@@ -1,16 +1,17 @@
 mod common;
-use abstract_boot::*;
 use abstract_core::PROXY;
+use abstract_interface::*;
 use abstract_testing::prelude::TEST_VERSION;
-use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
 

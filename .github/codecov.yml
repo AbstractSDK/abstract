@@ -17,7 +17,7 @@ ignore:
   - "**/examples"
   - "**/schema.rs"
   - "scripts"
-  - "packages/abstract-boot"
+  - "packages/abstract-interface"
   - "packages/abstract-testing"
   # Ignore token implementation
   - "contracts/token"

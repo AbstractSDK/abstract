@@ -1012,7 +1012,7 @@ mod test {
         // assert
         assert_eq!(&res_bar, &expected_bar);
         assert_eq!(&res_foo, &expected_foo);
-        assert!(&res_foo.pools.len() == &1usize);
+        assert!(res_foo.pools.len() == 1usize);
         assert_eq!(&res_foo_using_start_after, &expected_foo);
         assert_eq!(&res_all, &expected_all);
         Ok(())

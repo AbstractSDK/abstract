@@ -35,8 +35,8 @@ thiserror = { workspace = true }
 cw-ownable = { workspace = true }
 
 [dev-dependencies]
-abstract-boot = { workspace = true }
-boot-core = { workspace = true }
+abstract-interface = { workspace = true }
+cw-orch = { workspace = true }
 anyhow = { workspace = true }
 module-factory = { workspace = true }
 ans-host = { workspace = true }

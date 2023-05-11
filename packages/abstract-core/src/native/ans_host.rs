@@ -82,7 +82,7 @@ pub struct InstantiateMsg {}
 /// AnsHost Execute msg
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Updates the contract addressbook
     UpdateContractAddresses {
@@ -158,7 +158,7 @@ pub struct PoolMetadataFilter {
 #[cw_ownable::cw_ownable_query]
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Query the config
     /// Returns [`ConfigResponse`]

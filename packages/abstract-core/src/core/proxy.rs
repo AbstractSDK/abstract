@@ -48,7 +48,7 @@ pub struct InstantiateMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Sets the admin
     SetAdmin { admin: String },
@@ -71,7 +71,7 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]

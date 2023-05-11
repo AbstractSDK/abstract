@@ -6,14 +6,13 @@ use crate::{
     validation::{validate_description, validate_link, validate_name},
     versioning,
 };
-use abstract_core::manager::state::AccountInfo;
 
-use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_sdk::core::{
     manager::{
-        state::{Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
+        state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
+    objects::module_version::assert_contract_upgrade,
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };

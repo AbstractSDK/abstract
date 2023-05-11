@@ -37,7 +37,7 @@ echo "Updating old version $OLD to new version $NEW ..."
 
 FILES_MODIFIED=()
 
-CARGO_TOML="packages/abstract-boot/Cargo.toml"
+CARGO_TOML="packages/abstract-interface/Cargo.toml"
 sed -i '' -e "s/version[[:space:]]*=[[:space:]]*\"$OLD\"/version = \"$NEW\"/" "$CARGO_TOML"
 FILES_MODIFIED+=("$CARGO_TOML")
 

@@ -18,7 +18,7 @@ BASE_PACKAGES="abstract-ica abstract-macros"
 UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
 CORE_CONTRACTS="proxy manager"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
-ALL_PACKAGES="abstract-boot abstract-adapter abstract-app abstract-ibc-host"
+ALL_PACKAGES="abstract-interface abstract-adapter abstract-app abstract-ibc-host"
 
  for pack in $BASE_PACKAGES; do
    (

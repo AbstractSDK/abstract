@@ -35,8 +35,8 @@ cw-ownable = { workspace = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }
-abstract-boot = { workspace = true }
-boot-core = { workspace = true }
+abstract-interface = { workspace = true }
+cw-orch = { workspace = true }
 anyhow = { workspace = true }
 module-factory = { workspace = true }
 account-factory = { workspace = true }

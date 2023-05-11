@@ -95,7 +95,7 @@ fn is_valid_symbol(symbol: &str) -> bool {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "boot", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     UpdateWhitelist {
         to_add: Vec<String>,
@@ -263,7 +263,7 @@ impl TryInto<Cw20ExecuteMsg> for ExecuteMsg {
 }
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},

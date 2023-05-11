@@ -206,9 +206,9 @@ mod tests {
         deposits
             .increase(&mut storage, other_key, Uint64::from(10u64))
             .unwrap();
-        let value = deposits.get(&mut storage, key).unwrap();
+        let value = deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(20u64));
-        let value = deposits.get(&mut storage, other_key).unwrap();
+        let value = deposits.get(&storage, other_key).unwrap();
         assert_eq!(value, Uint64::from(10u64));
         assert_eq!(
             deposits.get_total_deposits(&storage).unwrap(),

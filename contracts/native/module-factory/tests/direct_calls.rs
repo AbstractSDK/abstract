@@ -1,8 +1,9 @@
-use abstract_boot::*;
 use abstract_core::{module_factory, objects::module::ModuleInfo};
+use abstract_interface::*;
 use abstract_testing::prelude::{TEST_ADMIN, TEST_VERSION};
-use boot_core::{instantiate_default_mock_env, ContractInstance, Deploy};
 use cosmwasm_std::Addr;
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -10,7 +11,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(TEST_ADMIN);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = deployment.module_factory;
@@ -28,7 +29,7 @@ fn instantiate() -> AResult {
 fn caller_must_be_manager() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(TEST_ADMIN);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.module_factory;

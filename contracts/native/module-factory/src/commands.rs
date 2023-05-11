@@ -462,7 +462,7 @@ mod test {
             execute_as_admin(deps.as_mut(), msg)?;
 
             assert_that!(CONFIG.load(&deps.storage)?.ans_host_address)
-                .is_equal_to(Addr::unchecked(new_ans_host.clone()));
+                .is_equal_to(Addr::unchecked(new_ans_host));
 
             Ok(())
         }
@@ -481,7 +481,7 @@ mod test {
             execute_as_admin(deps.as_mut(), msg)?;
 
             assert_that!(CONFIG.load(&deps.storage)?.version_control_address)
-                .is_equal_to(Addr::unchecked(new_vc.clone()));
+                .is_equal_to(Addr::unchecked(new_vc));
 
             Ok(())
         }

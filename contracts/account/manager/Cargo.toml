@@ -39,8 +39,8 @@ cw-ownable = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true }
-abstract-boot = { workspace = true }
-boot-core = { workspace = true }
+abstract-interface = { workspace = true }
+cw-orch = { workspace = true }
 anyhow = { workspace = true }
 account-factory = { workspace = true }
 ans-host = { workspace = true }

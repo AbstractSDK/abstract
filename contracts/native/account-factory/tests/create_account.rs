@@ -1,18 +1,19 @@
 mod common;
-use abstract_boot::{
-    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
-};
+
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_NAME,
 };
+use abstract_interface::{
+    AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
+};
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
-use boot_core::{
-    Deploy, IndexResponse, {instantiate_default_mock_env, ContractInstance},
-};
 use common::TEST_VERSION;
 use cosmwasm_std::{Addr, Uint64};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::Mock;
+use cw_orch::prelude::*;
 use speculoos::prelude::*;
 
 type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
@@ -20,7 +21,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = deployment.account_factory;
@@ -39,7 +40,7 @@ fn instantiate() -> AResult {
 #[test]
 fn create_one_account() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -86,7 +87,7 @@ fn create_one_account() -> AResult {
 #[test]
 fn create_two_account_s() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -154,7 +155,7 @@ fn create_two_account_s() -> AResult {
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -201,7 +202,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 #[test]
 fn sender_is_not_admin_external() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let (_, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender)?;
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;

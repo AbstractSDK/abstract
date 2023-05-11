@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- Fixed abstract-boot publishing
+- Fixed abstract-interface publishing
 
 ## [0.5.0] - 2022-01-08
 

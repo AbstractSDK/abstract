@@ -1,5 +1,5 @@
 [package]
-name = "abstract-boot-scripts"
+name = "abstract-interface-scripts"
 version = { workspace = true }
 edition = { workspace = true }
 
@@ -16,10 +16,10 @@ cw-asset = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
-boot-core = { workspace = true, features = ["daemon"] }
-abstract-core = { workspace = true, features = ["boot"] }
+cw-orch = { workspace = true, features = ["daemon"] }
+abstract-core = { workspace = true, features = ["interface"] }
 
-abstract-boot = { workspace = true, features = ["daemon"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }

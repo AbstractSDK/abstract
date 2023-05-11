@@ -21,20 +21,20 @@ pub mod state;
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use crate::{AdapterContract, AdapterError};
-    use abstract_boot::AdapterDeployer;
     use abstract_core::{
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
+    use abstract_interface::AdapterDeployer;
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
     };
-    use boot_core::{ContractWrapper, CwEnv};
     use cosmwasm_std::{
         testing::{mock_env, mock_info},
         to_binary, DepsMut, Empty, Response, StdError,
     };
+    use cw_orch::prelude::*;
     use thiserror::Error;
 
     pub const TEST_METADATA: &str = "test_metadata";
@@ -133,20 +133,28 @@ pub mod mock {
         adapter.instantiate(deps, mock_env(), info, init_msg)
     }
 
+    impl Uploadable for BootMockAdapter<Mock> {
+        fn wrapper(&self) -> <Mock as cw_orch::environment::TxHandler>::ContractSource {
+            Box::new(ContractWrapper::new_with_empty(
+                self::execute,
+                self::instantiate,
+                self::query,
+            ))
+        }
+    }
+
     type Exec = adapter::ExecuteMsg<MockExecMsg>;
     type Query = adapter::QueryMsg<MockQueryMsg>;
     type Init = adapter::InstantiateMsg<MockInitMsg>;
 
-    #[boot_core::contract(Init, Exec, Query, Empty)]
-    pub struct BootMockAdapter;
+    #[cw_orch::interface(Init, Exec, Query, Empty)]
+    pub struct BootMockAdapter<Chain>;
 
-    impl<Chain: CwEnv> AdapterDeployer<Chain, MockInitMsg> for BootMockAdapter<Chain> {}
+    impl AdapterDeployer<Mock, MockInitMsg> for BootMockAdapter<Mock> {}
 
-    impl<Chain: boot_core::CwEnv> BootMockAdapter<Chain> {
+    impl<Chain: CwEnv> BootMockAdapter<Chain> {
         pub fn new(name: &str, chain: Chain) -> Self {
-            Self(boot_core::Contract::new(name, chain).with_mock(Box::new(
-                ContractWrapper::new_with_empty(self::execute, self::instantiate, self::query),
-            )))
+            Self(cw_orch::contract::Contract::new(name, chain))
         }
     }
 
@@ -161,6 +169,7 @@ pub mod mock {
         use ::abstract_core::adapter::*;
         use ::cosmwasm_std::Empty;
         use ::abstract_adapter::mock::{MockExecMsg, MockQueryMsg, MockReceiveMsg, MockInitMsg, MockAdapterContract, MockError};
+        use ::cw_orch::environment::CwEnv;
 
         const MOCK_ADAPTER: ::abstract_adapter::mock::MockAdapterContract = ::abstract_adapter::mock::MockAdapterContract::new($id, $version, None)
         .with_dependencies($deps);
@@ -199,26 +208,32 @@ pub mod mock {
         type Exec = ::abstract_core::adapter::ExecuteMsg<MockExecMsg, MockReceiveMsg>;
         type Query = ::abstract_core::adapter::QueryMsg<MockQueryMsg>;
         type Init = ::abstract_core::adapter::InstantiateMsg<MockInitMsg>;
-        #[boot_core::contract(Init, Exec, Query, Empty)]
+        #[cw_orch::interface(Init, Exec, Query, Empty)]
         pub struct $name ;
 
-        impl<Chain: ::boot_core::CwEnv> ::abstract_boot::AdapterDeployer<Chain, MockInitMsg> for $name <Chain> {}
+        impl ::abstract_interface::AdapterDeployer<::cw_orch::prelude::Mock, MockInitMsg> for $name <::cw_orch::prelude::Mock> {}
 
-        impl<Chain: ::boot_core::CwEnv> $name <Chain> {
+        impl Uploadable for $name<::cw_orch::prelude::Mock> {
+            fn wrapper(&self) -> <Mock as ::cw_orch::environment::TxHandler>::ContractSource {
+                Box::new(ContractWrapper::<
+                    Exec,
+                    _,
+                    _,
+                    _,
+                    _,
+                    _,
+                >::new_with_empty(
+                    self::execute,
+                    self::instantiate,
+                    self::query,
+                ))
+            }
+        }
+
+        impl<Chain: ::cw_orch::environment::CwEnv> $name <Chain> {
             pub fn new(chain: Chain) -> Self {
                 Self(
-                    ::boot_core::Contract::new($id, chain).with_mock(Box::new(::boot_core::ContractWrapper::<
-                        Exec,
-                        _,
-                        _,
-                        _,
-                        _,
-                        _,
-                    >::new_with_empty(
-                        self::execute,
-                        self::instantiate,
-                        self::query,
-                    ))),
+                    ::cw_orch::contract::Contract::new($id, chain),
                 )
             }
         }

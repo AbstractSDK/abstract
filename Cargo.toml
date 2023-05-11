@@ -55,7 +55,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-boot-core = { version = "0.10.0" }
+cw-orch = { version = "0.11.0-alpha.5" }
 boot-cw-plus = { git = "https://github.com/AbstractSDK/BOOT.git", tag = "v0.10.2" }
 tokio = { version = "1.4", features = ["full"] }
 
@@ -66,8 +66,8 @@ abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise
-# Only need to re-publish all contracts if a re-publish of abstract-boot is required
-abstract-boot = { path = "packages/abstract-boot" }
+# Only need to re-publish all contracts if a re-publish of abstract-interface is required
+abstract-interface = { path = "packages/abstract-interface" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 account-factory = { package = "abstract-account-factory", path = "contracts/native/account-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
