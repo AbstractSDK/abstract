@@ -28,7 +28,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
         let account_base = self.account_base(account_id)?;
-        if account_base.manager != maybe_manager {
+        if account_base.manager.ne(maybe_manager) {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
                 account_id,
@@ -42,7 +42,7 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
         let account_base = self.account_base(account_id)?;
-        if account_base.proxy != maybe_proxy {
+        if account_base.proxy.ne(maybe_proxy) {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
             Ok(account_base)
