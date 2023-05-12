@@ -1,5 +1,5 @@
 use crate::error::StakingError;
-use crate::traits::cw_staking_adapter::StakingCommand;
+use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},

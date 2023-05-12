@@ -8,7 +8,7 @@ use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
 use cw_utils::Duration;
 
-/// Trait that defines the adapter interface for staking providers
+/// Trait that defines the staking commands for providers
 pub trait StakingCommand: Identify {
     /// Construct a staking contract entry from the staking token and the provider
     fn staking_entry(&self, staking_token: &AssetEntry) -> ContractEntry {

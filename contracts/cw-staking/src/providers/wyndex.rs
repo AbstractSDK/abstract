@@ -1,7 +1,7 @@
 use crate::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
-use crate::traits::cw_staking_adapter::StakingCommand;
+use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
 use crate::{contract::CwStakingResult, error::StakingError};
 use abstract_sdk::{
