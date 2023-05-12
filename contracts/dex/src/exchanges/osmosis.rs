@@ -1,8 +1,8 @@
-use crate::dex_trait::Identify;
+use crate::command::Identify;
 
 #[cfg(feature = "osmosis")]
 use crate::{
-    dex_trait::{Fee, FeeOnInput, Return, Spread},
+    command::{Fee, FeeOnInput, Return, Spread},
     error::DexError,
     DexCommand,
 };

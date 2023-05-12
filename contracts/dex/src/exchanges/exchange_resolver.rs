@@ -1,4 +1,4 @@
-use crate::dex_trait::Identify;
+use crate::command::Identify;
 use crate::error::DexError;
 use crate::DexCommand;
 

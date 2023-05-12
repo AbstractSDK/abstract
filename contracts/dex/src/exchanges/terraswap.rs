@@ -1,6 +1,6 @@
 use crate::{
     commands::{coins_in_assets, cw_approve_msgs},
-    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
+    command::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,
     DexCommand,
 };

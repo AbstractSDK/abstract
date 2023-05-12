@@ -1,16 +1,16 @@
 pub(crate) mod commands;
 pub mod contract;
-pub(crate) mod dex_trait;
+pub(crate) mod command;
 pub mod error;
 mod exchanges;
 pub mod msg;
 
-pub mod api;
+pub mod adapter;
 pub(crate) mod handlers;
 pub mod state;
 
 pub use commands::LocalDex;
-pub use dex_trait::DexCommand;
+pub use command::DexCommand;
 
 pub const EXCHANGE: &str = "abstract:dex";
 
