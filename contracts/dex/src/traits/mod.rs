@@ -1,3 +1,4 @@
 pub mod adapter;
+pub mod api;
 pub mod command;
-pub(crate) mod identify;
+pub mod identity;

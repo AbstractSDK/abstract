@@ -1,373 +1,246 @@
-// TODO: this should be moved to the public dex package
-// It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::{
-    msg::{
-        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-        SwapRouter,
-    },
-    EXCHANGE,
-};
-use abstract_core::objects::{module::ModuleId, AssetEntry};
-use abstract_sdk::AdapterInterface;
-use abstract_sdk::{
-    features::{AccountIdentification, Dependencies},
-    AbstractSdkResult,
-};
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
-use serde::de::DeserializeOwned;
+use crate::error::DexError;
+use crate::msg::AskAsset;
+use crate::msg::{DexAction, OfferAsset, SwapRouter};
+use crate::state::SWAP_FEE;
+use abstract_core::objects::{DexAssetPairing, PoolReference};
+use abstract_sdk::core::objects::AnsAsset;
+use abstract_sdk::core::objects::AssetEntry;
+use abstract_sdk::cw_helpers::fees::Chargeable;
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::Execution;
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
 
-/// Interact with the dex adapter in your module.
-pub trait DexAdapter: AccountIdentification + Dependencies {
-    /// Construct a new dex interface
-    /// Params:
-    /// - deps: the deps object
-    /// - dex_name: the name of the dex to interact with
-    fn dex<'a>(&'a self, deps: Deps<'a>, dex_name: DexName) -> Dex<Self> {
-        Dex {
-            base: self,
-            deps,
-            dex_name,
-            dex_module_id: EXCHANGE,
-        }
-    }
-}
+use cw_asset::{Asset};
 
-impl<T: AccountIdentification + Dependencies> DexAdapter for T {}
+use super::command::DexCommand;
 
-#[derive(Clone)]
-pub struct Dex<'a, T: DexAdapter> {
-    base: &'a T,
-    dex_name: DexName,
-    dex_module_id: ModuleId<'a>,
-    deps: Deps<'a>,
-}
+pub const PROVIDE_LIQUIDITY: u64 = 7542;
+pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
+pub const WITHDRAW_LIQUIDITY: u64 = 7546;
+pub const SWAP: u64 = 7544;
+pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<'a, T: DexAdapter> Dex<'a, T> {
-    /// Set the module id for the
-    pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
-        Self {
-            dex_module_id: module_id,
-            ..self
-        }
-    }
-    fn dex_name(&self) -> DexName {
-        self.dex_name.clone()
-    }
-    fn dex_module_id(&self) -> ModuleId {
-        self.dex_module_id
-    }
-    fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
-        let adapters = self.base.adapters(self.deps);
+impl<T> DexAdapter for T where T: AbstractNameService + Execution {}
 
-        adapters.request(
-            self.dex_module_id(),
-            DexExecuteMsg::Action {
-                dex: self.dex_name(),
-                action,
-            },
-        )
-    }
+pub(crate) type ReplyId = u64;
 
-    pub fn swap(
+pub trait DexAdapter: AbstractNameService + Execution {
+    /// resolve the provided dex action on a local dex
+    fn resolve_dex_action(
         &self,
-        offer_asset: OfferAsset,
-        ask_asset: AssetEntry,
-        max_spread: Option<Decimal>,
-        belief_price: Option<Decimal>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::Swap {
-            offer_asset,
-            ask_asset,
-            belief_price,
-            max_spread,
-        })
-    }
-
-    pub fn custom_swap(
-        &self,
-        offer_assets: Vec<OfferAsset>,
-        ask_assets: Vec<AskAsset>,
-        max_spread: Option<Decimal>,
-        router: Option<SwapRouter>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::CustomSwap {
-            offer_assets,
-            ask_assets,
-            max_spread,
-            router,
-        })
-    }
-
-    pub fn provide_liquidity(
-        &self,
-        assets: Vec<OfferAsset>,
-        max_spread: Option<Decimal>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::ProvideLiquidity { assets, max_spread })
-    }
-
-    pub fn provide_liquidity_symmetric(
-        &self,
-        offer_asset: OfferAsset,
-        paired_assets: Vec<AssetEntry>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::ProvideLiquiditySymmetric {
-            offer_asset,
-            paired_assets,
-        })
-    }
-
-    pub fn withdraw_liquidity(
-        &self,
-        lp_token: AssetEntry,
-        amount: Uint128,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::WithdrawLiquidity { lp_token, amount })
-    }
-}
-
-impl<'a, T: DexAdapter> Dex<'a, T> {
-    fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
-        let adapters = self.base.adapters(self.deps);
-        adapters.query(EXCHANGE, query_msg)
-    }
-    pub fn simulate_swap(
-        &self,
-        offer_asset: OfferAsset,
-        ask_asset: AssetEntry,
-    ) -> AbstractSdkResult<SimulateSwapResponse> {
-        let response: SimulateSwapResponse = self.query(DexQueryMsg::SimulateSwap {
-            dex: Some(self.dex_name()),
-            offer_asset,
-            ask_asset,
-        })?;
-        Ok(response)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::msg::ExecuteMsg;
-    use abstract_core::adapter::AdapterRequestMsg;
-    use abstract_sdk::mock_module::MockModule;
-    use cosmwasm_std::testing::mock_dependencies;
-    use cosmwasm_std::wasm_execute;
-    use speculoos::prelude::*;
-
-    fn expected_request_with_test_proxy(request: DexExecuteMsg) -> ExecuteMsg {
-        AdapterRequestMsg {
-            proxy_address: Some(abstract_testing::prelude::TEST_PROXY.to_string()),
-            request,
-        }
-        .into()
-    }
-
-    #[test]
-    fn swap_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex = stub
-            .dex(deps.as_ref(), "junoswap".into())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
-
-        let dex_name = "junoswap".to_string();
-        let offer_asset = OfferAsset::new("juno", 1000u128);
-        let ask_asset = AssetEntry::new("uusd");
-        let max_spread = Some(Decimal::percent(1));
-        let belief_price = Some(Decimal::percent(2));
-
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::Swap {
-                offer_asset: offer_asset.clone(),
-                ask_asset: ask_asset.clone(),
+        deps: Deps,
+        action: DexAction,
+        exchange: &dyn DexCommand,
+    ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
+        Ok(match action {
+            DexAction::ProvideLiquidity { assets, max_spread } => {
+                if assets.len() < 2 {
+                    return Err(DexError::TooFewAssets {});
+                }
+                (
+                    self.resolve_provide_liquidity(deps, assets, exchange, max_spread)?,
+                    PROVIDE_LIQUIDITY,
+                )
+            }
+            DexAction::ProvideLiquiditySymmetric {
+                offer_asset,
+                paired_assets,
+            } => {
+                if paired_assets.is_empty() {
+                    return Err(DexError::TooFewAssets {});
+                }
+                (
+                    self.resolve_provide_liquidity_symmetric(
+                        deps,
+                        offer_asset,
+                        paired_assets,
+                        exchange,
+                    )?,
+                    PROVIDE_LIQUIDITY_SYM,
+                )
+            }
+            DexAction::WithdrawLiquidity { lp_token, amount } => (
+                self.resolve_withdraw_liquidity(deps, AnsAsset::new(lp_token, amount), exchange)?,
+                WITHDRAW_LIQUIDITY,
+            ),
+            DexAction::Swap {
+                offer_asset,
+                ask_asset,
                 max_spread,
                 belief_price,
-            },
-        });
-
-        let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn custom_swap_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "astroport".to_string();
-
-        let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
-
-        let offer_assets = vec![OfferAsset::new("juno", 1000u128)];
-        let ask_assets = vec![AskAsset::new("uusd", 1000u128)];
-        let max_spread = Some(Decimal::percent(1));
-        let router = Some(SwapRouter::Custom("custom_router".to_string()));
-
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::CustomSwap {
-                offer_assets: offer_assets.clone(),
-                ask_assets: ask_assets.clone(),
+            } => (
+                self.resolve_swap(
+                    deps,
+                    offer_asset,
+                    ask_asset,
+                    exchange,
+                    max_spread,
+                    belief_price,
+                )?,
+                SWAP,
+            ),
+            DexAction::CustomSwap {
+                offer_assets,
+                ask_assets,
                 max_spread,
-                router: router.clone(),
-            },
-        });
-
-        let actual = dex.custom_swap(offer_assets, ask_assets, max_spread, router);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
+                router,
+            } => (
+                self.resolve_custom_swap(
+                    deps,
+                    offer_assets,
+                    ask_assets,
+                    exchange,
+                    max_spread,
+                    router,
+                )?,
+                CUSTOM_SWAP,
+            ),
+        })
     }
 
-    #[test]
-    fn provide_liquidity_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+    #[allow(clippy::too_many_arguments)]
+    fn resolve_swap(
+        &self,
+        deps: Deps,
+        offer_asset: OfferAsset,
+        mut ask_asset: AssetEntry,
+        exchange: &dyn DexCommand,
+        max_spread: Option<Decimal>,
+        belief_price: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let AnsAsset {
+            name: mut offer_asset,
+            amount: offer_amount,
+        } = offer_asset;
+        offer_asset.format();
+        ask_asset.format();
 
-        let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+        let ans = self.name_service(deps);
+        let offer_asset_info = ans.query(&offer_asset)?;
+        let ask_asset_info = ans.query(&ask_asset)?;
 
-        let assets = vec![OfferAsset::new("taco", 1000u128)];
-        let max_spread = Some(Decimal::percent(1));
+        let pair_address =
+            exchange.pair_address(deps, ans.host(), (offer_asset.clone(), ask_asset))?;
+        let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
+        // account for fee
+        let fee = SWAP_FEE.load(deps.storage)?;
+        let fee_msg = offer_asset.charge_usage_fee(fee)?;
+        let mut swap_msgs = exchange.swap(
+            deps,
+            pair_address,
+            offer_asset,
+            ask_asset_info,
+            belief_price,
+            max_spread,
+        )?;
+        // insert fee msg
+        if let Some(f) = fee_msg {
+            swap_msgs.push(f)
+        }
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::ProvideLiquidity {
-                assets: assets.clone(),
-                max_spread,
-            },
-        });
-
-        let actual = dex.provide_liquidity(assets, max_spread);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
+        Ok(swap_msgs)
     }
 
-    #[test]
-    fn provide_liquidity_symmetric_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+    #[allow(clippy::too_many_arguments)]
+    fn resolve_custom_swap(
+        &self,
+        _deps: Deps,
+        _offer_assets: Vec<OfferAsset>,
+        _ask_assets: Vec<AskAsset>,
+        _exchange: &dyn DexCommand,
+        _max_spread: Option<Decimal>,
+        _router: Option<SwapRouter>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        todo!()
 
-        let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
-
-        let offer = OfferAsset::new("taco", 1000u128);
-        let paired = vec![AssetEntry::new("bell")];
-        let _max_spread = Some(Decimal::percent(1));
-
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::ProvideLiquiditySymmetric {
-                offer_asset: offer.clone(),
-                paired_assets: paired.clone(),
-            },
-        });
-
-        let actual = dex.provide_liquidity_symmetric(offer, paired);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
+        // let ans_host = api.ans(deps);
+        //
+        // // Resolve the asset information
+        // let mut offer_asset_infos: Vec<AssetInfo> =
+        //     exchange.resolve_assets(deps, &api, offer_assets.into_iter().unzip().0)?;
+        // let mut ask_asset_infos: Vec<AssetInfo> =
+        //     exchange.resolve_assets(deps, &api, ask_assets.into_iter().unzip().0)?;
+        //
+        // let offer_assets: Vec<Asset> = offer_assets
+        //     .into_iter()
+        //     .zip(offer_asset_infos)
+        //     .map(|(asset, info)| Asset::new(info, asset.1))
+        //     .collect();
+        // let ask_assets: Vec<Asset> = ask_assets
+        //     .into_iter()
+        //     .zip(ask_asset_infos)
+        //     .map(|(asset, info)| Asset::new(info, asset.1))
+        //     .collect();
+        //
+        // exchange.custom_swap(deps, offer_assets, ask_assets, max_spread)
     }
 
-    #[test]
-    fn withdraw_liquidity_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "junoswap".to_string();
+    fn resolve_provide_liquidity(
+        &self,
+        deps: Deps,
+        offer_assets: Vec<OfferAsset>,
+        exchange: &dyn DexCommand,
+        max_spread: Option<Decimal>,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let ans = self.name_service(deps);
+        let assets = ans.query(&offer_assets)?;
 
-        let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
+        let mut pair_assets = offer_assets
+            .into_iter()
+            .map(|a| a.name)
+            .take(2)
+            .collect::<Vec<AssetEntry>>();
 
-        let lp_token = AssetEntry::new("taco");
-        let withdraw_amount: Uint128 = 1000u128.into();
+        let pair_address = exchange.pair_address(
+            deps,
+            ans.host(),
+            (pair_assets.swap_remove(0), pair_assets.swap_remove(0)),
+        )?;
+        exchange.provide_liquidity(deps, pair_address, assets, max_spread)
+    }
 
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::WithdrawLiquidity {
-                lp_token: lp_token.clone(),
-                amount: withdraw_amount,
-            },
-        });
+    fn resolve_provide_liquidity_symmetric(
+        &self,
+        deps: Deps,
+        offer_asset: OfferAsset,
+        mut paired_assets: Vec<AssetEntry>,
+        exchange: &dyn DexCommand,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let ans = self.name_service(deps);
+        let paired_asset_infos = ans.query(&paired_assets)?;
+        let pair_address = exchange.pair_address(
+            deps,
+            ans.host(),
+            (paired_assets.swap_remove(0), paired_assets.swap_remove(1)),
+        )?;
+        let offer_asset = ans.query(&offer_asset)?;
+        exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
+    }
 
-        let actual = dex.withdraw_liquidity(lp_token, withdraw_amount);
+    /// @todo
+    fn resolve_withdraw_liquidity(
+        &self,
+        deps: Deps,
+        lp_token: OfferAsset,
+        exchange: &dyn DexCommand,
+    ) -> Result<Vec<CosmosMsg>, DexError> {
+        let ans = self.name_service(deps);
 
-        assert_that!(actual).is_ok();
+        let lp_asset = ans.query(&lp_token)?;
 
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
+        let lp_pairing: DexAssetPairing = lp_token.name.try_into()?;
 
-        assert_that!(actual).is_equal_to(expected);
+        let mut pool_ids = ans.query(&lp_pairing)?;
+        // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
+        if pool_ids.len() != 1 {
+            return Err(StdError::generic_err(format!(
+                "There are {} pairings for the given LP token",
+                pool_ids.len()
+            ))
+            .into());
+        }
+
+        let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
+        exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
 }

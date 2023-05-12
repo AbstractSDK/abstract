@@ -1,22 +1,21 @@
-use crate::command::Identify;
 use crate::error::DexError;
-use crate::DexCommand;
+use crate::traits::{command::DexCommand, identity::Identify};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
-pub use crate::providers::{
+pub use crate::exchanges::{
     junoswap::{JunoSwap, JUNOSWAP},
     wyndex::{WynDex, WYNDEX},
 };
 
 #[cfg(feature = "terra")]
-pub use crate::providers::terraswap::{Terraswap, TERRASWAP};
+pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
 #[cfg(feature = "terra")]
-pub use crate::providers::astroport::{Astroport, ASTROPORT};
+pub use crate::exchanges::astroport::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
-pub use crate::providers::osmosis::{Osmosis, OSMOSIS};
+pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
 
 pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
     match value {

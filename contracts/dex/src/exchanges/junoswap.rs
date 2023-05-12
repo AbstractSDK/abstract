@@ -1,8 +1,8 @@
+use crate::{error::DexError, traits::identity::Identify};
 use crate::{
-    commands::{coins_in_assets, cw_approve_msgs},
-    command::{Fee, FeeOnInput, Return, Spread},
+    traits::command::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    util::{coins_in_assets, cw_approve_msgs},
 };
-use crate::{command::Identify, error::DexError, DexCommand};
 use abstract_core::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{

@@ -1,22 +1,20 @@
-pub(crate) mod commands;
 pub mod contract;
-pub(crate) mod command;
 pub mod error;
-mod providers;
-pub mod msg;
-
-pub mod adapter;
+mod exchanges;
 pub(crate) mod handlers;
+pub mod msg;
 pub mod state;
+mod traits;
+pub(crate) mod util;
 
-pub use commands::LocalDex;
-pub use command::DexCommand;
+// Export interface for use in SDK modules
+pub use traits::api::{Dex, DexInterface};
 
 pub const EXCHANGE: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
-    pub use super::providers::osmosis::Osmosis;
+    pub use super::exchanges::osmosis::Osmosis;
 }
 
 #[cfg(feature = "boot")]

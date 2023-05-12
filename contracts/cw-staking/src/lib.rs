@@ -6,8 +6,8 @@ mod providers;
 mod handlers;
 mod traits;
 
-pub use traits::command::StakingCommand;
 pub use traits::adapter::StakingAdapter;
+pub use traits::command::StakingCommand;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
 

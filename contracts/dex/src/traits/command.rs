@@ -5,15 +5,12 @@ use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
+use super::identity::Identify;
+
 pub type Return = Uint128;
 pub type Spread = Uint128;
 pub type Fee = Uint128;
 pub type FeeOnInput = bool;
-
-pub trait Identify {
-    fn over_ibc(&self) -> bool;
-    fn name(&self) -> &'static str;
-}
 
 /// # DexCommand
 /// ensures DEX adapters support the expected functionality.

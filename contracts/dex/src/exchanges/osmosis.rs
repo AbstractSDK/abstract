@@ -1,10 +1,8 @@
-use crate::command::Identify;
-
 #[cfg(feature = "osmosis")]
-use crate::{
-    command::{Fee, FeeOnInput, Return, Spread},
-    error::DexError,
-    DexCommand,
+use crate::error::DexError;
+use crate::traits::{
+    command::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    identity::Identify,
 };
 use cosmwasm_std::Addr;
 
