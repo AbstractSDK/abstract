@@ -13,7 +13,7 @@ use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
 
 use abstract_cw_staking::CW_STAKING;
-use abstract_cw_staking::{boot::CwStakingAdapter, msg::CwStakingQueryMsgFns};
+use abstract_cw_staking::{boot::CwStakingAdapter, msg::StakingQueryMsgFns};
 use common::create_default_account;
 
 mod common;

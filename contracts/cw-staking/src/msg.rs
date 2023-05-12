@@ -15,47 +15,51 @@ pub type ProviderName = String;
 /// The callback id for staking over ibc
 pub const IBC_STAKING_PROVIDER_ID: u32 = 22335;
 
-pub type ExecuteMsg = adapter::ExecuteMsg<CwStakingExecuteMsg>;
+pub type ExecuteMsg = adapter::ExecuteMsg<StakingExecuteMsg>;
 pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;
-pub type QueryMsg = adapter::QueryMsg<CwStakingQueryMsg>;
+pub type QueryMsg = adapter::QueryMsg<StakingQueryMsg>;
 
-impl adapter::AdapterExecuteMsg for CwStakingExecuteMsg {}
+impl adapter::AdapterExecuteMsg for StakingExecuteMsg {}
 
-impl adapter::AdapterQueryMsg for CwStakingQueryMsg {}
+impl adapter::AdapterQueryMsg for StakingQueryMsg {}
 
 /// A request message that's sent to this staking adapter
 #[cosmwasm_schema::cw_serde]
-pub struct CwStakingExecuteMsg {
+pub struct StakingExecuteMsg {
     /// The name of the staking provider
     pub provider: ProviderName,
-    pub action: CwStakingAction,
+    /// the action to execute, see [StakingAction]
+    pub action: StakingAction,
 }
 
 #[cosmwasm_schema::cw_serde]
 /// Possible actions to perform on the staking contract
-/// All provide the staking token information
-pub enum CwStakingAction {
+/// All provide an asset [AnsAsset] information
+pub enum StakingAction {
     /// Stakes/bonds a given token
     Stake {
-        staking_token: AnsAsset,
+        asset: AnsAsset,
         unbonding_period: Option<Duration>,
     },
-    /// Unstake a given token
+
+    /// Unstake/unbond a given token
     Unstake {
-        staking_token: AnsAsset,
+        asset: AnsAsset,
         unbonding_period: Option<Duration>,
     },
+
     /// Claim rewards for a given token
-    ClaimRewards { staking_token: AssetEntry },
+    ClaimRewards { asset: AssetEntry },
+
     /// Claim matured unbonding tokens
-    Claim { staking_token: AssetEntry },
+    Claim { asset: AssetEntry },
 }
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
 #[cfg_attr(feature = "boot", impl_into(QueryMsg))]
-pub enum CwStakingQueryMsg {
+pub enum StakingQueryMsg {
     #[returns(StakingInfoResponse)]
     Info {
         provider: ProviderName,

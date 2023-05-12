@@ -1,6 +1,5 @@
-use crate::dex_trait::Identify;
 use crate::error::DexError;
-use crate::DEX;
+use crate::traits::{command::DexCommand, identity::Identify};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
@@ -36,7 +35,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
     }
 }
 
-pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DEX, DexError> {
+pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, DexError> {
     match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(&JunoSwap {}),

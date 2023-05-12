@@ -16,18 +16,16 @@ use abstract_sdk::{
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
 
+// API for Abstract SDK users
 /// Interact with the dex adapter in your module.
 pub trait DexInterface: AccountIdentification + Dependencies {
     /// Construct a new dex interface
-    /// Params:
-    /// - deps: the deps object
-    /// - dex_name: the name of the dex to interact with
-    fn dex<'a>(&'a self, deps: Deps<'a>, dex_name: DexName) -> Dex<Self> {
+    fn dex<'a>(&'a self, deps: Deps<'a>, name: DexName) -> Dex<Self> {
         Dex {
             base: self,
             deps,
-            dex_name,
-            dex_module_id: EXCHANGE,
+            name,
+            module_id: EXCHANGE,
         }
     }
 }
@@ -37,25 +35,28 @@ impl<T: AccountIdentification + Dependencies> DexInterface for T {}
 #[derive(Clone)]
 pub struct Dex<'a, T: DexInterface> {
     base: &'a T,
-    dex_name: DexName,
-    dex_module_id: ModuleId<'a>,
+    name: DexName,
+    module_id: ModuleId<'a>,
     deps: Deps<'a>,
 }
 
 impl<'a, T: DexInterface> Dex<'a, T> {
-    /// Set the module id for the
+    /// Set the module id for the DEX
     pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
-        Self {
-            dex_module_id: module_id,
-            ..self
-        }
+        Self { module_id, ..self }
     }
+
+    /// returns DEX name
     fn dex_name(&self) -> DexName {
-        self.dex_name.clone()
+        self.name.clone()
     }
+
+    /// returns the DEX module id
     fn dex_module_id(&self) -> ModuleId {
-        self.dex_module_id
+        self.module_id
     }
+
+    /// Executes a [DexAction] in th DEX
     fn request(&self, action: DexAction) -> AbstractSdkResult<CosmosMsg> {
         let adapters = self.base.adapters(self.deps);
 
@@ -68,6 +69,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         )
     }
 
+    /// Swap assets in the DEX
     pub fn swap(
         &self,
         offer_asset: OfferAsset,
@@ -83,6 +85,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         })
     }
 
+    /// Execute a custom swap in the DEX
     pub fn custom_swap(
         &self,
         offer_assets: Vec<OfferAsset>,
@@ -98,6 +101,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         })
     }
 
+    /// Provide liquidity in the DEX
     pub fn provide_liquidity(
         &self,
         assets: Vec<OfferAsset>,
@@ -106,6 +110,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         self.request(DexAction::ProvideLiquidity { assets, max_spread })
     }
 
+    /// Provide symmetrict liquidity in the DEX
     pub fn provide_liquidity_symmetric(
         &self,
         offer_asset: OfferAsset,
@@ -117,6 +122,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
         })
     }
 
+    /// Withdraw liquidity from the DEX
     pub fn withdraw_liquidity(
         &self,
         lp_token: AssetEntry,
@@ -127,10 +133,13 @@ impl<'a, T: DexInterface> Dex<'a, T> {
 }
 
 impl<'a, T: DexInterface> Dex<'a, T> {
+    /// Do a query in the DEX
     fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
         let adapters = self.base.adapters(self.deps);
         adapters.query(EXCHANGE, query_msg)
     }
+
+    /// simulate DEx swap
     pub fn simulate_swap(
         &self,
         offer_asset: OfferAsset,

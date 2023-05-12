@@ -1,8 +1,10 @@
 use crate::{
-    commands::{coins_in_assets, cw_approve_msgs},
-    dex_trait::{Fee, FeeOnInput, Identify, Return, Spread},
     error::DexError,
-    DEX,
+    traits::{
+        command::{DexCommand, Fee, FeeOnInput, Return, Spread},
+        identity::Identify,
+    },
+    util::{coins_in_assets, cw_approve_msgs},
 };
 use abstract_core::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
@@ -31,7 +33,7 @@ pub enum StubCw20HookMsg {
     WithdrawLiquidity {},
 }
 
-impl DEX for Astroport {
+impl DexCommand for Astroport {
     fn swap(
         &self,
         _deps: Deps,

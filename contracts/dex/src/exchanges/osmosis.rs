@@ -1,10 +1,9 @@
-use crate::dex_trait::Identify;
-
 #[cfg(feature = "osmosis")]
-use crate::{
-    dex_trait::{Fee, FeeOnInput, Return, Spread},
-    error::DexError,
-    DEX,
+use crate::error::DexError;
+#[allow(unused_imports)]
+use crate::traits::{
+    command::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    identity::Identify,
 };
 use cosmwasm_std::Addr;
 
@@ -44,7 +43,7 @@ impl Identify for Osmosis {
 
 /// Osmosis app-chain dex implementation
 #[cfg(feature = "osmosis")]
-impl DEX for Osmosis {
+impl DexCommand for Osmosis {
     fn swap(
         &self,
         _deps: Deps,

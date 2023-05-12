@@ -1,9 +1,9 @@
 use crate::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
-use crate::traits::cw_staking_adapter::CwStakingAdapter;
+use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
-use crate::{contract::CwStakingResult, error::StakingError};
+use crate::{contract::StakingResult, error::StakingError};
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
@@ -52,8 +52,7 @@ impl Identify for WynDex {
     }
 }
 
-impl CwStakingAdapter for WynDex {
-    // get the relevant data for Junoswap staking
+impl StakingCommand for WynDex {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -134,7 +133,7 @@ impl CwStakingAdapter for WynDex {
         })])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> StakingResult<StakingInfoResponse> {
         let bonding_info_resp: BondingInfoResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::BondingInfo {},
@@ -159,7 +158,7 @@ impl CwStakingAdapter for WynDex {
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
-    ) -> CwStakingResult<StakeResponse> {
+    ) -> StakingResult<StakeResponse> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)
             .map_err(|e| StdError::generic_err(e.to_string()))?;
 
@@ -188,7 +187,7 @@ impl CwStakingAdapter for WynDex {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> CwStakingResult<UnbondingResponse> {
+    ) -> StakingResult<UnbondingResponse> {
         let claims: cw_controllers::ClaimsResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::Claims {
@@ -205,10 +204,8 @@ impl CwStakingAdapter for WynDex {
             .collect();
         Ok(UnbondingResponse { claims })
     }
-    fn query_reward_tokens(
-        &self,
-        querier: &QuerierWrapper,
-    ) -> CwStakingResult<RewardTokensResponse> {
+
+    fn query_rewards(&self, querier: &QuerierWrapper) -> StakingResult<RewardTokensResponse> {
         let resp: DistributionDataResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::DistributionData {},

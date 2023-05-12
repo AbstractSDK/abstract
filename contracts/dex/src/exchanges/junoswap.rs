@@ -1,8 +1,8 @@
+use crate::{error::DexError, traits::identity::Identify};
 use crate::{
-    commands::{coins_in_assets, cw_approve_msgs},
-    dex_trait::{Fee, FeeOnInput, Return, Spread},
+    traits::command::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    util::{coins_in_assets, cw_approve_msgs},
 };
-use crate::{dex_trait::Identify, error::DexError, DEX};
 use abstract_core::objects::PoolAddress;
 use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
 use cosmwasm_std::{
@@ -26,7 +26,7 @@ impl Identify for JunoSwap {
     }
 }
 
-impl DEX for JunoSwap {
+impl DexCommand for JunoSwap {
     fn swap(
         &self,
         deps: Deps,

@@ -1,7 +1,6 @@
 use crate::error::DexError;
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
-use crate::LocalDex;
 use crate::{
     contract::{DexAdapter, DexResult},
     state::SWAP_FEE,
@@ -73,12 +72,17 @@ fn handle_local_request(
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) = adapter.resolve_dex_action(deps.as_ref(), action, exchange)?;
+    let (msgs, _) = crate::traits::adapter::DexAdapter::resolve_dex_action(
+        &adapter,
+        deps.as_ref(),
+        action,
+        exchange,
+    )?;
     let proxy_msg = adapter.executor(deps.as_ref()).execute(msgs)?;
     Ok(Response::new().add_message(proxy_msg))
 }
 
-// Handle an adapter request that can be executed on an IBC chain
+/// Handle an adapter request that can be executed on an IBC chain
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,

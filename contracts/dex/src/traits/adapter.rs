@@ -1,16 +1,18 @@
+use crate::error::DexError;
 use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
-use crate::{error::DexError, DEX};
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::fees::Chargeable;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Execution;
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Decimal, Deps, StdError, StdResult, WasmMsg};
-use cw20::Cw20ExecuteMsg;
-use cw_asset::{Asset, AssetInfo};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
+
+use cw_asset::Asset;
+
+use super::command::DexCommand;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
@@ -18,17 +20,17 @@ pub const WITHDRAW_LIQUIDITY: u64 = 7546;
 pub const SWAP: u64 = 7544;
 pub const CUSTOM_SWAP: u64 = 7545;
 
-impl<T> LocalDex for T where T: AbstractNameService + Execution {}
+impl<T> DexAdapter for T where T: AbstractNameService + Execution {}
 
 pub(crate) type ReplyId = u64;
 
-pub trait LocalDex: AbstractNameService + Execution {
+pub trait DexAdapter: AbstractNameService + Execution {
     /// resolve the provided dex action on a local dex
     fn resolve_dex_action(
         &self,
         deps: Deps,
         action: DexAction,
-        exchange: &dyn DEX,
+        exchange: &dyn DexCommand,
     ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
         Ok(match action {
             DexAction::ProvideLiquidity { assets, max_spread } => {
@@ -102,7 +104,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         deps: Deps,
         offer_asset: OfferAsset,
         mut ask_asset: AssetEntry,
-        exchange: &dyn DEX,
+        exchange: &dyn DexCommand,
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -145,7 +147,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         _deps: Deps,
         _offer_assets: Vec<OfferAsset>,
         _ask_assets: Vec<AskAsset>,
-        _exchange: &dyn DEX,
+        _exchange: &dyn DexCommand,
         _max_spread: Option<Decimal>,
         _router: Option<SwapRouter>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
@@ -177,7 +179,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         &self,
         deps: Deps,
         offer_assets: Vec<OfferAsset>,
-        exchange: &dyn DEX,
+        exchange: &dyn DexCommand,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
@@ -202,7 +204,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         deps: Deps,
         offer_asset: OfferAsset,
         mut paired_assets: Vec<AssetEntry>,
-        exchange: &dyn DEX,
+        exchange: &dyn DexCommand,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
         let paired_asset_infos = ans.query(&paired_assets)?;
@@ -220,7 +222,7 @@ pub trait LocalDex: AbstractNameService + Execution {
         &self,
         deps: Deps,
         lp_token: OfferAsset,
-        exchange: &dyn DEX,
+        exchange: &dyn DexCommand,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
 
@@ -241,33 +243,4 @@ pub trait LocalDex: AbstractNameService + Execution {
         let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
         exchange.withdraw_liquidity(deps, pool_address, lp_asset)
     }
-}
-
-pub(crate) fn cw_approve_msgs(assets: &[Asset], spender: &Addr) -> StdResult<Vec<CosmosMsg>> {
-    let mut msgs = vec![];
-    for asset in assets {
-        if let AssetInfo::Cw20(addr) = &asset.info {
-            let msg = Cw20ExecuteMsg::IncreaseAllowance {
-                spender: spender.to_string(),
-                amount: asset.amount,
-                expires: None,
-            };
-            msgs.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: addr.to_string(),
-                msg: to_binary(&msg)?,
-                funds: vec![],
-            }))
-        }
-    }
-    Ok(msgs)
-}
-
-pub(crate) fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
-    let mut coins = vec![];
-    for asset in assets {
-        if let AssetInfo::Native(denom) = &asset.info {
-            coins.push(Coin::new(asset.amount.u128(), denom.clone()));
-        }
-    }
-    coins
 }

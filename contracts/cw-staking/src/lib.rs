@@ -6,8 +6,8 @@ mod providers;
 mod handlers;
 mod traits;
 
-pub use traits::cw_staking_adapter::CwStakingAdapter;
-pub use traits::local_cw_staking::LocalCwStaking;
+pub use traits::adapter::StakingAdapter;
+pub use traits::command::StakingCommand;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
 
@@ -18,7 +18,7 @@ pub mod host_staking {
 
 #[cfg(feature = "boot")]
 pub mod boot {
-    use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ExecuteMsg, InstantiateMsg, QueryMsg};
+    use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING;
     use abstract_boot::boot_core::ContractWrapper;
     use abstract_boot::boot_core::{contract, ContractInstance};
@@ -65,10 +65,10 @@ pub mod boot {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
             let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: CwStakingExecuteMsg {
+                request: StakingExecuteMsg {
                     provider,
-                    action: CwStakingAction::Stake {
-                        staking_token: stake_asset,
+                    action: StakingAction::Stake {
+                        asset: stake_asset,
                         unbonding_period: duration,
                     },
                 },
@@ -86,10 +86,10 @@ pub mod boot {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
             let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: CwStakingExecuteMsg {
+                request: StakingExecuteMsg {
                     provider,
-                    action: CwStakingAction::Unstake {
-                        staking_token: stake_asset,
+                    action: StakingAction::Unstake {
+                        asset: stake_asset,
                         unbonding_period: duration,
                     },
                 },
@@ -106,11 +106,9 @@ pub mod boot {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
             let claim_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: CwStakingExecuteMsg {
+                request: StakingExecuteMsg {
                     provider,
-                    action: CwStakingAction::Claim {
-                        staking_token: stake_asset,
-                    },
+                    action: StakingAction::Claim { asset: stake_asset },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_msg)?;
@@ -125,11 +123,9 @@ pub mod boot {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
             let claim_rewards_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
-                request: CwStakingExecuteMsg {
+                request: StakingExecuteMsg {
                     provider,
-                    action: CwStakingAction::ClaimRewards {
-                        staking_token: stake_asset,
-                    },
+                    action: StakingAction::ClaimRewards { asset: stake_asset },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;

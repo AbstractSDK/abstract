@@ -1,4 +1,4 @@
-use crate::msg::{CwStakingExecuteMsg, CwStakingQueryMsg};
+use crate::msg::{StakingExecuteMsg, StakingQueryMsg};
 use crate::CW_STAKING;
 use crate::{error::StakingError, handlers};
 use abstract_adapter::{export_endpoints, AdapterContract};
@@ -6,10 +6,14 @@ use cosmwasm_std::{Empty, Response};
 
 const MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Staking contract adapter interface
 pub type CwStakingAdapter =
-    AdapterContract<StakingError, Empty, CwStakingExecuteMsg, CwStakingQueryMsg>;
-pub type CwStakingResult<T = Response> = Result<T, StakingError>;
+    AdapterContract<StakingError, Empty, StakingExecuteMsg, StakingQueryMsg>;
 
+/// Staking operation result
+pub type StakingResult<T = Response> = Result<T, StakingError>;
+
+/// Staking contract adapter
 pub const CW_STAKING_ADAPTER: CwStakingAdapter =
     CwStakingAdapter::new(CW_STAKING, MODULE_VERSION, None)
         .with_execute(handlers::execute_handler)

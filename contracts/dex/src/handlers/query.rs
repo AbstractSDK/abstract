@@ -7,7 +7,6 @@ use crate::{
     contract::{DexAdapter, DexResult},
     error::DexError,
     exchanges::exchange_resolver,
-    LocalDex,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_sdk::features::AbstractNameService;
@@ -35,7 +34,9 @@ pub fn query_handler(
                     }
 
                     let exchange = exchange_resolver::resolve_exchange(&dex)?;
-                    let (messages, _) = adapter.resolve_dex_action(deps, action, exchange)?;
+                    let (messages, _) = crate::traits::adapter::DexAdapter::resolve_dex_action(
+                        adapter, deps, action, exchange,
+                    )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
                 _ => Err(DexError::InvalidGenerateMessage {}),
