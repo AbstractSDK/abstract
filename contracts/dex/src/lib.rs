@@ -2,7 +2,7 @@ pub(crate) mod commands;
 pub mod contract;
 pub(crate) mod command;
 pub mod error;
-mod exchanges;
+mod providers;
 pub mod msg;
 
 pub mod adapter;
@@ -16,7 +16,7 @@ pub const EXCHANGE: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
-    pub use super::exchanges::osmosis::Osmosis;
+    pub use super::providers::osmosis::Osmosis;
 }
 
 #[cfg(feature = "boot")]

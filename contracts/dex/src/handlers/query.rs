@@ -1,4 +1,4 @@
-use crate::exchanges::exchange_resolver::resolve_exchange;
+use crate::providers::exchange_resolver::resolve_exchange;
 use crate::msg::{
     DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
 };
@@ -6,7 +6,7 @@ use crate::state::SWAP_FEE;
 use crate::{
     contract::{DexAdapter, DexResult},
     error::DexError,
-    exchanges::exchange_resolver,
+    providers::exchange_resolver,
     LocalDex,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};

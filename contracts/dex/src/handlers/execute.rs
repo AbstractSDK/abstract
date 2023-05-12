@@ -1,5 +1,5 @@
 use crate::error::DexError;
-use crate::exchanges::exchange_resolver;
+use crate::providers::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use crate::LocalDex;
 use crate::{
