@@ -14,9 +14,10 @@ impl Identify for Osmosis {
         OSMOSIS
     }
 }
+
 #[cfg(feature = "osmosis")]
 pub mod fns {
-    use crate::CwStakingAdapter;
+    use crate::StakingCommand;
 
     use super::*;
     const FORTEEN_DAYS: i64 = 60 * 60 * 24 * 14;
@@ -64,8 +65,10 @@ pub mod fns {
 
             // TODO: this is the gamm pool address/number. Im not sure how this will be read/stored
             self.pool_addr = Some(pool_addr); // Some(Addr::unchecked("gamm/pool/69"));
-                                              // TODO: this is the gamm pool id. Im not sure how this will be read/stored
+
+            // TODO: this is the gamm pool id. Im not sure how this will be read/stored
             self.pool_id = Some(69);
+
             Ok(())
         }
 

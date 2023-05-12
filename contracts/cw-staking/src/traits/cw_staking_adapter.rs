@@ -9,7 +9,7 @@ use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
 use cw_utils::Duration;
 
 /// Trait that defines the adapter interface for staking providers
-pub trait CwStakingAdapter: Identify {
+pub trait StakingCommand: Identify {
     /// Construct a staking contract entry from the staking token and the provider
     fn staking_entry(&self, staking_token: &AssetEntry) -> ContractEntry {
         ContractEntry {
@@ -17,16 +17,18 @@ pub trait CwStakingAdapter: Identify {
             contract: format!("staking/{staking_token}"),
         }
     }
+
     /// Retrieve the staking contract address for the pool with the provided staking token name
     fn staking_contract_address(
         &self,
         deps: Deps,
         ans_host: &AnsHost,
-        staking_token: &AssetEntry,
+        token: &AssetEntry,
     ) -> AbstractSdkResult<Addr> {
-        let provider_staking_contract_entry = self.staking_entry(staking_token);
+        let staking_contract = self.staking_entry(token);
+
         ans_host
-            .query_contract(&deps.querier, &provider_staking_contract_entry)
+            .query_contract(&deps.querier, &staking_contract)
             .map_err(Into::into)
     }
 
@@ -40,10 +42,6 @@ pub trait CwStakingAdapter: Identify {
     ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
-    ///
-    /// * `deps` - the dependencies
-    /// * `asset` - the asset to stake
-    /// * `unbonding_period` - the unbonding period to use for the stake
     fn stake(
         &self,
         deps: Deps,
@@ -52,10 +50,6 @@ pub trait CwStakingAdapter: Identify {
     ) -> Result<Vec<CosmosMsg>, StakingError>;
 
     /// Stake the provided asset into the staking contract
-    ///
-    /// * `deps` - the dependencies
-    /// * `asset` - the asset to stake
-    /// * `unbonding_period` - the unbonding period to use for the unstake
     fn unstake(
         &self,
         deps: Deps,
@@ -72,21 +66,22 @@ pub trait CwStakingAdapter: Identify {
     fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
 
     fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse>;
-    // This function queries the staked token balance of a staker
-    // The staking contract is queried using the staking address
+
+    /// Query the staked token balance of a given staker
     fn query_staked(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
     ) -> CwStakingResult<StakeResponse>;
+
+    /// Query unbonding information of a given staker
     fn query_unbonding(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
     ) -> CwStakingResult<UnbondingResponse>;
-    fn query_reward_tokens(
-        &self,
-        querier: &QuerierWrapper,
-    ) -> CwStakingResult<RewardTokensResponse>;
+
+    /// Query for pending claimable rewards
+    fn query_rewards(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse>;
 }

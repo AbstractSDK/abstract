@@ -1,7 +1,7 @@
 use crate::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
-use crate::traits::cw_staking_adapter::CwStakingAdapter;
+use crate::traits::cw_staking_adapter::StakingCommand;
 use crate::traits::identify::Identify;
 use crate::{contract::CwStakingResult, error::StakingError};
 use abstract_sdk::{
@@ -52,8 +52,7 @@ impl Identify for WynDex {
     }
 }
 
-impl CwStakingAdapter for WynDex {
-    // get the relevant data for Junoswap staking
+impl StakingCommand for WynDex {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -205,10 +204,8 @@ impl CwStakingAdapter for WynDex {
             .collect();
         Ok(UnbondingResponse { claims })
     }
-    fn query_reward_tokens(
-        &self,
-        querier: &QuerierWrapper,
-    ) -> CwStakingResult<RewardTokensResponse> {
+
+    fn query_rewards(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
         let resp: DistributionDataResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::DistributionData {},

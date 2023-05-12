@@ -1,6 +1,6 @@
 use crate::contract::CwStakingResult;
 use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
-use crate::traits::cw_staking_adapter::CwStakingAdapter;
+use crate::traits::cw_staking_adapter::StakingCommand;
 use crate::traits::identify::Identify;
 use crate::{error::StakingError, msg::RewardTokensResponse};
 use abstract_sdk::{
@@ -41,8 +41,7 @@ impl Identify for JunoSwap {
     }
 }
 
-impl CwStakingAdapter for JunoSwap {
-    // get the relevant data for Junoswap staking
+impl StakingCommand for JunoSwap {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -162,10 +161,8 @@ impl CwStakingAdapter for JunoSwap {
             .collect();
         Ok(UnbondingResponse { claims })
     }
-    fn query_reward_tokens(
-        &self,
-        _querier: &QuerierWrapper,
-    ) -> CwStakingResult<RewardTokensResponse> {
+
+    fn query_rewards(&self, _querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
         todo!()
     }
 }

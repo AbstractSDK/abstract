@@ -1,7 +1,7 @@
 use crate::contract::{CwStakingAdapter, CwStakingResult};
 use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID};
 use crate::providers::resolver::{self, is_over_ibc};
-use crate::LocalCwStaking;
+use crate::LocalStakingCommand;
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
@@ -10,6 +10,7 @@ use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
 const ACTION_RETRIES: u8 = 3;
 
+/// Execute staking operation
 pub fn execute_handler(
     deps: DepsMut,
     env: Env,

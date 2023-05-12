@@ -10,7 +10,7 @@ pub(crate) mod handlers;
 pub mod state;
 
 pub use commands::LocalDex;
-pub use dex_trait::DEX;
+pub use dex_trait::DexCommand;
 
 pub const EXCHANGE: &str = "abstract:dex";
 

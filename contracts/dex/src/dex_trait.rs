@@ -15,9 +15,12 @@ pub trait Identify {
     fn name(&self) -> &'static str;
 }
 
-/// DEX ensures supported dexes support the expected functionality.
-/// Trait that implements the actual dex interaction.
-pub trait DEX: Identify {
+/// # DexCommand
+/// ensures DEX adapters support the expected functionality.
+///
+/// Implements the usual DEX operations.
+pub trait DexCommand: Identify {
+    /// Return pool information for given assets pair
     fn pair_address(
         &self,
         deps: Deps,
@@ -32,6 +35,8 @@ pub trait DEX: Identify {
         })?;
         Ok(found.pool_address)
     }
+
+    /// Execute a swap on the given DEX using the swap in question custom logic
     #[allow(clippy::too_many_arguments)]
     fn swap(
         &self,
@@ -42,6 +47,8 @@ pub trait DEX: Identify {
         belief_price: Option<Decimal>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
+
+    /// Implement your custom swap the DEX
     fn custom_swap(
         &self,
         _deps: Deps,
@@ -52,6 +59,8 @@ pub trait DEX: Identify {
         // Must be implemented in the base to be available
         Err(DexError::NotImplemented(self.name().to_string()))
     }
+
+    /// Provides liquidity on the the DEX
     fn provide_liquidity(
         &self,
         deps: Deps,
@@ -59,6 +68,8 @@ pub trait DEX: Identify {
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
+
+    /// Provide symmetric liquidity where available depending on the DEX
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
@@ -66,17 +77,16 @@ pub trait DEX: Identify {
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
     ) -> Result<Vec<CosmosMsg>, DexError>;
-    // fn raw_swap();
-    // fn raw_provide_liquidity();
+
+    /// Withdraw liquidity from DEX
     fn withdraw_liquidity(
         &self,
         deps: Deps,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError>;
-    // fn raw_withdraw_liquidity();
-    // fn route_swap();
-    // fn raw_route_swap();
+
+    /// Simulate a swap in the DEX
     fn simulate_swap(
         &self,
         deps: Deps,
@@ -84,4 +94,10 @@ pub trait DEX: Identify {
         offer_asset: Asset,
         ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError>;
+
+    // fn raw_swap();
+    // fn raw_provide_liquidity();
+    // fn raw_withdraw_liquidity();
+    // fn route_swap();
+    // fn raw_route_swap();
 }

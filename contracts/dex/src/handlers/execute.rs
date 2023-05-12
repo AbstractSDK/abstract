@@ -78,7 +78,7 @@ fn handle_local_request(
     Ok(Response::new().add_message(proxy_msg))
 }
 
-// Handle an adapter request that can be executed on an IBC chain
+/// Handle an adapter request that can be executed on an IBC chain
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,

@@ -1,5 +1,5 @@
 use crate::error::StakingError;
-use crate::traits::cw_staking_adapter::CwStakingAdapter;
+use crate::traits::cw_staking_adapter::StakingCommand;
 use crate::traits::identify::Identify;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
@@ -50,8 +50,7 @@ impl Identify for Astroport {
     }
 }
 
-impl CwStakingAdapter for Astroport {
-    // get the relevant data for Astroport staking
+impl StakingCommand for Astroport {
     fn fetch_data(
         &mut self,
         deps: Deps,
@@ -184,7 +183,7 @@ impl CwStakingAdapter for Astroport {
         Ok(UnbondingResponse { claims: vec![] })
     }
 
-    fn query_reward_tokens(
+    fn query_rewards(
         &self,
         querier: &QuerierWrapper,
     ) -> Result<crate::msg::RewardTokensResponse, StakingError> {

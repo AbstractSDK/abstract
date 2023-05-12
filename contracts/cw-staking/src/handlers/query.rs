@@ -83,7 +83,7 @@ pub fn query_handler(
                 let mut provider = resolver::resolve_local_provider(&provider)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
                 provider.fetch_data(deps, env, ans_host, staking_token)?;
-                Ok(to_binary(&provider.query_reward_tokens(&deps.querier)?)?)
+                Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)
             }
         }
     }
