@@ -17,7 +17,7 @@ use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
 use serde::de::DeserializeOwned;
 
 /// Interact with the dex adapter in your module.
-pub trait DexInterface: AccountIdentification + Dependencies {
+pub trait DexAdapter: AccountIdentification + Dependencies {
     /// Construct a new dex interface
     /// Params:
     /// - deps: the deps object
@@ -32,17 +32,17 @@ pub trait DexInterface: AccountIdentification + Dependencies {
     }
 }
 
-impl<T: AccountIdentification + Dependencies> DexInterface for T {}
+impl<T: AccountIdentification + Dependencies> DexAdapter for T {}
 
 #[derive(Clone)]
-pub struct Dex<'a, T: DexInterface> {
+pub struct Dex<'a, T: DexAdapter> {
     base: &'a T,
     dex_name: DexName,
     dex_module_id: ModuleId<'a>,
     deps: Deps<'a>,
 }
 
-impl<'a, T: DexInterface> Dex<'a, T> {
+impl<'a, T: DexAdapter> Dex<'a, T> {
     /// Set the module id for the
     pub fn with_module_id(self, module_id: ModuleId<'a>) -> Self {
         Self {
@@ -126,7 +126,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     }
 }
 
-impl<'a, T: DexInterface> Dex<'a, T> {
+impl<'a, T: DexAdapter> Dex<'a, T> {
     fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
         let adapters = self.base.adapters(self.deps);
         adapters.query(EXCHANGE, query_msg)
