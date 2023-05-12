@@ -3,7 +3,7 @@ use crate::msg::{
 };
 use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
-use crate::{contract::CwStakingResult, error::StakingError};
+use crate::{contract::StakingResult, error::StakingError};
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
@@ -133,7 +133,7 @@ impl StakingCommand for WynDex {
         })])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> StakingResult<StakingInfoResponse> {
         let bonding_info_resp: BondingInfoResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::BondingInfo {},
@@ -158,7 +158,7 @@ impl StakingCommand for WynDex {
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
-    ) -> CwStakingResult<StakeResponse> {
+    ) -> StakingResult<StakeResponse> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)
             .map_err(|e| StdError::generic_err(e.to_string()))?;
 
@@ -187,7 +187,7 @@ impl StakingCommand for WynDex {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> CwStakingResult<UnbondingResponse> {
+    ) -> StakingResult<UnbondingResponse> {
         let claims: cw_controllers::ClaimsResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::Claims {
@@ -205,7 +205,7 @@ impl StakingCommand for WynDex {
         Ok(UnbondingResponse { claims })
     }
 
-    fn query_rewards(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
+    fn query_rewards(&self, querier: &QuerierWrapper) -> StakingResult<RewardTokensResponse> {
         let resp: DistributionDataResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &wyndex_stake::msg::QueryMsg::DistributionData {},

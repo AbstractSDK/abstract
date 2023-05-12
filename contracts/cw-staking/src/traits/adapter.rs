@@ -1,10 +1,8 @@
-use crate::error::StakingError;
-use crate::msg::CwStakingAction;
-use crate::traits::command::StakingCommand;
-use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::Execution;
 use cosmwasm_std::{DepsMut, Env, SubMsg};
+
+use crate::{error::StakingError, msg::StakingAction, traits::command::StakingCommand};
+
+use abstract_sdk::{core::objects::AssetEntry, features::AbstractNameService, Execution};
 
 impl<T> StakingAdapter for T where T: AbstractNameService + Execution {}
 
@@ -17,7 +15,7 @@ pub trait StakingAdapter: AbstractNameService + Execution {
         &self,
         deps: DepsMut,
         env: Env,
-        action: CwStakingAction,
+        action: StakingAction,
         mut provider: Box<dyn StakingCommand>,
     ) -> Result<SubMsg, StakingError> {
         let staking_asset = staking_asset_from_action(&action);
@@ -30,18 +28,16 @@ pub trait StakingAdapter: AbstractNameService + Execution {
         )?;
 
         let msgs = match action {
-            CwStakingAction::Stake {
-                staking_token,
+            StakingAction::Stake {
+                asset: staking_token,
                 unbonding_period,
             } => provider.stake(deps.as_ref(), staking_token.amount, unbonding_period)?,
-            CwStakingAction::Unstake {
-                staking_token,
+            StakingAction::Unstake {
+                asset: staking_token,
                 unbonding_period,
             } => provider.unstake(deps.as_ref(), staking_token.amount, unbonding_period)?,
-            CwStakingAction::ClaimRewards { staking_token: _ } => {
-                provider.claim_rewards(deps.as_ref())?
-            }
-            CwStakingAction::Claim { staking_token: _ } => provider.claim(deps.as_ref())?,
+            StakingAction::ClaimRewards { asset: _ } => provider.claim_rewards(deps.as_ref())?,
+            StakingAction::Claim { asset: _ } => provider.claim(deps.as_ref())?,
         };
 
         self.executor(deps.as_ref())
@@ -52,11 +48,21 @@ pub trait StakingAdapter: AbstractNameService + Execution {
 }
 
 #[inline(always)]
-fn staking_asset_from_action(action: &CwStakingAction) -> AssetEntry {
+fn staking_asset_from_action(action: &StakingAction) -> AssetEntry {
     match action {
-        CwStakingAction::Stake { staking_token, .. } => staking_token.name.clone(),
-        CwStakingAction::Unstake { staking_token, .. } => staking_token.name.clone(),
-        CwStakingAction::ClaimRewards { staking_token } => staking_token.clone(),
-        CwStakingAction::Claim { staking_token } => staking_token.clone(),
+        StakingAction::Stake {
+            asset: staking_token,
+            ..
+        } => staking_token.name.clone(),
+        StakingAction::Unstake {
+            asset: staking_token,
+            ..
+        } => staking_token.name.clone(),
+        StakingAction::ClaimRewards {
+            asset: staking_token,
+        } => staking_token.clone(),
+        StakingAction::Claim {
+            asset: staking_token,
+        } => staking_token.clone(),
     }
 }

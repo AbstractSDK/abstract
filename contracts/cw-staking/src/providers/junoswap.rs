@@ -1,4 +1,4 @@
-use crate::contract::CwStakingResult;
+use crate::contract::StakingResult;
 use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
@@ -105,7 +105,7 @@ impl StakingCommand for JunoSwap {
         })])
     }
 
-    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse> {
+    fn query_info(&self, querier: &QuerierWrapper) -> StakingResult<StakingInfoResponse> {
         let stake_info_resp: cw20_stake::state::Config = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &cw20_stake::msg::QueryMsg::GetConfig {},
@@ -126,7 +126,7 @@ impl StakingCommand for JunoSwap {
         querier: &QuerierWrapper,
         staker: Addr,
         _unbonding_period: Option<Duration>,
-    ) -> CwStakingResult<StakeResponse> {
+    ) -> StakingResult<StakeResponse> {
         let stake_balance: cw20_stake::msg::StakedBalanceAtHeightResponse = querier
             .query_wasm_smart(
                 self.staking_contract_address.clone(),
@@ -144,7 +144,7 @@ impl StakingCommand for JunoSwap {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> CwStakingResult<UnbondingResponse> {
+    ) -> StakingResult<UnbondingResponse> {
         let claims: cw20_stake::msg::ClaimsResponse = querier.query_wasm_smart(
             self.staking_contract_address.clone(),
             &cw20_stake::msg::QueryMsg::Claims {
@@ -162,7 +162,7 @@ impl StakingCommand for JunoSwap {
         Ok(UnbondingResponse { claims })
     }
 
-    fn query_rewards(&self, _querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse> {
+    fn query_rewards(&self, _querier: &QuerierWrapper) -> StakingResult<RewardTokensResponse> {
         todo!()
     }
 }

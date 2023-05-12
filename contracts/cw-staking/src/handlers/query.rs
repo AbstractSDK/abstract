@@ -1,22 +1,23 @@
-use crate::msg::CwStakingQueryMsg;
+use crate::msg::StakingQueryMsg;
 use crate::{
-    contract::{CwStakingAdapter, CwStakingResult},
+    contract::{CwStakingAdapter, StakingResult},
     providers::resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
+/// Handle queries related to staking
 pub fn query_handler(
     deps: Deps,
     env: Env,
     app: &CwStakingAdapter,
-    msg: CwStakingQueryMsg,
-) -> CwStakingResult<Binary> {
+    msg: StakingQueryMsg,
+) -> StakingResult<Binary> {
     let name_service = app.name_service(deps);
     let ans_host = name_service.host();
 
     match msg {
-        CwStakingQueryMsg::Info {
+        StakingQueryMsg::Info {
             provider,
             staking_token,
         } => {
@@ -31,7 +32,7 @@ pub fn query_handler(
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
             }
         }
-        CwStakingQueryMsg::Staked {
+        StakingQueryMsg::Staked {
             provider,
             staking_token,
             staker_address,
@@ -52,7 +53,7 @@ pub fn query_handler(
                 )?)?)
             }
         }
-        CwStakingQueryMsg::Unbonding {
+        StakingQueryMsg::Unbonding {
             provider,
             staking_token,
             staker_address,
@@ -71,7 +72,7 @@ pub fn query_handler(
                 )?)?)
             }
         }
-        CwStakingQueryMsg::RewardTokens {
+        StakingQueryMsg::RewardTokens {
             provider,
             staking_token,
         } => {

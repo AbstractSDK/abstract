@@ -1,5 +1,6 @@
 #[cfg(feature = "osmosis")]
 use crate::error::DexError;
+#[allow(unused_imports)]
 use crate::traits::{
     command::{DexCommand, Fee, FeeOnInput, Return, Spread},
     identity::Identify,

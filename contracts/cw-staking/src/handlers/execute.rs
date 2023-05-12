@@ -1,5 +1,5 @@
-use crate::contract::{CwStakingAdapter, CwStakingResult};
-use crate::msg::{CwStakingAction, CwStakingExecuteMsg, ProviderName, IBC_STAKING_PROVIDER_ID};
+use crate::contract::{CwStakingAdapter, StakingResult};
+use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
 use crate::providers::resolver::{self, is_over_ibc};
 use crate::StakingAdapter;
 use abstract_sdk::core::ibc_client::CallbackInfo;
@@ -10,15 +10,15 @@ use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
 const ACTION_RETRIES: u8 = 3;
 
-/// Execute staking operation
+/// Execute staking operation locally or over IBC
 pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     adapter: CwStakingAdapter,
-    msg: CwStakingExecuteMsg,
-) -> CwStakingResult {
-    let CwStakingExecuteMsg {
+    msg: StakingExecuteMsg,
+) -> StakingResult {
+    let StakingExecuteMsg {
         provider: provider_name,
         action,
     } = msg;
@@ -37,9 +37,9 @@ fn handle_local_request(
     env: Env,
     _info: MessageInfo,
     adapter: CwStakingAdapter,
-    action: CwStakingAction,
+    action: StakingAction,
     provider_name: String,
-) -> CwStakingResult {
+) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
     let response = Response::new()
         .add_submessage(adapter.resolve_staking_action(deps, env, action, provider)?);
@@ -56,8 +56,8 @@ fn handle_ibc_request(
     info: MessageInfo,
     adapter: &CwStakingAdapter,
     provider_name: ProviderName,
-    action: &CwStakingAction,
-) -> CwStakingResult {
+    action: &StakingAction,
+) -> StakingResult {
     let host_chain = provider_name.clone();
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
@@ -92,11 +92,14 @@ fn handle_ibc_request(
 /// Resolve the assets to be transferred to the host chain for the given action
 fn resolve_assets_to_transfer(
     deps: Deps,
-    dex_action: &CwStakingAction,
+    dex_action: &StakingAction,
     ans_host: &AnsHost,
-) -> CwStakingResult<Vec<Coin>> {
+) -> StakingResult<Vec<Coin>> {
     match dex_action {
-        CwStakingAction::Stake { staking_token, .. } => {
+        StakingAction::Stake {
+            asset: staking_token,
+            ..
+        } => {
             let resolved: Coin = staking_token.resolve(&deps.querier, ans_host)?.try_into()?;
             Ok(vec![resolved])
         }

@@ -144,7 +144,7 @@ pub mod fns {
         fn query_info(
             &self,
             querier: &cosmwasm_std::QuerierWrapper,
-        ) -> crate::contract::CwStakingResult<crate::msg::StakingInfoResponse> {
+        ) -> crate::contract::StakingResult<crate::msg::StakingInfoResponse> {
             let pool = self
                 .query_pool_data(querier, self.pool_id.unwrap())
                 .unwrap();

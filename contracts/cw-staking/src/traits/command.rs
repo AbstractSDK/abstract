@@ -1,4 +1,4 @@
-use crate::contract::CwStakingResult;
+use crate::contract::StakingResult;
 use crate::error::StakingError;
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::traits::identify::Identify;
@@ -58,14 +58,13 @@ pub trait StakingCommand: Identify {
     ) -> Result<Vec<CosmosMsg>, StakingError>;
 
     /// Claim rewards on the staking contract
-    ///
-    /// * `deps` - the dependencies
     fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
 
     /// Claim matured unbonding claims on the staking contract
     fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, StakingError>;
 
-    fn query_info(&self, querier: &QuerierWrapper) -> CwStakingResult<StakingInfoResponse>;
+    /// Query information of the given for the given staking provider see [StakingInfoResponse]
+    fn query_info(&self, querier: &QuerierWrapper) -> StakingResult<StakingInfoResponse>;
 
     /// Query the staked token balance of a given staker
     fn query_staked(
@@ -73,15 +72,15 @@ pub trait StakingCommand: Identify {
         querier: &QuerierWrapper,
         staker: Addr,
         unbonding_period: Option<Duration>,
-    ) -> CwStakingResult<StakeResponse>;
+    ) -> StakingResult<StakeResponse>;
 
     /// Query unbonding information of a given staker
     fn query_unbonding(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-    ) -> CwStakingResult<UnbondingResponse>;
+    ) -> StakingResult<UnbondingResponse>;
 
     /// Query the information of the reward tokens
-    fn query_rewards(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse>;
+    fn query_rewards(&self, querier: &QuerierWrapper) -> StakingResult<RewardTokensResponse>;
 }
