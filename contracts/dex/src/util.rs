@@ -1,3 +1,5 @@
+#![allow(unused)]
+/// is unused if no features are enabled (which won't be the case)
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, StdResult, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo};
