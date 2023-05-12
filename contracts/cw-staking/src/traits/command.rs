@@ -82,6 +82,6 @@ pub trait StakingCommand: Identify {
         staker: Addr,
     ) -> CwStakingResult<UnbondingResponse>;
 
-    /// Query for pending claimable rewards
+    /// Query the information of the reward tokens
     fn query_rewards(&self, querier: &QuerierWrapper) -> CwStakingResult<RewardTokensResponse>;
 }
