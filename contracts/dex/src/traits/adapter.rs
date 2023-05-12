@@ -10,7 +10,7 @@ use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
 
-use cw_asset::{Asset};
+use cw_asset::Asset;
 
 use super::command::DexCommand;
 
