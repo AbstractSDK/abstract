@@ -1,0 +1,262 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js abstract">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - Abstract SDK</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "abstract" : "abstract";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('abstract')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="introduction/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="introduction/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="introduction/governance.html"><strong aria-hidden="true">1.4.</strong> Governance</a></li></ol></li><li class="chapter-item expanded "><a href="get_started/index.html"><strong aria-hidden="true">2.</strong> Get Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="get_started/intallation.html"><strong aria-hidden="true">2.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="get_started/module_creation.html"><strong aria-hidden="true">2.4.</strong> Module Creation</a></li></ol></li><li class="chapter-item expanded "><a href="ibc/index.html"><strong aria-hidden="true">3.</strong> IBC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="ibc/overview.html"><strong aria-hidden="true">3.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="ibc/spec.html"><strong aria-hidden="true">3.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="abstract">Abstract</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="abstract-light">Abstract Light</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Abstract SDK</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="abstract-sdk"><a class="header" href="#abstract-sdk">Abstract SDK</a></h1>
+<p><img src="./assets/docs_bg.png" alt="SDK Background" /></p>
+<p>Welcome to the Abstract documentation, your comprehensive guide to understanding and utilizing Abstract - the chain-agnostic CosmWasm framework that empowers developers to create, monetize, and deploy modular and scalable decentralized applications. This guide will walk you through essential concepts, key features, and real-world examples to help you harness the full potential of the Abstract ecosystem.</p>
+<h2 id="what-is-abstract"><a class="header" href="#what-is-abstract">What is Abstract?</a></h2>
+<p>Abstract is a cutting-edge smart contract framework designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It simplifies and streamlines the dApp development process by offering an extensive library of off-the-shelf modules and a custom SDK for seamless integration with popular tools and services.</p>
+<h2 id="key-features-and-benefits"><a class="header" href="#key-features-and-benefits">Key Features and Benefits</a></h2>
+<ul>
+<li>
+<p>Modular Design: Abstract's modular architecture allows developers to choose from a curated library of modules or develop their own using the Abstract SDK, enabling rapid development and customization.</p>
+</li>
+<li>
+<p>Chain-Agnostic: Abstract is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.</p>
+</li>
+<li>
+<p>Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multi-signature wallets and DAOs.</p>
+</li>
+<li>
+<p>Testing Infrastructure (cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.</p>
+</li>
+<li>
+<p>Version Management: Abstract simplifies the process of upgrading installed modules, ensuring developers can quickly access new features and bug-fixes.</p>
+</li>
+<li>
+<p>Ecosystem Integrations: Abstract is designed to work seamlessly with popular projects and services in the Cosmos ecosystem, such as:</p>
+<ul>
+<li>Dexes: WyndDex, Osmosis, Astroport, and TerraSwap</li>
+<li>Oracles: Ojo Network (planned)</li>
+<li>Wallets: Keplr, Cosmostation and Terra Station</li>
+<li>Automation: CronCat and Lit Protocol (planned)</li>
+</ul>
+</li>
+</ul>
+<h3 id="reliable-development-funding"><a class="header" href="#reliable-development-funding">Reliable Development Funding</a></h3>
+<p>Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.</p>
+<h2 id="use-cases-and-examples"><a class="header" href="#use-cases-and-examples">Use Cases and Examples</a></h2>
+<h3 id="personalized-decentralized-finance-pdefi"><a class="header" href="#personalized-decentralized-finance-pdefi">Personalized Decentralized Finance (PDeFi)</a></h3>
+<p>Developers can leverage Abstract's modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren't required to custody the user's assets. They can also be customized to meet the user's specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract's P-DeFi applications can be used to create custom financial products, such as:</p>
+<ul>
+<li>Dollar cost averaging (DCA)</li>
+<li>Grid bot trading</li>
+<li>Custom trading strategies</li>
+<li>Permissioned asset markets</li>
+</ul>
+<p>All of which can have tweakable settings that are in the user's control.</p>
+<h3 id="nft-marketplaces"><a class="header" href="#nft-marketplaces">NFT Marketplaces</a></h3>
+<p>Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
+<h3 id="governance-platforms"><a class="header" href="#governance-platforms">Governance Platforms</a></h3>
+<p>Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.</p>
+<h3 id="cross-chain-interoperability"><a class="header" href="#cross-chain-interoperability">Cross-Chain Interoperability</a></h3>
+<p>Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
+<h3 id="decentralized-autonomous-organizations-daos"><a class="header" href="#decentralized-autonomous-organizations-daos">Decentralized Autonomous Organizations (DAOs)</a></h3>
+<p>Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.</p>
+<h3 id="project-infrastructure"><a class="header" href="#project-infrastructure">Project Infrastructure</a></h3>
+<p>Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next" href="introduction/account_abstraction.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next" href="introduction/account_abstraction.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </body>
+</html>

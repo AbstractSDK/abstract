@@ -1,0 +1,705 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js abstract">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Abstract SDK</title>
+        <meta name="robots" content="noindex" />
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "abstract" : "abstract";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('abstract')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="introduction/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="introduction/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="introduction/governance.html"><strong aria-hidden="true">1.4.</strong> Governance</a></li></ol></li><li class="chapter-item expanded "><a href="get_started/index.html"><strong aria-hidden="true">2.</strong> Get Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="get_started/intallation.html"><strong aria-hidden="true">2.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="get_started/module_creation.html"><strong aria-hidden="true">2.4.</strong> Module Creation</a></li></ol></li><li class="chapter-item expanded "><a href="ibc/index.html"><strong aria-hidden="true">3.</strong> IBC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="ibc/overview.html"><strong aria-hidden="true">3.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="ibc/spec.html"><strong aria-hidden="true">3.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="abstract">Abstract</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="abstract-light">Abstract Light</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Abstract SDK</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="abstract-sdk"><a class="header" href="#abstract-sdk">Abstract SDK</a></h1>
+<p><img src="./assets/docs_bg.png" alt="SDK Background" /></p>
+<p>Welcome to the Abstract documentation, your comprehensive guide to understanding and utilizing Abstract - the chain-agnostic CosmWasm framework that empowers developers to create, monetize, and deploy modular and scalable decentralized applications. This guide will walk you through essential concepts, key features, and real-world examples to help you harness the full potential of the Abstract ecosystem.</p>
+<h2 id="what-is-abstract"><a class="header" href="#what-is-abstract">What is Abstract?</a></h2>
+<p>Abstract is a cutting-edge smart contract framework designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It simplifies and streamlines the dApp development process by offering an extensive library of off-the-shelf modules and a custom SDK for seamless integration with popular tools and services.</p>
+<h2 id="key-features-and-benefits"><a class="header" href="#key-features-and-benefits">Key Features and Benefits</a></h2>
+<ul>
+<li>
+<p>Modular Design: Abstract's modular architecture allows developers to choose from a curated library of modules or develop their own using the Abstract SDK, enabling rapid development and customization.</p>
+</li>
+<li>
+<p>Chain-Agnostic: Abstract is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.</p>
+</li>
+<li>
+<p>Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multi-signature wallets and DAOs.</p>
+</li>
+<li>
+<p>Testing Infrastructure (cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.</p>
+</li>
+<li>
+<p>Version Management: Abstract simplifies the process of upgrading installed modules, ensuring developers can quickly access new features and bug-fixes.</p>
+</li>
+<li>
+<p>Ecosystem Integrations: Abstract is designed to work seamlessly with popular projects and services in the Cosmos ecosystem, such as:</p>
+<ul>
+<li>Dexes: WyndDex, Osmosis, Astroport, and TerraSwap</li>
+<li>Oracles: Ojo Network (planned)</li>
+<li>Wallets: Keplr, Cosmostation and Terra Station</li>
+<li>Automation: CronCat and Lit Protocol (planned)</li>
+</ul>
+</li>
+</ul>
+<h3 id="reliable-development-funding"><a class="header" href="#reliable-development-funding">Reliable Development Funding</a></h3>
+<p>Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.</p>
+<h2 id="use-cases-and-examples"><a class="header" href="#use-cases-and-examples">Use Cases and Examples</a></h2>
+<h3 id="personalized-decentralized-finance-pdefi"><a class="header" href="#personalized-decentralized-finance-pdefi">Personalized Decentralized Finance (PDeFi)</a></h3>
+<p>Developers can leverage Abstract's modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren't required to custody the user's assets. They can also be customized to meet the user's specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract's P-DeFi applications can be used to create custom financial products, such as:</p>
+<ul>
+<li>Dollar cost averaging (DCA)</li>
+<li>Grid bot trading</li>
+<li>Custom trading strategies</li>
+<li>Permissioned asset markets</li>
+</ul>
+<p>All of which can have tweakable settings that are in the user's control.</p>
+<h3 id="nft-marketplaces"><a class="header" href="#nft-marketplaces">NFT Marketplaces</a></h3>
+<p>Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
+<h3 id="governance-platforms"><a class="header" href="#governance-platforms">Governance Platforms</a></h3>
+<p>Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.</p>
+<h3 id="cross-chain-interoperability"><a class="header" href="#cross-chain-interoperability">Cross-Chain Interoperability</a></h3>
+<p>Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
+<h3 id="decentralized-autonomous-organizations-daos"><a class="header" href="#decentralized-autonomous-organizations-daos">Decentralized Autonomous Organizations (DAOs)</a></h3>
+<p>Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.</p>
+<h3 id="project-infrastructure"><a class="header" href="#project-infrastructure">Project Infrastructure</a></h3>
+<p>Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="account-abstraction"><a class="header" href="#account-abstraction">Account Abstraction</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-architecture"><a class="header" href="#abstract-architecture">Abstract Architecture</a></h1>
+<p>The Manager module is responsible for managing permissions and executing contract calls on behalf of other modules within the application. It serves as the entry point for external calls, and provides a secure and controlled environment for managing the execution of smart contracts. The Manager module can also be used to manage and coordinate the interactions between different modules within an application.</p>
+<p>The Proxy module, on the other hand, is responsible for holding funds and interacting with external contracts. It serves as the exit point for the application, and is responsible for managing the flow of funds in and out of the application. The Proxy module is also responsible for authorizing the use of funds in smart contract transactions, and for ensuring the security and integrity of the application's funds.</p>
+<p>The Manager and Proxy modules work together to provide a secure and controlled environment for managing the execution of smart contracts, managing the flow of funds in and out of the application, and ensuring the security and integrity of the application's funds. The Manager module manages the permissions and execution of smart contracts within the application, while the Proxy module manages the flow of funds in and out of the application and authorizes the use of funds in smart contract transactions. Together, the Manager and Proxy modules provide a foundation for building decentralized applications on the blockchain.</p>
+<pre class="mermaid">    graph TD;
+        A--&gt;B;
+        A--&gt;C;
+        B--&gt;D;
+        C--&gt;D;
+</pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-modules"><a class="header" href="#abstract-modules">Abstract Modules</a></h1>
+<p>Abstract's innovative framework is built on the concept of modules, which are reusable components that can be easily integrated into your decentralized applications (dApps). Modules streamline the development process by providing pre-built functionalities, saving you time and effort. With Abstract, you can choose from a curated library of off-the-shelf modules or create your own custom modules using the Abstract SDK. Developers can further monetize their own custom modules to allow for sustainable development.</p>
+<h2 id="available-modules"><a class="header" href="#available-modules">Available Modules</a></h2>
+<p>The Abstract ecosystem offers a wide range of off-the-shelf modules to cater to various use cases and requirements. Some of the available modules include:</p>
+<p><strong>INSERT A TON OF MODULES HERE</strong></p>
+<p>Note: This is not an exhaustive list. The Abstract ecosystem is constantly evolving, and new modules are regularly added to the library.</p>
+<h2 id="how-to-use-modules-in-your-project"><a class="header" href="#how-to-use-modules-in-your-project">How to Use Modules in Your Project</a></h2>
+<p>Leveraging modules in your project can significantly simplify the development process, allowing you to deploy projects faster and more cost-effectively than building traditionally. By using pre-built, tested, and community-reviewed modules, you can focus on your project's unique features while reducing development time and minimizing potential bugs.</p>
+<p>Here's an example of how modules can be leveraged for a decentralized finance (DeFi) project:</p>
+<p>Imagine you want to create a DeFi application with the following features:</p>
+<ul>
+<li>A fungible token for your platform</li>
+<li>Staking and delegation functionality</li>
+<li>A governance system for community-driven decision-making</li>
+<li>Integration with an oracle for fetching off-chain data</li>
+</ul>
+<p>Instead of building each feature from scratch, you can leverage Abstract's off-the-shelf modules to implement these functionalities with ease. This not only saves time and resources but also ensures that your project benefits from the best practices established by the Abstract community.</p>
+<p><strong>Step 1:</strong> Choose the relevant modules from the Abstract library, such as:
+Token Module for fungible tokens
+Staking Module for staking and delegation
+Governance Module for creating a governance system
+Oracle Module for integrating with an oracle service</p>
+<p><strong>Step 2:</strong> Import the chosen modules into your project and configure them according to your requirements. This can include setting custom parameters, such as token supply, staking rewards, or voting thresholds.</p>
+<p><strong>Step 3:</strong> Integrate the modules with your existing codebase, ensuring they work seamlessly with your project's unique features. This can involve calling module functions, implementing hooks, or extending your data structures.</p>
+<p><strong>Step 4:</strong> Test your dApp thoroughly to ensure the modules function as intended and do not introduce any unexpected behavior.</p>
+<p>By leveraging Abstract's modules in this way, you can rapidly build and deploy your DeFi project while benefiting from the robustness and flexibility of the Abstract ecosystem.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="account-governance"><a class="header" href="#account-governance">Account Governance</a></h1>
+<p>Governance structures are a wildly under-developed field in the realm of smart contract technology. Abstract allows for any custom governance type to be used with its chain-agnostic framework. While most users appreciate an easy-to-use interface to control their dApps, Abstract opts to provide two fully integrated governance choices (token-based and DaoDao integration coming soon) that ensure a seamless user experience.</p>
+<p>When setting up governance for your dApp, you will be prompted to choose between supported governance types:</p>
+<h2 id="monarchy"><a class="header" href="#monarchy">Monarchy</a></h2>
+<p>In a monarchy, a single wallet has full control over the dApp. If you're connected with a wallet, your address will be automatically inserted as the root user.
+Visit our documentation to learn more about dApp ownership and sovereignty.</p>
+<h2 id="multi-signature"><a class="header" href="#multi-signature">Multi-signature</a></h2>
+<p>Multi-signature (&quot;multisig&quot;) governance is a governance structure that requires a subset of its members to approve an action before it can be executed. Though there are multiple implementations, Abstract uses the multisig module with the goal of providing the most flexible solution to users.</p>
+<p>Knowledge about a few terms is required to configure your multisig:</p>
+<p><em>Voter weight:</em> The weight that the voter has when voting on a proposal.</p>
+<p><em>Threshold:</em> The minimal % of the total weight that needs to vote YES on a proposal for it to pass.</p>
+<p><strong>Example:</strong>
+Suppose you are building a DeFi platform using Abstract and want to implement multisig governance. You have five stakeholders, and you want at least 60% of the total voting weight to approve a proposal for it to pass.</p>
+<ol>
+<li>
+<p>Set up the multisig module in your dApp.</p>
+</li>
+<li>
+<p>Assign voter weights to each of the five stakeholders. For instance, A: 30%, B: 20%, C: 20%, D: 15%, and E: 15%.</p>
+</li>
+<li>
+<p>Configure the multisig module with a 60% threshold.</p>
+</li>
+</ol>
+<p>With this configuration, any proposal will require approval from stakeholders with a combined voting weight of at least 60% to be executed. This ensures a more democratic decision-making process and reduces the risk of a single stakeholder making unilateral decisions.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="get-started"><a class="header" href="#get-started">Get Started</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="account-creation"><a class="header" href="#account-creation">Account Creation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="sdk"><a class="header" href="#sdk">SDK</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="module-creation"><a class="header" href="#module-creation">Module Creation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ibc"><a class="header" href="#ibc">IBC</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="interchain-abstract-accounts"><a class="header" href="#interchain-abstract-accounts">Interchain Abstract Accounts</a></h1>
+<p>Interchain Abstract Accounts is Abstract's solution to chain-agnostic accounts. It allows users to create an account on one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of the <a href="https://ibcprotocol.org/">Inter-Blockchain Communication (IBC) protocol</a> and the <a href="ibc/../introduction/architecture.html">Abstract Accounts</a>.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-ibc"><a class="header" href="#abstract-ibc">Abstract IBC</a></h1>
+<h2 id="synopsis"><a class="header" href="#synopsis">Synopsis</a></h2>
+<p>This standard document specifies packet data structure, state machine handling logic, and encoding details for the transfer of messages and creation of Abstract accounts over an IBC channel between a client and a host on separate chains. The state machine logic presented allows for safe multi-chain account creation and execution.</p>
+<h3 id="motivation"><a class="header" href="#motivation">Motivation</a></h3>
+<p>Users of a set of chains connected over the IBC protocol might wish to utilise an asset issued on one chain on another chain, perhaps to make use of additional features such as exchange or privacy protection, while retaining fungibility with the original asset on the issuing chain. This application-layer standard describes a protocol for transferring fungible tokens between chains connected with IBC which preserves asset fungibility, preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.</p>
+<h3 id="definitions"><a class="header" href="#definitions">Definitions</a></h3>
+<p>The IBC handler interface &amp; IBC routing module interface are as defined in <a href="ibc/../../core/ics-025-handler-interface">ICS 25</a> and <a href="ibc/../../core/ics-026-routing-module">ICS 26</a>, respectively.</p>
+<h3 id="desired-properties"><a class="header" href="#desired-properties">Desired Properties</a></h3>
+<ul>
+<li>Preservation of fungibility (two-way peg).</li>
+<li>Preservation of total supply (constant or inflationary on a single source chain &amp; module).</li>
+<li>Permissionless token transfers, no need to whitelist connections, modules, or denominations.</li>
+<li>Symmetric (all chains implement the same logic, no in-protocol differentiation of hubs &amp; zones).</li>
+<li>Fault containment: prevents Byzantine-inflation of tokens originating on chain <code>A</code>, as a result of chain <code>B</code>'s Byzantine behaviour (though any users who sent tokens to chain <code>B</code> may be at risk).</li>
+</ul>
+<h2 id="technical-specification"><a class="header" href="#technical-specification">Technical Specification</a></h2>
+<h3 id="data-structures"><a class="header" href="#data-structures">Data Structures</a></h3>
+<p>Only one packet data type is required: <code>FungibleTokenPacketData</code>, which specifies the denomination, amount, sending account, and receiving account.</p>
+<pre><code class="language-typescript">interface FungibleTokenPacketData {
+  denom: string
+  amount: uint256
+  sender: string
+  receiver: string
+  memo: string
+}
+</code></pre>
+<p>As tokens are sent across chains using the ICS 20 protocol, they begin to accrue a record of channels for which they have been transferred across. This information is encoded into the <code>denom</code> field. </p>
+<p>The ICS 20 token denominations are represented by the form <code>{ics20Port}/{ics20Channel}/{denom}</code>, where <code>ics20Port</code> and <code>ics20Channel</code> are an ICS 20 port and channel on the current chain for which the funds exist. The prefixed port and channel pair indicate which channel the funds were previously sent through. Implementations are responsible for correctly parsing the IBC trace information from the base denomination. The way the reference ICS 20 implementation in ibc-go handles this is by taking advantage of the fact that it automatically generates channel identifiers with the format <code>channel-{n}</code>, where <code>n</code> is a integer greater or equal than 0. It can then correctly parse out the IBC trace information from the base denom which may have slashes, but will not have a substring of the form <code>{transfer-port-name}/channel-{n}</code>. If this assumption is broken, the trace information will be parsed incorrectly (i.e. part of the base denom will be misinterpreted as trace information). Thus chains must make sure that base denominations do not have the ability to create arbitrary prefixes that can mock the ICS 20 logic.</p>
+<p>A sending chain may be acting as a source or sink zone. When a chain is sending tokens across a port and channel which are not equal to the last prefixed port and channel pair, it is acting as a source zone. When tokens are sent from a source zone, the destination port and channel will be prefixed onto the denomination (once the tokens are received) adding another hop to a tokens record. When a chain is sending tokens across a port and channel which are equal to the last prefixed port and channel pair, it is acting as a sink zone. When tokens are sent from a sink zone, the last prefixed port and channel pair on the denomination is removed (once the tokens are received), undoing the last hop in the tokens record. A more complete explanation is <a href="https://github.com/cosmos/ibc-go/blob/457095517b7832c42ecf13571fee1e550fec02d0/modules/apps/transfer/keeper/relay.go#L18-L49">present in the ibc-go implementation</a>.</p>
+<p>The acknowledgement data type describes whether the transfer succeeded or failed, and the reason for failure (if any).</p>
+<pre><code class="language-typescript">type FungibleTokenPacketAcknowledgement = FungibleTokenPacketSuccess | FungibleTokenPacketError;
+
+interface FungibleTokenPacketSuccess {
+  // This is binary 0x01 base64 encoded
+  result: &quot;AQ==&quot;
+}
+
+interface FungibleTokenPacketError {
+  error: string
+}
+</code></pre>
+<p>Note that both the <code>FungibleTokenPacketData</code> as well as <code>FungibleTokenPacketAcknowledgement</code> must be JSON-encoded (not Protobuf encoded) when they serialized into packet data. Also note that <code>uint256</code> is string encoded when converted to JSON, but must be a valid decimal number of the form <code>[0-9]+</code>.</p>
+<p>The fungible token transfer bridge module tracks escrow addresses associated with particular channels in state. Fields of the <code>ModuleState</code> are assumed to be in scope.</p>
+<pre><code class="language-typescript">interface ModuleState {
+  channelEscrowAddresses: Map&lt;Identifier, string&gt;
+}
+</code></pre>
+<h3 id="sub-protocols"><a class="header" href="#sub-protocols">Sub-protocols</a></h3>
+<p>The sub-protocols described herein should be implemented in a &quot;fungible token transfer bridge&quot; module with access to a bank module and to the IBC routing module.</p>
+<h4 id="port--channel-setup"><a class="header" href="#port--channel-setup">Port &amp; channel setup</a></h4>
+<p>The <code>setup</code> function must be called exactly once when the module is created (perhaps when the blockchain itself is initialised) to bind to the appropriate port and create an escrow address (owned by the module).</p>
+<pre><code class="language-typescript">function setup() {
+  capability = routingModule.bindPort(&quot;bank&quot;, ModuleCallbacks{
+    onChanOpenInit,
+    onChanOpenTry,
+    onChanOpenAck,
+    onChanOpenConfirm,
+    onChanCloseInit,
+    onChanCloseConfirm,
+    onRecvPacket,
+    onTimeoutPacket,
+    onAcknowledgePacket,
+    onTimeoutPacketClose
+  })
+  claimCapability(&quot;port&quot;, capability)
+}
+</code></pre>
+<p>Once the <code>setup</code> function has been called, channels can be created through the IBC routing module between instances of the fungible token transfer module on separate chains.</p>
+<p>An administrator (with the permissions to create connections &amp; channels on the host state machine) is responsible for setting up connections to other state machines &amp; creating channels
+to other instances of this module (or another module supporting this interface) on other chains. This specification defines packet handling semantics only, and defines them in such a fashion
+that the module itself doesn't need to worry about what connections or channels might or might not exist at any point in time.</p>
+<h4 id="routing-module-callbacks"><a class="header" href="#routing-module-callbacks">Routing module callbacks</a></h4>
+<h5 id="channel-lifecycle-management"><a class="header" href="#channel-lifecycle-management">Channel lifecycle management</a></h5>
+<p>Both machines <code>A</code> and <code>B</code> accept new channels from any module on another machine, if and only if:</p>
+<ul>
+<li>The channel being created is unordered.</li>
+<li>The version string is <code>ics20-1</code>.</li>
+</ul>
+<pre><code class="language-typescript">function onChanOpenInit(
+  order: ChannelOrder,
+  connectionHops: [Identifier],
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier,
+  counterpartyPortIdentifier: Identifier,
+  counterpartyChannelIdentifier: Identifier,
+  version: string) =&gt; (version: string, err: Error) {
+  // only unordered channels allowed
+  abortTransactionUnless(order === UNORDERED)
+  // assert that version is &quot;ics20-1&quot; or empty
+  // if empty, we return the default transfer version to core IBC
+  // as the version for this channel
+  abortTransactionUnless(version === &quot;ics20-1&quot; || version === &quot;&quot;)
+  // allocate an escrow address
+  channelEscrowAddresses[channelIdentifier] = newAddress()
+  return &quot;ics20-1&quot;, nil
+}
+</code></pre>
+<pre><code class="language-typescript">function onChanOpenTry(
+  order: ChannelOrder,
+  connectionHops: [Identifier],
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier,
+  counterpartyPortIdentifier: Identifier,
+  counterpartyChannelIdentifier: Identifier,
+  counterpartyVersion: string) =&gt; (version: string, err: Error) {
+  // only unordered channels allowed
+  abortTransactionUnless(order === UNORDERED)
+  // assert that version is &quot;ics20-1&quot;
+  abortTransactionUnless(counterpartyVersion === &quot;ics20-1&quot;)
+  // allocate an escrow address
+  channelEscrowAddresses[channelIdentifier] = newAddress()
+  // return version that this chain will use given the
+  // counterparty version
+  return &quot;ics20-1&quot;, nil
+}
+</code></pre>
+<pre><code class="language-typescript">function onChanOpenAck(
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier,
+  counterpartyChannelIdentifier: Identifier,
+  counterpartyVersion: string) {
+  // port has already been validated
+  // assert that counterparty selected version is &quot;ics20-1&quot;
+  abortTransactionUnless(counterpartyVersion === &quot;ics20-1&quot;)
+}
+</code></pre>
+<pre><code class="language-typescript">function onChanOpenConfirm(
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier) {
+  // accept channel confirmations, port has already been validated, version has already been validated
+}
+</code></pre>
+<pre><code class="language-typescript">function onChanCloseInit(
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier) {
+    // always abort transaction
+    abortTransactionUnless(FALSE)
+}
+</code></pre>
+<pre><code class="language-typescript">function onChanCloseConfirm(
+  portIdentifier: Identifier,
+  channelIdentifier: Identifier) {
+  // no action necessary
+}
+</code></pre>
+<h5 id="packet-relay"><a class="header" href="#packet-relay">Packet relay</a></h5>
+<p>In plain English, between chains <code>A</code> and <code>B</code>:</p>
+<ul>
+<li>When acting as the source zone, the bridge module escrows an existing local asset denomination on the sending chain and mints vouchers on the receiving chain.</li>
+<li>When acting as the sink zone, the bridge module burns local vouchers on the sending chains and unescrows the local asset denomination on the receiving chain.</li>
+<li>When a packet times-out, local assets are unescrowed back to the sender or vouchers minted back to the sender appropriately.</li>
+<li>Acknowledgement data is used to handle failures, such as invalid denominations or invalid destination accounts. Returning
+an acknowledgement of failure is preferable to aborting the transaction since it more easily enables the sending chain
+to take appropriate action based on the nature of the failure.</li>
+</ul>
+<p><code>sendFungibleTokens</code> must be called by a transaction handler in the module which performs appropriate signature checks, specific to the account owner on the host state machine.</p>
+<pre><code class="language-typescript">function sendFungibleTokens(
+  denomination: string,
+  amount: uint256,
+  sender: string,
+  receiver: string,
+  sourcePort: string,
+  sourceChannel: string,
+  timeoutHeight: Height,
+  timeoutTimestamp: uint64): uint64 {
+    prefix = &quot;{sourcePort}/{sourceChannel}/&quot;
+    // we are the source if the denomination is not prefixed
+    source = denomination.slice(0, len(prefix)) !== prefix
+    if source {
+      // determine escrow account
+      escrowAccount = channelEscrowAddresses[sourceChannel]
+      // escrow source tokens (assumed to fail if balance insufficient)
+      bank.TransferCoins(sender, escrowAccount, denomination, amount)
+    } else {
+      // receiver is source chain, burn vouchers
+      bank.BurnCoins(sender, denomination, amount)
+    }
+
+    // create FungibleTokenPacket data
+    data = FungibleTokenPacketData{denomination, amount, sender, receiver}
+
+    // send packet using the interface defined in ICS4
+    sequence = handler.sendPacket(
+      getCapability(&quot;port&quot;),
+      sourcePort,
+      sourceChannel,
+      timeoutHeight,
+      timeoutTimestamp,
+      data
+    )
+
+    return sequence
+}
+</code></pre>
+<p><code>onRecvPacket</code> is called by the routing module when a packet addressed to this module has been received.</p>
+<pre><code class="language-typescript">function onRecvPacket(packet: Packet) {
+  FungibleTokenPacketData data = packet.data
+  // construct default acknowledgement of success
+  FungibleTokenPacketAcknowledgement ack = FungibleTokenPacketAcknowledgement{true, null}
+  prefix = &quot;{packet.sourcePort}/{packet.sourceChannel}/&quot;
+  // we are the source if the packets were prefixed by the sending chain
+  source = data.denom.slice(0, len(prefix)) === prefix
+  if source {
+    // receiver is source chain: unescrow tokens
+    // determine escrow account
+    escrowAccount = channelEscrowAddresses[packet.destChannel]
+    // unescrow tokens to receiver (assumed to fail if balance insufficient)
+    err = bank.TransferCoins(escrowAccount, data.receiver, data.denom.slice(len(prefix)), data.amount)
+    if (err !== nil)
+      ack = FungibleTokenPacketAcknowledgement{false, &quot;transfer coins failed&quot;}
+  } else {
+    prefix = &quot;{packet.destPort}/{packet.destChannel}/&quot;
+    prefixedDenomination = prefix + data.denom
+    // sender was source, mint vouchers to receiver (assumed to fail if balance insufficient)
+    err = bank.MintCoins(data.receiver, prefixedDenomination, data.amount)
+    if (err !== nil)
+      ack = FungibleTokenPacketAcknowledgement{false, &quot;mint coins failed&quot;}
+  }
+  return ack
+}
+</code></pre>
+<p><code>onAcknowledgePacket</code> is called by the routing module when a packet sent by this module has been acknowledged.</p>
+<pre><code class="language-typescript">function onAcknowledgePacket(
+  packet: Packet,
+  acknowledgement: bytes) {
+  // if the transfer failed, refund the tokens
+  if (!ack.success)
+    refundTokens(packet)
+}
+</code></pre>
+<p><code>onTimeoutPacket</code> is called by the routing module when a packet sent by this module has timed-out (such that it will not be received on the destination chain).</p>
+<pre><code class="language-typescript">function onTimeoutPacket(packet: Packet) {
+  // the packet timed-out, so refund the tokens
+  refundTokens(packet)
+}
+</code></pre>
+<p><code>refundTokens</code> is called by both <code>onAcknowledgePacket</code>, on failure, and <code>onTimeoutPacket</code>, to refund escrowed tokens to the original sender.</p>
+<pre><code class="language-typescript">function refundTokens(packet: Packet) {
+  FungibleTokenPacketData data = packet.data
+  prefix = &quot;{packet.sourcePort}/{packet.sourceChannel}/&quot;
+  // we are the source if the denomination is not prefixed
+  source = data.denom.slice(0, len(prefix)) !== prefix
+  if source {
+    // sender was source chain, unescrow tokens back to sender
+    escrowAccount = channelEscrowAddresses[packet.srcChannel]
+    bank.TransferCoins(escrowAccount, data.sender, data.denom, data.amount)
+  } else {
+    // receiver was source chain, mint vouchers back to sender
+    bank.MintCoins(data.sender, data.denom, data.amount)
+  }
+}
+</code></pre>
+<pre><code class="language-typescript">function onTimeoutPacketClose(packet: Packet) {
+  // can't happen, only unordered channels allowed
+}
+</code></pre>
+<h4 id="using-the-memo-field"><a class="header" href="#using-the-memo-field">Using the Memo Field</a></h4>
+<p>Note: Since earlier versions of this specification did not include a <code>memo</code> field, implementations must ensure that the new packet data is still compatible with chains that expect the old packet data. A legacy implementation MUST be able to unmarshal a new packet data with an empty string memo into the legacy <code>FungibleTokenPacketData</code> struct. Similarly, an implementation supporting <code>memo</code> must be able to unmarshal a legacy packet data into the current struct with the <code>memo</code> field set to the empty string.</p>
+<p>The <code>memo</code> field is not used within transfer, however it may be used either for external off-chain users (i.e. exchanges) or for middleware wrapping transfer that can parse and execute custom logic on the basis of the passed in memo. If the memo is intended to be parsed and interpreted by higher-level middleware, then these middleware are advised to namespace their additions to the memo string so that they do not overwrite each other. Chains should ensure that there is some length limit on the entire packet data to ensure that the packet does not become a DOS vector. However, these do not need to be protocol-defined limits. If the receiver cannot accept a packet because of length limitations, this will lead to a timeout on the sender side.</p>
+<p>Memos that are intended to be read by higher level middleware for custom execution must be structured so that different middleware can read relevant data in the memo intended for them without interfering with data intended for other middlewares.</p>
+<p>Thus, for any memo that is meant to be interpreted by the state machine; it is recommended that the memo is a JSON object with each middleware reserving a key that it can read into and retrieve relevant data. This way the memo can be constructed to pass in information such that multiple middleware can read the memo without interference from each other.</p>
+<p>Example:</p>
+<pre><code class="language-json">{
+  &quot;wasm&quot;: {
+    &quot;address&quot;: &quot;contractAddress&quot;,
+    &quot;arguments&quot;: &quot;marshalledArguments&quot;,
+  },
+  &quot;callback&quot;: &quot;contractAddress&quot;,
+  &quot;router&quot;: &quot;routerArgs&quot;,
+}
+</code></pre>
+<p>Here, the &quot;wasm&quot;, &quot;callback&quot;, and &quot;router&quot; fields are all intended for separate middlewares that will exclusively read those fields respectively in order to execute their logic. This allows multiple modules to read from the memo. Middleware should take care to reserve a unique key so that they do not accidentally read data intended for a different module. This issue can be avoided by some off-chain registry of keys already in-use in the JSON object.</p>
+<h4 id="reasoning"><a class="header" href="#reasoning">Reasoning</a></h4>
+<h5 id="correctness"><a class="header" href="#correctness">Correctness</a></h5>
+<p>This implementation preserves both fungibility &amp; supply.</p>
+<p>Fungibility: If tokens have been sent to the counterparty chain, they can be redeemed back in the same denomination &amp; amount on the source chain.</p>
+<p>Supply: Redefine supply as unlocked tokens. All send-recv pairs sum to net zero. Source chain can change supply.</p>
+<h5 id="multi-chain-notes"><a class="header" href="#multi-chain-notes">Multi-chain notes</a></h5>
+<p>This specification does not directly handle the &quot;diamond problem&quot;, where a user sends a token originating on chain A to chain B, then to chain D, and wants to return it through D -&gt; C -&gt; A — since the supply is tracked as owned by chain B (and the denomination will be &quot;{portOnD}/{channelOnD}/{portOnB}/{channelOnB}/denom&quot;), chain C cannot serve as the intermediary. It is not yet clear whether that case should be dealt with in-protocol or not — it may be fine to just require the original path of redemption (and if there is frequent liquidity and some surplus on both paths the diamond path will work most of the time). Complexities arising from long redemption paths may lead to the emergence of central chains in the network topology.</p>
+<p>In order to track all of the denominations moving around the network of chains in various paths, it may be helpful for a particular chain to implement a registry which will track the &quot;global&quot; source chain for each denomination. End-user service providers (such as wallet authors) may want to integrate such a registry or keep their own mapping of canonical source chains and human-readable names in order to improve UX.</p>
+<h4 id="optional-addenda"><a class="header" href="#optional-addenda">Optional addenda</a></h4>
+<ul>
+<li>Each chain, locally, could elect to keep a lookup table to use short, user-friendly local denominations in state which are translated to and from the longer denominations when sending and receiving packets. </li>
+<li>Additional restrictions may be imposed on which other machines may be connected to &amp; which channels may be established.</li>
+</ul>
+<h2 id="backwards-compatibility"><a class="header" href="#backwards-compatibility">Backwards Compatibility</a></h2>
+<p>Not applicable.</p>
+<h2 id="forwards-compatibility"><a class="header" href="#forwards-compatibility">Forwards Compatibility</a></h2>
+<p>This initial standard uses version &quot;ics20-1&quot; in the channel handshake.</p>
+<p>A future version of this standard could use a different version in the channel handshake,
+and safely alter the packet data format &amp; packet handler semantics.</p>
+<h2 id="example-implementations"><a class="header" href="#example-implementations">Example Implementations</a></h2>
+<ul>
+<li>Implementation of ICS 20 in Go can be found in <a href="https://github.com/cosmos/ibc-go">ibc-go repository</a>.</li>
+<li>Implementation of ICS 20 in Rust can be found in <a href="https://github.com/cosmos/ibc-rs">ibc-rs repository</a>.</li>
+</ul>
+<h2 id="history"><a class="header" href="#history">History</a></h2>
+<p>Jul 15, 2019 - Draft written</p>
+<p>Jul 29, 2019 - Major revisions; cleanup</p>
+<p>Aug 25, 2019 - Major revisions, more cleanup</p>
+<p>Feb 3, 2020 - Revisions to handle acknowledgements of success &amp; failure</p>
+<p>Feb 24, 2020 - Revisions to infer source field, inclusion of version string</p>
+<p>July 27, 2020 - Re-addition of source field</p>
+<p>Nov 11, 2022 - Addition of a memo field</p>
+<h2 id="copyright"><a class="header" href="#copyright">Copyright</a></h2>
+<p>All content herein is licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing-to-abstract-sdk"><a class="header" href="#contributing-to-abstract-sdk">Contributing to Abstract SDK</a></h1>
+<p>Thank you for considering to contribute to the Abstract SDK project! We appreciate your support and welcome contributions to help improve this multi-environment CosmWasm smart-contract scripting library. This document provides guidelines and instructions on how to contribute to the project effectively.</p>
+<h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
+<ul>
+<li><a href="contributing.html#code-of-conduct">Code of Conduct</a></li>
+<li><a href="contributing.html#getting-started">Getting Started</a></li>
+<li><a href="contributing.html#how-to-contribute">How to Contribute</a>
+<ul>
+<li><a href="contributing.html#reporting-bugs">Reporting Bugs</a></li>
+<li><a href="contributing.html#suggesting-enhancements">Suggesting Enhancements</a></li>
+<li><a href="contributing.html#code-contributions">Code Contributions</a>
+<ul>
+<li><a href="contributing.html#pull-requests">Pull Requests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="contributing.html#style-guide">Style Guide</a></li>
+<li><a href="contributing.html#community">Community</a></li>
+</ul>
+<h2 id="code-of-conduct"><a class="header" href="#code-of-conduct">Code of Conduct</a></h2>
+<p>By participating in this project, you are expected to uphold our <a href="CODE_OF_CONDUCT.html">Code of Conduct</a>. Please read the Code of Conduct to ensure that you follow the community guidelines and contribute positively to the project.</p>
+<h2 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h2>
+<p>To get started with contributing to the Abstract SDK project, you should first familiarize yourself with the repository structure and the codebase. Please read the project's <a href="https://github.com/AbstractSDK/contracts/">README</a> to understand the purpose, features, and usage of the Abstract SDK library as well as its <a href="https://docs.abstract.money">documentation</a>.</p>
+<h2 id="how-to-contribute"><a class="header" href="#how-to-contribute">How to Contribute</a></h2>
+<p>There are multiple ways to contribute to the Abstract SDK project, including reporting bugs, suggesting enhancements, and submitting code contributions.</p>
+<h2 id="reporting-bugs"><a class="header" href="#reporting-bugs">Reporting Bugs</a></h2>
+<p>If you encounter any bugs or issues while using the Abstract SDK library, please report them by creating a new issue in the <a href="https://github.com/AbstractSDK/contracts/issues">issue tracker</a>. When reporting a bug, please provide the following information:</p>
+<ul>
+<li>A clear and descriptive title</li>
+<li>A detailed description of the issue, including steps to reproduce it</li>
+<li>Any relevant logs, error messages, or screenshots</li>
+<li>Information about your environment, such as the OS, software versions, and hardware specifications</li>
+</ul>
+<h2 id="suggesting-enhancements"><a class="header" href="#suggesting-enhancements">Suggesting Enhancements</a></h2>
+<p>We welcome suggestions for new features or improvements to the existing functionality of the Abstract SDK library. To suggest an enhancement, create a new issue in the <a href="https://github.com/AbstractSDK/contracts/issues">issue tracker</a> with the following information:</p>
+<ul>
+<li>A clear and descriptive title</li>
+<li>A detailed explanation of the proposed enhancement, including its benefits and potential use cases</li>
+<li>If applicable, any examples or mockups of the proposed feature</li>
+</ul>
+<h2 id="code-contributions"><a class="header" href="#code-contributions">Code Contributions</a></h2>
+<p>To contribute code to the Abstract SDK project, please follow these steps:</p>
+<ol>
+<li>Fork the repository to your own GitHub account.</li>
+<li>Clone your fork to your local machine.</li>
+<li>Create a new branch for your changes using the <code>git checkout -b feature/your-feature-name</code> command.</li>
+<li>Make your changes and commit them with a clear and concise commit message.</li>
+<li>Push your branch to your fork on GitHub.</li>
+<li>Create a new pull request against the main branch of the Abstract SDK repository.</li>
+</ol>
+<h2 id="pull-requests"><a class="header" href="#pull-requests">Pull Requests</a></h2>
+<p>When submitting a pull request, please make sure that your code follows the <a href="contributing.html#style-guide">Style Guide</a> and that all tests pass. Please provide a detailed description of your changes, including the motivation for the changes and any potential impact on the project. This will help maintainers review your pull request more effectively.</p>
+<h2 id="style-guide"><a class="header" href="#style-guide">Style Guide</a></h2>
+<p>The Abstract SDK project follows the Rust coding style and conventions. Please ensure that your code adheres to these guidelines to maintain consistency and readability throughout the codebase.</p>
+<ul>
+<li>Use proper indentation (4 spaces) and consistent formatting (<code>cargo fmt</code>).</li>
+<li>Write descriptive variable and function names.</li>
+<li>Use comments to explain complex or non-obvious code.</li>
+<li>Follow the <a href="https://rust-lang.github.io/api-guidelines/">Rust API Guidelines</a> for API design.</li>
+<li>Add documentation for public functions, types, and modules.</li>
+<li>Write <a href="https://doc.rust-lang.org/rustdoc/documentation-tests.html">doc tests</a>
+for public functions and methods.</li>
+</ul>
+<h2 id="community"><a class="header" href="#community">Community</a></h2>
+<p>To join the Abstract SDK community, please join the <a href="https://discord.gg/uch3Tq3aym">Abstract Discord server</a> and the <code>#Abstract SDK</code> channel. You can also follow the project on <a href="https://twitter.com/AbstractSDK">Twitter</a> and <a href="https://github.com/AbstractSDK">GitHub</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </body>
+</html>
