@@ -8,7 +8,7 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 
-use cw_orch::{interface, prelude::*};
+use cw_orch::{interface, prelude::*, state::ChainState};
 use log::info;
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
@@ -48,7 +48,7 @@ where
 
 /// Implementation for the daemon, which maintains actual state
 #[cfg(feature = "daemon")]
-use cw_orch::daemon::Daemon;
+use cw_orch::prelude::Daemon;
 
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
@@ -64,9 +64,9 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain_id.clone();
+        let chain_id = self.get_chain().state().chain_id.clone();
         info!("{}", chain_id);
-        let network_id = self.get_chain().state.chain.network_id.clone();
+        let network_id = self.get_chain().state().network.id.clone();
         let maybe_assets = json
             .get(chain_id)
             .unwrap()
@@ -115,8 +115,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain_id.clone();
-        let network_id = self.get_chain().state.chain.network_id.clone();
+        let chain_id = self.get_chain().state().chain_id.clone();
+        let network_id = self.get_chain().state().network.id.clone();
         let channels = json
             .get(chain_id)
             .unwrap()
@@ -147,8 +147,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain_id.clone();
-        let network_id = self.0.get_chain().state.chain.network_id.clone();
+        let chain_id = self.get_chain().state().chain_id.clone();
+        let network_id = self.0.get_chain().state().network.id.clone();
         let contracts = json
             .get(chain_id)
             .unwrap()
@@ -192,8 +192,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_id = self.get_chain().state.chain_id.clone();
-        let network_id = self.0.get_chain().state.chain.network_id.clone();
+        let chain_id = self.get_chain().state().chain_id.clone();
+        let network_id = self.0.get_chain().state().network.id.clone();
         let pools = json
             .get(chain_id)
             .unwrap()

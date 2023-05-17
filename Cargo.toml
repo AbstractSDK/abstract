@@ -55,7 +55,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.11.0-alpha.5" }
+cw-orch = { version = "0.11.2" }
 boot-cw-plus = { git = "https://github.com/AbstractSDK/BOOT.git", tag = "v0.10.2" }
 tokio = { version = "1.4", features = ["full"] }
 
