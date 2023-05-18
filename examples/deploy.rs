@@ -13,14 +13,14 @@ use tokio::runtime::Runtime;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn deploy_etf(network: NetworkInfo) -> anyhow::Result<()> {
+fn deploy_app(network: NetworkInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let rt = Arc::new(Runtime::new()?);
     let options = DaemonOptionsBuilder::default().network(network).build();
     let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
-    let mut etf = Template::new(TEMPLATE_MOD_ID, chain);
+    let mut app = Template::new(TEMPLATE_MOD_ID, chain);
 
-    etf.deploy(version)?;
+    app.deploy(version)?;
     Ok(())
 }
 
@@ -42,5 +42,5 @@ fn main() -> anyhow::Result<()> {
 
     let network = parse_network(&args.network_id);
 
-    deploy_etf(network)
+    deploy_app(network)
 }
