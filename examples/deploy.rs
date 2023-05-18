@@ -1,24 +1,25 @@
 use std::sync::Arc;
 
-use abstract_boot::{
-    boot_core::networks::{parse_network, NetworkInfo},
-    boot_core::*,
-    AppDeployer,
+use abstract_interface::{
+    cw_orch::daemon::networks::parse_network, cw_orch::prelude::*, AppDeployer,
 };
+use cw_orch::prelude::networks::ChainInfo;
 use semver::Version;
 
 use clap::Parser;
-use template_app::{interface::Template, TEMPLATE_MOD_ID};
+use template_app::{interface::Template, TEMPLATE_ID};
 use tokio::runtime::Runtime;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn deploy_app(network: NetworkInfo) -> anyhow::Result<()> {
+fn deploy_app(chain: ChainInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
     let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
-    let mut app = Template::new(TEMPLATE_MOD_ID, chain);
+    let chain = DaemonBuilder::default()
+        .chain(chain)
+        .handle(rt.handle())
+        .build()?;
+    let mut app = Template::new(TEMPLATE_ID, chain);
 
     app.deploy(version)?;
     Ok(())
@@ -40,7 +41,7 @@ fn main() -> anyhow::Result<()> {
 
     let args = Arguments::parse();
 
-    let network = parse_network(&args.network_id);
+    let chain = parse_network(&args.network_id);
 
-    deploy_app(network)
+    deploy_app(chain)
 }

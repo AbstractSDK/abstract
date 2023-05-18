@@ -5,7 +5,7 @@ use crate::{
     handlers,
     msg::{TemplateExecuteMsg, TemplateInstantiateMsg, TemplateQueryMsg},
     replies::{self, INSTANTIATE_REPLY_ID},
-    TEMPLATE_MOD_ID,
+    TEMPLATE_ID,
 };
 use abstract_app::AppContract;
 use cosmwasm_std::Response;
@@ -26,7 +26,7 @@ pub type TemplateApp = AppContract<
     Cw20ReceiveMsg,
 >;
 
-const TEMPLATE_APP: TemplateApp = TemplateApp::new(TEMPLATE_MOD_ID, MODULE_VERSION, None)
+const TEMPLATE_APP: TemplateApp = TemplateApp::new(TEMPLATE_ID, MODULE_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)

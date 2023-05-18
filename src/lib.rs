@@ -8,4 +8,4 @@ pub mod msg;
 mod replies;
 pub mod state;
 
-pub const TEMPLATE_MOD_ID: &str = "yournamespace:template";
+pub const TEMPLATE_ID: &str = "yournamespace:template";

@@ -1,26 +1,36 @@
 use crate::msg::*;
-use abstract_boot::AppDeployer;
 use abstract_core::app::MigrateMsg;
-use boot_core::{contract, Contract, CwEnv};
+use abstract_interface::AppDeployer;
+use cw_orch::prelude::*;
+use cw_orch::{contract::Contract, interface};
 
-#[contract(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+#[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Template<Chain>;
 
-impl<Chain: CwEnv> AppDeployer<Chain> for Template<Chain> {}
+impl<Chain: CwEnv> Uploadable for Template<Chain> {
+    fn wasm(&self) -> cw_orch::prelude::WasmPath {
+        ArtifactsDir::env().find_wasm_path(&self.id()).unwrap()
+    }
 
-impl<Chain: CwEnv> Template<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        let contract = Contract::new(name, chain).with_wasm_path("template_app");
-
-        #[cfg(feature = "integration")]
-        contract.set_mock(Box::new(
+    fn wrapper(
+        &self,
+    ) -> Box<dyn cw_orch::prelude::MockContract<cosmwasm_std::Empty, cosmwasm_std::Empty>> {
+        Box::new(
             ContractWrapper::new_with_empty(
                 crate::contract::execute,
                 crate::contract::instantiate,
                 crate::contract::query,
             )
-            .with_reply(crate::contract::reply),
-        ));
-        Self(contract)
+            .with_reply(crate::contract::reply)
+            .with_migrate(crate::contract::migrate),
+        )
+    }
+}
+
+impl<Chain: CwEnv> AppDeployer<Chain> for Template<Chain> {}
+
+impl<Chain: CwEnv> Template<Chain> {
+    pub fn new(name: &str, chain: Chain) -> Self {
+        Self(Contract::new(name, chain))
     }
 }
