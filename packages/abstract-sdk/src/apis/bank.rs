@@ -22,14 +22,14 @@ pub struct Bank<'a, T: TransferInterface> {
 }
 
 impl<'a, T: TransferInterface> Bank<'a, T> {
-    /// Get the balances of the provided **assets**.
+    /// Get the balances of the provided assets.
     pub fn balances(&self, assets: &[AssetEntry]) -> AbstractSdkResult<Vec<Asset>> {
         assets
             .iter()
             .map(|asset| self.balance(asset))
             .collect::<AbstractSdkResult<Vec<Asset>>>()
     }
-    /// Get the balance of the provided **asset**.
+    /// Get the balance of the provided asset.
     pub fn balance(&self, asset: &AssetEntry) -> AbstractSdkResult<Asset> {
         let resolved_info = asset.resolve(&self.deps.querier, &self.base.ans_host(self.deps)?)?;
         let balance =
@@ -37,8 +37,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         Ok(Asset::new(resolved_info, balance))
     }
 
-    /// Transfer the provided **funds** from the Account' vault to the **recipient**.
-    /// The caller must be a whitelisted module or authorized address.
+    /// Transfer the provided funds from the Account to the recipient.
     /// ```rust
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
     /// # use abstract_core::objects::AnsAsset;
@@ -47,7 +46,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     ///     features::{AccountIdentification, AbstractNameService, ModuleIdentification},
     ///     TransferInterface, AbstractSdkResult,
     /// };
-    /// #
     /// # struct MockModule;
     /// # impl AccountIdentification for MockModule {
     /// #    fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
@@ -92,7 +90,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         self.base.executor(self.deps).execute(transfer_msgs?)
     }
 
-    /// Transfer the **funds** (deposit) into the Account from the current contract.
+    /// Move funds from the contract into the Account.
     pub fn deposit<R: Transferable>(&self, funds: Vec<R>) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let recipient = self.base.proxy_address(self.deps)?;
         let transferable_funds = funds

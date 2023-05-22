@@ -42,14 +42,14 @@ impl<'a, T: AdapterInterface> Adapter<'a, T> {
     pub fn query<Q: Serialize, R: DeserializeOwned>(
         &self,
         adapter_id: ModuleId,
-        message: impl Into<abstract_core::adapter::QueryMsg<Q>>,
+        query: impl Into<abstract_core::adapter::QueryMsg<Q>>,
     ) -> AbstractSdkResult<R> {
-        let adapter_msg: abstract_core::adapter::QueryMsg<Q> = message.into();
+        let adapter_query: abstract_core::adapter::QueryMsg<Q> = query.into();
         let modules = self.base.modules(self.deps);
         let adapter_address = modules.module_address(adapter_id)?;
         self.deps
             .querier
-            .query_wasm_smart(adapter_address, &adapter_msg)
+            .query_wasm_smart(adapter_address, &adapter_query)
             .map_err(Into::into)
     }
 }

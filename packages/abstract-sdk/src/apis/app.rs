@@ -39,12 +39,12 @@ impl<'a, T: AppInterface> App<'a, T> {
     pub fn configure(
         &self,
         app_id: ModuleId,
-        message: msg::BaseExecuteMsg,
+        query: msg::BaseExecuteMsg,
     ) -> AbstractSdkResult<CosmosMsg> {
-        let app_msg: msg::ExecuteMsg<Empty, Empty> = message.into();
+        let app_query: msg::ExecuteMsg<Empty, Empty> = query.into();
         let modules = self.base.modules(self.deps);
         let app_address = modules.module_address(app_id)?;
-        Ok(wasm_execute(app_address, &app_msg, vec![])?.into())
+        Ok(wasm_execute(app_address, &app_query, vec![])?.into())
     }
 
     /// Smart query an app
