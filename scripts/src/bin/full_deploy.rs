@@ -5,10 +5,7 @@ use clap::Parser;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::networks::juno::JUNO_NETWORK;
 use cw_orch::prelude::networks::{ChainInfo, ChainKind};
-use cw_orch::{
-    prelude::networks::{parse_network},
-    prelude::*,
-};
+use cw_orch::{prelude::networks::parse_network, prelude::*};
 use semver::Version;
 use std::sync::Arc;
 use tokio::runtime::Runtime;
