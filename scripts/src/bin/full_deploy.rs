@@ -2,11 +2,12 @@ use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
 use clap::Parser;
-use cw_orch::networks::juno::JUNO_NETWORK;
-use cw_orch::networks::{ChainInfo, ChainKind};
+use cw_orch::deploy::Deploy;
+use cw_orch::prelude::networks::juno::JUNO_NETWORK;
+use cw_orch::prelude::networks::{ChainInfo, ChainKind};
 use cw_orch::{
-    networks::{parse_network, NetworkInfo},
-    *,
+    prelude::networks::{parse_network},
+    prelude::*,
 };
 use semver::Version;
 use std::sync::Arc;
@@ -20,7 +21,7 @@ pub const JUNO_1: ChainInfo = ChainInfo {
     gas_denom: "ujuno",
     gas_price: 0.0025,
     grpc_urls: &["http://juno-grpc.polkachu.com:12690"],
-    chain_info: JUNO_NETWORK,
+    network_info: JUNO_NETWORK,
     lcd_url: None,
     fcd_url: None,
 };
