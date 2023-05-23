@@ -14,3 +14,9 @@ command = "mdbook-mermaid"
 
 [output.html]
 additional-js = ["mermaid.min.js", "mermaid-init.js"]
+default-theme = "light"
+preferred-dark-theme = "navy"
+curly-quotes = true
+git-repository-url = "https://github.com/AbstractSDK/contracts"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/AbstractSDK/contracts/edit/main/docs/{path}"

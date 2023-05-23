@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="intro.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="introduction/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="introduction/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="introduction/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="introduction/governance.html"><strong aria-hidden="true">1.4.</strong> Governance</a></li></ol></li><li class="chapter-item expanded "><a href="get_started/index.html"><strong aria-hidden="true">2.</strong> Get Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="get_started/intallation.html"><strong aria-hidden="true">2.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="get_started/module_creation.html"><strong aria-hidden="true">2.4.</strong> Module Creation</a></li></ol></li><li class="chapter-item expanded "><a href="ibc/index.html"><strong aria-hidden="true">3.</strong> IBC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="ibc/overview.html"><strong aria-hidden="true">3.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="ibc/spec.html"><strong aria-hidden="true">3.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="intro.html" class="active">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">Build With Abstract</li><li class="chapter-item expanded "><a href="sdk/abstract_sdk.html"><strong aria-hidden="true">1.</strong> Abstract SDK - Overview</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="sdk/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="sdk/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="sdk/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="sdk/ownership.html"><strong aria-hidden="true">1.4.</strong> Account Ownership</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.</strong> Interchain Abstract Accounts</div></li></ol></li><li class="chapter-item expanded "><a href="get_started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="get_started/installation.html"><strong aria-hidden="true">2.1.</strong> Installation - How to get started</a></li><li class="chapter-item expanded "><a href="get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="get_started/module_development.html"><strong aria-hidden="true">2.4.</strong> Module Development</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.1.</strong> Using the Template</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.2.</strong> Best Practices</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.3.</strong> Quality Assurance</div></li></ol></li></ol></li><li class="chapter-item expanded "><li class="part-title">Use Cases</li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Equilibrium</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> 4t2 Finance</div></li><li class="chapter-item expanded affix "><li class="part-title">Resources and Support</li><li class="chapter-item expanded "><a href="ibc/index.html"><strong aria-hidden="true">5.</strong> Interchain Abstract Accounts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="ibc/overview.html"><strong aria-hidden="true">5.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="ibc/spec.html"><strong aria-hidden="true">5.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="video_and_content/index.html"><strong aria-hidden="true">6.</strong> Video and Content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="video_and_content/interviews.html"><strong aria-hidden="true">6.1.</strong> Interviews</a></li><li class="chapter-item expanded "><a href="video_and_content/tutorials.html"><strong aria-hidden="true">6.2.</strong> Tutorials</a></li><li class="chapter-item expanded "><a href="video_and_content/faq.html"><strong aria-hidden="true">6.3.</strong> FAQ</a></li></ol></li><li class="chapter-item expanded "><a href="contributing.html">Contributing & Community</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -117,6 +117,12 @@
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
+                        <a href="https://github.com/AbstractSDK/contracts" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/AbstractSDK/contracts/edit/main/docs/src/intro.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
+                        </a>
 
                     </div>
                 </div>
@@ -151,13 +157,13 @@
 <h2 id="key-features-and-benefits"><a class="header" href="#key-features-and-benefits">Key Features and Benefits</a></h2>
 <ul>
 <li>
-<p>Modular Design: Abstract's modular architecture allows developers to choose from a curated library of modules or develop their own using the Abstract SDK, enabling rapid development and customization.</p>
+<p>Modular Design: Abstract’s modular architecture allows developers to choose from a curated library of modules or develop their own using the Abstract SDK, enabling rapid development and customization.</p>
 </li>
 <li>
 <p>Chain-Agnostic: Abstract is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.</p>
 </li>
 <li>
-<p>Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multi-signature wallets and DAOs.</p>
+<p>Custom Governance: Abstract allows developers to create custom governance structures tailored to their application’s specific requirements, including integration with multi-signature wallets and DAOs.</p>
 </li>
 <li>
 <p>Testing Infrastructure (cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.</p>
@@ -176,23 +182,23 @@
 </li>
 </ul>
 <h3 id="reliable-development-funding"><a class="header" href="#reliable-development-funding">Reliable Development Funding</a></h3>
-<p>Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.</p>
+<p>Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform’s tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.</p>
 <h2 id="use-cases-and-examples"><a class="header" href="#use-cases-and-examples">Use Cases and Examples</a></h2>
 <h3 id="personalized-decentralized-finance-pdefi"><a class="header" href="#personalized-decentralized-finance-pdefi">Personalized Decentralized Finance (PDeFi)</a></h3>
-<p>Developers can leverage Abstract's modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren't required to custody the user's assets. They can also be customized to meet the user's specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract's P-DeFi applications can be used to create custom financial products, such as:</p>
+<p>Developers can leverage Abstract’s modular architecture to quickly build Personalized DeFi applications. In contrast with traditionally DeFi, these applications aren’t required to custody the user’s assets. They can also be customized to meet the user’s specific requirements, such as integrating with their preferred oracle, wallet, or exchange. Abstract’s P-DeFi applications can be used to create custom financial products, such as:</p>
 <ul>
 <li>Dollar cost averaging (DCA)</li>
 <li>Grid bot trading</li>
 <li>Custom trading strategies</li>
 <li>Permissioned asset markets</li>
 </ul>
-<p>All of which can have tweakable settings that are in the user's control.</p>
+<p>All of which can have tweakable settings that are in the user’s control.</p>
 <h3 id="nft-marketplaces"><a class="header" href="#nft-marketplaces">NFT Marketplaces</a></h3>
-<p>Abstract's SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
+<p>Abstract’s SDK can be used to create customizable NFT marketplaces, allowing users to mint, trade, and manage digital assets on various Cosmos-based blockchains.</p>
 <h3 id="governance-platforms"><a class="header" href="#governance-platforms">Governance Platforms</a></h3>
 <p>Developers can utilize Abstract to create advanced governance platforms that support custom voting mechanisms and proposal systems for community-driven decision-making.</p>
 <h3 id="cross-chain-interoperability"><a class="header" href="#cross-chain-interoperability">Cross-Chain Interoperability</a></h3>
-<p>Abstract's chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
+<p>Abstract’s chain-agnostic nature enables developers to create dApps that can interact with multiple blockchains within the Cosmos ecosystem, facilitating cross-chain asset transfers and communication.</p>
 <h3 id="decentralized-autonomous-organizations-daos"><a class="header" href="#decentralized-autonomous-organizations-daos">Decentralized Autonomous Organizations (DAOs)</a></h3>
 <p>Abstract can be used to build and manage DAOs with custom governance structures, allowing communities to collaborate, make decisions, and allocate resources effectively.</p>
 <h3 id="project-infrastructure"><a class="header" href="#project-infrastructure">Project Infrastructure</a></h3>
@@ -203,7 +209,7 @@
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
 
-                            <a rel="next" href="introduction/account_abstraction.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="sdk/abstract_sdk.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -214,13 +220,29 @@
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
 
-                    <a rel="next" href="introduction/account_abstraction.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="sdk/abstract_sdk.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

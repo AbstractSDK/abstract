@@ -80,7 +80,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../introduction/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="../introduction/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../introduction/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../introduction/governance.html"><strong aria-hidden="true">1.4.</strong> Governance</a></li></ol></li><li class="chapter-item expanded "><a href="../get_started/index.html"><strong aria-hidden="true">2.</strong> Get Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../get_started/intallation.html"><strong aria-hidden="true">2.1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="../get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="../get_started/module_creation.html"><strong aria-hidden="true">2.4.</strong> Module Creation</a></li></ol></li><li class="chapter-item expanded "><a href="../ibc/index.html"><strong aria-hidden="true">3.</strong> IBC</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../ibc/overview.html"><strong aria-hidden="true">3.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="../ibc/spec.html" class="active"><strong aria-hidden="true">3.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html"><strong aria-hidden="true">4.</strong> Contributing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../intro.html">Introduction</a></li><li class="chapter-item expanded affix "><li class="part-title">Build With Abstract</li><li class="chapter-item expanded "><a href="../sdk/abstract_sdk.html"><strong aria-hidden="true">1.</strong> Abstract SDK - Overview</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../sdk/account_abstraction.html"><strong aria-hidden="true">1.1.</strong> Account Abstraction</a></li><li class="chapter-item expanded "><a href="../sdk/architecture.html"><strong aria-hidden="true">1.2.</strong> Architecture</a></li><li class="chapter-item expanded "><a href="../sdk/modules.html"><strong aria-hidden="true">1.3.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../sdk/ownership.html"><strong aria-hidden="true">1.4.</strong> Account Ownership</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">1.5.</strong> Interchain Abstract Accounts</div></li></ol></li><li class="chapter-item expanded "><a href="../get_started/index.html"><strong aria-hidden="true">2.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../get_started/installation.html"><strong aria-hidden="true">2.1.</strong> Installation - How to get started</a></li><li class="chapter-item expanded "><a href="../get_started/account_creation.html"><strong aria-hidden="true">2.2.</strong> Account Creation</a></li><li class="chapter-item expanded "><a href="../get_started/sdk.html"><strong aria-hidden="true">2.3.</strong> SDK</a></li><li class="chapter-item expanded "><a href="../get_started/module_development.html"><strong aria-hidden="true">2.4.</strong> Module Development</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.1.</strong> Using the Template</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.2.</strong> Best Practices</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.3.</strong> Quality Assurance</div></li></ol></li></ol></li><li class="chapter-item expanded "><li class="part-title">Use Cases</li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.</strong> Equilibrium</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">4.</strong> 4t2 Finance</div></li><li class="chapter-item expanded affix "><li class="part-title">Resources and Support</li><li class="chapter-item expanded "><a href="../ibc/index.html"><strong aria-hidden="true">5.</strong> Interchain Abstract Accounts</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../ibc/overview.html"><strong aria-hidden="true">5.1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="../ibc/spec.html" class="active"><strong aria-hidden="true">5.2.</strong> Specification</a></li></ol></li><li class="chapter-item expanded "><a href="../video_and_content/index.html"><strong aria-hidden="true">6.</strong> Video and Content</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../video_and_content/interviews.html"><strong aria-hidden="true">6.1.</strong> Interviews</a></li><li class="chapter-item expanded "><a href="../video_and_content/tutorials.html"><strong aria-hidden="true">6.2.</strong> Tutorials</a></li><li class="chapter-item expanded "><a href="../video_and_content/faq.html"><strong aria-hidden="true">6.3.</strong> FAQ</a></li></ol></li><li class="chapter-item expanded "><a href="../contributing.html">Contributing & Community</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -116,6 +116,12 @@
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/AbstractSDK/contracts" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+                        <a href="https://github.com/AbstractSDK/contracts/edit/main/docs/src/ibc/spec.md" title="Suggest an edit" aria-label="Suggest an edit">
+                            <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
                     </div>
@@ -188,7 +194,7 @@
 <p>When the action is executed on the remote chain, it can either be successful or yield an error.</p>
 <ul>
 <li>
-<p>retries specifies the number of attemps left to submit the packet. In case an error is yielded by the remote chain, the original packet will be sent back to the original chain and retried as long as retries &gt; 0. Because IBC actions are asynchronous, some packets may need to wait other packet to go through before they can be executed. This parameter allows the packet action to fail multiple times before it's indeed sent across a channel</p>
+<p>retries specifies the number of attemps left to submit the packet. In case an error is yielded by the remote chain, the original packet will be sent back to the original chain and retried as long as retries &gt; 0. Because IBC actions are asynchronous, some packets may need to wait other packet to go through before they can be executed. This parameter allows the packet action to fail multiple times before it’s indeed sent across a channel</p>
 </li>
 <li>
 <p>call_back_info is an optional object that specifies any action that needs to be executed after the packet has been sucessfully executed and a positive (<code>StdAck::Result</code>) acknowledgement has been transfered back. </p>
@@ -201,7 +207,7 @@
 <li>If it was <code>AccountTrace::Remote</code> before transfer, it stays remote and the <code>client_chain</code> field is added to the associated vector.</li>
 </ul>
 <p>This allows full traceability of the account creations and calls. </p>
-<p>We don't need to enforce the same logic as with token transfer (channel + port), because we don't need fungibility here. Only the chains on which the accounts exist is important</p>
+<p>We don’t need to enforce the same logic as with token transfer (channel + port), because we don’t need fungibility here. Only the chains on which the accounts exist is important</p>
 <p>The acknowledgement data type describes whether the transfer succeeded or failed, and the reason for failure (if any).</p>
 <pre><code class="language-typescript">type FungibleTokenPacketAcknowledgement = FungibleTokenPacketSuccess | FungibleTokenPacketError;
 
@@ -221,7 +227,7 @@ interface FungibleTokenPacketError {
 }
 </code></pre>
 <h3 id="sub-protocols"><a class="header" href="#sub-protocols">Sub-protocols</a></h3>
-<p>The sub-protocols described herein should be implemented in a &quot;fungible token transfer bridge&quot; module with access to a bank module and to the IBC routing module.</p>
+<p>The sub-protocols described herein should be implemented in a “fungible token transfer bridge” module with access to a bank module and to the IBC routing module.</p>
 <h4 id="port--channel-setup"><a class="header" href="#port--channel-setup">Port &amp; channel setup</a></h4>
 <p>The <code>setup</code> function must be called exactly once when the module is created (perhaps when the blockchain itself is initialised) to bind to the appropriate port and create an escrow address (owned by the module).</p>
 <pre><code class="language-typescript">function setup() {
@@ -243,7 +249,7 @@ interface FungibleTokenPacketError {
 <p>Once the <code>setup</code> function has been called, channels can be created through the IBC routing module between instances of the fungible token transfer module on separate chains.</p>
 <p>An administrator (with the permissions to create connections &amp; channels on the host state machine) is responsible for setting up connections to other state machines &amp; creating channels
 to other instances of this module (or another module supporting this interface) on other chains. This specification defines packet handling semantics only, and defines them in such a fashion
-that the module itself doesn't need to worry about what connections or channels might or might not exist at any point in time.</p>
+that the module itself doesn’t need to worry about what connections or channels might or might not exist at any point in time.</p>
 <h4 id="routing-module-callbacks"><a class="header" href="#routing-module-callbacks">Routing module callbacks</a></h4>
 <h5 id="channel-lifecycle-management"><a class="header" href="#channel-lifecycle-management">Channel lifecycle management</a></h5>
 <p>Both machines <code>A</code> and <code>B</code> accept new channels from any module on another machine, if and only if:</p>
@@ -444,15 +450,15 @@ to take appropriate action based on the nature of the failure.</li>
   &quot;router&quot;: &quot;routerArgs&quot;,
 }
 </code></pre>
-<p>Here, the &quot;wasm&quot;, &quot;callback&quot;, and &quot;router&quot; fields are all intended for separate middlewares that will exclusively read those fields respectively in order to execute their logic. This allows multiple modules to read from the memo. Middleware should take care to reserve a unique key so that they do not accidentally read data intended for a different module. This issue can be avoided by some off-chain registry of keys already in-use in the JSON object.</p>
+<p>Here, the “wasm”, “callback”, and “router” fields are all intended for separate middlewares that will exclusively read those fields respectively in order to execute their logic. This allows multiple modules to read from the memo. Middleware should take care to reserve a unique key so that they do not accidentally read data intended for a different module. This issue can be avoided by some off-chain registry of keys already in-use in the JSON object.</p>
 <h4 id="reasoning"><a class="header" href="#reasoning">Reasoning</a></h4>
 <h5 id="correctness"><a class="header" href="#correctness">Correctness</a></h5>
 <p>This implementation preserves both fungibility &amp; supply.</p>
 <p>Fungibility: If tokens have been sent to the counterparty chain, they can be redeemed back in the same denomination &amp; amount on the source chain.</p>
 <p>Supply: Redefine supply as unlocked tokens. All send-recv pairs sum to net zero. Source chain can change supply.</p>
 <h5 id="multi-chain-notes"><a class="header" href="#multi-chain-notes">Multi-chain notes</a></h5>
-<p>This specification does not directly handle the &quot;diamond problem&quot;, where a user sends a token originating on chain A to chain B, then to chain D, and wants to return it through D -&gt; C -&gt; A — since the supply is tracked as owned by chain B (and the denomination will be &quot;{portOnD}/{channelOnD}/{portOnB}/{channelOnB}/denom&quot;), chain C cannot serve as the intermediary. It is not yet clear whether that case should be dealt with in-protocol or not — it may be fine to just require the original path of redemption (and if there is frequent liquidity and some surplus on both paths the diamond path will work most of the time). Complexities arising from long redemption paths may lead to the emergence of central chains in the network topology.</p>
-<p>In order to track all of the denominations moving around the network of chains in various paths, it may be helpful for a particular chain to implement a registry which will track the &quot;global&quot; source chain for each denomination. End-user service providers (such as wallet authors) may want to integrate such a registry or keep their own mapping of canonical source chains and human-readable names in order to improve UX.</p>
+<p>This specification does not directly handle the “diamond problem”, where a user sends a token originating on chain A to chain B, then to chain D, and wants to return it through D -&gt; C -&gt; A — since the supply is tracked as owned by chain B (and the denomination will be “{portOnD}/{channelOnD}/{portOnB}/{channelOnB}/denom”), chain C cannot serve as the intermediary. It is not yet clear whether that case should be dealt with in-protocol or not — it may be fine to just require the original path of redemption (and if there is frequent liquidity and some surplus on both paths the diamond path will work most of the time). Complexities arising from long redemption paths may lead to the emergence of central chains in the network topology.</p>
+<p>In order to track all of the denominations moving around the network of chains in various paths, it may be helpful for a particular chain to implement a registry which will track the “global” source chain for each denomination. End-user service providers (such as wallet authors) may want to integrate such a registry or keep their own mapping of canonical source chains and human-readable names in order to improve UX.</p>
 <h4 id="optional-addenda"><a class="header" href="#optional-addenda">Optional addenda</a></h4>
 <ul>
 <li>Each chain, locally, could elect to keep a lookup table to use short, user-friendly local denominations in state which are translated to and from the longer denominations when sending and receiving packets. </li>
@@ -461,7 +467,7 @@ to take appropriate action based on the nature of the failure.</li>
 <h2 id="backwards-compatibility"><a class="header" href="#backwards-compatibility">Backwards Compatibility</a></h2>
 <p>Not applicable.</p>
 <h2 id="forwards-compatibility"><a class="header" href="#forwards-compatibility">Forwards Compatibility</a></h2>
-<p>This initial standard uses version &quot;ics20-1&quot; in the channel handshake.</p>
+<p>This initial standard uses version “ics20-1” in the channel handshake.</p>
 <p>A future version of this standard could use a different version in the channel handshake,
 and safely alter the packet data format &amp; packet handler semantics.</p>
 <h2 id="example-implementations"><a class="header" href="#example-implementations">Example Implementations</a></h2>
@@ -488,7 +494,7 @@ and safely alter the packet data format &amp; packet handler semantics.</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="../contributing.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../video_and_content/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -502,13 +508,29 @@ and safely alter the packet data format &amp; packet handler semantics.</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="../contributing.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="../video_and_content/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
