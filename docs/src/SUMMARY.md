@@ -5,6 +5,7 @@
 # Build With Abstract
 
 - [Abstract SDK - Overview](./sdk/abstract_sdk.md)
+  - [Actor Model](./sdk/actor_model.md)
   - [Account Abstraction](./sdk/account_abstraction.md)
   - [Architecture](./sdk/architecture.md)
   - [Modules](./sdk/modules.md)

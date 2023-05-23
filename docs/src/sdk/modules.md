@@ -1,14 +1,29 @@
-# Abstract Modules
+# Modularity in Abstract
 
-Abstract's innovative framework is built on the concept of modules, which are reusable components that can be easily integrated into your decentralized applications (dApps). Modules streamline the development process by providing pre-built functionalities, saving you time and effort. With Abstract, you can choose from a curated library of off-the-shelf modules or create your own custom modules using the Abstract SDK. Developers can further monetize their own custom modules to allow for sustainable development.
+Modularity is a fundamental design principle of the Abstract platform, contributing significantly to its flexibility and extensibility. A module in Abstract is a self-contained unit of functionality that can be added to an Abstract Account to extend its capabilities. This modular approach promotes the construction of bespoke applications, enhances the scalability of the system, and improves overall maintainability.
 
-## Available Modules
+For application developers, modules simplify the development process by offering pre-built functionalities. Instead of building every aspect from scratch, developers can leverage modules either from Abstract's extensive library or those crafted by other developers available in the module marketplace. Additionally, developers have the freedom to create custom modules using the [Abstract SDK](https://docs.rs/abstract-sdk/latest/abstract_sdk), tailoring them to specific application needs and even contributing back to the community.
 
-The Abstract ecosystem offers a wide range of off-the-shelf modules to cater to various use cases and requirements. Some of the available modules include:
+## How Modules Work
 
-**INSERT A TON OF MODULES HERE**
+In Abstract, the process of integrating these modules is managed through the Manager contract within an Abstract Account. The Manager keeps track of all installed modules, managing their permissions and interactions. This system enables the customization of each Account, as modules can be installed or uninstalled as per the user's requirements, thereby adjusting the Account's functionality.
 
-Note: This is not an exhaustive list. The Abstract ecosystem is constantly evolving, and new modules are regularly added to the library.
+From the perspective of a developer, the Abstract framework sets conventions and standards that allow leveraging existing modules during the development of new ones. This layer of abstraction saves considerable time and effort while promoting consistent design across different modules.
+
+## Security
+
+Security is a priority at Abstract, especially when it comes to the modules that extend the capabilities of an Abstract Account. Every module listed on the mainnet marketplaces must undergo a thorough auditing process before it's made available to users. This process scrutinizes the module's code, checking for potential vulnerabilities, and ensuring that it adheres to best security practices.
+
+While no system can guarantee absolute security, this rigorous vetting process, coupled with the inherent security measures in Abstract and CosmWasm's architecture, mitigates potential risks to a considerable extent.
+
+The Abstract platform also maintains a Version Control (TODO link) for all the modules, allowing users and developers to track changes, understand the evolution of a module, and choose versions that have passed security audits. 
+
+
+
+TODO: add diagram
+
+------
+TODO: below is not reviewed
 
 ## How to Use Modules in Your Project
 Leveraging modules in your project can significantly simplify the development process, allowing you to deploy projects faster and more cost-effectively than building traditionally. By using pre-built, tested, and community-reviewed modules, you can focus on your project's unique features while reducing development time and minimizing potential bugs.
