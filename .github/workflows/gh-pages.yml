@@ -5,11 +5,12 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-
   pull_request:
     branches: [main]
     paths:
       - "docs/**"
+  release:
+    types: [published]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -45,7 +46,7 @@ jobs:
         run: just build-docs
 
       - name: Upload artifact
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.event_name == 'release' }}
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload book repository
@@ -53,7 +54,7 @@ jobs:
 
   # Deploy job
   deploy:
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' && github.event_name == 'release' }}
     # Add a dependency to the build job
     needs: build
 
