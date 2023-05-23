@@ -52,6 +52,9 @@ just serve-docs
 
 This will serve you the documentation and automatically re-compiles it when you make changes.
 
+[Release Docs](https://docs.abstract.money)
+[Dev Docs](https://dev-docs.abstract.money)
+
 ## Formatting
 
 We use `rustfmt` and [`taplo`](https://taplo.tamasfe.dev/cli/introduction.html) to format our code. To format the code, run the following command:
