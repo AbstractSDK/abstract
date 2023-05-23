@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js abstract">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -36,7 +36,7 @@
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "abstract" : "abstract";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -62,7 +62,7 @@
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
-            html.classList.remove('abstract')
+            html.classList.remove('light')
             html.classList.add(theme);
             html.classList.add('js');
         </script>
@@ -269,35 +269,68 @@ Suppose you are building a DeFi platform using Abstract and want to implement mu
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interchain-abstract-accounts"><a class="header" href="#interchain-abstract-accounts">Interchain Abstract Accounts</a></h1>
 <p>Interchain Abstract Accounts is Abstract's solution to chain-agnostic accounts. It allows users to create an account on one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of the <a href="https://ibcprotocol.org/">Inter-Blockchain Communication (IBC) protocol</a> and the <a href="ibc/../introduction/architecture.html">Abstract Accounts</a>.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>IAA allow users to interact with any smart-contract on any chain using their local account. This mechanism is powered by a set of Abstract smart-contracts that will dispatch messages that users send locally to a distant chain.</p>
+<h3 id="account-creation-1"><a class="header" href="#account-creation-1">Account creation</a></h3>
+<p>The first step of using Interchain Abstract Account is creating a remote account. </p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="abstract-ibc"><a class="header" href="#abstract-ibc">Abstract IBC</a></h1>
 <h2 id="synopsis"><a class="header" href="#synopsis">Synopsis</a></h2>
 <p>This standard document specifies packet data structure, state machine handling logic, and encoding details for the transfer of messages and creation of Abstract accounts over an IBC channel between a client and a host on separate chains. The state machine logic presented allows for safe multi-chain account creation and execution.</p>
 <h3 id="motivation"><a class="header" href="#motivation">Motivation</a></h3>
-<p>Users of a set of chains connected over the IBC protocol might wish to utilise an asset issued on one chain on another chain, perhaps to make use of additional features such as exchange or privacy protection, while retaining fungibility with the original asset on the issuing chain. This application-layer standard describes a protocol for transferring fungible tokens between chains connected with IBC which preserves asset fungibility, preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.</p>
+<p>Users of a set of chains connected over the IBC protocol might wish to interact with smart-contracts and dapps present on another chain than their origin, while not having to onboard the distant chain, create a new wallet or transfer the necessary funds to this other chain. This application-layer standard describes a protocol for interacting with a distant chain and creating abstract account on chains connected with IBC which preserves asset ownership, limits the impact of Byzantine faults, and requires no additional permissioning.</p>
 <h3 id="definitions"><a class="header" href="#definitions">Definitions</a></h3>
-<p>The IBC handler interface &amp; IBC routing module interface are as defined in <a href="ibc/../../core/ics-025-handler-interface">ICS 25</a> and <a href="ibc/../../core/ics-026-routing-module">ICS 26</a>, respectively.</p>
+<p>The Abstract IBC Account interface is described in the following guide and the specifications are roughly presented here</p>
 <h3 id="desired-properties"><a class="header" href="#desired-properties">Desired Properties</a></h3>
 <ul>
-<li>Preservation of fungibility (two-way peg).</li>
-<li>Preservation of total supply (constant or inflationary on a single source chain &amp; module).</li>
-<li>Permissionless token transfers, no need to whitelist connections, modules, or denominations.</li>
-<li>Symmetric (all chains implement the same logic, no in-protocol differentiation of hubs &amp; zones).</li>
-<li>Fault containment: prevents Byzantine-inflation of tokens originating on chain <code>A</code>, as a result of chain <code>B</code>'s Byzantine behaviour (though any users who sent tokens to chain <code>B</code> may be at risk).</li>
+<li>Preservation of account and funds ownership</li>
+<li>All interactions that can be done by a local account should be possible for a distant account as well.</li>
 </ul>
 <h2 id="technical-specification"><a class="header" href="#technical-specification">Technical Specification</a></h2>
 <h3 id="data-structures"><a class="header" href="#data-structures">Data Structures</a></h3>
-<p>Only one packet data type is required: <code>FungibleTokenPacketData</code>, which specifies the denomination, amount, sending account, and receiving account.</p>
-<pre><code class="language-typescript">interface FungibleTokenPacketData {
-  denom: string
-  amount: uint256
-  sender: string
-  receiver: string
-  memo: string
+<p>Only one packet data type is added in this spec to be able to interact across IBC chains</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub struct PacketMsg {
+    /// Chain of the client
+    pub client_chain: String,
+    /// Amount of retries to attempt if packet returns with StdAck::Error
+    pub retries: u8,
+    pub account_id: AccountId,
+    /// Callback performed after receiving an StdAck::Result
+    pub callback_info: Option&lt;CallbackInfo&gt;,
+    /// execute the custom host function
+    pub action: HostAction,
 }
-</code></pre>
-<p>As tokens are sent across chains using the ICS 20 protocol, they begin to accrue a record of channels for which they have been transferred across. This information is encoded into the <code>denom</code> field. </p>
-<p>The ICS 20 token denominations are represented by the form <code>{ics20Port}/{ics20Channel}/{denom}</code>, where <code>ics20Port</code> and <code>ics20Channel</code> are an ICS 20 port and channel on the current chain for which the funds exist. The prefixed port and channel pair indicate which channel the funds were previously sent through. Implementations are responsible for correctly parsing the IBC trace information from the base denomination. The way the reference ICS 20 implementation in ibc-go handles this is by taking advantage of the fact that it automatically generates channel identifiers with the format <code>channel-{n}</code>, where <code>n</code> is a integer greater or equal than 0. It can then correctly parse out the IBC trace information from the base denom which may have slashes, but will not have a substring of the form <code>{transfer-port-name}/channel-{n}</code>. If this assumption is broken, the trace information will be parsed incorrectly (i.e. part of the base denom will be misinterpreted as trace information). Thus chains must make sure that base denominations do not have the ability to create arbitrary prefixes that can mock the ICS 20 logic.</p>
-<p>A sending chain may be acting as a source or sink zone. When a chain is sending tokens across a port and channel which are not equal to the last prefixed port and channel pair, it is acting as a source zone. When tokens are sent from a source zone, the destination port and channel will be prefixed onto the denomination (once the tokens are received) adding another hop to a tokens record. When a chain is sending tokens across a port and channel which are equal to the last prefixed port and channel pair, it is acting as a sink zone. When tokens are sent from a sink zone, the last prefixed port and channel pair on the denomination is removed (once the tokens are received), undoing the last hop in the tokens record. A more complete explanation is <a href="https://github.com/cosmos/ibc-go/blob/457095517b7832c42ecf13571fee1e550fec02d0/modules/apps/transfer/keeper/relay.go#L18-L49">present in the ibc-go implementation</a>.</p>
+<span class="boring">}</span></code></pre></pre>
+<h4 id="execution"><a class="header" href="#execution">Execution</a></h4>
+<ul>
+<li>
+<p>client_chain specifies the chain from which the message originates. Once a channel is created between client and host, this channel will always be checked to match the registered configuration</p>
+</li>
+<li>
+<p>account_id specifies the account that is calling the action on the local chain.</p>
+</li>
+<li>
+<p>action specifies what the remote chain should execute upon receiving this packet</p>
+</li>
+</ul>
+<h4 id="acknowledgement"><a class="header" href="#acknowledgement">Acknowledgement</a></h4>
+<p>When the action is executed on the remote chain, it can either be successful or yield an error.</p>
+<ul>
+<li>
+<p>retries specifies the number of attemps left to submit the packet. In case an error is yielded by the remote chain, the original packet will be sent back to the original chain and retried as long as retries &gt; 0. Because IBC actions are asynchronous, some packets may need to wait other packet to go through before they can be executed. This parameter allows the packet action to fail multiple times before it's indeed sent across a channel</p>
+</li>
+<li>
+<p>call_back_info is an optional object that specifies any action that needs to be executed after the packet has been sucessfully executed and a positive (<code>StdAck::Result</code>) acknowledgement has been transfered back. </p>
+</li>
+</ul>
+<h4 id="cross-chain-trace"><a class="header" href="#cross-chain-trace">Cross chain trace</a></h4>
+<p>Because accounts created across chains using the IAA protocol are controlled by an account located on a remote chain, the <code>account_id</code> parameter should specify which chain is calling an action. In order to follow which chains a message is called from, the IBC Abstract module leverages the <code>AccountId::trace</code> field. An account is wether <code>AccountTrace::Local</code> or <code>AccountTrace::Remote</code>. When a PacketMsg is sent across an IBC channel, the account id is transformed in the following manner : </p>
+<ul>
+<li>If it was <code>AccountTrace::Local</code> before transfer, it turns into an <code>AccountTrace::Remote</code> account with one chain in the associated vector being the chain calling the <code>PacketMsg</code> (<code>PacketMsg::client_chain</code>)</li>
+<li>If it was <code>AccountTrace::Remote</code> before transfer, it stays remote and the <code>client_chain</code> field is added to the associated vector.</li>
+</ul>
+<p>This allows full traceability of the account creations and calls. </p>
+<p>We don't need to enforce the same logic as with token transfer (channel + port), because we don't need fungibility here. Only the chains on which the accounts exist is important</p>
 <p>The acknowledgement data type describes whether the transfer succeeded or failed, and the reason for failure (if any).</p>
 <pre><code class="language-typescript">type FungibleTokenPacketAcknowledgement = FungibleTokenPacketSuccess | FungibleTokenPacketError;
 
@@ -659,22 +692,6 @@ for public functions and methods.</li>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

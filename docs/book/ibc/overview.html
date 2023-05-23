@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js abstract">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -35,7 +35,7 @@
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "abstract" : "abstract";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -61,7 +61,7 @@
             if (theme === null || theme === undefined) { theme = default_theme; }
             var html = document.querySelector('html');
             html.classList.remove('no-js')
-            html.classList.remove('abstract')
+            html.classList.remove('light')
             html.classList.add(theme);
             html.classList.add('js');
         </script>
@@ -146,6 +146,9 @@
                         <h1 id="interchain-abstract-accounts"><a class="header" href="#interchain-abstract-accounts">Interchain Abstract Accounts</a></h1>
 <p>Interchain Abstract Accounts is Abstract's solution to chain-agnostic accounts. It allows users to create an account on one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of the <a href="https://ibcprotocol.org/">Inter-Blockchain Communication (IBC) protocol</a> and the <a href="../introduction/architecture.html">Abstract Accounts</a>.</p>
 <h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>IAA allow users to interact with any smart-contract on any chain using their local account. This mechanism is powered by a set of Abstract smart-contracts that will dispatch messages that users send locally to a distant chain.</p>
+<h3 id="account-creation"><a class="header" href="#account-creation">Account creation</a></h3>
+<p>The first step of using Interchain Abstract Account is creating a remote account. </p>
 
                     </main>
 
@@ -176,22 +179,6 @@
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 
