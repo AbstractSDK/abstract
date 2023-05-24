@@ -6,7 +6,7 @@ use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 pub fn query_handler(
     deps: Deps,
     _env: Env,
-    _etf: &TemplateApp,
+    _app: &TemplateApp,
     msg: TemplateQueryMsg,
 ) -> TemplateResult<Binary> {
     match msg {
