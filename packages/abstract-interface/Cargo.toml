@@ -43,3 +43,6 @@ ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-h
 version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.15.0", optional = true }
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.15.0", optional = true }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.15.0", optional = true }
+
+[build-dependencies]
+serde_json = "1.0.79"

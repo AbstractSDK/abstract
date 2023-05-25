@@ -55,12 +55,11 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.11" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-ibc-host = { path = "packages/abstract-ibc-host" }
 abstract-adapter = { path = "packages/abstract-adapter" }
 abstract-app = { path = "packages/abstract-app" }
 
@@ -73,8 +72,6 @@ ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 version-control = { package = "abstract-version-control", path = "contracts/native/version-control" }
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
-osmosis-host = { path = "contracts/ibc-hosts/osmosis" }
-abstract-ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
 
 abstract-sdk = { version = "0.15.0", path = "packages/abstract-sdk" }
 abstract-testing = { version = "0.15.0", path = "packages/abstract-testing" }

@@ -6,9 +6,6 @@ use cw_orch::{interface, prelude::*};
 pub struct Idea<Chain>;
 
 impl<Chain: CwEnv> Idea<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
     pub fn send(
         &self,
         msg: Binary,

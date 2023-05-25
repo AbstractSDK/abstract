@@ -15,12 +15,12 @@ pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
     + CwOrcUpload<Chain>
 {
     fn deploy(
-        &mut self,
+        &self,
         version: Version,
         custom_init_msg: CustomInitMsg,
     ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::load_from(self.get_chain().clone())?;
+        let abstr = Abstract::load_from(self.get_chain().to_owned())?;
 
         // check for existing version
         let version_check = abstr
@@ -59,7 +59,7 @@ pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
 {
     fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
-        let abstr = Abstract::<Chain>::load_from(self.get_chain().clone())?;
+        let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
         // check for existing version
         let version_check = abstr

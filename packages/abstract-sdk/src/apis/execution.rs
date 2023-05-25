@@ -12,6 +12,7 @@ use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, ReplyOn, Response, SubMsg};
 
 /// Execute an arbitrary `CosmosMsg` action on the Account.
 pub trait Execution: AccountIdentification + ModuleIdentification {
+    /// Create the executor environment from the smart contract dependencies
     fn executor<'a>(&'a self, deps: Deps<'a>) -> Executor<Self> {
         Executor { base: self, deps }
     }
@@ -19,6 +20,7 @@ pub trait Execution: AccountIdentification + ModuleIdentification {
 
 impl<T> Execution for T where T: AccountIdentification + ModuleIdentification {}
 
+/// Struct that allows to execute messages inside a smart contract
 #[derive(Clone)]
 pub struct Executor<'a, T: Execution> {
     base: &'a T,

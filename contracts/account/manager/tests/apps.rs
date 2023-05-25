@@ -11,7 +11,7 @@ use speculoos::prelude::*;
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
 

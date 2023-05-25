@@ -50,11 +50,11 @@
   "osmosis": {
     "osmo-test-4": {
       "default": {
-        "abstract:ans_host": "osmo1jn49qkanxfwfwhsrdxqh0yneqfs4uhudk8n066fjrleer5ueg9dsyhkse4",
+        "abstract:ans-host": "osmo1jn49qkanxfwfwhsrdxqh0yneqfs4uhudk8n066fjrleer5ueg9dsyhkse4",
         "abstract:osmosis_host": "osmo1fct9ha4stcjysk0e89kfzmg4f9nva9jgpa60lh9mmjshtdgu5tuqkp9vtg"
       },
       "code_ids": {
-        "abstract:ans_host": 3357,
+        "abstract:ans-host": 3357,
         "abstract:cw1_proxy": 3048,
         "abstract:osmosis_host": 3395
       }

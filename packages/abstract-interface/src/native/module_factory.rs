@@ -23,17 +23,13 @@ impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
         )
     }
     fn wasm(&self) -> WasmPath {
-        ArtifactsDir::env()
+        artifacts_dir_from_workspace!()
             .find_wasm_path("module_factory")
             .unwrap()
     }
 }
 
 impl<Chain: CwEnv> ModuleFactory<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
-
     pub fn change_ans_host_addr(
         &self,
         mem_addr: String,

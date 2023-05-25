@@ -21,7 +21,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 #[test]
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = deployment.account_factory;
@@ -40,7 +40,7 @@ fn instantiate() -> AResult {
 #[test]
 fn create_one_account() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -87,7 +87,7 @@ fn create_one_account() -> AResult {
 #[test]
 fn create_two_account_s() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -155,7 +155,7 @@ fn create_two_account_s() -> AResult {
 #[test]
 fn sender_is_not_admin_monarchy() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;
@@ -202,7 +202,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 #[test]
 fn sender_is_not_admin_external() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
-    let chain = Mock::new(&sender)?;
+    let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
 
     let factory = &deployment.account_factory;

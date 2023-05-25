@@ -34,17 +34,13 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
     }
 
     fn wasm(&self) -> WasmPath {
-        ArtifactsDir::env()
+        artifacts_dir_from_workspace!()
             .find_wasm_path("account_factor")
             .unwrap()
     }
 }
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
-
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,

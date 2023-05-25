@@ -1,4 +1,4 @@
-use cw_orch::{interface, prelude::*};
+use cw_orch::interface;
 
 pub use abstract_core::ibc_client::{
     ExecuteMsg, ExecuteMsgFns as IbcClientExecFns, InstantiateMsg, MigrateMsg, QueryMsg,
@@ -7,9 +7,3 @@ pub use abstract_core::ibc_client::{
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct IbcClient<Chain>;
-
-impl<Chain: CwEnv> IbcClient<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
-}

@@ -26,15 +26,13 @@ impl<Chain: CwEnv> Uploadable for Manager<Chain> {
         )
     }
     fn wasm(&self) -> WasmPath {
-        ArtifactsDir::env().find_wasm_path("manager").unwrap()
+        artifacts_dir_from_workspace!()
+            .find_wasm_path("manager")
+            .unwrap()
     }
 }
 
 impl<Chain: CwEnv> Manager<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(cw_orch::contract::Contract::new(name, chain))
-    }
-
     pub fn upgrade_module<M: Serialize>(
         &self,
         module_id: &str,

@@ -152,12 +152,6 @@ pub mod mock {
 
     impl AdapterDeployer<Mock, MockInitMsg> for BootMockAdapter<Mock> {}
 
-    impl<Chain: CwEnv> BootMockAdapter<Chain> {
-        pub fn new(name: &str, chain: Chain) -> Self {
-            Self(cw_orch::contract::Contract::new(name, chain))
-        }
-    }
-
     /// Generate a BOOT instance for a mock adapter
     /// - $name: name of the contract (&str)
     /// - $id: id of the contract (&str)
@@ -231,7 +225,7 @@ pub mod mock {
         }
 
         impl<Chain: ::cw_orch::environment::CwEnv> $name <Chain> {
-            pub fn new(chain: Chain) -> Self {
+            pub fn new_test(chain: Chain) -> Self {
                 Self(
                     ::cw_orch::contract::Contract::new($id, chain),
                 )
