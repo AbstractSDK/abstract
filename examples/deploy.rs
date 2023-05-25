@@ -5,7 +5,7 @@ use abstract_interface::{
 };
 use cw_orch::prelude::networks::ChainInfo;
 
-use template_app::{interface::Template, TEMPLATE_ID};
+use app::{interface::App, APP_ID};
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -20,7 +20,7 @@ fn main(chain: ChainInfo) -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let mut app = Template::new(TEMPLATE_ID, chain);
+    let mut app = App::new(APP_ID, chain);
 
     app.deploy(version)?;
     Ok(())

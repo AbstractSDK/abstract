@@ -2,26 +2,26 @@ use abstract_core::app;
 use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::QueryResponses;
 
-use crate::contract::TemplateApp;
+use crate::contract::App;
 
 /// Abstract App instantiate msg
-pub type InstantiateMsg = <TemplateApp as InstantiateEndpoint>::InstantiateMsg;
-pub type ExecuteMsg = <TemplateApp as ExecuteEndpoint>::ExecuteMsg;
-pub type QueryMsg = <TemplateApp as QueryEndpoint>::QueryMsg;
-pub type MigrateMsg = <TemplateApp as MigrateEndpoint>::MigrateMsg;
+pub type InstantiateMsg = <App as InstantiateEndpoint>::InstantiateMsg;
+pub type ExecuteMsg = <App as ExecuteEndpoint>::ExecuteMsg;
+pub type QueryMsg = <App as QueryEndpoint>::QueryMsg;
+pub type MigrateMsg = <App as MigrateEndpoint>::MigrateMsg;
 
-impl app::AppExecuteMsg for TemplateExecuteMsg {}
-impl app::AppQueryMsg for TemplateQueryMsg {}
+impl app::AppExecuteMsg for AppExecuteMsg {}
+impl app::AppQueryMsg for AppQueryMsg {}
 
-/// Template instantiate message
+/// App instantiate message
 #[cosmwasm_schema::cw_serde]
-pub struct TemplateInstantiateMsg {}
+pub struct AppInstantiateMsg {}
 
-/// Template execute messages
+/// App execute messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
-pub enum TemplateExecuteMsg {
+pub enum AppExecuteMsg {
     UpdateConfig {},
 }
 
@@ -29,13 +29,13 @@ pub enum TemplateExecuteMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
-pub enum TemplateQueryMsg {
+pub enum AppQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum TemplateMigrateMsg {}
+pub enum AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum Cw20HookMsg {

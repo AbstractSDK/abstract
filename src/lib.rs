@@ -8,6 +8,6 @@ mod replies;
 pub mod state;
 
 #[cfg(feature = "interface")]
-pub use interface::Template;
+pub use interface::App;
 #[cfg(feature = "interface")]
-pub use msg::{TemplateExecuteMsgFns, TemplateQueryMsgFns};
+pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};

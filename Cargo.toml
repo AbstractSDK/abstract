@@ -1,5 +1,5 @@
 [package]
-name = "template-app"
+name = "app"
 version = "0.0.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
@@ -52,9 +52,7 @@ abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", bra
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", version = "0.11", optional = true }
 
 [dev-dependencies]
-template-app = { path = ".", features = [
-  "interface",
-], package = "template-app" }
+app = { path = ".", features = ["interface"] }
 abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = [
   "daemon",
 ] }

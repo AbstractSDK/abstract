@@ -1,4 +1,4 @@
-use abstract_app::AppError;
+use abstract_app::AppError as AbstractAppError;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
@@ -7,7 +7,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum TemplateError {
+pub enum AppError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -24,5 +24,5 @@ pub enum TemplateError {
     Admin(#[from] AdminError),
 
     #[error("{0}")]
-    DappError(#[from] AppError),
+    DappError(#[from] AbstractAppError),
 }
