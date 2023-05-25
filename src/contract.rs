@@ -19,7 +19,7 @@ pub type AppResult<T = Response> = Result<T, AppError>;
 /// The type of the app that is used to build your app and access the Abstract SDK features.
 pub type App = AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, AppMigrateMsg>;
 
-const APP_APP: App = App::new(APP_ID, APP_VERSION, None)
+const APP: App = App::new(APP_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
@@ -28,4 +28,4 @@ const APP_APP: App = App::new(APP_ID, APP_VERSION, None)
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(APP_APP, App);
+abstract_app::export_endpoints!(APP, App);
