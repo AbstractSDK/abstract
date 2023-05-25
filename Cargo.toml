@@ -39,29 +39,33 @@ cosmwasm-std = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version = "1.0.1" }
 cw-storage-plus = "1.0.1"
-cw20 = { version = "1.0.1" }
-cw20-base = { version = "1.0.1", features = ["library"] }
 thiserror = { version = "1.0" }
 schemars = "0.8"
-protobuf = { version = "2", features = ["with-bytes"] }
 cw-asset = { version = "3.0" }
 
 abstract-core = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
 abstract-app = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
 abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", optional = true }
 
-cw-orch = {version = "0.11", optional = true }
+# Dependencies for interface
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", optional = true }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", version = "0.11", optional = true }
 
 [dev-dependencies]
-template-app = { path = ".", features = ["interface"], package = "template-app" }
-abstract-interface = {git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = ["daemon"] }
+template-app = { path = ".", features = [
+  "interface",
+], package = "template-app" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = [
+  "daemon",
+] }
 abstract-testing = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = ["test-utils"] }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = [
+  "test-utils",
+] }
 speculoos = "0.11.0"
-semver = "1.0"
-anyhow = "1"
-tokio = { version = "1.4", features = ["full"] }
+# semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-clap = { version = "4.0.32", features = ["derive"] }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", features = [
+  "daemon",
+] }

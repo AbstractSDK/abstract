@@ -5,5 +5,7 @@ git remote add ci https://github.com/AbstractSDK/rust-ci
 git fetch ci
 git merge ci/main --squash
 
+mv example.env .env
+
 # Delete this script after running
 rm -- "$0"

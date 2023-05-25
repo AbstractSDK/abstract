@@ -1,3 +1,10 @@
+# Install the tools that are used in this justfile
+install-tools:
+  cargo install cargo-nextest --locked
+  cargo install taplo-cli --locked
+  cargo install cargo-watch
+  cargo install cargo-limit
+
 # Build everything
 build:
   cargo build --all-features
@@ -9,48 +16,29 @@ test:
 watch-test:
   cargo watch -x "nextest run"
 
-format:
+# Format your code and `Cargo.toml` files
+fmt:
   cargo fmt --all
+  find . -type f -iname "*.toml" -print0 | xargs -0 taplo format
 
 lint:
   cargo clippy --all -- -D warnings
 
 lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
-  just format
-
-refresh:
-  cargo clean && cargo update
-
-check-codecov:
-  cat codecov.yml | curl --data-binary @- https://codecov.io/validate
-
-tag:
-  set -e
-  git tag v`grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}'`
-  git push origin v`grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}'`
+  just fmt
 
 watch:
-  cargo watch -x lcheck
+  cargo watch -x "lcheck --all-features"
 
 check:
   cargo check --all-features
 
-# `just wasm-contract template --features export,terra --no-default-features`
-wasm-contract module +args='':
-  RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}-app {{args}}
+deploy:
+  cargo run --example deploy --features 
 
-# Wasm all the contracts in the repository for the given chain
-wasm chain_name:
-  just wasm-contract template --features export --no-default-features
-
-# Deploy your module to the chain
-# `just deploy-module dex pisco-1`
-deploy-contract module network +args='':
-  cargo internal-deploy --package {{module}}-app -- --network-id {{network}} {{args}}
-
-# Deploy all the apis
-deploy network +args='':
-  just wasm-contract template
-  just deploy-contract template {{network}}
-
+wasm:
+  docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/rust-optimizer:0.12.13
