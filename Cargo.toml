@@ -49,6 +49,3 @@ abstract-ibc-host = { git = "https://github.com/AbstractSDK/contracts", branch =
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 anyhow = "1"
-
-[patch."https://github.com/AbstractSDK/cw-orchestrator.git"]
-cw-orch = { git="https://github.com/AbstractSDK//cw-orchestrator.git", rev="17a9dd50e267e264b94b14b3502927db3a427e83" }

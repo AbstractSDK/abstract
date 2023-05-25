@@ -343,7 +343,7 @@ impl Deploy<Mock> for WynDex {
             eur_usd_staking: state.get_address(EUR_USD_STAKE)?,
         })
     }
-    fn get_contracts(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> { 
+    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> { 
         vec![
             Box::new(&mut self.eur_usd_lp),
             Box::new(&mut self.wynd_eur_lp),
