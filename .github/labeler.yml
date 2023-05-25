@@ -22,10 +22,11 @@
   - build_release.sh
 "CI":
   - .github/**/*.yml
-# Add "C:docs" label to documented related files and directories. 
-"docs":
+# Add "C:documentation" label to documented related files and directories. 
+"documentation":
   - README.md
   - contracts/**/*.md
   - contracts/**/*/*.md
+  - docs/src/**/*
 "interface":
   - packages/abstract-interface/**/*

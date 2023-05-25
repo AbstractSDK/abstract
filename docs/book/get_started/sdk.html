@@ -150,6 +150,164 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="sdk"><a class="header" href="#sdk">SDK</a></h1>
+<p><a href="https://docs.rs/abstract-sdk"><img src="https://docs.rs/abstract-sdk/badge.svg" alt="" /></a> <a href="https://crates.io/crates/abstract-sdk"><img src="https://img.shields.io/crates/v/abstract-sdk" alt="" /></a></p>
+<p>Now that you’ve got your module set up you’re probably wondering how you can actually start programming. While you can create any regular smart-contract in a module, it’s not a use-case where our platform excels in. Instead we’ve created an <strong>account abstraction programming toolbox</strong> that allows you to easily control the Abstract Account, as well as <strong>create your own APIs</strong> that can be used by other developers to interact with your unique application. Composability galore!</p>
+<h2 id="how-it-works"><a class="header" href="#how-it-works">How it works</a></h2>
+<p>The <code>abstract-sdk</code> crate is a toolbox for developers to create composable smart-contract APIs. It allows you to use composed functionality with a few keystrokes through it’s combination of supertraits and blanket implementations. Supertraits are Rust traits that have one or multiple trait bounds while a blanket implementation is a Rust implementation that is automatically implemented for every object that meets the trait bounds. The Abstract SDK makes use of both to achieve its modular design.</p>
+<h3 id="features"><a class="header" href="#features">Features</a></h3>
+<p>Features are the lowest-level traits that are contained within the SDK and they don’t have any trait bounds. They generally act as data accessor traits. I.e. if a struct implements a feature it means that it has some way to get the information required by that feature.</p>
+<p>Here’s an example of such a feature:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use crate::{ans_resolve::Resolve, AbstractSdkResult};
+use abstract_core::objects::ans_host::AnsHost;
+use cosmwasm_std::Deps;
+
+/// Accessor to the Abstract Name Service.
+pub trait AbstractNameService: Sized {
+    /// Get the ANS host address.
+    fn ans_host(&amp;self, deps: Deps) -&gt; AbstractSdkResult&lt;AnsHost&gt;;
+
+    /// Construct the name service client.
+    fn name_service&lt;'a&gt;(&amp;'a self, deps: Deps&lt;'a&gt;) -&gt; AbstractNameServiceClient&lt;Self&gt; {
+        AbstractNameServiceClient {
+            _base: self,
+            deps,
+            host: self.ans_host(deps).unwrap(),
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Any structure that implements this traits has access to the Abstract Name Service, and thus has a way to resolve ANS entries. By composing these features it is possible to write advanced APIs that are automatically implemented on objects that support its required features.</p>
+<p>Now instead of letting you implement these traits yourself, we’ve already gone ahead and implemented them for the App and Adapter structs. Here’s the implementation for the App:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>impl&lt;
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    &gt; AbstractNameService
+    for AppContract&lt;
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    &gt;
+{
+    fn ans_host(&amp;self, deps: Deps) -&gt; AbstractSdkResult&lt;AnsHost&gt; {
+        // Retrieve the ANS host address from the base state.
+        Ok(self.base_state.load(deps.storage)?.ans_host)
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>So when you’re building your application the module struct already has the features and data required to do the basic abstract operations. With this we can start creating more advanced functionality.</p>
+<blockquote>
+<p>Other structs that implement a feature without being module bases are called <em>Feature Objects</em>.</p>
+</blockquote>
+<h3 id="apis"><a class="header" href="#apis">APIs</a></h3>
+<p>The Abstract API objects are structs that expose some smart-contract functionality and that can only be retrieved if a contract or feature-object implements the required features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and hence allows you to retrieve the API object.</p>
+<h4 id="example"><a class="header" href="#example">Example</a></h4>
+<p>The <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank"><code>Bank</code></a> API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a <code>Splitter</code> API that splits the transfer of some amount of funds between a set of receivers.</p>
+<pre><code class="language-rust ignore">#![allow(unused)]
+use crate::{AbstractSdkResult, TransferInterface};
+use abstract_core::objects::AnsAsset;
+use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
+
+// Trait to retrieve the Splitter object
+// Depends on the ability to transfer funds
+pub trait SplitterInterface: TransferInterface {
+    fn splitter&lt;'a&gt;(&amp;'a self, deps: Deps&lt;'a&gt;) -&gt; Splitter&lt;Self&gt; {
+        Splitter { base: self, deps }
+    }
+}
+
+// Implement for every object that can transfer funds
+impl&lt;T&gt; SplitterInterface for T where T: TransferInterface {}
+
+#[derive(Clone)]
+pub struct Splitter&lt;'a, T: SplitterInterface&gt; {
+    base: &amp;'a T,
+    deps: Deps&lt;'a&gt;,
+}
+
+impl&lt;'a, T: SplitterInterface&gt; Splitter&lt;'a, T&gt; {
+    /// Split an asset to multiple users
+    pub fn split(&amp;self, asset: AnsAsset, receivers: &amp;[Addr]) -&gt; AbstractSdkResult&lt;Vec&lt;CosmosMsg&gt;&gt; {
+        // split the asset between all receivers
+        let receives_each = AnsAsset {
+            amount: asset
+                .amount
+                .multiply_ratio(Uint128::one(), Uint128::from(receivers.len() as u128)),
+            ..asset
+        };
+
+        // Retrieve the bank API
+        let bank = self.base.bank(self.deps);
+        let transfer_msgs: AbstractSdkResult&lt;_&gt; = receivers
+            .iter()
+            .map(|receiver| {
+                // Construct the transfer message
+                bank.transfer(vec![&amp;receives_each], receiver)
+            })
+            .collect();
+
+        transfer_msgs
+    }
+}</code></pre>
+<p>These APIs can then be used by any contract that implements its required traits, in this case the <code>TransferInterface</code>.</p>
+<pre><pre class="playground"><code class="language-rust no_run"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span><span class="boring">use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
+</span><span class="boring">use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
+</span><span class="boring">use abstract_sdk::feature_objects::AnsHost;
+</span><span class="boring">use abstract_sdk::AbstractSdkResult;
+</span><span class="boring">pub struct MyContract {
+</span><span class="boring">    
+</span><span class="boring">}
+</span><span class="boring">impl AccountIdentification for MyContract {
+</span><span class="boring">    fn proxy_address(&amp;self, _deps: Deps) -&gt; AbstractSdkResult&lt;Addr&gt; {
+</span><span class="boring">        Ok(Addr::unchecked(&quot;just_an_example&quot;))
+</span><span class="boring">    }
+</span><span class="boring">}
+</span><span class="boring">impl ModuleIdentification for MyContract {
+</span><span class="boring">    fn module_id(&amp;self) -&gt; &amp;'static str { &quot;my_contract&quot; }
+</span><span class="boring">}
+</span><span class="boring">impl AbstractNameService for MyContract {
+</span><span class="boring">    fn ans_host(&amp;self, _deps: Deps) -&gt; AbstractSdkResult&lt;AnsHost&gt; {
+</span><span class="boring">        Ok(AnsHost{address: Addr::unchecked(&quot;just_an_example&quot;)})
+</span><span class="boring">    }
+</span><span class="boring">}
+</span>use abstract_sdk::TransferInterface;
+
+fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -&gt; AbstractSdkResult&lt;CosmosMsg&gt; {
+    // Construct the API object
+    let bank: Bank = my_contract.bank(deps);
+    // Use the API to deposit the coins
+    let send_deposit_to_vault_msg = bank.deposit_coins(message_info.funds)?;
+    Ok(send_deposit_to_vault_msg)
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="available-api-objects"><a class="header" href="#available-api-objects">Available API Objects</a></h3>
+<p>The following API objects are available in the Abstract SDK:</p>
+<ul>
+<li><a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html"><code>Bank</code></a></li>
+<li><a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html"><code>Executor</code></a></li>
+<li><a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.App.html"><code>App</code></a></li>
+<li><a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapter.html"><code>Adapter</code></a></li>
+</ul>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<p>Add <code>abstract-sdk</code> to your <code>Cargo.toml</code> by running:</p>
+<pre><code class="language-bash">cargo add abstract-sdk
+</code></pre>
+<p>Then import the prelude in your contract. This will ensure that you have access to all the traits which should help your IDE with auto-completion.</p>
+<pre><code class="language-rust ignore">use abstract_sdk::prelude::*;</code></pre>
 
                     </main>
 

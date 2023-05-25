@@ -9,8 +9,8 @@
 //! ```
 
 pub use crate::apis::{
-    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
-    version_registry::*,
+    accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
+    verify::*, version_registry::*,
 };
 
 #[cfg(feature = "stargate")]

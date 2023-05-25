@@ -15,7 +15,7 @@ use abstract_sdk::{
     },
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    Execution, OsVerification, Resolve,
+    AccountVerification, Execution, Resolve,
 };
 use cosmwasm_std::{
     to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,

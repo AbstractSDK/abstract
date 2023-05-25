@@ -1,11 +1,14 @@
+/// ANCHOR: ans
 use crate::{ans_resolve::Resolve, AbstractSdkResult};
 use abstract_core::objects::ans_host::AnsHost;
 use cosmwasm_std::Deps;
 
-/// Trait that enables Adapters that depend on the Abstract Name Service.
+/// Accessor to the Abstract Name Service.
 pub trait AbstractNameService: Sized {
+    /// Get the ANS host address.
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost>;
 
+    /// Construct the name service client.
     fn name_service<'a>(&'a self, deps: Deps<'a>) -> AbstractNameServiceClient<Self> {
         AbstractNameServiceClient {
             _base: self,
@@ -14,6 +17,7 @@ pub trait AbstractNameService: Sized {
         }
     }
 }
+/// ANCHOR_END: ans
 
 #[derive(Clone)]
 pub struct AbstractNameServiceClient<'a, T: AbstractNameService> {

@@ -17,10 +17,12 @@ use cosmwasm_std::{Addr, Deps};
 /// Implements [`AbstractRegistryAccess`]
 #[derive(Clone)]
 pub struct VersionControlContract {
+    /// Address of the version control contract
     pub address: Addr,
 }
 
 impl VersionControlContract {
+    /// Construct a new version control feature object.
     pub fn new(address: Addr) -> Self {
         Self { address }
     }
@@ -36,10 +38,12 @@ impl AbstractRegistryAccess for VersionControlContract {
 /// Implements [`AccountIdentification`].
 #[derive(Clone)]
 pub struct ProxyContract {
+    /// Address of the proxy contract
     pub contract_address: Addr,
 }
 
 impl ProxyContract {
+    /// Construct a new proxy contract feature object.
     pub fn new(address: Addr) -> Self {
         Self {
             contract_address: address,

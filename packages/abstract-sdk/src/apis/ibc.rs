@@ -12,6 +12,20 @@ use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
 
 /// Interact with other chains over IBC.
 pub trait IbcInterface: AccountIdentification {
+    /**
+        API for interacting with the Abstract IBC client.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+        ```
+    */
     fn ibc_client<'a>(&'a self, deps: Deps<'a>) -> IbcClient<Self> {
         IbcClient { base: self, deps }
     }
@@ -20,6 +34,20 @@ pub trait IbcInterface: AccountIdentification {
 impl<T> IbcInterface for T where T: AccountIdentification {}
 
 #[derive(Clone)]
+/**
+    API for interacting with the Abstract IBC client.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let ibc_client: IbcClient<MockModule>  = module.ibc_client(deps.as_ref());
+    ```
+*/
 pub struct IbcClient<'a, T: IbcInterface> {
     base: &'a T,
     deps: Deps<'a>,

@@ -1,3 +1,5 @@
+//! Mock module for API and feature testing
+
 use abstract_core::objects::dependency::StaticDependency;
 use abstract_testing::prelude::{TEST_MODULE_ID, TEST_PROXY};
 use cosmwasm_std::{Addr, Deps};
@@ -36,6 +38,7 @@ impl Dependencies for MockModule {
     }
 }
 
+/// Dependency on the mock module
 pub const TEST_MODULE_DEP: StaticDependency = StaticDependency::new(TEST_MODULE_ID, &[">1.0.0"]);
 /// Nonexistent module
 pub const FAKE_MODULE_ID: ModuleId = "fake_module";
@@ -45,14 +48,17 @@ pub const FAKE_MODULE_ID: ModuleId = "fake_module";
 pub struct MockModule {}
 
 impl MockModule {
+    /// mock constructor
     pub const fn new() -> Self {
         Self {}
     }
 }
 
+/// Mock module execute message
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleExecuteMsg {}
 
+/// Mock module query message
 #[cosmwasm_schema::cw_serde]
 pub struct MockModuleQueryMsg {}
 

@@ -1,9 +1,11 @@
+#![allow(missing_docs)]
 use core::{objects::AssetEntry, AbstractError};
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use std::fmt::{Display, Formatter};
 use thiserror::Error;
 
+/// Error type for the abstract module endpoints.
 #[derive(Error, Debug, PartialEq)]
 pub struct EndpointError {
     #[source]
@@ -16,7 +18,7 @@ impl Display for EndpointError {
         write!(f, "Error in {} - {}", self.module_id, self.source)
     }
 }
-
+/// Error type for the abstract sdk crate.
 #[derive(Error, Debug, PartialEq)]
 pub enum AbstractSdkError {
     #[error("Abstract Account error in the sdk: {0}")]

@@ -6,6 +6,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{Addr, Deps};
 
+// ANCHOR: ans
 impl<
         Error: ContractError,
         CustomInitMsg,
@@ -26,9 +27,11 @@ impl<
     >
 {
     fn ans_host(&self, deps: Deps) -> AbstractSdkResult<AnsHost> {
+        // Retrieve the ANS host address from the base state.
         Ok(self.base_state.load(deps.storage)?.ans_host)
     }
 }
+// ANCHOR_END: ans
 
 impl<
         Error: ContractError,

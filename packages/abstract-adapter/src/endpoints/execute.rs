@@ -11,7 +11,7 @@ use abstract_core::{
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
-    AbstractResponse, Execution, ModuleInterface, OsVerification,
+    AbstractResponse, AccountVerification, Execution, ModuleInterface,
 };
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;

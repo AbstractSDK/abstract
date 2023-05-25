@@ -3,11 +3,25 @@
 
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult, Execution};
 use core::objects::{AnsAsset, AssetEntry};
-use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 
 /// Query and Transfer assets from and to the Abstract Account.
 pub trait TransferInterface: AbstractNameService + Execution {
+    /**
+        API for transferring funds to and from the account.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+        ```
+    */
     fn bank<'a>(&'a self, deps: Deps<'a>) -> Bank<Self> {
         Bank { base: self, deps }
     }
@@ -15,6 +29,20 @@ pub trait TransferInterface: AbstractNameService + Execution {
 
 impl<T> TransferInterface for T where T: AbstractNameService + Execution {}
 
+/**
+    API for transferring funds to and from the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let bank: Bank<MockModule>  = module.bank(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Bank<'a, T: TransferInterface> {
     base: &'a T,
@@ -38,7 +66,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 
     /// Transfer the provided funds from the Account to the recipient.
-    /// ```rust
+    /// ```
     /// # use cosmwasm_std::{Addr, Response, Deps, DepsMut, MessageInfo};
     /// # use abstract_core::objects::AnsAsset;
     /// # use abstract_core::objects::ans_host::AnsHost;
@@ -104,6 +132,24 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map_err(Into::into)
     }
 
+    /// Withdraw funds from the Account to this contract.
+    pub fn withdraw<R: Transferable>(
+        &self,
+        env: &Env,
+        funds: Vec<R>,
+    ) -> AbstractSdkResult<Vec<CosmosMsg>> {
+        let recipient = &env.contract.address;
+        let transferable_funds = funds
+            .into_iter()
+            .map(|asset| asset.transferable_asset(self.base, self.deps))
+            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
+        transferable_funds
+            .iter()
+            .map(|asset| asset.transfer_msg(recipient.clone()))
+            .collect::<Result<Vec<CosmosMsg>, _>>()
+            .map_err(Into::into)
+    }
+
     /// Deposit coins into the Account
     pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
         let recipient = self.base.proxy_address(self.deps)?.into_string();
@@ -114,8 +160,9 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
     }
 }
 
-/// Transfer an asset into an actual transferable asset.
+/// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
 pub trait Transferable {
+    /// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
     fn transferable_asset<T: AbstractNameService>(
         self,
         base: &T,

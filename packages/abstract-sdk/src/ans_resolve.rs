@@ -11,7 +11,9 @@ use cw_asset::{Asset, AssetInfo};
 
 /// Resolve an [`AbstractNameService`](crate::features::AbstractNameService) entry into its value.
 pub trait Resolve {
+    /// Result of resolving an entry.
     type Output;
+    /// Resolve an entry into its value.
     fn resolve(
         &self,
         querier: &QuerierWrapper,

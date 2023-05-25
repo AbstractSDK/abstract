@@ -22,7 +22,7 @@ use abstract_sdk::{
         proxy::ExecuteMsg as ProxyMsg,
         IBC_CLIENT, MANAGER, PROXY,
     },
-    cw_helpers::cosmwasm_std::wasm_smart_query,
+    cw_helpers::wasm_smart_query,
     feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
@@ -33,7 +33,7 @@ use abstract_core::adapter::{
 };
 use abstract_core::manager::state::ACCOUNT_FACTORY;
 use abstract_core::manager::InternalConfigAction;
-use abstract_sdk::cw_helpers::cosmwasm_std::AbstractAttributes;
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,

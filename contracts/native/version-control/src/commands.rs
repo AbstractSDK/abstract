@@ -14,7 +14,7 @@ use abstract_sdk::{
         },
         version_control::{namespaces_info, state::*, AccountBase, Config},
     },
-    cw_helpers::cosmwasm_std::wasm_raw_query,
+    cw_helpers::wasm_raw_query,
 };
 
 use crate::contract::{VCResult, VcResponse, ABSTRACT_NAMESPACE};

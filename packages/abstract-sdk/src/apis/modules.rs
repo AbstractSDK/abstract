@@ -12,6 +12,20 @@ use cw2::{ContractVersion, CONTRACT};
 
 /// Interact with other modules on the Account.
 pub trait ModuleInterface: AccountIdentification + Dependencies {
+    /**
+        API for retrieving information about installed modules.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let modules: Modules<MockModule>  = module.modules(deps.as_ref());
+        ```
+    */
     fn modules<'a>(&'a self, deps: Deps<'a>) -> Modules<Self> {
         Modules { base: self, deps }
     }
@@ -19,6 +33,20 @@ pub trait ModuleInterface: AccountIdentification + Dependencies {
 
 impl<T> ModuleInterface for T where T: AccountIdentification + Dependencies {}
 
+/**
+    API for retrieving information about installed modules.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let modules: Modules<MockModule>  = module.modules(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Modules<'a, T: ModuleInterface> {
     base: &'a T,
@@ -54,6 +82,7 @@ impl<'a, T: ModuleInterface> Modules<'a, T> {
             .map_err(Into::into)
     }
 
+    /// Assert that a module is a dependency of this module.
     pub fn assert_module_dependency(&self, module_id: ModuleId) -> AbstractSdkResult<()> {
         let is_dependency = Dependencies::dependencies(self.base)
             .iter()

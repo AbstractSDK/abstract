@@ -1,24 +1,25 @@
-# Abstract SDK
+# Abstract Development Platform
 
+<!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
 ![SDK Background](./assets/docs_bg.png)
 
-Welcome to the Abstract documentation, your comprehensive guide to understanding and utilizing Abstract - the chain-agnostic CosmWasm framework that empowers developers to create, monetize, and deploy modular and scalable decentralized applications. This guide will walk you through essential concepts, key features, and real-world examples to help you harness the full potential of the Abstract ecosystem.
+Welcome to the Abstract documentation, your comprehensive guide to understanding and utilizing Abstract - the chain-agnostic CosmWasm development platform that empowers developers to create, monetize, and deploy modular and scalable decentralized applications. This guide will walk you through essential concepts, key features, and real-world examples to help you harness the full potential of the Abstract ecosystem.
 
 ## What is Abstract?
 
-Abstract is a cutting-edge smart contract framework designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It simplifies and streamlines the dApp development process by offering an extensive library of off-the-shelf modules and a custom SDK for seamless integration with popular tools and services.
+Abstract is a cutting-edge smart contract platform designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It provides the best full-stack development experience by simplifying and streamlining the dApp development process. It does this by offering high-quality tooling as well as an extensive library of integrations with popular tools and services. In combination with our on-chain smart-contract framework developers can create, test, and deploy dApps with ease.
 
 ## Key Features and Benefits
 
-- Modular Design: Abstract's modular architecture allows developers to choose from a curated library of modules or develop their own using the Abstract SDK, enabling rapid development and customization.
+- Chain-Agnostic: The Abstract platform is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.
 
-- Chain-Agnostic: Abstract is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.
+- Modular Design: Abstract's modular architecture allows developers to choose from a curated library of smart-contract or develop their own using the Abstract SDK, enabling rapid development and customization.
 
 - Custom Governance: Abstract allows developers to create custom governance structures tailored to their application's specific requirements, including integration with multi-signature wallets and DAOs.
 
-- Testing Infrastructure (cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.
+- Development Tooling [cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator): Abstract offers a vast integration testing library, enabling developers to quickly increase test coverage and ensure the reliability of their dApps.
 
-- Version Management: Abstract simplifies the process of upgrading installed modules, ensuring developers can quickly access new features and bug-fixes.
+- Version Management: Abstract simplifies the process of managing smart-contract versioning, ensuring developers can quickly release and access new features and bug-fixes.
 
 - Ecosystem Integrations: Abstract is designed to work seamlessly with popular projects and services in the Cosmos ecosystem, such as:
 
@@ -29,7 +30,7 @@ Abstract is a cutting-edge smart contract framework designed for the CosmWasm ec
 
 ### Reliable Development Funding
 
-Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer modules on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building modules and dApps, sharing profits among members. Furthermore, they can create modules based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality modules, offering developers a continuous income stream and promoting value for all parties involved.
+Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer smart contracts on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building smart contracts and dApps, sharing profits among members. Furthermore, they can create smart contracts based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting value for all parties involved.
 
 ## Use Cases and Examples
 

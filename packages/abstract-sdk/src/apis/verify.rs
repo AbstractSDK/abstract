@@ -8,22 +8,49 @@ use abstract_core::{
 use cosmwasm_std::{Addr, Deps};
 
 /// Verify if an addresses is associated with an Abstract Account.
-pub trait OsVerification: AbstractRegistryAccess {
-    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> OsRegistry<Self> {
-        OsRegistry { base: self, deps }
+pub trait AccountVerification: AbstractRegistryAccess {
+    /**
+        API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+        ```
+    */
+    fn account_registry<'a>(&'a self, deps: Deps<'a>) -> AccountRegistry<Self> {
+        AccountRegistry { base: self, deps }
     }
 }
 
-impl<T> OsVerification for T where T: AbstractRegistryAccess {}
+impl<T> AccountVerification for T where T: AbstractRegistryAccess {}
 
-/// Endpoint for Account address verification
+/**
+    API for querying and verifying a sender's identity in the context of Abstract Accounts.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let acc_registry: AccountRegistry<MockModule>  = module.account_registry(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
-pub struct OsRegistry<'a, T: OsVerification> {
+pub struct AccountRegistry<'a, T: AccountVerification> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: OsVerification> OsRegistry<'a, T> {
+impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
@@ -49,16 +76,19 @@ impl<'a, T: OsVerification> OsRegistry<'a, T> {
         }
     }
 
+    /// Get the proxy address for a given account id.
     pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.proxy)
     }
 
+    /// Get the manager address for a given account id.
     pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.manager)
     }
 
+    /// Get the account base for a given account id.
     pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,

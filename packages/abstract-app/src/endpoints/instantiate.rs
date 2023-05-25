@@ -8,7 +8,7 @@ use abstract_core::{
 };
 use abstract_sdk::{
     core::module_factory::{ContextResponse, QueryMsg as FactoryQuery},
-    cw_helpers::cosmwasm_std::wasm_smart_query,
+    cw_helpers::wasm_smart_query,
     feature_objects::AnsHost,
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};

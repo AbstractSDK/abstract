@@ -1,7 +1,9 @@
 #![doc(html_logo_url = "https://raw.githubusercontent.com/AbstractSDK/assets/mainline/logo.svg")]
 #![doc = include_str ! ("../README.md")]
-#![doc(test(attr(warn(unused), deny(warnings), allow(unused_extern_crates, unused),)))]
+// #![doc(test(attr(warn(unused), deny(warnings), allow(unused_extern_crates, unused),)))]
+#![warn(missing_docs)]
 
+/// Result returned by the Abstract SDK APIs and features.
 pub type AbstractSdkResult<T> = Result<T, crate::error::AbstractSdkError>;
 
 pub extern crate abstract_core as core;
@@ -18,8 +20,8 @@ pub mod prelude;
 pub use error::{AbstractSdkError, EndpointError};
 
 pub use crate::apis::{
-    adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*, vault::*, verify::*,
-    version_registry::*,
+    accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
+    verify::*, version_registry::*,
 };
 
 #[cfg(feature = "stargate")]

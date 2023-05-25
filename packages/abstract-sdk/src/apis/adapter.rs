@@ -7,6 +7,20 @@ use serde::{de::DeserializeOwned, Serialize};
 
 /// Interact with other modules on the Account.
 pub trait AdapterInterface: ModuleInterface {
+    /**
+        API for accessing Abstract Adapters installed on the account.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let adapter: Adapter<MockModule>  = module.adapters(deps.as_ref());
+        ```
+    */
     fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapter<Self> {
         Adapter { base: self, deps }
     }
@@ -14,6 +28,20 @@ pub trait AdapterInterface: ModuleInterface {
 
 impl<T> AdapterInterface for T where T: ModuleInterface {}
 
+/**
+    API for accessing Abstract Adapters installed on the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let adapter: Adapter<MockModule>  = module.adapters(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Adapter<'a, T: AdapterInterface> {
     base: &'a T,

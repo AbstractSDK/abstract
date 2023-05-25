@@ -8,6 +8,20 @@ use abstract_core::app as msg;
 
 /// Interact with other modules on the Account.
 pub trait AppInterface: ModuleInterface {
+    /**
+        API for accessing Abstract Apps installed on the account.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let app: App<MockModule>  = module.apps(deps.as_ref());
+        ```
+    */
     fn apps<'a>(&'a self, deps: Deps<'a>) -> App<Self> {
         App { base: self, deps }
     }
@@ -15,6 +29,20 @@ pub trait AppInterface: ModuleInterface {
 
 impl<T> AppInterface for T where T: ModuleInterface {}
 
+/**
+    API for accessing Abstract Apps installed on the account.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let app: App<MockModule>  = module.apps(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct App<'a, T: AppInterface> {
     base: &'a T,

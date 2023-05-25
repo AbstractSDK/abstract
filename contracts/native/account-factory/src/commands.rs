@@ -19,7 +19,7 @@ use abstract_sdk::{
         },
         AbstractResult, MANAGER, PROXY,
     },
-    cw_helpers::cosmwasm_std::wasm_smart_query,
+    cw_helpers::wasm_smart_query,
 };
 
 use crate::contract::AccountFactoryResponse;

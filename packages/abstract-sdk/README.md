@@ -4,25 +4,25 @@
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 
-This crate provides a set of modular Adapters for developers to use in their [CosmWasm](https://cosmwasm.com/)
+This crate provides a set of modular APIs for developers to use in their [CosmWasm](https://cosmwasm.com/)
 smart-contracts.
 
 ## Getting started
 
 To get started with the Abstract SDK you first need to understand the basic features that we provide and how you can use
-those features to create composable smart-contract Adapters.
+those features to create composable smart-contract APIs.
 
 ### Features
 
 Abstract features are traits that can be implemented on a struct. Depending on the use-case that struct can represent a
 smart-contract or it can be a simple struct that just implements a single feature. Each feature unlocks a function on
 the object
-which allows you to retrieve some information. By composing these features it is possible to write advanced Adapters
+which allows you to retrieve some information. By composing these features it is possible to write advanced APIs
 that are automatically implemented on objects that support its required features.
 
-### Adapters
+### APIs
 
-The Abstract Adapters are objects that can only be retrieved if a contract or feature-object implements the required
+The Abstract APIs are objects that can only be retrieved if a contract or feature-object implements the required
 features/api traits. If the trait constraints for the Adapter is met it is automatically implemented on the object and
 allows you to retrieve the Adapter object.
 
@@ -117,7 +117,7 @@ The available base contracts are:
 | Kind                                                   | Migratable | Installable |
 |--------------------------------------------------------|------------|-------------|
 | [App](https://crates.io/crates/abstract-app)           | ✅          | ✅           |
-| [API](https://crates.io/crates/abstract-adapter)       | ❌          | ✅           |
+| [Adapter](https://crates.io/crates/abstract-adapter)       | ❌          | ✅           |
 | [IBC-host](https://crates.io/crates/abstract-ibc-host) | ✅          | ❌           |
 
 Each base supports a set of endpoints that can accept custom handlers. These handlers can be added to the base using a static builder pattern.

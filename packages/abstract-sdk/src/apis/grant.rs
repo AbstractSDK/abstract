@@ -11,7 +11,22 @@ use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 use crate::AbstractSdkResult;
 
+/// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: Execution {
+    /**
+        API for accessing the Cosmos SDK FeeGrant module.
+
+        # Example
+        ```
+        use abstract_sdk::prelude::*;
+        # use cosmwasm_std::testing::mock_dependencies;
+        # use abstract_sdk::mock_module::MockModule;
+        # let module = MockModule::new();
+        # let deps = mock_dependencies();
+
+        let grant: Grant<MockModule> = module.grant(deps.as_ref());
+        ```
+    */
     fn grant<'a>(&'a self, deps: Deps<'a>) -> Grant<Self> {
         Grant { base: self, deps }
     }
@@ -19,6 +34,20 @@ pub trait GrantInterface: Execution {
 
 impl<T> GrantInterface for T where T: Execution {}
 
+/**
+    API for accessing the Cosmos SDK FeeGrant module.
+
+    # Example
+    ```
+    use abstract_sdk::prelude::*;
+    # use cosmwasm_std::testing::mock_dependencies;
+    # use abstract_sdk::mock_module::MockModule;
+    # let module = MockModule::new();
+    # let deps = mock_dependencies();
+
+    let grant: Grant<MockModule>  = module.grant(deps.as_ref());
+    ```
+*/
 #[derive(Clone)]
 pub struct Grant<'a, T: GrantInterface> {
     base: &'a T,
@@ -141,15 +170,27 @@ impl<'a, T: GrantInterface> Grant<'a, T> {
         self.base.executor(self.deps).execute(vec![msg])
     }
 }
+
+/// Details for a basic fee allowance grant
 pub struct BasicAllowance {
+    /// Maximum amount of tokens that can be spent
     pub spend_limit: Vec<Coin>,
+    /// When the grant expires
     pub expiration: Option<Timestamp>,
 }
 
+/// Details for a periodic fee allowance grant
 pub struct PeriodicAllowance {
+    /// period specifies the time duration in which period_spend_limit coins can
+    /// be spent before that allowance is reset
     pub period: Option<Duration>,
+    /// Maximum amount of tokens that can be spent per period
     pub period_spend_limit: Vec<Coin>,
+    /// period_can_spend is the number of coins left to be spent before the period_reset time
     pub period_can_spend: Vec<Coin>,
+    /// period_reset is the time at which this period resets and a new one begins,
+    /// it is calculated from the start time of the first transaction after the
+    /// last period ended
     pub period_reset: Option<Timestamp>,
 }
 

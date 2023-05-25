@@ -1,6 +1,7 @@
 use crate::{base::handler::Handler, AbstractSdkError};
 use cosmwasm_std::{DepsMut, Env, Response};
 
+/// Trait for a contract's Sudo entry point.
 pub trait SudoEndpoint: Handler {
     /// Handler for the Sudo endpoint.
     fn sudo(
