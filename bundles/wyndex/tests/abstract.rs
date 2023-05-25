@@ -1,8 +1,9 @@
 use cosmwasm_std::Addr;
 
 mod abstrct {
-    use abstract_boot::Abstract;
-    use abstract_boot::boot_core::{instantiate_default_mock_env, Deploy};
+    use cw_orch::mock::Mock;
+    use abstract_interface::Abstract;
+    use cw_orch::deploy::Deploy;
     use cosmwasm_std::Empty;
 
     use wyndex_bundle::{WynDex, WYNDEX_OWNER};
@@ -12,12 +13,12 @@ mod abstrct {
     #[test]
     fn deploy() {
         let owner = Addr::unchecked(WYNDEX_OWNER);
-        let (_state, mock) = instantiate_default_mock_env(&owner).unwrap();
+        let mock = Mock::new(&owner);
 
         Abstract::deploy_on(mock.clone(), "1.0.0".parse().unwrap()).unwrap();
 
         let deployed = WynDex::deploy_on(mock.clone(), Empty {}).unwrap();
-        let loaded = WynDex::load_from(mock.clone()).unwrap();
+        let loaded = WynDex::load_from(mock).unwrap();
 
         assert_eq!(deployed, loaded)
     }

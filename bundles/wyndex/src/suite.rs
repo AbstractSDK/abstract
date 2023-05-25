@@ -2,8 +2,7 @@
 use std::cell::RefMut;
 
 use anyhow::Result as AnyResult;
-
-use abstract_boot::boot_core::{Mock, StateInterface};
+use cw_orch::prelude::*;
 use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
@@ -675,7 +674,7 @@ impl Suite {
     ) -> AnyResult<AllStakedResponse> {
         let pair_info = self.query_pair(asset_infos)?;
         let staked: AllStakedResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::AllStaked {
                 address: address.to_owned(),
             },
@@ -691,7 +690,7 @@ impl Suite {
     ) -> AnyResult<u128> {
         let pair_info = self.query_pair(asset_infos)?;
         let staked: StakedResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::Staked {
                 address: address.to_owned(),
                 unbonding_period: self.unbonding_period_or_default(unbonding_period),
@@ -706,7 +705,7 @@ impl Suite {
     ) -> AnyResult<Vec<BondingPeriodInfo>> {
         let pair_info = self.query_pair(asset_infos)?;
         let info: BondingInfoResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::BondingInfo {},
         )?;
         Ok(info.bonding)
@@ -715,7 +714,7 @@ impl Suite {
     pub fn query_total_staked(&self, asset_infos: Vec<AssetInfo>) -> AnyResult<u128> {
         let pair_info = self.query_pair(asset_infos)?;
         let total_staked: TotalStakedResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::TotalStaked {},
         )?;
         Ok(total_staked.total_staked.u128())
@@ -728,7 +727,7 @@ impl Suite {
     ) -> AnyResult<Vec<Claim>> {
         let pair_info = self.query_pair(asset_infos)?;
         let claims: ClaimsResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::Claims {
                 address: address.to_owned(),
             },
@@ -743,7 +742,7 @@ impl Suite {
     ) -> AnyResult<Vec<(UnbondingPeriod, Vec<AnnualizedReward>)>> {
         let pair_info = self.query_pair(asset_infos)?;
         let apr: AnnualizedRewardsResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::AnnualizedRewards {},
         )?;
         Ok(apr.rewards)
@@ -756,7 +755,7 @@ impl Suite {
     ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
         let pair_info = self.query_pair(asset_infos)?;
         let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::RewardsPower {
                 address: address.to_owned(),
             },
@@ -776,7 +775,7 @@ impl Suite {
     ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
         let pair_info = self.query_pair(asset_infos)?;
         let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr.clone(),
+            pair_info.staking_addr,
             &StakeQueryMsg::TotalRewardsPower {},
         )?;
 

@@ -8,8 +8,8 @@ use wyndex_stake::msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedR
 use wyndex_stake::state::Config as WyndexStakeConfig;
 
 mod staking {
-    use abstract_boot::boot_core::instantiate_default_mock_env;
-    use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
+    use cw_orch::mock::Mock;
+use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
     use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
 
     use super::*;
@@ -22,7 +22,7 @@ mod staking {
         let liquidity_provider = Addr::unchecked("liquidity_provider");
         let owner = Addr::unchecked(WYNDEX_OWNER);
 
-        let (_state, mock) = instantiate_default_mock_env(&liquidity_provider).unwrap();
+        let mock = Mock::new(&liquidity_provider);
 
         mock.set_balance(
             &liquidity_provider,
@@ -123,7 +123,7 @@ mod staking {
         let uluna_info = AssetInfo::Native(uluna.to_string());
 
         let liquidity_provider = Addr::unchecked("liquidity_provider");
-        let (_state, mock) = instantiate_default_mock_env(&liquidity_provider).unwrap();
+        let mock = Mock::new(&liquidity_provider);
 
         let mut suite = SuiteBuilder::new().build(&mock);
 
@@ -145,7 +145,7 @@ mod staking {
                 .app()
                 .wrap()
                 .query_wasm_raw(
-                    &pair_info.staking_addr,
+                    pair_info.staking_addr,
                     wyndex_pair::state::CONFIG.as_slice(),
                 )
                 .unwrap()
@@ -173,7 +173,7 @@ mod staking {
         let owner = Addr::unchecked(WYNDEX_OWNER);
         let user = Addr::unchecked("user");
 
-        let (_state, mock) = instantiate_default_mock_env(&owner).unwrap();
+        let mock = Mock::new(&owner);
         mock.set_balance(
             &user,
             vec![
