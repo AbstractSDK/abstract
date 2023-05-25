@@ -1,8 +1,8 @@
 use crate::msg::*;
 use abstract_core::app::MigrateMsg;
 use abstract_interface::AppDeployer;
+use cw_orch::interface;
 use cw_orch::prelude::*;
-use cw_orch::{contract::Contract, interface};
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
 pub struct Template<Chain>;
@@ -27,10 +27,5 @@ impl<Chain: CwEnv> Uploadable for Template<Chain> {
     }
 }
 
-impl<Chain: CwEnv> AppDeployer<Chain> for Template<Chain> {}
-
-impl<Chain: CwEnv> Template<Chain> {
-    pub fn new(name: &str, chain: Chain) -> Self {
-        Self(Contract::new(name, chain))
-    }
-}
+// Custom Abstract deployer trait, TODO: fix this
+// impl<Chain: CwEnv> AppDeployer<Chain> for Template<Chain> {}
