@@ -9,7 +9,7 @@ use wyndex_stake::state::Config as WyndexStakeConfig;
 
 mod staking {
     use cw_orch::mock::Mock;
-use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
+    use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
     use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
 
     use super::*;

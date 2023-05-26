@@ -6,18 +6,16 @@ use cw_orch::deploy::Deploy;
 use std::fmt::Debug;
 
 use self::suite::{Suite, SuiteBuilder};
-use abstract_interface::{
-    Abstract,
-};
-use cw_orch::prelude::*;
 use abstract_core::{
     ans_host::ExecuteMsgFns,
     objects::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
+use abstract_interface::Abstract;
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use cw20::Cw20Coin;
+use cw_orch::prelude::*;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::{DefaultStakeConfig, PartialStakeConfig},
@@ -269,7 +267,11 @@ impl Deploy<Mock> for WynDex {
         state.set_address(RAW_EUR_PAIR, &raw_eur_pair);
 
         // set allowance
-        raw.call_as(&owner).increase_allowance(10_000u128.into(), raw_eur_pair.to_string(), None)?;
+        raw.call_as(&owner).increase_allowance(
+            10_000u128.into(),
+            raw_eur_pair.to_string(),
+            None,
+        )?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
@@ -343,13 +345,12 @@ impl Deploy<Mock> for WynDex {
             eur_usd_staking: state.get_address(EUR_USD_STAKE)?,
         })
     }
-    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> { 
+    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> {
         vec![
             Box::new(&mut self.eur_usd_lp),
             Box::new(&mut self.wynd_eur_lp),
             Box::new(&mut self.raw_token),
             Box::new(&mut self.raw_eur_lp),
-
         ]
     }
 }

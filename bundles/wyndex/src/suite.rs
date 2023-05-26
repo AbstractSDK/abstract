@@ -2,10 +2,10 @@
 use std::cell::RefMut;
 
 use anyhow::Result as AnyResult;
-use cw_orch::prelude::*;
 use cosmwasm_schema::serde::Serialize;
 use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
+use cw_orch::prelude::*;
 
 use cw_multi_test::{App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg};
 
@@ -704,19 +704,19 @@ impl Suite {
         asset_infos: Vec<AssetInfo>,
     ) -> AnyResult<Vec<BondingPeriodInfo>> {
         let pair_info = self.query_pair(asset_infos)?;
-        let info: BondingInfoResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr,
-            &StakeQueryMsg::BondingInfo {},
-        )?;
+        let info: BondingInfoResponse = self
+            .app()
+            .wrap()
+            .query_wasm_smart(pair_info.staking_addr, &StakeQueryMsg::BondingInfo {})?;
         Ok(info.bonding)
     }
 
     pub fn query_total_staked(&self, asset_infos: Vec<AssetInfo>) -> AnyResult<u128> {
         let pair_info = self.query_pair(asset_infos)?;
-        let total_staked: TotalStakedResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr,
-            &StakeQueryMsg::TotalStaked {},
-        )?;
+        let total_staked: TotalStakedResponse = self
+            .app()
+            .wrap()
+            .query_wasm_smart(pair_info.staking_addr, &StakeQueryMsg::TotalStaked {})?;
         Ok(total_staked.total_staked.u128())
     }
 
@@ -741,10 +741,10 @@ impl Suite {
         asset_infos: Vec<AssetInfo>,
     ) -> AnyResult<Vec<(UnbondingPeriod, Vec<AnnualizedReward>)>> {
         let pair_info = self.query_pair(asset_infos)?;
-        let apr: AnnualizedRewardsResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr,
-            &StakeQueryMsg::AnnualizedRewards {},
-        )?;
+        let apr: AnnualizedRewardsResponse = self
+            .app()
+            .wrap()
+            .query_wasm_smart(pair_info.staking_addr, &StakeQueryMsg::AnnualizedRewards {})?;
         Ok(apr.rewards)
     }
 
@@ -774,10 +774,10 @@ impl Suite {
         asset_infos: Vec<AssetInfo>,
     ) -> AnyResult<Vec<(AssetInfoValidated, u128)>> {
         let pair_info = self.query_pair(asset_infos)?;
-        let rewards: RewardsPowerResponse = self.app().wrap().query_wasm_smart(
-            pair_info.staking_addr,
-            &StakeQueryMsg::TotalRewardsPower {},
-        )?;
+        let rewards: RewardsPowerResponse = self
+            .app()
+            .wrap()
+            .query_wasm_smart(pair_info.staking_addr, &StakeQueryMsg::TotalRewardsPower {})?;
 
         Ok(rewards
             .rewards
