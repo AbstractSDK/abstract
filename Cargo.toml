@@ -1,6 +1,6 @@
 [workspace]
 members = ["contracts/*"]
-exclude=["contracts/lsd"]
+exclude = ["contracts/lsd"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -33,8 +33,12 @@ cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.0.1"
 cw2 = { version = "1.0.1" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features=["interface"], branch="update/change_macro_name" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features=["interface"], branch="update/change_macro_name"}
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+], branch = "update/change_macro_name" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+], branch = "update/change_macro_name" }
 # wait for my pr to be merged
 cw-asset = { version = "3.0" }
 schemars = "0.8"
@@ -45,21 +49,21 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator.git" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" }
 
 tokio = { version = "1.4", features = ["full"] }
 
 abstract-testing = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-adapter = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
 
 ## Testing
 rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
-wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git", branch="update/adapt-cw-orch" }
+wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git", branch = "update/adapt-cw-orch" }
 
 
 [profile.release]
