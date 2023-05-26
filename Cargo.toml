@@ -37,14 +37,14 @@ cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
 cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator.git" }
 
-abstract-macros = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-ica = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-app = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-api = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
-abstract-ibc-host = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/build-export" }
+abstract-macros = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-ica = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-core = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-app = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-api = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-ibc-host = { git = "https://github.com/AbstractSDK/contracts"}
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
