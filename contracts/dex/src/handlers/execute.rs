@@ -1,10 +1,9 @@
-use crate::error::DexError;
+use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
-use crate::{
-    contract::{DexAdapter, DexResult},
-    state::SWAP_FEE,
-};
+use abstract_dex_adapter_traits::error::DexError;
+use abstract_dex_adapter_traits::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
+use abstract_dex_adapter_traits::state::SWAP_FEE;
+
 use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::AnsAsset;
@@ -72,7 +71,7 @@ fn handle_local_request(
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) = crate::traits::adapter::DexAdapter::resolve_dex_action(
+    let (msgs, _) = abstract_dex_adapter_traits::DexAdapter::resolve_dex_action(
         &adapter,
         deps.as_ref(),
         action,

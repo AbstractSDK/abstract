@@ -1,9 +1,7 @@
-use crate::traits::identity::Identify;
-use crate::{
-    error::DexError,
-    traits::command::{DexCommand, Fee, FeeOnInput, Return, Spread},
-    util::{coins_in_assets, cw_approve_msgs},
-};
+use abstract_adapter_utils::{coins_in_assets, cw_approve_msgs, Identify};
+use abstract_dex_adapter_traits::command::{DexCommand, Fee, FeeOnInput, Return, Spread};
+use abstract_dex_adapter_traits::error::DexError;
+
 use abstract_core::objects::PoolAddress;
 use abstract_sdk::cw_helpers::wasm_smart_query;
 use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};
@@ -22,13 +20,6 @@ impl Identify for WynDex {
     fn over_ibc(&self) -> bool {
         false
     }
-}
-
-/// This structure describes a CW20 hook message.
-#[cosmwasm_schema::cw_serde]
-pub enum StubCw20HookMsg {
-    /// Withdraw liquidity from the pool
-    WithdrawLiquidity {},
 }
 
 impl DexCommand for WynDex {

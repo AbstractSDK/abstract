@@ -1,10 +1,9 @@
-#[cfg(feature = "osmosis")]
-use crate::error::DexError;
 #[allow(unused_imports)]
-use crate::traits::{
-    command::{DexCommand, Fee, FeeOnInput, Return, Spread},
-    identity::Identify,
-};
+use abstract_adapter_utils::Identify;
+#[cfg(feature = "osmosis")]
+use abstract_dex_adapter_traits::command::{DexCommand, Fee, FeeOnInput, Return, Spread};
+#[cfg(feature = "osmosis")]
+use abstract_dex_adapter_traits::error::DexError;
 use cosmwasm_std::Addr;
 
 #[cfg(feature = "osmosis")]
