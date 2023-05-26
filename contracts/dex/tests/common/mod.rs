@@ -1,7 +1,7 @@
 pub const ROOT_USER: &str = "root_user";
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AccountFactory;
-use abstract_core::objects::gov_type::GovernanceDetails;
 
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;

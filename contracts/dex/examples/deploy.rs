@@ -1,6 +1,5 @@
-
-use abstract_interface::AdapterDeployer;
 use abstract_dex_adapter::cw_orch::DexAdapter;
+use abstract_interface::AdapterDeployer;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
 
@@ -9,8 +8,6 @@ use cw_orch::daemon::networks::parse_network;
 use abstract_dex_adapter::{msg::DexInstantiateMsg, EXCHANGE};
 use cosmwasm_std::Decimal;
 use semver::Version;
-
-
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

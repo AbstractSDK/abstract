@@ -2,9 +2,9 @@
 //!
 //! `abstract_core::tendermint_staking` exposes all the function of [`cosmwasm_std::CosmosMsg::Staking`] and [`cosmwasm_std::CosmosMsg::Distribution`].
 
-use cosmwasm_std::Empty;
 use abstract_core::adapter;
 use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Empty;
 use cosmwasm_std::Uint128;
 
 pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;

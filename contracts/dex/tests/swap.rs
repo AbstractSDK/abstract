@@ -1,18 +1,18 @@
-use cw20_base::msg::QueryMsgFns;
-use cw20::msg::Cw20ExecuteMsgFns;
 use abstract_interface::AdapterDeployer;
+use cw20::msg::Cw20ExecuteMsgFns;
+use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
 mod common;
 
-use abstract_interface::AbstractAccount;
-use abstract_interface::Abstract;
 use abstract_dex_adapter::{cw_orch::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_interface::Abstract;
+use abstract_interface::AbstractAccount;
 use common::create_default_account;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 
+use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
-use cw_orch::prelude::*;
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,

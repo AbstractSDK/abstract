@@ -1,13 +1,13 @@
-use cw_orch::daemon::ChainInfo;
 use abstract_interface::AdapterDeployer;
-use abstract_interface::VCExecFns;
-use cw_orch::prelude::ContractInstance;
-use cw_orch::daemon::DaemonBuilder;
 use abstract_interface::AnsHost;
+use abstract_interface::VCExecFns;
+use cw_orch::daemon::ChainInfo;
+use cw_orch::daemon::DaemonBuilder;
+use cw_orch::prelude::ContractInstance;
 
-use abstract_interface::VersionControl;
 use abstract_cw_staking::cw_orch::CwStakingAdapter;
 use abstract_cw_staking::CW_STAKING;
+use abstract_interface::VersionControl;
 use abstract_sdk::core::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
@@ -15,9 +15,6 @@ use abstract_sdk::core::{
 };
 use cosmwasm_std::{Addr, Empty};
 use semver::Version;
-
-
-
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 

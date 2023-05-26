@@ -18,17 +18,17 @@ pub mod host_staking {
 
 #[cfg(feature = "cw-orch")]
 pub mod cw_orch {
-    use abstract_interface::AbstractInterfaceError;
-    use abstract_interface::Manager;
-    use abstract_interface::AdapterDeployer;
-    use cw_orch::contract::Contract;
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING;
     use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_core::{adapter, MANAGER};
+    use abstract_interface::AbstractInterfaceError;
+    use abstract_interface::AdapterDeployer;
+    use abstract_interface::Manager;
     use cosmwasm_std::{Addr, Empty};
-    use cw_orch::prelude::*;
+    use cw_orch::contract::Contract;
     use cw_orch::interface;
+    use cw_orch::prelude::*;
 
     /// Contract wrapper for interacting with BOOT
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
@@ -36,16 +36,13 @@ pub mod cw_orch {
 
     impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for CwStakingAdapter<Chain> {}
 
-
     impl<Chain: CwEnv> Uploadable for CwStakingAdapter<Chain> {
         fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
-            Box::new(
-                ContractWrapper::new_with_empty(
-                    crate::contract::execute,
-                    crate::contract::instantiate,
-                    crate::contract::query,
-                )
-            )
+            Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            ))
         }
         fn wasm(&self) -> WasmPath {
             artifacts_dir_from_workspace!()
@@ -54,14 +51,11 @@ pub mod cw_orch {
         }
     }
 
-
-
     /// implement chain-generic functions
     impl<Chain: CwEnv> CwStakingAdapter<Chain>
     where
         TxResponse<Chain>: IndexResponse,
     {
-
         pub fn load(chain: Chain, addr: &Addr) -> Self {
             Self(Contract::new(CW_STAKING, chain).with_address(Some(addr)))
         }

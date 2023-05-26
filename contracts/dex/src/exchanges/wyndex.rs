@@ -1,4 +1,3 @@
-use abstract_sdk::cw_helpers::wasm_smart_query;
 use crate::traits::identity::Identify;
 use crate::{
     error::DexError,
@@ -6,6 +5,7 @@ use crate::{
     util::{coins_in_assets, cw_approve_msgs},
 };
 use abstract_core::objects::PoolAddress;
+use abstract_sdk::cw_helpers::wasm_smart_query;
 use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};
 use cw20::Cw20ExecuteMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoBase};

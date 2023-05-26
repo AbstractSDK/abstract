@@ -19,18 +19,18 @@ pub mod host_exchange {
 
 #[cfg(feature = "cw-orch")]
 pub mod cw_orch {
-    use abstract_interface::AbstractInterfaceError;
-use abstract_interface::Manager;
-    use abstract_interface::AdapterDeployer;
     use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
+    use abstract_interface::AbstractInterfaceError;
+    use abstract_interface::AdapterDeployer;
+    use abstract_interface::Manager;
+    use cosmwasm_std::{Decimal, Empty};
     use cw_orch::interface;
     use cw_orch::prelude::*;
-    use cosmwasm_std::{Decimal, Empty};
 
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexAdapter<Chain>;
@@ -40,13 +40,11 @@ use abstract_interface::Manager;
 
     impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
         fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
-            Box::new(
-                ContractWrapper::new_with_empty(
-                    crate::contract::execute,
-                    crate::contract::instantiate,
-                    crate::contract::query,
-                )
-            )
+            Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            ))
         }
         fn wasm(&self) -> WasmPath {
             artifacts_dir_from_workspace!()
@@ -55,8 +53,7 @@ use abstract_interface::Manager;
         }
     }
 
-
-    impl<Chain: CwEnv> DexAdapter<Chain>{
+    impl<Chain: CwEnv> DexAdapter<Chain> {
         /// Swap using Abstract's OS (registered in daemon_state).
         pub fn swap(
             &self,
