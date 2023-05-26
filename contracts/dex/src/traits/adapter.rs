@@ -5,7 +5,7 @@ use crate::state::SWAP_FEE;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::cw_helpers::fees::Chargeable;
+use abstract_sdk::cw_helpers::Chargeable;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};

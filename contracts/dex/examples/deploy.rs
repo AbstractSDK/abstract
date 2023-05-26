@@ -1,21 +1,23 @@
-use abstract_boot::AdapterDeployer;
 
-use abstract_boot::boot_core::networks::{parse_network, NetworkInfo};
-use abstract_boot::boot_core::*;
-use abstract_dex_adapter::{boot::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_interface::AdapterDeployer;
+use abstract_dex_adapter::cw_orch::DexAdapter;
+use cw_orch::daemon::ChainInfo;
+use cw_orch::daemon::DaemonBuilder;
+
+use cw_orch::daemon::networks::parse_network;
+
+use abstract_dex_adapter::{msg::DexInstantiateMsg, EXCHANGE};
 use cosmwasm_std::Decimal;
 use semver::Version;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
+
+
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn deploy_dex(network: NetworkInfo) -> anyhow::Result<()> {
+fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
-    let mut dex = DexAdapter::new(EXCHANGE, chain);
+    let chain = DaemonBuilder::default().chain(network).build()?;
+    let dex = DexAdapter::new(EXCHANGE, chain);
     dex.deploy(
         version,
         DexInstantiateMsg {

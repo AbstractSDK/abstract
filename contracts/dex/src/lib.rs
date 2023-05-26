@@ -17,45 +17,53 @@ pub mod host_exchange {
     pub use super::exchanges::osmosis::Osmosis;
 }
 
-#[cfg(feature = "boot")]
-pub mod boot {
+#[cfg(feature = "cw-orch")]
+pub mod cw_orch {
+    use abstract_interface::AbstractInterfaceError;
+use abstract_interface::Manager;
+    use abstract_interface::AdapterDeployer;
     use crate::{msg::*, EXCHANGE};
-    use abstract_boot::boot_core::ContractWrapper;
-    use abstract_boot::boot_core::{contract, Contract, ContractInstance, CwEnv};
-    use abstract_boot::{AbstractBootError, AdapterDeployer, Manager};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
+    use cw_orch::interface;
+    use cw_orch::prelude::*;
     use cosmwasm_std::{Decimal, Empty};
 
-    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
     pub struct DexAdapter<Chain>;
 
     // Implement deployer trait
     impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
-    impl<Chain: CwEnv> DexAdapter<Chain> {
-        pub fn new(name: &str, chain: Chain) -> Self {
-            Self(
-                Contract::new(name, chain)
-                    .with_wasm_path("abstract_dex_adapter")
-                    .with_mock(Box::new(ContractWrapper::new_with_empty(
-                        crate::contract::execute,
-                        crate::contract::instantiate,
-                        crate::contract::query,
-                    ))),
+    impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
+        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+            Box::new(
+                ContractWrapper::new_with_empty(
+                    crate::contract::execute,
+                    crate::contract::instantiate,
+                    crate::contract::query,
+                )
             )
         }
+        fn wasm(&self) -> WasmPath {
+            artifacts_dir_from_workspace!()
+                .find_wasm_path("abstract_dex_adapter")
+                .unwrap()
+        }
+    }
 
+
+    impl<Chain: CwEnv> DexAdapter<Chain>{
         /// Swap using Abstract's OS (registered in daemon_state).
         pub fn swap(
             &self,
             offer_asset: (&str, u128),
             ask_asset: &str,
             dex: String,
-        ) -> Result<(), AbstractBootError> {
+        ) -> Result<(), AbstractInterfaceError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);

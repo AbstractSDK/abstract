@@ -90,8 +90,8 @@ pub enum SwapRouter {
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "boot", derive(boot_core::QueryFns))]
-#[cfg_attr(feature = "boot", impl_into(QueryMsg))]
+#[cfg_attr(feature = "cw-orch", derive(cw_orch::QueryFns))]
+#[cfg_attr(feature = "cw-orch", impl_into(QueryMsg))]
 pub enum DexQueryMsg {
     #[returns(SimulateSwapResponse)]
     SimulateSwap {

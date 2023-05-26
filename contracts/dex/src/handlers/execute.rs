@@ -9,7 +9,7 @@ use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{IbcInterface, OsVerification, Resolve};
+use abstract_sdk::{IbcInterface, Resolve, AccountVerification};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 const ACTION_RETRIES: u8 = 3;
