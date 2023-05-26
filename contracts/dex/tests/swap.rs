@@ -6,7 +6,7 @@ use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
 mod common;
 
-use abstract_dex_adapter::{cw_orch::DexAdapter};
+use abstract_dex_adapter::cw_orch::DexAdapter;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use common::create_default_account;
