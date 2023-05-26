@@ -29,22 +29,26 @@ keywords = ["integration", "testing", "CosmWasm"]
 cosmwasm-std = { version = "1.1.9" }
 cosmwasm-schema = { version = "1.1.9" }
 cw-storage-plus = "1.0.1"
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features=["interface"], branch="update/change_macro_name" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features=["interface"], branch="update/change_macro_name" }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+], branch = "update/change_macro_name" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+], branch = "update/change_macro_name" }
 
 cw-asset = { version = "3.0" }
 
 cw-semver = { version = "1.0" }
-cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator.git" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" }
 
-abstract-macros = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-ica = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-core = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-app = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-api = { git = "https://github.com/AbstractSDK/contracts"}
-abstract-ibc-host = { git = "https://github.com/AbstractSDK/contracts"}
+abstract-macros = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-ica = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-app = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-api = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-ibc-host = { git = "https://github.com/AbstractSDK/contracts" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
