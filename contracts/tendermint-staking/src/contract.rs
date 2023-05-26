@@ -32,19 +32,22 @@ pub fn handle_request(
 ) -> TendermintStakeResult {
     let executor = adapter.executor(deps.as_ref());
     let msg = match msg {
-        TendermintStakingExecuteMsg::Delegate { validator, amount } => {
-            executor.execute(vec![delegate_to(&deps.querier, &validator, amount.u128())?])
-        }
+        TendermintStakingExecuteMsg::Delegate { validator, amount } => executor.execute(vec![
+            delegate_to(&deps.querier, &validator, amount.u128())?.into(),
+        ]),
         TendermintStakingExecuteMsg::UndelegateFrom { validator, amount } => {
             let undelegate_msg = match amount {
                 Some(amount) => undelegate_from(&deps.querier, &validator, amount.u128())?,
                 None => undelegate_all_from(&deps.querier, adapter.target()?, &validator)?,
             };
-            executor.execute(vec![undelegate_msg])
+            executor.execute(vec![undelegate_msg.into()])
         }
-        TendermintStakingExecuteMsg::UndelegateAll {} => {
-            executor.execute(undelegate_all(&deps.querier, adapter.target()?)?)
-        }
+        TendermintStakingExecuteMsg::UndelegateAll {} => executor.execute(
+            undelegate_all(&deps.querier, adapter.target()?)?
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        ),
 
         TendermintStakingExecuteMsg::Redelegate {
             source_validator,
@@ -65,20 +68,24 @@ pub fn handle_request(
                     adapter.target()?,
                 )?,
             };
-            executor.execute(vec![redelegate_msg])
+            executor.execute(vec![redelegate_msg.into()])
         }
         TendermintStakingExecuteMsg::SetWithdrawAddress {
             new_withdraw_address,
         } => executor.execute(vec![update_withdraw_address(
             deps.api,
             &new_withdraw_address,
-        )?]),
+        )?
+        .into()]),
         TendermintStakingExecuteMsg::WithdrawDelegatorReward { validator } => {
-            executor.execute(vec![withdraw_rewards(&validator)])
+            executor.execute(vec![withdraw_rewards(&validator).into()])
         }
-        TendermintStakingExecuteMsg::WithdrawAllRewards {} => {
-            executor.execute(withdraw_all_rewards(&deps.querier, adapter.target()?)?)
-        }
+        TendermintStakingExecuteMsg::WithdrawAllRewards {} => executor.execute(
+            withdraw_all_rewards(&deps.querier, adapter.target()?)?
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+        ),
     }?;
     Ok(Response::new().add_message(msg))
 }
