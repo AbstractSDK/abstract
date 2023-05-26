@@ -3,10 +3,10 @@ use abstract_dex_adapter_traits::{command::DexCommand, error::DexError};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
-pub use crate::exchanges::{
-    junoswap::{JunoSwap, JUNOSWAP},
-    wyndex::{WynDex, WYNDEX},
-};
+pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+
+#[cfg(feature = "juno")]
+pub use wyndex::abstract_adapter::{WynDex, WYNDEX};
 
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};

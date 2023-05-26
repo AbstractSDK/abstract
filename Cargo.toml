@@ -79,3 +79,8 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
+
+# Need this, otherwise, we have multiple origin for the abstract adapters repo (change the dependency when ready to release here)
+[patch."https://github.com/AbstractSDK/adapters"]
+abstract-adapter-utils = { path = "packages/utils" }
+abstract-dex-adapter-traits = { path = "packages/dex" }
