@@ -31,7 +31,7 @@ allows you to retrieve the Adapter object.
 The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) Adapter allows developers to transfer assets from and to the Account through their module object. We now want to use this Adapter to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,no_run
-use abstract_sdk::{TransferInterface,AbstractSdkResult};
+use abstract_sdk::{TransferInterface,AbstractSdkResult, Execution, AccountAction};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
 
@@ -54,7 +54,7 @@ pub struct Splitter<'a, T: SplitterInterface> {
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<AccountAction> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -65,15 +65,19 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
         // Retrieve the bank API
         let bank = self.base.bank(self.deps);
-        let transfer_msgs: AbstractSdkResult<_> = receivers
+        receivers
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .collect();
-
-        transfer_msgs
+            .try_fold(AccountAction::new(), |mut acc, v| match v {
+                Ok(action) => {
+                    acc.merge(action);
+                    Ok(acc)
+                }
+                Err(e) => Err(e),
+            })
     }
 }
 ```
@@ -84,7 +88,7 @@ The API can then be used by any contract that implements its required traits, in
   # use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
-  # use abstract_sdk::AbstractSdkResult;
+  # use abstract_sdk::{AbstractSdkResult};
   # pub struct MyContract {
   #     
   # }
@@ -104,8 +108,9 @@ The API can then be used by any contract that implements its required traits, in
   use abstract_sdk::TransferInterface;
 
   fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<CosmosMsg> {
-      let send_deposit_to_vault_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
-      Ok(send_deposit_to_vault_msg)
+      let forward_deposit_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
+
+      Ok(forward_deposit_msg)
   }
 ```
 

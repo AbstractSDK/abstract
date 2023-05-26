@@ -133,7 +133,7 @@ mod test {
             .unwrap(),
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to(expected);
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that a host_action can be built with a callback with more retries
@@ -172,7 +172,7 @@ mod test {
             funds: vec![],
         });
 
-        assert_that!(actual.unwrap()).is_equal_to(expected);
+        assert_that!(actual.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 
     /// Tests that the ics_20 transfer can be built and that the funds are passed into the sendFunds message not the execute message
@@ -199,6 +199,6 @@ mod test {
             // ensure empty
             funds: vec![],
         });
-        assert_that!(msg.unwrap()).is_equal_to(expected);
+        assert_that!(msg.unwrap()).is_equal_to::<CosmosMsg>(expected);
     }
 }

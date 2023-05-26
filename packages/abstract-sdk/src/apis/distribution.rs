@@ -2,17 +2,19 @@
 //! Interacts with the distribution module of cosmos
 //!
 
+use crate::features::AccountIdentification;
 use cosmos_sdk_proto::{
     cosmos::{base, distribution},
     traits::Message,
 };
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg};
 
-use crate::{AbstractSdkResult, Execution};
+use crate::AbstractSdkResult;
+use crate::AccountAction;
 
 /// Interact with the Cosmos SDK Distribution module.
 /// Requires `Stargate` feature.
-pub trait DistributionInterface: Execution {
+pub trait DistributionInterface: AccountIdentification {
     /**
         API for accessing the Cosmos SDK distribution module.
 
@@ -22,17 +24,16 @@ pub trait DistributionInterface: Execution {
         # use cosmwasm_std::testing::mock_dependencies;
         # use abstract_sdk::mock_module::MockModule;
         # let module = MockModule::new();
-        # let deps = mock_dependencies();
 
-        let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
+        let distr: Distribution  = module.distribution();
         ```
     */
-    fn distribution<'a>(&'a self, deps: Deps<'a>) -> Distribution<Self> {
-        Distribution { base: self, deps }
+    fn distribution(&self) -> Distribution {
+        Distribution {}
     }
 }
 
-impl<T> DistributionInterface for T where T: Execution {}
+impl<T> DistributionInterface for T where T: AccountIdentification {}
 
 /**
     API for accessing the Cosmos SDK distribution module.
@@ -43,24 +44,20 @@ impl<T> DistributionInterface for T where T: Execution {}
     # use cosmwasm_std::testing::mock_dependencies;
     # use abstract_sdk::mock_module::MockModule;
     # let module = MockModule::new();
-    # let deps = mock_dependencies();
 
-    let distr: Distribution<MockModule>  = module.distribution(deps.as_ref());
+    let distr: Distribution  = module.distribution();
     ```
 */
 #[derive(Clone)]
-pub struct Distribution<'a, T: DistributionInterface> {
-    base: &'a T,
-    deps: Deps<'a>,
-}
+pub struct Distribution {}
 
-impl<'a, T: DistributionInterface> Distribution<'a, T> {
+impl Distribution {
     /// sets the withdraw address for a delegator (or validator self-delegation).
     pub fn set_withdraw_address(
         &self,
         delegator: &Addr,
         withdraw: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgSetWithdrawAddress {
             delegator_address: delegator.into(),
             withdraw_address: withdraw.into(),
@@ -72,7 +69,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// represents delegation withdrawal to a delegator from a single validator.
@@ -80,7 +77,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
         &self,
         validator: &Addr,
         delegator: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgWithdrawDelegatorReward {
             validator_address: validator.into(),
             delegator_address: delegator.into(),
@@ -92,11 +89,14 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// withdraws the full commission to the validator address.
-    pub fn withdraw_delegator_commission(&self, validator: &Addr) -> AbstractSdkResult<CosmosMsg> {
+    pub fn withdraw_delegator_commission(
+        &self,
+        validator: &Addr,
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgWithdrawValidatorCommission {
             validator_address: validator.into(),
         }
@@ -107,7 +107,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 
     /// allows an account to directly fund the community pool.
@@ -115,7 +115,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
         &self,
         amount: &[Coin],
         depositor: &Addr,
-    ) -> AbstractSdkResult<CosmosMsg> {
+    ) -> AbstractSdkResult<AccountAction> {
         let msg = distribution::v1beta1::MsgFundCommunityPool {
             amount: amount
                 .iter()
@@ -133,7 +133,7 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
             value: to_binary(&msg)?,
         };
 
-        self.base.executor(self.deps).execute(vec![msg])
+        Ok(msg.into())
     }
 }
 
@@ -141,7 +141,6 @@ impl<'a, T: DistributionInterface> Distribution<'a, T> {
 mod test {
     use super::*;
     use crate::mock_module::*;
-    use cosmwasm_std::testing::*;
     use speculoos::prelude::*;
 
     mod set_withdraw_address {
@@ -150,8 +149,8 @@ mod test {
         #[test]
         fn set_withdraw_address() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
+
+            let distribution = app.distribution();
 
             let delegator = Addr::unchecked("delegator");
             let withdraw = Addr::unchecked("withdraw");
@@ -168,8 +167,8 @@ mod test {
         #[test]
         fn withdraw_delegator_reward() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
+
+            let distribution = app.distribution();
 
             let validator = Addr::unchecked("validator");
             let delegator = Addr::unchecked("delegator");
@@ -186,8 +185,8 @@ mod test {
         #[test]
         fn withdraw_delegator_comission() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
+
+            let distribution = app.distribution();
 
             let validator = Addr::unchecked("validator");
 
@@ -204,8 +203,8 @@ mod test {
         #[test]
         fn fund_community_pool() {
             let app = MockModule::new();
-            let deps = mock_dependencies();
-            let distribution = app.distribution(deps.as_ref());
+
+            let distribution = app.distribution();
 
             let depositor = Addr::unchecked("depositor");
             let amount = coins(1000, "coin");

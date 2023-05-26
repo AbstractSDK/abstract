@@ -1,4 +1,5 @@
 #![allow(unused)]
+use crate::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
@@ -22,7 +23,7 @@ pub struct Splitter<'a, T: SplitterInterface> {
 
 impl<'a, T: SplitterInterface> Splitter<'a, T> {
     /// Split an asset to multiple users
-    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<Vec<CosmosMsg>> {
+    pub fn split(&self, asset: AnsAsset, receivers: &[Addr]) -> AbstractSdkResult<AccountAction> {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -33,14 +34,18 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
 
         // Retrieve the bank API
         let bank = self.base.bank(self.deps);
-        let transfer_msgs: AbstractSdkResult<_> = receivers
+        receivers
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
                 bank.transfer(vec![&receives_each], receiver)
             })
-            .collect();
-
-        transfer_msgs
+            .try_fold(AccountAction::new(), |mut acc, v| match v {
+                Ok(action) => {
+                    acc.merge(action);
+                    Ok(acc)
+                }
+                Err(e) => Err(e),
+            })
     }
 }

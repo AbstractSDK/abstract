@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::{AbstractSdkResult, ModuleInterface};
+use crate::{AbstractSdkResult, AccountAction, ModuleInterface};
 use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{wasm_execute, CosmosMsg, Deps, Empty};
 use serde::{de::DeserializeOwned, Serialize};
@@ -149,7 +149,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
@@ -200,7 +200,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],

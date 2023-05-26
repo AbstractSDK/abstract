@@ -6,7 +6,7 @@ use crate::{
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler},
     core::ibc_host::{BaseExecuteMsg, ExecuteMsg, HostAction, InternalAction, PacketMsg},
-    Execution,
+    AccountAction, Execution,
 };
 use cosmwasm_std::{
     from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
@@ -151,7 +151,7 @@ impl<
                 ACCOUNTS.remove(deps.storage, (&closed_channel, account_id));
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
-                    .execute_with_response(msgs, "recover_account")
+                    .execute_with_response(vec![AccountAction::from(msgs)], "recover_account")
                     .map_err(Into::into)
             }
         }
