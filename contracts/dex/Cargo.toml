@@ -14,6 +14,10 @@ crate-type = ["cdylib", "rlib"]
 name = "deploy"
 required-features = ["cw-orch"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
 [features]
 default = ["export"]
 export = []
@@ -21,7 +25,7 @@ cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
 terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
 osmosis = ["dep:osmosis-std"]
-
+schema = ["abstract-adapter/schema"]
 # Keep as is until TendermintStake updates.
 [dependencies]
 cosmwasm-std = { workspace = true }
