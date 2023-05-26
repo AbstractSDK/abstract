@@ -212,10 +212,12 @@ pub trait AbstractNameService: Sized {
 <p>Other structs that implement a feature without being module bases are called <em>Feature Objects</em>.</p>
 </blockquote>
 <h3 id="apis"><a class="header" href="#apis">APIs</a></h3>
+<p>TODO: Update with SDK execution changes</p>
 <p>The Abstract API objects are structs that expose some smart-contract functionality and that can only be retrieved if a contract or feature-object implements the required features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and hence allows you to retrieve the API object.</p>
 <h4 id="example"><a class="header" href="#example">Example</a></h4>
 <p>The <a href="https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank"><code>Bank</code></a> API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a <code>Splitter</code> API that splits the transfer of some amount of funds between a set of receivers.</p>
 <pre><code class="language-rust ignore">#![allow(unused)]
+use crate::AccountAction;
 use crate::{AbstractSdkResult, TransferInterface};
 use abstract_core::objects::AnsAsset;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, StdResult, Uint128};
@@ -239,7 +241,7 @@ pub struct Splitter&lt;'a, T: SplitterInterface&gt; {
 
 impl&lt;'a, T: SplitterInterface&gt; Splitter&lt;'a, T&gt; {
     /// Split an asset to multiple users
-    pub fn split(&amp;self, asset: AnsAsset, receivers: &amp;[Addr]) -&gt; AbstractSdkResult&lt;Vec&lt;CosmosMsg&gt;&gt; {
+    pub fn split(&amp;self, asset: AnsAsset, receivers: &amp;[Addr]) -&gt; AbstractSdkResult&lt;AccountAction&gt; {
         // split the asset between all receivers
         let receives_each = AnsAsset {
             amount: asset
@@ -250,15 +252,19 @@ impl&lt;'a, T: SplitterInterface&gt; Splitter&lt;'a, T&gt; {
 
         // Retrieve the bank API
         let bank = self.base.bank(self.deps);
-        let transfer_msgs: AbstractSdkResult&lt;_&gt; = receivers
+        receivers
             .iter()
             .map(|receiver| {
                 // Construct the transfer message
                 bank.transfer(vec![&amp;receives_each], receiver)
             })
-            .collect();
-
-        transfer_msgs
+            .try_fold(AccountAction::new(), |mut acc, v| match v {
+                Ok(action) =&gt; {
+                    acc.merge(action);
+                    Ok(acc)
+                }
+                Err(e) =&gt; Err(e),
+            })
     }
 }</code></pre>
 <p>These APIs can then be used by any contract that implements its required traits, in this case the <code>TransferInterface</code>.</p>
