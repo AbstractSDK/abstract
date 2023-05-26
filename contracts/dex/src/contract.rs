@@ -1,5 +1,6 @@
 use crate::handlers;
-use crate::EXCHANGE;
+use abstract_dex_adapter_traits::EXCHANGE;
+
 use abstract_adapter::{export_endpoints, AdapterContract};
 use abstract_dex_adapter_traits::error::DexError;
 use abstract_dex_adapter_traits::msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg};

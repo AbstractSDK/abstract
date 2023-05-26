@@ -5,8 +5,6 @@ pub(crate) mod handlers;
 // Export interface for use in SDK modules
 pub use abstract_dex_adapter_traits::{Dex, DexInterface};
 
-pub const EXCHANGE: &str = "abstract:dex";
-
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
     pub use super::exchanges::osmosis::Osmosis;

@@ -18,6 +18,10 @@ exclude = [
 name = "deploy"
 required-features = ["cw-orch"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -36,6 +40,7 @@ juno = [
 # osmosis = ["dep:osmosis-std"]
 terra = ["dep:astroport"]
 all = ["juno", "terra", "cw-orch"]
+schema = ["abstract-adapter/schema"]
 
 
 [dependencies]

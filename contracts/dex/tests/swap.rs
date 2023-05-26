@@ -1,10 +1,12 @@
+use abstract_dex_adapter_traits::msg::DexInstantiateMsg;
+use abstract_dex_adapter_traits::EXCHANGE;
 use abstract_interface::AdapterDeployer;
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
 mod common;
 
-use abstract_dex_adapter::{cw_orch::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_dex_adapter::{cw_orch::DexAdapter};
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use common::create_default_account;
