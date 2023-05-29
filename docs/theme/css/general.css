@@ -21,7 +21,7 @@ html {
 }
 
 body {
-    font-family: "Berkley Mono", sans-serif;
+    /* font-family: "Berkley Mono", sans-serif; */
     margin: 0;
     font-size: 1.6rem;
     overflow-x: hidden;
@@ -60,6 +60,14 @@ h4, h5 { margin-top: 2em; }
 .header + .header h4,
 .header + .header h5 {
     margin-top: 1em;
+}
+
+a.header {
+    font-family: 'Berkley Mono', sans-serif;
+}
+
+h1.menu-title {
+    font-family: 'Berkley Mono', sans-serif;
 }
 
 h1:target::before,
