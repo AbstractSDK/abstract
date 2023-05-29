@@ -1,4 +1,4 @@
-use super::{asset_entry::AssetEntry, contract_entry::ContractEntry, ChannelEntry};
+use super::{AssetEntry, ChannelEntry, ContractEntry};
 use crate::{
     ans_host::state::{
         ASSET_ADDRESSES, ASSET_PAIRINGS, CHANNELS, CONTRACT_ADDRESSES, POOL_METADATA,

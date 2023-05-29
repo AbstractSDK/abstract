@@ -2,6 +2,7 @@
 //! An entry (value) in the ans_host key-value store.
 
 use crate::AbstractSdkResult;
+use abstract_core::objects::AnsEntryConvertor;
 use core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
@@ -52,8 +53,9 @@ impl Resolve for LpToken {
         querier: &QuerierWrapper,
         ans_host: &AnsHost,
     ) -> AbstractSdkResult<Self::Output> {
+        let asset_entry = AnsEntryConvertor::new(self.clone()).asset_entry();
         ans_host
-            .query_asset(querier, &self.to_owned().into())
+            .query_asset(querier, &asset_entry)
             .map_err(Into::into)
     }
 }
@@ -336,12 +338,13 @@ mod tests {
             let assets = vec!["atom", "juno"];
 
             let test_lp_token = LpToken::new("junoswap", assets);
+            let asset_entry = AnsEntryConvertor::new(test_lp_token.clone()).asset_entry();
             let expected_value = AssetInfo::cw20(lp_token_address);
             let querier = MockQuerierBuilder::default()
                 .with_contract_map_entry(
                     TEST_ANS_HOST,
                     ASSET_ADDRESSES,
-                    (&test_lp_token.clone().into(), expected_value.clone()),
+                    (&asset_entry, expected_value.clone()),
                 )
                 .build();
 

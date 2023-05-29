@@ -1,8 +1,8 @@
 use crate::{
     constants::{ASSET_DELIMITER, TYPE_DELIMITER},
-    objects::{AssetEntry, PoolMetadata},
+    objects::AssetEntry,
 };
-use cosmwasm_std::StdError;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -10,7 +10,6 @@ use std::fmt::Display;
 pub type DexName = String;
 
 /// A key for the token that represents Liquidity Pool shares on a dex
-/// @todo: move into dex package
 /// Will be formatted as "dex_name/asset1,asset2" when serialized
 #[derive(
     Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Default,
@@ -35,44 +34,6 @@ impl LpToken {
     }
 }
 
-/// Try from an asset entry that should be formatted as "dex_name/asset1,asset2"
-impl TryFrom<AssetEntry> for LpToken {
-    type Error = StdError;
-
-    fn try_from(asset: AssetEntry) -> Result<Self, Self::Error> {
-        let segments = asset.as_str().split(TYPE_DELIMITER).collect::<Vec<_>>();
-
-        if segments.len() != 2 {
-            return Err(StdError::generic_err(format!(
-                "Invalid LP token asset entry: {asset}"
-            )));
-        }
-
-        // get the dex name, like "junoswap"
-        let dex_name = segments[0].to_string();
-
-        // get the assets, like "crab,junox" and split them
-        let mut assets: Vec<AssetEntry> = segments[1]
-            .split(ASSET_DELIMITER)
-            .map(AssetEntry::from)
-            .collect();
-
-        // sort the assets on name
-        assets.sort_unstable();
-
-        if assets.len() < 2 {
-            return Err(StdError::generic_err(format!(
-                "Must be at least 2 assets in an LP token: {asset}"
-            )));
-        }
-
-        Ok(Self {
-            dex: dex_name,
-            assets,
-        })
-    }
-}
-
 /// Transform into a string formatted as "dex_name/asset1,asset2"
 impl Display for LpToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -84,22 +45,6 @@ impl Display for LpToken {
             .join(ASSET_DELIMITER);
 
         write!(f, "{}{}{}", self.dex, TYPE_DELIMITER, assets)
-    }
-}
-
-impl From<LpToken> for AssetEntry {
-    fn from(lp_token: LpToken) -> Self {
-        AssetEntry::from(lp_token.to_string())
-    }
-}
-
-/// Build the LP token from pool metadata.
-impl From<PoolMetadata> for LpToken {
-    fn from(pool: PoolMetadata) -> Self {
-        Self {
-            dex: pool.dex,
-            assets: pool.assets,
-        }
     }
 }
 
@@ -136,11 +81,14 @@ mod test {
     }
 
     mod from_asset_entry {
+        use crate::objects::AnsEntryConvertor;
+
         use super::*;
 
         #[test]
         fn test_from_asset_entry() {
-            let lp_token = LpToken::try_from(AssetEntry::new("junoswap/crab,junox")).unwrap();
+            let asset = AssetEntry::new("junoswap/crab,junox");
+            let lp_token = AnsEntryConvertor::new(asset).lp_token().unwrap();
             assert_that!(lp_token.dex).is_equal_to("junoswap".to_string());
             assert_that!(lp_token.assets)
                 .is_equal_to(vec![AssetEntry::from("crab"), AssetEntry::from("junox")]);
@@ -148,18 +96,22 @@ mod test {
 
         #[test]
         fn test_from_invalid_asset_entry() {
-            let lp_token = LpToken::try_from(AssetEntry::new("junoswap/"));
+            let asset = AssetEntry::new("junoswap/");
+            let lp_token = AnsEntryConvertor::new(asset).lp_token();
             assert_that!(&lp_token).is_err();
         }
 
         #[test]
         fn test_fewer_than_two_assets() {
-            let lp_token = LpToken::try_from(AssetEntry::new("junoswap/crab"));
+            let asset = AssetEntry::new("junoswap/crab");
+            let lp_token = AnsEntryConvertor::new(asset).lp_token();
             assert_that!(&lp_token).is_err();
         }
     }
 
     mod into_asset_entry {
+        use crate::objects::AnsEntryConvertor;
+
         use super::*;
 
         #[test]
@@ -167,13 +119,13 @@ mod test {
             let lp_token = LpToken::new("junoswap", vec!["crab".to_string(), "junox".to_string()]);
             let expected = AssetEntry::new("junoswap/crab,junox");
 
-            assert_that!(lp_token.into()).is_equal_to(expected);
+            assert_that!(AnsEntryConvertor::new(lp_token).asset_entry()).is_equal_to(expected);
         }
     }
 
     mod from_pool_metadata {
         use super::*;
-        use crate::objects::PoolType;
+        use crate::objects::{AnsEntryConvertor, PoolMetadata, PoolType};
 
         #[test]
         fn test_from_pool_metadata() {
@@ -185,7 +137,8 @@ mod test {
                 pool_type: PoolType::Stable,
                 assets: assets.clone(),
             };
-            let lp_token = LpToken::from(pool);
+
+            let lp_token = AnsEntryConvertor::new(pool).lp_token();
             assert_that!(lp_token.dex).is_equal_to(dex);
             assert_that!(lp_token.assets).is_equal_to(assets);
         }

@@ -19,8 +19,7 @@ use serde::{Deserialize, Serialize};
 use crate::{error::AbstractError, AbstractResult};
 
 use super::{
-    ans_host::AnsHost, asset_entry::AssetEntry, DexAssetPairing, LpToken, PoolAddress,
-    PoolReference,
+    ans_host::AnsHost, AnsEntryConvertor, AssetEntry, DexAssetPairing, PoolAddress, PoolReference,
 };
 
 /// represents the conversion of an asset in terms of the provided asset
@@ -96,9 +95,9 @@ impl UncheckedPriceSource {
                 })
             }
             UncheckedPriceSource::LiquidityToken {} => {
-                let lp_token = LpToken::try_from(entry.clone())?;
-                let token_entry: AssetEntry = lp_token.clone().into();
-                let pairing = DexAssetPairing::try_from(token_entry)?;
+                let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
+                let pairing = AnsEntryConvertor::new(lp_token.clone()).dex_asset_pairing()?;
+
                 let pool_assets = ans_host.query_assets(&deps.querier, &lp_token.assets)?;
                 // TODO: fix this for multiple pools with same pair
                 // TODO: don't use unwrap

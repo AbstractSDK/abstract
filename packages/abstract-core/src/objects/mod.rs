@@ -3,13 +3,9 @@
 
 pub(crate) mod ans_asset;
 pub mod ans_host;
-pub(crate) mod asset_entry;
-pub(crate) mod channel_entry;
 pub mod common_namespace;
-pub(crate) mod contract_entry;
-pub(crate) mod dex_asset_pairing;
-pub(crate) mod lp_token;
 
+mod entry;
 pub mod oracle;
 pub mod pool;
 
@@ -31,8 +27,10 @@ pub mod time_weighted_average;
 
 pub use account_id::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;
-pub use asset_entry::AssetEntry;
-pub use channel_entry::{ChannelEntry, UncheckedChannelEntry};
-pub use contract_entry::{ContractEntry, UncheckedContractEntry};
-pub use dex_asset_pairing::DexAssetPairing;
-pub use lp_token::{DexName, LpToken};
+
+pub use entry::ans_entry_convertor::AnsEntryConvertor;
+pub use entry::asset_entry::AssetEntry;
+pub use entry::channel_entry::{ChannelEntry, UncheckedChannelEntry};
+pub use entry::contract_entry::{ContractEntry, UncheckedContractEntry};
+pub use entry::dex_asset_pairing::DexAssetPairing;
+pub use entry::lp_token::{DexName, LpToken};

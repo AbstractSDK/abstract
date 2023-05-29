@@ -6,12 +6,10 @@
 //! Contract and asset addresses are stored on the ans_host contract and are retrievable trough smart or raw queries.
 
 use crate::objects::{
-    asset_entry::AssetEntry,
-    contract_entry::{ContractEntry, UncheckedContractEntry},
-    dex_asset_pairing::DexAssetPairing,
     pool_id::UncheckedPoolAddress,
     pool_reference::PoolReference,
-    ChannelEntry, PoolMetadata, PoolType, UncheckedChannelEntry, UniquePoolId,
+    AssetEntry, ChannelEntry, DexAssetPairing, PoolMetadata, PoolType, UncheckedChannelEntry,
+    UniquePoolId, {ContractEntry, UncheckedContractEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
@@ -41,8 +39,8 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        asset_entry::AssetEntry, contract_entry::ContractEntry, pool_metadata::PoolMetadata,
-        pool_reference::PoolReference, ChannelEntry,
+        pool_metadata::PoolMetadata, pool_reference::PoolReference, AssetEntry, ChannelEntry,
+        ContractEntry,
     };
 
     /// Ans host configuration

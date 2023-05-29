@@ -1,6 +1,6 @@
 use crate::{
     constants::{ASSET_DELIMITER, TYPE_DELIMITER},
-    objects::{lp_token::LpToken, AssetEntry},
+    objects::AssetEntry,
 };
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{KeyDeserialize, Prefixer, PrimaryKey};
@@ -31,24 +31,6 @@ impl DexAssetPairing {
 
     pub fn dex(&self) -> &str {
         &self.0 .2
-    }
-}
-
-impl TryFrom<AssetEntry> for DexAssetPairing {
-    type Error = StdError;
-
-    fn try_from(asset_entry: AssetEntry) -> Result<Self, Self::Error> {
-        let lp_token: LpToken = asset_entry.try_into()?;
-        let mut assets = lp_token.assets;
-        // assets should already be sorted, but just in case
-        assets.sort();
-        assets.reverse();
-
-        Ok(Self::new(
-            assets.pop().unwrap(),
-            assets.pop().unwrap(),
-            lp_token.dex.as_str(),
-        ))
     }
 }
 
@@ -121,7 +103,7 @@ impl KeyDeserialize for &DexAssetPairing {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::objects::{PoolReference, UniquePoolId};
+    use crate::objects::{AnsEntryConvertor, LpToken, PoolReference, UniquePoolId};
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
 
@@ -222,9 +204,9 @@ mod test {
 
     #[test]
     fn try_from_lp_token() {
-        let lp_token = AssetEntry::new("junoswap/juno,osmo");
+        let lp = LpToken::new("junoswap", vec!["juno".to_string(), "osmo".to_string()]);
 
-        let key = DexAssetPairing::try_from(lp_token).unwrap();
+        let key = AnsEntryConvertor::new(lp).dex_asset_pairing().unwrap();
 
         assert_eq!(
             key,
