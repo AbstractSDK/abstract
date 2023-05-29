@@ -19,30 +19,53 @@ pub trait MessageTypes {
     type ReceiveMsg;
     type SudoMsg;
 }
-
+// ANCHOR: init
 /// Function signature for an instantiate handler.
 pub type InstantiateHandlerFn<Module, InitMsg, Error> =
     fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
+// ANCHOR_END: init
+
+// ANCHOR: exec
 /// Function signature for an execute handler.
-pub type ExecuteHandlerFn<Module, RequestMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, RequestMsg) -> Result<Response, Error>;
+pub type ExecuteHandlerFn<Module, ExecMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, ExecMsg) -> Result<Response, Error>;
+// ANCHOR_END: exec
+
+// ANCHOR: query
 /// Function signature for a query handler.
 pub type QueryHandlerFn<Module, QueryMsg, Error> =
     fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
+// ANCHOR_END: query
+
+type CallbackId = String;
+// ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, String, StdAck) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, CallbackId, StdAck) -> Result<Response, Error>;
+// ANCHOR_END: ibc
+
+// ANCHOR: mig
 /// Function signature for a migrate handler.
 pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
     fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+// ANCHOR_END: mig
+
+// ANCHOR: rec
 /// Function signature for a receive handler.
-pub type ReceiveHandlerFn<App, Msg, Error> =
-    fn(DepsMut, Env, MessageInfo, App, Msg) -> Result<Response, Error>;
+pub type ReceiveHandlerFn<Module, Msg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, Msg) -> Result<Response, Error>;
+// ANCHOR_END: rec
+
+// ANCHOR: sudo
 /// Function signature for a sudo handler.
 pub type SudoHandlerFn<Module, SudoMsg, Error> =
     fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
+// ANCHOR_END: sudo
+
+// ANCHOR: reply
 /// Function signature for a reply handler.
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
+// ANCHOR_END: reply
 
 /// There can be two locations where reply handlers are added.
 /// 1. Base implementation of the contract.

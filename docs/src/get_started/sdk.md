@@ -2,7 +2,7 @@
 
 [![](https://docs.rs/abstract-sdk/badge.svg)](https://docs.rs/abstract-sdk) [![](https://img.shields.io/crates/v/abstract-sdk)](https://crates.io/crates/abstract-sdk)
 
-Now that you've got your module set up you're probably wondering how you can actually start programming. While you can create any regular smart-contract in a module, it's not a use-case where our platform excels in. Instead we've created an **account abstraction programming toolbox** that allows you to easily control the Abstract Account, as well as **create your own APIs** that can be used by other developers to interact with your unique application. Composability galore!
+Now that you've got your module set up you're ready for our hot sauce. While you can create any regular smart-contract in a module, it's where our software shines. Instead we've created an **account abstraction programming toolbox** that allows you to easily control an Abstract Account's interactions, as well as **create your own APIs** that can be used by other developers to interact with your unique application. Composability galore!
 
 ## How it works
 

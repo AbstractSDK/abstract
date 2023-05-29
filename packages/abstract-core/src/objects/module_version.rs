@@ -27,23 +27,25 @@ use cw_storage_plus::Item;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
+// ANCHOR: metadata
 pub const MODULE: Item<ModuleData> = Item::new("module_data");
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModuleData {
-    /// module is the crate name of the implementing module, eg. `crate:cw20-base`
-    /// we will use other prefixes for other languages, and their standard global namespacing
+    /// The name of the module, which should be composed of
+    /// the publisher's namespace and module id. eg. `cw-plus:cw20-base`
     pub module: String,
-    /// version is any string that this implementation knows. It may be simple counter "1", "2".
-    /// or semantic version on release tags "v0.7.0", or some custom feature flag list.
-    /// the only code that needs to understand the version parsing is code that knows how to
-    /// migrate from the given module (and is tied to i's implementation somehow)
+    /// Semantic version of the module's crate on release.
+    /// Is used for migration assertions
     pub version: String,
-    /// dependencies store a list of modules that this module depends on, along with its version requirements.
+    /// List of modules that this module depends on
+    /// along with its version requirements.
     pub dependencies: Vec<Dependency>,
-    /// URL to data that follows the Abstract metadata standard for resolving off-chain module information.
+    /// URL to data that follows the Abstract metadata standard for
+    /// resolving off-chain module information.
     pub metadata: Option<String>,
 }
+// ANCHOR_END: metadata
 
 /// get_module_version can be use in migrate to read the previous version of this module
 pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {

@@ -1,7 +1,8 @@
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_std::Empty;
 
-/// Wrapper around all possible messages that can be sent to the contract.
+// ANCHOR: exec
+/// Wrapper around all possible messages that can be sent to the module.
 #[cosmwasm_schema::cw_serde]
 pub enum ExecuteMsg<BaseMsg, ModuleMsg, ReceiveMsg = Empty> {
     /// A configuration message, defined by the base.
@@ -13,7 +14,9 @@ pub enum ExecuteMsg<BaseMsg, ModuleMsg, ReceiveMsg = Empty> {
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),
 }
+// ANCHOR_END: exec
 
+// ANCHOR: init
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg<BaseMsg, ModuleMsg = Empty> {
     /// base instantiate information
@@ -21,7 +24,9 @@ pub struct InstantiateMsg<BaseMsg, ModuleMsg = Empty> {
     /// custom instantiate msg
     pub module: ModuleMsg,
 }
+// ANCHOR_END: init
 
+// ANCHOR: query
 #[cosmwasm_schema::cw_serde]
 pub enum QueryMsg<BaseMsg, ModuleMsg = Empty> {
     /// A query to the base.
@@ -29,7 +34,9 @@ pub enum QueryMsg<BaseMsg, ModuleMsg = Empty> {
     /// Custom query
     Module(ModuleMsg),
 }
+// ANCHOR_END: query
 
+// ANCHOR: migrate
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg<BaseMsg = Empty, ModuleMsg = Empty> {
     /// base migrate information
@@ -37,3 +44,4 @@ pub struct MigrateMsg<BaseMsg = Empty, ModuleMsg = Empty> {
     /// custom migrate msg
     pub module: ModuleMsg,
 }
+// ANCHOR_END: migrate

@@ -20,8 +20,9 @@ install-docs:
   cargo install mdbook
   cargo install mdbook-mermaid
 
-serve-docs:
-  (cd docs && mdbook serve --open) 
+# Serve docs locally, pass --open to open in browser
+serve-docs *FLAGS:
+  (cd docs && mdbook serve {{FLAGS}}) 
 
 build-docs:
   (cd docs && mdbook build)

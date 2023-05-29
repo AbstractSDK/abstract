@@ -21,7 +21,7 @@
 //!     /// A base configuration message.
 //!     Base(BaseMsg),
 //!     /// An app request.
-//!     App(ModuleMsg),
+//!     Module(ModuleMsg),
 //!     /// IbcReceive to process IBC callbacks
 //!     IbcCallback(IbcResponseMsg),
 //!     /// Receive endpoint for CW20 / external service integrations
@@ -41,7 +41,7 @@
 //!     /// A query message to the base.
 //!     Base(BaseMsg),
 //!     /// Custom query
-//!     App(ModuleMsg),
+//!     Module(ModuleMsg),
 //! }
 //!
 //! #[cosmwasm_schema::cw_serde]
