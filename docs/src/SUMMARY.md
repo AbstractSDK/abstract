@@ -1,7 +1,9 @@
 # Summary
 
 [Introduction](./intro.md)
-[Value Proposition](./value_proposition.md)
+
+[About Abstract](./introduction/value_prop.md)
+[Use Cases](./introduction/use_cases.md)
 
 # Build With Abstract
 
