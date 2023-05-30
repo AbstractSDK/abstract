@@ -39,7 +39,7 @@ cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
 cw-asset = { version = "3.0" }
 
 cw-semver = { version = "1.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" }
+cw-orch = { version = "0.12" }
 
 abstract-macros = { git = "https://github.com/AbstractSDK/contracts" }
 abstract-ica = { git = "https://github.com/AbstractSDK/contracts" }
