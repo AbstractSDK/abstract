@@ -32,9 +32,9 @@ So when you're building your application the module struct already has the featu
 
 ### APIs
 
-TODO: Update with SDK execution changes
-
 The Abstract API objects are structs that expose some smart-contract functionality and that can only be retrieved if a contract or feature-object implements the required features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and hence allows you to retrieve the API object.
+
+Most of the APIs either return a `CosmosMsg` or an `AccountAction`. The `CosmosMsg` is a message that should be added as-is to the `Response` to perform some action. The `AccountAction` is a message that can be sent to the Abstract Account to perform some action. `AccountAction`s can be executed with the [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html) API. The returned `CosmosMsg` should be added to the action's `Response`.
 
 #### Example
 
@@ -86,7 +86,6 @@ The following API objects are available in the Abstract SDK:
 - [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html)
 - [`App`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.App.html)
 - [`Adapter`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapter.html)
-
 
 ## Usage
 

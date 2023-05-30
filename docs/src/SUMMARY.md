@@ -10,13 +10,12 @@
 - [Getting Started](./get_started/index.md)
   - [Installation](./get_started/installation.md)
   - [Module Builder](./get_started/module_builder.md)
-  - [SDK](./get_started/sdk.md)
+  - [Account Abstraction SDK](./get_started/sdk.md)
   - [Module Dependencies]()
   - [Account Creation](./get_started/account_creation.md)
   - [Module Deployment](./get_started/module_deployment.md)
-    - [Using the Template]()
-    - [Best Practices]()
-    - [Quality Assurance]()
+  - [Best Practices]()
+  - [Quality Assurance]()
 
 # About Abstract
 
@@ -26,11 +25,11 @@
   - [Architecture](./sdk/architecture.md)
   - [Account Ownership](./sdk/ownership.md)
   - [Modularity](./sdk/modularity.md)
-	  - [Module Types](module_types.md)
-  - [Platform Details](./platform/index.md)
-	  - [Abstract Name Service](./platform/ans.md)
-	  - [Version Control](./platform/version_control.md)
-	  - [Account Factory](./platform/account_factory.md)
+    - [Module Types](./sdk/module_types.md)
+- [Platform Details](./platform/index.md)
+  - [Abstract Name Service](./platform/ans.md)
+  - [Version Control](./platform/version_control.md)
+  - [Account Factory](./platform/account_factory.md)
 - [Execution Flows]()
 	- [Create Account](./flows/account/create_account.md)
 	- [Account Actions]()
@@ -55,7 +54,7 @@
 - [Video and Content]()
   - [Interviews]()
   - [Tutorials]()
-  - [FAQ]()
+  - [FAQ](./video_and_content/faq.md)
 
 [Contributing & Community](./contributing.md)
 

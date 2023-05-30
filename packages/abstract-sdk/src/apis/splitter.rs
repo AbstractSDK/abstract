@@ -42,6 +42,7 @@ impl<'a, T: SplitterInterface> Splitter<'a, T> {
             })
             .try_fold(AccountAction::new(), |mut acc, v| match v {
                 Ok(action) => {
+                    // Merge two AccountAction objects
                     acc.merge(action);
                     Ok(acc)
                 }
