@@ -43,10 +43,14 @@ wasm:
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
   cosmwasm/rust-optimizer:0.12.13
 
-
+# Generate the schemas for the app contract
 schema:
   cargo schema
 
 # Generate the typescript client for the app contract
-codegen: schema
+ts-codegen: schema
   (cd ts-sdk && npm run codegen)
+
+# Publish the typescript sdk
+ts-publish: ts-codegen
+  (cd ts-sdk && npm publish --access public)
