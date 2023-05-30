@@ -1,54 +1,60 @@
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
-use abstract_interface::{cw_orch::deploy::Deploy, Abstract};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 use app::{
-    contract::APP_ID,
-    msg::{AppInstantiateMsg, InstantiateMsg, QueryMsg},
-    App, AppExecuteMsgFns, AppQueryMsgFns,
+    contract::{APP_ID, APP_VERSION},
+    msg::{AppInstantiateMsg, InstantiateMsg},
+    App,
 };
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::Addr;
 
 // consts for testing
-const USER: &str = "user";
 const ADMIN: &str = "admin";
 
 /// Set up the test environment with the contract installed
-fn setup() -> anyhow::Result<(App<Mock>, Abstract<Mock>)> {
+fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>)> {
     // Create a sender
     let sender = Addr::unchecked(ADMIN);
     // Create the mock
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = App::new(APP_ID, mock);
+    let contract = App::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), "v1.0.0".into())?;
+    let abstr_deployment = Abstract::deploy_on(mock, "1.0.0".parse().unwrap())?;
 
-    Ok((contract, abstr_deployment))
+    // Create a new account to install the app onto
+    let account =
+        abstr_deployment
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
+                monarch: ADMIN.to_string(),
+            })?;
+    // claim the namespace so app can be deployed
+    abstr_deployment
+        .version_control
+        .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+
+    contract.deploy(APP_VERSION.parse()?)?;
+
+    Ok((account, abstr_deployment))
 }
 
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
-    let (contract, abstr) = setup()?;
-
-    // Create a new account to install the app onto
-    let account = abstr
-        .account_factory
-        .create_default_account(GovernanceDetails::Monarchy {
-            monarch: ADMIN.to_string(),
-        })?;
+    let (account, abstr) = setup()?;
 
     account.install_module(
         APP_ID,
-        InstantiateMsg {
+        &InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
             },
-            app: AppInstantiateMsg {},
+            module: AppInstantiateMsg {},
         },
     )?;
 

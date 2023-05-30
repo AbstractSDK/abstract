@@ -27,5 +27,4 @@ impl<Chain: CwEnv> Uploadable for App<Chain> {
     }
 }
 
-// Custom Abstract deployer trait, TODO: fix this
-// impl<Chain: CwEnv> AppDeployer<Chain> for App<Chain> {}
+impl<Chain: CwEnv> AppDeployer<Chain> for App<Chain> {}

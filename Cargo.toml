@@ -43,27 +43,27 @@ thiserror = { version = "1.0" }
 schemars = "0.8"
 cw-asset = { version = "3.0" }
 
-abstract-core = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
-abstract-app = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts.git" }
+abstract-app = { git = "https://github.com/AbstractSDK/contracts.git" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git" }
 
 # Dependencies for interface
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", optional = true }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", version = "0.11", optional = true }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", optional = true }
+cw-orch = { version = "0.12", optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = [
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts.git", features = [
   "daemon",
 ] }
-abstract-testing = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", branch = "app_template", features = [
+abstract-testing = { git = "https://github.com/AbstractSDK/contracts.git" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts.git", features = [
   "test-utils",
 ] }
 speculoos = "0.11.0"
-# semver = "1.0"
+semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", features = [
+cw-orch = {  version = "0.12", features = [
   "daemon",
 ] }

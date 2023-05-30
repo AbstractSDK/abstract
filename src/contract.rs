@@ -9,9 +9,9 @@ use abstract_app::AppContract;
 use cosmwasm_std::Response;
 
 /// The version of your app
-const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The id of the app
-pub const APP_ID: &str = "yournamespace:app";
+pub const APP_ID: &str = "my-namespace:app";
 
 /// The type of the result returned by your app's entry points.
 pub type AppResult<T = Response> = Result<T, AppError>;
