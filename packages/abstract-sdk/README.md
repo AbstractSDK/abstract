@@ -88,7 +88,7 @@ The API can then be used by any contract that implements its required traits, in
   # use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
   # use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
   # use abstract_sdk::feature_objects::AnsHost;
-  # use abstract_sdk::{AbstractSdkResult};
+  # use abstract_sdk::{AbstractSdkResult, AccountAction};
   # pub struct MyContract {
   #     
   # }
@@ -107,8 +107,8 @@ The API can then be used by any contract that implements its required traits, in
   # }
   use abstract_sdk::TransferInterface;
 
-  fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<CosmosMsg> {
-      let forward_deposit_msg = my_contract.bank(deps).deposit_coins(message_info.funds)?;
+  fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<AccountAction> {
+      let forward_deposit_msg = my_contract.bank(deps).deposit(message_info.funds)?;
 
       Ok(forward_deposit_msg)
   }
