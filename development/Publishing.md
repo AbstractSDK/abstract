@@ -19,5 +19,7 @@ file.
 2. `abstract-testing`
 3. `abstract-sdk`
 4. All contracts in `./contracts`
+
+Now you should proceed with deploying the contracts to the different chains, that data is used when publishing the abstract-interface.
 5. `abstract-interface`
 6. `abstract-adapter`, `abstract-app` and `abstract-ibc-host`
