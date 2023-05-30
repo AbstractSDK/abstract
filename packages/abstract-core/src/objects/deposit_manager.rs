@@ -144,31 +144,31 @@ mod tests {
         let user_deposits = UserDeposit::new("test");
 
         let key = "key".as_bytes();
-        let initial_value = user_deposits.get(&mut storage, key).unwrap();
+        let initial_value = user_deposits.get(&storage, key).unwrap();
         assert_eq!(initial_value, Uint64::from(0u64));
 
         user_deposits
             .increase(&mut storage, key, Uint64::from(10u64))
             .unwrap();
-        let value = user_deposits.get(&mut storage, key).unwrap();
+        let value = user_deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(10u64));
 
         user_deposits
             .increase(&mut storage, key, Uint64::from(10u64))
             .unwrap();
-        let value = user_deposits.get(&mut storage, key).unwrap();
+        let value = user_deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(20u64));
 
         user_deposits
             .decrease(&mut storage, key, Uint64::from(5u64))
             .unwrap();
-        let value = user_deposits.get(&mut storage, key).unwrap();
+        let value = user_deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(15u64));
 
         user_deposits
             .decrease(&mut storage, key, Uint64::from(15u64))
             .unwrap();
-        let value = user_deposits.get(&mut storage, key).unwrap();
+        let value = user_deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(0u64));
 
         let res = user_deposits.decrease(&mut storage, key, Uint64::from(15u64));
@@ -182,13 +182,13 @@ mod tests {
 
         let key = "key".as_bytes();
         let other_key = "other_key".as_bytes();
-        let initial_value = deposits.get(&mut storage, key).unwrap();
+        let initial_value = deposits.get(&storage, key).unwrap();
         assert_eq!(initial_value, Uint64::from(0u64));
 
         deposits
             .increase(&mut storage, key, Uint64::from(10u64))
             .unwrap();
-        let value = deposits.get(&mut storage, key).unwrap();
+        let value = deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(10u64));
         let value = deposits.get_total_deposits(&storage).unwrap();
         assert_eq!(value, Uint64::from(10u64));
@@ -196,7 +196,7 @@ mod tests {
         deposits
             .increase(&mut storage, key, Uint64::from(10u64))
             .unwrap();
-        let value = deposits.get(&mut storage, key).unwrap();
+        let value = deposits.get(&storage, key).unwrap();
         assert_eq!(value, Uint64::from(20u64));
         assert_eq!(
             deposits.get_total_deposits(&storage).unwrap(),

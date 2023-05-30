@@ -21,7 +21,7 @@ mod testing {
             mock_env(),
             info,
             version_control::InstantiateMsg {
-                is_testnet: true,
+                allow_direct_module_registration: Some(true),
                 namespace_limit: 10,
             },
         )

@@ -314,7 +314,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                is_testnet: true,
+                allow_direct_module_registration: Some(true),
                 namespace_limit: 10,
             },
         )?;

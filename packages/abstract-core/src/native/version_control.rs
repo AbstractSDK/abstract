@@ -13,7 +13,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub is_testnet: bool,
+    pub allow_direct_module_registration: bool,
     pub namespace_limit: u32,
 }
 
@@ -83,7 +83,7 @@ pub struct AccountBase {
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub is_testnet: bool,
+    pub allow_direct_module_registration: Option<bool>,
     pub namespace_limit: u32,
 }
 
@@ -122,8 +122,13 @@ pub enum ExecuteMsg {
         account_id: AccountId,
         account_base: AccountBase,
     },
-    /// Updates the number of namespaces an Account can claim
-    UpdateNamespaceLimit { new_limit: u32 },
+    /// Updates configuration of the VC contract. Available Config :
+    /// 1. Whether the contract allows direct module registration
+    /// 2. the number of namespaces an Account can claim
+    UpdateConfig {
+        allow_direct_module_registration: Option<bool>,
+        namespace_limit: Option<u32>,
+    },
     /// Sets a new Factory
     SetFactory { new_factory: String },
 }

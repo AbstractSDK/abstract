@@ -42,14 +42,14 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
-        is_testnet,
+        allow_direct_module_registration,
         namespace_limit,
     } = msg;
 
     CONFIG.save(
         deps.storage,
         &Config {
-            is_testnet,
+            allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
             namespace_limit,
         },
     )?;
@@ -87,9 +87,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
-        ExecuteMsg::UpdateNamespaceLimit { new_limit } => {
-            update_namespace_limit(deps, info, new_limit)
-        }
+        ExecuteMsg::UpdateConfig {
+            allow_direct_module_registration,
+            namespace_limit,
+        } => update_config(
+            deps,
+            info,
+            allow_direct_module_registration,
+            namespace_limit,
+        ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(VcResponse, deps, env, info, action)
