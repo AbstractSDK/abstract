@@ -15,8 +15,8 @@ impl adapter::AdapterExecuteMsg for TendermintStakingExecuteMsg {}
 impl adapter::AdapterQueryMsg for TendermintStakingQueryMsg {}
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "cw-orch", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "cw-orch", impl_into(ExecuteMsg))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum TendermintStakingExecuteMsg {
     Delegate {
         /// Validator address
@@ -51,6 +51,6 @@ pub enum TendermintStakingExecuteMsg {
 /// Staking queries are available on [`cosmwasm_std::QuerierWrapper`] through [`cosmwasm_std::Deps`].
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-#[cfg_attr(feature = "cw-orch", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "cw-orch", impl_into(QueryMsg))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 pub enum TendermintStakingQueryMsg {}

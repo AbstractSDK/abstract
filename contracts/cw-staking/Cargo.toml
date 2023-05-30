@@ -16,7 +16,7 @@ exclude = [
 
 [[example]]
 name = "deploy"
-required-features = ["cw-orch"]
+required-features = ["interface"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -24,7 +24,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 export = []
 default = ["export"]
-cw-orch = ["dep:cw-orch", "dep:abstract-interface", "export"]
+interface = ["dep:cw-orch", "dep:abstract-interface", "export"]
 juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
@@ -35,7 +35,7 @@ juno = [
 ]
 # osmosis = ["dep:osmosis-std"]
 terra = ["dep:astroport"]
-all = ["juno", "terra", "cw-orch"]
+all = ["juno", "terra", "interface"]
 
 
 [dependencies]
@@ -90,7 +90,7 @@ cw-orch = { workspace = true, features = ["daemon"] }
 abstract-interface = { workspace = true }
 clap = { workspace = true }
 cw-staking = { path = ".", features = [
-  "cw-orch",
+  "interface",
   "juno",
 ], package = "abstract-cw-staking" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }

@@ -5,7 +5,7 @@ mod staking;
 
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 
-#[cfg(feature = "cw-orch")]
+#[cfg(feature = "interface")]
 pub mod cw_orch {
 
     use crate::msg::*;

@@ -12,12 +12,12 @@ crate-type = ["cdylib", "rlib"]
 
 [[example]]
 name = "deploy"
-required-features = ["cw-orch"]
+required-features = ["interface"]
 
 [features]
 default = ["export"]
 export = []
-cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
+interface = ["dep:abstract-interface", "dep:cw-orch"]
 juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:wyndex"]
 terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
 osmosis = ["dep:osmosis-std"]
@@ -67,6 +67,6 @@ wyndex-bundle = { workspace = true }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 dex = { path = ".", features = [
-  "cw-orch",
+  "interface",
   "juno",
 ], package = "abstract-dex-adapter" }
