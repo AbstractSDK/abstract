@@ -34,7 +34,7 @@ Time to start building! We'll get you set up with the Abstract App template whic
 
 - A scaffold app module with:
   - A basic contract
-  - cw-orchestrator interface and deployment script
+  - [cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) interface and deployment script
   - Integration tests
 - A scaffold front-end with:
   - A basic UI

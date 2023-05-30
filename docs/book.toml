@@ -5,6 +5,10 @@ multilingual = false
 src = "src"
 title = "Abstract SDK"
 
+
+[build]
+create-missing = false
+
 [preprocessor]
 
 [preprocessor.mermaid]

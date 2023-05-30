@@ -40,10 +40,10 @@ jobs:
         uses: extractions/setup-just@v1
 
       - name: Install dependencies 🔧
-        run: just install-docs
+        run: just docs-install
 
       - name: Build 🏗️
-        run: just build-docs
+        run: just docs-build
 
       - name: Upload artifact
         if: ${{ github.event_name != 'pull_request' && github.event_name == 'release' }}

@@ -2,7 +2,7 @@
 
 So you want to build on Abstract? Let's get your idea shipped!
 
-This tutorial will walk you through the process of setting up your development environment, creating an [app module](../sdk/modules.md), and deploying your first module to our on-chain store with [cw-orchestator](https://github.com/AbstractSDK/cw-orchestrator).
+This tutorial will walk you through the process of setting up your development environment, creating an [app module](./module_development.md), and deploying your first module to our on-chain store with [cw-orchestator](https://github.com/AbstractSDK/cw-orchestrator).
 
 ## Prerequisites
 

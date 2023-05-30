@@ -7,14 +7,6 @@
 
 # Build With Abstract
 
-- [Abstract SDK - Overview](./sdk/abstract_sdk.md)
-  - [Actor Model](./sdk/actor_model.md)
-  - [Account Abstraction](./sdk/account_abstraction.md)
-  - [Architecture](./sdk/architecture.md)
-  - [Modules](./sdk/modules.md)
-  - [Account Ownership](./sdk/ownership.md)
-  - [Interchain Abstract Accounts]()
-
 - [Getting Started](./get_started/index.md)
   - [Installation](./get_started/installation.md)
   - [Module Builder](./get_started/module_builder.md)
@@ -25,6 +17,29 @@
     - [Using the Template]()
     - [Best Practices]()
     - [Quality Assurance]()
+
+# About Abstract
+
+- [Abstract SDK - Overview](./sdk/abstract_sdk.md)
+  - [Actor Model](./sdk/actor_model.md)
+  - [Account Abstraction](./sdk/account_abstraction.md)
+  - [Architecture](./sdk/architecture.md)
+  - [Account Ownership](./sdk/ownership.md)
+  - [Modularity](./sdk/modularity.md)
+	  - [Module Types](module_types.md)
+  - [Platform Details](./platform/index.md)
+	  - [Abstract Name Service](./platform/ans.md)
+	  - [Version Control](./platform/version_control.md)
+	  - [Account Factory](./platform/account_factory.md)
+- [Execution Flows]()
+	- [Create Account](./flows/account/create_account.md)
+	- [Account Actions]()
+		- [Install Module](flows/manager/install_module.md)
+		- [Execute on Module](./flows/manager/exec_on_module.md)
+		- [Update Settings](./flows/manager/update_settings.md)
+		- [Set Owner]()
+		- [Upgrade Modules](./flows/manager/upgrade_modules.md)
+- [Interchain Abstract Accounts]()
 
 # Use Cases
 
@@ -37,10 +52,10 @@
   - [Overview](./ibc/overview.md)
   - [Specification](./ibc/spec.md)
 
-- [Video and Content](./video_and_content/index.md)
-  - [Interviews](./video_and_content/interviews.md)
-  - [Tutorials](./video_and_content/tutorials.md)
-  - [FAQ](./video_and_content/faq.md)
+- [Video and Content]()
+  - [Interviews]()
+  - [Tutorials]()
+  - [FAQ]()
 
 [Contributing & Community](./contributing.md)
 

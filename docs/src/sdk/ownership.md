@@ -1,4 +1,4 @@
-# Account Governance
+# Account Ownership
 
 Governance structures are a wildly under-developed field in the realm of smart contract technology. Abstract allows for any custom governance type to be used with its chain-agnostic framework. While most users appreciate an easy-to-use interface to control their dApps, Abstract opts to provide two fully integrated governance choices (token-based and DaoDao integration coming soon) that ensure a seamless user experience.
 

@@ -16,15 +16,15 @@ lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
   just format
 
-install-docs:
+docs-install:
   cargo install mdbook
   cargo install mdbook-mermaid
 
 # Serve docs locally, pass --open to open in browser
-serve-docs *FLAGS:
+docs-serve *FLAGS:
   (cd docs && mdbook serve {{FLAGS}}) 
 
-build-docs:
+docs-build:
   (cd docs && mdbook build)
 
 check:
