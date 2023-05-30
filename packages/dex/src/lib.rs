@@ -1,12 +1,6 @@
-pub mod adapter;
-mod api;
-pub mod command;
-pub mod error;
-pub mod msg;
-pub mod state;
-
+mod command;
+mod error; 
 // Export interface for use in SDK modules
-pub use adapter::DexAdapter;
-pub use api::{Dex, DexInterface};
-
+pub use command::{DexCommand, Return, Spread, Fee, FeeOnInput};
+pub use error::DexError;
 pub const EXCHANGE: &str = "abstract:dex";
