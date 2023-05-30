@@ -28,6 +28,10 @@ exclude = ["contract.wasm", "hash.txt"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
 [features]
 default = ["export"]
 export = []
@@ -64,6 +68,4 @@ speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = {  version = "0.12", features = [
-  "daemon",
-] }
+cw-orch = { version = "0.12", features = ["daemon"] }
