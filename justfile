@@ -44,6 +44,9 @@ wasm:
   cosmwasm/rust-optimizer:0.12.13
 
 
+schema:
+  cargo schema
+
 # Generate the typescript client for the app contract
-codegen:
+codegen: schema
   (cd ts-sdk && npm run codegen)

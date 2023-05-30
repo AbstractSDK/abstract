@@ -16,18 +16,18 @@ export interface ConfigResponse {
 export type ExecuteMsg = {
   base: BaseExecuteMsg;
 } | {
-  module: TemplateExecuteMsg;
+  module: AppExecuteMsg;
 } | {
   ibc_callback: IbcResponseMsg;
 } | {
-  receive: Cw20ReceiveMsg;
+  receive: Empty;
 };
 export type BaseExecuteMsg = {
   update_config: {
     ans_host_address?: string | null;
   };
 };
-export type TemplateExecuteMsg = {
+export type AppExecuteMsg = {
   update_config: {};
 };
 export type StdAck = {
@@ -36,41 +36,38 @@ export type StdAck = {
   error: string;
 };
 export type Binary = string;
-export type Uint128 = string;
 export interface IbcResponseMsg {
   id: string;
   msg: StdAck;
 }
-export interface Cw20ReceiveMsg {
-  amount: Uint128;
-  msg: Binary;
-  sender: string;
+export interface Empty {
+  [k: string]: unknown;
 }
 export interface InstantiateMsg {
   base: BaseInstantiateMsg;
-  module: TemplateInstantiateMsg;
+  module: AppInstantiateMsg;
 }
 export interface BaseInstantiateMsg {
   ans_host_address: string;
 }
-export interface TemplateInstantiateMsg {}
-export type TemplateMigrateMsg = string;
+export interface AppInstantiateMsg {}
+export type AppMigrateMsg = string;
 export interface MigrateMsg {
   base: BaseMigrateMsg;
-  module: TemplateMigrateMsg;
+  module: AppMigrateMsg;
 }
 export interface BaseMigrateMsg {}
 export type QueryMsg = {
   base: BaseQueryMsg;
 } | {
-  module: TemplateQueryMsg;
+  module: AppQueryMsg;
 };
 export type BaseQueryMsg = {
   config: {};
 } | {
   admin: {};
 };
-export type TemplateQueryMsg = {
+export type AppQueryMsg = {
   config: {};
 };
 export type TemplateExecuteMsg = ExecuteMsg;

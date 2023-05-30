@@ -8,7 +8,7 @@ import { CamelCasedProperties } from "type-fest";
 import { SigningCosmWasmClient, ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { AbstractQueryClient, AbstractAccountQueryClient, AbstractAccountClient, AppExecuteMsg, AppExecuteMsgFactory, AbstractClient } from "@abstract-money/abstract.js";
 import { StdFee, Coin } from "@cosmjs/amino";
-import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, TemplateExecuteMsg, StdAck, Binary, Uint128, IbcResponseMsg, Cw20ReceiveMsg, InstantiateMsg, BaseInstantiateMsg, TemplateInstantiateMsg, TemplateMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, TemplateQueryMsg } from "./Template.types";
+import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, AppExecuteMsg, StdAck, Binary, IbcResponseMsg, Empty, InstantiateMsg, BaseInstantiateMsg, AppInstantiateMsg, AppMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, AppQueryMsg } from "./Template.types";
 import { TemplateQueryMsgBuilder, TemplateExecuteMsgBuilder } from "./Template.msg-builder";
 export interface ITemplateQueryClient {
   moduleId: string;

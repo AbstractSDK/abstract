@@ -4,7 +4,7 @@
 * and run the @abstract-money/ts-codegen generate command to regenerate this file.
 */
 
-import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, TemplateExecuteMsg, StdAck, Binary, Uint128, IbcResponseMsg, Cw20ReceiveMsg, InstantiateMsg, BaseInstantiateMsg, TemplateInstantiateMsg, TemplateMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, TemplateQueryMsg } from "./Template.types";
+import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, AppExecuteMsg, StdAck, Binary, IbcResponseMsg, Empty, InstantiateMsg, BaseInstantiateMsg, AppInstantiateMsg, AppMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, AppQueryMsg } from "./Template.types";
 import { CamelCasedProperties } from "type-fest";
 export abstract class TemplateExecuteMsgBuilder {
   static base = (baseExecuteMsg: BaseExecuteMsg): ExecuteMsg => {
@@ -12,9 +12,9 @@ export abstract class TemplateExecuteMsgBuilder {
       base: baseExecuteMsg
     };
   };
-  static module = (templateExecuteMsg: TemplateExecuteMsg): ExecuteMsg => {
+  static module = (appExecuteMsg: AppExecuteMsg): ExecuteMsg => {
     return {
-      module: templateExecuteMsg
+      module: appExecuteMsg
     };
   };
   static ibcCallback = ({
@@ -30,19 +30,9 @@ export abstract class TemplateExecuteMsgBuilder {
       } as const)
     };
   };
-  static receive = ({
-    amount,
-    msg,
-    sender
-  }: CamelCasedProperties<Extract<ExecuteMsg, {
-    receive: unknown;
-  }>["receive"]>): ExecuteMsg => {
+  static receive = (): ExecuteMsg => {
     return {
-      receive: ({
-        amount,
-        msg,
-        sender
-      } as const)
+      receive: ({} as const)
     };
   };
 }
@@ -52,9 +42,9 @@ export abstract class TemplateQueryMsgBuilder {
       base: baseQueryMsg
     };
   };
-  static module = (templateQueryMsg: TemplateQueryMsg): QueryMsg => {
+  static module = (appQueryMsg: AppQueryMsg): QueryMsg => {
     return {
-      module: templateQueryMsg
+      module: appQueryMsg
     };
   };
 }

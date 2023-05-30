@@ -1,6 +1,8 @@
 use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;
+#[cfg(feature = "schema")]
+use app::contract::App;
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

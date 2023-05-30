@@ -9,12 +9,12 @@ import { MsgExecuteContractEncodeObject } from "cosmwasm";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 import { toUtf8 } from "@cosmjs/encoding";
 import { AppExecuteMsg, AppExecuteMsgFactory } from "@abstract-money/abstract.js";
-import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, TemplateExecuteMsg, StdAck, Binary, Uint128, IbcResponseMsg, Cw20ReceiveMsg, InstantiateMsg, BaseInstantiateMsg, TemplateInstantiateMsg, TemplateMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, TemplateQueryMsg } from "./Template.types";
+import { AdminResponse, Addr, ConfigResponse, ExecuteMsg, BaseExecuteMsg, AppExecuteMsg, StdAck, Binary, IbcResponseMsg, Empty, InstantiateMsg, BaseInstantiateMsg, AppInstantiateMsg, AppMigrateMsg, MigrateMsg, BaseMigrateMsg, QueryMsg, BaseQueryMsg, AppQueryMsg } from "./Template.types";
 export interface TemplateMessage {
   contractAddress: string;
   sender: string;
   base: (baseExecuteMsg: BaseExecuteMsg, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  module: (templateExecuteMsg: TemplateExecuteMsg, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  module: (appExecuteMsg: AppExecuteMsg, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
   ibcCallback: ({
     id,
     msg
@@ -22,15 +22,7 @@ export interface TemplateMessage {
     id: string;
     msg: StdAck;
   }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
-  receive: ({
-    amount,
-    msg,
-    sender
-  }: {
-    amount: Uint128;
-    msg: Binary;
-    sender: string;
-  }, _funds?: Coin[]) => MsgExecuteContractEncodeObject;
+  receive: (_funds?: Coin[]) => MsgExecuteContractEncodeObject;
 }
 export class TemplateMessageComposer implements TemplateMessage {
   sender: string;
@@ -60,7 +52,7 @@ export class TemplateMessageComposer implements TemplateMessage {
       })
     };
   };
-  module = (templateExecuteMsg: TemplateExecuteMsg, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  module = (appExecuteMsg: AppExecuteMsg, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
     const msg = {
       module: {}
     };
@@ -99,21 +91,9 @@ export class TemplateMessageComposer implements TemplateMessage {
       })
     };
   };
-  receive = ({
-    amount,
-    msg,
-    sender
-  }: {
-    amount: Uint128;
-    msg: Binary;
-    sender: string;
-  }, _funds?: Coin[]): MsgExecuteContractEncodeObject => {
+  receive = (_funds?: Coin[]): MsgExecuteContractEncodeObject => {
     const msg = {
-      receive: {
-        amount,
-        msg,
-        sender
-      }
+      receive: {}
     };
     const moduleMsg: AppExecuteMsg<ExecuteMsg> = AppExecuteMsgFactory.executeApp(msg);
     return {
