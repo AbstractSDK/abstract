@@ -1,8 +1,8 @@
-use abstract_core::objects::AnsEntryConvertor;
 use crate::error::DexError;
 use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
+use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
@@ -229,7 +229,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
 
         let lp_asset = ans.query(&lp_token)?;
 
-        let lp_pairing: DexAssetPairing = AnsEntryConvertor::new(AnsEntryConvertor::new(lp_token.name).lp_token()?).dex_asset_pairing()?;
+        let lp_pairing: DexAssetPairing =
+            AnsEntryConvertor::new(AnsEntryConvertor::new(lp_token.name).lp_token()?)
+                .dex_asset_pairing()?;
 
         let mut pool_ids = ans.query(&lp_pairing)?;
         // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets
