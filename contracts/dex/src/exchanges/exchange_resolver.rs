@@ -6,16 +6,16 @@ use abstract_dex_adapter_traits::{DexCommand, DexError};
 pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
 
 #[cfg(feature = "juno")]
-pub use wyndex::abstract_adapter::{WynDex, WYNDEX};
+pub use abstract_wyndex_dex_adapter::{WynDex, WYNDEX};
 
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
 #[cfg(feature = "terra")]
-pub use crate::exchanges::astroport::{Astroport, ASTROPORT};
+pub use abstract_astroport_dex_adapter::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
-pub use crate::exchanges::osmosis::{Osmosis, OSMOSIS};
+pub use abstract_osmosis_dex_adapter::{Osmosis, OSMOSIS};
 
 pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
     match value {

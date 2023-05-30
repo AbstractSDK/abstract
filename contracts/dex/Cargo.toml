@@ -22,9 +22,9 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch"]
-juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:abstract-wyndex-dex-adapter"]
-terra = ["dep:terraswap", "dep:astroport", "dep:cw20_junoswap"]
-osmosis = ["dep:osmosis-std"]
+juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:abstract-wyndex-dex-adapter", "dep:abstract-osmosis-dex-adapter"]
+terra = ["dep:terraswap", "dep:abstract-astroport-dex-adapter", "dep:cw20_junoswap"]
+osmosis = ["dep:abstract-osmosis-dex-adapter"]
 schema = ["abstract-adapter/schema"]
 # Keep as is until TendermintStake updates.
 [dependencies]
@@ -54,13 +54,11 @@ wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.2
   "library",
 ], optional = true }
 abstract-wyndex-dex-adapter = { git = "https://github.com/Kayanski/abstract-wynddex.git", optional = true }
+abstract-astroport-dex-adapter = { git = "https://github.com/Kayanski/abstract-astroport-core.git", optional = true }
+abstract-osmosis-dex-adapter = { git = "https://github.com/Kayanski/abstract-osmosis-rust.git", optional = true }
 
 # Terra dexes #
 terraswap = { version = "2.8.0", optional = true }
-astroport = { git = "https://github.com/astroport-fi/astroport-core.git", rev = "7bedc6f27e59ef8b921a0980be9bc30c4aab7459", optional = true }
-
-# Osmosis #
-osmosis-std = { version = "0.13.2", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
