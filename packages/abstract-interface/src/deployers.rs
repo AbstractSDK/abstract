@@ -57,7 +57,7 @@ pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
 pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
     ContractInstance<Chain> + CwOrcUpload<Chain>
 {
-    fn deploy(&mut self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
+    fn deploy(&self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
