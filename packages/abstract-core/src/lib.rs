@@ -47,7 +47,6 @@ pub mod base;
 pub mod ibc_host;
 
 pub use registry::*;
-pub mod abstract_token;
 pub mod adapter;
 pub mod app;
 pub mod objects;

@@ -19,8 +19,6 @@ ignore:
   - "scripts"
   - "packages/abstract-interface"
   - "packages/abstract-testing"
-  # Ignore token implementation
-  - "contracts/token"
   # Ignore protobuf generated files
   - "contracts/native/module-factory/src/response.rs"
   - "contracts/native/account-factory/src/response.rs"

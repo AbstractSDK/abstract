@@ -1,5 +1,3 @@
-pub mod idea_token;
-
 mod account;
 
 pub use crate::account::*;
