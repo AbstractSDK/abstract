@@ -5,7 +5,7 @@ use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
 use core::objects::{AnsAsset, AssetEntry};
-use cosmwasm_std::{Addr, BankMsg, Coin, CosmosMsg, Deps, Env};
+use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;
 
 /// Query and Transfer assets from and to the Abstract Account.
@@ -157,15 +157,6 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map_err(Into::into)
             .map(Into::into)
     }
-
-    /// Deposit coins into the Account
-    pub fn deposit_coins(&self, coins: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
-        let recipient = self.base.proxy_address(self.deps)?.into_string();
-        Ok(CosmosMsg::Bank(BankMsg::Send {
-            to_address: recipient,
-            amount: coins,
-        }))
-    }
 }
 
 /// Turn an object that represents an asset into the blockchain representation of an asset, i.e. [`Asset`].
@@ -253,27 +244,25 @@ mod test {
 
     // transfer must be tested via integration test
 
-    mod deposit_coins {
+    mod deposit {
         use super::*;
 
         #[test]
-        fn deposit_coins() {
+        fn deposit() {
             let app = MockModule::new();
             let deps = mock_dependencies();
             let expected_amount = 100u128;
 
             let bank = app.bank(deps.as_ref());
             let coins = coins(expected_amount, "asset");
-            let actual_res = bank.deposit_coins(coins.clone());
+            let actual_res = bank.deposit(coins.clone()).unwrap().messages()[0].clone();
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res)
-                .is_ok()
-                .is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(actual_res).is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
