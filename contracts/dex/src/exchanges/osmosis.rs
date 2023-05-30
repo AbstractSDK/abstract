@@ -1,9 +1,9 @@
 #[allow(unused_imports)]
 use abstract_adapter_utils::Identify;
 #[cfg(feature = "osmosis")]
-use abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread};
-#[cfg(feature = "osmosis")]
 use abstract_dex_adapter_traits::DexError;
+#[cfg(feature = "osmosis")]
+use abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread};
 use cosmwasm_std::Addr;
 
 #[cfg(feature = "osmosis")]

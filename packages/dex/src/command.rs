@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
-use abstract_core::{objects::{DexAssetPairing, PoolAddress, PoolReference}};
+use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};

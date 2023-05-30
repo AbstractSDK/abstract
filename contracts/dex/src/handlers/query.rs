@@ -1,15 +1,15 @@
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
+use crate::msg::{
+    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
+};
+use crate::state::SWAP_FEE;
 use crate::{
     contract::{DexAdapter, DexResult},
     exchanges::exchange_resolver,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
 use abstract_dex_adapter_traits::DexError;
-use crate::msg::{
-    DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
-};
-use crate::state::SWAP_FEE;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
@@ -35,10 +35,9 @@ pub fn query_handler(
                     }
 
                     let exchange = exchange_resolver::resolve_exchange(&dex)?;
-                    let (messages, _) =
-                        crate::adapter::DexAdapter::resolve_dex_action(
-                            adapter, deps, action, exchange,
-                        )?;
+                    let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
+                        adapter, deps, action, exchange,
+                    )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
                 _ => Err(DexError::InvalidGenerateMessage {}),

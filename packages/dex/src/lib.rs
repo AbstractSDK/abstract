@@ -1,5 +1,5 @@
 mod command;
-mod error; 
+mod error;
 // Export interface for use in SDK modules
-pub use command::{DexCommand, Return, Spread, Fee, FeeOnInput};
+pub use command::{DexCommand, Fee, FeeOnInput, Return, Spread};
 pub use error::DexError;

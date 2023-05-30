@@ -1,9 +1,9 @@
+pub mod adapter;
+pub mod api;
 pub mod contract;
 mod exchanges;
 pub(crate) mod handlers;
 pub mod msg;
-pub mod api;
-pub mod adapter;
 pub mod state;
 
 // Export interface for use in SDK modules
@@ -18,12 +18,12 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod cw_orch {
+    use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
-    use crate::{msg::*, EXCHANGE};
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
@@ -64,19 +64,18 @@ pub mod cw_orch {
             let asset = AssetEntry::new(offer_asset.0);
             let ask_asset = AssetEntry::new(ask_asset);
 
-            let swap_msg =
-                crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
-                    proxy_address: None,
-                    request: DexExecuteMsg::Action {
-                        dex,
-                        action: DexAction::Swap {
-                            offer_asset: AnsAsset::new(asset, offer_asset.1),
-                            ask_asset,
-                            max_spread: Some(Decimal::percent(30)),
-                            belief_price: None,
-                        },
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::Action {
+                    dex,
+                    action: DexAction::Swap {
+                        offer_asset: AnsAsset::new(asset, offer_asset.1),
+                        ask_asset,
+                        max_spread: Some(Decimal::percent(30)),
+                        belief_price: None,
                     },
-                });
+                },
+            });
             manager.execute_on_module(EXCHANGE, swap_msg)?;
             Ok(())
         }
