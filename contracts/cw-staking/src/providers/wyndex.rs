@@ -1,3 +1,4 @@
+use abstract_core::objects::AnsEntryConvertor;
 use crate::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
@@ -66,7 +67,8 @@ impl StakingCommand for WynDex {
                 return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
             };
         self.lp_token_address = token_addr;
-        self.lp_token = LpToken::try_from(lp_token)?;
+
+        self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         self.env = Some(env);
         Ok(())
     }
