@@ -1,7 +1,8 @@
 use super::module_reference::ModuleReference;
+use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{to_binary, Binary, StdError, StdResult};
+use cosmwasm_std::{ensure_eq, to_binary, Addr, Binary, QuerierWrapper, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_semver::Version;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
@@ -345,6 +346,85 @@ impl ModuleInitMsg {
         }
         .map_err(Into::into)
     }
+}
+
+/// Assert that the provided module has the same data stored under the cw2 and module data keys.
+pub fn assert_module_data_validity(
+    querier: &QuerierWrapper,
+    // The module that it claims to be
+    module_claim: &Module,
+    // Optional address, if not set, skip code_id checks
+    module_address: Option<Addr>,
+) -> AbstractResult<()> {
+    // we retrieve the address information.
+    let module_address = match &module_claim.reference.unwrap_addr() {
+        Ok(addr) => addr.to_owned(),
+        Err(..) => {
+            // now we need to have a module address provided
+            let Some(addr) = module_address else {
+                // if no addr provided and module doesn't have it, just return
+                // this will be the case when registering a code-id on VC
+                return Ok(())
+            };
+            addr
+        }
+    };
+
+    // verify that the contract's data is equal to its registered data
+    let cw_2_data = cw2::CONTRACT.query(querier, module_address.clone())?;
+
+    // Assert that the contract name is equal to the module name
+    ensure_eq!(
+        module_claim.info.id(),
+        cw_2_data.contract,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.contract,
+            module: module_claim.info.id()
+        }
+    );
+
+    let ModuleVersion::Version(version) = &module_claim.info.version else {
+    panic!("Module version is not versioned, context setting is wrong")
+    };
+
+    // Assert that the contract version is equal to the module version
+    ensure_eq!(
+        version,
+        &cw_2_data.version,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.version,
+            module: version.to_owned()
+        }
+    );
+    // we're done if it's not an actual module
+    match module_claim.reference {
+        ModuleReference::AccountBase(_) => return Ok(()),
+        ModuleReference::Native(_) => return Ok(()),
+        ModuleReference::Standalone(_) => return Ok(()),
+        _ => {}
+    }
+
+    let module_data = MODULE.query(querier, module_address)?;
+    // assert that the names are equal
+    ensure_eq!(
+        module_data.module,
+        cw_2_data.contract,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.contract,
+            module: module_data.module,
+        }
+    );
+    // assert that the versions are equal
+    ensure_eq!(
+        module_data.version,
+        cw_2_data.version,
+        AbstractError::UnequalModuleData {
+            cw2: cw_2_data.version,
+            module: module_data.version
+        }
+    );
+
+    Ok(())
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+use abstract_core::objects::module;
+
 use crate::contract::ModuleFactoryResponse;
 use crate::{
     contract::ModuleFactoryResult, error::ModuleFactoryError,
@@ -124,18 +126,22 @@ fn instantiate_contract(
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let context: Context = CONTEXT.load(deps.storage)?;
-    // Get address of app contract
+    let module = context.module.unwrap();
+
+    // Get address of the new contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
-    let module_address = res.get_contract_address();
+    let module_address = deps.api.addr_validate(res.get_contract_address())?;
+    // assert the data after instantiation.
+    module::assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
         context.account_base.unwrap().manager.into_string(),
         &ManagerMsg::RegisterModule {
             module_addr: module_address.to_string(),
-            module: context.module.unwrap(),
+            module,
         },
         vec![],
     )?

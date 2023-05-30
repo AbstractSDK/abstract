@@ -21,7 +21,8 @@ pub mod addresses {
     pub const TEST_CREATOR: &str = "creator";
     pub const TEST_ADMIN: &str = "admin";
     pub const TEST_ACCOUNT_ID: AccountId = 1;
-    pub const TEST_VERSION: &str = "1.0.0";
+    /// use the package version as test version, breaks tests otherwise.
+    pub const TEST_VERSION: &str = env!("CARGO_PKG_VERSION");
     pub const TEST_PROXY: &str = "proxy_address";
     pub const TEST_MANAGER: &str = "manager_address";
     pub const TEST_ANS_HOST: &str = "test_ans_host_address";

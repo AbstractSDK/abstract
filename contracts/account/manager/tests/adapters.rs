@@ -1,17 +1,19 @@
 mod common;
 
-use abstract_adapter::mock::MockExecMsg;
+use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_core::manager::ManagerModuleInfo;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
 use abstract_interface::*;
-use abstract_testing::prelude::{OWNER, TEST_MODULE_ID, TEST_VERSION};
+use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
 use common::{create_default_account, init_mock_adapter, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};
+
+use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2};
 
 fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
     manager
@@ -172,62 +174,64 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, Some("1.0.0".to_string()))?;
+    deployment
+        .version_control
+        .claim_namespaces(TEST_ACCOUNT_ID, vec!["tester".to_string()])?;
 
-    install_adapter(&account.manager, TEST_MODULE_ID)?;
+    let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
+    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
 
-    let modules = account.expect_modules(vec![staking_adapter.address()?.to_string()])?;
+    install_adapter(&account.manager, &adapter1.id())?;
+
+    let modules = account.expect_modules(vec![adapter1.address()?.to_string()])?;
 
     // check staking adapter
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
-        address: staking_adapter.address()?,
-        id: TEST_MODULE_ID.to_string(),
+        address: adapter1.address()?,
+        id: adapter1.id().to_string(),
         version: cw2::ContractVersion {
-            contract: TEST_MODULE_ID.into(),
-            version: TEST_VERSION.into(),
+            contract: adapter1.id().into(),
+            version: V1.into(),
         },
     });
 
     // uninstall tendermint staking
-    uninstall_module(&account.manager, TEST_MODULE_ID)?;
+    uninstall_module(&account.manager, &adapter1.id())?;
 
     account.expect_modules(vec![])?;
 
-    // Register the new version
-    let new_version_num = "100.0.0";
-    let old_adapter_addr = staking_adapter.address()?;
+    let old_adapter_addr = adapter1.address()?;
 
-    // We init the staking adapter with a new version to ensure that we get a new address
-    let new_staking_adapter =
-        init_mock_adapter(chain, &deployment, Some(new_version_num.to_string()))?;
+    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+
+    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
         .version_control
-        .module(ModuleInfo::from_id_latest(TEST_MODULE_ID)?)?;
-    assert_that!(latest_staking.info.version)
-        .is_equal_to(ModuleVersion::Version(new_version_num.to_string()));
+        .module(ModuleInfo::from_id_latest(&adapter1.id())?)?;
+    assert_that!(latest_staking.info.version).is_equal_to(ModuleVersion::Version(V2.to_string()));
 
     // reinstall
-    install_adapter(&account.manager, TEST_MODULE_ID)?;
+    install_adapter(&account.manager, &adapter2.id())?;
 
-    let modules = account.expect_modules(vec![new_staking_adapter.address()?.to_string()])?;
+    let modules = account.expect_modules(vec![adapter2.address()?.to_string()])?;
 
     assert_that!(modules[1]).is_equal_to(&ManagerModuleInfo {
         // the address stored for BootMockAdapter was updated when we instantiated the new version, so this is the new address
-        address: new_staking_adapter.address()?,
-        id: TEST_MODULE_ID.to_string(),
+        address: adapter2.address()?,
+        id: adapter2.id(),
         version: cw2::ContractVersion {
-            contract: TEST_MODULE_ID.into(),
+            contract: adapter2.id(),
             // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
             // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
-            version: TEST_VERSION.to_string(),
+            version: V2.to_string(),
         },
     });
     // assert that the new staking adapter has a different address
-    assert_ne!(old_adapter_addr, new_staking_adapter.address()?);
+    assert_ne!(old_adapter_addr, adapter2.address()?);
 
-    assert_that!(modules[1].address).is_equal_to(new_staking_adapter.as_instance().address()?);
+    assert_that!(modules[1].address).is_equal_to(adapter2.as_instance().address()?);
 
     Ok(())
 }
@@ -262,13 +266,12 @@ fn unauthorized_exec() -> AResult {
 }
 
 #[test]
-fn manager_adapter_exec_staking_delegation() -> AResult {
+fn manager_adapter_exec() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let _staking_adapter_one =
-        init_mock_adapter(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
+    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
 
     install_adapter(&account.manager, TEST_MODULE_ID)?;
 
@@ -291,25 +294,31 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let _staking_adapter_one =
-        init_mock_adapter(chain.clone(), &deployment, Some("1.2.3".to_string()))?;
-    let expected_version = "2.3.4".to_string();
-    let expected_staking_adapter =
-        init_mock_adapter(chain.clone(), &deployment, Some(expected_version.clone()))?;
-    let expected_staking_adapter_addr = expected_staking_adapter.address()?.to_string();
+    deployment
+        .version_control
+        .claim_namespaces(TEST_ACCOUNT_ID, vec!["tester".to_string()])?;
 
-    let _staking_adapter_three = init_mock_adapter(chain, &deployment, Some("3.4.5".to_string()))?;
+    let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
+    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
+
+    let v1_adapter_addr = adapter1.address()?;
+
+    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+
+    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
+
+    let expected_version = "1.0.0".to_string();
 
     // install specific version
     account.manager.install_module_version(
-        TEST_MODULE_ID,
+        &adapter1.id(),
         ModuleVersion::Version(expected_version),
-        &Empty {},
+        &MockInitMsg {},
     )?;
 
-    let modules = account.expect_modules(vec![expected_staking_adapter_addr])?;
+    let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;
     let installed_module: ManagerModuleInfo = modules[1].clone();
-    assert_that!(installed_module.id).is_equal_to(TEST_MODULE_ID.to_string());
+    assert_that!(installed_module.id).is_equal_to(adapter1.id());
 
     Ok(())
 }

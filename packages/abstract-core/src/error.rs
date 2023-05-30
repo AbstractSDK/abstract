@@ -61,6 +61,9 @@ pub enum AbstractError {
     // deposit error
     #[error("deposit error: {0}")]
     Deposit(String),
+
+    #[error("The version or name of this module was not consistent between its stores (cw2: {cw2} and abstract module data: {module}).")]
+    UnequalModuleData { cw2: String, module: String },
 }
 
 impl From<SemverError> for AbstractError {

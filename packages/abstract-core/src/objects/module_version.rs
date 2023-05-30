@@ -47,11 +47,6 @@ pub struct ModuleData {
 }
 // ANCHOR_END: metadata
 
-/// get_module_version can be use in migrate to read the previous version of this module
-pub fn get_module_data(store: &dyn Storage) -> StdResult<ModuleData> {
-    MODULE.load(store).map_err(Into::into)
-}
-
 /// set_module_version should be used in instantiate to store the original version, and after a successful
 /// migrate to update it
 pub fn set_module_data<T: Into<String>, U: Into<String>, M: Into<String>>(
@@ -173,11 +168,8 @@ mod tests {
     use cosmwasm_std::testing::MockStorage;
 
     #[test]
-    fn get_and_set_work() {
+    fn set_works() {
         let mut store = MockStorage::new();
-
-        // error if not set
-        assert!(get_module_data(&store).is_err());
 
         // set and get
         let contract_name = "crate:cw20-base";
@@ -198,7 +190,7 @@ mod tests {
         )
         .unwrap();
 
-        let loaded = get_module_data(&store).unwrap();
+        let loaded = MODULE.load(&store).unwrap();
         let expected = ModuleData {
             module: contract_name.to_string(),
             version: contract_version.to_string(),

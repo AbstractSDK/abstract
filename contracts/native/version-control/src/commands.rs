@@ -1,3 +1,4 @@
+use abstract_core::objects::module::{self, Module};
 use cosmwasm_std::{
     ensure, Addr, Attribute, Deps, DepsMut, MessageInfo, Order, QuerierWrapper, Response,
     StdResult, Storage,
@@ -79,6 +80,16 @@ pub fn propose_modules(
                 return Err(VCError::AdminMustBeNone);
             }
         }
+
+        // assert that its data is equal to what it wants to be registered under.
+        module::assert_module_data_validity(
+            &deps.querier,
+            &Module {
+                info: module.clone(),
+                reference: mod_ref.clone(),
+            },
+            None,
+        )?;
 
         if config.is_testnet {
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;

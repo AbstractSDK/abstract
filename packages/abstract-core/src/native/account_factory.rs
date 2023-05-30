@@ -12,7 +12,7 @@ pub mod state {
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::account_id::AccountId;
+    use crate::objects::{account_id::AccountId, module::Module};
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -26,7 +26,9 @@ pub mod state {
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_manager_address: Addr,
+        pub account_manager_address: Option<Addr>,
+        pub manager_module: Option<Module>,
+        pub proxy_module: Option<Module>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
