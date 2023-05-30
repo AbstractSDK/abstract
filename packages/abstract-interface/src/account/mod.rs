@@ -56,7 +56,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     }
 
     pub fn install_module<TInitMsg: Serialize>(
-        &mut self,
+        &self,
         module_id: &str,
         init_msg: &TInitMsg,
     ) -> Result<(), crate::AbstractInterfaceError> {
