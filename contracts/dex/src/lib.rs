@@ -1,9 +1,15 @@
 pub mod contract;
 mod exchanges;
 pub(crate) mod handlers;
+pub mod msg;
+pub mod api;
+pub mod adapter;
+pub mod state;
 
 // Export interface for use in SDK modules
-pub use abstract_dex_adapter_traits::{Dex, DexInterface};
+pub use crate::api::DexInterface;
+//:{Dex, DexInterface};
+pub const EXCHANGE: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
@@ -17,7 +23,7 @@ pub mod cw_orch {
         objects::{AnsAsset, AssetEntry},
         MANAGER,
     };
-    use abstract_dex_adapter_traits::{msg::*, EXCHANGE};
+    use crate::{msg::*, EXCHANGE};
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
@@ -59,7 +65,7 @@ pub mod cw_orch {
             let ask_asset = AssetEntry::new(ask_asset);
 
             let swap_msg =
-                abstract_dex_adapter_traits::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
                     proxy_address: None,
                     request: DexExecuteMsg::Action {
                         dex,

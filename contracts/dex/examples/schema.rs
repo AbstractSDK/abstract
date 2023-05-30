@@ -1,5 +1,5 @@
 use abstract_dex_adapter::contract::DexAdapter;
-use abstract_dex_adapter_traits::msg::SimulateSwapResponse;
+use abstract_dex_adapter::msg::SimulateSwapResponse;
 use cosmwasm_schema::{export_schema_with_title, remove_schemas, schema_for};
 use std::env::current_dir;
 use std::fs::create_dir_all;

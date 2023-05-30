@@ -17,7 +17,7 @@ pub type FeeOnInput = bool;
 /// ensures DEX adapters support the expected functionality.
 ///
 /// Implements the usual DEX operations.
-pub trait DexCommand<E: Error>: Identify {
+pub trait DexCommand<E: Error = DexError>: Identify {
     /// Return pool information for given assets pair
     fn pair_address(
         &self,

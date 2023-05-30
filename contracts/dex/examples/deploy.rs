@@ -5,7 +5,7 @@ use cw_orch::daemon::DaemonBuilder;
 
 use cw_orch::daemon::networks::parse_network;
 
-use abstract_dex_adapter_traits::{msg::DexInstantiateMsg, EXCHANGE};
+use abstract_dex_adapter::{msg::DexInstantiateMsg, EXCHANGE};
 use cosmwasm_std::Decimal;
 use semver::Version;
 

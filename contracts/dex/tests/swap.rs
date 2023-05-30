@@ -1,5 +1,5 @@
-use abstract_dex_adapter_traits::msg::DexInstantiateMsg;
-use abstract_dex_adapter_traits::EXCHANGE;
+use abstract_dex_adapter::msg::DexInstantiateMsg;
+use abstract_dex_adapter::EXCHANGE;
 use abstract_interface::AdapterDeployer;
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;

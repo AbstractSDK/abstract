@@ -1,4 +1,4 @@
-use crate::error::DexError;
+use abstract_dex_adapter_traits::DexError;
 use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
@@ -13,7 +13,7 @@ use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
 
 use cw_asset::Asset;
 
-use super::command::DexCommand;
+use abstract_dex_adapter_traits::DexCommand;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;
