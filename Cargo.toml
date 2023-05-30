@@ -31,10 +31,10 @@ cosmwasm-schema = { version = "1.1.9" }
 cw-storage-plus = "1.0.1"
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "interface",
-], branch = "update/change_macro_name" }
+] }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "interface",
-], branch = "update/change_macro_name" }
+] }
 
 cw-asset = { version = "3.0" }
 
