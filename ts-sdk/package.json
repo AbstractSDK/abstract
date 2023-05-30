@@ -1,5 +1,5 @@
 {
-  "name": "template-sdk",
+  "name": "app-sdk",
   "version": " 0.0.1",
   "description": "",
   "cdn": "dist/index.umd.js",
@@ -9,6 +9,11 @@
   "module": "dist/index.esm.js",
   "jsdelivr": "dist/index.umd.js",
   "umd:main": "dist/index.umd.js",
+  "author": {
+    "name": "{{authors}}"
+  },
+  "keywords": [],
+  "license": "MIT OR Apache-2.0",
   "exports": {
     ".": [
       {
@@ -29,13 +34,14 @@
     "codegen": "node ./scripts/codegen"
   },
   "dependencies": {
-    "@cosmjs/cosmwasm-stargate": "^0.28.11",
+    "@abstract-money/abstract.js": "^0.14.1",
     "@cosmjs/amino": "^0.28.11",
-    "type-fest": "^3.11.0",
-    "@abstract-money/abstract.js": "^0.15.1"
+    "@cosmjs/cosmwasm-stargate": "^0.28.11",
+    "ts-mixer": "^6.0.3",
+    "type-fest": "^3.11.0"
   },
   "devDependencies": {
-    "@abstract-money/ts-codegen": "file:../../../../CosmWasm/ts-codegen/packages/ts-codegen",
+    "@abstract-money/ts-codegen": "0.28.3",
     "@swc/core": "^1.2.198",
     "@swc/helpers": "^0.3.17",
     "@types/eslint": "^8.4.1",
@@ -57,11 +63,5 @@
     "typedoc": "^0.22.15",
     "typedoc-plugin-markdown": "^3.12.1",
     "typescript": "^4.6.3"
-  },
-
-  "keywords": [],
-  "author": {
-    "name": "{{authors}}"
-  },
-  "license": "MIT OR Apache-2.0"
+  }
 }

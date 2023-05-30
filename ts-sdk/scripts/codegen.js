@@ -41,6 +41,7 @@ codegen({
      },
      abstractApp: {
        enabled: true,
+       clientPrefix: '',
      },
      types: {
        aliasExecuteMsg: true,
