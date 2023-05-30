@@ -4,6 +4,7 @@ use crate::msg::{
 use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
 use crate::{contract::StakingResult, error::StakingError};
+use abstract_core::objects::AnsEntryConvertor;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
@@ -66,7 +67,8 @@ impl StakingCommand for WynDex {
                 return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
             };
         self.lp_token_address = token_addr;
-        self.lp_token = LpToken::try_from(lp_token)?;
+
+        self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         self.env = Some(env);
         Ok(())
     }

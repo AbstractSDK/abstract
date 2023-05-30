@@ -16,7 +16,7 @@ pub mod host_staking {
     pub use super::providers::osmosis::Osmosis;
 }
 
-#[cfg(feature = "cw-orch")]
+#[cfg(feature = "interface")]
 pub mod cw_orch {
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING;

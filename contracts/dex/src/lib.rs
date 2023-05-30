@@ -10,7 +10,7 @@ pub mod host_exchange {
     pub use super::exchanges::osmosis::Osmosis;
 }
 
-#[cfg(feature = "cw-orch")]
+#[cfg(feature = "interface")]
 pub mod cw_orch {
     use abstract_core::{
         adapter::{self},

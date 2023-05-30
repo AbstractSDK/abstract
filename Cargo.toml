@@ -34,10 +34,10 @@ cw-storage-plus = "1.0.1"
 cw2 = { version = "1.0.1" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "interface",
-], branch = "update/change_macro_name" }
+] }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
   "interface",
-], branch = "update/change_macro_name" }
+] }
 # wait for my pr to be merged
 cw-asset = { version = "3.0" }
 schemars = "0.8"
@@ -48,7 +48,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" }
+cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
