@@ -19,13 +19,13 @@
 
 # About Abstract
 
-- [Abstract SDK - Overview](./sdk/abstract_sdk.md)
-  - [Actor Model](./sdk/actor_model.md)
-  - [Account Abstraction](./sdk/account_abstraction.md)
-  - [Architecture](./sdk/architecture.md)
-  - [Account Ownership](./sdk/ownership.md)
-  - [Modularity](./sdk/modularity.md)
-    - [Module Types](./sdk/module_types.md)
+- [Abstract SDK - Overview](./framework/abstract_sdk.md)
+  - [Actor Model](./framework/actor_model.md)
+  - [Account Abstraction](./framework/account_abstraction.md)
+  - [Architecture](./framework/architecture.md)
+  - [Account Ownership](./framework/ownership.md)
+  - [Modularity](./framework/modularity.md)
+    - [Module Types](./framework/module_types.md)
 - [Platform Details](./platform/index.md)
   - [Abstract Name Service](./platform/ans.md)
   - [Version Control](./platform/version_control.md)
