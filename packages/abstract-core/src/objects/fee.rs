@@ -1,5 +1,5 @@
 use crate::{error::AbstractError, AbstractResult};
-use cosmwasm_std::{Addr, Api, CosmosMsg, Decimal, Uint128};
+use cosmwasm_std::{Addr, Api, Coin, CosmosMsg, Decimal, MessageInfo, Uint128};
 use cw_asset::Asset;
 
 /// A wrapper around Fee to help handle fee logic.
@@ -71,6 +71,78 @@ impl Fee {
     }
 }
 
+/// A wrapper around Coin to help handle fixed fees (with multiples).
+#[cosmwasm_schema::cw_serde]
+pub struct FixedFee {
+    /// Fee to be paid for a unit of a service
+    fee: Coin,
+}
+
+impl FixedFee {
+    /// Creates a wrapped coin to allow charging a fee
+    pub fn new(fee: &Coin) -> Self {
+        FixedFee { fee: fee.clone() }
+    }
+    /// Allows to collect the fee multiple times
+    /// E.g., for namespaces, you want to charge the number of claimed namespaces times the fee for 1 namespace
+    pub fn quantity(mut self, qty: u128) -> Self {
+        self.fee.amount *= Uint128::from(qty);
+        self
+    }
+
+    /// Validates that the sent funds correspond exactly to the fixed fee
+    /// Returns the fee object (a.k.a. self) for later use (e.g. transferring the paid fee to another address)
+    pub fn assert_payment(self, msg_info: &MessageInfo) -> AbstractResult<Coin> {
+        if self.fee.amount.is_zero() {
+            return Ok(self.fee);
+        }
+        if msg_info.funds.len() != 1
+            || msg_info.funds[0].denom != self.fee.denom
+            || self.fee.amount != msg_info.funds[0].amount
+        {
+            return Err(AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {}, sent {:?}",
+                self.fee, msg_info.funds
+            )));
+        }
+        Ok(self.fee)
+    }
+
+    /// Validates that the sent funds include at least the fixed fee
+    /// This mutates the msg_info so that the rest of the message execution doesn't include those funds anymore.
+    /// This acts as a toll on the sent funds
+    /// Returns the fee object (a.k.a. self) for later use (e.g. transferring the paid fee to another address)
+    pub fn charge(self, msg_info: &mut MessageInfo) -> AbstractResult<Coin> {
+        if self.fee.amount.is_zero() {
+            return Ok(self.fee);
+        }
+        let original_funds = msg_info.funds.clone();
+
+        // We find the fee inside the msg_info
+        let funds_to_use = msg_info
+            .funds
+            .iter_mut()
+            .find(|f| f.denom == self.fee.denom)
+            .ok_or(AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {}, sent {:?}",
+                self.fee, original_funds
+            )))?;
+
+        if funds_to_use.amount < self.fee.amount {
+            return Err(AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {}, sent {:?}",
+                self.fee, original_funds
+            )));
+        }
+
+        funds_to_use.amount -= self.fee.amount;
+        Ok(self.fee)
+    }
+    pub fn fee(&self) -> Coin {
+        self.fee.clone()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -122,7 +194,10 @@ mod tests {
         }
     }
     mod transfer_fee {
-        use cosmwasm_std::testing::MockApi;
+        use cosmwasm_std::{
+            coin, coins,
+            testing::{mock_info, MockApi},
+        };
 
         use super::*;
 
@@ -178,6 +253,14 @@ mod tests {
             let new_share = Decimal::percent(10u64);
             fee.set_share(new_share).unwrap();
             assert_eq!(fee.share(), new_share);
+        }
+        #[test]
+        fn test_loose_fee_validation() {
+            let _api = MockApi::default();
+            let fee = FixedFee::new(&coin(45, "ujunox"));
+            let mut info = mock_info("anyone", &coins(47, "ujunox"));
+            fee.charge(&mut info).unwrap();
+            assert_eq!(info.funds, coins(2, "ujunox"));
         }
     }
 }

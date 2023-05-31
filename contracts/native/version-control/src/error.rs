@@ -1,3 +1,4 @@
+use cosmwasm_std::Coin;
 use cosmwasm_std::{Addr, StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -68,6 +69,9 @@ pub enum VCError {
 
     #[error("No action specified")]
     NoAction,
+
+    #[error("Invalid fee payment sent. Expected {}, sent {:?}", expected, sent)]
+    InvalidFeePayment { expected: Coin, sent: Vec<Coin> },
 }
 
 impl From<cw_semver::Error> for VCError {

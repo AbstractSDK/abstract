@@ -1,4 +1,5 @@
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{to_binary, Binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, Uint128};
+
 use cw_semver::Version;
 
 use abstract_core::objects::namespace::Namespace;
@@ -44,6 +45,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     let InstantiateMsg {
         allow_direct_module_registration,
         namespace_limit,
+        namespace_registration_fee,
     } = msg;
 
     CONFIG.save(
@@ -51,6 +53,10 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         &Config {
             allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
             namespace_limit,
+            namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
+                denom: "none".to_string(),
+                amount: Uint128::zero(),
+            }),
         },
     )?;
 
@@ -90,11 +96,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         ExecuteMsg::UpdateConfig {
             allow_direct_module_registration,
             namespace_limit,
+            namespace_registration_fee,
         } => update_config(
             deps,
             info,
             allow_direct_module_registration,
             namespace_limit,
+            namespace_registration_fee,
         ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
         ExecuteMsg::UpdateOwnership(action) => {

@@ -2,7 +2,6 @@ pub mod commands;
 pub mod contract;
 pub mod error;
 pub mod queries;
-
 #[cfg(test)]
 mod testing {
     use crate::contract;
@@ -23,6 +22,7 @@ mod testing {
             version_control::InstantiateMsg {
                 allow_direct_module_registration: Some(true),
                 namespace_limit: 10,
+                namespace_registration_fee: None,
             },
         )
     }
