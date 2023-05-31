@@ -1,11 +1,10 @@
 use std::error::Error;
 
-use crate::error::DexError;
 use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::AnsHost;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError, Uint128};
 use cw_asset::{Asset, AssetInfo};
 
 pub type Return = Uint128;
@@ -17,20 +16,23 @@ pub type FeeOnInput = bool;
 /// ensures DEX adapters support the expected functionality.
 ///
 /// Implements the usual DEX operations.
-pub trait DexCommand<E: Error = DexError>: Identify {
+pub trait DexCommand<E: Error = StdError>: Identify {
     /// Return pool information for given assets pair
     fn pair_address(
         &self,
         deps: Deps,
         ans_host: &AnsHost,
         assets: (AssetEntry, AssetEntry),
-    ) -> Result<PoolAddress, DexError> {
+    ) -> Result<PoolAddress, StdError> {
         let dex_pair = DexAssetPairing::new(assets.0, assets.1, self.name());
-        let mut pool_ref = ans_host.query_asset_pairing(&deps.querier, &dex_pair)?;
+        let mut pool_ref = ans_host
+            .query_asset_pairing(&deps.querier, &dex_pair)
+            .map_err(|e| StdError::generic_err(e.to_string()))?;
         // Currently takes the first pool found, but should be changed to take the best pool
-        let found: PoolReference = pool_ref.pop().ok_or(DexError::AssetPairingNotFound {
-            asset_pairing: dex_pair,
-        })?;
+        let found: PoolReference = pool_ref.pop().ok_or(StdError::generic_err(format!(
+            "Asset pairing {} not found.",
+            dex_pair
+        )))?;
         Ok(found.pool_address)
     }
 
@@ -53,9 +55,12 @@ pub trait DexCommand<E: Error = DexError>: Identify {
         _offer_assets: Vec<Asset>,
         _ask_assets: Vec<Asset>,
         _max_spread: Option<Decimal>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
+    ) -> Result<Vec<CosmosMsg>, StdError> {
         // Must be implemented in the base to be available
-        Err(DexError::NotImplemented(self.name().to_string()))
+        Err(StdError::generic_err(format!(
+            "Not implemented : {}",
+            self.name()
+        )))
     }
 
     /// Provides liquidity on the the DEX

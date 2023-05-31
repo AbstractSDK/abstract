@@ -1,5 +1,6 @@
+use crate::error::DexError;
 use abstract_adapter_utils::Identify;
-use abstract_dex_adapter_traits::{DexCommand, DexError};
+use abstract_dex_adapter_traits::DexCommand;
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]

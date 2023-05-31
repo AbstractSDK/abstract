@@ -1,9 +1,9 @@
+use crate::error::DexError;
 use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
-use abstract_dex_adapter_traits::DexError;
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::Chargeable;
@@ -197,7 +197,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
             ans.host(),
             (pair_assets.swap_remove(0), pair_assets.swap_remove(0)),
         )?;
-        exchange.provide_liquidity(deps, pair_address, assets, max_spread)
+        exchange
+            .provide_liquidity(deps, pair_address, assets, max_spread)
+            .map_err(Into::into)
     }
 
     fn resolve_provide_liquidity_symmetric(
@@ -215,7 +217,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
             (paired_assets.swap_remove(0), paired_assets.swap_remove(1)),
         )?;
         let offer_asset = ans.query(&offer_asset)?;
-        exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
+        exchange
+            .provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
+            .map_err(Into::into)
     }
 
     /// @todo
@@ -244,6 +248,8 @@ pub trait DexAdapter: AbstractNameService + Execution {
         }
 
         let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
-        exchange.withdraw_liquidity(deps, pool_address, lp_asset)
+        exchange
+            .withdraw_liquidity(deps, pool_address, lp_asset)
+            .map_err(Into::into)
     }
 }

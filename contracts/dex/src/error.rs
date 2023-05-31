@@ -4,6 +4,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
+use serde::ser::Error;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -55,9 +56,6 @@ pub enum DexError {
 
     #[error("Message generation for IBC queries not supported.")]
     IbcMsgQuery,
-
-    #[error("Asset pairing {} not found.", asset_pairing)]
-    AssetPairingNotFound { asset_pairing: DexAssetPairing },
 
     #[error("Invalid Generate Message")]
     InvalidGenerateMessage,

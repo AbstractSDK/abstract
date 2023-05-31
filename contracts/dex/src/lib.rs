@@ -1,6 +1,7 @@
 pub mod adapter;
 pub mod api;
 pub mod contract;
+pub mod error;
 mod exchanges;
 pub(crate) mod handlers;
 pub mod msg;
