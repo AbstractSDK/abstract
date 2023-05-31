@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::{
     get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl, VERSION,
 };
 use abstract_core::{
     objects::gov_type::GovernanceDetails, ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY,
@@ -10,6 +10,7 @@ use abstract_core::{
 };
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
+use semver::Version;
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -22,7 +23,7 @@ pub struct Abstract<Chain: CwEnv> {
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = semver::Version;
+    type DeployData = Empty;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
@@ -51,9 +52,11 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, version: semver::Version) -> Result<Self, AbstractInterfaceError> {
+    fn deploy_on(chain: Chain, _data: Empty) -> Result<Self, AbstractInterfaceError> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
+
+        let version: Version = VERSION.parse().unwrap();
 
         // ########### Instantiate ##############
         deployment.instantiate(&chain)?;
