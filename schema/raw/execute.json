@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "description": "Template execute messages",
+  "description": "App execute messages",
   "oneOf": [
     {
       "type": "object",
