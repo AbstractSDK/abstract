@@ -32,3 +32,4 @@ release
 docs/book
 
 artifacts/*
+!artifacts/.gitkeep
