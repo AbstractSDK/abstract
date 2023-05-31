@@ -52,11 +52,11 @@ cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-testing = { version="0.15.1" }
+abstract-core = { version="0.15.1" }
+abstract-interface =  { version="0.15.1" }
+abstract-sdk = { version="0.15.1" }
+abstract-adapter = { version="0.15.0" }
 
 ## Testing
 rstest = "0.16.0"
@@ -66,8 +66,8 @@ wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git"
 
 
 ## Local
-abstract-adapter-utils = { path = "packages/utils" }
-abstract-dex-adapter-traits = { path = "packages/dex" }
+abstract-adapter-utils = { git="https://github.com/AbstractSDK/adapters", branch="feature/impl-in-origin-repo"}
+abstract-dex-adapter-traits = { git="https://github.com/AbstractSDK/adapters", branch="feature/impl-in-origin-repo"}
 
 [profile.release]
 rpath = false
@@ -82,5 +82,8 @@ incremental = false
 
 # Need this, otherwise, we have multiple origin for the abstract adapters repo (TODO change the dependency when ready to release here)
 [patch."https://github.com/AbstractSDK/adapters"]
-abstract-adapter-utils = { path = "packages/utils" }
-abstract-dex-adapter-traits = { path = "packages/dex" }
+#abstract-adapter-utils = { path = "packages/utils" }
+#abstract-dex-adapter-traits = { path = "packages/dex" }
+
+[patch.crates-io]
+#abstract-adapter = {git = "https://github.com/AbstractSDK/contracts"}
