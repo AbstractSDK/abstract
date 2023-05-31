@@ -22,17 +22,8 @@ required-features = ["schema"]
 default = ["export"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch"]
-juno = [
-  "dep:wasmswap",
-  "dep:cw20_junoswap",
-  "dep:abstract-wyndex-dex-adapter",
-  "dep:abstract-osmosis-dex-adapter",
-]
-terra = [
-  "dep:terraswap",
-  "dep:abstract-astroport-dex-adapter",
-  "dep:cw20_junoswap",
-]
+juno = ["dep:wasmswap", "dep:cw20_junoswap", "dep:abstract-wyndex-dex-adapter", "dep:abstract-osmosis-dex-adapter"]
+terra = ["dep:terraswap", "dep:abstract-astroport-dex-adapter", "dep:cw20_junoswap"]
 osmosis = ["dep:abstract-osmosis-dex-adapter"]
 schema = ["abstract-adapter/schema"]
 # Keep as is until TendermintStake updates.
