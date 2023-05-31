@@ -30,3 +30,5 @@ contracts/**/schema
 release
 
 docs/book
+
+artifacts/*
