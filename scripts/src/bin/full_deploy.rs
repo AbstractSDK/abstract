@@ -9,14 +9,12 @@ use cw_orch::{
         *,
     },
 };
-use semver::Version;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
-    let abstract_version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let rt = Runtime::new()?;
     for network in networks {
@@ -25,7 +23,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
         let sender = chain.sender();
-        let deployment = Abstract::deploy_on(chain, abstract_version.clone())?;
+        let deployment = Abstract::deploy_on(chain, Empty {})?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         deployment
