@@ -22,9 +22,7 @@ A top-level message in CosmWasm represents a transaction that encompasses multip
 
 ## Relevance to the Abstract Account
 
-TODO: We bring up modules here without any context. We might want to keep this a bit vague for now, i.e. don't mention modules. 
-
-In the context of Abstract, each installed (or enabled) module acting as an independent actor provides distinct benefits.
+In the context of Abstract Accounts each smart-contract acts as an independent actor provides distinct benefits.
 
 ### Enhanced Security through State Isolation
 

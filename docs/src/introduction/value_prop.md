@@ -1,8 +1,12 @@
-# Value Proposition
+# About Abstract
 
-Welcome to Abstract, the revolutionary platform that empowers developers to create secure and powerful financial applications with ease. With Abstract, you can unleash your creativity and build innovative solutions without the complexities typically associated with blockchain development.
+Abstract is the smart-contract platform that empowers developers to create secure and powerful financial applications with ease. With Abstract, you can unleash your creativity and build innovative solutions without much of the complexities typically associated with blockchain development.
 
-## Simplified Development Process
+## Continuous Funding
+
+Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer smart contracts on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building smart contracts and dApps, sharing profits among members. Furthermore, they can create smart contracts based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting value for all parties involved.
+
+## Simplified Development
 
 Abstract simplifies the development process by providing a modular architecture and a comprehensive set of tools. Developers can leverage pre-built functionalities and smart contract templates to accelerate application development. The modular approach allows you to focus on the specific features and logic of your application, reducing development time and effort.
 

@@ -41,7 +41,6 @@ Time to start building! We'll get you set up with the Abstract App template whic
   - A basic API client
 - A set of just commands that will boost your productivity.
 
-
 Go to [our App Template on Github](https://github.com/AbstractSDK/app-template) and click on the "Use this template" button to create a new repository based on the template. You can name the repository whatever you want, but we recommend using the name of your module.
 
 Go ahead and read through the readme of the template repository. It contains instructions on how to set up your development environment and how the template is structured.
@@ -71,4 +70,4 @@ The template contains a scaffold contract that you can use as a starting point f
 
 ## Front-end layout
 
-TODO: 
+TODO: explain the front-end layout.

@@ -9,7 +9,7 @@ Welcome to the Abstract documentation, your comprehensive guide to understanding
 
 Abstract is a cutting-edge smart contract platform designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It provides the best full-stack development experience by simplifying and streamlining the dApp development process. It does this by offering high-quality tooling as well as an extensive library of integrations with popular tools and services. In combination with our on-chain smart-contract framework developers can create, test, and deploy dApps with ease.
 
-## Key Features and Benefits
+## Features
 
 - Chain-Agnostic: The Abstract platform is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.
 
@@ -28,11 +28,7 @@ Abstract is a cutting-edge smart contract platform designed for the CosmWasm eco
   - Wallets: Keplr, Cosmostation and Terra Station
   - Automation: CronCat and Lit Protocol (planned)
 
-### Reliable Development Funding
-
-Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's tokenomics and community-driven incentives. They design and offer smart contracts on the Module Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, developers gain access to funding for building smart contracts and dApps, sharing profits among members. Furthermore, they can create smart contracts based on user bounties, earning tokens for their efforts. This collaborative environment encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting value for all parties involved.
-
-## Use Cases and Examples
+<!-- ## Use Cases and Examples
 
 ### Personalized Decentralized Finance (PDeFi)
 
@@ -65,4 +61,4 @@ Abstract can be used to build and manage DAOs with custom governance structures,
 
 Develop tooling for your dApps that help speed up work flows, work with your contracts from inside Rust, no need for JavaScript, use your own Rust projects codebases.
 
-
+ -->
