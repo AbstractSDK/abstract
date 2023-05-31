@@ -7,5 +7,6 @@ git merge ci/main --squash
 
 mv example.env .env
 
+rm ./README.md
 # Delete this script after running
 rm -- "$0"

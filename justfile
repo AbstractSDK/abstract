@@ -49,11 +49,11 @@ schema:
 
 # Generate the typescript client for the app contract
 ts-codegen: schema
-  (cd ts-sdk && npm run codegen)
+  (cd typescript && npm run codegen)
 
 # Publish the typescript sdk
 ts-publish: ts-codegen
-  (cd ts-sdk && npm publish --access public)
+  (cd typescript && npm publish --access public)
 
 # Generate the schemas for this app and publish them to the schemas repository for access in the Abstract frontend
 publish-schemas namespace name version: schema

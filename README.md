@@ -57,10 +57,16 @@ You can now use `just deploy` to run the `examples/deploy.rs` script. The script
 
 ### Generating Typescript Client Code
 
-To generate the typescript client code for the contract you can run `just ts-codegen`. This will generate the code in the `ts-sdk/src` directory. You can then import the generated code in your frontend application.
+Before proceeding you need to install the required dependencies for the typescript client code generation.
 
-To publish the Typescript sdk, first change the name and version in the `ts-sdk/package.json` file. Then run `just ts-publish`. This will publish the sdk to npm.
+```bash
+cd typescript
+npm install
+```
 
+To generate the typescript client code for the contract you can run `just ts-codegen`. This will generate the code in the `typescript/src` directory. You can then import the generated code in your frontend application.
+
+To publish the Typescript sdk, first change the name and version in the `typescript/package.json` file. Then run `just ts-publish`. This will publish the sdk to npm.
 
 ### Publishing Module Schemas
 
