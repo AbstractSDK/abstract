@@ -24,7 +24,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>)> {
     let contract = App::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock, "1.0.0".parse().unwrap())?;
+    let abstr_deployment = Abstract::deploy_on(mock, "0.15.1".parse().unwrap())?;
 
     // Create a new account to install the app onto
     let account =
