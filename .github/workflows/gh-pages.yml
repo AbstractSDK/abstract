@@ -44,7 +44,7 @@ jobs:
         run: just docs-build
 
       - name: Upload artifact
-        if: ${{ github.event_name != 'pull_request' && github.event_name == 'release' }}
+        if: ${{ github.event_name != 'pull_request' }}
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload book repository
@@ -52,6 +52,7 @@ jobs:
 
   # Deploy job
   deploy:
+    if: ${{ github.event_name != 'pull_request' }}
     # Add a dependency to the build job
     needs: build
 
