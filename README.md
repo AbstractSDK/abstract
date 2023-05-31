@@ -45,6 +45,7 @@ Here are some of the tasks available in the `justfile`:
 - `schema`: Generate the json schemas for the contract
 - `ts-codegen`: Generate the typescript client code for the contract
 - `ts-publish`: Publish the typescript client code to npm
+- `publish-schemas`: Publish the schemas by creating a PR on the Abstract [schemas](https://github.com/AbstractSDK/schemas) repository.
 
 You can see the full list of tasks available by running `just --list`.
 
@@ -59,6 +60,31 @@ You can now use `just deploy` to run the `examples/deploy.rs` script. The script
 To generate the typescript client code for the contract you can run `just ts-codegen`. This will generate the code in the `ts-sdk/src` directory. You can then import the generated code in your frontend application.
 
 To publish the Typescript sdk, first change the name and version in the `ts-sdk/package.json` file. Then run `just ts-publish`. This will publish the sdk to npm.
+
+
+### Publishing Module Schemas
+
+To publish your module schemas, we provide the `publish-schemas` command, which creates a pull request on the Abstract [schemas](https://github.com/AbstractSDK/schemas) repository.
+
+```bash
+just publish-schemas <namespace> <name> <version>
+```
+
+- `namespace`: Your module's namespace
+- `name`: Your module's name
+- `version`: Your module's version. Note that if you only include the minor version (e.g., `0.1`), you don't have to reupload the schemas for every patch version.
+
+The command will automatically clone the Abstract Schemas repository, create a new branch with the given namespace, name, and version, and copy the schemas and metadata from your module to the appropriate directory.
+
+For this command to work properly, please make sure that your `metadata.json` file is located at the root of your module's directory. This file is necessary for the Abstract Frontend to correctly interpret and display information about your module.
+
+Example:
+
+```bash
+just publish-schemas my-namespace my-module 0.1
+```
+
+In the example above, `my-namespace` is the namespace, `my-module` is the module's name, and `0.1` is the minor version. If you create a patch for your module (e.g., `0.1.1`), you don't need to run `publish-schemas` again unless the schemas have changed.
 
 
 ## Contributing
