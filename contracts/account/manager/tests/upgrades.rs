@@ -10,7 +10,7 @@ use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCE
 
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
-use abstract_testing::prelude::TEST_VERSION;
+
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
 use cosmwasm_std::to_binary;
@@ -42,7 +42,7 @@ fn install_module_version(
 fn install_app_successful() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -81,7 +81,7 @@ fn install_app_successful() -> AResult {
 fn install_app_versions_not_met() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -108,7 +108,7 @@ fn install_app_versions_not_met() -> AResult {
 fn upgrade_app() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -278,7 +278,7 @@ fn upgrade_app() -> AResult {
 fn uninstall_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -313,7 +313,7 @@ fn uninstall_modules() -> AResult {
 fn update_adapter_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &account;
     abstr
@@ -362,7 +362,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 fn upgrade_manager_last() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
 
@@ -423,7 +423,7 @@ fn upgrade_manager_last() -> AResult {
 fn no_duplicate_migrations() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse()?)?;
+    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
 
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;

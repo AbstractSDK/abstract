@@ -2,7 +2,7 @@ mod common;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
-use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_VERSION};
+use abstract_testing::prelude::TEST_ACCOUNT_ID;
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
@@ -13,7 +13,7 @@ use speculoos::prelude::*;
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, TEST_VERSION.parse().unwrap())?;
+    let deployment = Abstract::deploy_on(chain, Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let modules = account.manager.module_infos(None, None)?.module_infos;
@@ -43,7 +43,7 @@ fn instantiate() -> AResult {
 fn exec_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), TEST_VERSION.parse().unwrap())?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
