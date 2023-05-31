@@ -1,6 +1,6 @@
 # Module Builder
 
-Abstract provides multiple module bases, as detailed in our section on [modules](TODO: Add link). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
+Abstract provides multiple module bases, as detailed in our section on [modules](../). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
 
 ## Overview
 

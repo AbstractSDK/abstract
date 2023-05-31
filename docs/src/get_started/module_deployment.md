@@ -23,25 +23,26 @@ This should result in an `artifacts` directory being created in your project roo
 
 Now you can go ahead and deploy the module to the network(s) you want to make it available on. You can do this by running the following command:
 
-<!-- TODO: re-add cli to deploy command in template or create Abstract CLI -->
-
 ```bash
 $ just deploy uni-1
 > Deploying module...
 ```
 
-This will use the module's `examples/deploy.rs` script to deploy the module to the `uni-1` network. The resulting code-id of your contract should now be in the `state.json` file created for you.
-
-### Module Registration
-
-Once uploaded you can register the module on the Abstract Version Control using our web-app. To do this, go to [the registration page](TODO: insert link) and use the module's code-id to register it. **The module_id you assign to the module should be identical to the module_id that you used in the module builder.** If not module installation will fail.
-
-### Module Installation
+This will use the module's `examples/deploy.rs` script to deploy the module to the `uni-1` network. The resulting code-id of your contract should now be in the `state.json` file created for you. The script will also attempt to register the module on the Abstract Version Control, hence the mnemonic used in the script should be the same as the one you used to create the account and register the namespace.
 
 ## JSON Schema Linking
 
-To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the Abstract Version Control. This will allow developers to use the Abstract web app to interact with your module.
+To improve the user-experience for developers using your module we recommend linking your module's JSON schema to the Abstract Version Control. This will allow developers (and you) to use the Abstract web app to interact with your module.
 
-TODO: Add steps to link schema
-1. Generate schema by running `just schema`
-2. PR schema to [Abstract Schema Repository](https://github.com/AbstractSDK/schemas). Once approved the front-end will allow for message generation for your module.
+To link your module's schema you can run the following command:
+
+```bash
+$ just publish-schemas <namespace> <name> <version>
+> Publishing schemas...
+```
+
+Where you fill the `<namespace>`, `<name>` and `<version>` with the same values you used to register your module on the Abstract Version Control.
+
+## Module Installation
+
+To install your module, go to the [Abstract Account Dashboard](https://app.abstract.money), go to your (or a new one) Account and click on the `Modules` tab. Here you will find a list of all the modules you have registered on the Abstract Version Control. Click on the `Install` button next to your module and select the network you want to install it on. This will open a modal with the following fields:
