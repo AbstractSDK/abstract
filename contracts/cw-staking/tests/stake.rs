@@ -23,6 +23,8 @@ use common::create_default_account;
 
 mod common;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,
@@ -32,13 +34,13 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), VERSION.parse()?)?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let staking = CwStakingAdapter::new(CW_STAKING, chain.clone());
 
-    staking.deploy("1.0.0".parse()?, Empty {})?;
+    staking.deploy(VERSION.parse()?, Empty {})?;
 
     let os = create_default_account(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;
