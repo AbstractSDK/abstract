@@ -12,7 +12,7 @@ members = ["packages/*", "contracts/native/*", "contracts/account/*", "scripts"]
 resolver = "2"
 
 [workspace.package]
-version = "0.15.1"
+version = "0.15.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
