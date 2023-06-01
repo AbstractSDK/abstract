@@ -17,7 +17,7 @@ chmod +x ./template-setup.sh
 ./template-setup.sh
 ```
 
-The setup script will add our Github CI repo to the repo.
+The setup script will ask you for a name that will replace the "template" names in the repo. It also adds our Github CI repo to the repo.
 
 ## Using the Justfile
 
