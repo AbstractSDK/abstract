@@ -12,7 +12,7 @@ members = ["packages/*", "contracts/native/*", "contracts/account/*", "scripts"]
 resolver = "2"
 
 [workspace.package]
-version = "0.15.2"
+version = "0.15.3"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -57,7 +57,7 @@ abstract-app = { path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { path = "packages/abstract-interface", version = "0.15.1" }
+abstract-interface = { path = "packages/abstract-interface", version = "0.15.3" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 account-factory = { package = "abstract-account-factory", path = "contracts/native/account-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
@@ -65,13 +65,13 @@ version-control = { package = "abstract-version-control", path = "contracts/nati
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
-abstract-sdk = { version = "0.15.1", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.15.1", path = "packages/abstract-testing" }
-abstract-core = { version = "0.15.1", path = "packages/abstract-core" }
+abstract-sdk = { version = "0.15.3", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.15.3", path = "packages/abstract-testing" }
+abstract-core = { version = "0.15.3", path = "packages/abstract-core" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.15.1", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.15.1", path = "packages/abstract-ica" }
+abstract-macros = { version = "0.15.3", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.15.3", path = "packages/abstract-ica" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
