@@ -1,27 +1,27 @@
+use cw20::msg::Cw20ExecuteMsgFns;
 pub mod suite;
 
+use abstract_interface::AbstractInterfaceError;
+use cw_orch::deploy::Deploy;
 use std::fmt::Debug;
 
 use self::suite::{Suite, SuiteBuilder};
-use abstract_boot::{
-    Abstract,
-    AbstractBootError,
-    boot_core::{BootError, Deploy, Mock, StateInterface, CallAs, ContractInstance},
-};
-use abstract_boot::boot_core::{BootInstantiate, BootUpload, CwEnv, TxResponse};
 use abstract_core::{
     ans_host::ExecuteMsgFns,
     objects::{
         pool_id::PoolAddressBase, AssetEntry, LpToken, PoolMetadata, UncheckedContractEntry,
     },
 };
-use boot_cw_plus::{Cw20Base, Cw20ExecuteMsgFns};
+use abstract_interface::Abstract;
 use cosmwasm_std::{coin, Addr, Decimal, Empty, Uint128};
 use cw20::Cw20Coin;
+use cw_orch::prelude::*;
 use wyndex::{
     asset::{AssetInfo, AssetInfoExt},
     factory::{DefaultStakeConfig, PartialStakeConfig},
 };
+
+use cw20_base::contract::Cw20Base;
 
 pub const STAKING: &str = "wyndex:staking";
 pub const FACTORY: &str = "wyndex:factory";
@@ -90,7 +90,7 @@ pub fn create_new_cw20<Chain: CwEnv, T: Into<Uint128>>(
     cw20: &Cw20Base<Chain>,
     minter: &Addr,
     balance: T,
-) -> Result<TxResponse<Chain>, crate::AbstractBootError> {
+) -> Result<TxResponse<Chain>, AbstractInterfaceError> {
     let msg = cw20_base::msg::InstantiateMsg {
         decimals: 6,
         mint: None,
@@ -111,7 +111,7 @@ pub fn create_new_cw20<Chain: CwEnv, T: Into<Uint128>>(
 // First create Suite with SuiteBuilder, this uploads contracts and instantiates factory
 // Then create first pair and stake config and return WyndDex object
 impl Deploy<Mock> for WynDex {
-    type Error = AbstractBootError;
+    type Error = AbstractInterfaceError;
     type DeployData = Empty;
 
     fn store_on(chain: Mock) -> Result<Self, Self::Error> {
@@ -124,7 +124,7 @@ impl Deploy<Mock> for WynDex {
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
         let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
-        let mut raw = Cw20Base::new(RAW_TOKEN, chain.clone());
+        let raw = Cw20Base::new(RAW_TOKEN, chain.clone());
         raw.upload()?;
         create_new_cw20(&raw, &owner, Uint128::new(100_000_000_000))?;
         let raw_info = AssetInfo::Token(raw.addr_str()?);
@@ -267,7 +267,11 @@ impl Deploy<Mock> for WynDex {
         state.set_address(RAW_EUR_PAIR, &raw_eur_pair);
 
         // set allowance
-        raw.call_as(&owner).increase_allowance(10_000u128.into(), (&raw_eur_pair).to_string(), None)?;
+        raw.call_as(&owner).increase_allowance(
+            10_000u128.into(),
+            raw_eur_pair.to_string(),
+            None,
+        )?;
         // owner provides some initial liquidity
         suite
             .provide_liquidity(
@@ -341,8 +345,15 @@ impl Deploy<Mock> for WynDex {
             eur_usd_staking: state.get_address(EUR_USD_STAKE)?,
         })
     }
+    fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> {
+        vec![
+            Box::new(&mut self.eur_usd_lp),
+            Box::new(&mut self.wynd_eur_lp),
+            Box::new(&mut self.raw_token),
+            Box::new(&mut self.raw_eur_lp),
+        ]
+    }
 }
-
 impl WynDex {
     /// registers the WynDex contracts and assets on Abstract
     /// this includes:
@@ -361,7 +372,7 @@ impl WynDex {
     pub(crate) fn register_info_on_abstract(
         &self,
         abstrct: &Abstract<Mock>,
-    ) -> Result<(), BootError> {
+    ) -> Result<(), CwOrchError> {
         let eur_asset = AssetEntry::new(EUR);
         let usd_asset = AssetEntry::new(USD);
         let raw_asset = AssetEntry::new(RAW_TOKEN);

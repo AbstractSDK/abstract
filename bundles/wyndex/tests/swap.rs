@@ -1,5 +1,5 @@
-use abstract_boot::boot_core::instantiate_default_mock_env;
 use cosmwasm_std::{coin, testing::mock_env, Addr};
+use cw_orch::mock::Mock;
 use wyndex::asset::{AssetInfo, AssetInfoExt};
 use wyndex_bundle::suite::SuiteBuilder;
 use wyndex_multi_hop::msg::SwapOperation;
@@ -15,7 +15,7 @@ fn trading_frozen() {
 
     let user = Addr::unchecked("user");
 
-    let (_state, mock) = instantiate_default_mock_env(&user).unwrap();
+    let mock = Mock::new(&user);
     mock.set_balance(&user, vec![coin(100_000, ujuno)]).unwrap();
 
     let mut suite = SuiteBuilder::new()
@@ -70,7 +70,7 @@ fn custom_fee_works() {
 
     let user = Addr::unchecked("user");
 
-    let (_state, mock) = instantiate_default_mock_env(&user).unwrap();
+    let mock = Mock::new(&user);
     mock.set_balance(&user, vec![coin(1_001_000, ujuno), coin(1_000_000, uluna)])
         .unwrap();
 
