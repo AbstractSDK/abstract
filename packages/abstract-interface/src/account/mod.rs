@@ -50,9 +50,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
     pub fn register(
         &self,
         version_control: &VersionControl<Chain>,
-        version: &str,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        version_control.register_base(self, version)
+        version_control.register_base(self)
     }
 
     pub fn install_module<TInitMsg: Serialize>(

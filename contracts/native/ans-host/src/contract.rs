@@ -21,7 +21,7 @@ pub struct AnsHostResponse;
 
 pub type AnsHostResult<T = Response> = Result<T, AnsHostError>;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(

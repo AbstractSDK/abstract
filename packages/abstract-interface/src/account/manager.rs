@@ -14,7 +14,6 @@ use serde::Serialize;
 pub struct Manager<Chain>;
 
 impl<Chain: CwEnv> Uploadable for Manager<Chain> {
-    #[cfg(feature = "integration")]
     fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(

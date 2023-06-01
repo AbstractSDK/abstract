@@ -48,7 +48,7 @@ pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
 
         abstr
             .version_control
-            .register_adapters(vec![self.as_instance()], &version)?;
+            .register_adapters(vec![(self.as_instance(), version.to_string())])?;
         Ok(())
     }
 }
@@ -79,7 +79,7 @@ pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
 
         abstr
             .version_control
-            .register_apps(vec![self.as_instance()], &version)?;
+            .register_apps(vec![(self.as_instance(), version.to_string())])?;
         Ok(())
     }
 }

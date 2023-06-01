@@ -10,7 +10,6 @@ pub use abstract_core::module_factory::{
 pub struct ModuleFactory<Chain>;
 
 impl<Chain: CwEnv> Uploadable for ModuleFactory<Chain> {
-    #[cfg(feature = "integration")]
     fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
@@ -43,23 +42,4 @@ impl<Chain: CwEnv> ModuleFactory<Chain> {
         )
         .map_err(Into::into)
     }
-
-    // pub  fn save_init_binaries(&self, mem_addr: String, version_control_addr: String) -> Result<(), crate::AbstractBootError> {
-    //     let msgs = get_adapter_init_msgs(mem_addr,version_control_addr);
-    //     // TODO: Add version management support
-    //     let binaries = msgs
-    //         .iter()
-    //         .map(|(name, msg)| ((name.clone(), "v0.1.0".to_string()), msg.clone()))
-    //         .collect::<Vec<_>>();
-    //     self.0
-    //         .execute(
-    //             &ExecuteMsg::UpdateFactoryBinaryMsgs {
-    //                 to_add: binaries,
-    //                 to_remove: vec![(LIQUIDITY_INTERFACE.to_string(), "v0.1.0".to_string())],
-    //             },
-    //             &vec![],
-    //         )
-    //         ?;
-    //     Ok(())
-    // }
 }

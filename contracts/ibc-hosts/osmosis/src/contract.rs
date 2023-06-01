@@ -20,7 +20,7 @@ use cosmwasm_std::{
 use dex::host_exchange::Osmosis;
 use dex::LocalDex;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(OSMOSIS_HOST)]
 pub(crate) struct OsmosisHostResponse;

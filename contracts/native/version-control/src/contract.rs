@@ -22,7 +22,7 @@ use crate::queries;
 
 pub(crate) use abstract_core::objects::namespace::ABSTRACT_NAMESPACE;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type VCResult<T = Response> = Result<T, VCError>;
 

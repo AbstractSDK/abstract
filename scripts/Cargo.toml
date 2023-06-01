@@ -19,7 +19,9 @@ cw20-base = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 abstract-core = { workspace = true, features = ["interface"] }
 
-abstract-interface = { workspace = true, features = ["daemon"], default-features = false }
+abstract-interface = { workspace = true, features = [
+  "daemon",
+], default-features = false }
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }

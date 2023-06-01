@@ -8,7 +8,7 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use semver::Version;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(MODULE_FACTORY)]
 pub struct ModuleFactoryResponse;

@@ -18,7 +18,7 @@ use abstract_sdk::{
 use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
 use semver::Version;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(PROXY)]
 pub struct ProxyResponse;

@@ -9,7 +9,7 @@ use cosmwasm_std::{
 use abstract_sdk::{execute_update_ownership, query_ownership};
 use semver::Version;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[abstract_response(ACCOUNT_FACTORY)]
 pub struct AccountFactoryResponse;

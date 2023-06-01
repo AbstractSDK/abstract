@@ -57,7 +57,7 @@ abstract-app = { path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
-abstract-interface = { path = "packages/abstract-interface" , version = "0.15.1" }
+abstract-interface = { path = "packages/abstract-interface", version = "0.15.1" }
 module-factory = { package = "abstract-module-factory", path = "contracts/native/module-factory" }
 account-factory = { package = "abstract-account-factory", path = "contracts/native/account-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
