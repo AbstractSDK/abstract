@@ -26,16 +26,14 @@ juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
   "dep:abstract-wyndex-dex-adapter",
-  "dep:abstract-osmosis-dex-adapter",
 ]
 terra = [
   "dep:terraswap",
   "dep:abstract-astroport-dex-adapter",
-  "dep:cw20_junoswap",
 ]
 osmosis = ["dep:abstract-osmosis-dex-adapter"]
 schema = ["abstract-adapter/schema"]
-# Keep as is until TendermintStake updates.
+
 [dependencies]
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }

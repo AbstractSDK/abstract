@@ -1,8 +1,5 @@
-# Dex Adapter Module
+# Dex Adapter Trait
 
-Adapter module to interact with dexes across the Cosmos
+A trait that defines a standard interface for Dex interactions. This trait should be implemented for each Dex that the adapter supports.
 
-# Features
-- Swap
-- Provide Liquidity
-- Withdraw Liquidity
+To implement this trait, create a new package, import this crate and implement the trait for your Dex.
