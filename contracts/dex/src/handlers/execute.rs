@@ -9,7 +9,7 @@ use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::{features::AbstractNameService, Execution};
-use abstract_sdk::{IbcInterface, OsVerification, Resolve};
+use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
 
 const ACTION_RETRIES: u8 = 3;
@@ -78,7 +78,9 @@ fn handle_local_request(
         action,
         exchange,
     )?;
-    let proxy_msg = adapter.executor(deps.as_ref()).execute(msgs)?;
+    let proxy_msg = adapter
+        .executor(deps.as_ref())
+        .execute(msgs.into_iter().map(Into::into).collect())?;
     Ok(Response::new().add_message(proxy_msg))
 }
 

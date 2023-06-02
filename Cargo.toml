@@ -1,5 +1,6 @@
 [workspace]
 members = ["contracts/*"]
+exclude = ["contracts/lsd"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -32,8 +33,12 @@ cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.0.1"
 cw2 = { version = "1.0.1" }
-cw20 = { version = "1.0.1" }
-cw20-base = { version = "1.0.1", features = ["library"] }
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+] }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
+  "interface",
+] }
 # wait for my pr to be merged
 cw-asset = { version = "3.0" }
 schemars = "0.8"
@@ -44,21 +49,21 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-boot-cw-plus = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", tag = "v0.10.2" }
-boot-core = { version = "0.10.0" }
+cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { git = "https://github.com/AbstractSDK/contracts", rev = "f1294de04b570a2d7f847e7b552ac5e21318cf00" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts", rev = "f1294de04b570a2d7f847e7b552ac5e21318cf00" }
-abstract-boot = { git = "https://github.com/AbstractSDK/contracts", rev = "f1294de04b570a2d7f847e7b552ac5e21318cf00" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", rev = "f1294de04b570a2d7f847e7b552ac5e21318cf00" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/contracts", rev = "f1294de04b570a2d7f847e7b552ac5e21318cf00" }
+abstract-testing = { version = "0.15.3" }
+abstract-core = { version = "0.15.3" }
+abstract-interface = { version = "0.15.3" }
+abstract-sdk = { version = "0.15.3" }
+abstract-adapter = { version = "0.15.3" }
 
 ## Testing
 rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
+wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
 [profile.release]
 rpath = false

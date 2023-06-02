@@ -1,19 +1,25 @@
-use abstract_boot::boot_core::{instantiate_default_mock_env, CallAs, ContractInstance, Deploy};
-use abstract_boot::{Abstract, AbstractAccount, AdapterDeployer};
+use abstract_cw_staking::contract::CONTRACT_VERSION;
+use abstract_cw_staking::cw_orch::CwStakingAdapter;
+use abstract_cw_staking::msg::StakingQueryMsgFns;
+use abstract_interface::Abstract;
+use abstract_interface::AbstractAccount;
+use abstract_interface::AdapterDeployer;
+use cw20::msg::Cw20ExecuteMsgFns;
+use cw20_base::msg::QueryMsgFns;
+
 use abstract_core::objects::{AnsAsset, AssetEntry};
+use cw_orch::deploy::Deploy;
 
 use abstract_cw_staking::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
-use boot_core::{Mock, TxHandler};
-use boot_cw_plus::{Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw_asset::AssetInfoBase;
+use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
 
 use abstract_cw_staking::CW_STAKING;
-use abstract_cw_staking::{boot::CwStakingAdapter, msg::StakingQueryMsgFns};
 use common::create_default_account;
 
 mod common;
@@ -25,15 +31,15 @@ fn setup_mock() -> anyhow::Result<(
     AbstractAccount<Mock>,
 )> {
     let sender = Addr::unchecked(common::ROOT_USER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let mut staking = CwStakingAdapter::new(CW_STAKING, chain.clone());
+    let staking = CwStakingAdapter::new(CW_STAKING, chain.clone());
 
-    staking.deploy("1.0.0".parse()?, Empty {})?;
+    staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
 
     let os = create_default_account(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;

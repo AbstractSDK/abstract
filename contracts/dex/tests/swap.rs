@@ -1,17 +1,19 @@
+use abstract_dex_adapter::contract::CONTRACT_VERSION;
+use abstract_interface::AdapterDeployer;
+use cw20::msg::Cw20ExecuteMsgFns;
+use cw20_base::msg::QueryMsgFns;
+use cw_orch::deploy::Deploy;
 mod common;
 
-use abstract_boot::boot_core::Deploy;
-use abstract_boot::boot_core::{instantiate_default_mock_env, ContractInstance};
-use abstract_boot::{Abstract, AbstractAccount, AdapterDeployer};
-use abstract_dex_adapter::{boot::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
-use boot_core::{CallAs, Mock};
-use boot_cw_plus::{Cw20ExecuteMsgFns, Cw20QueryMsgFns};
+use abstract_dex_adapter::{cw_orch::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_interface::Abstract;
+use abstract_interface::AbstractAccount;
 use common::create_default_account;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 
+use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
-
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,
@@ -19,16 +21,16 @@ fn setup_mock() -> anyhow::Result<(
     AbstractAccount<Mock>,
 )> {
     let sender = Addr::unchecked(common::ROOT_USER);
-    let (_state, chain) = instantiate_default_mock_env(&sender)?;
+    let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let mut dex_adapter = DexAdapter::new(EXCHANGE, chain.clone());
+    let dex_adapter = DexAdapter::new(EXCHANGE, chain.clone());
 
     dex_adapter.deploy(
-        "1.0.0".parse()?,
+        CONTRACT_VERSION.parse()?,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
             recipient_account: 0,

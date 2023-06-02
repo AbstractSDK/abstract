@@ -7,7 +7,7 @@ use crate::{
     util::{coins_in_assets, cw_approve_msgs},
 };
 use abstract_core::objects::PoolAddress;
-use abstract_sdk::cw_helpers::cosmwasm_std::wasm_smart_query;
+use abstract_sdk::cw_helpers::wasm_smart_query;
 use astroport::pair::{PoolResponse, SimulationResponse};
 use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128};
 use cw20::Cw20ExecuteMsg;

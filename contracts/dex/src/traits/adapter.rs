@@ -2,10 +2,11 @@ use crate::error::DexError;
 use crate::msg::AskAsset;
 use crate::msg::{DexAction, OfferAsset, SwapRouter};
 use crate::state::SWAP_FEE;
+use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
-use abstract_sdk::cw_helpers::fees::Chargeable;
+use abstract_sdk::cw_helpers::Chargeable;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Execution;
 use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
@@ -228,7 +229,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
 
         let lp_asset = ans.query(&lp_token)?;
 
-        let lp_pairing: DexAssetPairing = lp_token.name.try_into()?;
+        let lp_pairing: DexAssetPairing =
+            AnsEntryConvertor::new(AnsEntryConvertor::new(lp_token.name).lp_token()?)
+                .dex_asset_pairing()?;
 
         let mut pool_ids = ans.query(&lp_pairing)?;
         // TODO: when resolving if there are more than one, get the metadata and choose the one matching the assets

@@ -41,7 +41,7 @@ pub trait StakingAdapter: AbstractNameService + Execution {
         };
 
         self.executor(deps.as_ref())
-            .execute(msgs)
+            .execute(msgs.into_iter().map(Into::into).collect())
             .map(SubMsg::new)
             .map_err(Into::into)
     }

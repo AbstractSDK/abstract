@@ -1,31 +1,28 @@
-use abstract_boot::boot_core::{
-    instantiate_daemon_env, networks::NetworkInfo, DaemonOptionsBuilder, *,
-};
-use abstract_boot::{AdapterDeployer, AnsHost, VCExecFns, VersionControl};
-use abstract_cw_staking::boot::CwStakingAdapter;
+use abstract_interface::AdapterDeployer;
+use abstract_interface::AnsHost;
+use abstract_interface::VCExecFns;
+use cw_orch::daemon::ChainInfo;
+use cw_orch::daemon::DaemonBuilder;
+use cw_orch::prelude::ContractInstance;
+
+use abstract_cw_staking::cw_orch::CwStakingAdapter;
 use abstract_cw_staking::CW_STAKING;
+use abstract_interface::VersionControl;
 use abstract_sdk::core::{
     adapter,
     objects::module::{Module, ModuleInfo, ModuleVersion},
     ANS_HOST, VERSION_CONTROL,
 };
 use cosmwasm_std::{Addr, Empty};
-use semver::Version;
-use std::sync::Arc;
-use tokio::runtime::Runtime;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn deploy_cw_staking(
-    network: NetworkInfo,
+    network: ChainInfo,
     prev_version: Option<String>,
     code_id: Option<u64>,
 ) -> anyhow::Result<()> {
-    let module_version: Version = CONTRACT_VERSION.parse().unwrap();
-
-    let rt = Arc::new(Runtime::new()?);
-    let options = DaemonOptionsBuilder::default().network(network).build();
-    let (_sender, chain) = instantiate_daemon_env(&rt, options?)?;
+    let chain = DaemonBuilder::default().chain(network).build()?;
 
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     version_control.set_address(&Addr::unchecked(
@@ -59,13 +56,16 @@ fn deploy_cw_staking(
             .as_instance_mut()
             .instantiate(&init_msg, None, None)?;
 
-        version_control.register_adapters(vec![cw_staking.as_instance_mut()], &module_version)?;
+        version_control.register_adapters(vec![(
+            cw_staking.as_instance_mut(),
+            CONTRACT_VERSION.to_string(),
+        )])?;
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
-        let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
+        let cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
 
-        cw_staking.deploy(module_version, Empty {})?;
+        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
     }
 
     Ok(())
@@ -97,7 +97,7 @@ fn main() -> anyhow::Result<()> {
         code_id,
     } = Arguments::parse();
 
-    let network = boot_core::networks::parse_network(&network_id);
+    let network = cw_orch::prelude::networks::parse_network(&network_id);
 
     deploy_cw_staking(network, prev_version, code_id)
 }

@@ -4,7 +4,7 @@ use crate::{error::DexError, handlers};
 use abstract_adapter::{export_endpoints, AdapterContract};
 use cosmwasm_std::Response;
 
-const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub type DexAdapter = AdapterContract<DexError, DexInstantiateMsg, DexExecuteMsg, DexQueryMsg>;
 pub type DexResult<T = Response> = Result<T, DexError>;

@@ -5,34 +5,34 @@ mod staking;
 
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 
-#[cfg(feature = "boot")]
-pub mod boot {
-    use abstract_boot::{
-        boot_core::ContractWrapper,
-        boot_core::{contract, Contract, CwEnv},
-        AdapterDeployer,
-    };
-    use abstract_core::adapter::InstantiateMsg;
-    use cosmwasm_std::Empty;
+#[cfg(feature = "interface")]
+pub mod cw_orch {
 
     use crate::msg::*;
+    use abstract_interface::AdapterDeployer;
+    use cosmwasm_std::Empty;
+    use cw_orch::environment::CwEnv;
+    use cw_orch::interface;
+    use cw_orch::prelude::ContractWrapper;
+    use cw_orch::prelude::*;
 
-    #[contract(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
-    pub struct TMintStakingAdapter<Chain>;
+    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
+    pub struct TMintStakingAdapter;
 
     impl<Chain: CwEnv> AdapterDeployer<Chain, Empty> for TMintStakingAdapter<Chain> {}
 
-    impl<Chain: CwEnv> TMintStakingAdapter<Chain> {
-        pub fn new(name: &str, chain: Chain) -> Self {
-            Self(
-                Contract::new(name, chain)
-                    .with_wasm_path("abstract_tendermint_staking_adapter")
-                    .with_mock(Box::new(ContractWrapper::new_with_empty(
-                        crate::contract::execute,
-                        crate::contract::instantiate,
-                        crate::contract::query,
-                    ))),
-            )
+    impl<Chain: CwEnv> Uploadable for TMintStakingAdapter<Chain> {
+        fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
+            Box::new(ContractWrapper::new_with_empty(
+                crate::contract::execute,
+                crate::contract::instantiate,
+                crate::contract::query,
+            ))
+        }
+        fn wasm(&self) -> WasmPath {
+            artifacts_dir_from_workspace!()
+                .find_wasm_path("abstract_tendermint_staking_adapter")
+                .unwrap()
         }
     }
 }

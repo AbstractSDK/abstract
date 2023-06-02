@@ -3,6 +3,7 @@ use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::traits::command::StakingCommand;
 use crate::traits::identify::Identify;
 use crate::{error::StakingError, msg::RewardTokensResponse};
+use abstract_core::objects::AnsEntryConvertor;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
     feature_objects::AnsHost,
@@ -55,7 +56,7 @@ impl StakingCommand for JunoSwap {
                 return Err(AbstractSdkError::Std(StdError::generic_err("expected CW20 as LP token for staking.")));
             };
         self.lp_token_address = token_addr;
-        self.lp_token = LpToken::try_from(lp_token)?;
+        self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         Ok(())
     }
 
