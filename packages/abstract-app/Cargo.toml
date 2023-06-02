@@ -30,7 +30,7 @@ abstract-core = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 # Keep this as a version and update when publishing new versions
-abstract-interface = { path = "../../packages/abstract-interface", version = "0.15.3" , optional = true }
+abstract-interface = { path = "../../packages/abstract-interface", version = "0.15.3", optional = true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

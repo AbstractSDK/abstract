@@ -1,18 +1,15 @@
 # Module Types
-Within Abstract, a _module_ is a contract that **adds functionality** to your Account. You can explore all the available modules on the modules tab of your Account, shown in fig. 1.
 
-Modules are classified in the following categories: 
+Within Abstract, a _module_ is a contract that **adds functionality** to your Account. You can explore all the available modules on the modules tab of your Account through the [web-app](https://app.abstract.money/).
+
+Modules are classified in the following categories:
+
 - **App**: modules that add an additional functionality, exposing new entry-points for you or your users
 - **Adapter**: modules that act as a standard interface between your Account and external services
 - **Standalone**: modules not built within Abstract, but registered to your account so that the manager can execute commands on them
 
-
-	- [Version Control](../platform/version_control)
-	- [Abstract Name Service](../platform/ans)
-	- [Module Factory](../platform/module_factory)
-
-
 ## Adapters
+
 Adapters serve as standard interfaces that facilitate communication between your Abstract Account and various external services. They act like bridges, enabling your account to interact with different smart-contract and blockchain services, thereby enhancing the interoperability of your applications.
 
 The key function of an Adapter is to generalize functionality. Regardless of the underlying blockchain or smart contract protocol, the Adapter provides a standard interface that maintains consistency and simplifies the interaction process. As such, Adapters significantly simplify the developer experience and reduce the time required to integrate with various external systems.
@@ -24,6 +21,7 @@ While individual Abstract Account owners can decide which Adapters and versions 
 > The `abstract:dex` module allows Accounts to access standard functions on dexes with the same interface, regardless of whether they're local to the chain or across IBC.
 
 ## Apps
+
 An App module adds additional functionality to your Abstract Account, exposing new entry-points for you or your users. This could range from adding advanced financial logic, data management features, or complex computation capabilities, depending on your application's needs.
 
 Each App module is exclusive to a single Abstract Account, meaning the instance is owned by the Account owner, ensuring the owner has full control over the module's functionality and lifecycle. This level of control extends to the management of upgrades, maintenance, and any customization that might be required for the specific use case of the application.
@@ -60,6 +58,7 @@ flowchart LR
 TODO: below is not reviewed
 
 ## How to Use Modules in Your Project
+
 Leveraging modules in your project can significantly simplify the development process, allowing you to deploy projects faster and more cost-effectively than building traditionally. By using pre-built, tested, and community-reviewed modules, you can focus on your project's unique features while reducing development time and minimizing potential bugs.
 
 Here's an example of how modules can be leveraged for a decentralized finance (DeFi) project:

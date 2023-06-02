@@ -19,4 +19,4 @@ In the following sections, we'll discuss how Abstract utilizes the concept of ac
 
 Within Abstract, account abstraction is a foundational component. Here, it manifests as abstracted accounts or smart contract wallets, which are designed to offer an easy-to-use and secure interaction model for users. These are known as Abstract Accounts.
 
-Read [Abstract Account Architecture](./architecture) for a deep dive on the implementation of account abstraction in Abstract.
+Read [Abstract Account Architecture](./architecture.md) for a deep dive on the implementation of account abstraction in Abstract.

@@ -18,4 +18,4 @@ sequenceDiagram
 
 ```
 
-> For disabling IBC, see [Uninstall Module](uninstall_module.md)
+> For disabling IBC, see [Uninstall Module]()

@@ -1,6 +1,6 @@
 # Module Builder
 
-Abstract provides multiple module bases, as detailed in our section on [modules](../). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
+Abstract provides multiple module bases, as detailed in our section on [modules](../framework/module_types.md). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
 
 ## Overview
 
@@ -48,11 +48,15 @@ Here's an example of a module with some handlers set:
 
 Let's go through all the available customizable handlers, the function signatures they require and how/when they get called.
 
+The `base` fields and variants mentioned in the messages below are defined by [the base module type](../framework/module_types.md) that you chose to use. In this example we're working with an [`App`](../framework/module_types.md#apps).
+
 ### Instantiate
 
-The execute entry point is the mutable entry point of the contract. Logic in this function can update the contract's state an trigger state changes in other contracts by calling them. It is where the majority of your contract's logic will reside.
+The instantiate entry point is a mutable entry point of the contract that can only be called on contract instantiation. Instantiation of a contract is essentially the association of a public address to a contract's state.
 
 #### Function Signature
+
+Expected function signature for the custom instantiate handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:init}}
@@ -60,17 +64,21 @@ The execute entry point is the mutable entry point of the contract. Logic in thi
 
 #### Message
 
-Called when the App's instantiate entry point is called. Uses the struct's `module` field to customize the instantiation. Only this field is passed to the handler function.
+In order to instantiate an Abstract Module, you need to provide an InstantiateMsg with the following structure:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-core/src/base.rs:init}}
 ```
 
+When the module's instantiate function is called the struct's `module` field is passed to your custom instantiation handler for you to perform any custom logic.
+
 ### Execute
 
-The execute entry point is a mutable entry point of the contract. Logic in this function can update the contract's state an trigger state changes in other contracts by calling them. It is where the majority of your contract's logic will reside.
+The execute entry point is a mutable entry point of the contract. Logic in this function can update the contract's state and trigger state changes in other contracts by calling them. It is where the majority of your contract's logic will reside.
 
 #### Function Signature
+
+Expected function signature for the custom execute handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:exec}}
@@ -84,11 +92,15 @@ Called when the App's `ExecuteMsg::Module` variant is called on the execute entr
 {{#include ../../../packages/abstract-core/src/base.rs:exec}}
 ```
 
+The content of the `Module` variant is passed to your custom execute handler.
+
 ### Query
 
 The query entry point is the non-mutable entry point of the contract. Like its name implies it it used to retrieve data from the contract's state. This state retrieval can have a computation component but it can not alter the contract's or any other state.
 
 #### Function Signature
+
+Expected function signature for the custom query handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:query}}
@@ -102,11 +114,15 @@ Called when the App's `QueryMsg::Module` variant is called on the query entry po
 {{#include ../../../packages/abstract-core/src/base.rs:query}}
 ```
 
+The content of the `Module` variant is passed to your custom query handler.
+
 ### Migrate
 
 The migrate entry point is a mutable entry point that is called **after** a code_id change is applied to the contract. A migration in CosmWasm essentially swaps out the code that's executed at the contract's address while keeping the state as-is. The implementation of this function is often used to change the format of the contract's state by loading the data as the original format and overwriting it with a new format. All adapter base implementations already perform version assertions that make it impossible to migrate to a contract with a different ID or with a version that is lesser or equal to the old version.
 
 #### Function Signature
+
+Expected function signature for the custom migrate handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:mig}}
@@ -126,6 +142,8 @@ The reply entry point is a mutable entry point that is optionally called **after
 
 #### Function Signature
 
+Expected function signature for the custom reply handler:
+
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:reply}}
 ```
@@ -139,6 +157,8 @@ There is no customizable message associated with this entry point.
 The sudo entry point is a mutable entry point that can only be called by the chain's governance module. I.e. any calls made to this contract should have been required to have gone through the chain's governance process. This can vary from chain to chain.
 
 #### Function Signature
+
+Expected function signature for the custom sudo handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:sudo}}
@@ -156,6 +176,8 @@ The receive handler is a mutable entry point of the contract. It is similar to t
 - Nois Network random number feed
 
 #### Function Signature
+
+Expected function signature for the custom receive handler:
 
 ```rust,ignore
 {{#include ../../../packages/abstract-sdk/src/base/contract_base.rs:rec}}

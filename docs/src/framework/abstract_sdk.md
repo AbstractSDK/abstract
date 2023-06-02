@@ -1,6 +1,6 @@
 # Abstract SDK - Overview
 
-The Abstract SDK is at the core of Abstract's platform. It's a modular smart-contract framework designed to simplify the development of CosmWasm dApps.
+The Abstract SDK is at the core of the Abstract development platform. It's a modular smart-contract framework designed to simplify the development of CosmWasm dApps.
 
 ## What Problem Does it Solve?
 

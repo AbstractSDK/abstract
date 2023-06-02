@@ -63,11 +63,11 @@ pub type CounterApp = AppContract<
 // ANCHOR_END: counter_app
 
 const COUNTER_ID: &str = "example:counter";
-const MODULE_VERSION: &str = "1.0.0";
+const APP_VERSION: &str = "1.0.0";
 
 // ANCHOR: handlers
 // ANCHOR: new
-pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, MODULE_VERSION, None)
+pub const COUNTER_APP: CounterApp = CounterApp::new(COUNTER_ID, APP_VERSION, None)
     // ANCHOR_END: new
     .with_instantiate(handlers::instantiate)
     .with_execute(handlers::execute)

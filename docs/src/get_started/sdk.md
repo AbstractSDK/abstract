@@ -38,44 +38,16 @@ Most of the APIs either return a `CosmosMsg` or an `AccountAction`. The `CosmosM
 
 #### Example
 
-The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/apis/bank) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
+The [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html) API allows developers to transfer assets from and to the Account through their module object. We now want to use this API to create a `Splitter` API that splits the transfer of some amount of funds between a set of receivers.
 
 ```rust,ignore
-{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs }}
+{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:splitter }}
 ```
 
 These APIs can then be used by any contract that implements its required traits, in this case the `TransferInterface`.
 
 ```rust,no_run
-# use abstract_sdk::features::{AccountIdentification, AbstractNameService, ModuleIdentification};
-# use cosmwasm_std::{StdResult, Deps, MessageInfo, CosmosMsg, Addr};
-# use abstract_sdk::feature_objects::AnsHost;
-# use abstract_sdk::{AbstractSdkResult, AccountAction};
-# pub struct MyContract {
-#     
-# }
-# impl AccountIdentification for MyContract {
-#     fn proxy_address(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-#         Ok(Addr::unchecked("just_an_example"))
-#     }
-# }
-# impl ModuleIdentification for MyContract {
-#     fn module_id(&self) -> &'static str { "my_contract" }
-# }
-# impl AbstractNameService for MyContract {
-#     fn ans_host(&self, _deps: Deps) -> AbstractSdkResult<AnsHost> {
-#         Ok(AnsHost{address: Addr::unchecked("just_an_example")})
-#     }
-# }
-use abstract_sdk::TransferInterface;
-
-fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<AccountAction> {
-    // Construct the API object
-    let bank: Bank = my_contract.bank(deps);
-    // Use the API to deposit the coins
-    let send_deposit_to_vault_msg = bank.deposit(message_info.funds)?;
-    Ok(send_deposit_to_vault_msg)
-}
+{{#include ../../../packages/abstract-sdk/src/apis/splitter.rs:usage }}
 ```
 
 ### Available API Objects
@@ -86,6 +58,11 @@ The following API objects are available in the Abstract SDK:
 - [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html)
 - [`App`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.App.html)
 - [`Adapter`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapter.html)
+- [`Accountant`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Accountant.html)
+- [`IbcClient`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html)
+- [`ModuleRegistry](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.ModuleRegistry.html)
+- [`Modules`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Modules.html)
+- [`AccountRegistry`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.AccountRegistry.html)
 
 ## Usage
 

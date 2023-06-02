@@ -21,20 +21,20 @@ pub trait MessageTypes {
 }
 // ANCHOR: init
 /// Function signature for an instantiate handler.
-pub type InstantiateHandlerFn<Module, InitMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, InitMsg) -> Result<Response, Error>;
+pub type InstantiateHandlerFn<Module, CustomInitMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, CustomInitMsg) -> Result<Response, Error>;
 // ANCHOR_END: init
 
 // ANCHOR: exec
 /// Function signature for an execute handler.
-pub type ExecuteHandlerFn<Module, ExecMsg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, ExecMsg) -> Result<Response, Error>;
+pub type ExecuteHandlerFn<Module, CustomExecMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, CustomExecMsg) -> Result<Response, Error>;
 // ANCHOR_END: exec
 
 // ANCHOR: query
 /// Function signature for a query handler.
-pub type QueryHandlerFn<Module, QueryMsg, Error> =
-    fn(Deps, Env, &Module, QueryMsg) -> Result<Binary, Error>;
+pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
+    fn(Deps, Env, &Module, CustomQueryMsg) -> Result<Binary, Error>;
 // ANCHOR_END: query
 
 type CallbackId = String;
@@ -46,20 +46,20 @@ pub type IbcCallbackHandlerFn<Module, Error> =
 
 // ANCHOR: mig
 /// Function signature for a migrate handler.
-pub type MigrateHandlerFn<Module, MigrateMsg, Error> =
-    fn(DepsMut, Env, Module, MigrateMsg) -> Result<Response, Error>;
+pub type MigrateHandlerFn<Module, CustomMigrateMsg, Error> =
+    fn(DepsMut, Env, Module, CustomMigrateMsg) -> Result<Response, Error>;
 // ANCHOR_END: mig
 
 // ANCHOR: rec
 /// Function signature for a receive handler.
-pub type ReceiveHandlerFn<Module, Msg, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, Msg) -> Result<Response, Error>;
+pub type ReceiveHandlerFn<Module, ReceiveMsg, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, ReceiveMsg) -> Result<Response, Error>;
 // ANCHOR_END: rec
 
 // ANCHOR: sudo
 /// Function signature for a sudo handler.
-pub type SudoHandlerFn<Module, SudoMsg, Error> =
-    fn(DepsMut, Env, Module, SudoMsg) -> Result<Response, Error>;
+pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
+    fn(DepsMut, Env, Module, CustomSudoMsg) -> Result<Response, Error>;
 // ANCHOR_END: sudo
 
 // ANCHOR: reply

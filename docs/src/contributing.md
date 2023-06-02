@@ -6,7 +6,6 @@ Thank you for considering to contribute to the Abstract SDK project! We apprecia
 Table of Contents
 -----------------
 
-* [Code of Conduct](#code-of-conduct)
 * [Getting Started](#getting-started)
 * [How to Contribute](#how-to-contribute)
   * [Reporting Bugs](#reporting-bugs)
@@ -15,11 +14,6 @@ Table of Contents
     * [Pull Requests](#pull-requests)
 * [Style Guide](#style-guide)
 * [Community](#community)
-
-Code of Conduct
----------------
-
-By participating in this project, you are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md). Please read the Code of Conduct to ensure that you follow the community guidelines and contribute positively to the project.
 
 Getting Started
 ---------------

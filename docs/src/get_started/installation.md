@@ -45,17 +45,6 @@ Go to [our App Template on Github](https://github.com/AbstractSDK/app-template) 
 
 Go ahead and read through the readme of the template repository. It contains instructions on how to set up your development environment and how the template is structured.
 
-## Tools used in the template
-
-The following Rust tools are used extensively in our template to improve your productivity.
-
-- [Taplo:](https://taplo.tamasfe.dev/cli/installation/cargo.html) The CI shipped with the template will perform formatting checks. To ensure you pass the checks, you can install Taplo and use the `just format` command to format your code and toml files.
-- [Nextest:](https://nexte.st/index.html) A better cargo test runner.
-- [Cargo Limit:](https://github.com/alopatindev/cargo-limit) Prioritizes errors over warnings in compile output as well as some other small improvements.
-- [Cargo Watch:](https://crates.io/crates/cargo-watch) Allows you to automatically re-run compilation when files change. This is useful when you are working on the contracts and want to fix compiler errors one by one.
-
-You can install them by running `just install-tools`. All of the tools are built from source by Cargo.
-
 ## Contract layout
 
 The template contains a scaffold contract that you can use as a starting point for your own contract. The contract is located in the `src` directory and is structured as follows:
@@ -71,3 +60,14 @@ The template contains a scaffold contract that you can use as a starting point f
 ## Front-end layout
 
 TODO: explain the front-end layout.
+
+## Tools used in the template
+
+The following Rust tools are used extensively in our template to improve your productivity.
+
+- [Taplo:](https://taplo.tamasfe.dev/cli/installation/cargo.html) The CI shipped with the template will perform formatting checks. To ensure you pass the checks, you can install Taplo and use the `just format` command to format your code and toml files.
+- [Nextest:](https://nexte.st/index.html) A better cargo test runner.
+- [Cargo Limit:](https://github.com/alopatindev/cargo-limit) Prioritizes errors over warnings in compile output as well as some other small improvements.
+- [Cargo Watch:](https://crates.io/crates/cargo-watch) Allows you to automatically re-run compilation when files change. This is useful when you are working on the contracts and want to fix compiler errors one by one.
+
+You can install them by running `just install-tools`. All of the tools are built from source by Cargo.

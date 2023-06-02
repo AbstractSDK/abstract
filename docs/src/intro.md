@@ -1,15 +1,73 @@
-# Abstract Development Platform
+# The Abstract Development Platform
 
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
 ![SDK Background](./assets/docs_bg.png)
 
-Welcome to the Abstract documentation, your comprehensive guide to understanding and utilizing Abstract - the chain-agnostic CosmWasm development platform that empowers developers to create, monetize, and deploy modular and scalable decentralized applications. This guide will walk you through essential concepts, key features, and real-world examples to help you harness the full potential of the Abstract ecosystem.
+<div align="center">
+
+### Welcome to Abstract, the interchain CosmWasm development platform. We're building the tools and infrastructure that are required to truly innovate in the Cosmos ecosystem.
+
+</div>
 
 ## What is Abstract?
 
-Abstract is a cutting-edge smart contract platform designed for the CosmWasm ecosystem, enabling developers to build and monetize decentralized applications (dApps) using a modular component system. It provides the best full-stack development experience by simplifying and streamlining the dApp development process. It does this by offering high-quality tooling as well as an extensive library of integrations with popular tools and services. In combination with our on-chain smart-contract framework developers can create, test, and deploy dApps with ease.
+The Abstract platform is a combination of CosmWasm tooling, on-chain smart-contract infrastructure and front-end libraries. It's designed to be modular, allowing developers to choose the components they need to build their applications. While Abstract tries to simplify a lot of the development experience, it is inherently a power-tool, allowing you to get more done with less effort.
 
-## Features
+### The Abstract SDK
+
+The Abstract SDK is a modular smart-contract framework designed to enhance the development of CosmWasm dApps. It's built on top of CosmWasm; a battle-tested WASM-based smart-contract framework.
+
+Here's a small snippet of code to give you an idea of what using the Abstract SDK looks like:
+
+```rust,no_run
+{{#include ../../packages/abstract-app/examples/counter.rs:handlers}}
+```
+
+The code above defines an Abstract app, which is a smart-contract that can be installed on any Abstract Account. The app has a unique ID and a version, both are used to offer the app on the Abstract App store, allowing other users to install the app on their account.
+
+The App object is made available within the customizable handlers. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md), which is our Account Abstraction Toolbox. In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
+
+> Looking to get started? Check out the [Getting Started](./get_started/index.md) guide.
+
+### Cw-Orchestrator
+
+[cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is the tool that makes developing with Abstract so pleasant. It's a smart-contract scripting library that allows you to re-use code for use in testing and deployments. It's also our primary tool for making Abstract's infrastructure highly available.
+
+Here's a snippet that sets up the complete Abstract framework on a cw-multi-test environment, and deploys the previously shown App contract to the framework.
+
+```rust,no_run
+// Create a sender and instantiate the mock environment
+let sender = Addr::unchecked("sender");
+let mock = Mock::new(&sender);
+
+// Construct the counter interface (a wrapper around the contract's entry points)
+let contract = CounterApp::new(COUNTER_ID, mock.clone());
+
+// Deploy Abstract to the mock
+let abstr_deployment = Abstract::deploy_on(mock, Empty{})?;
+
+// Create a new account to install the app onto
+let account =
+    abstr_deployment
+        .account_factory
+        .create_default_account(GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        })?;
+
+// Claim the namespace so app can be deployed
+abstr_deployment
+    .version_control
+    .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+
+// Deploy the app!
+contract.deploy(APP_VERSION.parse()?)?;
+```
+
+Using cw-orchestrator reduces your testing setup and complexity and improves both the code's readability and maintainability. Because of its design it allows us to share our contracts with any developer that wants to use them with a few lines of code. This greatly reduces the friction of using our code and it allows you to provide the same experience to developers that might want to use your code, giving you an edge over other options.
+
+## Abstract.js
+
+<!-- ## Features
 
 - Chain-Agnostic: The Abstract platform is built to support various blockchain networks within the Cosmos ecosystem, giving developers the flexibility to choose the best-suited platform for their dApp.
 
@@ -26,7 +84,7 @@ Abstract is a cutting-edge smart contract platform designed for the CosmWasm eco
   - Dexes: WyndDex, Osmosis, Astroport, and TerraSwap
   - Oracles: Ojo Network (planned)
   - Wallets: Keplr, Cosmostation and Terra Station
-  - Automation: CronCat and Lit Protocol (planned)
+  - Automation: CronCat and Lit Protocol (planned) -->
 
 <!-- ## Use Cases and Examples
 

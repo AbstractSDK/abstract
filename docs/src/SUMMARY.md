@@ -26,6 +26,7 @@
   - [Account Ownership](./framework/ownership.md)
   - [Modularity](./framework/modularity.md)
     - [Module Types](./framework/module_types.md)
+  - [Upgradability](./framework/upgradability.md)
 - [Platform Details](./platform/index.md)
   - [Abstract Name Service](./platform/ans.md)
   - [Version Control](./platform/version_control.md)
@@ -42,7 +43,7 @@
 
 # Use Cases
 
-  - [Equilibrium]()
+  - [Equilibrium](./use_cases/equilibrium.md)
   - [4t2 Finance]()
 
 # Resources and Support
