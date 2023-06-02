@@ -53,18 +53,17 @@ cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-testing = { version = "0.15.3" }
+abstract-core = { version = "0.15.3" }
+abstract-interface = { version = "0.15.3" }
+abstract-sdk = { version = "0.15.3" }
+abstract-adapter = { version = "0.15.3" }
 
 ## Testing
 rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
-wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git", branch = "update/adapt-cw-orch" }
-
+wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
 [profile.release]
 rpath = false

@@ -1,3 +1,4 @@
+use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_interface::AdapterDeployer;
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
@@ -22,14 +23,14 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), "1.0.0".parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let dex_adapter = DexAdapter::new(EXCHANGE, chain.clone());
 
     dex_adapter.deploy(
-        "1.0.0".parse()?,
+        CONTRACT_VERSION.parse()?,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
