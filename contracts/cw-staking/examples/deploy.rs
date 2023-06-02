@@ -14,7 +14,6 @@ use abstract_sdk::core::{
     ANS_HOST, VERSION_CONTROL,
 };
 use cosmwasm_std::{Addr, Empty};
-use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -23,8 +22,6 @@ fn deploy_cw_staking(
     prev_version: Option<String>,
     code_id: Option<u64>,
 ) -> anyhow::Result<()> {
-    let module_version: Version = CONTRACT_VERSION.parse().unwrap();
-
     let chain = DaemonBuilder::default().chain(network).build()?;
 
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
@@ -59,13 +56,16 @@ fn deploy_cw_staking(
             .as_instance_mut()
             .instantiate(&init_msg, None, None)?;
 
-        version_control.register_adapters(vec![cw_staking.as_instance_mut()], &module_version)?;
+        version_control.register_adapters(vec![(
+            cw_staking.as_instance_mut(),
+            CONTRACT_VERSION.to_string(),
+        )])?;
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
         let cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
 
-        cw_staking.deploy(module_version, Empty {})?;
+        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
     }
 
     Ok(())

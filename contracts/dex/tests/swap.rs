@@ -1,3 +1,4 @@
+use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::EXCHANGE;
 use abstract_interface::AdapterDeployer;
@@ -26,14 +27,14 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), VERSION.parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let dex_adapter = DexAdapter::new(EXCHANGE, chain.clone());
 
     dex_adapter.deploy(
-        VERSION.parse()?,
+        CONTRACT_VERSION.parse()?,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
             recipient_account: 0,

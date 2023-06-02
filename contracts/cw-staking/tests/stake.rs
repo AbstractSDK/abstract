@@ -1,3 +1,6 @@
+mod common;
+
+use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::cw_orch::CwStakingAdapter;
 use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
@@ -21,10 +24,6 @@ use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;
 
-mod common;
-
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,
@@ -34,13 +33,13 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), VERSION.parse()?)?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let staking = CwStakingAdapter::new(CW_STAKING, chain.clone());
 
-    staking.deploy(VERSION.parse()?, Empty {})?;
+    staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
 
     let os = create_default_account(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;
