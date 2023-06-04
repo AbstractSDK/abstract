@@ -47,7 +47,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.12" }
+# cw-orch = { version = "0.12", git = "https://github.com/AbstractSDK/cw-orchestrator" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" , branch = "debug/artifacts_path" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md

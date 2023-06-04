@@ -1,0 +1,20 @@
+{
+  "neutron": {
+    "test-1": {
+      "code_ids": {
+        "abstract:account-factory": 41,
+        "abstract:ans-host": 39,
+        "abstract:manager": 43,
+        "abstract:module-factory": 42,
+        "abstract:proxy": 44,
+        "abstract:version-control": 40
+      },
+      "default": {
+        "abstract:account-factory": "neutron1lauppdu6hhj9lxlzjura2ujqw0zzsctn70aqsg7zuvlldduzrpeqc20edz",
+        "abstract:ans-host": "neutron1z9sk8hskz2je9drekc0c7w7ckphy4m2yj954lr9uetnszsnars8q8rh28h",
+        "abstract:module-factory": "neutron1umsy0ev9t2qttuxccztefjcuxluucakfezuwsnjj4dwty5tglpws2lp4y3",
+        "abstract:version-control": "neutron1uszrh8tu9t5a47gxsmn4wywr4q7fetw8dcdrq9e5av9d6xvxt3msvur67n"
+      }
+    }
+  }
+}

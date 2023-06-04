@@ -5,13 +5,15 @@ use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
     prelude::{
-        networks::{parse_network, ChainInfo},
+        networks::{parse_network, ChainInfo, LOCAL_NEUTRON},
         *,
     },
 };
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const MNEMONIC: &str = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion";
+
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
@@ -19,7 +21,8 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
-            .chain(network)
+            .chain(LOCAL_NEUTRON)
+            .mnemonic(MNEMONIC)
             .build()?;
         let sender = chain.sender();
         let deployment = Abstract::deploy_on(chain, Empty {})?;

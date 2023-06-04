@@ -65,6 +65,26 @@
       }
     }
   },
+  "neutron": {
+    "test-1": {
+      "code_ids": {
+        "abstract:account-factory": 64,
+        "abstract:ans-host": 62,
+        "abstract:manager": 66,
+        "abstract:module-factory": 65,
+        "abstract:proxy": 67,
+        "abstract:version-control": 63
+      },
+      "default": {
+        "abstract:account-factory": "neutron1lkmgx2r062ky63dtdywcvfjvj52fj4cvhj5zy3kamert3mwrahxq2e7uav",
+        "abstract:ans-host": "neutron1aamj4mq0ny2xctsrze4870xk7ka4tw33h8vte439much7d0uwmzq2xklu4",
+        "abstract:manager": "neutron1zdp2fk6xr90p5e5qvlwmyvct4j4yreys8vmfhqadr5hnh8nh4nhs47tqdx",
+        "abstract:module-factory": "neutron1vk7dtp3y652uhq0hympe0z06ryvz5th95jwngka75nngncq8thhssj86cp",
+        "abstract:proxy": "neutron19nkzdrq94w7enjpr295rkvhsk685mzq34ax5c7y9u88eg8k25uwqf5dthu",
+        "abstract:version-control": "neutron14ry36mwauycz08v8ndcujghxz4hmua5epxcn0mamlr3suqe0l2qs3w0a0v"
+      }
+    }
+  },
   "osmosis": {
     "osmo-test-4": {
       "code_ids": {
