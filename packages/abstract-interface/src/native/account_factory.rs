@@ -11,9 +11,9 @@ use cw_orch::{interface, prelude::*};
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
 #[derive(Default)]
 pub struct AccountDetails {
-    name: String,
-    description: Option<String>,
-    link: Option<String>,
+    pub name: String,
+    pub description: Option<String>,
+    pub link: Option<String>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
