@@ -23,7 +23,7 @@ cw2 = { workspace = true }
 cw-asset = { workspace = true }
 abstract-core = { workspace = true, features = ["interface"] }
 
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git" , branch = "debug/artifacts_path" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "debug/artifacts_path" }
 # cw-orch = { workspace = true }
 tokio = { workspace = true }
 log = "0.4.14"
