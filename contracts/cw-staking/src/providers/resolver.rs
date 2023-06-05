@@ -11,8 +11,9 @@ pub use crate::providers::osmosis::{Osmosis, OSMOSIS};
 #[cfg(feature = "juno")]
 pub use crate::providers::{
     junoswap::{JunoSwap, JUNOSWAP},
-    wyndex::{WynDex, WYNDEX},
 };
+#[cfg(feature = "juno")]
+use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 
 pub(crate) fn is_over_ibc(provider: &str) -> StdResult<bool> {
     match provider {

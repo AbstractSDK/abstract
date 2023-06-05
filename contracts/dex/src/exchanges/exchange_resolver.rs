@@ -5,7 +5,7 @@ use abstract_dex_adapter_traits::{Identify, DexCommand, DexError};
 pub use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
 
 #[cfg(feature = "juno")]
-pub use abstract_wyndex_dex_adapter::{WynDex, WYNDEX};
+pub use abstract_wyndex_adapter::dex::{WynDex, WYNDEX};
 
 #[cfg(feature = "terra")]
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};

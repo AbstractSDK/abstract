@@ -25,7 +25,7 @@ interface = ["dep:abstract-interface", "dep:cw-orch"]
 juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
-  "dep:abstract-wyndex-dex-adapter",
+  "dep:abstract-wyndex-adapter",
   "dep:abstract-osmosis-dex-adapter"
 ]
 terra = [
@@ -60,7 +60,7 @@ cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
 wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.2.0", features = [
   "library",
 ], optional = true }
-abstract-wyndex-dex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", optional = true }
+abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", optional = true }
 abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
 abstract-osmosis-dex-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", optional = true }
 
