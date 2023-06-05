@@ -11,10 +11,10 @@ pub use abstract_wyndex_adapter::dex::{WynDex, WYNDEX};
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
 #[cfg(feature = "terra")]
-pub use abstract_astroport_adapter::{AstroportDex, ASTROPORT_DEX};
+pub use abstract_astroport_adapter::dex::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
-pub use abstract_osmosis_dex_adapter::{Osmosis, OSMOSIS};
+pub use abstract_osmosis_adapter::dex::{Osmosis, OSMOSIS};
 
 pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
     match value {
@@ -29,7 +29,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
-        ASTROPORT_DEX => Ok(&AstroportDex {}),
+        ASTROPORT => Ok(&Astroport {}),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -47,7 +47,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
-        ASTROPORT_DEX => Ok(&AstroportDex {}),
+        ASTROPORT => Ok(&Astroport {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }

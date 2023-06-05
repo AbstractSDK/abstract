@@ -1,9 +1,10 @@
+use abstract_staking_adapter_traits::Identify;
 use abstract_staking_adapter_traits::StakingError;
 use crate::StakingCommand;
 use cosmwasm_std::{StdError, StdResult};
 
 #[cfg(feature = "terra")]
-use abstract_astroport_adapter::{AstroportStaking, ASTROPORT_STAKING};
+use abstract_astroport_adapter::staking::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub use crate::providers::osmosis::{Osmosis, OSMOSIS};
@@ -18,13 +19,13 @@ use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 pub(crate) fn is_over_ibc(provider: &str) -> StdResult<bool> {
     match provider {
         #[cfg(feature = "juno")]
-        JUNOSWAP => Ok(false),
+        JUNOSWAP => Ok(JunoSwap::default().over_ibc()),
         #[cfg(feature = "juno")]
-        WYNDEX => Ok(false),
+        WYNDEX => Ok(WynDex::default().over_ibc()),
         #[cfg(feature = "terra")]
-        ASTROPORT_STAKING => Ok(false),
+        ASTROPORT => Ok(Astroport::default().over_ibc()),
         #[cfg(feature = "juno")]
-        OSMOSIS => Ok(true),
+        OSMOSIS => Ok(Osmosis::default().over_ibc()),
         _ => Err(StdError::generic_err(format!(
             "Unknown provider {provider}"
         ))),
@@ -41,7 +42,7 @@ pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingComman
         #[cfg(feature = "osmosis")]
         OSMOSIS => Ok(Box::new(Osmosis::default())),
         #[cfg(feature = "terra")]
-        ASTROPORT_STAKING => Ok(Box::<AstroportStaking>::default()),
+        ASTROPORT => Ok(Box::<Astroport>::default()),
         _ => Err(StakingError::ForeignDex(name.to_owned())),
     }
 }

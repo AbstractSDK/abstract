@@ -13,7 +13,7 @@ pub const EXCHANGE: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
-    pub use abstract_osmosis_dex_adapter::Osmosis;
+    pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
 #[cfg(feature = "interface")]
