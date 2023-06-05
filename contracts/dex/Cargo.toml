@@ -26,6 +26,7 @@ juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
   "dep:abstract-wyndex-dex-adapter",
+  "dep:abstract-osmosis-dex-adapter"
 ]
 terra = [
   "dep:terraswap",

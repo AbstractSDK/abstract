@@ -17,7 +17,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,
