@@ -1,6 +1,7 @@
-use crate::msg::{StakingExecuteMsg, StakingQueryMsg};
+use abstract_staking_adapter_traits::msg::{StakingExecuteMsg, StakingQueryMsg};
 use crate::CW_STAKING;
-use crate::{error::StakingError, handlers};
+use crate::{handlers};
+use abstract_staking_adapter_traits::StakingError;
 use abstract_adapter::{export_endpoints, AdapterContract};
 use cosmwasm_std::{Empty, Response};
 

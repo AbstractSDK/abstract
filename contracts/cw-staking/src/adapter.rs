@@ -1,6 +1,7 @@
+use abstract_staking_adapter_traits::StakingError;
 use cosmwasm_std::{DepsMut, Env, SubMsg};
 
-use crate::{error::StakingError, msg::StakingAction, traits::command::StakingCommand};
+use abstract_staking_adapter_traits::{msg::StakingAction, StakingCommand};
 
 use abstract_sdk::{core::objects::AssetEntry, features::AbstractNameService, Execution};
 

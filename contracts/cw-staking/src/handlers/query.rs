@@ -1,11 +1,11 @@
-use crate::msg::StakingQueryMsg;
+use abstract_staking_adapter_traits::msg::StakingQueryMsg;
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
     providers::resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
-
+use abstract_staking_adapter_traits::StakingError;
 /// Handle queries related to staking
 pub fn query_handler(
     deps: Deps,
@@ -23,7 +23,7 @@ pub fn query_handler(
         } => {
             // if provider is on an app-chain, error
             if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+                Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&provider)
@@ -40,7 +40,7 @@ pub fn query_handler(
         } => {
             // if provider is on an app-chain, error
             if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+                Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&provider)
@@ -60,7 +60,7 @@ pub fn query_handler(
         } => {
             // if provider is on an app-chain, error
             if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+                Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&provider)
@@ -78,7 +78,7 @@ pub fn query_handler(
         } => {
             // if provider is on an app-chain, error
             if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+                Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&provider)

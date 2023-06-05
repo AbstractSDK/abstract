@@ -61,6 +61,9 @@ abstract-adapter = { workspace = true }
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
+# Local
+abstract-staking-adapter-traits = { workspace = true }
+
 # Juno dexes #
 cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = [
   "library",
@@ -79,6 +82,8 @@ dao-cw-utils = { version = "0.13.4", package = "cw-utils" }
 osmosis-std = { version = "0.12.0", optional = true }
 
 # Terra #
+#abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
+abstract-astroport-adapter = { path="../../../abstract-astroport-core/packages/abstract-adapter/", optional = true }
 
 # see https://github.com/astroport-fi/astroport-changelog
 astroport = { git = "https://github.com/astroport-fi/astroport-core.git", rev = "126d43216111df786472fe2a845c1e2fadfe4a36", optional = true }

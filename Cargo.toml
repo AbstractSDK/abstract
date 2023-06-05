@@ -67,6 +67,7 @@ wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git"
 ## Local
 abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 
 [profile.release]
 rpath = false
@@ -82,7 +83,7 @@ incremental = false
 # Need this, otherwise, we have multiple origin for the abstract adapters repo (TODO change the dependency when ready to release here)
 [patch."https://github.com/AbstractSDK/adapters"]
 #abstract-adapter-utils = { path = "packages/utils" }
-#abstract-dex-adapter-traits = { path = "packages/dex" }
+#abstract-staking-adapter-traits = { path = "packages/staking" }
 
 [patch.crates-io]
 #abstract-adapter = {git = "https://github.com/AbstractSDK/contracts"}

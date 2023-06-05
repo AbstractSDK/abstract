@@ -1,6 +1,6 @@
+use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
 
-use crate::traits::identify::Identify;
 
 pub const OSMOSIS: &str = "osmosis";
 
@@ -13,6 +13,7 @@ impl Identify for Osmosis {
     fn name(&self) -> &'static str {
         OSMOSIS
     }
+    fn over_ibc(&self) -> bool { false }
 }
 
 #[cfg(feature = "osmosis")]

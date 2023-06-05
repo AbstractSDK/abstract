@@ -1,9 +1,10 @@
-use crate::msg::{
+use abstract_staking_adapter_traits::Identify;
+use abstract_staking_adapter_traits::StakingError;
+use abstract_staking_adapter_traits::msg::{
     Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
-use crate::traits::command::StakingCommand;
-use crate::traits::identify::Identify;
-use crate::{contract::StakingResult, error::StakingError};
+use abstract_staking_adapter_traits::StakingCommand;
+use crate::{contract::StakingResult};
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
@@ -51,6 +52,7 @@ impl Identify for WynDex {
     fn name(&self) -> &'static str {
         WYNDEX
     }
+    fn over_ibc(&self) -> bool { false }
 }
 
 impl StakingCommand for WynDex {

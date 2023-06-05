@@ -1,8 +1,8 @@
+use abstract_staking_adapter_traits::Identify;
+use abstract_staking_adapter_traits::StakingError;
 use crate::contract::StakingResult;
-use crate::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse};
-use crate::traits::command::StakingCommand;
-use crate::traits::identify::Identify;
-use crate::{error::StakingError, msg::RewardTokensResponse};
+use abstract_staking_adapter_traits::msg::{Claim, StakeResponse, StakingInfoResponse, UnbondingResponse, RewardTokensResponse};
+use abstract_staking_adapter_traits::StakingCommand;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_sdk::{
     core::objects::{AssetEntry, LpToken},
@@ -40,6 +40,7 @@ impl Identify for JunoSwap {
     fn name(&self) -> &'static str {
         JUNOSWAP
     }
+    fn over_ibc(&self) -> bool { false }
 }
 
 impl StakingCommand for JunoSwap {
