@@ -30,7 +30,7 @@ juno = [
 ]
 terra = [
   "dep:terraswap",
-  "dep:abstract-astroport-dex-adapter",
+  "dep:abstract-astroport-adapter",
 ]
 osmosis = ["dep:abstract-osmosis-dex-adapter"]
 schema = ["abstract-adapter/schema"]
@@ -53,7 +53,6 @@ abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-adapter-utils = { workspace = true }
 abstract-dex-adapter-traits = { workspace = true }
 
 # Juno dexes #
@@ -62,7 +61,7 @@ wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.2
   "library",
 ], optional = true }
 abstract-wyndex-dex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", optional = true }
-abstract-astroport-dex-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
+abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
 abstract-osmosis-dex-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", optional = true }
 
 # Terra dexes #

@@ -1,4 +1,4 @@
-use abstract_adapter_utils::{coins_in_assets, cw_approve_msgs, Identify};
+use abstract_dex_adapter_traits::{Identify,coins_in_assets, cw_approve_msgs};
 use abstract_core::objects::PoolAddress;
 use abstract_dex_adapter_traits::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread};
 use abstract_sdk::cw_helpers::wasm_smart_query;

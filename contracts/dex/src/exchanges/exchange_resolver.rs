@@ -1,5 +1,4 @@
-use abstract_adapter_utils::Identify;
-use abstract_dex_adapter_traits::{DexCommand, DexError};
+use abstract_dex_adapter_traits::{Identify, DexCommand, DexError};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]
@@ -12,7 +11,7 @@ pub use abstract_wyndex_dex_adapter::{WynDex, WYNDEX};
 pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 
 #[cfg(feature = "terra")]
-pub use abstract_astroport_dex_adapter::{Astroport, ASTROPORT};
+pub use abstract_astroport_adapter::{AstroportDex, ASTROPORT_DEX};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub use abstract_osmosis_dex_adapter::{Osmosis, OSMOSIS};
@@ -30,7 +29,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, De
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
-        ASTROPORT => Ok(&Astroport {}),
+        ASTROPORT_DEX => Ok(&AstroportDex {}),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -48,7 +47,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
-        ASTROPORT => Ok(&Astroport {}),
+        ASTROPORT_DEX => Ok(&AstroportDex {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }

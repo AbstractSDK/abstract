@@ -1,5 +1,4 @@
-use abstract_adapter_utils::Identify;
-use abstract_adapter_utils::{coins_in_assets, cw_approve_msgs};
+use abstract_dex_adapter_traits::{Identify,coins_in_assets, cw_approve_msgs};
 use abstract_core::objects::PoolAddress;
 use abstract_dex_adapter_traits::DexError;
 use abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread};
