@@ -14,7 +14,7 @@ required-features = ["schema"]
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["export"]
+default = []
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 schema = ["abstract-adapter/schema"]

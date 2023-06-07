@@ -27,7 +27,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 export = []
-default = ["export"]
+default = []
 interface = ["dep:cw-orch", "dep:abstract-interface", "export"]
 juno = [
   "dep:wasmswap",
@@ -36,7 +36,7 @@ juno = [
   "dep:abstract-wyndex-adapter",
   "dep:cw-controllers",
 ]
-# osmosis = ["dep:osmosis-std"]
+osmosis = ["dep:osmosis-std"]
 terra = ["dep:abstract-astroport-adapter"]
 all = ["juno", "terra", "interface"]
 schema = ["abstract-adapter/schema"]

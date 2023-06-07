@@ -19,9 +19,9 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = ["export"]
+default = []
 export = []
-interface = ["dep:abstract-interface", "dep:cw-orch"]
+interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
