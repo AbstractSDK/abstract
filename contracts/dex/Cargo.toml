@@ -19,7 +19,7 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = []
+default = ["export"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 juno = [

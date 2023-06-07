@@ -27,7 +27,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 export = []
-default = []
+default = ["export"]
 interface = ["dep:cw-orch", "dep:abstract-interface", "export"]
 juno = [
   "dep:wasmswap",

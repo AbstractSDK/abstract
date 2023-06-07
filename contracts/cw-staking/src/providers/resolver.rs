@@ -1,5 +1,7 @@
 use crate::StakingCommand;
+#[cfg(any(feature = "terra", feature="juno"))]
 use abstract_staking_adapter_traits::Identify;
+
 use abstract_staking_adapter_traits::StakingError;
 use cosmwasm_std::{StdError, StdResult};
 
@@ -38,7 +40,7 @@ pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingComman
         #[cfg(feature = "juno")]
         WYNDEX => Ok(Box::<WynDex>::default()),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(Box::new(Osmosis::default())),
+        OSMOSIS => Ok(Box::<Osmosis>::default()),
         #[cfg(feature = "terra")]
         ASTROPORT => Ok(Box::<Astroport>::default()),
         _ => Err(StakingError::ForeignDex(name.to_owned())),
