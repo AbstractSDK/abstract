@@ -14,6 +14,9 @@ pub mod host_staking {
     pub use abstract_osmosis_adapter::staking::Osmosis;
 }
 
+pub use abstract_staking_adapter_traits::error;
+pub use abstract_staking_adapter_traits::msg;
+
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::CW_STAKING;

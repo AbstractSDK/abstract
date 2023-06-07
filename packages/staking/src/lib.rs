@@ -1,5 +1,5 @@
 mod command;
-mod error;
+pub mod error;
 pub mod msg;
 // Export interface for use in SDK modules
 pub use command::StakingCommand;
