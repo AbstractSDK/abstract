@@ -1,5 +1,3 @@
-#![cfg(feature = "interface")]
-
 mod common;
 
 use abstract_cw_staking::contract::CONTRACT_VERSION;
