@@ -17,7 +17,7 @@ pub mod host_exchange {
 }
 
 #[cfg(feature = "interface")]
-pub mod cw_orch {
+pub mod interface {
     use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},
