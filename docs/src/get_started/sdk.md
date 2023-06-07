@@ -60,7 +60,7 @@ The following API objects are available in the Abstract SDK:
 - [`Adapter`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapter.html)
 - [`Accountant`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Accountant.html)
 - [`IbcClient`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html)
-- [`ModuleRegistry](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.ModuleRegistry.html)
+- [`ModuleRegistry`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.ModuleRegistry.html)
 - [`Modules`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Modules.html)
 - [`AccountRegistry`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.AccountRegistry.html)
 
