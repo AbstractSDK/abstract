@@ -7,7 +7,7 @@ use cosmwasm_std::{StdError, StdResult};
 use abstract_astroport_adapter::staking::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
-pub use crate::providers::osmosis::{Osmosis, OSMOSIS};
+pub use abstract_osmosis_adapter::staking::{Osmosis, OSMOSIS};
 
 #[cfg(feature = "juno")]
 pub use crate::providers::{

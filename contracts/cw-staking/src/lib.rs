@@ -11,7 +11,7 @@ pub const CW_STAKING: &str = "abstract:cw-staking";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {
-    pub use super::providers::osmosis::Osmosis;
+    pub use abstract_osmosis_adapter::staking::Osmosis;
 }
 
 #[cfg(feature = "interface")]
