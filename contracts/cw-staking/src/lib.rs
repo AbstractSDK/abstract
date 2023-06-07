@@ -15,7 +15,7 @@ pub mod host_staking {
 }
 
 #[cfg(feature = "interface")]
-pub mod cw_orch {
+pub mod interface {
     use crate::CW_STAKING;
     use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_core::{adapter, MANAGER};

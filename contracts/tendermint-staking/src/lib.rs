@@ -6,7 +6,7 @@ mod staking;
 pub const TENDERMINT_STAKING: &str = "abstract:tendermint-staking";
 
 #[cfg(feature = "interface")]
-pub mod cw_orch {
+pub mod interface {
 
     use crate::msg::*;
     use abstract_interface::AdapterDeployer;
