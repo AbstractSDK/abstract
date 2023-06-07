@@ -17,7 +17,6 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
 
-
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,

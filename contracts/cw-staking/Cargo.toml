@@ -35,7 +35,7 @@ juno = [
   "dep:cw20-stake",
   "dep:abstract-wyndex-adapter",
   "dep:cw-controllers",
-  "osmosis"
+  "osmosis",
 ]
 osmosis = ["dep:abstract-osmosis-adapter"]
 terra = ["dep:abstract-astroport-adapter"]
@@ -80,8 +80,7 @@ dao-cw-utils = { version = "0.13.4", package = "cw-utils" }
 abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", optional = true }
 
 # Terra #
-#abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
-abstract-astroport-adapter = { path="../../../abstract-astroport-core/packages/abstract-adapter/", optional = true }
+abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

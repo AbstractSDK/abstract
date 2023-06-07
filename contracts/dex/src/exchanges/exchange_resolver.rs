@@ -1,4 +1,4 @@
-use abstract_dex_adapter_traits::{Identify, DexCommand, DexError};
+use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 
 // Supported exchanges on Juno
 #[cfg(feature = "juno")]

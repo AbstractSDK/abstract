@@ -1,8 +1,8 @@
-use abstract_staking_adapter_traits::msg::{StakingExecuteMsg, StakingQueryMsg};
+use crate::handlers;
 use crate::CW_STAKING;
-use crate::{handlers};
-use abstract_staking_adapter_traits::StakingError;
 use abstract_adapter::{export_endpoints, AdapterContract};
+use abstract_staking_adapter_traits::msg::{StakingExecuteMsg, StakingQueryMsg};
+use abstract_staking_adapter_traits::StakingError;
 use cosmwasm_std::{Empty, Response};
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

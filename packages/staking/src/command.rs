@@ -1,4 +1,3 @@
-use std::error::Error;
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{Identify, StakingError};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
@@ -6,6 +5,7 @@ use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
 use cw_utils::Duration;
+use std::error::Error;
 
 /// Trait that defines the staking commands for providers
 pub trait StakingCommand<E: Error = StakingError>: Identify {

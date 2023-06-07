@@ -1,6 +1,6 @@
+use crate::StakingCommand;
 use abstract_staking_adapter_traits::Identify;
 use abstract_staking_adapter_traits::StakingError;
-use crate::StakingCommand;
 use cosmwasm_std::{StdError, StdResult};
 
 #[cfg(feature = "terra")]
@@ -10,9 +10,7 @@ use abstract_astroport_adapter::staking::{Astroport, ASTROPORT};
 pub use abstract_osmosis_adapter::staking::{Osmosis, OSMOSIS};
 
 #[cfg(feature = "juno")]
-pub use crate::providers::{
-    junoswap::{JunoSwap, JUNOSWAP},
-};
+pub use crate::providers::junoswap::{JunoSwap, JUNOSWAP};
 #[cfg(feature = "juno")]
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 

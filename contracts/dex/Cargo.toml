@@ -26,12 +26,9 @@ juno = [
   "dep:wasmswap",
   "dep:cw20_junoswap",
   "dep:abstract-wyndex-adapter",
-  "dep:abstract-osmosis-adapter"
+  "dep:abstract-osmosis-adapter",
 ]
-terra = [
-  "dep:terraswap",
-  "dep:abstract-astroport-adapter",
-]
+terra = ["dep:terraswap", "dep:abstract-astroport-adapter"]
 osmosis = ["dep:abstract-osmosis-adapter"]
 schema = ["abstract-adapter/schema"]
 
