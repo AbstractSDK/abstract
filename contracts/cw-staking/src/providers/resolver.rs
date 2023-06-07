@@ -1,5 +1,5 @@
 use crate::StakingCommand;
-#[cfg(any(feature = "terra", feature="juno"))]
+#[cfg(any(feature = "terra", feature = "juno"))]
 use abstract_staking_adapter_traits::Identify;
 
 use abstract_staking_adapter_traits::StakingError;
