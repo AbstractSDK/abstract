@@ -12,9 +12,8 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
-interface = []
 export = []
-cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
+interface = ["dep:abstract-interface", "dep:cw-orch"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
