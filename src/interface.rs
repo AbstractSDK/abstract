@@ -8,13 +8,13 @@ use cw_orch::prelude::*;
 pub struct App<Chain>;
 
 impl<Chain: CwEnv> Uploadable for App<Chain> {
-    fn wasm(&self) -> cw_orch::prelude::WasmPath {
-        ArtifactsDir::env().find_wasm_path(&self.id()).unwrap()
+    fn wasm(&self) -> WasmPath {
+        ArtifactsDir::env().find_wasm_path(env!("CARGO_PKG_NAME")).unwrap()
     }
 
     fn wrapper(
         &self,
-    ) -> Box<dyn cw_orch::prelude::MockContract<cosmwasm_std::Empty, cosmwasm_std::Empty>> {
+    ) -> Box<dyn MockContract<cosmwasm_std::Empty, cosmwasm_std::Empty>> {
         Box::new(
             ContractWrapper::new_with_empty(
                 crate::contract::execute,
