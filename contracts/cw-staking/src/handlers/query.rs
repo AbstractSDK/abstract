@@ -1,6 +1,6 @@
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
-    providers::resolver::{self, is_over_ibc},
+    resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
 use abstract_staking_adapter_traits::msg::StakingQueryMsg;

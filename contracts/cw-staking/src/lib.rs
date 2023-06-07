@@ -1,5 +1,5 @@
 pub mod contract;
-mod providers;
+mod resolver;
 
 mod adapter;
 mod handlers;

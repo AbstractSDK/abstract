@@ -35,9 +35,6 @@ interface = [
   "abstract-staking-adapter-traits/interface",
 ]
 juno = [
-  "dep:wasmswap",
-  "dep:cw20_junoswap",
-  "dep:cw20-stake",
   "dep:abstract-wyndex-adapter",
   "dep:cw-controllers",
   "osmosis",
@@ -70,16 +67,7 @@ cw-orch = { workspace = true, optional = true }
 abstract-staking-adapter-traits = { workspace = true }
 
 # Juno dexes #
-cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = [
-  "library",
-], tag = "v1.0.0" }
-cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
-wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.1.2-beta", features = [
-  "library",
-], optional = true }
 abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", optional = true }
-
-dao-cw-utils = { version = "0.13.4", package = "cw-utils" }
 
 # Osmosis #
 abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", optional = true }

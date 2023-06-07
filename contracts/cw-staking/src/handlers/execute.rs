@@ -1,5 +1,5 @@
 use crate::contract::{CwStakingAdapter, StakingResult};
-use crate::providers::resolver::{self, is_over_ibc};
+use crate::resolver::{self, is_over_ibc};
 use crate::StakingAdapter;
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
