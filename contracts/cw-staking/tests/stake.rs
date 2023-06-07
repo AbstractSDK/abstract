@@ -1,8 +1,11 @@
+#![cfg(feature="interface")]
+
 mod common;
 
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::cw_orch::CwStakingAdapter;
-use abstract_cw_staking::msg::StakingQueryMsgFns;
+#[cfg(feature="interface")]
+use abstract_staking_adapter_traits::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;

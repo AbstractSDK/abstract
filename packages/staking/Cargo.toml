@@ -12,6 +12,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["export"]
+interface = []
 export = []
 cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
 
