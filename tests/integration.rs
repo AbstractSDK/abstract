@@ -1,9 +1,9 @@
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use app::{
     contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, InstantiateMsg},
-    App,
+    msg::{AppInstantiateMsg, InstantiateMsg, ConfigResponse},
+    *,
 };
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
@@ -14,7 +14,7 @@ use cosmwasm_std::Addr;
 const ADMIN: &str = "admin";
 
 /// Set up the test environment with the contract installed
-fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>)> {
+fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)> {
     // Create a sender
     let sender = Addr::unchecked(ADMIN);
     // Create the mock
@@ -33,6 +33,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>)> {
             .create_default_account(GovernanceDetails::Monarchy {
                 monarch: ADMIN.to_string(),
             })?;
+            
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
@@ -40,23 +41,30 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>)> {
 
     contract.deploy(APP_VERSION.parse()?)?;
 
-    Ok((account, abstr_deployment))
-}
-
-#[test]
-fn successful_install() -> anyhow::Result<()> {
-    // Set up the environment and contract
-    let (account, abstr) = setup()?;
-
     account.install_module(
         APP_ID,
         &InstantiateMsg {
             base: BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.addr_str()?,
+                ans_host_address: abstr_deployment.ans_host.addr_str()?,
             },
             module: AppInstantiateMsg {},
         },
     )?;
 
+    let modules = account.manager.module_infos(None, None)?;
+    contract.set_address(&modules.module_infos[1].address);
+
+    Ok((account, abstr_deployment, contract))
+}
+
+#[test]
+fn successful_install() -> anyhow::Result<()> {
+    // Set up the environment and contract
+    let (_account, _abstr, app) = setup()?;
+
+    let config = app.config()?;
+    assert_eq!(config, ConfigResponse{});
     Ok(())
 }
+
+
