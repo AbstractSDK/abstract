@@ -4,7 +4,6 @@ mod common;
 
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::cw_orch::CwStakingAdapter;
-#[cfg(feature="interface")]
 use abstract_staking_adapter_traits::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
@@ -15,7 +14,7 @@ use cw20_base::msg::QueryMsgFns;
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
 
-use abstract_cw_staking::msg::{
+use abstract_staking_adapter_traits::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
