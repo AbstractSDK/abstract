@@ -34,12 +34,13 @@ interface = [
   "export",
   "abstract-staking-adapter-traits/interface",
 ]
-juno = ["dep:abstract-wyndex-adapter", "dep:cw-controllers", "osmosis"]
+juno = ["dep:abstract-wyndex-adapter", "dep:cw-controllers"]
 osmosis = ["dep:abstract-osmosis-adapter"]
 terra = ["dep:abstract-astroport-adapter"]
-all = ["juno", "terra", "interface"]
 schema = ["abstract-adapter/schema"]
 
+[package.metadata.optimizer]
+features = ["juno", "terra","osmosis"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }

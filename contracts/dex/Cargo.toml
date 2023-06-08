@@ -32,6 +32,9 @@ terra = ["dep:terraswap", "dep:abstract-astroport-adapter"]
 osmosis = ["dep:abstract-osmosis-adapter"]
 schema = ["abstract-adapter/schema"]
 
+[package.metadata.optimizer]
+features = ["juno", "terra","osmosis"]
+
 [dependencies]
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
