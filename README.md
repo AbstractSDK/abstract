@@ -1,12 +1,12 @@
 # Abstract App Module Template
 
-The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [Abstract Accounts Documentation](https://docs.abstract.money/framework/architecture.html). To read more about apps, please see the [Abstract App Module Documentation](https://docs.abstract.money/framework/module_types.html#apps).
+The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/framework/architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/framework/module_types.html#apps).
 
 ## Getting Started
 
 ### Requirements
 
-Learn more about the requirements for developing Abstract apps in the [Getting Started Documentation](https://docs.abstract.money/get_started/index.html).
+Learn more about the requirements for developing Abstract apps in the [getting started documentation](https://docs.abstract.money/get_started/index.html).
 
 ### Setup
 
