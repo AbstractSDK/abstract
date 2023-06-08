@@ -1,12 +1,12 @@
 # Abstract App Module Template
 
-The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [Abstract Accounts Documentation](TODO: Add link). To read more about apps, please see the [Abstract App Module Documentation](TODO: Add link).
+The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/framework/architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/framework/module_types.html#apps).
 
 ## Getting Started
 
 ### Requirements
 
-Learn more about the requirements for developing Abstract apps in the [Abstract App Module Documentation](TODO: Add link).
+Learn more about the requirements for developing Abstract apps in the [getting started documentation](https://docs.abstract.money/get_started/index.html).
 
 ### Setup
 
@@ -25,7 +25,7 @@ This repository comes with a [`justfile`](https://github.com/casey/just), which 
 
 ### Installing Tools
 
-To fully make use of the `justfile`, you need to install a few tools first. You can do this by simply running `just install-tools`. See [TODO: Add link] for more information.
+To fully make use of the `justfile`, you need to install a few tools first. You can do this by simply running `just install-tools`. See [tools used the template](https://docs.abstract.money/get_started/installation.html#tools-used-in-the-template) for more information.
 
 ### Available Tasks
 
@@ -91,7 +91,6 @@ just publish-schemas my-namespace my-module 0.1
 ```
 
 In the example above, `my-namespace` is the namespace, `my-module` is the module's name, and `0.1` is the minor version. If you create a patch for your module (e.g., `0.1.1`), you don't need to run `publish-schemas` again unless the schemas have changed.
-
 
 ## Contributing
 
