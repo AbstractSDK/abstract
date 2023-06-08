@@ -61,9 +61,9 @@ anyhow = "1"
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
 ## Local
-abstract-adapter-utils = { path = "packages/utils"  }
-abstract-dex-adapter-traits = { path = "packages/dex"  }
-abstract-staking-adapter-traits = { path = "packages/staking" }
+abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 
 [profile.release]
 rpath = false

@@ -34,7 +34,7 @@ interface = [
   "export",
   "abstract-staking-adapter-traits/interface",
 ]
-juno = ["dep:abstract-wyndex-adapter", "dep:cw-controllers"]
+juno = ["dep:abstract-wyndex-adapter","dep:abstract-osmosis-adapter", "dep:cw-controllers"]
 osmosis = ["dep:abstract-osmosis-adapter"]
 terra = ["dep:abstract-astroport-adapter"]
 schema = ["abstract-adapter/schema"]
