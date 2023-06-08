@@ -3,7 +3,7 @@
 # Add the CI to this repo
 git remote add ci https://github.com/AbstractSDK/rust-ci
 git fetch ci
-git merge ci/main --squash --allow-unrelated-histories
+git merge ci/main --allow-unrelated-histories
 
 mv example.env .env
 
