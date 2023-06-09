@@ -14,7 +14,7 @@ pub use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 pub use abstract_astroport_adapter::dex::{Astroport, ASTROPORT};
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
-pub use abstract_osmosis_adapter::dex::{Osmosis, OSMOSIS};
+pub use abstract_osmosis_adapter::{OSMOSIS, dex::Osmosis};
 
 pub(crate) fn identify_exchange(value: &str) -> Result<&'static dyn Identify, DexError> {
     match value {

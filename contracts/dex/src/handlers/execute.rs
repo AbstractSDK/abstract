@@ -25,13 +25,18 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let exchange = exchange_resolver::identify_exchange(&dex_name)?;
+            let (chain_name, local_dex_name) = decompose_platform_name(dex_name);
+            let exchange = exchange_resolver::identify_exchange(&local_dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
-            if exchange.over_ibc() {
-                handle_ibc_request(&deps, info, &adapter, dex_name, &action)
+            if !is_current_chain(env.clone(), chain_name) {
+                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
             } else {
+                // We verify the adapter is available on the current chain
+                if !exchange.is_available_on(&chain_name){
+                    return Err(DexError::UnknownDex(dex_name))
+                }
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, adapter, action, dex_name)
+                handle_local_request(deps, env, info, adapter, action, local_dex_name)
             }
         }
         DexExecuteMsg::UpdateFee {
@@ -146,3 +151,5 @@ pub(crate) fn resolve_assets_to_transfer(
     }
     .map_err(Into::into)
 }
+
+

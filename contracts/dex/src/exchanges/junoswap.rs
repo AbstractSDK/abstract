@@ -19,8 +19,12 @@ impl Identify for JunoSwap {
     fn name(&self) -> &'static str {
         JUNOSWAP
     }
-    fn over_ibc(&self) -> bool {
-        false
+    fn is_available_on(&self, chain_name: &str) -> bool {
+        if chain_name == "juno"{
+            true
+        }else{
+            false
+        }
     }
 }
 
