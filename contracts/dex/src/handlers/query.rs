@@ -58,6 +58,7 @@ pub fn simulate_swap(
     mut ask_asset: AssetEntry,
     dex: String,
 ) -> DexResult<Binary> {
+    
     let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
     let ans = adapter.name_service(deps);
     let fee = SWAP_FEE.load(deps.storage)?;

@@ -91,3 +91,5 @@ dex = { path = ".", features = [
   "interface",
   "juno",
 ], package = "abstract-dex-adapter" }
+
+abstract-wyndex-adapter = { workspace=true, features=["local"]}

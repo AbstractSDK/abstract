@@ -16,3 +16,8 @@ Here are the repos in which the current implementations can be found :
 Wyndex : https://github.com/AbstractSDK/wynddex.git
 Astroport: https://github.com/AbstractSDK/astroport-core.git
 Osmosis: https://github.com/AbstractSDK/osmosis-rust.git
+
+## Dependencies (TODO)
+
+Some dependencies are patched and need to be fixed
+The dependencies on https://github.com/AbstractSDK/integration-bundles need to be fixed as well

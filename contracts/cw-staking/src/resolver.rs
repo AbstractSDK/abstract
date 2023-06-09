@@ -35,17 +35,17 @@ pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingComman
     }
 }
 
-/// Given a FULL provider nam (e.g. juno<wyndex), returns wether the request is local or over IBC
-pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<bool>{
+/// Given a FULL provider nam (e.g. juno>wyndex), returns wether the request is local or over IBC
+pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool)>{
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
     if !is_current_chain(env, &chain_name) {
-        Ok(true)
+        Ok((local_platform_name, true))
     } else {
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !platform_id.is_available_on(&chain_name){
             return Err(StakingError::UnknownDex(platform_name.to_string()))
         }
-        Ok(false)
+        Ok((local_platform_name, false))
     }
 }

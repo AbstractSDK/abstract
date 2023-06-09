@@ -17,7 +17,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
 
-const WYNDEX: &str = "juno>wyndex";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 fn setup_mock() -> anyhow::Result<(
     Mock,

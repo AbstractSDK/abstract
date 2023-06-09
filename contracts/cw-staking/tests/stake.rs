@@ -22,7 +22,7 @@ use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX_OWNER, WYND_TOKEN};
 
 
-const WYNDEX: &str = "juno>wyndex";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;
