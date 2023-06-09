@@ -25,7 +25,7 @@ pub fn execute_handler(
         action,
     } = msg;
     // if provider is on an app-chain, execute the action on the app-chain
-    if is_over_ibc(&provider_name)? {
+    if is_over_ibc(env.clone(), &provider_name)? {
         handle_ibc_request(&deps, info, &adapter, provider_name, &action)
     } else {
         // the action can be executed on the local chain

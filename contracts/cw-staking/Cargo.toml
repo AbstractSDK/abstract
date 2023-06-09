@@ -34,9 +34,9 @@ interface = [
   "export",
   "abstract-staking-adapter-traits/interface",
 ]
-juno = ["dep:abstract-wyndex-adapter","dep:abstract-osmosis-adapter", "dep:cw-controllers"]
-osmosis = ["dep:abstract-osmosis-adapter"]
-terra = ["dep:abstract-astroport-adapter"]
+juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
+osmosis = ["abstract-osmosis-adapter/full_integration"]
+terra = ["abstract-astroport-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
 
 [package.metadata.optimizer]
@@ -62,15 +62,16 @@ cw-orch = { workspace = true, optional = true }
 
 # Local
 abstract-staking-adapter-traits = { workspace = true }
+abstract-adapter-utils = { workspace = true }
 
 # Juno dexes #
-abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", optional = true }
+abstract-wyndex-adapter = { workspace=true }
 
 # Osmosis #
-abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", optional = true }
+abstract-osmosis-adapter = { workspace=true }
 
 # Terra #
-abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", optional = true }
+abstract-astroport-adapter = { workspace=true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

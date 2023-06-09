@@ -1,14 +1,4 @@
-use abstract_core::objects::PoolAddress;
-use abstract_dex_adapter_traits::DexError;
-use abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs, Identify};
-use abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread};
-use abstract_sdk::cw_helpers::wasm_smart_query;
-use cosmwasm_std::{
-    to_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
-};
-use cw20_junoswap::{Cw20ExecuteMsg, Denom};
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use wasmswap::msg::*;
+use abstract_adapter_utils::Identify;
 
 pub const JUNOSWAP: &str = "junoswap";
 
@@ -20,14 +10,28 @@ impl Identify for JunoSwap {
         JUNOSWAP
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
-        if chain_name == "juno"{
-            true
-        }else{
-            false
-        }
+        chain_name == "juno"
     }
 }
 
+
+#[cfg(feature="juno")]
+use ::{
+    abstract_core::objects::PoolAddress,
+    abstract_dex_adapter_traits::DexError,
+    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    abstract_sdk::cw_helpers::wasm_smart_query,
+    cosmwasm_std::{
+        to_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,
+    },
+    cw20_junoswap::{Cw20ExecuteMsg, Denom},
+    cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    wasmswap::msg::*,
+};
+
+
+#[cfg(feature="juno")]
 impl DexCommand for JunoSwap {
     fn swap(
         &self,
@@ -298,6 +302,7 @@ impl DexCommand for JunoSwap {
     }
 }
 
+#[cfg(feature="juno")]
 fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexError> {
     match denom {
         Denom::Native(denom_name) => match asset {

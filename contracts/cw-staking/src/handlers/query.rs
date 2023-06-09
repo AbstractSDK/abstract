@@ -22,7 +22,7 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
+            if is_over_ibc(env.clone(), &provider)? {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
@@ -39,7 +39,7 @@ pub fn query_handler(
             unbonding_period,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
+            if is_over_ibc(env.clone(), &provider)? {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
@@ -59,7 +59,7 @@ pub fn query_handler(
             staker_address,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
+            if is_over_ibc(env.clone(), &provider)? {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
@@ -77,7 +77,7 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
+            if is_over_ibc(env.clone(), &provider)? {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain

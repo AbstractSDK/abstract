@@ -1,3 +1,4 @@
+use abstract_adapter_utils::identity::{is_current_chain, decompose_platform_name};
 use crate::exchanges::exchange_resolver::resolve_exchange;
 
 use crate::msg::{
@@ -28,13 +29,16 @@ pub fn query_handler(
         DexQueryMsg::GenerateMessages { message } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
-                    let exchange_id = exchange_resolver::identify_exchange(&dex)?;
+                    let (chain_name, local_dex_name) = decompose_platform_name(&dex);
                     // if exchange is on an app-chain, execute the action on the app-chain
-                    if exchange_id.over_ibc() {
+                    if !is_current_chain(env, &chain_name) {
                         return Err(DexError::IbcMsgQuery);
                     }
-
-                    let exchange = exchange_resolver::resolve_exchange(&dex)?;
+                    let _exchange_id = exchange_resolver::identify_exchange(&local_dex_name)?;
+                    if !_exchange_id.is_available_on(&chain_name){
+                        return Err(DexError::UnknownDex(dex))
+                    }
+                    let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         adapter, deps, action, exchange,
                     )?;

@@ -65,6 +65,16 @@ abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", bran
 abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 
+# Juno dexes #
+abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features=false }
+
+# Osmosis #
+abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", default-features=false }
+
+# Terra #
+abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", default-features=false }
+
+
 [profile.release]
 rpath = false
 lto = true
