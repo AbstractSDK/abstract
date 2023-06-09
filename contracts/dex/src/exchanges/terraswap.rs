@@ -1,20 +1,20 @@
-
 use abstract_dex_adapter_traits::Identify;
 
 pub const TERRASWAP: &str = "terraswap";
 
+#[derive(Default)]
 pub struct Terraswap {}
 
-impl Identify for Terraswap{
+impl Identify for Terraswap {
     fn name(&self) -> &'static str {
         TERRASWAP
     }
-    fn is_available_on(&self, chain_name: &str) -> bool { 
-        chain_name == "terra" 
+    fn is_available_on(&self, chain_name: &str) -> bool {
+        chain_name == "terra"
     }
 }
 
-#[cfg(feature="terra")]
+#[cfg(feature = "terra")]
 use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
@@ -26,7 +26,7 @@ use ::{
     terraswap::pair::{PoolResponse, SimulationResponse},
 };
 
-#[cfg(feature="terra")]
+#[cfg(feature = "terra")]
 impl DexCommand for Terraswap {
     fn swap(
         &self,
@@ -206,7 +206,7 @@ impl DexCommand for Terraswap {
     }
 }
 
-#[cfg(feature="terra")]
+#[cfg(feature = "terra")]
 fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(terraswap::asset::Asset {

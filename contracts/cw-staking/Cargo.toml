@@ -40,7 +40,7 @@ terra = ["abstract-astroport-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra","osmosis"]
+features = ["juno", "terra", "osmosis"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
@@ -65,13 +65,13 @@ abstract-staking-adapter-traits = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Juno dexes #
-abstract-wyndex-adapter = { workspace=true }
+abstract-wyndex-adapter = { workspace = true }
 
 # Osmosis #
-abstract-osmosis-adapter = { workspace=true }
+abstract-osmosis-adapter = { workspace = true }
 
 # Terra #
-abstract-astroport-adapter = { workspace=true }
+abstract-astroport-adapter = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

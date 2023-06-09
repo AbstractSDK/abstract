@@ -1,16 +1,16 @@
-use cosmwasm_std::Env;
 use abstract_adapter_utils::identity::decompose_platform_name;
+use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
 use abstract_staking_adapter_traits::StakingError;
+use cosmwasm_std::Env;
 
-use crate::StakingCommand;
 use crate::contract::StakingResult;
+use crate::StakingCommand;
 
 use abstract_staking_adapter_traits::Identify;
 
-
-use abstract_astroport_adapter::{ASTROPORT, staking::{Astroport}};
-use abstract_osmosis_adapter::{OSMOSIS, staking::Osmosis};
+use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
+use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, StakingError> {
@@ -36,15 +36,15 @@ pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingComman
 }
 
 /// Given a FULL provider nam (e.g. juno>wyndex), returns wether the request is local or over IBC
-pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool)>{
+pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool)> {
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
-    if !is_current_chain(env, &chain_name) {
+    if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
         Ok((local_platform_name, true))
     } else {
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
-        if !platform_id.is_available_on(&chain_name){
-            return Err(StakingError::UnknownDex(platform_name.to_string()))
+        if !is_available_on(platform_id, env, chain_name.as_deref()) {
+            return Err(StakingError::UnknownDex(platform_name.to_string()));
         }
         Ok((local_platform_name, false))
     }

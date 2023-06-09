@@ -3,6 +3,7 @@ use abstract_adapter_utils::Identify;
 pub const JUNOSWAP: &str = "junoswap";
 
 // Source https://github.com/wasmswap/wasmswap-contracts
+#[derive(Default)]
 pub struct JunoSwap {}
 
 impl Identify for JunoSwap {
@@ -14,8 +15,7 @@ impl Identify for JunoSwap {
     }
 }
 
-
-#[cfg(feature="juno")]
+#[cfg(feature = "juno")]
 use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_adapter_traits::DexError,
@@ -30,8 +30,7 @@ use ::{
     wasmswap::msg::*,
 };
 
-
-#[cfg(feature="juno")]
+#[cfg(feature = "juno")]
 impl DexCommand for JunoSwap {
     fn swap(
         &self,
@@ -302,7 +301,7 @@ impl DexCommand for JunoSwap {
     }
 }
 
-#[cfg(feature="juno")]
+#[cfg(feature = "juno")]
 fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexError> {
     match denom {
         Denom::Native(denom_name) => match asset {

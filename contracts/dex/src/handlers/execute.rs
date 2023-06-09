@@ -1,4 +1,5 @@
-use abstract_adapter_utils::identity::{is_current_chain, decompose_platform_name};
+use crate::handlers::execute::exchange_resolver::is_over_ibc;
+
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
@@ -26,16 +27,11 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let (chain_name, local_dex_name) = decompose_platform_name(&dex_name);
-            let exchange = exchange_resolver::identify_exchange(&local_dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
-            if !is_current_chain(env.clone(), &chain_name) {
+            if is_over_ibc {
                 handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
             } else {
-                // We verify the adapter is available on the current chain
-                if !exchange.is_available_on(&chain_name){
-                    return Err(DexError::UnknownDex(dex_name))
-                }
                 // the action can be executed on the local chain
                 handle_local_request(deps, env, info, adapter, action, local_dex_name)
             }
@@ -152,5 +148,3 @@ pub(crate) fn resolve_assets_to_transfer(
     }
     .map_err(Into::into)
 }
-
-

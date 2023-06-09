@@ -18,6 +18,7 @@ use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";
+const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
 
 fn setup_mock() -> anyhow::Result<(
     Mock,
@@ -63,6 +64,31 @@ fn swap_native() -> anyhow::Result<()> {
 
     // swap 100 EUR to USD
     dex_adapter.swap((EUR, 100), USD, WYNDEX.into())?;
+
+    // check balances
+    let eur_balance = chain.query_balance(&proxy_addr, EUR)?;
+    assert_that!(eur_balance.u128()).is_equal_to(9_900);
+
+    let usd_balance = chain.query_balance(&proxy_addr, USD)?;
+    assert_that!(usd_balance.u128()).is_equal_to(98);
+
+    // assert that OS 0 received the swap fee
+    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0))
+        .proxy
+        .address()?;
+    let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
+    assert_that!(os0_eur_balance.u128()).is_equal_to(1);
+
+    Ok(())
+}
+
+#[test]
+fn swap_native_without_chain() -> anyhow::Result<()> {
+    let (chain, _, dex_adapter, os) = setup_mock()?;
+    let proxy_addr = os.proxy.address()?;
+
+    // swap 100 EUR to USD
+    dex_adapter.swap((EUR, 100), USD, WYNDEX_WITHOUT_CHAIN.into())?;
 
     // check balances
     let eur_balance = chain.query_balance(&proxy_addr, EUR)?;

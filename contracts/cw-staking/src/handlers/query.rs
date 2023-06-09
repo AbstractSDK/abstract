@@ -22,7 +22,7 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
@@ -40,7 +40,7 @@ pub fn query_handler(
             unbonding_period,
         } => {
             // if provider is on an app-chain, error
-             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
@@ -61,7 +61,7 @@ pub fn query_handler(
             staker_address,
         } => {
             // if provider is on an app-chain, error
-             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
                 Err(StakingError::IbcQueryNotSupported)
             } else {
@@ -80,7 +80,7 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
                 Err(StakingError::IbcQueryNotSupported)
             } else {

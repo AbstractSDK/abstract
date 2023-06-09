@@ -66,13 +66,13 @@ abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters",
 abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
 
 # Juno dexes #
-abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features=false }
+abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }
 
 # Osmosis #
-abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", default-features=false }
+abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", default-features = false }
 
 # Terra #
-abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", default-features=false }
+abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", default-features = false }
 
 
 [profile.release]
@@ -92,7 +92,7 @@ incremental = false
 #abstract-staking-adapter-traits = { path = "packages/staking" }
 
 [patch.crates-io]
-abstract-sdk = { git="https://github.com/AbstractSDK/contracts", branch="add/network_names" }
-abstract-core = { git="https://github.com/AbstractSDK/contracts", branch="add/network_names" }
-abstract-interface = { git="https://github.com/AbstractSDK/contracts", branch="add/network_names" }
-cw-orch={git="https://github.com/AbstractSDK/cw-orchestrator"}
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
