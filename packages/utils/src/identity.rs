@@ -20,7 +20,21 @@ pub fn decompose_platform_name(platform_name: &str) -> (Option<String>, String){
     }
 }
 
+fn get_chain_name(env: Env)-> String {
+    env.block.chain_id.rsplitn(2, '-').collect::<Vec<_>>()[1].to_string()
+}
+
 /// Helper to verify the DEX called is on the right chain
 pub fn is_current_chain(env: Env, chain_name: &str) -> bool{
-    env.block.chain_id.rsplitn(2, '-').collect::<Vec<_>>()[1] == chain_name
+    get_chain_name(env) == chain_name
+}
+
+/// Helper to verify the DEX called is on the right chain
+pub fn is_available_on(platform: Box<dyn Identify>, env: Env, chain_name: Option<&str>) -> bool{
+    if let Some(chain_name) = chain_name{
+        platform.is_available_on(chain_name)
+    }else{
+        let chain_name = get_chain_name(env);
+        platform.is_available_on(&chain_name)
+    }
 }
