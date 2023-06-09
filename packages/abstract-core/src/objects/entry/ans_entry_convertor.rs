@@ -41,6 +41,10 @@ impl AnsEntryConvertor<PoolMetadata> {
             assets: self.entry.assets,
         }
     }
+
+    pub fn lp_token_asset(self) -> AssetEntry {
+        AnsEntryConvertor::new(self.lp_token()).asset_entry()
+    }
 }
 
 impl AnsEntryConvertor<AssetEntry> {
