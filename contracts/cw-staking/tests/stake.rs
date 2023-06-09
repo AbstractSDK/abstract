@@ -19,7 +19,10 @@ use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_orch::prelude::*;
 use speculoos::*;
-use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
+use wyndex_bundle::{EUR_USD_LP, WYNDEX_OWNER, WYND_TOKEN};
+
+
+const WYNDEX: &str = "juno>wyndex";
 
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;
