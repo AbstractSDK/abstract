@@ -10,12 +10,12 @@ pub trait Identify {
 
 /// Helper to un-nest the platform name
 /// The platform_name has format juno>wyndex 
-pub fn decompose_platform_name(platform_name: String) -> (String, String){
+pub fn decompose_platform_name(platform_name: &str) -> (String, String){
     let decomposed: Vec<_> = platform_name.splitn(2, '>').collect();
     (decomposed[0].to_string(), decomposed[1].to_string())
 }
 
 /// Helper to verify the DEX called is on the right chain
-pub fn is_current_chain(env: Env, chain_name: String) -> bool{
+pub fn is_current_chain(env: Env, chain_name: &str) -> bool{
     env.block.chain_id.rsplitn(2, '-').collect::<Vec<_>>()[1] == chain_name
 }
