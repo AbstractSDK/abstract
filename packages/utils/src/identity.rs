@@ -10,9 +10,14 @@ pub trait Identify {
 
 /// Helper to un-nest the platform name
 /// The platform_name has format juno>wyndex 
-pub fn decompose_platform_name(platform_name: &str) -> (String, String){
+// Returns (Option<chain_id>, platform_name)
+pub fn decompose_platform_name(platform_name: &str) -> (Option<String>, String){
     let decomposed: Vec<_> = platform_name.splitn(2, '>').collect();
-    (decomposed[0].to_string(), decomposed[1].to_string())
+    if decomposed.len() == 1{
+        (None, decomposed[0].to_string())
+    }else{
+        (Some(decomposed[0].to_string()), decomposed[1].to_string())
+    }
 }
 
 /// Helper to verify the DEX called is on the right chain
