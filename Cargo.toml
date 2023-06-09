@@ -83,3 +83,6 @@ abstract-core = {git="https://github.com/AbstractSDK/contracts.git", branch="upd
 abstract-interface = {git="https://github.com/AbstractSDK/contracts.git", branch="update/4t2-kujira-adaptation"}
 abstract-sdk = {git="https://github.com/AbstractSDK/contracts.git", branch="update/4t2-kujira-adaptation"}
 abstract-adapter = {git="https://github.com/AbstractSDK/contracts.git", branch="update/4t2-kujira-adaptation"}
+
+[patch."https://github.com/AbstractSDK/cw-orchestrator.git"]
+cw-orch = {version = "0.12"}
