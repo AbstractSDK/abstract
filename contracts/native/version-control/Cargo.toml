@@ -37,11 +37,6 @@ cosmwasm-schema = { workspace = true }
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
 anyhow = { workspace = true }
-module-factory = { workspace = true }
-account-factory = { workspace = true }
-ans-host = { workspace = true }
-proxy = { workspace = true }
-manager = { workspace = true }
 speculoos = { workspace = true }
 abstract-testing = { workspace = true }
 

@@ -14,8 +14,8 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn, StdError,
-    StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, BankMsg, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
+    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -40,7 +40,8 @@ pub fn execute_create_module(
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
 
-    let new_module = version_registry.query_module(module_info)?;
+    let new_module = version_registry.query_module(module_info.clone())?;
+    let new_module_monetization = version_registry.query_module_monetization_raw(&module_info)?;
 
     // TODO: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
@@ -51,6 +52,24 @@ pub fn execute_create_module(
     // }
     // .format()?;
 
+    // We validate the fee if it was required by the version control to install this module
+    let mut fee_msgs = vec![];
+    match new_module_monetization {
+        module::Monetization::InstallFee(f) => {
+            let fee = f.assert_payment(&info)?;
+            // We transfer that fee to the namespace owner if there is
+            let namespace_account =
+                version_registry.query_namespace(new_module.info.namespace.clone())?;
+            fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
+                to_address: namespace_account.account_base.proxy.to_string(),
+                amount: vec![fee],
+            }));
+        }
+        abstract_core::objects::module::Monetization::None => {}
+        // The monetization must be known to the factory for a module to be installed
+        _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
+    };
+
     // Set context for after init
     CONTEXT.save(
         deps.storage,
@@ -60,7 +79,7 @@ pub fn execute_create_module(
         },
     )?;
     let block_height = env.block.height;
-    match &new_module.reference {
+    let resp = match &new_module.reference {
         ModuleReference::App(code_id) => instantiate_contract(
             block_height,
             *code_id,
@@ -94,7 +113,8 @@ pub fn execute_create_module(
             new_module.info,
         ),
         _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
-    }
+    }?;
+    Ok(resp.add_messages(fee_msgs))
 }
 
 fn instantiate_contract(

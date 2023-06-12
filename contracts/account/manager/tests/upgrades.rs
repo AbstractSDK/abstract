@@ -33,6 +33,7 @@ fn install_module_version(
                 ans_host_address: abstr.ans_host.addr_str()?,
             },
         },
+        None,
     )?;
 
     Ok(manager.module_info(module)?.unwrap().address.to_string())

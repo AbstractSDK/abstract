@@ -1,6 +1,6 @@
 use abstract_core::objects::{
     fee::FixedFee,
-    module::{self, Module},
+    module::{self, Module, Monetization},
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -172,6 +172,16 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
 
+    // If this module has no more versions, we also remove the monetization
+    if REGISTERED_MODULES
+        .prefix((module.namespace.clone(), module.name.clone()))
+        .range(deps.storage, None, None, Order::Ascending)
+        .next()
+        .is_none()
+    {
+        MODULE_MONETIZATION.remove(deps.storage, (&module.namespace, &module.name));
+    }
+
     Ok(VcResponse::new(
         "remove_module",
         vec![("module", &module.to_string())],
@@ -195,6 +205,48 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
     Ok(VcResponse::new(
         "yank_module",
         vec![("module", &module.to_string())],
+    ))
+}
+
+/// Set a module monetization allowing the namespace owner to charge for module installation/usage or else.
+pub fn set_module_monetization(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module_name: String,
+    namespace: Namespace,
+    monetization: Monetization,
+) -> VCResult {
+    // validate the caller is the owner of the namespace
+
+    if namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
+        // Only Admin can update abstract contracts
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // Only owner can add modules
+        validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
+    }
+
+    // We verify the module exists before updating the monetization
+    REGISTERED_MODULES
+        .prefix((namespace.clone(), module_name.clone()))
+        .range(deps.storage, None, None, Order::Ascending)
+        .next()
+        .ok_or_else(|| {
+            VCError::ModuleNotFound(ModuleInfo {
+                namespace: namespace.clone(),
+                name: module_name.clone(),
+                version: ModuleVersion::Latest,
+            })
+        })??;
+
+    MODULE_MONETIZATION.save(deps.storage, (&namespace, &module_name), &monetization)?;
+
+    Ok(VcResponse::new(
+        "set_monetization",
+        vec![
+            ("namespace", &namespace.to_string()),
+            ("module_name", &module_name),
+        ],
     ))
 }
 
@@ -1182,6 +1234,9 @@ mod test {
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
+        use cosmwasm_std::coin;
+
+        use crate::contract::query;
 
         use super::*;
 
@@ -1639,6 +1694,49 @@ mod test {
                         actual: "empty".into(),
                     }));
             }
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_module_monetization() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            let mut new_module = test_module();
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
+            assert_that!(&res).is_ok();
+            let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+
+            let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
+            let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
+                module_name: new_module.name.clone(),
+                namespace: new_module.namespace.clone(),
+                monetization: monetization.clone(),
+            };
+            execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
+
+            // We query the module to see if the monetization is attached ok
+            let query_msg = QueryMsg::Modules {
+                infos: vec![new_module.clone()],
+            };
+            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(
+                ser_res.modules[0],
+                ModuleResponse {
+                    module: Module {
+                        info: new_module,
+                        reference: ModuleReference::App(0)
+                    },
+                    config: ModuleConfiguration::new(monetization)
+                }
+            );
 
             Ok(())
         }

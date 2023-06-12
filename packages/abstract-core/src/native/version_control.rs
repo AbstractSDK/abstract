@@ -19,29 +19,36 @@ pub struct Config {
 }
 
 pub mod state {
+
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        account_id::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
+        account_id::AccountId,
+        common_namespace::ADMIN_NAMESPACE,
+        module::{ModuleInfo, Monetization},
         module_reference::ModuleReference,
+        namespace::Namespace,
     };
 
     use super::{AccountBase, Config};
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    pub const FACTORY: Admin = Admin::new("factory");
+    pub const FACTORY: Admin = Admin::new("fac");
 
-    pub const CONFIG: Item<Config> = Item::new("config");
+    pub const CONFIG: Item<Config> = Item::new("cfg");
 
     // Modules waiting for approvals
-    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pending_modules");
+    pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
     // We can iterate over the map giving just the prefix to get all the versions
-    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("module_lib");
+    pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
     // Yanked Modules
-    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yanked_modules");
+    pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
+    // Modules Fee
+    pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
+
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("account");
+    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
 }
 
 /// Sub indexes for namespaces.
@@ -66,7 +73,7 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     account_id::AccountId,
-    module::{Module, ModuleInfo, ModuleStatus},
+    module::{Module, ModuleInfo, ModuleStatus, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
@@ -104,6 +111,14 @@ pub enum ExecuteMsg {
     /// Namespaces need to be claimed by the Account before proposing modules
     /// Once proposed, the modules need to be approved by the Admin via [`ExecuteMsg::ApproveOrRejectModules`]
     ProposeModules { modules: Vec<ModuleMapEntry> },
+    /// Sets the monetization configuration for a module.
+    /// The version doesn't matter here, but we keep it for compatibility purposes
+    /// Only callable by namespace admin
+    SetModuleMonetization {
+        module_name: String,
+        namespace: Namespace,
+        monetization: Monetization,
+    },
     /// Approve or reject modules
     /// This takes the modules in the pending_modules map and
     /// moves them to the registered_modules map or yanked_modules map
@@ -173,6 +188,10 @@ pub enum QueryMsg {
     /// Returns [`NamespacesResponse`]
     #[returns(NamespacesResponse)]
     Namespaces { accounts: Vec<AccountId> },
+    /// Queries information about the namespace
+    /// Returns [`NamespaceResponse`]
+    #[returns(NamespaceResponse)]
+    Namespace { namespace: Namespace },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
@@ -199,12 +218,36 @@ pub struct AccountBaseResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesResponse {
-    pub modules: Vec<Module>,
+    pub modules: Vec<ModuleResponse>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleResponse {
+    pub module: Module,
+    pub config: ModuleConfiguration,
+}
+
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleConfiguration {
+    pub monetization: Monetization,
+}
+
+impl ModuleConfiguration {
+    pub fn new(monetization: Monetization) -> Self {
+        Self { monetization }
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
     pub modules: Vec<Module>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct NamespaceResponse {
+    pub account_id: AccountId,
+    pub account_base: AccountBase,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -2,12 +2,15 @@ mod common;
 
 use abstract_adapter::mock::{MockExecMsg, MockInitMsg};
 use abstract_core::manager::ManagerModuleInfo;
-use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_core::objects::fee::FixedFee;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::{adapter::BaseQueryMsgFns, *};
 use abstract_interface::*;
 use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VERSION};
-use common::{create_default_account, init_mock_adapter, AResult, TEST_COIN};
-use cosmwasm_std::{Addr, Coin, Empty};
+use common::{
+    add_mock_adapter_install_fee, create_default_account, init_mock_adapter, AResult, TEST_COIN,
+};
+use cosmwasm_std::{coin, coins, Addr, Coin, Empty};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
@@ -17,7 +20,17 @@ use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2
 
 fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
     manager
-        .install_module(adapter_id, &Empty {})
+        .install_module(adapter_id, &Empty {}, None)
+        .map_err(Into::into)
+}
+
+fn install_adapter_with_funds(
+    manager: &Manager<Mock>,
+    adapter_id: &str,
+    funds: &[Coin],
+) -> AResult {
+    manager
+        .install_module(adapter_id, &Empty {}, Some(funds))
         .map_err(Into::into)
 }
 
@@ -65,6 +78,59 @@ fn installing_one_adapter_should_succeed() -> AResult {
 }
 
 #[test]
+fn installing_one_adapter_without_fee_should_fail() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    chain.set_balance(&sender, coins(12, "ujunox"))?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+    init_mock_adapter(chain.clone(), &deployment, None)?;
+    add_mock_adapter_install_fee(
+        chain,
+        &deployment,
+        Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
+        None,
+    )?;
+    // TODO, match the exact error
+    assert_that!(install_adapter(&account.manager, TEST_MODULE_ID)).is_err();
+
+    // TODO, match the exact error
+    assert_that!(install_adapter_with_funds(
+        &account.manager,
+        TEST_MODULE_ID,
+        &coins(12, "ujunox")
+    ))
+    .is_err();
+
+    Ok(())
+}
+
+#[test]
+fn installing_one_adapter_with_fee_should_succeed() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    chain.set_balance(&sender, coins(45, "ujunox"))?;
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+    init_mock_adapter(chain.clone(), &deployment, None)?;
+    add_mock_adapter_install_fee(
+        chain,
+        &deployment,
+        Monetization::InstallFee(FixedFee::new(&coin(45, "ujunox"))),
+        None,
+    )?;
+
+    assert_that!(install_adapter_with_funds(
+        &account.manager,
+        TEST_MODULE_ID,
+        &coins(45, "ujunox")
+    ))
+    .is_ok();
+
+    Ok(())
+}
+
+#[test]
 fn install_non_existent_adapterid_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
@@ -89,6 +155,7 @@ fn install_non_existent_version_should_fail() -> AResult {
         TEST_MODULE_ID,
         ModuleVersion::Version("1.2.3".to_string()),
         &Empty {},
+        None,
     );
 
     // testtodo: check error
@@ -188,9 +255,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     // check staking adapter
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: adapter1.address()?,
-        id: adapter1.id().to_string(),
+        id: adapter1.id(),
         version: cw2::ContractVersion {
-            contract: adapter1.id().into(),
+            contract: adapter1.id(),
             version: V1.into(),
         },
     });
@@ -202,7 +269,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let old_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+    let adapter2 = BootMockAdapter1V2::new_test(chain);
 
     adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
 
@@ -303,7 +370,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     let v1_adapter_addr = adapter1.address()?;
 
-    let adapter2 = BootMockAdapter1V2::new_test(chain.clone());
+    let adapter2 = BootMockAdapter1V2::new_test(chain);
 
     adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
 
@@ -314,6 +381,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
         &adapter1.id(),
         ModuleVersion::Version(expected_version),
         &MockInitMsg {},
+        None,
     )?;
 
     let modules = account.expect_modules(vec![v1_adapter_addr.to_string()])?;

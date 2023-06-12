@@ -52,7 +52,7 @@ where
     pub fn module(&self, info: ModuleInfo) -> Result<Module, crate::AbstractInterfaceError> {
         let ModulesResponse { mut modules } = self.modules(vec![info])?;
 
-        Ok(modules.swap_remove(0))
+        Ok(modules.swap_remove(0).module)
     }
 
     pub fn register_base(

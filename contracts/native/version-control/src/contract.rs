@@ -84,6 +84,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         }
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
+        ExecuteMsg::SetModuleMonetization {
+            module_name,
+            namespace,
+            monetization,
+        } => set_module_monetization(deps, info, module_name, namespace, monetization),
         ExecuteMsg::ClaimNamespaces {
             account_id,
             namespaces,
@@ -120,6 +125,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
         QueryMsg::Modules { infos } => to_binary(&queries::handle_modules_query(deps, infos)?),
         QueryMsg::Namespaces { accounts } => {
             to_binary(&queries::handle_namespaces_query(deps, accounts)?)
+        }
+        QueryMsg::Namespace { namespace } => {
+            to_binary(&queries::handle_namespace_query(deps, namespace)?)
         }
         QueryMsg::Config {} => {
             let factory = FACTORY.get(deps)?.unwrap();

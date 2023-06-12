@@ -162,7 +162,7 @@ fn query_module(
         },
     )?)?;
 
-    Ok(modules.swap_remove(0))
+    Ok(modules.swap_remove(0).module)
 }
 
 /// Registers the DAO on the version_control contract and

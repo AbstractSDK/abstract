@@ -58,8 +58,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         &self,
         module_id: &str,
         init_msg: &TInitMsg,
+        funds: Option<&[Coin]>,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        self.manager.install_module(module_id, init_msg)
+        self.manager.install_module(module_id, init_msg, funds)
     }
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.

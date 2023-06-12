@@ -142,6 +142,7 @@ pub enum ExecuteMsg {
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
+    #[cfg_attr(feature = "interface", payable)]
     InstallModule {
         // Module information.
         module: ModuleInfo,

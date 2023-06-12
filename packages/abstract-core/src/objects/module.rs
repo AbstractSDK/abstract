@@ -1,4 +1,5 @@
 use super::module_reference::ModuleReference;
+use crate::objects::fee::FixedFee;
 use crate::objects::module_version::MODULE;
 use crate::objects::namespace::Namespace;
 use crate::{error::AbstractError, AbstractResult};
@@ -316,7 +317,6 @@ impl From<(ModuleInfo, ModuleReference)> for Module {
 }
 
 #[cosmwasm_schema::cw_serde]
-
 pub struct ModuleInitMsg {
     pub fixed_init: Option<Binary>,
     pub owner_init: Option<Binary>,
@@ -425,6 +425,14 @@ pub fn assert_module_data_validity(
     );
 
     Ok(())
+}
+
+/// Module Monetization
+#[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
+pub enum Monetization {
+    None,
+    InstallFee(FixedFee),
 }
 
 //--------------------------------------------------------------------------------------------------

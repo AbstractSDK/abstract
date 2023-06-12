@@ -31,6 +31,7 @@ pub mod addresses {
     pub const TEST_MODULE_FACTORY: &str = "module_factory_address";
     pub const TEST_MODULE_ADDRESS: &str = "test_module_address";
     pub const TEST_MODULE_ID: &str = "tester:test-module-id";
+    pub const TEST_MODULE_NAME: &str = "test-module-id";
     pub const TEST_OWNER: &str = "owner";
     pub const TEST_NAMESPACE: &str = "tester";
 

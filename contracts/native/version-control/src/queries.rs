@@ -1,8 +1,11 @@
 use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
-    objects::module::ModuleStatus,
-    version_control::{state::PENDING_MODULES, NamespaceFilter},
+    objects::module::{ModuleStatus, Monetization},
+    version_control::{
+        state::{MODULE_MONETIZATION, PENDING_MODULES},
+        ModuleConfiguration, NamespaceFilter, NamespaceResponse,
+    },
 };
 use abstract_sdk::core::{
     objects::{
@@ -14,7 +17,7 @@ use abstract_sdk::core::{
     version_control::{
         namespaces_info,
         state::{ACCOUNT_ADDRESSES, REGISTERED_MODULES, YANKED_MODULES},
-        AccountBaseResponse, ModuleFilter, ModulesListResponse, ModulesResponse,
+        AccountBaseResponse, ModuleFilter, ModuleResponse, ModulesListResponse, ModulesResponse,
         NamespaceListResponse,
     },
 };
@@ -64,9 +67,16 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                 VCError::ModuleNotFound(module).to_string(),
             )),
             Ok(mod_ref) => {
-                modules_response.modules.push(Module {
-                    info: module,
-                    reference: mod_ref,
+                modules_response.modules.push(ModuleResponse {
+                    module: Module {
+                        info: module.clone(),
+                        reference: mod_ref,
+                    },
+                    config: ModuleConfiguration::new(
+                        MODULE_MONETIZATION
+                            .load(deps.storage, (&module.namespace, &module.name))
+                            .unwrap_or(Monetization::None),
+                    ),
                 });
                 Ok(())
             }
@@ -131,7 +141,15 @@ pub fn handle_module_list_query(
         modules.retain(|(info, _)| info.version == version);
     }
 
-    let modules = modules.into_iter().map(Module::from).collect();
+    let modules = modules
+        .into_iter()
+        .map(|(module_info, mod_ref)| {
+            Ok(Module {
+                info: module_info,
+                reference: mod_ref,
+            })
+        })
+        .collect::<Result<Vec<_>, StdError>>()?;
 
     Ok(ModulesListResponse { modules })
 }
@@ -154,6 +172,16 @@ pub fn handle_namespaces_query(
     }
 
     Ok(namespaces_response)
+}
+
+pub fn handle_namespace_query(deps: Deps, namespace: Namespace) -> StdResult<NamespaceResponse> {
+    let account_id = namespaces_info().load(deps.storage, &namespace)?;
+    let account_base = ACCOUNT_ADDRESSES.load(deps.storage, account_id)?;
+
+    Ok(NamespaceResponse {
+        account_id,
+        account_base,
+    })
 }
 
 pub fn handle_namespace_list_query(
@@ -415,7 +443,7 @@ mod test {
 
             let ModulesResponse { mut modules } =
                 from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
-            assert_that!(modules.swap_remove(0).info).is_equal_to(&new_module_info);
+            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&new_module_info);
             Ok(())
         }
 
@@ -480,7 +508,7 @@ mod test {
 
             let ModulesResponse { mut modules } =
                 from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
-            assert_that!(modules.swap_remove(0).info).is_equal_to(&newest_version);
+            assert_that!(modules.swap_remove(0).module.info).is_equal_to(&newest_version);
             Ok(())
         }
     }
@@ -575,8 +603,8 @@ mod test {
                 from_binary(&query_helper(deps.as_ref(), query_msg)?)?;
             assert_that!(modules).has_length(3);
             for module in modules {
-                assert_that!(module.info.namespace).is_equal_to(namespace.clone());
-                assert_that!(module.info.version)
+                assert_that!(module.module.info.namespace).is_equal_to(namespace.clone());
+                assert_that!(module.module.info.version)
                     .is_equal_to(&ModuleVersion::Version("0.1.2".into()));
             }
             Ok(())
