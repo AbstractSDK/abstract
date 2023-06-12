@@ -3,7 +3,7 @@ authors = ["cyberhoward"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Abstract SDK"
+title = "Abstract Development Platform"
 
 
 [build]

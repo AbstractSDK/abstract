@@ -1,50 +1,53 @@
 # Summary
 
-[Introduction](./intro.md)
-
-[About Abstract](./introduction/value_prop.md)
-[Use Cases](./introduction/use_cases.md)
+[Introduction](./1_intro.md)
 
 # Build With Abstract
 
-- [Getting Started](./get_started/index.md)
-  - [Installation](./get_started/installation.md)
-  - [Module Builder](./get_started/module_builder.md)
-  - [Account Abstraction SDK](./get_started/sdk.md)
+- [Abstract Design Space](./2_introduction/1_design_space.md)
+- [Getting Started](./3_get_started/1_index.md)
+  - [Installation](./3_get_started/2_installation.md)
+  - [Module Builder](./3_get_started/3_module_builder.md)
+  - [Account Abstraction SDK](./3_get_started/4_sdk.md)
   - [Module Dependencies]()
-  - [Account Creation](./get_started/account_creation.md)
-  - [Module Deployment](./get_started/module_deployment.md)
+  - [Account Creation](./3_get_started/5_account_creation.md)
+  - [Module Deployment](./3_get_started/6_module_deployment.md)
   - [Best Practices]()
   - [Quality Assurance]()
 
 # About Abstract
 
-- [Abstract SDK - Overview](./framework/abstract_sdk.md)
-  - [Actor Model](./framework/actor_model.md)
-  - [Account Abstraction](./framework/account_abstraction.md)
-  - [Architecture](./framework/architecture.md)
-  - [Account Ownership](./framework/ownership.md)
-  - [Modularity](./framework/modularity.md)
-    - [Module Types](./framework/module_types.md)
-  - [Upgradability](./framework/upgradability.md)
-- [Platform Details](./platform/index.md)
-  - [Abstract Name Service](./platform/ans.md)
-  - [Version Control](./platform/version_control.md)
-  - [Account Factory](./platform/account_factory.md)
+- [Abstract SDK - Overview](./4_framework/1_abstract_sdk.md)
+  - [Actor Model](./4_framework/2_actor_model.md)
+  - [Account Abstraction](./4_framework/3_account_abstraction.md)
+  - [Architecture](./4_framework/4_architecture.md)
+  - [Account Ownership](./4_framework/5_ownership.md)
+  - [Modularity](./4_framework/6_modularity.md)
+    - [Module Types](./4_framework/7_module_types.md)
+  - [Upgradability](./4_framework/8_upgradability.md)
+
+- [Platform Details](./5_platform/index.md)
+  - [Abstract Name Service](./5_platform/ans.md)
+  - [Version Control](./5_platform/version_control.md)
+  - [Account Factory](./5_platform/account_factory.md)
+
 - [Execution Flows]()
-	- [Create Account](./flows/account/create_account.md)
+	- [Create Account](./6_flows/account/create_account.md)
 	- [Account Actions]()
-		- [Install Module](flows/manager/install_module.md)
-		- [Execute on Module](./flows/manager/exec_on_module.md)
-		- [Update Settings](./flows/manager/update_settings.md)
+		- [Install Module](./6_flows/manager/install_module.md)
+		- [Execute on Module](./6_flows/manager/exec_on_module.md)
+		- [Update Settings](./6_flows/manager/update_settings.md)
 		- [Set Owner]()
-		- [Upgrade Modules](./flows/manager/upgrade_modules.md)
+		- [Upgrade Modules](./6_flows/manager/upgrade_modules.md)
 - [Interchain Abstract Accounts]()
 
 # Use Cases
-
-  - [Equilibrium](./use_cases/equilibrium.md)
+- [Use Cases](./7_use_cases/index.md)
+  - [Equilibrium](./7_use_cases/equilibrium.md)
   - [4t2 Finance]()
+
+- [Vision](./8_vision.md)
+
 
 # Resources and Support
 

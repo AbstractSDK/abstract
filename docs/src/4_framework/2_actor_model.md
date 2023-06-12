@@ -1,16 +1,16 @@
 # The Actor Model
 
-The actor model is a computational model used in the design and implementation of CosmWasm smart contracts. It provides a secure and deterministic execution environment by employing message-based communication between individual actors. In this model, actors are autonomous entities capable of making local decisions, creating more actors, and responding to incoming messages. This model ensures encapsulation, concurrency control, and fault tolerance in distributed systems.
+The actor model is a computational model used in the design and implementation of CosmWasm smart contracts. It provides a deterministic execution environment by employing message-based communication between individual actors. In this model, each actor is an autonomous entity capable of making local decisions (managing state), creating more actors (other smart-contracts), and responding to incoming messages.
 
-In CosmWasm, the actor model plays a crucial role in the architecture of smart contracts. The actor model helps ensure the following key principles within CosmWasm:
+In CosmWasm, the actor model plays a crucial role in designing the architecture of a smart contract application. The actor model ensures that the following key principles hold within CosmWasm:
 
 ### 1. Encapsulation and Isolation
 
-Each smart contract operates as an isolated actor, processing messages independently. This isolation prevents interference and unintended side effects between contracts, enhancing security and reducing the risk of vulnerabilities like reentrancy attacks.
+Each smart contract operates as an isolated actor, processing messages independently. This isolation prevents interference and unintended side effects between contracts, enhancing security and reducing the risk of vulnerabilities like re-entrancy attacks.
 
 ### 2. Sequential Message Processing
 
-Contracts can handle only one message at a time, ensuring deterministic execution and eliminating the need for call stacks. This approach prevents complex control flow issues and helps maintain the integrity of contract state.
+Contracts can handle only one message at a time, ensuring deterministic execution and eliminating the need for call stacks. This approach prevents complex control flow issues and helps maintain the integrity of contract state. It also simplifies the mental model required to understand and reason about execution order in multi-contract interactions.
 
 ### 3. Controlled Interactions
 
@@ -20,9 +20,9 @@ When a contract wants to invoke another contract, it sends a message containing 
 
 A top-level message in CosmWasm represents a transaction that encompasses multiple sub-messages. If any sub-message encounters an error, the entire transaction is rolled back, reverting all state changes made within that transaction. This ensures atomicity and prevents inconsistent states in the contract
 
-## Relevance to the Abstract Account
+## Relevance to the Abstract SDK
 
-In the context of Abstract Accounts each smart-contract acts as an independent actor provides distinct benefits.
+In the context of the Abstract SDK each smart-contract
 
 ### Enhanced Security through State Isolation
 
