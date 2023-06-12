@@ -92,7 +92,8 @@ incremental = false
 #abstract-staking-adapter-traits = { path = "packages/staking" }
 
 [patch.crates-io]
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch = "add/network_names" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
+abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
