@@ -5,6 +5,7 @@ use std::{fmt, str::FromStr};
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum PoolAddressBase<T> {
+    SeparateAddresses { swap: T, liquidity: T },
     Contract(T),
     Id(u64),
 }
@@ -91,6 +92,12 @@ impl From<PoolAddress> for UncheckedPoolAddress {
                 UncheckedPoolAddress::Contract(contract_addr.into())
             }
             PoolAddress::Id(denom) => UncheckedPoolAddress::Id(denom),
+            PoolAddress::SeparateAddresses { swap, liquidity } => {
+                UncheckedPoolAddress::SeparateAddresses {
+                    swap: swap.into(),
+                    liquidity: liquidity.into(),
+                }
+            }
         }
     }
 }
@@ -102,6 +109,12 @@ impl From<&PoolAddress> for UncheckedPoolAddress {
                 UncheckedPoolAddress::Contract(contract_addr.into())
             }
             PoolAddress::Id(denom) => UncheckedPoolAddress::Id(*denom),
+            PoolAddress::SeparateAddresses { swap, liquidity } => {
+                UncheckedPoolAddress::SeparateAddresses {
+                    swap: swap.into(),
+                    liquidity: liquidity.into(),
+                }
+            }
         }
     }
 }
@@ -135,6 +148,12 @@ impl UncheckedPoolAddress {
                 PoolAddress::Contract(api.addr_validate(contract_addr)?)
             }
             UncheckedPoolAddress::Id(pool_id) => PoolAddress::Id(*pool_id),
+            UncheckedPoolAddress::SeparateAddresses { swap, liquidity } => {
+                PoolAddress::SeparateAddresses {
+                    swap: api.addr_validate(swap)?,
+                    liquidity: api.addr_validate(liquidity)?,
+                }
+            }
         })
     }
 }
@@ -144,6 +163,9 @@ impl fmt::Display for PoolAddress {
         match self {
             PoolAddress::Contract(contract_addr) => write!(f, "contract:{contract_addr}"),
             PoolAddress::Id(pool_id) => write!(f, "id:{pool_id}"),
+            PoolAddress::SeparateAddresses { swap, liquidity } => {
+                write!(f, "swap:{swap}, pair: {liquidity}")
+            }
         }
     }
 }
