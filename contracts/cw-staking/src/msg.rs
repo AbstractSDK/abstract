@@ -2,11 +2,13 @@
 //!
 //! `4t2::cw-staking`
 
-use abstract_staking_adapter_traits::query_responses::{StakingInfoResponse, StakeResponse, UnbondingResponse, RewardTokensResponse};
 use abstract_core::adapter;
 use abstract_core::objects::{AnsAsset, AssetEntry};
+use abstract_staking_adapter_traits::query_responses::{
+    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Empty};
+use cosmwasm_std::Empty;
 use cw_utils::Duration;
 
 pub type ProviderName = String;

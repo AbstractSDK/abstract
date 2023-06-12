@@ -22,7 +22,9 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
 }
 
 /// Given the provider name, return the local provider implementation
-pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
+pub(crate) fn resolve_local_provider(
+    name: &str,
+) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
         #[cfg(feature = "juno")]
         WYNDEX => Ok(Box::<WynDex>::default()),

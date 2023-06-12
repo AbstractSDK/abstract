@@ -1,7 +1,7 @@
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
+    msg::StakingQueryMsg,
     resolver::{self, is_over_ibc},
-    msg::StakingQueryMsg
 };
 use abstract_sdk::features::AbstractNameService;
 use abstract_staking_adapter_traits::CwStakingError;

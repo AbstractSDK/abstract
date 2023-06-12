@@ -1,12 +1,12 @@
-pub mod contract;
-mod resolver;
-pub mod msg;
 mod adapter;
+pub mod contract;
 mod handlers;
+pub mod msg;
+mod resolver;
 
+pub use abstract_staking_adapter_traits::query_responses;
 pub use abstract_staking_adapter_traits::CwStakingCommand;
 pub use adapter::CwStakingAdapter;
-pub use abstract_staking_adapter_traits::query_responses;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
 
@@ -19,15 +19,13 @@ pub use abstract_staking_adapter_traits::error;
 
 #[cfg(feature = "interface")]
 pub mod interface {
+    use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING;
     use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_core::{adapter, MANAGER};
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
-    use crate::msg::{
-        ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg,
-    };
     use cosmwasm_std::{Addr, Empty};
     use cw_orch::contract::Contract;
     use cw_orch::interface;
