@@ -17,6 +17,13 @@ pub const OSMOSIS_HOST: &str = "abstract:osmosis-host";
 /// IBC protocols
 pub const ICS20: &str = "ics-20";
 
+// chain-id prefixes based on `https://cosmos.directory/`
+pub const JUNO: &[&str] = &["juno", "uni"];
+pub const OSMOSIS: &[&str] = &["osmosis", "osmo"];
+pub const TERRA: &[&str] = &["phoenix", "pisco"];
+pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
+pub const ARCHWAY: &[&str] = &["constantine"];
+pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
 /// Useful when deploying version control
 #[allow(unused)]
 pub static NATIVE_CONTRACTS: &[&str] = &[
