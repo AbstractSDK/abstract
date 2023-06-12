@@ -5,7 +5,7 @@ use cw_asset::AssetError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum StakingError {
+pub enum CwStakingError {
     #[error("{0}")]
     Std(#[from] StdError),
 

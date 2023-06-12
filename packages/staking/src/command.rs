@@ -1,5 +1,7 @@
-use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
-use crate::{Identify, StakingError};
+use crate::query_responses::{
+    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+};
+use crate::{CwStakingError, Identify};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::AbstractSdkResult;
@@ -8,7 +10,7 @@ use cw_utils::Duration;
 use std::error::Error;
 
 /// Trait that defines the staking commands for providers
-pub trait StakingCommand<E: Error = StakingError>: Identify {
+pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     /// Construct a staking contract entry from the staking token and the provider
     fn staking_entry(&self, staking_token: &AssetEntry) -> ContractEntry {
         ContractEntry {
