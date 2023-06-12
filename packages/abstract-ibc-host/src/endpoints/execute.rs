@@ -151,7 +151,7 @@ impl<
                 ACCOUNTS.remove(deps.storage, (&closed_channel, account_id));
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
-                    .execute_with_response(vec![AccountAction::from(msgs)], "recover_account")
+                    .execute_with_response(vec![AccountAction::from_vec(msgs)], "recover_account")
                     .map_err(Into::into)
             }
         }

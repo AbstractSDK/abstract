@@ -3,6 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
         ibc_client::{
@@ -207,7 +208,7 @@ pub fn execute_send_funds(
     // let these messages be executed by proxy
     let proxy_msg = account_base
         .executor(deps.as_ref())
-        .execute(vec![transfers.into()])?;
+        .execute(vec![AccountAction::from_vec(transfers)])?;
 
     Ok(IbcClientResponse::action("handle_send_funds").add_message(proxy_msg))
 }

@@ -116,10 +116,10 @@ mod test {
     use speculoos::prelude::*;
 
     fn mock_bank_send(amount: Vec<Coin>) -> AccountAction {
-        AccountAction::from(vec![CosmosMsg::Bank(BankMsg::Send {
+        AccountAction::from(CosmosMsg::Bank(BankMsg::Send {
             to_address: "to_address".to_string(),
             amount,
-        })])
+        }))
     }
 
     fn flatten_actions(actions: Vec<AccountAction>) -> Vec<CosmosMsg> {
@@ -139,7 +139,7 @@ mod test {
 
             let messages = vec![];
 
-            let actual_res = executor.execute(messages.clone().into());
+            let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
             let expected = CosmosMsg::Wasm(WasmMsg::Execute {

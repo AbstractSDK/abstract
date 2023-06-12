@@ -8,6 +8,7 @@ use abstract_core::{
     adapter::{AdapterExecuteMsg, AdapterRequestMsg, BaseExecuteMsg, ExecuteMsg},
     version_control::AccountBase,
 };
+use abstract_sdk::AccountAction;
 use abstract_sdk::{
     base::{ExecuteEndpoint, Handler, IbcCallbackEndpoint, ReceiveEndpoint},
     features::ModuleIdentification,
@@ -157,7 +158,10 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
             );
         }
         self.executor(deps)
-            .execute_with_response(vec![msgs.into()], "remove_adapter_from_dependencies")
+            .execute_with_response(
+                vec![AccountAction::from_vec(msgs)],
+                "remove_adapter_from_dependencies",
+            )
             .map_err(Into::into)
     }
 

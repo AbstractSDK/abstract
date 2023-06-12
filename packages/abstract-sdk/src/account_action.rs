@@ -21,16 +21,20 @@ impl AccountAction {
     pub fn merge(&mut self, other: AccountAction) {
         self.0.extend(other.0)
     }
-}
-
-impl From<CosmosMsg> for AccountAction {
-    fn from(m: CosmosMsg) -> Self {
-        Self(vec![m])
+    /// Creates an account action from multiple messages
+    pub fn from_vec<T>(msgs: Vec<T>) -> Self
+    where
+        T: Into<CosmosMsg>,
+    {
+        Self(msgs.into_iter().map(Into::into).collect())
     }
 }
 
-impl From<Vec<CosmosMsg>> for AccountAction {
-    fn from(msgs: Vec<CosmosMsg>) -> Self {
-        Self(msgs)
+impl<T> From<T> for AccountAction
+where
+    T: Into<CosmosMsg>,
+{
+    fn from(m: T) -> Self {
+        Self(vec![m.into()])
     }
 }

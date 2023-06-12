@@ -116,12 +116,12 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .into_iter()
             .map(|asset| asset.transferable_asset(self.base, self.deps))
             .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        transferable_funds
+        let msgs = transferable_funds
             .iter()
             .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(Into::into)
-            .map(Into::into)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(AccountAction::from_vec(msgs))
     }
 
     /// Move funds from the contract into the Account.
@@ -146,16 +146,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
         funds: Vec<R>,
     ) -> AbstractSdkResult<AccountAction> {
         let recipient = &env.contract.address;
-        let transferable_funds = funds
-            .into_iter()
-            .map(|asset| asset.transferable_asset(self.base, self.deps))
-            .collect::<AbstractSdkResult<Vec<Asset>>>()?;
-        transferable_funds
-            .iter()
-            .map(|asset| asset.transfer_msg(recipient.clone()))
-            .collect::<Result<Vec<CosmosMsg>, _>>()
-            .map_err(Into::into)
-            .map(Into::into)
+        self.transfer(funds, recipient)
     }
 }
 
