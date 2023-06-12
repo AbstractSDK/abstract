@@ -1,11 +1,10 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_staking_adapter_traits::StakingError;
+use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
 use cosmwasm_std::Env;
 
 use crate::contract::StakingResult;
-use crate::StakingCommand;
 
 use abstract_staking_adapter_traits::Identify;
 
@@ -13,17 +12,17 @@ use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
 use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 
-pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, StakingError> {
+pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
         WYNDEX => Ok(Box::<WynDex>::default()),
         ASTROPORT => Ok(Box::<Astroport>::default()),
         OSMOSIS => Ok(Box::<Osmosis>::default()),
-        _ => Err(StakingError::UnknownDex(value.to_string())),
+        _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
 }
 
 /// Given the provider name, return the local provider implementation
-pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingCommand>, StakingError> {
+pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
         #[cfg(feature = "juno")]
         WYNDEX => Ok(Box::<WynDex>::default()),
@@ -31,7 +30,7 @@ pub(crate) fn resolve_local_provider(name: &str) -> Result<Box<dyn StakingComman
         OSMOSIS => Ok(Box::<Osmosis>::default()),
         #[cfg(feature = "terra")]
         ASTROPORT => Ok(Box::<Astroport>::default()),
-        _ => Err(StakingError::ForeignDex(name.to_owned())),
+        _ => Err(CwStakingError::ForeignDex(name.to_owned())),
     }
 }
 
@@ -44,7 +43,7 @@ pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
-            return Err(StakingError::UnknownDex(platform_name.to_string()));
+            return Err(CwStakingError::UnknownDex(platform_name.to_string()));
         }
         Ok((local_platform_name, false))
     }

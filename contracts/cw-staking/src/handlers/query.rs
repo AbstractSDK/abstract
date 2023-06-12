@@ -1,10 +1,10 @@
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
     resolver::{self, is_over_ibc},
+    msg::StakingQueryMsg
 };
 use abstract_sdk::features::AbstractNameService;
-use abstract_staking_adapter_traits::msg::StakingQueryMsg;
-use abstract_staking_adapter_traits::StakingError;
+use abstract_staking_adapter_traits::CwStakingError;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 /// Handle queries related to staking
 pub fn query_handler(
@@ -24,7 +24,7 @@ pub fn query_handler(
             // if provider is on an app-chain, error
             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
-                Err(StakingError::IbcQueryNotSupported)
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
@@ -42,7 +42,7 @@ pub fn query_handler(
             // if provider is on an app-chain, error
             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
-                Err(StakingError::IbcQueryNotSupported)
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
@@ -63,7 +63,7 @@ pub fn query_handler(
             // if provider is on an app-chain, error
             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
-                Err(StakingError::IbcQueryNotSupported)
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
@@ -82,7 +82,7 @@ pub fn query_handler(
             // if provider is on an app-chain, error
             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
-                Err(StakingError::IbcQueryNotSupported)
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)

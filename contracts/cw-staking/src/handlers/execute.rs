@@ -1,11 +1,11 @@
-use crate::contract::{CwStakingAdapter, StakingResult};
+use crate::adapter::CwStakingAdapter;
+use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::resolver::{self, is_over_ibc};
-use crate::StakingAdapter;
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
-use abstract_staking_adapter_traits::msg::{
+use crate::msg::{
     ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
@@ -17,7 +17,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: CwStakingAdapter,
+    adapter: CwStakingContract,
     msg: StakingExecuteMsg,
 ) -> StakingResult {
     let StakingExecuteMsg {
@@ -39,7 +39,7 @@ fn handle_local_request(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    adapter: CwStakingAdapter,
+    adapter: CwStakingContract,
     action: StakingAction,
     provider_name: String,
 ) -> StakingResult {
@@ -57,7 +57,7 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    adapter: &CwStakingAdapter,
+    adapter: &CwStakingContract,
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
