@@ -2,17 +2,17 @@ mod common;
 
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::interface::CwStakingAdapter;
+use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
-use abstract_staking_adapter_traits::msg::StakingQueryMsgFns;
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
 
-use abstract_staking_adapter_traits::msg::{
+use abstract_staking_adapter_traits::query_responses::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
