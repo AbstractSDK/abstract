@@ -1,24 +1,23 @@
+pub mod adapter;
+pub mod api;
 pub mod contract;
-pub mod error;
 mod exchanges;
 pub(crate) mod handlers;
 pub mod msg;
 pub mod state;
-mod traits;
-pub(crate) mod util;
 
 // Export interface for use in SDK modules
-pub use traits::api::{Dex, DexInterface};
-
+pub use crate::api::DexInterface;
+//:{Dex, DexInterface};
 pub const EXCHANGE: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
-    pub use super::exchanges::osmosis::Osmosis;
+    pub use abstract_osmosis_adapter::dex::Osmosis;
 }
 
 #[cfg(feature = "interface")]
-pub mod cw_orch {
+pub mod interface {
     use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},

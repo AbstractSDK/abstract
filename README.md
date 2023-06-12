@@ -6,3 +6,18 @@
 
 Adapter modules are smart-contracts that offer an interface or feature that is user-agnostic. There contracts are not migratable and have no admin assigned to them.  
 Therefore their usage is fully permissionless.
+
+
+## Adapter implementation
+
+Implementation of project-specific adapter are usually maintained in the original project repository or in a fork to ensure maintanability and ownership.
+Here are the repos in which the current implementations can be found : 
+
+Wyndex : https://github.com/AbstractSDK/wynddex.git
+Astroport: https://github.com/AbstractSDK/astroport-core.git
+Osmosis: https://github.com/AbstractSDK/osmosis-rust.git
+
+## Dependencies (TODO)
+
+Some dependencies are patched and need to be fixed
+The dependencies on https://github.com/AbstractSDK/integration-bundles need to be fixed as well

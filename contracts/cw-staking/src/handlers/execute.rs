@@ -1,7 +1,7 @@
-use crate::contract::{CwStakingAdapter, StakingResult};
+use crate::adapter::CwStakingAdapter;
+use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
-use crate::providers::resolver::{self, is_over_ibc};
-use crate::StakingAdapter;
+use crate::resolver::{self, is_over_ibc};
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
@@ -15,7 +15,7 @@ pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    adapter: CwStakingAdapter,
+    adapter: CwStakingContract,
     msg: StakingExecuteMsg,
 ) -> StakingResult {
     let StakingExecuteMsg {
@@ -23,11 +23,12 @@ pub fn execute_handler(
         action,
     } = msg;
     // if provider is on an app-chain, execute the action on the app-chain
-    if is_over_ibc(&provider_name)? {
-        handle_ibc_request(&deps, info, &adapter, provider_name, &action)
+    let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider_name)?;
+    if is_over_ibc {
+        handle_ibc_request(&deps, info, &adapter, local_provider_name, &action)
     } else {
         // the action can be executed on the local chain
-        handle_local_request(deps, env, info, adapter, action, provider_name)
+        handle_local_request(deps, env, info, adapter, action, local_provider_name)
     }
 }
 
@@ -36,7 +37,7 @@ fn handle_local_request(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    adapter: CwStakingAdapter,
+    adapter: CwStakingContract,
     action: StakingAction,
     provider_name: String,
 ) -> StakingResult {
@@ -54,7 +55,7 @@ fn handle_local_request(
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
-    adapter: &CwStakingAdapter,
+    adapter: &CwStakingContract,
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {

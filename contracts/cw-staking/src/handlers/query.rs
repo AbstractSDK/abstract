@@ -1,11 +1,11 @@
-use crate::msg::StakingQueryMsg;
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
-    providers::resolver::{self, is_over_ibc},
+    msg::StakingQueryMsg,
+    resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::AbstractNameService;
+use abstract_staking_adapter_traits::CwStakingError;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
-
 /// Handle queries related to staking
 pub fn query_handler(
     deps: Deps,
@@ -22,11 +22,12 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            if is_over_ibc {
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
-                let mut provider = resolver::resolve_local_provider(&provider)
+                let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
                 provider.fetch_data(deps, env, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
@@ -39,11 +40,12 @@ pub fn query_handler(
             unbonding_period,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            if is_over_ibc {
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
-                let mut provider = resolver::resolve_local_provider(&provider)
+                let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
                 provider.fetch_data(deps, env, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_staked(
@@ -59,11 +61,12 @@ pub fn query_handler(
             staker_address,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            if is_over_ibc {
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
-                let mut provider = resolver::resolve_local_provider(&provider)
+                let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
                 provider.fetch_data(deps, env, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_unbonding(
@@ -77,11 +80,12 @@ pub fn query_handler(
             staking_token,
         } => {
             // if provider is on an app-chain, error
-            if is_over_ibc(&provider)? {
-                Err(crate::error::StakingError::IbcQueryNotSupported)
+            let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
+            if is_over_ibc {
+                Err(CwStakingError::IbcQueryNotSupported)
             } else {
                 // the query can be executed on the local chain
-                let mut provider = resolver::resolve_local_provider(&provider)
+                let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
                 provider.fetch_data(deps, env, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)

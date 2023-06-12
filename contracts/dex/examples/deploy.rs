@@ -1,4 +1,4 @@
-use abstract_dex_adapter::cw_orch::DexAdapter;
+use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::AdapterDeployer;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;

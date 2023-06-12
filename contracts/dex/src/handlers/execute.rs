@@ -1,10 +1,11 @@
-use crate::error::DexError;
+use crate::handlers::execute::exchange_resolver::is_over_ibc;
+
+use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
-use crate::{
-    contract::{DexAdapter, DexResult},
-    state::SWAP_FEE,
-};
+use crate::state::SWAP_FEE;
+use abstract_dex_adapter_traits::DexError;
+
 use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::AnsAsset;
@@ -26,13 +27,13 @@ pub fn execute_handler(
             dex: dex_name,
             action,
         } => {
-            let exchange = exchange_resolver::identify_exchange(&dex_name)?;
+            let (local_dex_name, is_over_ibc) = is_over_ibc(env.clone(), &dex_name)?;
             // if exchange is on an app-chain, execute the action on the app-chain
-            if exchange.over_ibc() {
-                handle_ibc_request(&deps, info, &adapter, dex_name, &action)
+            if is_over_ibc {
+                handle_ibc_request(&deps, info, &adapter, local_dex_name, &action)
             } else {
                 // the action can be executed on the local chain
-                handle_local_request(deps, env, info, adapter, action, dex_name)
+                handle_local_request(deps, env, info, adapter, action, local_dex_name)
             }
         }
         DexExecuteMsg::UpdateFee {
@@ -72,12 +73,8 @@ fn handle_local_request(
     exchange: String,
 ) -> DexResult {
     let exchange = exchange_resolver::resolve_exchange(&exchange)?;
-    let (msgs, _) = crate::traits::adapter::DexAdapter::resolve_dex_action(
-        &adapter,
-        deps.as_ref(),
-        action,
-        exchange,
-    )?;
+    let (msgs, _) =
+        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange)?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;

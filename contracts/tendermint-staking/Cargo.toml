@@ -6,6 +6,9 @@ edition = { workspace = true }
 
 exclude = ["contract.wasm", "hash.txt"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -14,6 +17,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["export"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
+schema = ["abstract-adapter/schema"]
 
 
 # Keep as is until TendermintStake updates.

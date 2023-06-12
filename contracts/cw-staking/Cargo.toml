@@ -18,25 +18,29 @@ exclude = [
 name = "deploy"
 required-features = ["interface"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [features]
 export = []
 default = ["export"]
-interface = ["dep:cw-orch", "dep:abstract-interface", "export"]
-juno = [
-  "dep:wasmswap",
-  "dep:cw20_junoswap",
-  "dep:cw20-stake",
-  "dep:wyndex",
-  "dep:wyndex-stake",
-  "dep:cw-controllers",
+interface = [
+  "dep:cw-orch",
+  "dep:abstract-interface",
+  "export",
+  "abstract-staking-adapter-traits/interface",
 ]
-# osmosis = ["dep:osmosis-std"]
-terra = ["dep:astroport"]
-all = ["juno", "terra", "interface"]
+juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
+osmosis = ["abstract-osmosis-adapter/full_integration"]
+terra = ["abstract-astroport-adapter/full_integration"]
+schema = ["abstract-adapter/schema"]
 
+[package.metadata.optimizer]
+features = ["juno", "terra", "osmosis"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
@@ -56,27 +60,18 @@ abstract-adapter = { workspace = true }
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
+# Local
+abstract-staking-adapter-traits = { workspace = true }
+abstract-adapter-utils = { workspace = true }
+
 # Juno dexes #
-cw20-stake = { git = "https://github.com/DA0-DA0/dao-contracts.git", optional = true, features = [
-  "library",
-], tag = "v1.0.0" }
-cw20_junoswap = { package = "cw20", version = "0.10.0", optional = true }
-wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.1.2-beta", features = [
-  "library",
-], optional = true }
-wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2", optional = true }
-wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2", optional = true, features = [
-  "library",
-] }
-dao-cw-utils = { version = "0.13.4", package = "cw-utils" }
+abstract-wyndex-adapter = { workspace = true }
 
 # Osmosis #
-osmosis-std = { version = "0.12.0", optional = true }
+abstract-osmosis-adapter = { workspace = true }
 
 # Terra #
-
-# see https://github.com/astroport-fi/astroport-changelog
-astroport = { git = "https://github.com/astroport-fi/astroport-core.git", rev = "126d43216111df786472fe2a845c1e2fadfe4a36", optional = true }
+abstract-astroport-adapter = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }
