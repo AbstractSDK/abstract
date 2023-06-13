@@ -59,7 +59,6 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)>
 }
 
 #[test]
-#[serial_test::serial]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
     let (_account, _abstr, app) = setup()?;
