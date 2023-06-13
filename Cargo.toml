@@ -33,8 +33,11 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = ["export"]
+default = ["export", "node-tests"]
 export = []
+# enable node-backed tests (ensure Docker is running)
+# run with `cargo test --jobs 1 --features node-tests`
+node-tests = ["interface"]
 interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
 schema = ["abstract-app/schema"]
 
@@ -69,3 +72,18 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { version = "0.12", features = ["daemon"] }
+tokio = "1.28.2"
+ctor = "0.2.0"
+duct = "0.13"
+uid = "0.1.7"
+log = "0.4.14"
+
+
+[patch.crates-io]
+abstract-app = { path="../contracts/packages/abstract-app" }
+abstract-sdk = { path="../contracts/packages/abstract-sdk" }
+abstract-core = { path="../contracts/packages/abstract-core" }
+abstract-interface = { path="../contracts/packages/abstract-interface" }
+abstract-account-factory = { path="../contracts/contracts/native/account-factory" }
+abstract-version-control = { path="../contracts/contracts/native/version-control" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }

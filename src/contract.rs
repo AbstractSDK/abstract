@@ -29,3 +29,7 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
 // Export handlers
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(APP, App);
+
+
+#[cfg(feature="interface")]
+abstract_app::create_interface!(APP, App);

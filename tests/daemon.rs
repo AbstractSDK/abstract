@@ -1,3 +1,5 @@
+mod common;
+
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use app::{
@@ -8,30 +10,32 @@ use app::{
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::Addr;
-
-// consts for testing
-const ADMIN: &str = "admin";
-
 /// Set up the test environment with the contract installed
-fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)> {
-    // Create a sender
-    let sender = Addr::unchecked(ADMIN);
-    // Create the mock
-    let mock = Mock::new(&sender);
+fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Daemon>)> {
+    
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+
+    let daemon = Daemon::builder()
+        .chain(networks::LOCAL_JUNO)
+        .handle(runtime.handle())
+        .build()
+        .unwrap();
 
     // Construct the counter interface
-    let contract = App::new(APP_ID, mock.clone());
+    let contract = App::new(APP_ID, daemon.clone());
+
+    // For debugging
+    contract.wasm();
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock, Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(daemon.clone(), Empty {})?;
 
     // Create a new account to install the app onto
     let account =
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_string(),
+                monarch: daemon.sender().to_string()
             })?;
             
     // claim the namespace so app can be deployed
@@ -59,7 +63,9 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)>
 }
 
 #[test]
+#[cfg(feature = "node-tests")]
 fn successful_install() -> anyhow::Result<()> {
+
     // Set up the environment and contract
     let (_account, _abstr, app) = setup()?;
 
