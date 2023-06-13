@@ -1,4 +1,3 @@
-
 use app::contract::APP_ID;
 use app::App;
 
