@@ -1,6 +1,5 @@
 [workspace]
-members = ["contracts/*"]
-exclude = ["contracts/lsd"]
+members = ["contracts/*", "packages/*"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -13,7 +12,7 @@ exclude = ["contracts/lsd"]
 resolver = "2"
 
 [workspace.package]
-version = "0.14.2"
+version = "0.15.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -33,13 +32,9 @@ cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.0.1"
 cw2 = { version = "1.0.1" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
-  "interface",
-] }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
-  "interface",
-] }
-# wait for my pr to be merged
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git" }
+
 cw-asset = { version = "3.0" }
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
@@ -65,6 +60,21 @@ speculoos = "0.11.0"
 anyhow = "1"
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
+## Local
+abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+
+# Juno dexes #
+abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }
+
+# Osmosis #
+abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", default-features = false }
+
+# Terra #
+abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", default-features = false }
+
+
 [profile.release]
 rpath = false
 lto = true
@@ -75,7 +85,6 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
-
 
 [patch.crates-io]
 abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }

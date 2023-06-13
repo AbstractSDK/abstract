@@ -1,31 +1,32 @@
-use crate::{
-    error::DexError,
-    traits::{
-        command::{DexCommand, Fee, FeeOnInput, Return, Spread},
-        identity::Identify,
-    },
-    util::{coins_in_assets, cw_approve_msgs},
-};
-use abstract_core::objects::PoolAddress;
-use abstract_sdk::cw_helpers::wasm_smart_query;
-use cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps};
-use cw20::Cw20ExecuteMsg;
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use terraswap::pair::{PoolResponse, SimulationResponse};
+use abstract_dex_adapter_traits::Identify;
 
 pub const TERRASWAP: &str = "terraswap";
 
+#[derive(Default)]
 pub struct Terraswap {}
 
 impl Identify for Terraswap {
-    fn over_ibc(&self) -> bool {
-        false
-    }
     fn name(&self) -> &'static str {
         TERRASWAP
     }
+    fn is_available_on(&self, chain_name: &str) -> bool {
+        chain_name == "terra"
+    }
 }
 
+#[cfg(feature = "terra")]
+use ::{
+    abstract_core::objects::PoolAddress,
+    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_adapter_traits::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_sdk::cw_helpers::wasm_smart_query,
+    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps},
+    cw20::Cw20ExecuteMsg,
+    cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    terraswap::pair::{PoolResponse, SimulationResponse},
+};
+
+#[cfg(feature = "terra")]
 impl DexCommand for Terraswap {
     fn swap(
         &self,
@@ -205,6 +206,7 @@ impl DexCommand for Terraswap {
     }
 }
 
+#[cfg(feature = "terra")]
 fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(terraswap::asset::Asset {

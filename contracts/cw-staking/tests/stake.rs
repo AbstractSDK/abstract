@@ -1,5 +1,7 @@
+mod common;
+
 use abstract_cw_staking::contract::CONTRACT_VERSION;
-use abstract_cw_staking::cw_orch::CwStakingAdapter;
+use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
@@ -10,19 +12,20 @@ use cw20_base::msg::QueryMsgFns;
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
 
-use abstract_cw_staking::msg::{
+use abstract_staking_adapter_traits::query_responses::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_orch::prelude::*;
 use speculoos::*;
-use wyndex_bundle::{EUR_USD_LP, WYNDEX, WYNDEX_OWNER, WYND_TOKEN};
+use wyndex_bundle::{EUR_USD_LP, WYNDEX_OWNER, WYND_TOKEN};
+
+const WYNDEX: &str = "cosmos-testnet>wyndex";
+const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
 
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;
-
-mod common;
 
 fn setup_mock() -> anyhow::Result<(
     Mock,
@@ -95,6 +98,32 @@ fn stake_lp() -> anyhow::Result<()> {
 
     // stake 100 EUR
     staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur)?;
+
+    // query stake
+    let staked_balance = staking.staked(
+        WYNDEX.into(),
+        proxy_addr.to_string(),
+        AssetEntry::new(EUR_USD_LP),
+        dur,
+    )?;
+    assert_that!(staked_balance.amount.u128()).is_equal_to(100u128);
+
+    Ok(())
+}
+
+#[test]
+fn stake_lp_wthout_chain() -> anyhow::Result<()> {
+    let (_, _, staking, os) = setup_mock()?;
+    let proxy_addr = os.proxy.address()?;
+
+    let dur = Some(cw_utils::Duration::Time(2));
+
+    // stake 100 EUR
+    staking.stake(
+        AnsAsset::new(EUR_USD_LP, 100u128),
+        WYNDEX_WITHOUT_CHAIN.into(),
+        dur,
+    )?;
 
     // query stake
     let staked_balance = staking.staked(

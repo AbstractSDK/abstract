@@ -1,14 +1,17 @@
+use crate::handlers::query::exchange_resolver::is_over_ibc;
+
 use crate::exchanges::exchange_resolver::resolve_exchange;
+
 use crate::msg::{
     DexExecuteMsg, DexQueryMsg, GenerateMessagesResponse, OfferAsset, SimulateSwapResponse,
 };
 use crate::state::SWAP_FEE;
 use crate::{
     contract::{DexAdapter, DexResult},
-    error::DexError,
     exchanges::exchange_resolver,
 };
 use abstract_core::objects::{AssetEntry, DexAssetPairing};
+use abstract_dex_adapter_traits::DexError;
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
@@ -27,14 +30,13 @@ pub fn query_handler(
         DexQueryMsg::GenerateMessages { message } => {
             match message {
                 DexExecuteMsg::Action { dex, action } => {
-                    let exchange_id = exchange_resolver::identify_exchange(&dex)?;
+                    let (local_dex_name, is_over_ibc) = is_over_ibc(env, &dex)?;
                     // if exchange is on an app-chain, execute the action on the app-chain
-                    if exchange_id.over_ibc() {
+                    if is_over_ibc {
                         return Err(DexError::IbcMsgQuery);
                     }
-
-                    let exchange = exchange_resolver::resolve_exchange(&dex)?;
-                    let (messages, _) = crate::traits::adapter::DexAdapter::resolve_dex_action(
+                    let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
+                    let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
                         adapter, deps, action, exchange,
                     )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)

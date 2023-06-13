@@ -5,7 +5,7 @@ use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
 use cw_orch::prelude::ContractInstance;
 
-use abstract_cw_staking::cw_orch::CwStakingAdapter;
+use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::CW_STAKING;
 use abstract_interface::VersionControl;
 use abstract_sdk::core::{

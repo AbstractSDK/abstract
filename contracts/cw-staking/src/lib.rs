@@ -1,23 +1,24 @@
+mod adapter;
 pub mod contract;
-pub mod error;
-pub mod msg;
-mod providers;
-
 mod handlers;
-mod traits;
+pub mod msg;
+mod resolver;
 
-pub use traits::adapter::StakingAdapter;
-pub use traits::command::StakingCommand;
+pub use abstract_staking_adapter_traits::query_responses;
+pub use abstract_staking_adapter_traits::CwStakingCommand;
+pub use adapter::CwStakingAdapter;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {
-    pub use super::providers::osmosis::Osmosis;
+    pub use abstract_osmosis_adapter::staking::Osmosis;
 }
 
+pub use abstract_staking_adapter_traits::error;
+
 #[cfg(feature = "interface")]
-pub mod cw_orch {
+pub mod interface {
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
     use crate::CW_STAKING;
     use abstract_core::objects::{AnsAsset, AssetEntry};
@@ -68,7 +69,7 @@ pub mod cw_orch {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractInterfaceError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
@@ -89,7 +90,7 @@ pub mod cw_orch {
             duration: Option<cw_utils::Duration>,
         ) -> Result<(), AbstractInterfaceError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let stake_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            let stake_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
@@ -109,7 +110,7 @@ pub mod cw_orch {
             provider: String,
         ) -> Result<(), AbstractInterfaceError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let claim_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            let claim_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
@@ -126,7 +127,7 @@ pub mod cw_orch {
             provider: String,
         ) -> Result<(), AbstractInterfaceError> {
             let manager = Manager::new(MANAGER, self.get_chain().clone());
-            let claim_rewards_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+            let claim_rewards_msg = ExecuteMsg::Module(adapter::AdapterRequestMsg {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
