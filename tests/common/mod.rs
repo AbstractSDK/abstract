@@ -170,7 +170,7 @@ mod node {
         container::start(&container, &image);
 
         // Wait for docker to start
-        sleep(Duration::from_secs(10));
+        sleep(Duration::from_secs(30));
     }
 
     pub fn docker_container_stop() {

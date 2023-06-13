@@ -33,7 +33,7 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = ["export", "node-tests"]
+default = ["export"]
 export = []
 # enable node-backed tests (ensure Docker is running)
 # run with `cargo test --jobs 1 --features node-tests`
@@ -80,10 +80,18 @@ log = "0.4.14"
 
 
 [patch.crates-io]
-abstract-app = { path="../contracts/packages/abstract-app" }
-abstract-sdk = { path="../contracts/packages/abstract-sdk" }
-abstract-core = { path="../contracts/packages/abstract-core" }
-abstract-interface = { path="../contracts/packages/abstract-interface" }
-abstract-account-factory = { path="../contracts/contracts/native/account-factory" }
-abstract-version-control = { path="../contracts/contracts/native/version-control" }
+# abstract-app = { path="../contracts/packages/abstract-app" }
+# abstract-sdk = { path="../contracts/packages/abstract-sdk" }
+# abstract-core = { path="../contracts/packages/abstract-core" }
+# abstract-interface = { path="../contracts/packages/abstract-interface" }
+# abstract-account-factory = { path="../contracts/contracts/native/account-factory" }
+# abstract-version-control = { path="../contracts/contracts/native/version-control" }
+
+
+abstract-app = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-account-factory = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-version-control = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
