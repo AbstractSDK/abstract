@@ -1,38 +1,42 @@
-use crate::{
-    error::DexError,
-    traits::{
-        command::{DexCommand, Fee, FeeOnInput, Return, Spread},
-        identity::Identify,
-    },
-    util::coins_in_assets,
-};
-use abstract_core::objects::PoolAddress;
-use abstract_sdk::cw_helpers::wasm_smart_query;
-use cosmwasm_std::{
-    wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128,
-};
-use cw_asset::{Asset, AssetInfo, AssetInfoBase};
-use kujira::{
-    bow::{
-        self,
-        market_maker::{ConfigResponse, PoolResponse},
-    },
-    fin,
-};
+use abstract_adapter_utils::Identify;
+
 pub const KUJIRA: &str = "kujira";
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
+#[derive(Default)]
 pub struct Kujira {}
 
 impl Identify for Kujira {
     fn name(&self) -> &'static str {
         KUJIRA
     }
-    fn over_ibc(&self) -> bool {
-        false
+    fn is_available_on(&self, chain_name: &str) -> bool {
+        chain_name == "kujira"
     }
 }
 
+#[cfg(feature = "kujira")]
+use ::{
+    abstract_core::objects::PoolAddress,
+    abstract_dex_adapter_traits::{
+        coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
+    },
+    abstract_sdk::cw_helpers::wasm_smart_query,
+    cosmwasm_std::{
+        wasm_execute, Addr, Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult,
+        Uint128,
+    },
+    cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    kujira::{
+        bow::{
+            self,
+            market_maker::{ConfigResponse, PoolResponse},
+        },
+        fin,
+    },
+};
+
+#[cfg(feature = "kujira")]
 impl DexCommand for Kujira {
     fn swap(
         &self,
@@ -294,6 +298,7 @@ impl DexCommand for Kujira {
     }
 }
 
+#[cfg(feature = "kujira")]
 fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(kujira::Asset {
@@ -306,6 +311,7 @@ fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, DexError> {
     }
 }
 
+#[cfg(feature = "kujira")]
 /// Converts [`Decimal`] to [`Decimal256`].
 pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
     Decimal256::from_atomics(dec_value.atomics(), dec_value.decimal_places()).map_err(|_| {
