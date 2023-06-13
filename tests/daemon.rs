@@ -65,6 +65,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Dae
 }
 
 #[test]
+#[serial_test::serial]
 #[cfg(feature = "node-tests")]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract

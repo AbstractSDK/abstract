@@ -73,6 +73,7 @@ ctor = "0.2.0"
 duct = "0.13"
 uid = "0.1.7"
 log = "0.4.14"
+serial_test = "2.0.0"
 
 
 [patch.crates-io]
