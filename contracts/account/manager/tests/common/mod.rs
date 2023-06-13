@@ -14,7 +14,8 @@ use abstract_core::version_control::AccountBase;
 use abstract_core::{objects::gov_type::GovernanceDetails, PROXY};
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, VERSION_CONTROL};
 use abstract_interface::{
-    Abstract, AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VCExecFns, VersionControl,
+    Abstract, AccountFactory, AnsHost, Manager, ManagerExecFns, ModuleFactory, Proxy, VCExecFns,
+    VersionControl,
 };
 use abstract_interface::{AbstractAccount, AdapterDeployer};
 use abstract_testing::prelude::{TEST_MODULE_NAME, TEST_NAMESPACE};
@@ -65,5 +66,28 @@ pub(crate) fn add_mock_adapter_install_fee(
         monetization,
         Namespace::new(TEST_NAMESPACE).unwrap(),
     )?;
+    Ok(())
+}
+
+pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
+    manager
+        .install_module(adapter_id, &Empty {}, None)
+        .map_err(Into::into)
+}
+
+pub fn install_adapter_with_funds(
+    manager: &Manager<Mock>,
+    adapter_id: &str,
+    funds: &[Coin],
+) -> AResult {
+    manager
+        .install_module(adapter_id, &Empty {}, Some(funds))
+        .map_err(Into::into)
+}
+
+pub fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
+    manager
+        .uninstall_module(module_id.to_string())
+        .map_err(Into::<CwOrchError>::into)?;
     Ok(())
 }

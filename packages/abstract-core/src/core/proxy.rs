@@ -54,6 +54,8 @@ pub enum ExecuteMsg {
     SetAdmin { admin: String },
     /// Executes the provided messages if sender is whitelisted
     ModuleAction { msgs: Vec<CosmosMsg<Empty>> },
+    /// Execute a message and forward the Response data
+    ModuleActionWithData { msg: CosmosMsg<Empty> },
     /// Execute IBC action on Client
     IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps

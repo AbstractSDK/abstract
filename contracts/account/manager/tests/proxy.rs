@@ -1,10 +1,12 @@
 mod common;
+use abstract_adapter::mock::MockExecMsg;
+use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
-use abstract_testing::prelude::TEST_ACCOUNT_ID;
-use common::{create_default_account, AResult, TEST_COIN};
-use cosmwasm_std::{Addr, Coin, CosmosMsg};
+use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
+use common::{create_default_account, init_mock_adapter, install_adapter, AResult, TEST_COIN};
+use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
@@ -77,6 +79,86 @@ fn exec_through_manager() -> AResult {
         .wrap()
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
+
+    Ok(())
+}
+
+#[test]
+fn default_without_response_data() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+    let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
+
+    install_adapter(&account.manager, TEST_MODULE_ID)?;
+
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000, TEST_COIN)],
+    )?;
+
+    let resp = account.manager.execute_on_module(
+        TEST_MODULE_ID,
+        Into::<abstract_core::adapter::ExecuteMsg<MockExecMsg>>::into(MockExecMsg),
+    )?;
+    assert_that!(resp.data).is_none();
+
+    Ok(())
+}
+
+#[test]
+fn with_response_data() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+    let staking_adapter = init_mock_adapter(chain.clone(), &deployment, None)?;
+
+    install_adapter(&account.manager, TEST_MODULE_ID)?;
+
+    staking_adapter
+        .call_as(&account.manager.address()?)
+        .execute(
+            &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Base(
+                abstract_core::adapter::BaseExecuteMsg::UpdateAuthorizedAddresses {
+                    to_add: vec![account.proxy.addr_str()?],
+                    to_remove: vec![],
+                },
+            ),
+            None,
+        )?;
+
+    chain.set_balance(
+        &account.proxy.address()?,
+        vec![Coin::new(100_000, TEST_COIN)],
+    )?;
+
+    let adapter_addr = account
+        .manager
+        .module_info(TEST_MODULE_ID)?
+        .expect("test module installed");
+    // proxy should be final executor because of the reply
+    let resp = account.manager.exec_on_module(
+        cosmwasm_std::to_binary(&abstract_core::proxy::ExecuteMsg::ModuleActionWithData {
+            // execute a message on the adapter, which sets some data in its response
+            msg: wasm_execute(
+                adapter_addr.address,
+                &abstract_core::adapter::ExecuteMsg::<MockExecMsg, Empty>::Module(
+                    AdapterRequestMsg {
+                        proxy_address: Some(account.proxy.addr_str()?),
+                        request: MockExecMsg,
+                    },
+                ),
+                vec![],
+            )?
+            .into(),
+        })?,
+        PROXY.to_string(),
+    )?;
+
+    let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
+    assert_that!(response_data_attr_present).is_equal_to("true".to_string());
 
     Ok(())
 }

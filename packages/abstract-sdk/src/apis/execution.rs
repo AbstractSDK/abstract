@@ -60,6 +60,16 @@ pub struct Executor<'a, T: Execution> {
 }
 
 impl<'a, T: Execution> Executor<'a, T> {
+    /// Execute a single message on the `ModuleActionWithData` endpoint.
+    fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<CosmosMsg> {
+        Ok(wasm_execute(
+            self.base.proxy_address(self.deps)?.to_string(),
+            &ExecuteMsg::ModuleActionWithData { msg },
+            vec![],
+        )?
+        .into())
+    }
+
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
     pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<CosmosMsg> {
@@ -82,6 +92,25 @@ impl<'a, T: Execution> Executor<'a, T> {
         id: u64,
     ) -> AbstractSdkResult<SubMsg> {
         let msg = self.execute(actions)?;
+        let sub_msg = SubMsg {
+            id,
+            msg,
+            gas_limit: None,
+            reply_on,
+        };
+        Ok(sub_msg)
+    }
+
+    /// Execute a single msg on the Account.
+    /// This message will be executed on the proxy contract. Any data returned from the execution will be forwarded to the proxy's response through a reply.
+    /// The resulting data should be available in the reply of the specified ID.
+    pub fn execute_with_reply_and_data(
+        &self,
+        actions: CosmosMsg,
+        reply_on: ReplyOn,
+        id: u64,
+    ) -> AbstractSdkResult<SubMsg> {
+        let msg = self.execute_with_data(actions)?;
         let sub_msg = SubMsg {
             id,
             msg,

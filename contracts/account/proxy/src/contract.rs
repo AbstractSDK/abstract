@@ -1,6 +1,6 @@
-use crate::commands::*;
 use crate::error::ProxyError;
 use crate::queries::*;
+use crate::{commands::*, reply};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
@@ -15,10 +15,13 @@ use abstract_sdk::{
     },
     feature_objects::AnsHost,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response};
+use cosmwasm_std::{
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, SubMsgResult,
+};
 use semver::Version;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub(crate) const RESPONSE_REPLY_ID: u64 = 1;
 
 #[abstract_response(PROXY)]
 pub struct ProxyResponse;
@@ -57,6 +60,7 @@ pub fn instantiate(
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> ProxyResult {
     match msg {
         ExecuteMsg::ModuleAction { msgs } => execute_module_action(deps, info, msgs),
+        ExecuteMsg::ModuleActionWithData { msg } => execute_module_action_response(deps, info, msg),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
         ExecuteMsg::AddModule { module } => add_module(deps, info, module),
@@ -99,6 +103,18 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
         QueryMsg::BaseAsset {} => to_binary(&query_base_asset(deps)?),
     }
     .map_err(Into::into)
+}
+
+/// This just stores the result for future query
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> ProxyResult {
+    match &msg {
+        Reply {
+            id: RESPONSE_REPLY_ID,
+            result: SubMsgResult::Ok(_),
+        } => reply::forward_response_data(msg),
+        _ => Err(ProxyError::UnexpectedReply {}),
+    }
 }
 
 #[cfg(test)]

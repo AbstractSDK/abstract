@@ -90,15 +90,16 @@ impl<Chain: CwEnv> Manager<Chain> {
         &self,
         module: &str,
         msg: impl Serialize,
-    ) -> Result<(), crate::AbstractInterfaceError> {
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
         self.execute(
             &ExecuteMsg::ExecOnModule {
                 module_id: module.into(),
                 exec_msg: to_binary(&msg).unwrap(),
             },
             None,
-        )?;
-        Ok(())
+        )
+        .map_err(Into::into)
     }
 
     pub fn update_adapter_authorized_addresses(

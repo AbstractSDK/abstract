@@ -1,4 +1,4 @@
-use crate::contract::{ProxyResponse, ProxyResult};
+use crate::contract::{ProxyResponse, ProxyResult, RESPONSE_REPLY_ID};
 use crate::error::ProxyError;
 use abstract_core::objects::{oracle::Oracle, price_source::UncheckedPriceSource, AssetEntry};
 use abstract_sdk::core::{
@@ -6,7 +6,7 @@ use abstract_sdk::core::{
     proxy::state::{ADMIN, ANS_HOST, STATE},
     IBC_CLIENT,
 };
-use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError};
+use cosmwasm_std::{wasm_execute, CosmosMsg, DepsMut, Empty, MessageInfo, StdError, SubMsg};
 
 const LIST_SIZE_LIMIT: usize = 15;
 
@@ -23,6 +23,23 @@ pub fn execute_module_action(
     }
 
     Ok(ProxyResponse::action("execute_module_action").add_messages(msgs))
+}
+
+/// Executes actions forwarded by whitelisted contracts
+/// This contracts acts as a proxy contract for the dApps
+pub fn execute_module_action_response(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    msg: CosmosMsg<Empty>,
+) -> ProxyResult {
+    let state = STATE.load(deps.storage)?;
+    if !state.modules.contains(&msg_info.sender) {
+        return Err(ProxyError::SenderNotWhitelisted {});
+    }
+
+    let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
+
+    Ok(ProxyResponse::action("execute_module_action_response").add_submessage(submsg))
 }
 
 /// Executes IBC actions forwarded by whitelisted contracts
