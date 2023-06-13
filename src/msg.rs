@@ -1,17 +1,19 @@
-use abstract_core::app;
 use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
 use cosmwasm_schema::QueryResponses;
 
 use crate::contract::App;
 
-/// Abstract App instantiate msg
-pub type InstantiateMsg = <App as InstantiateEndpoint>::InstantiateMsg;
-pub type ExecuteMsg = <App as ExecuteEndpoint>::ExecuteMsg;
-pub type QueryMsg = <App as QueryEndpoint>::QueryMsg;
-pub type MigrateMsg = <App as MigrateEndpoint>::MigrateMsg;
+// This is used for type safety
+// The second part is used to indicate the messages are used as the apps messages
+// This is equivalent to
+// pub type InstantiateMsg = <App as InstantiateEndpoint>::InstantiateMsg;
+// pub type ExecuteMsg = <App as ExecuteEndpoint>::ExecuteMsg;
+// pub type QueryMsg = <App as QueryEndpoint>::QueryMsg;
+// pub type MigrateMsg = <App as MigrateEndpoint>::MigrateMsg;
 
-impl app::AppExecuteMsg for AppExecuteMsg {}
-impl app::AppQueryMsg for AppQueryMsg {}
+// impl app::AppExecuteMsg for AppExecuteMsg {}
+// impl app::AppQueryMsg for AppQueryMsg {}
+abstract_app::app_messages!(App, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]

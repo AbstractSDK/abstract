@@ -1,15 +1,18 @@
 mod common;
 
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
-    *,
+#[cfg(feature = "node-tests")]
+use ::{
+    abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails},
+    abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *},
+    app::{
+        contract::{APP_ID, APP_VERSION},
+        msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+        *,
+    },
+    cw_orch::{anyhow, deploy::Deploy, prelude::*},
 };
-// Use prelude to get all the necessary imports
-use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
+#[cfg(feature = "node-tests")]
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Daemon>)> {
     let runtime = tokio::runtime::Runtime::new().unwrap();
