@@ -107,7 +107,7 @@ The API can then be used by any contract that implements its required traits, in
   # }
   use abstract_sdk::TransferInterface;
 
-  fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<AccountAction> {
+  fn forward_deposit(deps: Deps, my_contract: MyContract, message_info: MessageInfo) -> AbstractSdkResult<Vec<CosmosMsg>> {
       let forward_deposit_msg = my_contract.bank(deps).deposit(message_info.funds)?;
 
       Ok(forward_deposit_msg)
