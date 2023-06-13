@@ -79,7 +79,7 @@ jobs:
     # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
     strategy:
       matrix:
-        msrv: [1.64.0] # Most of our repos use workspace manifests, which require 1.64.0
+        msrv: [1.65.0] # Let-else statements are used in the code
     name: ubuntu / ${{ matrix.msrv }}
     steps:
       - uses: actions/checkout@v3
