@@ -55,18 +55,14 @@ abstract-app = { version = "0.15.3" }
 abstract-sdk = { version = "0.15.3" }
 
 # Dependencies for interface
-abstract-interface = { version="0.15.3",   optional = true }
+abstract-interface = { version = "0.15.3", optional = true }
 cw-orch = { version = "0.12", optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-interface = { version = "0.15.3", features = [
-  "daemon",
-] }
-abstract-testing = { version = "0.15.3"}
-abstract-sdk = { version = "0.15.3", features = [
-  "test-utils",
-] }
+abstract-interface = { version = "0.15.3", features = ["daemon"] }
+abstract-testing = { version = "0.15.3" }
+abstract-sdk = { version = "0.15.3", features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
@@ -88,10 +84,10 @@ log = "0.4.14"
 # abstract-version-control = { path="../contracts/contracts/native/version-control" }
 
 
-abstract-app = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
-abstract-account-factory = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
-abstract-version-control = { git = "https://github.com/AbstractSDK/contracts", branch="feature/add_app_helper_macro" }
+abstract-app = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
+abstract-sdk = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
+abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
+abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
+abstract-account-factory = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
+abstract-version-control = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }

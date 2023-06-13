@@ -4,7 +4,7 @@ use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetail
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use app::{
     contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, InstantiateMsg, ConfigResponse},
+    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
     *,
 };
 // Use prelude to get all the necessary imports
@@ -12,7 +12,6 @@ use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 /// Set up the test environment with the contract installed
 fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Daemon>)> {
-    
     let runtime = tokio::runtime::Runtime::new().unwrap();
 
     let daemon = Daemon::builder()
@@ -35,9 +34,9 @@ fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Dae
         abstr_deployment
             .account_factory
             .create_default_account(GovernanceDetails::Monarchy {
-                monarch: daemon.sender().to_string()
+                monarch: daemon.sender().to_string(),
             })?;
-            
+
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
@@ -53,7 +52,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Dae
             },
             module: AppInstantiateMsg {},
         },
-        None
+        None,
     )?;
 
     let modules = account.manager.module_infos(None, None)?;
@@ -65,13 +64,10 @@ fn setup() -> anyhow::Result<(AbstractAccount<Daemon>, Abstract<Daemon>, App<Dae
 #[test]
 #[cfg(feature = "node-tests")]
 fn successful_install() -> anyhow::Result<()> {
-
     // Set up the environment and contract
     let (_account, _abstr, app) = setup()?;
 
     let config = app.config()?;
-    assert_eq!(config, ConfigResponse{});
+    assert_eq!(config, ConfigResponse {});
     Ok(())
 }
-
-
