@@ -83,5 +83,3 @@ abstract-core = { git = "https://github.com/AbstractSDK/contracts", branch = "fe
 abstract-interface = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
 abstract-account-factory = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
 abstract-version-control = { git = "https://github.com/AbstractSDK/contracts", branch = "feature/add_app_helper_macro" }
-
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
