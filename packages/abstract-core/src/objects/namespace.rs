@@ -63,26 +63,6 @@ impl Display for Namespace {
     }
 }
 
-impl<'a> PrimaryKey<'a> for &Namespace {
-    type Prefix = ();
-
-    type SubPrefix = ();
-
-    type Suffix = Self;
-
-    type SuperSuffix = Self;
-
-    fn key(&self) -> Vec<cw_storage_plus::Key> {
-        self.0.key()
-    }
-}
-
-impl<'a> Prefixer<'a> for &Namespace {
-    fn prefix(&self) -> Vec<Key> {
-        self.0.prefix()
-    }
-}
-
 impl KeyDeserialize for &Namespace {
     type Output = Namespace;
 

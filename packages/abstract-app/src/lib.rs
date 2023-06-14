@@ -2,6 +2,7 @@ mod endpoints;
 pub mod error;
 pub mod features;
 pub(crate) mod handler;
+pub mod msgs;
 #[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;
@@ -10,6 +11,7 @@ pub(crate) use abstract_sdk::base::*;
 pub use crate::state::AppContract;
 pub use error::AppError;
 pub type AppResult<C = Empty> = Result<Response<C>, AppError>;
+mod interface;
 
 use cosmwasm_std::{Empty, Response};
 #[cfg(feature = "test-utils")]
