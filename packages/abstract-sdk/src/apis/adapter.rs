@@ -21,8 +21,8 @@ pub trait AdapterInterface: ModuleInterface {
         let adapter: Adapter<MockModule>  = module.adapters(deps.as_ref());
         ```
     */
-    fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapter<Self> {
-        Adapter { base: self, deps }
+    fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapters<Self> {
+        Adapters { base: self, deps }
     }
 }
 
@@ -43,12 +43,12 @@ impl<T> AdapterInterface for T where T: ModuleInterface {}
     ```
 */
 #[derive(Clone)]
-pub struct Adapter<'a, T: AdapterInterface> {
+pub struct Adapters<'a, T: AdapterInterface> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: AdapterInterface> Adapter<'a, T> {
+impl<'a, T: AdapterInterface> Adapters<'a, T> {
     /// Interactions with Abstract Adapters
     /// Construct an adapter request message.
     pub fn request<M: Serialize + Into<abstract_core::adapter::ExecuteMsg<M, Empty>>>(

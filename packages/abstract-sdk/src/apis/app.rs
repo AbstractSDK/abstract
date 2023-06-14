@@ -22,8 +22,8 @@ pub trait AppInterface: ModuleInterface {
         let app: App<MockModule>  = module.apps(deps.as_ref());
         ```
     */
-    fn apps<'a>(&'a self, deps: Deps<'a>) -> App<Self> {
-        App { base: self, deps }
+    fn apps<'a>(&'a self, deps: Deps<'a>) -> Apps<Self> {
+        Apps { base: self, deps }
     }
 }
 
@@ -44,12 +44,12 @@ impl<T> AppInterface for T where T: ModuleInterface {}
     ```
 */
 #[derive(Clone)]
-pub struct App<'a, T: AppInterface> {
+pub struct Apps<'a, T: AppInterface> {
     base: &'a T,
     deps: Deps<'a>,
 }
 
-impl<'a, T: AppInterface> App<'a, T> {
+impl<'a, T: AppInterface> Apps<'a, T> {
     /// Construct an app request message.
     pub fn request<M: Serialize>(
         &self,
