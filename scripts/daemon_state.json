@@ -14,18 +14,30 @@
         "abstract:version_control": "juno18jmslrz9qhwg3p6wnchrtjldw9c5ut5leuz5pzg8lrdd8nmxn4gqgpk6d2"
       },
       "code_ids": {
+        "abstract:account-factory": 3142,
+        "abstract:ans-host": 3140,
         "abstract:ans_host": 862,
         "abstract:cw20_vesting": 873,
         "abstract:dex": 898,
         "abstract:etf": 894,
         "abstract:idea": 870,
-        "abstract:manager": 891,
+        "abstract:manager": 3144,
+        "abstract:module-factory": 3143,
         "abstract:module_factory": 865,
         "abstract:os_factory": 864,
-        "abstract:proxy": 867,
+        "abstract:proxy": 3145,
         "abstract:subscription": 869,
         "abstract:tendermint_staking": 872,
+        "abstract:version-control": 3141,
         "abstract:version_control": 863
+      },
+      "default": {
+        "abstract:account-factory": "juno1a3tm95jgmzu7czhxtlekxspkwy9g5tdcq697fffxp33yd6dt2dasdmwaal",
+        "abstract:ans-host": "juno13q8rv8w9ew5cn6wecr2p4scegzu9nac0hv2dx807l4vz60h0ldns0ksvz0",
+        "abstract:manager": "juno1js0fg2klnymlfwdxh2grev96y2ededaukcgdathzpa8pd86uzrcskzgczu",
+        "abstract:module-factory": "juno15k3xrd2khsdwpt9g9eyqjf7m73qaenp5rlvmurzjmy6mslgs0vdqfd9fuq",
+        "abstract:proxy": "juno1tlm9r3wmmyej7242ggdscvnh5l62658klxfsg7lece5phhl74m6svzr57t",
+        "abstract:version-control": "juno1cvalgwsv967uxgjkckuuy9v3gtf5wjtys00s2znjw6tdypwzt4dq60fd35"
       }
     },
     "uni-5": {
@@ -119,6 +131,24 @@
     }
   },
   "terra2": {
+    "phoenix-1": {
+      "code_ids": {
+        "abstract:account-factory": 1607,
+        "abstract:ans-host": 1605,
+        "abstract:manager": 1609,
+        "abstract:module-factory": 1608,
+        "abstract:proxy": 1610,
+        "abstract:version-control": 1606
+      },
+      "default": {
+        "abstract:account-factory": "terra1rlqddkl2nzdsu4uw4jukwrwwdzm7rdqgvvs89ycjudpedulwke9qcrv89j",
+        "abstract:ans-host": "terra139q4v8k2n5anhp97ytrjegzte8yp9eh27dvctm4lssvwzlf74vas089unz",
+        "abstract:manager": "terra1vw7mu95z2nup75rtqncyfwxgqqe7egt9yaemeh6s4qs8vhxt4ywqn2k707",
+        "abstract:module-factory": "terra16ts8m2anhvuyah62c8qg6memtmhu77e25mgu395m3huhlaj52yaqjp7f34",
+        "abstract:proxy": "terra1vh76tjpw34xj86cfxw2x4u6p0dq7vgwu7l4c2jqqeg3whqjz07xqnaprgl",
+        "abstract:version-control": "terra16y4885pv9j2nmjp5dtejepfr6jse87j0gd5x2ftd3ly49jw2289sefhx3d"
+      }
+    },
     "pisco-1": {
       "code_ids": {
         "abstract:account-factory": 9246,
