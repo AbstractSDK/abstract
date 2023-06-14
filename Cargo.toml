@@ -47,7 +47,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.12" }
+cw-orch = { version = "0.13.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -78,6 +78,9 @@ cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
+
+[patch.crates-io]
+cw-orch = {git = "https://github.com/AbstractSDK/cw-orchestrator.git", branch = "feature/auto_adjust_gas"}
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

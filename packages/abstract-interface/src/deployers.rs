@@ -1,7 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
 use cw_orch::deploy::Deploy;
-use cw_orch::environment::ChainUpload;
 use cw_orch::prelude::CwOrchError::StdErr;
 use cw_orch::prelude::*;
 
@@ -9,10 +8,10 @@ use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying Adapters
-pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
+pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
     ContractInstance<Chain>
-    + CwOrcInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
-    + CwOrcUpload<Chain>
+    + CwOrchInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
+    + Uploadable + Sized
 {
     fn deploy(
         &self,
@@ -54,8 +53,8 @@ pub trait AdapterDeployer<Chain: CwEnv + ChainUpload, CustomInitMsg: Serialize>:
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv + ChainUpload>:
-    ContractInstance<Chain> + CwOrcUpload<Chain>
+pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable +
+    ContractInstance<Chain>
 {
     fn deploy(&self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
