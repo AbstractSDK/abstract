@@ -52,13 +52,21 @@ wasm:
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}
 
-run-script script chain:
-  (cd scripts && cargo run --bin {{script}} -- --network-id {{chain}})
+run-script script +CHAINS:
+  (cd scripts && cargo run --bin {{script}} -- --network-ids {{CHAINS}})
 
-full-deploy chain:
-  just run-script full_deploy {{chain}}
+full-deploy +CHAINS:
+  just run-script full_deploy {{CHAINS}}
 
 publish-schemas version:
   SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
   VERSION={{version}} \
     cargo ws exec --no-bail bash -lc 'cargo schema && { outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$VERSION"; mkdir -p "$outdir"; rm -rf "schema/raw"; cp -a "schema/." "$outdir"; }'
+
+# Download the wasms and deploy Abstract to all the chains
+deploy-to-all-chains:
+  just download-wasms
+  just run-script full_deploy uni-6 pisco-1 juno-1 phoenix-1
+
+download-wasms:
+  (cd packages/abstract-interface && cargo run --example download_wasms)

@@ -1,4 +1,3 @@
-use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
 use clap::Parser;
@@ -12,6 +11,7 @@ use cw_orch::{
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const MNEMONIC: &str = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion";
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
@@ -20,16 +20,13 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network)
+            .mnemonic(MNEMONIC)
             .build()?;
-        let sender = chain.sender();
-        let deployment = Abstract::deploy_on(chain, Empty {})?;
 
-        // Create the Abstract Account because it's needed for the fees for the dex module
-        deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            })?;
+        let deployment = Abstract::load_from(chain)?;
+        // Take the assets, contracts, and pools from resources and upload them to the ans host
+        let ans_host = deployment.ans_host;
+        ans_host.update_all()?;
     }
     Ok(())
 }
@@ -38,7 +35,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 #[command(author, version, about, long_about = None)]
 struct Arguments {
     /// Network Id to deploy on
-    #[arg(short, long, value_delimiter = ' ', num_args = 1..)]
+    #[arg(short, long)]
     network_ids: Vec<String>,
 }
 
