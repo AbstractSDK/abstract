@@ -8,10 +8,10 @@ use semver::Version;
 use serde::Serialize;
 
 /// Trait for deploying Adapters
-pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
-    ContractInstance<Chain>
+pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInstance<Chain>
     + CwOrchInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
-    + Uploadable + Sized
+    + Uploadable
+    + Sized
 {
     fn deploy(
         &self,
@@ -53,9 +53,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>:
 }
 
 /// Trait for deploying APPs
-pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable +
-    ContractInstance<Chain>
-{
+pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
     fn deploy(&self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
