@@ -12,7 +12,7 @@ members = ["contracts/*", "packages/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.15.1"
+version = "0.16.1"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -48,11 +48,11 @@ cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { version = "0.15.3" }
-abstract-core = { version = "0.15.3" }
-abstract-interface = { version = "0.15.3" }
-abstract-sdk = { version = "0.15.3" }
-abstract-adapter = { version = "0.15.3" }
+abstract-testing = { version = "0.16.1" }
+abstract-core = { version = "0.16.1" }
+abstract-interface = { version = "0.16.1" }
+abstract-sdk = { version = "0.16.1" }
+abstract-adapter = { version = "0.16.1" }
 
 ## Testing
 rstest = "0.16.0"
@@ -61,9 +61,9 @@ anyhow = "1"
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
 ## Local
-abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
-abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
-abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/impl-in-origin-repo" }
+abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
+abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
+abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }
@@ -92,8 +92,9 @@ incremental = false
 #abstract-staking-adapter-traits = { path = "packages/staking" }
 
 [patch.crates-io]
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
+# abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
+# abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
+# abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
+# abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
+#cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
+cw-orch = { path="../cw-orchestrator/cw-orch" }
