@@ -15,7 +15,7 @@ pub struct DexCommandTester{
 	adapter: Box<dyn DexCommand>,
 }
 
-fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError>{
+pub fn expect_eq<T: PartialEq + Debug>(t1: T, t2: T) -> Result<(), StdError>{
 	if t1 != t2{
 		Err(StdError::generic_err(format!("Test failed, wrong result, expected : {:?}, got : {:?}", t1, t2)))?
 	}
@@ -37,9 +37,8 @@ impl DexCommandTester{
         offer_asset: Asset,
         ask_asset: AssetInfo,
         belief_price: Option<Decimal>,
-        max_spread: Option<Decimal>,
-        expected_result: Vec<CosmosMsg>
-     ) -> Result<(), DexError>{
+        max_spread: Option<Decimal>
+     ) -> Result<Vec<CosmosMsg>, DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let msgs = self.adapter.swap(
 			deps.as_ref(), 
@@ -49,17 +48,15 @@ impl DexCommandTester{
 			belief_price, 
 			max_spread
 		)?;
-		expect_eq(expected_result, msgs)?;
-		Ok(())
+		Ok(msgs)
 	}
 
 	pub fn test_custom_swap(
 		&self,
         offer_assets: Vec<Asset>,
         ask_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
-        expected_result: Vec<CosmosMsg>
-     ) -> Result<(), DexError>{
+        max_spread: Option<Decimal>
+     ) -> Result<Vec<CosmosMsg>, DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let msgs = self.adapter.custom_swap(
 			deps.as_ref(), 
@@ -67,17 +64,15 @@ impl DexCommandTester{
 			ask_assets,  
 			max_spread
 		)?;
-		expect_eq(expected_result, msgs)?;
-		Ok(())
+		Ok(msgs)
 	}
 
 	pub fn test_provide_liquidity(
 		&self,
 		pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
-        max_spread: Option<Decimal>,
-        expected_result: Vec<CosmosMsg>
-     ) -> Result<(), DexError>{
+        max_spread: Option<Decimal>
+     ) -> Result<Vec<CosmosMsg>, DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let msgs = self.adapter.provide_liquidity(
 			deps.as_ref(), 
@@ -85,17 +80,15 @@ impl DexCommandTester{
 			offer_assets, 
 			max_spread
 		)?;
-		expect_eq(expected_result, msgs)?;
-		Ok(())
+		Ok(msgs)
 	}
 
 	pub fn test_provide_liquidity_symmetric(
 		&self,
         pool_id: PoolAddress,
         offer_asset: Asset,
-        paired_assets: Vec<AssetInfo>,
-        expected_result: Vec<CosmosMsg>
-     ) -> Result<(), DexError>{
+        paired_assets: Vec<AssetInfo>
+     ) -> Result<Vec<CosmosMsg>, DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let msgs = self.adapter.provide_liquidity_symmetric(
 			deps.as_ref(), 
@@ -103,33 +96,29 @@ impl DexCommandTester{
 			offer_asset, 
 			paired_assets
 		)?;
-		expect_eq(expected_result, msgs)?;
-		Ok(())
+		Ok(msgs)
 	}
 
 	pub fn test_withdraw_liquidity(
 		&self,
         pool_id: PoolAddress,
-        lp_token: Asset,
-        expected_result: Vec<CosmosMsg>
-     ) -> Result<(), DexError>{
+        lp_token: Asset
+     ) -> Result<Vec<CosmosMsg>, DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let msgs = self.adapter.withdraw_liquidity(
 			deps.as_ref(), 
 			pool_id,
 			lp_token
 		)?;
-		expect_eq(expected_result, msgs)?;
-		Ok(())
+		Ok(msgs)
 	}
 
 	pub fn test_simulate_swap(
 		&self, 
 		pool_id: PoolAddress,
         offer_asset: Asset,
-        ask_asset: AssetInfo,
-        expected_result: (Return, Spread, Fee, FeeOnInput)
-     ) -> Result<(), DexError>{
+        ask_asset: AssetInfo
+     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError>{
 		let deps = mock_dependencies(self.chain.clone());
 		let result = self.adapter.simulate_swap(
 			deps.as_ref(), 
@@ -137,8 +126,7 @@ impl DexCommandTester{
 			offer_asset,
 			ask_asset
 		)?;
-		expect_eq(expected_result, result)?;
-		Ok(())
+		Ok(result)
 	}
 }
 
