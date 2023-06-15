@@ -37,9 +37,9 @@ cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", features = [
 ] }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.12" }
-abstract-core = { version="0.15.3" }
-abstract-interface = { version="0.15.3" }
+cw-orch = { version = "0.13" }
+abstract-core = { version="0.16.1" }
+abstract-interface = { version="0.16.1" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
