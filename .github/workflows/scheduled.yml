@@ -21,6 +21,9 @@ jobs:
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         run: cargo generate-lockfile
+      - name: generate artifacts
+        uses: extractions/setup-just@v1
+        run: just wasm
       - name: cargo test --locked
         run: cargo test --locked --all-features --all-targets
   # https://twitter.com/alcuadrado/status/1571291687837732873

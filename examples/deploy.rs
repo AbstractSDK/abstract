@@ -5,7 +5,7 @@ use cw_orch::{
 };
 
 use abstract_interface::AppDeployer;
-use app::{contract::APP_ID, interface::App};
+use app::{contract::APP_ID, App};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
