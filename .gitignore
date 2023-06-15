@@ -1,7 +1,5 @@
 /target
 
-artifacts/*
-
 Cargo.lock
 
 .env
