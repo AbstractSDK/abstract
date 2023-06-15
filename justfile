@@ -38,11 +38,19 @@ deploy:
   cargo run --example deploy --features
 
 wasm:
-  docker run --rm -v "$(pwd)":/code \
-  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  cosmwasm/rust-optimizer:0.12.13
+  #!/usr/bin/env bash
+  if [[ $(arch) == "arm64" ]]; then
+    image="cosmwasm/rust-optimizer-arm64"
+  else
+    image="cosmwasm/rust-optimizer"
+  fi
 
+  # Optimized builds
+  docker run --rm -v "$(pwd)":/code \
+    --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+    --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+    ${image}:0.12.13
+    
 # Generate the schemas for the app contract
 schema:
   cargo schema
