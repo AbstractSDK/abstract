@@ -15,6 +15,6 @@ pub fn instantiate_handler(
 
     CONFIG.save(deps.storage, &config)?;
 
-    // Example reply that doesn't do anything
+    // Example instantiation that doesn't do anything
     Ok(Response::new())
 }

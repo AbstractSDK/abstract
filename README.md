@@ -17,11 +17,11 @@ chmod +x ./template-setup.sh
 ./template-setup.sh
 ```
 
-The setup script will ask you for a name that will replace the "template" names in the repo. It also adds our Github CI repo to the repo.
+The setup script will add our Github CI repo to the repo.
 
 ## Using the Justfile
 
-This repository comes with a `justfile`, which is a handy task runner that helps with building, testing, and deploying your Abstract app module.
+This repository comes with a [`justfile`](https://github.com/casey/just), which is a handy task runner that helps with building, testing, and deploying your Abstract app module.
 
 ### Installing Tools
 
