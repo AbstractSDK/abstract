@@ -12,15 +12,6 @@ documentation = ""
 repository = ""
 license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "abstractsdk"]
-
-# Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
-#
-# Critically this prevents dev-dependencies from enabling features even when not building a target that
-# uses dev-dependencies, e.g. the library crate. This in turn ensures that we can catch invalid feature
-# flag combinations that would otherwise only surface in dependent crates
-#
-# Reference - https://doc.rust-lang.org/nightly/cargo/reference/features.html#feature-resolver-version-2
-# See - https://github.com/apache/arrow-rs/pull/1822/files
 resolver = "2"
 
 exclude = ["contract.wasm", "hash.txt"]
@@ -45,41 +36,26 @@ schema = ["abstract-app/schema"]
 cosmwasm-std = { version = "1.2" }
 cosmwasm-schema = { version = "1.2" }
 cw-controllers = { version = "1.0.1" }
-cw-storage-plus = "1.0.1"
+cw-storage-plus = "1.1.0"
 thiserror = { version = "1.0" }
 schemars = "0.8"
 cw-asset = { version = "3.0" }
 
-abstract-core = { version = "0.15.3" }
-abstract-app = { version = "0.15.3" }
-abstract-sdk = { version = "0.15.3" }
+abstract-core = { version = "0.16.1" }
+abstract-app = { version = "0.16.1" }
+abstract-sdk = { version = "0.16.1" }
 
 # Dependencies for interface
-abstract-interface = { version = "0.15.3", optional = true }
-cw-orch = { version = "0.12", optional = true }
+abstract-interface = { version = "0.16.1", optional = true }
+cw-orch = { version = "0.13", optional = true }
 
 [dev-dependencies]
 app = { path = ".", features = ["interface"] }
-abstract-interface = { version = "0.15.3", features = ["daemon"] }
-abstract-testing = { version = "0.15.3" }
-abstract-sdk = { version = "0.15.3", features = ["test-utils"] }
+abstract-interface = { version = "0.16.1", features = ["daemon"] }
+abstract-testing = { version = "0.16.1" }
+abstract-sdk = { version = "0.16.1", features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = { version = "0.12", features = ["daemon"] }
-
-[patch.crates-io]
-# abstract-app = { path="../contracts/packages/abstract-app" }
-# abstract-sdk = { path="../contracts/packages/abstract-sdk" }
-# abstract-core = { path="../contracts/packages/abstract-core" }
-# abstract-interface = { path="../contracts/packages/abstract-interface" }
-# abstract-account-factory = { path="../contracts/contracts/native/account-factory" }
-# abstract-version-control = { path="../contracts/contracts/native/version-control" }
-
-abstract-app = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-account-factory = { git = "https://github.com/AbstractSDK/contracts" }
-abstract-version-control = { git = "https://github.com/AbstractSDK/contracts" }
+cw-orch = { version = "0.13", features = ["daemon"] }
