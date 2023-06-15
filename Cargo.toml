@@ -30,7 +30,7 @@ cosmwasm-std = { version = "1.1" }
 cosmwasm-schema = { version = "1.1" }
 cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
-cw-storage-plus = "1.0.1"
+cw-storage-plus = "1.1.0"
 cw2 = { version = "1.0.1" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git" }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git" }
@@ -44,7 +44,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.12.0" }
+cw-orch = { version = "0.13.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
@@ -96,5 +96,4 @@ incremental = false
 # abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
 # abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
 # abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
-#cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
-cw-orch = { path="../cw-orchestrator/cw-orch" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch="feature/add-mock-querier" }
