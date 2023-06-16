@@ -2,6 +2,7 @@ mod adapter;
 pub mod contract;
 mod handlers;
 pub mod msg;
+pub mod providers;
 mod resolver;
 
 pub use abstract_staking_adapter_traits::query_responses;

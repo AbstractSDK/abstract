@@ -48,11 +48,11 @@ cw-orch = { version = "0.12.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
-abstract-testing = { version = "0.15.3" }
-abstract-core = { version = "0.15.3" }
-abstract-interface = { version = "0.15.3" }
-abstract-sdk = { version = "0.15.3" }
-abstract-adapter = { version = "0.15.3" }
+abstract-testing = { version = "0.16.1" }
+abstract-core = { version = "0.16.1" }
+abstract-interface = { version = "0.16.1" }
+abstract-sdk = { version = "0.16.1" }
+abstract-adapter = { version = "0.16.1" }
 
 ## Testing
 rstest = "0.16.0"

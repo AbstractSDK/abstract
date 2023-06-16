@@ -37,10 +37,11 @@ interface = [
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 terra = ["abstract-astroport-adapter/full_integration"]
+kujira = ["dep:kujira"]
 schema = ["abstract-adapter/schema"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis"]
+features = ["juno", "terra", "osmosis", "kujira"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
@@ -72,6 +73,9 @@ abstract-osmosis-adapter = { workspace = true }
 
 # Terra #
 abstract-astroport-adapter = { workspace = true }
+
+# Kujira #
+kujira = { version = "0.8.2", optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }
