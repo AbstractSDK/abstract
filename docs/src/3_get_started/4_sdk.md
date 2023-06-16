@@ -56,8 +56,8 @@ The following API objects are available in the Abstract SDK:
 
 - [`Bank`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Bank.html)
 - [`Executor`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Executor.html)
-- [`App`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.App.html)
-- [`Adapter`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapter.html)
+- [`Apps`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Apps.html)
+- [`Adapters`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Adapters.html)
 - [`Accountant`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.Accountant.html)
 - [`IbcClient`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.IbcClient.html)
 - [`ModuleRegistry`](https://docs.rs/abstract-sdk/latest/abstract_sdk/struct.ModuleRegistry.html)
