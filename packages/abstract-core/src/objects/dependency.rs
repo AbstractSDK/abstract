@@ -80,6 +80,15 @@ mod test {
     }
 
     #[test]
+    fn static_check_passes_without_comparator() {
+        const VERSION_CONSTRAINT: [&str; 1] = ["1.0.0"];
+
+        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
+
+        assert_that!(dep.check()).is_ok();
+    }
+
+    #[test]
     fn static_check_fails() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1e.0"];
 
