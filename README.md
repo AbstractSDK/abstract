@@ -4,14 +4,14 @@
  <img src="https://codecov.io/gh/AbstractSDK/contracts/branch/main/graph/badge.svg?token=FOIDUFYSCY"/> 
  </a>
 
-<!-- ![alt text](https://github.com/AbstractSDK/contracts/blob/main/architecture.png?raw=true) -->
+To learn more about Abstract, go to [The Abstract Book](https://docs.abstract.money/).
 
 ## Schemas
 
 ### Manual Schema Generation
 
 To generate the schemas for all the packages in this ws, run the following command. You may have to install [cargo
-workspaces(https://github.com/pksunkara/cargo-workspaces):
+workspaces](https://github.com/pksunkara/cargo-workspaces):
 
 ```bash
 cargo install cargo-workspaces
