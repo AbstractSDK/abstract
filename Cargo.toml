@@ -86,14 +86,5 @@ codegen-units = 1
 panic = 'abort'
 incremental = false
 
-# Need this, otherwise, we have multiple origin for the abstract adapters repo (TODO change the dependency when ready to release here)
-[patch."https://github.com/AbstractSDK/adapters"]
-#abstract-adapter-utils = { path = "packages/utils" }
-#abstract-staking-adapter-traits = { path = "packages/staking" }
-
 [patch.crates-io]
-# abstract-sdk = { git = "https://github.com/AbstractSDK/contracts" }
-# abstract-core = { git = "https://github.com/AbstractSDK/contracts" }
-# abstract-interface = { git = "https://github.com/AbstractSDK/contracts" }
-# abstract-adapter = { git = "https://github.com/AbstractSDK/contracts" }
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch="feature/add-mock-querier" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-mock-querier" }

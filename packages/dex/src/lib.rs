@@ -1,7 +1,7 @@
 mod command;
 mod error;
 
-#[cfg(feature="testing")]
+#[cfg(feature = "testing")]
 pub mod tests;
 
 // Export interface for use in SDK modules

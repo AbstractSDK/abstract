@@ -48,7 +48,7 @@ fn setup_mock() -> anyhow::Result<(
     // mint to proxy
     chain.set_balance(&account.proxy.address()?, vec![coin(10_000, EUR)])?;
     // install exchange on OS
-    account.manager.install_module(EXCHANGE, &Empty {})?;
+    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
     // load exchange data into type
     dex_adapter.set_address(&Addr::unchecked(
         account.manager.module_info(EXCHANGE)?.unwrap().address,

@@ -32,9 +32,9 @@ abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 abstract-adapter-utils = { workspace = true }
-cw-orch = { workspace = true, optional = true, features=["daemon"] }
+cw-orch = { workspace = true, optional = true, features = ["daemon"] }
 abstract-interface = { workspace = true, optional = true }
-ibc-chain-registry = {version="0.24.1", optional = true}
+ibc-chain-registry = { version = "0.24.1", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
