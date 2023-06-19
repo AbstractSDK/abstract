@@ -1,12 +1,12 @@
 # Abstract App Module Template
 
-The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/framework/architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/framework/module_types.html#apps).
+The Abstract App Module Template is a starting point for developing composable smart-contracts, or "apps", that enable features or transform Abstract Accounts into standalone products. An app is instantiated for each Account individually and is migratable. Apps are allowed to perform actions on the Account and may also want to integrate with other Apps and Adapters installed on the Account. To learn more about Abstract Accounts, please see the [abstract accounts documentation](https://docs.abstract.money/4_framework/4_architecture.html). To read more about apps, please see the [app module documentation](https://docs.abstract.money/4_framework/7_module_types.html).
 
 ## Getting Started
 
 ### Requirements
 
-Learn more about the requirements for developing Abstract apps in the [getting started documentation](https://docs.abstract.money/get_started/index.html).
+Learn more about the requirements for developing Abstract apps in the [getting started documentation]([https://docs.abstract.money/get_started/index.html](https://docs.abstract.money/3_get_started/1_index.html)).
 
 ### Setup
 
@@ -25,7 +25,7 @@ This repository comes with a [`justfile`](https://github.com/casey/just), which 
 
 ### Installing Tools
 
-To fully make use of the `justfile`, you need to install a few tools first. You can do this by simply running `just install-tools`. See [tools used the template](https://docs.abstract.money/get_started/installation.html#tools-used-in-the-template) for more information.
+To fully make use of the `justfile`, you need to install a few tools first. You can do this by simply running `just install-tools`. See [tools used the template](https://docs.abstract.money/3_get_started/2_installation.html?#tools-used-in-the-template) for more information.
 
 ### Available Tasks
 
