@@ -241,7 +241,7 @@ impl ModuleConfiguration {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModulesListResponse {
-    pub modules: Vec<Module>,
+    pub modules: Vec<ModuleResponse>,
 }
 
 #[cosmwasm_schema::cw_serde]

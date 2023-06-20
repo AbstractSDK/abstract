@@ -144,9 +144,16 @@ pub fn handle_module_list_query(
     let modules = modules
         .into_iter()
         .map(|(module_info, mod_ref)| {
-            Ok(Module {
-                info: module_info,
-                reference: mod_ref,
+            Ok(ModuleResponse {
+                module: Module {
+                    info: module_info.clone(),
+                    reference: mod_ref,
+                },
+                config: ModuleConfiguration::new(
+                    MODULE_MONETIZATION
+                        .load(deps.storage, (&module_info.namespace, &module_info.name))
+                        .unwrap_or(Monetization::None),
+                ),
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;
@@ -663,7 +670,7 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for entry in modules {
-                    assert_that!(entry.info.namespace)
+                    assert_that!(entry.module.info.namespace)
                         .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                 }
 
@@ -709,8 +716,10 @@ mod test {
 
                 let yanked_module_names = ["module4".to_string(), "module5".to_string()];
                 for entry in modules {
-                    if entry.info.namespace == Namespace::unchecked("cw-plus") {
-                        assert!(!yanked_module_names.iter().any(|e| e == &entry.info.name));
+                    if entry.module.info.namespace == Namespace::unchecked("cw-plus") {
+                        assert!(!yanked_module_names
+                            .iter()
+                            .any(|e| e == &entry.module.info.name));
                     }
                 }
 
@@ -762,7 +771,7 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for entry in modules {
-                    assert_that!(entry.info.namespace)
+                    assert_that!(entry.module.info.namespace)
                         .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
                 }
 
@@ -838,9 +847,9 @@ mod test {
                 assert_that!(modules).has_length(1);
 
                 let module = modules[0].clone();
-                assert_that!(module.info.namespace)
+                assert_that!(module.module.info.namespace)
                     .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                assert_that!(module.info.name).is_equal_to(filtered_name.clone());
+                assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
                 res
             });
         }
@@ -878,9 +887,9 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.info.namespace)
+                    assert_that!(module.module.info.namespace)
                         .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
                 }
                 res
             });
@@ -908,7 +917,7 @@ mod test {
                 assert_that!(modules).has_length(6);
 
                 for module in modules {
-                    assert_that!(module.info.version.to_string())
+                    assert_that!(module.module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -965,8 +974,8 @@ mod test {
                 assert_that!(modules).has_length(2);
 
                 for module in modules {
-                    assert_that!(module.info.name).is_equal_to(filtered_name.clone());
-                    assert_that!(module.info.version.to_string())
+                    assert_that!(module.module.info.name).is_equal_to(filtered_name.clone());
+                    assert_that!(module.module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
                 res
@@ -997,9 +1006,9 @@ mod test {
                 assert_that!(modules).has_length(3);
 
                 for module in modules {
-                    assert_that!(module.info.namespace)
+                    assert_that!(module.module.info.namespace)
                         .is_equal_to(Namespace::unchecked(filtered_namespace.clone()));
-                    assert_that!(module.info.version.to_string())
+                    assert_that!(module.module.info.version.to_string())
                         .is_equal_to(filtered_version.clone());
                 }
 
