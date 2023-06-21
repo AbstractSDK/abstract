@@ -23,9 +23,11 @@ Here's a small snippet of code to give you an idea of what using the Abstract SD
 {{#include ../../packages/abstract-app/examples/counter.rs:handlers}}
 ```
 
-The code above defines an Abstract app, which is a smart-contract that can be installed on any Abstract Account. The app has a unique ID and a version, both are used to offer the app on the Abstract App store, allowing other users to install the app on their account.
+The code above defines an **Abstract App**. Abstract apps are the bread and butter of our platform. They are smart-contracts that can be installed on an Abstract Account and interact with it using the [`abstract-sdk`](./3_get_started/4_sdk.md), our account-abstraction toolbox.
 
-The customizable handlers allow for full developer freedom and have an App object available within them. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md), which is our Account Abstraction Toolbox. In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
+The app is distributed to Abstract users through the Abstract App store, allowing other users to install the app on their account(s).
+
+The customizable handlers allow for full developer freedom and have an App object available within them. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md). In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
 
 > Looking to get started? Check out the [Getting Started](./3_get_started/1_index.md) guide.
 

@@ -55,7 +55,8 @@ flowchart LR
 ```
 <figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> and <code>abstract:dex</code> modules installed</b></figcaption>
 ------
-TODO: below is not reviewed
+
+<!-- TODO: below is not reviewed
 
 ## How to Use Modules in Your Project
 
@@ -84,4 +85,4 @@ Oracle Module for integrating with an oracle service
 
 **Step 4:** Test your dApp thoroughly to ensure the modules function as intended and do not introduce any unexpected behavior.
 
-By leveraging Abstract's modules in this way, you can rapidly build and deploy your DeFi project while benefiting from the robustness and flexibility of the Abstract ecosystem.
+By leveraging Abstract's modules in this way, you can rapidly build and deploy your DeFi project while benefiting from the robustness and flexibility of the Abstract ecosystem. -->

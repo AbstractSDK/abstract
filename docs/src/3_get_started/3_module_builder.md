@@ -4,7 +4,9 @@ Abstract provides multiple module bases, as detailed in our section on [modules]
 
 ## Overview
 
-The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead, the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has a negatable effect on both runtime and WASM binary size.
+The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead, the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has a negatable effect on both the code's runtime and WASM binary size.
+
+The code-snippets in this example 
 
 ### App Type
 
@@ -38,7 +40,7 @@ All these fields are used in a custom `ModuleData` store as well, along with the
 
 ### Handlers
 
-Then add whatever handler functions you need. These functions will be called whenever the specific endpoint is called on the module. A special feature about the functions is that we also insert the instance of your app into the function's attributes. This enables you to access the module struct in your code. You will learn why this is such a powerful feature in our section on the [Abstract SDK](sdk.md).
+The app can then be customized by adding whatever handler functions you need. These functions are executed whenever a specific endpoint is called on the module. A special feature about the functions is that we insert the instance of your module into the function's attributes. This enables you to access the module struct in your code. You will learn why this is such a powerful feature in our section on the [Abstract SDK](./4_sdk.md).
 
 Here's an example of a module with some handlers set:
 
@@ -46,9 +48,28 @@ Here's an example of a module with some handlers set:
 {{#include ../../../packages/abstract-app/examples/counter.rs:handlers}}
 ```
 
-Let's go through all the available customizable handlers, the function signatures they require and how/when they get called.
+These handlers are functions that allow you to customize the smart-contract's behavior. For example, here's a custom `execute` handler that updates the contract's config state.
 
-The `base` fields and variants mentioned in the messages below are defined by [the base module type](../framework/module_types.md) that you chose to use. In this example we're working with an [`App`](../framework/module_types.md#apps).
+```rust
+{{#include ../../../packages/abstract-app/examples/counter.rs:execute}}
+```
+
+```admonish info
+You can find more application code to read in our [💥 Awesome Abstract repository 💥](https://github.com/AbstractSDK/awesome-abstract).
+```
+
+The available handlers are:
+
+- `with_execute`: Called when the App's `ExecuteMsg` is called on the instantiate entry point.
+- `with_instantiate`: Called when the App's `InstantiateMsg` is called on the instantiate entry point.
+- `with_query`: Called when the App's `QueryMsg::Module` is called on the query entry point.
+- `with_migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
+- `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
+- `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
+- `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
+- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
+
+Below we detail each one more closely. The `base` fields and variants mentioned in the messages below are defined by [the base module type](../4_framework/7_module_types.md) that you chose to use. In this page we're working with an [`App`](../4_framework/7_module_types.md#apps).
 
 ### Instantiate
 
@@ -195,7 +216,7 @@ Called when the App's `ExecuteMsg::Receive` variant is called on the execute ent
 
 The ibc callback handler is a mutable entry point of the contract. It is similar to the `execute` handler but is specifically geared towards handling callbacks from IBC actions. Since interacting with IBC is an asynchronous process we aim to provide you with the means to easily work with IBC. Our SDK helps you send IBC messages while this handler helps you execute logic whenever the IBC action succeeds or fails. Our framework does this by optionally allowing you to add callback information to any IBC action. A callback requires a unique `CallbackId` which is a `String`. The callback handler takes an array of `(CallbackId, IbcCallbackFn)` tuples and matches any incoming callback on the correct `CallbackId` for you. Every call to this handler is verified by asserting that the caller is the framework's IBC-Client contract.
 
-> We cover Abstract's IBC logic later in this book (TODO: add link to that section.)
+<!-- > We cover Abstract's IBC logic later in this book (TODO: add link to that section.) -->
 
 #### Function Signature
 
@@ -210,15 +231,6 @@ Called when the App's `ExecuteMsg::IbcCallback` variant is called on the execute
 ```rust,ignore
 {{#include ../../../packages/abstract-core/src/base.rs:exec}}
 ```
-
-<!-- - `with_execute`: 
-- `with_instantiate`: Called when the App's `InstantiateMsg` is called on the instantiate entry point.
-- `with_query`: Called when the App's `QueryMsg::Module` is called on the query entry point.
-- `with_migrate`: Called when the App's `MigrateMsg` is called on the migrate entry point.
-- `with_replies`: Called when the App's reply entry point is called. Matches the function's associated reply-id.
-- `with_sudo`: Called when the App's `SudoMsg` is called on the sudo entry point.
-- `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
-- `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function. -->
 
 ## Dependencies
 

@@ -4,7 +4,9 @@ Modularity is a fundamental design principle of the Abstract platform, contribut
 
 For application developers, modules simplify the development process by offering pre-built functionalities. Instead of building every aspect from scratch, developers can leverage modules either from Abstract's extensive library or those crafted by other developers available in the module marketplace. Additionally, developers have the freedom to create custom modules using the [Abstract SDK](https://docs.rs/abstract-sdk/latest/abstract_sdk), tailoring them to specific application needs and even contributing back to the community.
 
-> Skip to [Modules](module_types.md) to learn what the kinds of modules are and why they're relevant to your Account
+```admonish info
+Skip to [Modules](./7_module_types.md) to learn what the kinds of modules are and why they're relevant to your Account
+```
 
 ## How Modules Work
 

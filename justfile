@@ -19,6 +19,7 @@ lintfix:
 docs-install:
   cargo install mdbook
   cargo install mdbook-mermaid
+  cargo install mdbook-admonish
 
 # Serve docs locally, pass --open to open in browser
 docs-serve *FLAGS:

@@ -1,15 +1,17 @@
 pub use abstract_core::app;
 
 pub use cosmwasm_std::testing::*;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{Response, StdError};
 
-pub type CounterResult = Result<(), CounterError>;
+pub type CounterResult<T = Response> = Result<T, CounterError>;
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterInitMsg;
 
 #[cosmwasm_schema::cw_serde]
-pub struct CounterExecMsg;
+pub enum CounterExecMsg {
+    UpdateConfig {},
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct CounterQueryMsg;
@@ -29,6 +31,7 @@ use abstract_app::{AppContract, AppError};
 
 use abstract_sdk::AbstractSdkError;
 
+use cw_controllers::AdminError;
 use thiserror::Error;
 
 // ANCHOR: error
@@ -45,6 +48,9 @@ pub enum CounterError {
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
+
+    #[error("{0}")]
+    Unauthorized(#[from] AdminError),
 }
 // ANCHOR_END: error
 
@@ -86,15 +92,13 @@ abstract_app::cw_orch_interface!(COUNTER_APP, CounterApp, CounterAppInterface);
 
 mod handlers {
     #![allow(non_upper_case_globals)]
-    use abstract_sdk::base::*;
-    use cosmwasm_std::{to_binary, Response};
+    use abstract_sdk::{base::*, AbstractResponse};
+    use cosmwasm_std::*;
 
     use super::*;
 
     pub const instantiate: InstantiateHandlerFn<CounterApp, CounterInitMsg, CounterError> =
         |_, _, _, _, _| Ok(Response::new().set_data("counter_init".as_bytes()));
-    pub const execute: ExecuteHandlerFn<CounterApp, CounterExecMsg, CounterError> =
-        |_, _, _, _, _| Ok(Response::new().set_data("counter_exec".as_bytes()));
     pub const query: QueryHandlerFn<CounterApp, CounterQueryMsg, CounterError> =
         |_, _, _, _| to_binary("counter_query").map_err(Into::into);
     pub const sudo: SudoHandlerFn<CounterApp, CounterSudoMsg, CounterError> =
@@ -105,6 +109,29 @@ mod handlers {
         |_, _, _, msg| Ok(Response::new().set_data(msg.result.unwrap().data.unwrap()));
     pub const migrate: MigrateHandlerFn<CounterApp, CounterMigrateMsg, CounterError> =
         |_, _, _, _| Ok(Response::new().set_data("counter_migrate".as_bytes()));
+    // ANCHOR: execute
+    pub fn execute(
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        app: CounterApp, // <-- Notice how the `CounterApp` is available here
+        msg: CounterExecMsg,
+    ) -> CounterResult {
+        match msg {
+            CounterExecMsg::UpdateConfig {} => update_config(deps, info, app),
+        }
+    }
+
+    /// Update the configuration of the app
+    fn update_config(deps: DepsMut, msg_info: MessageInfo, app: CounterApp) -> CounterResult {
+        // Only the admin should be able to call this
+        app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
+
+        Ok(app
+            .tag_response(Response::default(), "update_config")
+            .set_data("counter_exec".as_bytes()))
+    }
+    // ANCHOR_END: execute
 }
 
 fn main() {}
