@@ -23,7 +23,7 @@ pub struct CounterReceiveMsg;
 #[cosmwasm_schema::cw_serde]
 pub struct CounterSudoMsg;
 
-abstract_app::app_messages!(CounterApp, CounterExecMsg, CounterQueryMsg);
+abstract_app::app_msg_types!(CounterApp, CounterExecMsg, CounterQueryMsg);
 
 use abstract_app::{AppContract, AppError};
 
@@ -81,7 +81,7 @@ abstract_app::export_endpoints!(COUNTER_APP, CounterApp);
 // ANCHOR_END: export
 
 // ANCHOR: interface
-abstract_app::create_interface!(COUNTER_APP, CounterApp);
+abstract_app::cw_orch_interface!(COUNTER_APP, CounterApp, CounterAppInterface);
 // ANCHOR_END: interface
 
 mod handlers {
