@@ -25,7 +25,6 @@ pub mod mock {
         adapter::{self, *},
         objects::dependency::StaticDependency,
     };
-    use abstract_interface::AdapterDeployer;
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         TEST_ADMIN, TEST_ANS_HOST, TEST_MODULE_ID, TEST_VERSION, TEST_VERSION_CONTROL,
@@ -36,6 +35,8 @@ pub mod mock {
     };
     use cw_orch::prelude::*;
     use thiserror::Error;
+
+    use abstract_interface::AdapterDeployer;
 
     pub const TEST_METADATA: &str = "test_metadata";
     pub const TEST_AUTHORIZED_ADDRESS: &str = "test_authorized_address";

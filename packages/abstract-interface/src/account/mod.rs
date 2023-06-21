@@ -11,6 +11,11 @@
 //! - uninstall module
 //! - upgrade module
 
+use crate::Abstract;
+use crate::AdapterDeployer;
+use crate::AppDeployer;
+use cw_orch::deploy::Deploy;
+
 mod manager;
 mod proxy;
 
@@ -111,5 +116,50 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         assert_eq!(actual_proxy_whitelist, expected_whitelisted_addrs);
 
         Ok(proxy_whitelist)
+    }
+
+    /// Gets the account ID from the manager account
+    pub fn account_id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
+        let account_id: u64 = self.manager.config()?.account_id.into();
+        Ok(account_id.try_into().unwrap())
+    }
+
+    /// Installs an adapter from an adapter object
+    pub fn install_adapter<CustomInitMsg: Serialize, T: AdapterDeployer<Chain, CustomInitMsg>>(
+        &self,
+        adapter: T,
+        custom_init_msg: &CustomInitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
+
+        let init_msg = abstract_core::adapter::InstantiateMsg {
+            module: custom_init_msg,
+            base: abstract_core::adapter::BaseInstantiateMsg {
+                ans_host_address: abstr.ans_host.address()?.into(),
+                version_control_address: abstr.version_control.address()?.into(),
+            },
+        };
+        self.install_module(&adapter.id(), &init_msg, funds)
+    }
+
+    /// Installs an app from an app object
+    pub fn install_app<CustomInitMsg: Serialize, T: AppDeployer<Chain>>(
+        &self,
+        app: T,
+        custom_init_msg: &CustomInitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<(), crate::AbstractInterfaceError> {
+        // retrieve the deployment
+        let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
+
+        let init_msg = abstract_core::app::InstantiateMsg {
+            module: custom_init_msg,
+            base: abstract_core::app::BaseInstantiateMsg {
+                ans_host_address: abstr.ans_host.address()?.into(),
+            },
+        };
+        self.install_module(&app.id(), &init_msg, funds)
     }
 }
