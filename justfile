@@ -39,6 +39,10 @@ deploy:
 
 wasm:
   #!/usr/bin/env bash
+
+  # Delete all the current wasms first
+  rm -rf ./artifacts/*.wasm
+  
   if [[ $(arch) == "arm64" ]]; then
     image="cosmwasm/rust-optimizer-arm64"
   else
