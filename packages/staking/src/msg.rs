@@ -2,14 +2,18 @@
 //!
 //! `4t2::cw-staking`
 
+
+use cosmwasm_std::{Addr, Uint128, Empty};
+
+use cw_asset::AssetInfo;
+
+use cw_utils::{Duration, Expiration};
+
+
 use abstract_core::adapter;
 use abstract_core::objects::{AnsAsset, AssetEntry};
-use abstract_staking_adapter_traits::query_responses::{
-    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
+
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Empty;
-use cw_utils::Duration;
 
 pub type ProviderName = String;
 
@@ -84,4 +88,34 @@ pub enum StakingQueryMsg {
         provider: ProviderName,
         staking_token: AssetEntry,
     },
+}
+
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakingInfoResponse {
+    pub staking_contract_address: Addr,
+    pub staking_token: AssetInfo,
+    pub unbonding_periods: Option<Vec<Duration>>,
+    pub max_claims: Option<u32>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakeResponse {
+    pub amount: Uint128,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct RewardTokensResponse {
+    pub tokens: Vec<AssetInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct UnbondingResponse {
+    pub claims: Vec<Claim>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct Claim {
+    pub amount: Uint128,
+    pub claimable_at: Expiration,
 }

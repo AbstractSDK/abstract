@@ -1,4 +1,4 @@
-use crate::query_responses::{
+use crate::msg::{
     RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
 };
 use crate::{CwStakingError, Identify};
