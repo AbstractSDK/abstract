@@ -36,15 +36,10 @@ wasm-contract module +args='':
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package abstract-{{module}} {{args}}
 
 # Wasm all the contracts in the repository for the given chain
-wasm chain_name:
-  just wasm-contract cw-staking --features {{chain_name}},export --no-default-features
-  just wasm-contract dex --features {{chain_name}},export --no-default-features
-  just wasm-contract tendermint-staking
-#  if [[ {{chain}} == "terra" ]]; then RUSTFLAGS='-C link-arg=-s' cargo wasm --package dex --features terra --no-default-features; fi
+wasm:
+  ./build_release.sh
 
 # Deploy a module to the chain
-# ??? deploy-module module +args='': (wasm-module module)
-# `just deploy-module dex pisco-1`
 deploy-contract module network +args='':
   cargo deploy --package abstract-{{module}} -- --network-id {{network}} {{args}}
 
