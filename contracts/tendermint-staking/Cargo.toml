@@ -3,6 +3,8 @@ name = "abstract-tendermint-staking-adapter"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+description = "Abstract Tendermint Staking Adapter. This contract allows interacting with staking on multiple Tendermint chains"
 
 exclude = ["contract.wasm", "hash.txt"]
 

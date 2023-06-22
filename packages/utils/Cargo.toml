@@ -3,6 +3,8 @@ name = "abstract-adapter-utils"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+description = "Abstract Adapter Utils"
 exclude = ["contract.wasm", "hash.txt"]
 resolver = "2"
 

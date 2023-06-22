@@ -1,9 +1,11 @@
 [package]
 name = "abstract-cw-staking"
-description = "Cw-staking is a Abstract adapter for staking tokens."
+description = "The Cw-staking tendermint adapter is an Abstract adapter for staking tokens."
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+license = { workspace = true }
+
 publish = false
 
 exclude = [

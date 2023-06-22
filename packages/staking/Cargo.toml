@@ -3,6 +3,8 @@ name = "abstract-staking-adapter-traits"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+description = "Abstract Cw-Staking Adapter Exports (used for implementing the adapter for specific staking platforms)"
 exclude = ["contract.wasm", "hash.txt"]
 resolver = "2"
 

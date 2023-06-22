@@ -32,8 +32,8 @@ cw-controllers = { version = "1.0.1" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "1.1.0"
 cw2 = { version = "1.0.1" }
-cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git" }
+cw20-base = { package="abstract-cw20-base", version="1.0.1" }
+cw20 = {  package="abstract-cw20", version="1.0.1" }
 
 cw-asset = { version = "3.0" }
 schemars = "0.8"
@@ -44,7 +44,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.13.0" }
+cw-orch = { version = "0.13.1" }
 
 tokio = { version = "1.4", features = ["full"] }
 
@@ -61,9 +61,9 @@ anyhow = "1"
 wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
 
 ## Local
-abstract-adapter-utils = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
-abstract-dex-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
-abstract-staking-adapter-traits = { git = "https://github.com/AbstractSDK/adapters", branch = "feature/adapter-tests" }
+abstract-adapter-utils = { version="0.16.1" }
+abstract-dex-adapter-traits = { version="0.16.1" }
+abstract-staking-adapter-traits = { version="0.16.1" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }
@@ -85,7 +85,3 @@ debug-assertions = false
 codegen-units = 1
 panic = 'abort'
 incremental = false
-
-[patch.crates-io]
-# Update deps to ~0.13.1 after when its released
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-mock-querier" }
