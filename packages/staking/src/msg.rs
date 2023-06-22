@@ -2,13 +2,11 @@
 //!
 //! `4t2::cw-staking`
 
-
-use cosmwasm_std::{Addr, Uint128, Empty};
+use cosmwasm_std::{Addr, Empty, Uint128};
 
 use cw_asset::AssetInfo;
 
 use cw_utils::{Duration, Expiration};
-
 
 use abstract_core::adapter;
 use abstract_core::objects::{AnsAsset, AssetEntry};
@@ -89,7 +87,6 @@ pub enum StakingQueryMsg {
         staking_token: AssetEntry,
     },
 }
-
 
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfoResponse {
