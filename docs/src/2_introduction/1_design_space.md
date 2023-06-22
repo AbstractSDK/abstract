@@ -44,7 +44,7 @@ flowchart LR
         Autocompounder-->Account
         Dex-->Account
     end
-
+    
     User[fa:fa-users Users]==>Autocompounder
 ```
 
