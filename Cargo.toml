@@ -12,7 +12,7 @@ members = ["contracts/*", "packages/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.16.2"
+version = "0.16.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -62,8 +62,8 @@ wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git"
 
 ## Local
 abstract-adapter-utils = { version = "0.16.1" }
-abstract-dex-adapter-traits = { version = "0.16.2" }
-abstract-staking-adapter-traits = { version = "0.16.2" }
+abstract-dex-adapter-traits = { version = "0.16.0" }
+abstract-staking-adapter-traits = { version = "0.16.0" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }

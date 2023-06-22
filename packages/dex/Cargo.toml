@@ -15,7 +15,7 @@ resolver = "2"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["export", "testing"]
+default = ["export"]
 export = []
 testing = ["dep:cw-orch", "dep:ibc-chain-registry"]
 cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
