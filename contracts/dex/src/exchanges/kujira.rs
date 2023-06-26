@@ -260,7 +260,7 @@ impl DexCommand for Kujira {
         };
 
         // execute msg
-        let msg = bow::market_maker::ExecuteMsg::Withdraw { callback: None};
+        let msg = bow::market_maker::ExecuteMsg::Withdraw { callback: None };
         let funds = vec![Coin::try_from(lp_token)?];
         let withdraw_msg = wasm_execute(bow_pair_address, &msg, funds)?.into();
         Ok(vec![withdraw_msg])

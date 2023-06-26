@@ -1,6 +1,6 @@
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
-use cosmwasm_std::{Addr};
+use cosmwasm_std::Addr;
 
 pub const KUJIRA: &str = "kujira";
 #[cfg(feature = "local")]
@@ -49,14 +49,10 @@ use ::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
     abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
-    cosmwasm_std::{
-        wasm_execute, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128, Coin
-    },
+    cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
     cw_asset::AssetInfo,
     cw_utils::Duration,
-    kujira::{
-        bow::{staking as BowStaking},
-    },
+    kujira::bow::staking as BowStaking,
 };
 
 #[cfg(feature = "kujira")]
@@ -177,10 +173,7 @@ impl CwStakingCommand for Kujira {
     fn query_rewards(
         &self,
         querier: &QuerierWrapper,
-    ) -> Result<
-        abstract_staking_adapter_traits::msg::RewardTokensResponse,
-        CwStakingError,
-    > {
+    ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
         let reward_info: BowStaking::IncentivesResponse = querier
             .query_wasm_smart(
                 self.staking_contract_address.clone(),
