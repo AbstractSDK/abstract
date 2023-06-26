@@ -124,13 +124,13 @@ impl DexCommand for Kujira {
             // creating pool_id clones to avoid borrowing a partially moved value - didn't use .clone() on pool_id since
             // SeparateAddresses contains Addr values which doesn't have a Copy trait
             let pool_id_clone = PoolAddress::SeparateAddresses {
-                swap: deps.api.addr_validate(&fin_pair_address.to_string())?,
-                liquidity: deps.api.addr_validate(&bow_pair_address.to_string())?,
+                swap: deps.api.addr_validate(fin_pair_address.as_ref())?,
+                liquidity: deps.api.addr_validate(bow_pair_address.as_ref())?,
             };
 
             let pool_id_clone_2 = PoolAddress::SeparateAddresses {
-                swap: deps.api.addr_validate(&fin_pair_address.to_string())?,
-                liquidity: deps.api.addr_validate(&bow_pair_address.to_string())?,
+                swap: deps.api.addr_validate(fin_pair_address.as_ref())?,
+                liquidity: deps.api.addr_validate(bow_pair_address.as_ref())?,
             };
 
             // simulate swap to get the amount of ask asset we can provide after swapping
@@ -260,7 +260,7 @@ impl DexCommand for Kujira {
         };
 
         // execute msg
-        let msg = bow::market_maker::ExecuteMsg::Withdraw {};
+        let msg = bow::market_maker::ExecuteMsg::Withdraw { callback: None};
         let funds = vec![Coin::try_from(lp_token)?];
         let withdraw_msg = wasm_execute(bow_pair_address, &msg, funds)?.into();
         Ok(vec![withdraw_msg])

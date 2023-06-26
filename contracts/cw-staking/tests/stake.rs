@@ -12,7 +12,7 @@ use cw20_base::msg::QueryMsgFns;
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
 
-use abstract_staking_adapter_traits::query_responses::{
+use abstract_staking_adapter_traits::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
@@ -55,7 +55,7 @@ fn setup_mock() -> anyhow::Result<(
         .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
-    os.manager.install_module(CW_STAKING, &Empty {})?;
+    os.manager.install_module(CW_STAKING, &Empty {}, None)?;
     // load exchange data into type
     staking.set_address(&Addr::unchecked(
         os.manager.module_info(CW_STAKING)?.unwrap().address,
