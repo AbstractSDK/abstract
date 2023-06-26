@@ -1,6 +1,4 @@
-use crate::query_responses::{
-    RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
-};
+use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{CwStakingError, Identify};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::AnsHost;

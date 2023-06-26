@@ -12,7 +12,7 @@ use cw20_base::msg::QueryMsgFns;
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
 
-use abstract_staking_adapter_traits::query_responses::{
+use abstract_staking_adapter_traits::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};

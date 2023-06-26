@@ -1,8 +1,12 @@
 [package]
 name = "abstract-dex-adapter"
+description = "The DEX adapter is an Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
+
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
+license = { workspace = true }
+
 exclude = ["contract.wasm", "hash.txt"]
 resolver = "2"
 
@@ -92,3 +96,6 @@ dex = { path = ".", features = [
 ], package = "abstract-dex-adapter" }
 
 abstract-wyndex-adapter = { workspace = true, features = ["local"] }
+
+cw20 = { workspace = true, features=["interface"]}
+cw20-base = { workspace = true,  features=["interface"] }

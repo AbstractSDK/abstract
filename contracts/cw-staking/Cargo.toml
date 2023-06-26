@@ -1,9 +1,11 @@
 [package]
 name = "abstract-cw-staking"
-description = "Cw-staking is a Abstract adapter for staking tokens."
+description = "The Cw-staking tendermint adapter is an Abstract adapter for staking tokens."
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+license = { workspace = true }
+resolver = "2"
 publish = false
 
 exclude = [
@@ -91,3 +93,5 @@ cw-staking = { path = ".", features = [
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 wyndex-bundle = { workspace = true }
+cw20 = { workspace = true, features=["interface"]}
+cw20-base = { workspace = true,  features=["interface"] }
