@@ -1,6 +1,6 @@
 # Module Builder
 
-Abstract provides multiple module bases, as detailed in our section on [modules](../framework/module_types.md). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
+Abstract provides multiple module bases, as detailed in our section on [modules](../3_framework/7_module_types.md). These base implementation provide you with the minimal state and configuration required to start building your modular application. After setting up your module base from our template you'll probably want to customize it. Our module builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module, and those that others have built.
 
 ## Overview
 
@@ -69,7 +69,7 @@ The available handlers are:
 - `with_receive`: Called when the App's `ExecuteMsg::Receive` variant is called on the execute entry point.
 - `with_ibc_callbacks`: Called when the App's `ExecuteMsg::IbcCallback` is called on the execute entry point. Matches the callback's callback ID to its associated function.
 
-Below we detail each one more closely. The `base` fields and variants mentioned in the messages below are defined by [the base module type](../4_framework/7_module_types.md) that you chose to use. In this page we're working with an [`App`](../4_framework/7_module_types.md#apps).
+Below we detail each one more closely. The `base` fields and variants mentioned in the messages below are defined by [the base module type](../3_framework/7_module_types.md) that you chose to use. In this page we're working with an [`App`](../3_framework/7_module_types.md#apps).
 
 ### Instantiate
 

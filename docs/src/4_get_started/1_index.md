@@ -1,8 +1,8 @@
 # Abstract SDK - How to get started
 
-This tutorial will walk you through the process of setting up your development environment, creating an [app module](../4_framework/7_module_types.md#apps), and deploying your first app to our on-chain store with [cw-orchestator](https://github.com/AbstractSDK/cw-orchestrator).
+This tutorial will walk you through the process of setting up your development environment, creating an [app module](../3_framework/7_module_types.md#apps), and deploying your first app to our on-chain store with [cw-orchestator](https://github.com/AbstractSDK/cw-orchestrator).
 
-If you want to learn more about Abstract before writing code you can check out the [*About Abstract*](../4_framework/1_abstract_sdk.md) section of our documentation.
+If you want to learn more about Abstract before writing code you can check out the [*About Abstract*](../3_framework/1_abstract_sdk.md) section of our documentation.
 
 ## Prerequisites
 

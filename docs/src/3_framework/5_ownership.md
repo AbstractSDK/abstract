@@ -11,7 +11,7 @@ Visit our documentation to learn more about dApp ownership and sovereignty.
 
 ## Multi-signature
 
-Multi-signature ("multisig") governance is a governance structure that requires a subset of its members to approve an action before it can be executed. Though there are multiple implementations, Abstract uses the multisig module with the goal of providing the most flexible solution to users.
+Multi-signature ("multisig") governance is a governance structure that requires a subset of its members to approve an action before it can be executed. Though multiple implementations exist, Abstract uses a cw-3 multisig contract with the goal of providing the most flexible solution to users.
 
 Knowledge about a few terms is required to configure your multisig:
 

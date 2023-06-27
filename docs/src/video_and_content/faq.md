@@ -12,11 +12,11 @@ There are two faces to Abstract:
 
 3. **How can I get started with Abstract?**
 
-To get started with Abstract, check out [getting started](../get_started/index.md)! You will find comprehensive guides, tutorials, and resources to help you understand the platform's features and functionality. Additionally, you can join our [developer community on Discord](https://discord.gg/SKpcB6hb) to connect with like-minded developers and seek assistance if needed.
+To get started with Abstract, check out [getting started](../4_get_started/index.md)! You will find comprehensive guides, tutorials, and resources to help you understand the platform's features and functionality. Additionally, you can join our [developer community on Discord](https://discord.gg/SKpcB6hb) to connect with like-minded developers and seek assistance if needed.
 
 4. **Can I contribute to the Abstract ecosystem?**
 
-Absolutely! Abstract values community contributions and welcomes developers to contribute to the growth of CosmWasm. The best ways for you to contribute are by creating modules (see the [getting started docs](../get_started/index.md)), sharing your insights and knowledge, participating in discussions, and collaborating on some of our open-source projects. Check out the [Contributing page](../contributing.md) to learn more about how you can get involved.
+Absolutely! Abstract values community contributions and welcomes developers to contribute to the growth of CosmWasm. The best ways for you to contribute are by creating modules (see the [getting started docs](../4_get_started/index.md)), sharing your insights and knowledge, participating in discussions, and collaborating on some of our open-source projects. Check out the [Contributing page](../contributing.md) to learn more about how you can get involved.
 
 5. **How does Abstract ensure the security of financial applications?**
 

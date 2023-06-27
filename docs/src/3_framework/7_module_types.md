@@ -2,6 +2,10 @@
 
 Within Abstract, a _module_ is a contract that **adds functionality** to your Account. You can explore all the available modules on the modules tab of your Account through the [web-app](https://app.abstract.money/).
 
+```admonish info
+In the previous sections we referred to these modules as "applications". We did this to simplify the mental framework of the Abstract SDK. However, the term "application" is not entirely accurate, instead we should refer to them as "modules". These modules come in different types, each with their own purpose. The most common of which is the "App" module, or "Abstract App".
+```
+
 Modules are classified in the following categories:
 
 - **App**: modules that add an additional functionality, exposing new entry-points for you or your users

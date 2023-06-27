@@ -2,11 +2,11 @@
 
 The Abstract SDK is at the core of the Abstract development platform. It's a modular smart-contract framework designed to simplify and accelerate the development of CosmWasm dApps. It does this by prioritizing re-usability and composability through an account-abstraction oriented architecture.
 
-From a high-level perspective, smart-contracts built with abstract can use on-chain dependencies (other smart-contracts) to isolate specific functionalities. In this way a smart-contract built with the Abstract SDK can explicitly define its dependencies and use them to perform complex multi-contract interactions with very minimal code. This in turn allows you to focus on the novel functionality of your application without inheriting the complexity of the underlying infrastructure.
+From a high-level perspective, smart-contracts built with abstract can use on-chain dependencies (other smart-contracts) to isolate specific functionalities. In this way, a smart-contract built with the Abstract SDK can explicitly define its dependencies and use them to perform complex multi-contract interactions with very minimal code. This, in turn, allows you to focus on the novel functionality of your application without inheriting the complexity of the underlying infrastructure.
 
 ## Visual Example
 
-Visually this can be represented as an application, for example an `Autocompounder`, that has a dependency on one or multiple other smart-contracts. In this case a `Dex` and `Staking` module.
+Visually this can be represented as an application, for example an `Autocompounder`, that has a dependency on one or multiple other smart-contracts. In this case a `Dex` and `Staking` contract.
 
 ```mermaid
 flowchart LR
@@ -22,11 +22,12 @@ flowchart LR
     User[fa:fa-users Users]==>Autocompounder
 ```
 
-Each full arrow signifies execution permissions of the contract on the account. It allows the contract to move funds, interact with other contracts through the account and perform other actions. It does this by sending messages to the account, which then executes them on behalf of the contract. This is the basic idea behind account abstraction and is further elaborated in on the [account abstraction](./3_account_abstraction.md) page.
+Each solid-line arrow signifies execution permissions of the contract on the account. These permissions allow the contract to move funds, interact with other contracts through the account, and perform other actions. It does this by sending messages to the account, which then executes them on behalf of the contract. This is the basic idea behind account abstraction and is further elaborated in on the [account abstraction](./3_account_abstraction.md) page.
 
-Each dotted arrow indicates a dependency between the contracts. These dependencies are explicitly defined in the contract and are asserted at contract instantiation. In this example the autocompounder contract is able to access specific functionality (like swapping or staking assets) from its dependencies (the dex and staking contracts). Through this a major reduction in code complexity and size is achieved as otherwise every dex or yield provider would have to be integrated with the autocompounder contract itself.
+Each dotted arrow indicates a dependency between the contracts. These dependencies are explicitly defined in the contract and are asserted at contract instantiation. In this example the autocompounder contract is able to access specific functionality (like swapping or staking assets) from its dependencies (the dex and staking contract). Through this mechanism, a major reduction in the amount of code and its complexity is achieved, as otherwise every dex or yield provider would have to be integrated with the autocompounder contract itself.
 
-From a developer ecosystem standpoint this encourages collaboration and cross-team code re-use, a practice that has been proven to accelerate development and increase productivity. As the saying goes, a rising tide lifts all boats.
+From a developer ecosystem standpoint this encourages collaboration and cross-team code re-use, a practice that has been proven to accelerate development and increase developers' productivity.  
+As the saying goes, *a rising tide lifts all boats.*
 
 <!-- ## What Problem Does it Solve?
 

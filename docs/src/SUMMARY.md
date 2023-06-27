@@ -2,29 +2,16 @@
 
 [Introduction](./1_intro.md)
 
-# Build With Abstract
-
-- [Abstract Design Space](./2_introduction/1_design_space.md)
-- [Getting Started](./3_get_started/1_index.md)
-  - [Installation](./3_get_started/2_installation.md)
-  - [Module Builder](./3_get_started/3_module_builder.md)
-  - [Account Abstraction SDK](./3_get_started/4_sdk.md)
-  - [Module Dependencies]()
-  - [Account Creation](./3_get_started/5_account_creation.md)
-  - [Module Deployment](./3_get_started/6_module_deployment.md)
-  - [Best Practices]()
-  - [Quality Assurance]()
-
 # About Abstract
 
-- [Abstract SDK - Overview](./4_framework/1_abstract_sdk.md)
-  - [Actor Model](./4_framework/2_actor_model.md)
-  - [Account Abstraction](./4_framework/3_account_abstraction.md)
-  - [Architecture](./4_framework/4_architecture.md)
-  - [Account Ownership](./4_framework/5_ownership.md)
-  - [Modularity](./4_framework/6_modularity.md)
-    - [Module Types](./4_framework/7_module_types.md)
-  - [Upgradability](./4_framework/8_upgradability.md)
+- [Abstract SDK - Overview](./3_framework/1_abstract_sdk.md)
+  - [Actor Model](./3_framework/2_actor_model.md)
+  - [Account Abstraction](./3_framework/3_account_abstraction.md)
+  - [Architecture](./3_framework/4_architecture.md)
+  - [Account Ownership](./3_framework/5_ownership.md)
+  - [Modularity](./3_framework/6_modularity.md)
+    - [Module Types](./3_framework/7_module_types.md)
+  - [Upgradability](./3_framework/8_upgradability.md)
 
 - [Platform Details](./5_platform/index.md)
   - [Abstract Name Service](./5_platform/ans.md)
@@ -40,6 +27,20 @@
 		- [Set Owner]()
 		- [Upgrade Modules](./6_flows/manager/upgrade_modules.md)
 - [Interchain Abstract Accounts]()
+
+# Build With Abstract
+
+- [Abstract Design Space](./2_introduction/1_design_space.md)
+- [Getting Started](./4_get_started/1_index.md)
+  - [Installation](./4_get_started/2_installation.md)
+  - [Module Builder](./4_get_started/3_module_builder.md)
+  - [Account Abstraction SDK](./4_get_started/4_sdk.md)
+  - [Module Dependencies]()
+  - [Account Creation](./4_get_started/5_account_creation.md)
+  - [Module Deployment](./4_get_started/6_module_deployment.md)
+  - [Best Practices]()
+  - [Quality Assurance]()
+
 
 # Use Cases
 - [Use Cases](./7_use_cases/index.md)

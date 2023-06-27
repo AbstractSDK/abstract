@@ -1,41 +1,55 @@
-# The Abstract Development Platform
-
+<!-- # The Abstract Development Platform -->
 <!-- This page is a high-level overview of the Abstract Platform, not the SDK or any of our actual products. Hence we should stick to a vocabulary that is familiar to the reader. -->
-![SDK Background](./assets/docs_bg.png)
-
+![SDK Background](https://github.com/AbstractSDK/assets/blob/mainline/twitter_cover-1.png?raw=true)
+<!-- 
 <div align="center">
 
-### Welcome to Abstract, the interchain CosmWasm development platform. We are building tools and infrastructure for the next generation of smart-contract applications.
+### Welcome to Abstract, the interchain CosmWasm development platform. </br>We are building tools and infrastructure for composable smart-contract applications. 
 
-</div>
-
+</div> -->
 ## What Is The Abstract Platform?
 
-The Abstract platform is a combination of CosmWasm tooling, on-chain smart-contract infrastructure and front-end libraries. It's designed to be modular, allowing developers to choose the components they need to build their applications. While Abstract tries to simplify a lot of the development experience, it is inherently a power-tool, allowing you to get more done with less effort.
+The Abstract platform provides a combination of [CosmWasm][1]-oriented products.
+
+- On-chain smart-contract infrastructure ([Abstract SDK](#the-abstract-sdk))
+- Tooling ([cw-orchestrator](#cw-orchestrator))
+- Front-end libraries ([Abstract.js](#abstractjs))
+
+Our products are designed to be composable, allowing developers to re-use the components they need to build their applications. While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate with less effort.
+
+```admonish info
+In this page you are introduced to the Abstract platform and its components. You can skip the introduction and go straight to the [Getting Started](./4_get_started/1_index.md) guide if you're already familiar with the platform.
+```
 
 ### The Abstract SDK
 
-The Abstract SDK is a modular smart-contract framework designed to enhance the development of CosmWasm dApps. It's built on top of CosmWasm; a battle-tested WASM-based smart-contract framework, written in Rust.
+The Abstract SDK is a modular smart-contract framework designed to enhance the development of decentralized applications. The SDK is built on top of [CosmWasm][1]: a battle-tested WASM-based smart-contract framework, written in [Rust][2]. The Abstract SDK is comprised of two main components:
 
-Here's a small snippet of code to give you an idea of what using the Abstract SDK looks like:
+#### Abstract Accounts
+
+An Abstract Account is a smart-contract wallet developed by Abstract. That means that the smart-contract is capable of holding tokens and interacting with other smart-contracts. The contract's ownership structure is customizable to fit the needs of users or applications. It is designed to be highly programmable, allowing developers to build and distribute complex applications on top of it.
+
+#### Abstract Apps
+
+Abstract Apps are smart-contracts that add functionality to an Abstract Account. Here's a small snippet of code to give you an idea of how an App is created with the Abstract SDK:
 
 ```rust,no_run
 {{#include ../../packages/abstract-app/examples/counter.rs:handlers}}
 ```
 
-The code above defines an **Abstract App**. Abstract apps are the bread and butter of our platform. They are smart-contracts that can be installed on an Abstract Account and interact with it using the [`abstract-sdk`](./3_get_started/4_sdk.md), our account-abstraction toolbox.
+The code above defines an **Abstract App**. This app can be installed on any Abstract Account through the Abstract App store, allowing developers to monetize their code.
 
-The app is distributed to Abstract users through the Abstract App store, allowing other users to install the app on their account(s).
+The customizable handlers that are used in the builder are functions similar to the native CosmWasm entry-point functions. They expose an additional App object which, via the `abstract-sdk`, empowers you to execute intricate multi-contract transactions with minimum code. Importantly, this simplification does not limit the contract's programmability. Instead, it provides a balance of efficient coding and comprehensive control over inter-contract interactions.
 
-The customizable handlers allow for full developer freedom and have an App object available within them. This object is highly programmable through the [abstract-sdk](./get_started/sdk.md). In a nutshell it allows you to perform complex multi-contract interactions with very minimal code while not compromising on the contract's programmability in any way.
-
-> Looking to get started? Check out the [Getting Started](./3_get_started/1_index.md) guide.
+```admonish info
+Already familiar with [cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator)? Skip to [the SDK's introduction page.](./3_framework/1_abstract_sdk.md)
+```
 
 ### Cw-Orchestrator
 
-[cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is a smart-contract scripting library that allows you to re-use code for use in testing and deployments. It is also our primary tool for making Abstract's infrastructure highly available allowing us to make developing with Abstract a pleasant experience.
+[cw-orchestrator](https://github.com/AbstractSDK/cw-orchestrator) is a smart-contract scripting library that simplifies smart-contract interactions. It allows you to re-use code between testing and deployments and acts as our primary tool in making Abstract's infrastructure highly available.
 
-Here's a snippet that sets up the complete Abstract framework on a cw-multi-test environment and deploys the previously shown App contract to the framework.
+Here's a snippet that sets up the **complete Abstract SDK framework** on a cw-multi-test environment, and deploys the previously shown App contract to the framework.
 
 ```rust,no_run
 // Create a sender and instantiate the mock environment
@@ -65,11 +79,14 @@ abstr_deployment
 contract.deploy(APP_VERSION.parse()?)?;
 ```
 
-Using cw-orchestrator for your testing and deployment needs reduces your testing setup and complexity and improves both the code's readability and maintainability. Because of its design it allows us to share our contracts with any developer that wants to use them with a few lines of code. This greatly reduces the friction of using our code and it allows you to provide the same experience to developers that might want to use your code, giving you an edge over other options.
+Using cw-orchestrator for your smart-contract interactions reduces your testing/deployment overhead and improves both the code's readability and maintainability.
 
 ## Abstract.js
 
-Abstract.js is the Javascript package for interacting with the on-chain Abstract framework.
+Abstract.js is the Javascript package for interacting with the on-chain Abstract framework. More documentation will be added soon.
+
+[1]: https://cosmwasm.com/
+[2]: https://www.rust-lang.org/
 
 <!-- ## Features
 
