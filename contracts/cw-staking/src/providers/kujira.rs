@@ -10,12 +10,10 @@ pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::KUJIRA;
 
 // TODO: use optional values here?
 #[derive(Clone, Debug)]
+#[cfg_attr(not(feature = "kujira"), allow(unused))]
 pub struct Kujira {
-    #[allow(unused)]
     lp_token: LpToken,
-    #[allow(unused)]
     lp_token_denom: String,
-    #[allow(unused)]
     staking_contract_address: Addr,
 }
 
