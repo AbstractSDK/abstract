@@ -1,11 +1,11 @@
 //! Deploys the module to the Abstract platform by uploading it and registering it on the version control contract.
-//! 
+//!
 //! This should be used for mainnet/testnet deployments in combination with our front-end at https://app.abstract.money
 //!
 //! **Requires you to have an account and namespace registered**
-//! 
+//!
 //! The mnemonic used to register the module must be the same as the owner of the account that claimed the namespace.
-//! 
+//!
 //! Read our docs to learn how: https://docs.abstract.money/4_get_started/5_account_creation.html
 //!
 //! ## Example
@@ -14,17 +14,17 @@
 //! $ just deploy uni-6 osmo-test-5
 //! ```
 
+use abstract_interface::AppDeployer;
+use app::{
+    contract::{APP_ID, APP_VERSION},
+    AppInterface,
+};
 use clap::Parser;
 use cw_orch::{
     anyhow,
     daemon::ChainInfo,
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
-};
-use abstract_interface::AppDeployer;
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    AppInterface,
 };
 use semver::Version;
 
@@ -41,7 +41,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let app = AppInterface::new(APP_ID, chain);
         app.deploy(version)?;
 
-        // Create an account on our front-end to install the module! 
+        // Create an account on our front-end to install the module!
         // https://app.abstract.money
     }
     Ok(())
