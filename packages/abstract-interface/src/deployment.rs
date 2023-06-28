@@ -118,8 +118,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
         let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
-            get_native_contracts(chain.clone());
-        let (manager, proxy) = get_account_contracts(chain, None);
+            get_native_contracts(chain);
+        let (manager, proxy) = get_account_contracts(&version_control, None);
         Self {
             account: AbstractAccount { manager, proxy },
             ans_host,

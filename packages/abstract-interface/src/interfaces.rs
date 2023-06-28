@@ -3,6 +3,7 @@ use abstract_core::{
     objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
+
 use cw_orch::prelude::*;
 
 #[allow(clippy::type_complexity)]
@@ -33,14 +34,14 @@ where
 }
 
 pub fn get_account_contracts<Chain: CwEnv>(
-    chain: Chain,
+    version_control: &VersionControl<Chain>,
     account_id: Option<AccountId>,
 ) -> (Manager<Chain>, Proxy<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
+    let chain = version_control.get_chain().clone();
     if let Some(account_id) = account_id {
-        let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let account_base = version_control.get_account(account_id).unwrap();
         chain.state().set_address(MANAGER, &account_base.manager);
         chain.state().set_address(PROXY, &account_base.proxy);

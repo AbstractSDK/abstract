@@ -155,7 +155,7 @@ fn create_two_account_s() -> AResult {
 fn sender_is_not_admin_monarchy() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain, Empty {})?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -173,7 +173,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 
     let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
-    let account_1 = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
+    let account_1 = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
     assert_that!(AccountBase {
         manager: account_1.manager.address()?,
         proxy: account_1.proxy.address()?,
@@ -202,7 +202,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
 fn sender_is_not_admin_external() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain, Empty {})?;
 
     let factory = &deployment.account_factory;
     let version_control = &deployment.version_control;
@@ -216,7 +216,7 @@ fn sender_is_not_admin_external() -> AResult {
         Some(String::from("http://account_link_of_at_least_11_char")),
     )?;
 
-    let account = AbstractAccount::new(chain, Some(TEST_ACCOUNT_ID));
+    let account = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {

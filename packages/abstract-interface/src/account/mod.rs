@@ -45,8 +45,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 }
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
-    pub fn new(chain: Chain, account_id: Option<AccountId>) -> Self {
-        let (manager, proxy) = get_account_contracts(chain, account_id);
+    pub fn new(abs: &Abstract<Chain>, account_id: Option<AccountId>) -> Self {
+        let (manager, proxy) = get_account_contracts(&abs.version_control, account_id);
         Self { manager, proxy }
     }
 
