@@ -1,6 +1,12 @@
 //! Deploys the module to the Abstract platform by uploading it and registering it on the version control contract.
+//! 
+//! This should be used for mainnet/testnet deployments in combination with our front-end at https://app.abstract.money
 //!
-//! **Requires you to have the namespace registered**
+//! **Requires you to have an account and namespace registered**
+//! 
+//! The mnemonic used to register the module must be the same as the owner of the account that claimed the namespace.
+//! 
+//! Read our docs to learn how: https://docs.abstract.money/4_get_started/5_account_creation.html
 //!
 //! ## Example
 //!
@@ -22,7 +28,7 @@ use app::{
 };
 use semver::Version;
 
-fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // run for each requested network
     for network in networks {
         let version: Version = APP_VERSION.parse().unwrap();
@@ -34,6 +40,9 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let app = AppInterface::new(APP_ID, chain);
         app.deploy(version)?;
+
+        // Create an account on our front-end to install the module! 
+        // https://app.abstract.money
     }
     Ok(())
 }
@@ -51,5 +60,5 @@ fn main() {
     env_logger::init();
     let args = Arguments::parse();
     let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
-    full_deploy(networks).unwrap();
+    deploy(networks).unwrap();
 }
