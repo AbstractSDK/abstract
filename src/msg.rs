@@ -12,7 +12,7 @@ use crate::contract::App;
 
 // impl app::AppExecuteMsg for AppExecuteMsg {}
 // impl app::AppQueryMsg for AppQueryMsg {}
-abstract_app::app_messages!(App, AppExecuteMsg, AppQueryMsg);
+abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]

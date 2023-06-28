@@ -1,5 +1,5 @@
 use app::contract::APP_ID;
-use app::App;
+use app::AppInterface;
 
 use cw_orch::prelude::*;
 
@@ -14,7 +14,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = App::new(APP_ID, mock);
-
+    let contract = AppInterface::new(APP_ID, mock);
+    // Panics if no path to a .wasm file is found
     contract.wasm();
 }
