@@ -38,9 +38,9 @@ fn main() -> anyhow::Result<()> {
         .handle(runtime.handle())
         .build()
         .unwrap();
-
+    // Deploy abstract locally
     let abstract_deployment = Abstract::deploy_on(daemon.clone(), Empty {})?;
-
+    
     let app = AppInterface::new(APP_ID, daemon.clone());
 
     // Create account
