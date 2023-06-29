@@ -14,8 +14,7 @@ use cw_orch::{
     prelude::{networks::LOCAL_JUNO, ContractInstance, Daemon, TxHandler},
     tokio::runtime::Runtime,
 };
-
-use abstract_interface::{Abstract, AppDeployer, ManagerQueryFns, VCExecFns};
+use abstract_interface::{Abstract, AppDeployer, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::AppInstantiateMsg,
@@ -52,9 +51,8 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     // Claim namespace
-    let account_config = account.manager.config()?;
     abstract_deployment.version_control.claim_namespaces(
-        account_config.account_id.u64() as u32,
+        account.id()?,
         vec!["my-namespace".to_owned()],
     )?;
 
