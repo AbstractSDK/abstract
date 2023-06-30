@@ -5,6 +5,7 @@ use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
 use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+use crate::exchanges::kujira::{Kujira, KUJIRA};
 use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
 use abstract_astroport_adapter::{dex::Astroport, ASTROPORT};
 use abstract_osmosis_adapter::{dex::Osmosis, OSMOSIS};
@@ -17,6 +18,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         OSMOSIS => Ok(Box::<Osmosis>::default()),
         TERRASWAP => Ok(Box::<Terraswap>::default()),
         ASTROPORT => Ok(Box::<Astroport>::default()),
+        KUJIRA => Ok(Box::<Kujira>::default()),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -35,6 +37,8 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         TERRASWAP => Ok(&Terraswap {}),
         #[cfg(feature = "terra")]
         ASTROPORT => Ok(&Astroport {}),
+        #[cfg(feature = "kujira")]
+        KUJIRA => Ok(&Kujira {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }

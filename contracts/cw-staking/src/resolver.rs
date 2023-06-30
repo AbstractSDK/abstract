@@ -8,6 +8,7 @@ use crate::contract::StakingResult;
 
 use abstract_staking_adapter_traits::Identify;
 
+use crate::providers::kujira::{Kujira, KUJIRA};
 use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
 use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
@@ -17,6 +18,7 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         WYNDEX => Ok(Box::<WynDex>::default()),
         ASTROPORT => Ok(Box::<Astroport>::default()),
         OSMOSIS => Ok(Box::<Osmosis>::default()),
+        KUJIRA => Ok(Box::<Kujira>::default()),
         _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
 }
@@ -32,6 +34,8 @@ pub(crate) fn resolve_local_provider(
         OSMOSIS => Ok(Box::<Osmosis>::default()),
         #[cfg(feature = "terra")]
         ASTROPORT => Ok(Box::<Astroport>::default()),
+        #[cfg(feature = "kujira")]
+        KUJIRA => Ok(Box::<Kujira>::default()),
         _ => Err(CwStakingError::ForeignDex(name.to_owned())),
     }
 }
