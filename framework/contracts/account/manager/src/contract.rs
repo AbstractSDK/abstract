@@ -6,7 +6,6 @@ use crate::{
     validation::{validate_description, validate_link, validate_name},
     versioning,
 };
-
 use abstract_sdk::core::{
     manager::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
