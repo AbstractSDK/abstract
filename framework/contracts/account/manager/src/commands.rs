@@ -27,7 +27,6 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
-
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
