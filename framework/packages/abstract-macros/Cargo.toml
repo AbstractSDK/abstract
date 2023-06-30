@@ -1,0 +1,23 @@
+[package]
+name = "abstract-macros"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Macros for Abstract SDK"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/contracts/tree/main/packages/abstract-macros"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1"
+syn = { version = "1", features = ["full", "extra-traits"] }
+
+[dev-dependencies]
+cosmwasm-std = { workspace = true }
+speculoos = { workspace = true }

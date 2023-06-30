@@ -1,0 +1,55 @@
+[package]
+name = "abstract-module-factory"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "Abstract Module Factory Contract"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/contracts"
+
+
+exclude = ["contract.wasm", "hash.txt"]
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["export"]
+export = []
+# for quicker tests, cargo test --lib
+
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cw-controllers = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+cw2 = { workspace = true }
+thiserror = { workspace = true }
+semver = { workspace = true }
+protobuf = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-core = { workspace = true }
+abstract-macros = { workspace = true }
+cw-asset = { workspace = true }
+cw-ownable = { workspace = true }
+
+[dev-dependencies]
+abstract-interface = { workspace = true }
+cw-orch = { workspace = true }
+anyhow = { workspace = true }
+speculoos = { workspace = true }
+abstract-testing = { workspace = true }
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false

@@ -1,0 +1,34 @@
+[package]
+name = "abstract-ibc-host"
+version = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+description = "base ibc-host contract implementation"
+
+
+# [lib]
+# crate-type = ["cdylib", "rlib"]
+
+
+[features]
+
+# # use library feature to disable all instantiate/execute/query exports
+default = ["export"]
+export = []
+schema = []
+
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["ibc3", "stargate"] }
+cosmwasm-schema = { workspace = true }
+cw-utils = { workspace = true }
+cw1-whitelist = { version = "1.0.1", features = ["library"] }
+cw-storage-plus = { workspace = true }
+serde = { workspace = true }
+schemars = { workspace = true }
+cw-controllers = { workspace = true }
+thiserror = { workspace = true }
+cw2 = { workspace = true }
+semver = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-core = { workspace = true }

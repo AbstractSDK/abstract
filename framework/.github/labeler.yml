@@ -1,0 +1,32 @@
+# Note that any updates to this files will not be applied in CI
+# until this file is merged into main. This is due to oddities of the labeller Github Action.
+"account":
+  # Match all of account folders
+  - contracts/account/**/*
+"native":
+  # Match all of native folders
+  - contracts/native/**/*
+"breaking?":
+  # Match all of abstract_core folders
+  - packages/abstract_core/**/*
+"sdk":
+  # Match all of sdk folders
+  - packages/abstract-sdk/**/*
+"adapter_base":
+  # Match all of adapter base folders
+  - packages/abstract-adapter/**/*
+"app_base":
+  # Match all of app base folders
+  - packages/abstract-app/**/*
+"build":
+  - build_release.sh
+"CI":
+  - .github/**/*.yml
+# Add "C:documentation" label to documented related files and directories. 
+"documentation":
+  - README.md
+  - contracts/**/*.md
+  - contracts/**/*/*.md
+  - docs/src/**/*
+"interface":
+  - packages/abstract-interface/**/*

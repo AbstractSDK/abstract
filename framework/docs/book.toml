@@ -1,0 +1,33 @@
+[book]
+authors = ["cyberhoward"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Abstract Development Platform"
+
+
+[build]
+create-missing = false
+
+[preprocessor]
+
+[preprocessor.admonish]
+command = "mdbook-admonish"
+assets_version = "2.0.1"    # do not edit: managed by `mdbook-admonish install`
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[output]
+
+[output.html]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+additional-css = ["./mdbook-admonish.css"]
+default-theme = "light"
+preferred-dark-theme = "navy"
+curly-quotes = true
+git-repository-url = "https://github.com/AbstractSDK/contracts"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/AbstractSDK/contracts/edit/main/docs/{path}"
+
+# [output.linkcheck]

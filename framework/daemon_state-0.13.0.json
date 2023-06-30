@@ -1,0 +1,22 @@
+{
+  "juno": {
+    "uni-6": {
+      "code_ids": {
+        "abstract:account-factory": 1283,
+        "abstract:ans-host": 1277,
+        "abstract:manager": 1281,
+        "abstract:module-factory": 1280,
+        "abstract:proxy": 1282,
+        "abstract:version-control": 1278
+      },
+      "default": {
+        "abstract:account-factory": "juno1hnnnyd22amwkuynutnamp9k54x3tmsddz5dzl5uu9hdstlt7ctusfprdnj",
+        "abstract:ans-host": "juno1m5adkdxqvfxn8e7crk6t2uq533wture8sypuse4y4nmynyztv0tqtqefe9",
+        "abstract:manager": "juno1hnj7n00zj74trts8yrdtnvtzythvpaelg335xj8vcz69ptjfnmaq7s2h5s",
+        "abstract:module-factory": "juno1fq9p507k446jz9m4repnpsj9ujzlk2e5wrpp8artckv6jpqsqltsjumvu7",
+        "abstract:proxy": "juno1zxt6rhs0f806tkhj60rf7rank2qm4lvtehx3fzq7zkwkdr393xyq77rr6e",
+        "abstract:version-control": "juno1tvzengaqjx9rzvvpnmp3s0m74dl655ydpq2kgea7m76shj3n0d9qzkxgcn"
+      }
+    }
+  }
+}

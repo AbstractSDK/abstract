@@ -1,0 +1,171 @@
+{
+  "juno": {
+    "juno-1": {
+      "addresses": {
+        "abstract:ans_host": "juno1t799uvztv2cqngk2w47zd6g20d62fcgznjftyu3f7vxdc2pnq39q88a9uh",
+        "abstract:dex": "juno16ws0uknmxwl86c2a2x6hsf6vcg4gdzn5g4az05h5qjcx87kqwmfswnjvvv",
+        "abstract:idea": "juno1xmszc4u9f7hgghcmf0lgkjyq9j22zqpyqqeu4fa7jda2eyfnc2uqq925gk",
+        "abstract:manager": "juno1hnn6mu6tp9qzura99m286jdpqgkv0jucdkmkznjnwu8v4lx859nql5nu2y",
+        "abstract:module_factory": "juno13hqga309sp2e3ffhqkk5s4py8h9zf42kl0srgxcxqyv8y6azqmgs3c5dwh",
+        "abstract:os_factory": "juno1qfx94jjjuagkx0n8yc9q69035nnjck6t579mnacgy2tfkwr30r2s6q5qmt",
+        "abstract:proxy": "juno18cuhhmyghl0juhrhlnnca2d23mnxykd52v6ds06ew4hdvmtfj40qlgtqjn",
+        "abstract:subscription": "juno1afuwke6dq62t4km2t80kt36ep5gnza5xtgkfzzzzq2k0h6zz258qpxtw76",
+        "abstract:tendermint_staking": "juno1l4tcujd4cruakjg5g4ekywcxfp02cula9fx7vmcm6r87srngkfuqz4uhfa",
+        "abstract:version_control": "juno18jmslrz9qhwg3p6wnchrtjldw9c5ut5leuz5pzg8lrdd8nmxn4gqgpk6d2"
+      },
+      "code_ids": {
+        "abstract:account-factory": 3142,
+        "abstract:ans-host": 3140,
+        "abstract:ans_host": 862,
+        "abstract:cw20_vesting": 873,
+        "abstract:dex": 898,
+        "abstract:etf": 894,
+        "abstract:idea": 870,
+        "abstract:manager": 3144,
+        "abstract:module-factory": 3143,
+        "abstract:module_factory": 865,
+        "abstract:os_factory": 864,
+        "abstract:proxy": 3145,
+        "abstract:subscription": 869,
+        "abstract:tendermint_staking": 872,
+        "abstract:version-control": 3141,
+        "abstract:version_control": 863
+      },
+      "default": {
+        "abstract:account-factory": "juno1a3tm95jgmzu7czhxtlekxspkwy9g5tdcq697fffxp33yd6dt2dasdmwaal",
+        "abstract:ans-host": "juno13q8rv8w9ew5cn6wecr2p4scegzu9nac0hv2dx807l4vz60h0ldns0ksvz0",
+        "abstract:manager": "juno1js0fg2klnymlfwdxh2grev96y2ededaukcgdathzpa8pd86uzrcskzgczu",
+        "abstract:module-factory": "juno15k3xrd2khsdwpt9g9eyqjf7m73qaenp5rlvmurzjmy6mslgs0vdqfd9fuq",
+        "abstract:proxy": "juno1tlm9r3wmmyej7242ggdscvnh5l62658klxfsg7lece5phhl74m6svzr57t",
+        "abstract:version-control": "juno1cvalgwsv967uxgjkckuuy9v3gtf5wjtys00s2znjw6tdypwzt4dq60fd35"
+      }
+    },
+    "uni-5": {
+      "code_ids": {
+        "abstract:ans_host": 4022,
+        "abstract:dex": 4067,
+        "abstract:manager": 4026,
+        "abstract:module_factory": 4025,
+        "abstract:os_factory": 4024,
+        "abstract:proxy": 4028,
+        "abstract:version_control": 4023
+      },
+      "default": {
+        "abstract:ans_host": "juno1qyetxuhvmpgan5qyjq3julmzz9g3rhn3jfp2jlgy29ftjknv0c6s0xywpp",
+        "abstract:dex": "juno1gsdv3m6czzurqqfvah4ejvwnhxaq3rk7u9zwmxqpq25vslutgl9qsh6dlg",
+        "abstract:module_factory": "juno1vl4dqk6he88ygxmdxl5nl5q9jdpcu858ygfdkwds38ucntzvacaqgnyr0t",
+        "abstract:os_factory": "juno1fzelxmlq5sma803g089w3909m697uj8fxrd667lxdulgjjx6fsrsml5mk7",
+        "abstract:version_control": "juno1q8tuzav8y6aawhc4sddqnwj6q4gdvn7lyk3m9ks4uw69xp37j83ql3ck2q"
+      }
+    },
+    "uni-6": {
+      "code_ids": {
+        "abstract:account-factory": 2423,
+        "abstract:ans-host": 2421,
+        "abstract:manager": 2425,
+        "abstract:module-factory": 2424,
+        "abstract:proxy": 2426,
+        "abstract:version-control": 2422
+      },
+      "default": {
+        "abstract:account-factory": "juno12dn49n6ryewetduldj4hhe43ulp2s86e8d5wz4l0arglaa7mjs4qvkjk5s",
+        "abstract:ans-host": "juno1s6wlpd3el2wxl57h7ufmavh5m7c42dt56h8wlgg4633wu90ke5js7cv2c9",
+        "abstract:manager": "juno1kx835z2kym2s65spfhvkrpa736wc87rh7tqk46z0w23c8qx8nepqe09j6u",
+        "abstract:module-factory": "juno1hvddmkal6agqt042ence068hqstgu0npf2u2qc0q208rvnur7u5qjg69pm",
+        "abstract:proxy": "juno1th2vsfq69guwrnznvxvlve8cv5224e2406dvk7tsu6qllslkxf2qazz3st",
+        "abstract:version-control": "juno1hpyst0vwll0mwukguwsv8vgu8sc9q9a6enyr6anhptxkhahuqxsqkpqwpd"
+      }
+    }
+  },
+  "neutron": {
+    "test-1": {
+      "code_ids": {
+        "abstract:account-factory": 64,
+        "abstract:ans-host": 62,
+        "abstract:manager": 66,
+        "abstract:module-factory": 65,
+        "abstract:proxy": 67,
+        "abstract:version-control": 63
+      },
+      "default": {
+        "abstract:account-factory": "neutron1lkmgx2r062ky63dtdywcvfjvj52fj4cvhj5zy3kamert3mwrahxq2e7uav",
+        "abstract:ans-host": "neutron1aamj4mq0ny2xctsrze4870xk7ka4tw33h8vte439much7d0uwmzq2xklu4",
+        "abstract:manager": "neutron1zdp2fk6xr90p5e5qvlwmyvct4j4yreys8vmfhqadr5hnh8nh4nhs47tqdx",
+        "abstract:module-factory": "neutron1vk7dtp3y652uhq0hympe0z06ryvz5th95jwngka75nngncq8thhssj86cp",
+        "abstract:proxy": "neutron19nkzdrq94w7enjpr295rkvhsk685mzq34ax5c7y9u88eg8k25uwqf5dthu",
+        "abstract:version-control": "neutron14ry36mwauycz08v8ndcujghxz4hmua5epxcn0mamlr3suqe0l2qs3w0a0v"
+      }
+    }
+  },
+  "osmosis": {
+    "osmo-test-4": {
+      "code_ids": {
+        "abstract:ans-host": 3357,
+        "abstract:cw1_proxy": 3048,
+        "abstract:osmosis_host": 3395
+      },
+      "default": {
+        "abstract:ans-host": "osmo1jn49qkanxfwfwhsrdxqh0yneqfs4uhudk8n066fjrleer5ueg9dsyhkse4",
+        "abstract:osmosis_host": "osmo1fct9ha4stcjysk0e89kfzmg4f9nva9jgpa60lh9mmjshtdgu5tuqkp9vtg"
+      }
+    }
+  },
+  "terra": {
+    "pisco-1": {
+      "code_ids": {
+        "abstract:account-factory": 9181,
+        "abstract:ans-host": 9179,
+        "abstract:manager": 9184,
+        "abstract:module-factory": 9182,
+        "abstract:proxy": 9185,
+        "abstract:version-control": 9180
+      },
+      "default": {
+        "abstract:account-factory": "terra1sjfs2setl7haag3yz4uenpk053z560tgz47cu96q2tga0jvdkj4srx0umj",
+        "abstract:ans-host": "terra1s2uxqa2z3vsns2nllwfd25hkyxmcerjm64nhnn6hmp6nfrut5x3qrc965d",
+        "abstract:manager": "terra1g2r04aac6cuasvsq5hsj776k0a2z7gz4hh3apn952s9sf0gnq92q0qalta",
+        "abstract:module-factory": "terra1emqlg70t4j3h69a7g92sa2fq8pxfxnpns00gskhjxp3n4j7mmaasf872vz",
+        "abstract:proxy": "terra1kvtzhh2kmyy6fk5pfs74dujkzlxhxwqw9zslgf87dl6w5dsyzxeqlm8tyt",
+        "abstract:version-control": "terra1eh57ez78tqrf8zhg2926av346hezerrru285grupy72370jqpu9q9dtkjt"
+      }
+    }
+  },
+  "terra2": {
+    "phoenix-1": {
+      "code_ids": {
+        "abstract:account-factory": 1607,
+        "abstract:ans-host": 1605,
+        "abstract:manager": 1609,
+        "abstract:module-factory": 1608,
+        "abstract:proxy": 1610,
+        "abstract:version-control": 1606
+      },
+      "default": {
+        "abstract:account-factory": "terra1rlqddkl2nzdsu4uw4jukwrwwdzm7rdqgvvs89ycjudpedulwke9qcrv89j",
+        "abstract:ans-host": "terra139q4v8k2n5anhp97ytrjegzte8yp9eh27dvctm4lssvwzlf74vas089unz",
+        "abstract:manager": "terra1vw7mu95z2nup75rtqncyfwxgqqe7egt9yaemeh6s4qs8vhxt4ywqn2k707",
+        "abstract:module-factory": "terra16ts8m2anhvuyah62c8qg6memtmhu77e25mgu395m3huhlaj52yaqjp7f34",
+        "abstract:proxy": "terra1vh76tjpw34xj86cfxw2x4u6p0dq7vgwu7l4c2jqqeg3whqjz07xqnaprgl",
+        "abstract:version-control": "terra16y4885pv9j2nmjp5dtejepfr6jse87j0gd5x2ftd3ly49jw2289sefhx3d"
+      }
+    },
+    "pisco-1": {
+      "code_ids": {
+        "abstract:account-factory": 9246,
+        "abstract:ans-host": 9244,
+        "abstract:manager": 9248,
+        "abstract:module-factory": 9247,
+        "abstract:proxy": 9249,
+        "abstract:version-control": 9245
+      },
+      "default": {
+        "abstract:account-factory": "terra1mjhjw0p59pvux5p2ff3gfjcqax6fmd08xgcwk2xaajh85egkru8qqwce3c",
+        "abstract:ans-host": "terra1fyxm72rflgdlnx529kngs2mnwmgg546akzzxqtjtecpkncfu3s7qmhkxn7",
+        "abstract:manager": "terra15n4702l4zrgy9f9e5tys5vq9utxksqmeyw7hk7qpjw6r3femc9ysgfelns",
+        "abstract:module-factory": "terra1au2yzn8xxan46h0akrhgk3eclx8mpvgvmuzrtzs7l3tg0rf5u6lql6dvg7",
+        "abstract:proxy": "terra1yfw703xudmhh45wmuvushsm955t4gfpvkj8kgsf20pw4u780aj4qhw6xgf",
+        "abstract:version-control": "terra1ftn53dmf8f493jnqu6lffcxe2ts8574y6k5t6fpx089vq2jytaxq6yws0x"
+      }
+    }
+  }
+}
