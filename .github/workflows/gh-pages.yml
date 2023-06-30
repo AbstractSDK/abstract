@@ -45,7 +45,6 @@ jobs:
         run: just docs-build
 
       - name: Upload artifact
-        working-directory: ./framework
         if: ${{ github.event_name != 'pull_request' }}
         uses: actions/upload-pages-artifact@v1
         with:

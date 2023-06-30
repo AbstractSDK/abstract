@@ -33,7 +33,6 @@ jobs:
           cosmwasm/workspace-optimizer:0.12.13
           tar -zcvf cosmwasm-artifacts.tar.gz artifacts
       - name: Create Release
-        working-directory: ./framework
         uses: softprops/action-gh-release@v1
         with:
           files: |
