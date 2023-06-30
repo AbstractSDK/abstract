@@ -1,0 +1,10 @@
+/target
+
+Cargo.lock
+
+.env
+
+.vscode
+.idea
+
+typescript/node_modules

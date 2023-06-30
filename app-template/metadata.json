@@ -1,0 +1,9 @@
+{
+  "name": "App",
+  "description": "App description.",
+  "website": "",
+  "docs": "",
+  "type": "api",
+  "icon": "GiTrade",
+  "enabled": true
+}
