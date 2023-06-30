@@ -12,7 +12,7 @@
 The Abstract platform provides a combination of [CosmWasm][1]-oriented products.
 
 - On-chain smart-contract infrastructure ([Abstract SDK](#the-abstract-sdk))
-- Tooling ([cw-orchestrator](#cw-orchestrator))
+- Development tooling ([cw-orchestrator](#cw-orchestrator))
 - Front-end libraries ([Abstract.js](#abstractjs))
 
 Our products are designed to be composable, allowing developers to re-use the components they need to build their applications. While Abstract aims to simplify the development experience, it functions as a powerful tool, enabling you to innovate with less effort.

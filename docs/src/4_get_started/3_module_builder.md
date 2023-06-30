@@ -6,7 +6,9 @@ Abstract provides multiple module bases, as detailed in our section on [modules]
 
 The builder pattern employed in building an Abstract module is a slight variation of the actual design pattern. Instead, the module builder lets you set custom entry point handlers at compile time, meaning you end up with a `const` value that is heavily optimized by the compiler. This ensures that the overhead of using Abstract has a negatable effect on both the code's runtime and WASM binary size.
 
-The code-snippets in this example 
+```admonish info
+The code-snippets in this example can be found in the [counter app example](https://github.com/AbstractSDK/contracts/blob/main/packages/abstract-app/examples/counter.rs).
+```
 
 ### App Type
 
@@ -75,6 +77,8 @@ Below we detail each one more closely. The `base` fields and variants mentioned 
 
 The instantiate entry point is a mutable entry point of the contract that can only be called on contract instantiation. Instantiation of a contract is essentially the association of a public address to a contract's state.
 
+<details>
+
 #### Function Signature
 
 Expected function signature for the custom instantiate handler:
@@ -92,10 +96,13 @@ In order to instantiate an Abstract Module, you need to provide an InstantiateMs
 ```
 
 When the module's instantiate function is called the struct's `module` field is passed to your custom instantiation handler for you to perform any custom logic.
+</details>
 
 ### Execute
 
 The execute entry point is a mutable entry point of the contract. Logic in this function can update the contract's state and trigger state changes in other contracts by calling them. It is where the majority of your contract's logic will reside.
+
+<details>
 
 #### Function Signature
 
@@ -114,10 +121,13 @@ Called when the App's `ExecuteMsg::Module` variant is called on the execute entr
 ```
 
 The content of the `Module` variant is passed to your custom execute handler.
+</details>
 
 ### Query
 
 The query entry point is the non-mutable entry point of the contract. Like its name implies it it used to retrieve data from the contract's state. This state retrieval can have a computation component but it can not alter the contract's or any other state.
+
+<details>
 
 #### Function Signature
 
@@ -136,10 +146,13 @@ Called when the App's `QueryMsg::Module` variant is called on the query entry po
 ```
 
 The content of the `Module` variant is passed to your custom query handler.
+</details>
 
 ### Migrate
 
 The migrate entry point is a mutable entry point that is called **after** a code_id change is applied to the contract. A migration in CosmWasm essentially swaps out the code that's executed at the contract's address while keeping the state as-is. The implementation of this function is often used to change the format of the contract's state by loading the data as the original format and overwriting it with a new format. All adapter base implementations already perform version assertions that make it impossible to migrate to a contract with a different ID or with a version that is lesser or equal to the old version.
+
+<details>
 
 #### Function Signature
 
@@ -157,9 +170,13 @@ Called when the App's migrate entry point is called. Uses the struct's `module` 
 {{#include ../../../packages/abstract-core/src/base.rs:migrate}}
 ```
 
+</details>
+
 ### Reply
 
 The reply entry point is a mutable entry point that is optionally called **after** a previous mutable action. It is often used by factory contracts to retrieve the contract of a newly instantiated contract. It essentially provides the ability perform callbacks on actions. A reply can be requested using CosmWasm's `SubMsg` type and requires a unique `ReplyId` which is a `u64`. The customizable handler takes an array of `(ReplyId, ReplyFn)` tuples and matches any incoming reply on the correct `ReplyId` for you.
+
+<details>
 
 #### Function Signature
 
@@ -173,9 +190,13 @@ Expected function signature for the custom reply handler:
 
 There is no customizable message associated with this entry point.
 
+</details>
+
 ### Sudo
 
 The sudo entry point is a mutable entry point that can only be called by the chain's governance module. I.e. any calls made to this contract should have been required to have gone through the chain's governance process. This can vary from chain to chain.
+
+<details>
 
 #### Function Signature
 
@@ -189,12 +210,16 @@ Expected function signature for the custom sudo handler:
 
 There is no base message for this entry point. Your message will be the message that the endpoint accepts.
 
+</details>
+
 ### Receive
 
 The receive handler is a mutable entry point of the contract. It is similar to the `execute` handler but is specifically geared towards handling messages that expect a `Receive` variant in the `ExecuteMsg`. Examples of this include but are not limited to:
 
 - Cw20 send messages
 - Nois Network random number feed
+
+<details>
 
 #### Function Signature
 
@@ -212,11 +237,15 @@ Called when the App's `ExecuteMsg::Receive` variant is called on the execute ent
 {{#include ../../../packages/abstract-core/src/base.rs:exec}}
 ```
 
+</details>
+
 ### Ibc Callback
 
 The ibc callback handler is a mutable entry point of the contract. It is similar to the `execute` handler but is specifically geared towards handling callbacks from IBC actions. Since interacting with IBC is an asynchronous process we aim to provide you with the means to easily work with IBC. Our SDK helps you send IBC messages while this handler helps you execute logic whenever the IBC action succeeds or fails. Our framework does this by optionally allowing you to add callback information to any IBC action. A callback requires a unique `CallbackId` which is a `String`. The callback handler takes an array of `(CallbackId, IbcCallbackFn)` tuples and matches any incoming callback on the correct `CallbackId` for you. Every call to this handler is verified by asserting that the caller is the framework's IBC-Client contract.
 
 <!-- > We cover Abstract's IBC logic later in this book (TODO: add link to that section.) -->
+
+<details>
 
 #### Function Signature
 
@@ -231,6 +260,8 @@ Called when the App's `ExecuteMsg::IbcCallback` variant is called on the execute
 ```rust,ignore
 {{#include ../../../packages/abstract-core/src/base.rs:exec}}
 ```
+
+</details>
 
 ## Dependencies
 

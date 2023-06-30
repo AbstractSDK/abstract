@@ -229,27 +229,44 @@ mod test {
     use speculoos::prelude::*;
 
     mod transfer_coins {
+        use abstract_core::proxy::ExecuteMsg;
+
+        use crate::{Execution, Executor};
+
         use super::*;
 
         #[test]
         fn transfer_asset_to_sender() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let expected_amount = 100u128;
-            let expected_recipient = Addr::unchecked("recipient");
 
-            let bank = app.bank(deps.as_ref());
-            let coins = coins(expected_amount, "asset");
-            let actual_res = bank.transfer(coins.clone(), &expected_recipient);
+            // ANCHOR: transfer
+            let recipient: Addr = Addr::unchecked("recipient");
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
-            assert_that!(actual_res).is_ok();
+            let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
+            let account_message: CosmosMsg = executor.execute(vec![bank_transfer]).unwrap();
+            let response: Response = Response::new().add_message(account_message);
+            // ANCHOR_END: transfer
 
             let expected_msg = CosmosMsg::Bank(BankMsg::Send {
-                to_address: expected_recipient.to_string(),
+                to_address: recipient.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res.unwrap().messages()[0]).is_equal_to(&expected_msg);
+            assert_that!(response.messages[0].msg).is_equal_to(
+                &wasm_execute(
+                    TEST_PROXY,
+                    &ExecuteMsg::ModuleAction {
+                        msgs: vec![expected_msg],
+                    },
+                    vec![],
+                )
+                .unwrap()
+                .into(),
+            );
         }
     }
 
@@ -262,18 +279,24 @@ mod test {
         fn deposit() {
             let app = MockModule::new();
             let deps = mock_dependencies();
-            let expected_amount = 100u128;
 
-            let bank = app.bank(deps.as_ref());
-            let coins = coins(expected_amount, "asset");
-            let actual_res = bank.deposit(coins.clone()).unwrap()[0].clone();
+            // ANCHOR: deposit
+            // Get bank API struct from the app
+            let bank: Bank<'_, MockModule> = app.bank(deps.as_ref());
+            // Create coins to deposit
+            let coins: Vec<Coin> = coins(100u128, "asset");
+            // Construct messages for deposit (transfer from this contract to the account)
+            let deposit_msgs: Vec<CosmosMsg> = bank.deposit(coins.clone()).unwrap();
+            // Add to response
+            let response: Response = Response::new().add_messages(deposit_msgs);
+            // ANCHOR_END: deposit
 
             let expected_msg: CosmosMsg = CosmosMsg::Bank(BankMsg::Send {
                 to_address: TEST_PROXY.to_string(),
                 amount: coins,
             });
 
-            assert_that!(actual_res).is_equal_to::<CosmosMsg>(expected_msg);
+            assert_that!(response.messages[0].msg).is_equal_to::<CosmosMsg>(expected_msg);
         }
     }
 
