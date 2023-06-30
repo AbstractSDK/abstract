@@ -1,0 +1,38 @@
+[package]
+name = "abstract-tendermint-staking-adapter"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+description = "Abstract Tendermint Staking Adapter. This contract allows interacting with staking on multiple Tendermint chains"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["export"]
+export = []
+interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
+schema = ["abstract-adapter/schema"]
+
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+thiserror = { workspace = true }
+abstract-core = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-adapter = { workspace = true }
+
+cw-orch = { workspace = true, optional = true }
+abstract-interface = { workspace = true, optional = true }
+
+[dev-dependencies]
+abstract-adapter = { workspace = true, features = ["schema"] }
