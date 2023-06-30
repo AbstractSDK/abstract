@@ -53,7 +53,6 @@ jobs:
         working-directory: ./framework
         run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
       - name: Upload to codecov.io
-        working-directory: ./framework
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
