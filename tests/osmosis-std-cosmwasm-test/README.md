@@ -1,0 +1,1 @@
+# osmosis-std-cosmwasm-test

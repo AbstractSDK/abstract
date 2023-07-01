@@ -1,0 +1,23 @@
+[package]
+authors = ["Supanat Potiwarakorn <boss@osmosis.team>", "Justin Kilpatrick <justin@althea.net>", "Tony Arcieri <tony@iqlusion.io>"]
+edition = "2021"
+name = "proto-build"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+heck = "0.4.0"
+itertools = "0.10.3"
+log = "0.4.17"
+pretty_env_logger = "0.4.0"
+prettyplease = "0.1.16"
+proc-macro2 = "1.0.52"
+prost = "0.10"
+prost-build = "0.10"
+prost-types = "0.10"
+quote = "1.0.26"
+regex = "1"
+syn = {version = "1.0.98", features = ["full", "parsing"]}
+tonic = "0.7"
+tonic-build = "0.7"
+walkdir = "2"
