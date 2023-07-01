@@ -49,7 +49,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload book repository
-          path: './docs/book'
+          path: './framework/docs/book'
 
   # Deploy job
   deploy:
