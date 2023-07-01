@@ -1,23 +1,13 @@
-# pull-framework:
-#     git subtree pull --prefix=framework frameworks main
+workspaces := "./framework ./adapters ./app-template ./integration-bundles"
 
-# push-framework {{branch}}:
-#     git subtree pull --prefix=framework frameworks {{branch}}
-
-# pull-adapters:
-#     git subtree pull --prefix=adapters adapters main
-
-# push-adapters {{branch}}:
-#     git subtree pull --prefix=adapters adapters {{branch}}
-
-# pull-apps:
-#     git subtree pull --prefix=apps apps main
-
-# push-apps {{branch}}:
-#     git subtree pull --prefix=apps apps {{branch}}
-
-pull {{repo}}:
+# Pull a specific repo from its main remote
+pull repo:
     git subtree pull --prefix={{repo}} {{repo}} main
 
-push {{repo}} {{branch}}:
+# Push the local repo to a specific branch
+push repo branch:
     git subtree pull --prefix={{repo}} {{repo}} {{branch}}
+
+# Run a cargo command in all the workspace repos
+cargo-all command:
+    for path in {{workspaces}}; do (cd $path; cargo {{command}} --all-features); done || exit 1
