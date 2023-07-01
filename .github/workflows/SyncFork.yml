@@ -1,0 +1,18 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # every week
+  workflow_dispatch: # on button click
+
+jobs:
+  sync:
+    permissions: write-all
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: tgymnich/fork-sync@v1.8
+        with:
+          owner: astroport-fi
+          base: main
+          head: main
