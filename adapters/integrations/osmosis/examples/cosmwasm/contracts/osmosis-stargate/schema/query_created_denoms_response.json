@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryCreatedDenomsResponse",
+  "type": "object",
+  "required": [
+    "denoms"
+  ],
+  "properties": {
+    "denoms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
