@@ -1,0 +1,38 @@
+# Based on https://github.com/actions-rs/example/blob/master/.github/workflows/quickstart.yml
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+
+name: Wasm Checks
+
+jobs:
+  wasm-check:
+    name: wasm-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Add wasm32 target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Build wasm release
+        run: |
+          for C in ./contracts/*/
+          do
+            echo "Compiling `basename $C`..."
+            (cd $C && cargo build --release --lib --target wasm32-unknown-unknown --locked)
+          done
+
+      - name: Install cosmwasm-check
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: --debug --version 1.1.0 cosmwasm-check
+
+      - name: Check wasm contracts
+        run: cosmwasm-check ./target/wasm32-unknown-unknown/release/*.wasm
+

@@ -1,0 +1,18 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }
+cw-multi-test = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+wyndex = { workspace = true }
+wyndex-factory = { workspace = true }
+wyndex-multi-hop = { workspace = true }
+wyndex-pair = { workspace = true }
+wyndex-stake = { workspace = true }

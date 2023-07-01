@@ -1,0 +1,100 @@
+[workspace]
+members = ["packages/*", "contracts/*", "tests", "utils/*"]
+
+[workspace.package]
+version = "2.1.0"
+edition = "2021"
+license = "GPL 3.0"
+repository = "https://github.com/cosmorama/wynddex"
+
+[workspace.dependencies]
+anyhow = "1"
+wyndex = { path = "./packages/wyndex", default-features = false }
+wynd-curve-utils = { git = "https://github.com/cosmorama/wynddao.git", tag = "v1.6.0", package = "wynd-utils" }
+cw20-base = { version = "1.0", package = "cw20-base", features = ["library"] }
+wyndex-factory = { path = "./contracts/factory" }
+cw-placeholder = { path = "./contracts/cw-placeholder" }
+wyndex-pair = { path = "./contracts/pair" }
+wyndex-pair-lsd = { path = "./contracts/pair_lsd" }
+wyndex-multi-hop = { path = "./contracts/multi-hop" }
+wyndex-stake = { path = "./contracts/stake" }
+wynd-lsd-hub = { git = "https://github.com/wynddao/wynd-lsd.git", version = "1.2.1", features = [
+    "library",
+] }
+lp-converter = { path = "./contracts/lp-converter", features = ["library"] }
+cosmwasm-schema = "1.1"
+cosmwasm-std = "1.1"
+cw2 = "1.0"
+cw20 = "1.0"
+semver                  = "1"
+cw-controllers = "1.0"
+cw-multi-test = "0.16"
+cw-storage-plus = "1.0"
+cw-utils = "1.0"
+derivative = "2.2"
+itertools = "0.10"
+proptest = "1.0"
+serde = { version = "1", default-features = false, features = ["derive"] }
+thiserror = "1"
+test-case = "2.2.1"
+uint = "0.9"
+wyndex-stake-2_0_0 = { package = "wyndex-stake", git = "https://github.com/wynddao/wynddex", tag = "v2.1.0" }
+#wyndex-2_0_0 = { package = "wyndex", git = "https://github.com/wynddao/wynddex", version = "2.0.2" }
+
+
+[profile.release.package.wyndex-factory]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.wyndex-multi-hop]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.wyndex-pair]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.wyndex-pair-lsd]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.wyndex-stake]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.cw-placeholder]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.gauge-adapter]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.junoswap-staking]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.raw-migration]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.lp-converter]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.cw-splitter]
+codegen-units = 1
+incremental = false
+
+[profile.release.package.nominated-trader]
+codegen-units = 1
+incremental = false
+
+[profile.release]
+rpath = false
+lto = true
+overflow-checks = true
+opt-level = 3
+debug = false
+debug-assertions = false
+strip = true
