@@ -19,14 +19,14 @@ wyndex-pair-lsd = { path = "./contracts/pair_lsd" }
 wyndex-multi-hop = { path = "./contracts/multi-hop" }
 wyndex-stake = { path = "./contracts/stake" }
 wynd-lsd-hub = { git = "https://github.com/wynddao/wynd-lsd.git", version = "1.2.1", features = [
-    "library",
+  "library",
 ] }
 lp-converter = { path = "./contracts/lp-converter", features = ["library"] }
 cosmwasm-schema = "1.1"
 cosmwasm-std = "1.1"
 cw2 = "1.0"
 cw20 = "1.0"
-semver                  = "1"
+semver = "1"
 cw-controllers = "1.0"
 cw-multi-test = "0.16"
 cw-storage-plus = "1.0"

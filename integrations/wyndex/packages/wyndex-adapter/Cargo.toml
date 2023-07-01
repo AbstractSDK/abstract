@@ -9,9 +9,16 @@ repository = { workspace = true }
 homepage = "https://www.wynddao.com"
 
 [features]
-local=[]
-default=["full_integration"]
-full_integration = ["dep:wyndex", "dep:wyndex-stake", "dep:cw-asset", "dep:cw-utils", "dep:cw-controllers", "dep:cw20"]
+local = []
+default = ["full_integration"]
+full_integration = [
+  "dep:wyndex",
+  "dep:wyndex-stake",
+  "dep:cw-asset",
+  "dep:cw-utils",
+  "dep:cw-controllers",
+  "dep:cw20",
+]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -20,11 +27,11 @@ abstract-sdk = { path = "../../../../framework/packages/abstract-sdk" }
 abstract-staking-adapter-traits = { path = "../../../../adapters/packages/staking" }
 abstract-dex-adapter-traits = { path = "../../../../adapters/packages/dex" }
 # Optional
-wyndex = {path="../wyndex/", optional=true}
-wyndex-stake = {path="../../contracts/stake/", features = [
+wyndex = { path = "../wyndex/", optional = true }
+wyndex-stake = { path = "../../contracts/stake/", features = [
   "library",
-], optional=true}
-cw20 = { workspace = true, optional=true }
-cw-asset =  {version="3.0.0", optional=true}
-cw-utils = {workspace=true, optional=true}
-cw-controllers = {workspace=true, optional=true}
+], optional = true }
+cw20 = { workspace = true, optional = true }
+cw-asset = { version = "3.0.0", optional = true }
+cw-utils = { workspace = true, optional = true }
+cw-controllers = { workspace = true, optional = true }

@@ -28,4 +28,4 @@ cw3 = "1.0"
 
 # optional
 injective-math = { version = "0.1.14", optional = true }
-thiserror = { version="1.0", optional = true }
+thiserror = { version = "1.0", optional = true }

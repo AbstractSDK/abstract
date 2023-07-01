@@ -34,9 +34,9 @@ wyndex-stake = { workspace = true }
 # this is old version of cw20 used by wasmswap
 wasmswap_cw20 = { package = "cw20", version = "0.10.0" }
 # this is the staking contract we are migrating from (use the state variables there)
-stake-cw20 = { git="https://github.com/DA0-DA0/dao-contracts", tag="v0.3.0" }
+stake-cw20 = { git = "https://github.com/DA0-DA0/dao-contracts", tag = "v0.3.0" }
 # this is the pool contract we will withdraw from
-wasmswap = { git="https://github.com/Wasmswap/wasmswap-contracts", tag="v1.1.2-beta" }
+wasmswap = { git = "https://github.com/Wasmswap/wasmswap-contracts", tag = "v1.1.2-beta" }
 
 [dev-dependencies]
 anyhow = { workspace = true }

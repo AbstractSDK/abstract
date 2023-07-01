@@ -1,8 +1,6 @@
 [workspace]
 
-members = [
-  'contracts/*',
-]
+members = ['contracts/*']
 
 [profile.release]
 codegen-units = 1
