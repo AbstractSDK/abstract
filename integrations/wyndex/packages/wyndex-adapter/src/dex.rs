@@ -1,6 +1,6 @@
 use crate::AVAILABLE_CHAINS;
-use abstract_dex_adapter_traits::Identify;
 use crate::WYNDEX;
+use abstract_dex_adapter_traits::Identify;
 // Source https://github.com/cosmorama/wynddex/tree/v1.0.0
 #[derive(Default)]
 pub struct WynDex {}
@@ -14,19 +14,23 @@ impl Identify for WynDex {
     }
 }
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 use ::{
+    abstract_dex_adapter_traits::{
+        coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
+    },
+    abstract_sdk::core::objects::PoolAddress,
+    abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
     cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
-    wyndex::{asset::{AssetValidated, AssetInfoValidated}, pair::*},
-    abstract_sdk::core::objects::PoolAddress,
-    abstract_sdk::cw_helpers::wasm_smart_query,
-    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs, DexCommand, Fee, FeeOnInput, Return, Spread, DexError}
+    wyndex::{
+        asset::{AssetInfoValidated, AssetValidated},
+        pair::*,
+    },
 };
 
-
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 impl DexCommand<DexError> for WynDex {
     fn swap(
         &self,
@@ -267,7 +271,7 @@ impl DexCommand<DexError> for WynDex {
     }
 }
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 fn cw_asset_to_wyndex(asset: &Asset) -> Result<wyndex::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(wyndex::asset::Asset {
@@ -282,7 +286,7 @@ fn cw_asset_to_wyndex(asset: &Asset) -> Result<wyndex::asset::Asset, DexError> {
     }
 }
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<AssetValidated, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(AssetValidated {

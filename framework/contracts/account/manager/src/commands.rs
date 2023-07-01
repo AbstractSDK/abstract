@@ -4,9 +4,16 @@ use crate::{
     validation::validate_name,
 };
 use crate::{validation, versioning};
+use abstract_core::adapter::{
+    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
+    QueryMsg as AdapterQuery,
+};
+use abstract_core::manager::state::ACCOUNT_FACTORY;
+use abstract_core::manager::InternalConfigAction;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::version_control::{ModuleConfiguration, ModuleResponse};
 use abstract_macros::abstract_response;
+use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -27,13 +34,6 @@ use abstract_sdk::{
     feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
-use abstract_core::adapter::{
-    AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
-    QueryMsg as AdapterQuery,
-};
-use abstract_core::manager::state::ACCOUNT_FACTORY;
-use abstract_core::manager::InternalConfigAction;
-use abstract_sdk::cw_helpers::AbstractAttributes;
 use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
     Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,

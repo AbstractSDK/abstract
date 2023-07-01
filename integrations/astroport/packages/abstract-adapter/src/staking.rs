@@ -202,10 +202,7 @@ impl CwStakingCommand for Astroport {
     fn query_rewards(
         &self,
         querier: &QuerierWrapper,
-    ) -> Result<
-        abstract_staking_adapter_traits::msg::RewardTokensResponse,
-        CwStakingError,
-    > {
+    ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
         let reward_info: RewardInfoResponse = querier
             .query_wasm_smart(
                 self.generator_contract_address.clone(),

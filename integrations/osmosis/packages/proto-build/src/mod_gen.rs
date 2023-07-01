@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use proc_macro2::{TokenStream as TokenStream2};
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{format_ident, quote};
 use std::ffi::OsStr;
 use std::fs;

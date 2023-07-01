@@ -1,9 +1,8 @@
 use crate::AVAILABLE_CHAINS;
+pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
-use cosmwasm_std::{Addr, Env};
 use abstract_staking_adapter_traits::Identify;
-use crate::WYNDEX;
-
+use cosmwasm_std::{Addr, Env};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WynDex {
@@ -35,38 +34,34 @@ impl Identify for WynDex {
     }
 }
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 use ::{
-    abstract_staking_adapter_traits::CwStakingError,
+    abstract_sdk::{
+        core::objects::{AnsEntryConvertor, AssetEntry},
+        feature_objects::AnsHost,
+        AbstractSdkError, Resolve,
+    },
     abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
     abstract_staking_adapter_traits::CwStakingCommand,
-    abstract_sdk::{
-        core::objects::{AssetEntry, AnsEntryConvertor},
-        feature_objects::AnsHost,
-        AbstractSdkError, Resolve,
-    },
-    cosmwasm_std::{
-        to_binary, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg,
-    },
+    abstract_staking_adapter_traits::CwStakingError,
+    cosmwasm_std::{to_binary, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg},
     cw20::Cw20ExecuteMsg,
     cw_asset::{AssetInfo, AssetInfoBase},
     cw_utils::Duration,
-    wyndex_stake::msg::DistributionDataResponse,
     wyndex::stake::ReceiveMsg,
+    wyndex_stake::msg::DistributionDataResponse,
     wyndex_stake::{
-        msg::{
-            BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg,
-        },
+        msg::{BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg},
         state::{BondingInfo, STAKE},
-    }
+    },
 };
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 type StakingResult<T> = Result<T, CwStakingError>;
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 impl CwStakingCommand for WynDex {
     fn fetch_data(
         &mut self,
@@ -243,7 +238,7 @@ impl CwStakingCommand for WynDex {
     }
 }
 
-#[cfg(feature="full_integration")]
+#[cfg(feature = "full_integration")]
 fn unwrap_unbond(dex: &WynDex, unbonding_period: Option<Duration>) -> Result<u64, CwStakingError> {
     let Some(Duration::Time(unbonding_period)) = unbonding_period else {
         if unbonding_period.is_none() {

@@ -58,21 +58,21 @@ abstract-adapter = { version = "0.16.1", path = "../framework/packages/abstract-
 rstest = "0.16.0"
 speculoos = "0.11.0"
 anyhow = "1"
-wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
+wyndex-bundle = { path = "../integration-bundles/bundles/wyndex" }
 
 ## Local
-abstract-adapter-utils = { version = "0.17.0" }
-abstract-dex-adapter-traits = { version = "0.17.0" }
-abstract-staking-adapter-traits = { version = "0.17.0" }
+abstract-adapter-utils = { path = "./packages/utils" }
+abstract-dex-adapter-traits = { path = "./packages/dex" }
+abstract-staking-adapter-traits = { path = "./packages/staking" }
 
 # Juno dexes #
-abstract-wyndex-adapter = { git = "https://github.com/AbstractSDK/wynddex.git", default-features = false }
+abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
 
 # Osmosis #
-abstract-osmosis-adapter = { git = "https://github.com/AbstractSDK/osmosis-rust.git", default-features = false }
+abstract-osmosis-adapter = { path = "../integrations/osmosis/packages/abstract-adapter", default-features = false }
 
 # Terra #
-abstract-astroport-adapter = { git = "https://github.com/AbstractSDK/astroport-core.git", default-features = false }
+abstract-astroport-adapter = {path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
 
 [profile.release]
 rpath = false
