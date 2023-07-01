@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - main
+
+name: Code coverage check
+
+jobs:
+
+  coverage:
+    name: Code Coverage
+    # https://github.com/actions/virtual-environments
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.64.0
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Install tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-tarpaulin --version 0.20.1
+
+      - name: Run code coverage check with tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin
+          args: --workspace --timeout 120

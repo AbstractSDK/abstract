@@ -1,0 +1,46 @@
+[package]
+name = "wyndex-stake"
+version = { workspace = true }
+authors = ["Cosmorama <cosmorama@proton.me>"]
+edition = { workspace = true }
+description = "Multi-timeframe staking contract with support for multiple external rewards for multiple tokens"
+license = { workspace = true }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+
+[dependencies]
+wyndex = { workspace = true }
+# cw-plus
+cw-utils = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+# core cosmwasm
+cosmwasm-std = { workspace = true }
+# standard libs
+cosmwasm-schema = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+wynd-curve-utils = { workspace = true }
+
+[dev-dependencies]
+# cw-plus
+cw-multi-test = { workspace = true }
+cw20-base = { workspace = true }
+# core cosmwasm
+cosmwasm-schema = { workspace = true }
+# standard libs
+anyhow = { workspace = true }
+test-case = { workspace = true }
+lp-converter = { workspace = true, features = ["library"] }
+# migration test
+wyndex-stake-2_0_0 = { package = "wyndex-stake", git = "https://github.com/wynddao/wynddex", tag = "v2.0.2" }
+wyndex-2_0_0 = { package = "wyndex", git = "https://github.com/wynddao/wynddex", tag = "v2.0.2" }

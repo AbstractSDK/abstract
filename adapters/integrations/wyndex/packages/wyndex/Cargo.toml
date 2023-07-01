@@ -1,0 +1,27 @@
+[package]
+name = "wyndex"
+version = { workspace = true }
+authors = ["Cosmorama <cosmorama@proton.me>"]
+edition = { workspace = true }
+description = "Common Wyndex types, queriers and other utils"
+license = { workspace = true }
+repository = { workspace = true }
+homepage = "https://www.wynddao.com"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+thiserror = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+cw-utils = { workspace = true }
+cosmwasm-std = { workspace = true }
+uint = { workspace = true }
+cw-storage-plus = { workspace = true }
+itertools = { workspace = true }
+cosmwasm-schema = { workspace = true }
