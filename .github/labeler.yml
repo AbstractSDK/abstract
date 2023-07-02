@@ -2,22 +2,22 @@
 # until this file is merged into main. This is due to oddities of the labeller Github Action.
 "account":
   # Match all of account folders
-  - contracts/account/**/*
+  - framework/contracts/account/**/*
 "native":
   # Match all of native folders
-  - contracts/native/**/*
+  - framework/contracts/native/**/*
 "breaking?":
   # Match all of abstract_core folders
-  - packages/abstract_core/**/*
+  - framework/packages/abstract_core/**/*
 "sdk":
   # Match all of sdk folders
-  - packages/abstract-sdk/**/*
+  - framework/packages/abstract-sdk/**/*
 "adapter_base":
   # Match all of adapter base folders
-  - packages/abstract-adapter/**/*
+  - framework/packages/abstract-adapter/**/*
 "app_base":
   # Match all of app base folders
-  - packages/abstract-app/**/*
+  - framework/packages/abstract-app/**/*
 "build":
   - build_release.sh
 "CI":
@@ -25,8 +25,8 @@
 # Add "C:documentation" label to documented related files and directories. 
 "documentation":
   - README.md
-  - contracts/**/*.md
-  - contracts/**/*/*.md
-  - docs/src/**/*
+  - framework/contracts/**/*.md
+  - framework/contracts/**/*/*.md
+  - framework/docs/src/**/*
 "interface":
-  - packages/abstract-interface/**/*
+  - framework/packages/abstract-interface/**/*
