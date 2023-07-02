@@ -74,9 +74,7 @@ fn swap_native() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, Some(0))
-        .proxy
-        .address()?;
+    let os0_proxy = AbstractAccount::new(&abstr, Some(0)).proxy.address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -85,7 +83,7 @@ fn swap_native() -> anyhow::Result<()> {
 
 #[test]
 fn swap_native_without_chain() -> anyhow::Result<()> {
-    let (chain, _, dex_adapter, os,abstr) = setup_mock()?;
+    let (chain, _, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
     // swap 100 EUR to USD
@@ -99,9 +97,7 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, Some(0))
-        .proxy
-        .address()?;
+    let os0_proxy = AbstractAccount::new(&abstr, Some(0)).proxy.address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -110,7 +106,7 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
 
 #[test]
 fn swap_raw() -> anyhow::Result<()> {
-    let (chain, wyndex, dex_adapter, os,abstr) = setup_mock()?;
+    let (chain, wyndex, dex_adapter, os, abstr) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
     // trnasfer raw
