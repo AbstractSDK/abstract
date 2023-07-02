@@ -1,23 +1,34 @@
-# pull-framework:
-#     git subtree pull --prefix=framework frameworks main
+workspaces := "./framework ./adapters ./app-template ./integration-bundles"
 
-# push-framework {{branch}}:
-#     git subtree pull --prefix=framework frameworks {{branch}}
+docs-install:
+  cargo install mdbook
+  cargo install mdbook-mermaid
+  cargo install mdbook-admonish
 
-# pull-adapters:
-#     git subtree pull --prefix=adapters adapters main
+# Serve docs locally, pass --open to open in browser
+docs-serve *FLAGS:
+  (cd docs && mdbook serve {{FLAGS}}) 
 
-# push-adapters {{branch}}:
-#     git subtree pull --prefix=adapters adapters {{branch}}
+docs-build:
+  (cd docs && mdbook build)
 
-# pull-apps:
-#     git subtree pull --prefix=apps apps main
-
-# push-apps {{branch}}:
-#     git subtree pull --prefix=apps apps {{branch}}
-
-pull {{repo}}:
+# Pull a specific repo from its main remote
+pull repo:
     git subtree pull --prefix={{repo}} {{repo}} main
 
-push {{repo}} {{branch}}:
+# Push the local repo to a specific branch
+push repo branch:
     git subtree pull --prefix={{repo}} {{repo}} {{branch}}
+
+# Run a cargo command in all the workspace repos
+cargo-all *command:
+    for path in {{workspaces}}; do (cd $path; cargo {{command}}); done || exit 1
+
+check path:
+    (cd {{path}}; cargo check)
+
+check-all path:
+    (cd {{path}}; cargo check --all-features)
+
+pre-release:
+  (cd framework && cargo package --all-features)

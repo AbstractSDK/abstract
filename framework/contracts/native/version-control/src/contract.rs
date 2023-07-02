@@ -43,16 +43,15 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
-        allow_direct_module_registration,
-        namespace_limit,
+        allow_direct_module_registration_and_updates,
         namespace_registration_fee,
     } = msg;
 
     CONFIG.save(
         deps.storage,
         &Config {
-            allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
-            namespace_limit,
+            allow_direct_module_registration_and_updates:
+                allow_direct_module_registration_and_updates.unwrap_or(false),
             namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
                 denom: "none".to_string(),
                 amount: Uint128::zero(),
@@ -89,24 +88,25 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             monetization,
         } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::ClaimNamespaces {
+        ExecuteMsg::SetModuleMetadata { module, metadata } => {
+            set_module_metadata(deps, info, module, metadata)
+        }
+        ExecuteMsg::ClaimNamespace {
+            namespace,
             account_id,
-            namespaces,
-        } => claim_namespaces(deps, info, account_id, namespaces),
+        } => claim_namespace(deps, info, account_id, namespace),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
             account_base: base,
         } => add_account(deps, info, account_id, base),
         ExecuteMsg::UpdateConfig {
-            allow_direct_module_registration,
-            namespace_limit,
+            allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
-            allow_direct_module_registration,
-            namespace_limit,
+            allow_direct_module_registration_and_updates,
             namespace_registration_fee,
         ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
@@ -143,17 +143,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             limit,
             filter,
         )?),
-        QueryMsg::NamespaceList {
-            filter,
-            start_after,
-            limit,
-        } => {
+        QueryMsg::NamespaceList { start_after, limit } => {
             let start_after = start_after.map(Namespace::try_from).transpose()?;
             to_binary(&queries::handle_namespace_list_query(
                 deps,
                 start_after,
                 limit,
-                filter,
             )?)
         }
         QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),

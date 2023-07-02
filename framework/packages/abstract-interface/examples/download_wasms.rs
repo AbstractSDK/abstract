@@ -22,8 +22,8 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // clear all the old artifacts
-    let file_path = format!("../../artifacts");
-    let path = Path::new(&file_path);
+    let file_path = "../../artifacts";
+    let path = Path::new(file_path);
     if path.exists() {
         std::fs::remove_dir_all(path)?;
         std::fs::create_dir(path)?;

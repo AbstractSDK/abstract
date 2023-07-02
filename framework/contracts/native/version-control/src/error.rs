@@ -5,7 +5,9 @@ use thiserror::Error;
 
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::{objects::AccountId, AbstractError};
-use abstract_sdk::{core::objects::module::ModuleInfo, AbstractSdkError};
+use abstract_sdk::{
+    core::objects::module::ModuleInfo, core::objects::validation::ValidationError, AbstractSdkError,
+};
 
 #[derive(Error, Debug, PartialEq)]
 pub enum VCError {
@@ -20,6 +22,9 @@ pub enum VCError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    #[error("{0}")]
+    Validation(#[from] ValidationError),
 
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),

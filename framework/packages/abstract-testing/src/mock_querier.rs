@@ -39,7 +39,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 ///        _ => panic!("unexpected message"),
 ///    };
 ///
-///   Ok(to_binary(&msg).unwrap())
+///   to_binary(&msg).unwrap())
 /// }).build();
 /// ```
 pub struct MockQuerierBuilder {
@@ -120,17 +120,17 @@ impl MockQuerierBuilder {
     /// use cosmwasm_std::{from_binary, to_binary};
     /// use abstract_testing::MockQuerierBuilder;
     /// use cosmwasm_std::testing::MockQuerier;
-    /// use abstract_sdk::mock_module::MockModuleExecuteMsg;
-    ///
+    /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+    /// # // ANCHOR: smart_query
     /// let querier = MockQuerierBuilder::default().with_smart_handler("contract_address", |msg| {
     ///    // handle the message
-    ///     let res = match from_binary::<MockModuleExecuteMsg>(msg).unwrap() {
+    ///     let res = match from_binary::<MockModuleQueryMsg>(msg).unwrap() {
     ///         // handle the message
-    ///        _ => panic!("unexpected message"),
+    ///         MockModuleQueryMsg =>
+    ///                         return to_binary(&MockModuleQueryResponse {}).map_err(|e| e.to_string())
     ///    };
-    ///
-    ///   Ok(to_binary(&res).unwrap())
     /// }).build();
+    /// # // ANCHOR_END: smart_query
     /// ```
     pub fn with_smart_handler<SH: 'static>(mut self, contract: &str, handler: SH) -> Self
     where

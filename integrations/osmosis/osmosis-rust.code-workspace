@@ -1,0 +1,17 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "packages/osmosis-std"
+    },
+    {
+      "path": "packages/osmosis-std-derive"
+    },
+    {
+      "path": "packages/proto-build"
+    }
+  ],
+  "settings": {}
+}

@@ -1,11 +1,8 @@
 use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
-    objects::module::{ModuleStatus, Monetization},
-    version_control::{
-        state::{MODULE_MONETIZATION, PENDING_MODULES},
-        ModuleConfiguration, NamespaceFilter, NamespaceResponse,
-    },
+    objects::module::ModuleStatus,
+    version_control::{state::PENDING_MODULES, ModuleConfiguration, NamespaceResponse},
 };
 use abstract_sdk::core::{
     objects::{
@@ -72,11 +69,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                         info: module.clone(),
                         reference: mod_ref,
                     },
-                    config: ModuleConfiguration::new(
-                        MODULE_MONETIZATION
-                            .load(deps.storage, (&module.namespace, &module.name))
-                            .unwrap_or(Monetization::None),
-                    ),
+                    config: ModuleConfiguration::from_storage(deps.storage, &module),
                 });
                 Ok(())
             }
@@ -149,11 +142,7 @@ pub fn handle_module_list_query(
                     info: module_info.clone(),
                     reference: mod_ref,
                 },
-                config: ModuleConfiguration::new(
-                    MODULE_MONETIZATION
-                        .load(deps.storage, (&module_info.namespace, &module_info.name))
-                        .unwrap_or(Monetization::None),
-                ),
+                config: ModuleConfiguration::from_storage(deps.storage, &module_info),
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;
@@ -195,27 +184,14 @@ pub fn handle_namespace_list_query(
     deps: Deps,
     start_after: Option<Namespace>,
     limit: Option<u8>,
-    filter: Option<NamespaceFilter>,
 ) -> StdResult<NamespaceListResponse> {
     let start_bound = start_after.as_ref().map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
-    let NamespaceFilter { account_id } = filter.unwrap_or_default();
-
-    let namespaces = if let Some(account_id) = account_id {
-        namespaces_info()
-            .idx
-            .account_id
-            .prefix(account_id)
-            .range(deps.storage, start_bound, None, Order::Ascending)
-            .take(limit)
-            .collect::<StdResult<Vec<_>>>()?
-    } else {
-        namespaces_info()
-            .range(deps.storage, start_bound, None, Order::Ascending)
-            .take(limit)
-            .collect::<StdResult<Vec<_>>>()?
-    };
+    let namespaces = namespaces_info()
+        .range(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
 
     Ok(NamespaceListResponse { namespaces })
 }
@@ -349,8 +325,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                allow_direct_module_registration: Some(true),
-                namespace_limit: 10,
+                allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },
         )?;
@@ -407,9 +382,9 @@ mod test {
         use cosmwasm_std::from_binary;
 
         fn add_namespace(deps: DepsMut, namespace: &str) {
-            let msg = ExecuteMsg::ClaimNamespaces {
+            let msg = ExecuteMsg::ClaimNamespace {
                 account_id: TEST_ACCOUNT_ID,
-                namespaces: vec![namespace.to_string()],
+                namespace: namespace.to_string(),
             };
 
             let res = execute_as_admin(deps, msg);
@@ -523,24 +498,26 @@ mod test {
     use cosmwasm_std::from_binary;
 
     /// Add namespaces
-    fn add_namespaces(deps: DepsMut, namespaces: Vec<String>, account_id: u32, sender: &str) {
-        let msg = ExecuteMsg::ClaimNamespaces {
-            account_id,
-            namespaces,
-        };
+    fn add_namespaces(mut deps: DepsMut, acc_and_namespace: Vec<(u32, &str)>, sender: &str) {
+        for (account_id, namespace) in acc_and_namespace {
+            let msg = ExecuteMsg::ClaimNamespace {
+                account_id,
+                namespace: namespace.to_string(),
+            };
 
-        let res = execute_as(deps, sender, msg);
-        assert_that!(&res).is_ok();
+            let res = execute_as(deps.branch(), sender, msg);
+            assert_that!(&res).is_ok();
+        }
     }
 
     /// Add the provided modules to the version control
-    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>) {
+    fn propose_modules(deps: DepsMut, new_module_infos: Vec<ModuleInfo>, sender: &str) {
         let modules = new_module_infos
             .into_iter()
             .map(|info| (info, ModuleReference::App(0)))
             .collect();
         let add_msg = ExecuteMsg::ProposeModules { modules };
-        let res = execute_as_admin(deps, add_msg);
+        let res = execute_as(deps, sender, add_msg);
         assert_that!(&res).is_ok();
     }
 
@@ -557,22 +534,26 @@ mod test {
     fn init_with_mods(mut deps: DepsMut) {
         mock_init_with_account(deps.branch()).unwrap();
 
-        let namespaces = vec!["cw-plus".to_string(), "4t2".to_string()];
-        add_namespaces(deps.branch(), namespaces, TEST_ACCOUNT_ID, TEST_ADMIN);
+        add_namespaces(
+            deps.branch(),
+            vec![(TEST_ACCOUNT_ID, "cw-plus")],
+            TEST_ADMIN,
+        );
+        add_namespaces(deps.branch(), vec![(2, "4t2")], TEST_OTHER);
 
         let cw_mods = vec![
             ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("cw-plus:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps.branch(), cw_mods);
+        propose_modules(deps.branch(), cw_mods, TEST_ADMIN);
 
         let fortytwo_mods = vec![
             ModuleInfo::from_id("4t2:module1", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module2", ModuleVersion::Version("0.1.2".into())).unwrap(),
             ModuleInfo::from_id("4t2:module3", ModuleVersion::Version("0.1.2".into())).unwrap(),
         ];
-        propose_modules(deps, fortytwo_mods);
+        propose_modules(deps, fortytwo_mods, TEST_OTHER);
     }
 
     mod modules {
@@ -690,7 +671,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -739,7 +720,7 @@ mod test {
                 ModuleInfo::from_id("cw-plus:module5", ModuleVersion::Version("0.1.2".into()))
                     .unwrap(),
             ];
-            propose_modules(deps.as_mut(), cw_mods);
+            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
             yank_module(
                 deps.as_mut(),
                 ModuleInfo::from_id("cw-plus:module4", ModuleVersion::Version("0.1.2".into()))
@@ -786,25 +767,17 @@ mod test {
             mock_init_with_account(deps.as_mut()).unwrap();
             add_namespaces(
                 deps.as_mut(),
-                vec![
-                    "cw-plus".to_string(),
-                    "aoeu".to_string(),
-                    "snth".to_string(),
-                ],
-                TEST_ACCOUNT_ID,
+                vec![(TEST_ACCOUNT_ID, "cw-plus")],
                 TEST_ADMIN,
             );
-            let cw_mods = vec![
-                ModuleInfo::from_id("cw-plus:module1", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-                ModuleInfo::from_id("aoeu:module2", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-                ModuleInfo::from_id("snth:module3", ModuleVersion::Version("0.1.2".into()))
-                    .unwrap(),
-            ];
-            propose_modules(deps.as_mut(), cw_mods);
+            let cw_mods = vec![ModuleInfo::from_id(
+                "cw-plus:module1",
+                ModuleVersion::Version("0.1.2".into()),
+            )
+            .unwrap()];
+            propose_modules(deps.as_mut(), cw_mods, TEST_ADMIN);
 
-            let filtered_namespace = "dne".to_string();
+            let filtered_namespace = "cw-plus".to_string();
 
             let filter = ModuleFilter {
                 namespace: Some(filtered_namespace),
@@ -817,7 +790,7 @@ mod test {
 
             assert_that!(res).is_ok().map(|res| {
                 let ModulesListResponse { modules } = from_binary(res).unwrap();
-                assert_that!(modules).is_empty();
+                assert_that!(modules).has_length(1);
 
                 res
             });
@@ -870,6 +843,7 @@ mod test {
                     ModuleVersion::Version("0.1.3".into()),
                 )
                 .unwrap()],
+                TEST_ADMIN,
             );
 
             let filter = ModuleFilter {
@@ -1017,77 +991,25 @@ mod test {
         }
     }
 
-    mod list_namespaces {
+    mod query_namespaces {
         use super::*;
 
-        fn filtered_list_msg(filter: NamespaceFilter) -> QueryMsg {
-            QueryMsg::NamespaceList {
-                filter: Some(filter),
-                start_after: None,
-                limit: None,
-            }
-        }
-
         #[test]
-        fn filter_namespaces() {
+        fn namespaces() {
             let mut deps = mock_dependencies();
             deps.querier = mock_manager_querier().build();
             init_with_mods(deps.as_mut());
 
-            // add namespaces as others
-            let namespaces = vec![
-                "other1".to_string(),
-                "other2".to_string(),
-                "other3".to_string(),
-            ];
-            add_namespaces(
-                deps.as_mut(),
-                namespaces.clone(),
-                TEST_OTHER_ACCOUNT_ID,
-                TEST_OTHER,
+            // get for test other account
+            let res = query_helper(
+                deps.as_ref(),
+                QueryMsg::Namespaces {
+                    accounts: vec![TEST_OTHER_ACCOUNT_ID],
+                },
             );
-
-            // get all
-            let list_msg = filtered_list_msg(NamespaceFilter { account_id: None });
-            let res = query_helper(deps.as_ref(), list_msg);
-
             assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
-                println!("{:?}", resp);
-                assert_that!(resp).has_length(6);
-                res
-            });
-
-            // get by another id
-            let list_msg = filtered_list_msg(NamespaceFilter {
-                account_id: Some(TEST_OTHER_ACCOUNT_ID),
-            });
-            let res = query_helper(deps.as_ref(), list_msg);
-            assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
-                assert_that!(resp).has_length(3);
-
-                for entry in resp {
-                    assert_that!(namespaces.contains(&entry.0.to_string())).is_equal_to(true);
-                    assert_that!(entry.1).is_equal_to(TEST_OTHER_ACCOUNT_ID);
-                }
-
-                res
-            });
-
-            // get by admin id
-            let list_msg = filtered_list_msg(NamespaceFilter {
-                account_id: Some(TEST_ACCOUNT_ID),
-            });
-            let res = query_helper(deps.as_ref(), list_msg);
-            assert_that!(res).is_ok().map(|res| {
-                let NamespaceListResponse { namespaces: resp } = from_binary(res).unwrap();
-                assert_that!(resp).has_length(2);
-
-                for entry in resp {
-                    assert_that!(entry.1).is_equal_to(TEST_ACCOUNT_ID);
-                }
-
+                let NamespacesResponse { namespaces } = from_binary(res).unwrap();
+                assert_that!(namespaces[0].0.to_string()).is_equal_to("4t2".to_string());
                 res
             });
         }

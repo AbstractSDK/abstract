@@ -1,0 +1,5 @@
+name = "osmosis-stargate"
+
+[console]
+account_namespace = false
+contract_namespace = false

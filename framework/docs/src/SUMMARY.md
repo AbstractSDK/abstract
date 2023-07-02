@@ -37,7 +37,8 @@
   - [Account Abstraction SDK](./4_get_started/4_sdk.md)
   - [Module Dependencies]()
   - [Account Creation](./4_get_started/5_account_creation.md)
-  - [Module Deployment](./4_get_started/6_module_deployment.md)
+  - [Module Testing](./4_get_started/6_module_testing.md)
+  - [Module Deployment](./4_get_started/7_module_deployment.md)
   - [Best Practices]()
   - [Quality Assurance]()
 

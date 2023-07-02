@@ -140,8 +140,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
-                allow_direct_module_registration: Some(true),
-                namespace_limit: 1,
+                allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },
             Some(sender),

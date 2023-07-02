@@ -41,7 +41,10 @@ pub fn execute_create_module(
     let account_base = account_registry.assert_manager(&info.sender)?;
 
     let new_module = version_registry.query_module(module_info.clone())?;
-    let new_module_monetization = version_registry.query_module_monetization_raw(&module_info)?;
+    let new_module_monetization = version_registry
+        .query_all_module_config(module_info)?
+        .config
+        .monetization;
 
     // TODO: check if this can be generalized for some contracts
     // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.

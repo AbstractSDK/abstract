@@ -73,7 +73,7 @@ let account =
 // Claim the namespace so app can be deployed
 abstr_deployment
     .version_control
-    .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+    .claim_namespace(1, "my-namespace".to_string())?;
 
 // Deploy the app!
 contract.deploy(APP_VERSION.parse()?)?;

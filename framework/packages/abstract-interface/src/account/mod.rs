@@ -45,8 +45,9 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 }
 
 impl<Chain: CwEnv> AbstractAccount<Chain> {
-    pub fn new(abs: &Abstract<Chain>, account_id: Option<AccountId>) -> Self {
-        let (manager, proxy) = get_account_contracts(&abs.version_control, account_id);
+    pub fn new(abstract_deployment: &Abstract<Chain>, account_id: Option<AccountId>) -> Self {
+        let (manager, proxy) =
+            get_account_contracts(&abstract_deployment.version_control, account_id);
         Self { manager, proxy }
     }
 
@@ -161,5 +162,38 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
             },
         };
         self.install_module(&app.id(), &init_msg, funds)
+    }
+}
+
+#[cfg(feature = "daemon")]
+use crate::AbstractInterfaceError;
+#[cfg(feature = "daemon")]
+impl AbstractAccount<Daemon> {
+    /// Upload and register the account core contracts in the version control if they need to be updated
+    pub fn upload_and_register_if_needed(
+        &self,
+        version_control: &VersionControl<Daemon>,
+    ) -> Result<(), AbstractInterfaceError> {
+        let mut modules_to_register = Vec::with_capacity(2);
+
+        if self.manager.upload_if_needed()?.is_some() {
+            modules_to_register.push((
+                self.manager.as_instance(),
+                ::manager::contract::CONTRACT_VERSION.to_string(),
+            ));
+        };
+
+        if self.proxy.upload_if_needed()?.is_some() {
+            modules_to_register.push((
+                self.proxy.as_instance(),
+                ::proxy::contract::CONTRACT_VERSION.to_string(),
+            ));
+        };
+
+        if !modules_to_register.is_empty() {
+            version_control.register_account_mods(modules_to_register)?;
+        }
+
+        Ok(())
     }
 }

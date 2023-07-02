@@ -1,0 +1,36 @@
+name: Release Artifacts
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+" # Push events to matching v*, i.e. 1.0, 20.15.10
+      - "v[0-9]+.[0-9]+.[0-9]+-rc*" # Push events to matching v*, i.e. 1.0-rc1, 20.15.10-rc5
+
+jobs:
+  release-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Build Artifacts
+        run: |
+          docker run --rm -v "$(pwd)":/code \
+          --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+          --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+          cosmwasm/workspace-optimizer:0.12.11
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/cw_placeholder.wasm
+            artifacts/cw_splitter.wasm
+            artifacts/gauge_adapter.wasm
+            artifacts/lp_converter.wasm
+            artifacts/nominated_trader.wasm
+            artifacts/wyndex_multi_hop.wasm
+            artifacts/wyndex_stake.wasm
+            artifacts/checksums.txt
+            artifacts/raw_migration.wasm
+            artifacts/wyndex_pair_lsd.wasm
+            artifacts/junoswap_staking.wasm
+            artifacts/wyndex_factory.wasm
+            artifacts/wyndex_pair.wasm

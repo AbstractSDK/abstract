@@ -1,16 +1,3 @@
 # Apps
 
-Apps are composable smart-contracts that enable features or transform OSs into standalone products.
-Every app is instantiated for each OS individually and is migratable.
-Apps are allowed to perform actions on the proxy contract.
-
-The might also want to integrate with other enabled modules/apis, and have access to the ans_host contract for address
-storage.
-
-Therefore the the base state includes
-
-- Proxy address
-- Manager address
-- AnsHost address (configurable)
-
-The proxy and manager addresses are not configurable after instantiation.
+See [Apps](https://docs.abstract.money/3_framework/7_module_types.html#apps).

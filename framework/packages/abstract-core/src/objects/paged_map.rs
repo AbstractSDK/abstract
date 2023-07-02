@@ -313,7 +313,7 @@ mod tests {
             store: &mut dyn Storage,
             mut value: Data,
             acc: &mut IncomeAcc,
-            _context: &String,
+            #[allow(clippy::ptr_arg)] _context: &String,
         ) -> AbstractResult<Option<u32>> {
             let balance = value.balance;
             value.balance = 0;
@@ -406,7 +406,7 @@ mod tests {
             key: &[u8],
             store: &mut dyn Storage,
             mut value: Data,
-            _context: &String,
+            #[allow(clippy::ptr_arg)] _context: &String,
         ) -> AbstractResult<Option<AccountId>> {
             let balance = value.balance;
             value.balance = 0;
