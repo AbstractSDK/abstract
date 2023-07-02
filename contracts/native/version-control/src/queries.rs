@@ -1,11 +1,8 @@
 use crate::contract::VCResult;
 use crate::error::VCError;
 use abstract_core::{
-    objects::module::{ModuleStatus, Monetization},
-    version_control::{
-        state::{MODULE_MONETIZATION, PENDING_MODULES},
-        ModuleConfiguration, NamespaceResponse,
-    },
+    objects::module::ModuleStatus,
+    version_control::{state::PENDING_MODULES, ModuleConfiguration, NamespaceResponse},
 };
 use abstract_sdk::core::{
     objects::{
@@ -72,11 +69,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                         info: module.clone(),
                         reference: mod_ref,
                     },
-                    config: ModuleConfiguration::new(
-                        MODULE_MONETIZATION
-                            .load(deps.storage, (&module.namespace, &module.name))
-                            .unwrap_or(Monetization::None),
-                    ),
+                    config: ModuleConfiguration::from_storage(deps.storage, &module),
                 });
                 Ok(())
             }
@@ -149,11 +142,7 @@ pub fn handle_module_list_query(
                     info: module_info.clone(),
                     reference: mod_ref,
                 },
-                config: ModuleConfiguration::new(
-                    MODULE_MONETIZATION
-                        .load(deps.storage, (&module_info.namespace, &module_info.name))
-                        .unwrap_or(Monetization::None),
-                ),
+                config: ModuleConfiguration::from_storage(deps.storage, &module_info),
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;

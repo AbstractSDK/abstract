@@ -1,6 +1,7 @@
 use abstract_core::objects::{
     fee::FixedFee,
-    module::{self, Module, Monetization},
+    module::{self, Module, ModuleMetadata, Monetization},
+    validation::validate_link,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -171,6 +172,7 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
 
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
+    MODULE_METADATA.remove(deps.storage, &module);
 
     // If this module has no more versions, we also remove the monetization
     if REGISTERED_MODULES
@@ -247,6 +249,39 @@ pub fn set_module_monetization(
             ("namespace", &namespace.to_string()),
             ("module_name", &module_name),
         ],
+    ))
+}
+
+/// Set a module metadata.
+pub fn set_module_metadata(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    module: ModuleInfo,
+    metadata: ModuleMetadata,
+) -> VCResult {
+    // validate the caller is the owner of the namespace
+
+    if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
+        // Only Admin can update abstract contracts
+        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    } else {
+        // Only owner can add modules
+        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
+    }
+
+    // We verify the module exists before updating the monetization
+    if !REGISTERED_MODULES.has(deps.storage, &module) {
+        return Err(VCError::ModuleNotFound(module));
+    }
+
+    // We verify the metadata is a URL
+    validate_link(&Some(metadata.clone()))?;
+
+    MODULE_METADATA.save(deps.storage, &module, &metadata)?;
+
+    Ok(VcResponse::new(
+        "set_metadata",
+        vec![("module", &module.to_string()), ("metadata", &metadata)],
     ))
 }
 
@@ -1752,6 +1787,7 @@ mod test {
             let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
 
             let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
+            let metadata = "".to_string();
             let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
                 module_name: new_module.name.clone(),
                 namespace: new_module.namespace.clone(),
@@ -1773,7 +1809,50 @@ mod test {
                         info: new_module,
                         reference: ModuleReference::App(0)
                     },
-                    config: ModuleConfiguration::new(monetization)
+                    config: ModuleConfiguration::new(monetization, metadata)
+                }
+            );
+
+            Ok(())
+        }
+
+        #[test]
+        fn add_module_metadata() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            let mut new_module = test_module();
+            new_module.namespace = Namespace::new(ABSTRACT_NAMESPACE)?;
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
+            assert_that!(&res).is_ok();
+            let _module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+
+            let monetization = Monetization::None;
+            let metadata = "ipfs://YRUI243876FJHKHV3IY".to_string();
+            let metadata_module_msg = ExecuteMsg::SetModuleMetadata {
+                module: new_module.clone(),
+                metadata: metadata.clone(),
+            };
+            execute_as(deps.as_mut(), TEST_ADMIN, metadata_module_msg)?;
+
+            // We query the module to see if the monetization is attached ok
+            let query_msg = QueryMsg::Modules {
+                infos: vec![new_module.clone()],
+            };
+            let res = query(deps.as_ref(), mock_env(), query_msg)?;
+            let ser_res = from_binary::<ModulesResponse>(&res)?;
+            assert_that!(ser_res.modules).has_length(1);
+            assert_eq!(
+                ser_res.modules[0],
+                ModuleResponse {
+                    module: Module {
+                        info: new_module,
+                        reference: ModuleReference::App(0)
+                    },
+                    config: ModuleConfiguration::new(monetization, metadata)
                 }
             );
 

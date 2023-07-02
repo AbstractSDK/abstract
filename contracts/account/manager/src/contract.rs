@@ -3,7 +3,6 @@ use crate::{
     error::ManagerError,
     queries,
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
-    validation::{validate_description, validate_link, validate_name},
     versioning,
 };
 
@@ -13,6 +12,7 @@ use abstract_sdk::core::{
         CallbackMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
     },
     objects::module_version::assert_contract_upgrade,
+    objects::validation::{validate_description, validate_link, validate_name},
     proxy::state::ACCOUNT_ID,
     MANAGER,
 };
@@ -25,13 +25,6 @@ use semver::Version;
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub(crate) const MIN_DESC_LENGTH: usize = 1;
-pub(crate) const MAX_DESC_LENGTH: usize = 1024;
-/// Minimum link length is 11, because the shortest url could be http://a.be
-pub(crate) const MIN_LINK_LENGTH: usize = 11;
-pub(crate) const MAX_LINK_LENGTH: usize = 128;
-pub(crate) const MIN_TITLE_LENGTH: usize = 1;
-pub(crate) const MAX_TITLE_LENGTH: usize = 64;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {

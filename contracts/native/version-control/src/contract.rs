@@ -88,6 +88,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             monetization,
         } => set_module_monetization(deps, info, module_name, namespace, monetization),
+        ExecuteMsg::SetModuleMetadata { module, metadata } => {
+            set_module_metadata(deps, info, module, metadata)
+        }
         ExecuteMsg::ClaimNamespace {
             namespace,
             account_id,
