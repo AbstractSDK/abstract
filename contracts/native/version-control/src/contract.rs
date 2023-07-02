@@ -43,7 +43,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
-        allow_direct_module_registration,
+        allow_direct_module_registration_and_updates,
         namespace_limit,
         namespace_registration_fee,
     } = msg;
@@ -51,7 +51,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     CONFIG.save(
         deps.storage,
         &Config {
-            allow_direct_module_registration: allow_direct_module_registration.unwrap_or(false),
+            allow_direct_module_registration_and_updates:
+                allow_direct_module_registration_and_updates.unwrap_or(false),
             namespace_limit,
             namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
                 denom: "none".to_string(),
@@ -99,13 +100,13 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             account_base: base,
         } => add_account(deps, info, account_id, base),
         ExecuteMsg::UpdateConfig {
-            allow_direct_module_registration,
+            allow_direct_module_registration_and_updates,
             namespace_limit,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
-            allow_direct_module_registration,
+            allow_direct_module_registration_and_updates,
             namespace_limit,
             namespace_registration_fee,
         ),

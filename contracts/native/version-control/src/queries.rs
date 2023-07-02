@@ -349,7 +349,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                allow_direct_module_registration: Some(true),
+                allow_direct_module_registration_and_updates: Some(true),
                 namespace_limit: 10,
                 namespace_registration_fee: None,
             },

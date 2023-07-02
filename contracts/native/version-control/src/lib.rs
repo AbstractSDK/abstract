@@ -20,7 +20,7 @@ mod testing {
             mock_env(),
             info,
             version_control::InstantiateMsg {
-                allow_direct_module_registration: Some(true),
+                allow_direct_module_registration_and_updates: Some(true),
                 namespace_limit: 10,
                 namespace_registration_fee: None,
             },

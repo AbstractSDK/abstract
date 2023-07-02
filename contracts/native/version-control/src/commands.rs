@@ -55,10 +55,10 @@ pub fn propose_modules(
     let config = CONFIG.load(deps.storage)?;
 
     for (module, mod_ref) in modules {
-        if PENDING_MODULES.has(deps.storage, &module)
+        let store_has_module = PENDING_MODULES.has(deps.storage, &module)
             || REGISTERED_MODULES.has(deps.storage, &module)
-            || YANKED_MODULES.has(deps.storage, &module)
-        {
+            || YANKED_MODULES.has(deps.storage, &module);
+        if !config.allow_direct_module_registration_and_updates && store_has_module {
             return Err(VCError::NotUpdateableModule(module));
         }
 
@@ -84,7 +84,7 @@ pub fn propose_modules(
             }
         }
 
-        if config.allow_direct_module_registration {
+        if config.allow_direct_module_registration_and_updates {
             // assert that its data is equal to what it wants to be registered under.
             module::assert_module_data_validity(
                 &deps.querier,
@@ -378,7 +378,7 @@ pub fn remove_namespaces(
 pub fn update_config(
     deps: DepsMut,
     info: MessageInfo,
-    allow_direct_module_registration: Option<bool>,
+    allow_direct_module_registration_and_updates: Option<bool>,
     namespace_limit: Option<u32>,
     namespace_registration_fee: Option<Coin>,
 ) -> VCResult {
@@ -403,15 +403,18 @@ pub fn update_config(
         ])
     }
 
-    if let Some(allow) = allow_direct_module_registration {
-        let previous_allow = config.allow_direct_module_registration;
-        config.allow_direct_module_registration = allow;
+    if let Some(allow) = allow_direct_module_registration_and_updates {
+        let previous_allow = config.allow_direct_module_registration_and_updates;
+        config.allow_direct_module_registration_and_updates = allow;
         attributes.extend(vec![
             (
                 "previous_allow_direct_module_registration",
                 previous_allow.to_string(),
             ),
-            ("allow_direct_module_registration", allow.to_string()),
+            (
+                "allow_direct_module_registration_and_updates",
+                allow.to_string(),
+            ),
         ])
     }
 
@@ -423,7 +426,10 @@ pub fn update_config(
                 "previous_allow_direct_module_registration",
                 format!("{:?}", previous_fee),
             ),
-            ("allow_direct_module_registration", fee.to_string()),
+            (
+                "allow_direct_module_registration_and_updates",
+                fee.to_string(),
+            ),
         ])
     }
 
@@ -537,7 +543,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
-                allow_direct_module_registration: Some(true),
+                allow_direct_module_registration_and_updates: Some(true),
                 namespace_limit: 10,
                 namespace_registration_fee: None,
             },
@@ -551,14 +557,14 @@ mod test {
     }
 
     /// Initialize the version_control with admin as creator and test account
-    fn mock_init_with_account(mut deps: DepsMut, direct_registration: bool) -> VCResult {
+    fn mock_init_with_account(mut deps: DepsMut, direct_registration_and_update: bool) -> VCResult {
         let admin_info = mock_info(TEST_ADMIN, &[]);
         contract::instantiate(
             deps.branch(),
             mock_env(),
             admin_info,
             InstantiateMsg {
-                allow_direct_module_registration: Some(direct_registration),
+                allow_direct_module_registration_and_updates: Some(direct_registration_and_update),
                 namespace_limit: 10,
                 namespace_registration_fee: None,
             },
@@ -723,7 +729,7 @@ mod test {
             execute_as_admin(
                 deps.as_mut(),
                 ExecuteMsg::UpdateConfig {
-                    allow_direct_module_registration: None,
+                    allow_direct_module_registration_and_updates: None,
                     namespace_limit: None,
                     namespace_registration_fee: Some(one_namespace_fee.clone()),
                 },
@@ -908,7 +914,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: None,
+                allow_direct_module_registration_and_updates: None,
                 namespace_limit: Some(100),
                 namespace_registration_fee: None,
             };
@@ -927,7 +933,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: None,
+                allow_direct_module_registration_and_updates: None,
                 namespace_limit: Some(100),
                 namespace_registration_fee: None,
             };
@@ -946,7 +952,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: None,
+                allow_direct_module_registration_and_updates: None,
                 namespace_limit: Some(0),
                 namespace_registration_fee: None,
             };
@@ -972,7 +978,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: Some(false),
+                allow_direct_module_registration_and_updates: Some(false),
                 namespace_limit: None,
                 namespace_registration_fee: None,
             };
@@ -991,7 +997,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: Some(false),
+                allow_direct_module_registration_and_updates: Some(false),
                 namespace_limit: None,
                 namespace_registration_fee: None,
             };
@@ -1004,7 +1010,7 @@ mod test {
                 CONFIG
                     .load(&deps.storage)
                     .unwrap()
-                    .allow_direct_module_registration
+                    .allow_direct_module_registration_and_updates
             )
             .is_equal_to(false);
 
@@ -1022,7 +1028,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: None,
+                allow_direct_module_registration_and_updates: None,
                 namespace_limit: None,
                 namespace_registration_fee: Some(Coin {
                     denom: "ujunox".to_string(),
@@ -1049,7 +1055,7 @@ mod test {
             };
 
             let msg = ExecuteMsg::UpdateConfig {
-                allow_direct_module_registration: None,
+                allow_direct_module_registration_and_updates: None,
                 namespace_limit: None,
                 namespace_registration_fee: Some(new_fee.clone()),
             };
@@ -1296,6 +1302,97 @@ mod test {
             // add modules
             let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
             assert_that!(&res).is_ok();
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+            Ok(())
+        }
+
+        #[test]
+        fn update_existing_module() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), true)?;
+            let new_module = test_module();
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+
+            // add namespaces
+            execute_as(
+                deps.as_mut(),
+                TEST_OWNER,
+                ExecuteMsg::ClaimNamespaces {
+                    account_id: TEST_ACCOUNT_ID,
+                    namespaces: vec![new_module.namespace.to_string()],
+                },
+            )?;
+
+            // add modules
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res).is_ok();
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+
+            // update module code-id without changing version
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(1))],
+            };
+
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res).is_ok();
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(1));
+            Ok(())
+        }
+
+        #[test]
+        fn update_existing_module_fails() -> VersionControlTestResult {
+            let mut deps = mock_dependencies();
+            deps.querier = mock_manager_querier().build();
+            mock_init_with_account(deps.as_mut(), false)?;
+            let new_module = test_module();
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(0))],
+            };
+
+            // add namespaces
+            execute_as(
+                deps.as_mut(),
+                TEST_OWNER,
+                ExecuteMsg::ClaimNamespaces {
+                    account_id: TEST_ACCOUNT_ID,
+                    namespaces: vec![new_module.namespace.to_string()],
+                },
+            )?;
+
+            // add modules
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            assert_that!(&res).is_ok();
+            // approve
+            let msg = ExecuteMsg::ApproveOrRejectModules {
+                approves: vec![new_module.clone()],
+                rejects: vec![],
+            };
+
+            // approve by admin
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            assert_that!(&res).is_ok();
+
+            let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
+            assert_that!(&module).is_equal_to(&ModuleReference::App(0));
+
+            // try update module code-id without changing version
+
+            let msg = ExecuteMsg::ProposeModules {
+                modules: vec![(new_module.clone(), ModuleReference::App(1))],
+            };
+            let res = execute_as(deps.as_mut(), TEST_OWNER, msg);
+            // should error as module is already approved and registered.
+            assert_that!(&res).is_err();
+
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
             assert_that!(&module).is_equal_to(&ModuleReference::App(0));
             Ok(())

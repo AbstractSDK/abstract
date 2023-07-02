@@ -13,7 +13,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub allow_direct_module_registration: bool,
+    pub allow_direct_module_registration_and_updates: bool,
     pub namespace_limit: u32,
     pub namespace_registration_fee: cosmwasm_std::Coin,
 }
@@ -92,7 +92,10 @@ pub struct AccountBase {
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub allow_direct_module_registration: Option<bool>,
+    /// allows users to directly register modules without going through approval
+    /// Also allows them to change the module reference of an existing module
+    /// SHOULD ONLY BE `true` FOR TESTING
+    pub allow_direct_module_registration_and_updates: Option<bool>,
     pub namespace_limit: u32,
     pub namespace_registration_fee: Option<Coin>,
 }
@@ -144,7 +147,7 @@ pub enum ExecuteMsg {
     /// 1. Whether the contract allows direct module registration
     /// 2. the number of namespaces an Account can claim
     UpdateConfig {
-        allow_direct_module_registration: Option<bool>,
+        allow_direct_module_registration_and_updates: Option<bool>,
         namespace_limit: Option<u32>,
         namespace_registration_fee: Option<Coin>,
     },
