@@ -20,6 +20,7 @@ use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
 const WYNDEX: &str = "cosmos-testnet>wyndex";
 const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
 
+#[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
     Mock,
     wyndex_bundle::WynDex,
