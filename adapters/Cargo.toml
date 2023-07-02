@@ -74,6 +74,9 @@ abstract-osmosis-adapter = { path = "../integrations/osmosis/packages/abstract-a
 # Terra #
 abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
 
+[patch.crates-io]
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator" }
+
 [profile.release]
 rpath = false
 lto = true
