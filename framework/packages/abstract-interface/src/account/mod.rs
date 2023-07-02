@@ -12,7 +12,6 @@
 //! - upgrade module
 
 use crate::Abstract;
-use crate::AbstractInterfaceError;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
 use cw_orch::deploy::Deploy;
@@ -167,7 +166,10 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 }
 
 #[cfg(feature = "daemon")]
+use crate::AbstractInterfaceError;
+#[cfg(feature = "daemon")]
 impl AbstractAccount<Daemon> {
+
     /// Upload and register the account core contracts in the version control if they need to be updated
     pub fn upload_and_register_if_needed(
         &self,

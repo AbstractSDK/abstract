@@ -36,5 +36,5 @@ astroport = { path = "../astroport/", optional = true }
 abstract-dex-adapter-traits = { path = "../../../../adapters/packages/dex", features = [
   "testing",
 ] }
-cw-orch = { version = "0.13.1", features = ["daemon"] }
+cw-orch = { version = "0.13.2", features = ["daemon"] }
 ibc-chain-registry = "0.24.1"
