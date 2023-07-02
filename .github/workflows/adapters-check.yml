@@ -8,7 +8,7 @@ on:
       - "adapters/**"
   pull_request:
     paths: 
-        - "adapters/**"
+      - "adapters/**"
   
 jobs:
   fmt:
