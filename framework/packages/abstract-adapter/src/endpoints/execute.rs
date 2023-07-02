@@ -94,21 +94,27 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 let proxy_address = deps.api.addr_validate(&requested_proxy)?;
                 let requested_core = account_registry.assert_proxy(&proxy_address)?;
 
-                // Load the authorized addresses for the given proxy address.
-                let authorized = self
-                    .authorized_addresses
-                    .load(deps.storage, proxy_address)
-                    .map_err(Into::into)
-                    .map_err(unauthorized_sender)?;
-
-                if authorized.contains(sender) {
-                    // If the sender is an authorized address, return the account_base.
+                if requested_core.manager == sender {
+                    // If the caller is the manager of the indicated proxy_address, it's authorized to do the operation
+                    // This covers the case where the proxy field of the request is indicated where it doesn't need to be
                     requested_core
                 } else {
-                    // If the sender is NOT an authorized address, check that it is a manager of some Account.
-                    account_registry
-                        .assert_manager(sender)
-                        .map_err(unauthorized_sender)?
+                    // If not, we load the authorized addresses for the given proxy address.
+                    let authorized = self
+                        .authorized_addresses
+                        .load(deps.storage, proxy_address)
+                        .map_err(Into::into)
+                        .map_err(unauthorized_sender)?;
+                    if authorized.contains(sender) {
+                        // If the sender is an authorized address, return the account_base.
+                        requested_core
+                    } else {
+                        // If not, we error, this call is not permitted
+                        Err(AdapterError::UnauthorizedAddressAdapterRequest {
+                            adapter: self.module_id().to_string(),
+                            sender: sender.to_string(),
+                        })?
+                    }
                 }
             }
             None => account_registry

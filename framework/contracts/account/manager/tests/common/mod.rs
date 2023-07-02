@@ -43,7 +43,7 @@ pub(crate) fn init_mock_adapter(
 ) -> anyhow::Result<BootMockAdapter<Mock>> {
     deployment
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec!["tester".to_string()]);
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string());
     let mut staking_adapter = BootMockAdapter::new(TEST_MODULE_ID, chain);
     let version: Version = version
         .unwrap_or_else(|| CONTRACT_VERSION.to_string())

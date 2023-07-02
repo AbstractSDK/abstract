@@ -28,7 +28,7 @@ impl Default for AbstractMockQuerierBuilder {
         }
     }
 }
-
+// ANCHOR: account
 impl AbstractMockQuerierBuilder {
     /// Mock the existence of an Account by setting the Account id for the proxy and manager along with registering the account to version control.
     pub fn account(mut self, manager: &str, proxy: &str, account_id: u32) -> Self {
@@ -65,6 +65,7 @@ impl AbstractMockQuerierBuilder {
 
         self
     }
+    // ANCHOR_END: account
 
     /// Add mock assets into ANS
     pub fn assets(mut self, assets: Vec<(&AssetEntry, AssetInfo)>) -> Self {

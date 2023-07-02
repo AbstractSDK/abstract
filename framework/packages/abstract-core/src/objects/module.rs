@@ -434,6 +434,8 @@ pub enum Monetization {
     None,
     InstallFee(FixedFee),
 }
+/// Module Metadata String
+pub type ModuleMetadata = String;
 
 //--------------------------------------------------------------------------------------------------
 // Tests

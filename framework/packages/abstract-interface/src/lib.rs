@@ -1,6 +1,8 @@
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 mod account;
+#[cfg(feature = "daemon")]
+mod migrate;
 
 pub use crate::account::*;
 

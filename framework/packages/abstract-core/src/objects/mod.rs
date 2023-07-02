@@ -24,6 +24,7 @@ pub mod namespace;
 pub mod paged_map;
 pub mod price_source;
 pub mod time_weighted_average;
+pub mod validation;
 
 pub use account_id::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;

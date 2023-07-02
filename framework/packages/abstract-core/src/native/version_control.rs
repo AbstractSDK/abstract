@@ -13,8 +13,7 @@ pub type ModuleMapEntry = (ModuleInfo, ModuleReference);
 /// Contains configuration info of version control.
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
-    pub allow_direct_module_registration: bool,
-    pub namespace_limit: u32,
+    pub allow_direct_module_registration_and_updates: bool,
     pub namespace_registration_fee: cosmwasm_std::Coin,
 }
 
@@ -26,7 +25,7 @@ pub mod state {
     use crate::objects::{
         account_id::AccountId,
         common_namespace::ADMIN_NAMESPACE,
-        module::{ModuleInfo, Monetization},
+        module::{ModuleInfo, ModuleMetadata, Monetization},
         module_reference::ModuleReference,
         namespace::Namespace,
     };
@@ -46,6 +45,8 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
     pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
+    // Modules Metadata
+    pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
     /// Maps Account ID to the address of its core contracts
     pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
@@ -73,14 +74,17 @@ pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, Namespa
 
 use crate::objects::{
     account_id::AccountId,
-    module::{Module, ModuleInfo, ModuleStatus, Monetization},
+    module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, ModuleVersion, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Coin};
+use cosmwasm_std::{Addr, Coin, Order, Storage};
+use state::MODULE_MONETIZATION;
 
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
+
+use self::state::MODULE_METADATA;
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -92,8 +96,10 @@ pub struct AccountBase {
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub allow_direct_module_registration: Option<bool>,
-    pub namespace_limit: u32,
+    /// allows users to directly register modules without going through approval
+    /// Also allows them to change the module reference of an existing module
+    /// SHOULD ONLY BE `true` FOR TESTING
+    pub allow_direct_module_registration_and_updates: Option<bool>,
     pub namespace_registration_fee: Option<Coin>,
 }
 
@@ -119,6 +125,13 @@ pub enum ExecuteMsg {
         namespace: Namespace,
         monetization: Monetization,
     },
+    /// Sets the metadata configuration for a module.
+    /// Only callable by namespace admin
+    /// Using Version::Latest in the [`module`] variable sets the default metadata for the module
+    SetModuleMetadata {
+        module: ModuleInfo,
+        metadata: ModuleMetadata,
+    },
     /// Approve or reject modules
     /// This takes the modules in the pending_modules map and
     /// moves them to the registered_modules map or yanked_modules map
@@ -127,9 +140,9 @@ pub enum ExecuteMsg {
         rejects: Vec<ModuleInfo>,
     },
     /// Claim namespaces
-    ClaimNamespaces {
+    ClaimNamespace {
         account_id: AccountId,
-        namespaces: Vec<String>,
+        namespace: String,
     },
     /// Remove namespace claims
     /// Only admin or root user can call this
@@ -144,8 +157,7 @@ pub enum ExecuteMsg {
     /// 1. Whether the contract allows direct module registration
     /// 2. the number of namespaces an Account can claim
     UpdateConfig {
-        allow_direct_module_registration: Option<bool>,
-        namespace_limit: Option<u32>,
+        allow_direct_module_registration_and_updates: Option<bool>,
         namespace_registration_fee: Option<Coin>,
     },
     /// Sets a new Factory
@@ -160,13 +172,6 @@ pub struct ModuleFilter {
     pub name: Option<String>,
     pub version: Option<String>,
     pub status: Option<ModuleStatus>,
-}
-
-/// A NamespaceFilter for [`Namespaces`].
-#[derive(Default)]
-#[cosmwasm_schema::cw_serde]
-pub struct NamespaceFilter {
-    pub account_id: Option<AccountId>,
 }
 
 /// Version Control Query Msg
@@ -205,7 +210,6 @@ pub enum QueryMsg {
     /// Returns [`NamespaceListResponse`]
     #[returns(NamespaceListResponse)]
     NamespaceList {
-        filter: Option<NamespaceFilter>,
         start_after: Option<String>,
         limit: Option<u8>,
     },
@@ -231,11 +235,65 @@ pub struct ModuleResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleConfiguration {
     pub monetization: Monetization,
+    pub metadata: ModuleMetadata,
 }
 
 impl ModuleConfiguration {
-    pub fn new(monetization: Monetization) -> Self {
-        Self { monetization }
+    pub fn new(monetization: Monetization, metadata: ModuleMetadata) -> Self {
+        Self {
+            monetization,
+            metadata,
+        }
+    }
+
+    /// Loads metadata from storage for a given module
+    /// This function has the following behavior
+    /// 1. If available loads the metadata for the current module version
+    /// 2. OR, if available, loads the metadata for the latest version of the module
+    /// 3. OR, if available, loads the last metadata stored on the contract
+    /// 4. OR, returns empty metadata
+    fn metadata_from_storage(storage: &dyn Storage, module: &ModuleInfo) -> ModuleMetadata {
+        // First we return the result if the metadata is stored for the current module
+        if let Ok(metadata) = MODULE_METADATA.load(storage, module) {
+            return metadata;
+        }
+
+        // Else if Version::Latest is specified, we load this description
+        if let Ok(metadata) = MODULE_METADATA.load(
+            storage,
+            &ModuleInfo {
+                namespace: module.namespace.clone(),
+                name: module.name.clone(),
+                version: ModuleVersion::Latest,
+            },
+        ) {
+            return metadata;
+        }
+
+        // Else we return the latest metadata version registered with the same module
+        let potential_metadata = MODULE_METADATA
+            .prefix((module.namespace.clone(), module.name.clone()))
+            .range(storage, None, None, Order::Descending)
+            .next();
+        if let Some(Ok((_key, metadata))) = potential_metadata {
+            return metadata;
+        }
+
+        // Else, no metadata
+        "".to_string()
+    }
+
+    pub fn from_storage(storage: &dyn Storage, module: &ModuleInfo) -> Self {
+        let monetization = MODULE_MONETIZATION
+            .load(storage, (&module.namespace, &module.name))
+            .unwrap_or(Monetization::None);
+
+        let metadata = ModuleConfiguration::metadata_from_storage(storage, module);
+
+        Self {
+            monetization,
+            metadata,
+        }
     }
 }
 
