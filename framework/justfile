@@ -16,20 +16,11 @@ lintfix:
   cargo clippy --fix --allow-staged --allow-dirty --all-features
   just format
 
-docs-install:
-  cargo install mdbook
-  cargo install mdbook-mermaid
-  cargo install mdbook-admonish
-
-# Serve docs locally, pass --open to open in browser
-docs-serve *FLAGS:
-  (cd docs && mdbook serve {{FLAGS}}) 
-
-docs-build:
-  (cd docs && mdbook build)
+check-all:
+  cargo check --all-features
 
 check:
-  cargo check --all-features
+  cargo check
 
 refresh:
   cargo clean && cargo update

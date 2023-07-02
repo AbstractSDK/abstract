@@ -4,10 +4,15 @@ permissions:
 on:
   push:
     branches: [main]
+    paths: 
+      - framework/**
   pull_request:
+    paths: 
+      - framework/**
 
 env: 
   CODECOV_TOKEN: 7f09ca79-34d7-4a5a-b6fd-b3b477a7b2e9
+  WORKSPACE_PATH: ./framework
 
 jobs:
   required:
@@ -25,13 +30,11 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
       - name: cargo generate-lockfile
-        working-directory: ./framework
         if: hashFiles('Cargo.lock') == ''
-        run: cargo generate-lockfile
+        run: (cd $WORKSPACE_PATH && cargo generate-lockfile)
       # https://twitter.com/jonhoo/status/1571290371124260865
       - name: cargo test --locked
-        working-directory: ./framework
-        run: cargo test --locked --all-features --all-targets
+        run: (cd $WORKSPACE_PATH && cargo test --locked --all-features --all-targets)
   coverage:
     runs-on: ubuntu-latest
     name: ubuntu / stable / coverage
@@ -46,12 +49,10 @@ jobs:
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: cargo generate-lockfile
-        working-directory: ./framework
         if: hashFiles('Cargo.lock') == ''
-        run: cargo generate-lockfile
+        run: (cd $WORKSPACE_PATH && cargo generate-lockfile)
       - name: cargo llvm-cov
-        working-directory: ./framework
-        run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
+        run: (cd $WORKSPACE_PATH && cargo llvm-cov --locked --all-features --lcov --output-path lcov.info)
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
