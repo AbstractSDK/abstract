@@ -21,7 +21,7 @@ push repo branch:
     git subtree pull --prefix={{repo}} {{repo}} {{branch}}
 
 # Run a cargo command in all the workspace repos
-cargo-all command:
+cargo-all *command:
     for path in {{workspaces}}; do (cd $path; cargo {{command}}); done || exit 1
 
 check path:
@@ -29,3 +29,6 @@ check path:
 
 check-all path:
     (cd {{path}}; cargo check --all-features)
+
+pre-release:
+  (cd framework && cargo package --all-features)
