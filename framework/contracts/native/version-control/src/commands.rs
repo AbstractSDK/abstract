@@ -1355,7 +1355,7 @@ mod test {
             };
 
             // approve by admin
-            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg.clone());
+            let res = execute_as(deps.as_mut(), TEST_ADMIN, msg);
             assert_that!(&res).is_ok();
 
             let module = REGISTERED_MODULES.load(&deps.storage, &new_module)?;
