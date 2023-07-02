@@ -58,7 +58,6 @@ impl From<&StaticDependency> for Dependency {
 mod test {
     use super::*;
     use speculoos::prelude::*;
-    use std::borrow::Borrow;
 
     #[test]
     fn test_static_constructor() {
@@ -123,9 +122,9 @@ mod test {
     fn test_dependency_from_static() {
         const VERSION_CONSTRAINT: [&str; 1] = ["^1.0.0"];
 
-        let dep = StaticDependency::new("test", &VERSION_CONSTRAINT);
+        let dep = &StaticDependency::new("test", &VERSION_CONSTRAINT);
 
-        let dep: Dependency = dep.borrow().into();
+        let dep: Dependency = dep.into();
 
         assert_that!(dep.id).is_equal_to("test".to_string());
         assert_that!(dep.version_req).is_equal_to(vec![Comparator::parse("^1.0.0").unwrap()]);
