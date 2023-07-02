@@ -48,7 +48,7 @@ watch-test:
   cargo watch -x "nextest run"
 
 wasm:
-  ./publish/wasms.sh
+  ./build_release.sh
 
 wasm-module module:
   RUSTFLAGS='-C link-arg=-s' cargo wasm --package {{module}}
@@ -56,8 +56,11 @@ wasm-module module:
 run-script script +CHAINS:
   (cd scripts && cargo run --bin {{script}} -- --network-ids {{CHAINS}})
 
-full-deploy +CHAINS:
+deploy +CHAINS:
   just run-script full_deploy {{CHAINS}}
+
+migrate +CHAINS:
+  just run-script migrate {{CHAINS}}
 
 publish-schemas version:
   SCHEMA_OUT_DIR=$(cd ../schemas && echo "$PWD") \
