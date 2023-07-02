@@ -48,7 +48,7 @@ fn install_app_successful() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // dependency for mock_adapter1 not met
@@ -87,7 +87,7 @@ fn install_app_versions_not_met() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 2
@@ -114,7 +114,7 @@ fn upgrade_app() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 1
@@ -284,7 +284,7 @@ fn uninstall_modules() -> AResult {
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     let adapter1 = install_module_version(manager, &abstr, adapter_1::MOCK_ADAPTER_ID, V1)?;
@@ -319,7 +319,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
     let AbstractAccount { manager, proxy } = &account;
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // install adapter 1
@@ -369,7 +369,7 @@ fn upgrade_manager_last() -> AResult {
 
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
     deploy_modules(&chain);
 
     // install adapter 1
@@ -431,7 +431,7 @@ fn no_duplicate_migrations() -> AResult {
 
     abstr
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec![TEST_NAMESPACE.to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, TEST_NAMESPACE.to_string())?;
     deploy_modules(&chain);
 
     // Install adapter 1

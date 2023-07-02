@@ -219,7 +219,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     deployment
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec!["tester".to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
     adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
@@ -339,7 +339,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let account = create_default_account(&deployment.account_factory)?;
     deployment
         .version_control
-        .claim_namespaces(TEST_ACCOUNT_ID, vec!["tester".to_string()])?;
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
     adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();

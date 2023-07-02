@@ -44,7 +44,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
 
     let InstantiateMsg {
         allow_direct_module_registration_and_updates,
-        namespace_limit,
         namespace_registration_fee,
     } = msg;
 
@@ -53,7 +52,6 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         &Config {
             allow_direct_module_registration_and_updates:
                 allow_direct_module_registration_and_updates.unwrap_or(false),
-            namespace_limit,
             namespace_registration_fee: namespace_registration_fee.unwrap_or(Coin {
                 denom: "none".to_string(),
                 amount: Uint128::zero(),
@@ -90,10 +88,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             monetization,
         } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::ClaimNamespaces {
+        ExecuteMsg::ClaimNamespace {
+            namespace,
             account_id,
-            namespaces,
-        } => claim_namespaces(deps, info, account_id, namespaces),
+        } => claim_namespace(deps, info, account_id, namespace),
         ExecuteMsg::RemoveNamespaces { namespaces } => remove_namespaces(deps, info, namespaces),
         ExecuteMsg::AddAccount {
             account_id,
@@ -101,13 +99,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         } => add_account(deps, info, account_id, base),
         ExecuteMsg::UpdateConfig {
             allow_direct_module_registration_and_updates,
-            namespace_limit,
             namespace_registration_fee,
         } => update_config(
             deps,
             info,
             allow_direct_module_registration_and_updates,
-            namespace_limit,
             namespace_registration_fee,
         ),
         ExecuteMsg::SetFactory { new_factory } => set_factory(deps, info, new_factory),
@@ -144,17 +140,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> VCResult<Binary> {
             limit,
             filter,
         )?),
-        QueryMsg::NamespaceList {
-            filter,
-            start_after,
-            limit,
-        } => {
+        QueryMsg::NamespaceList { start_after, limit } => {
             let start_after = start_after.map(Namespace::try_from).transpose()?;
             to_binary(&queries::handle_namespace_list_query(
                 deps,
                 start_after,
                 limit,
-                filter,
             )?)
         }
         QueryMsg::Ownership {} => to_binary(&query_ownership!(deps)?),
