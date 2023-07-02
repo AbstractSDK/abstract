@@ -169,7 +169,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 use crate::AbstractInterfaceError;
 #[cfg(feature = "daemon")]
 impl AbstractAccount<Daemon> {
-
     /// Upload and register the account core contracts in the version control if they need to be updated
     pub fn upload_and_register_if_needed(
         &self,
