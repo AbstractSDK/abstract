@@ -5,3 +5,5 @@
 .vscode
 
 ./artifacts
+
+**/*.wasm
