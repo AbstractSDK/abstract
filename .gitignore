@@ -3,8 +3,3 @@
 **/Cargo.lock
 
 .vscode
-
-./artifacts
-
-**/*.wasm
-**/checksums*.txt
