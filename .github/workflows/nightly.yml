@@ -28,5 +28,8 @@ jobs:
         id: just
         uses: extractions/setup-just@v1
 
-      - name: Install dependencies 🔧
+      - name: Build all workspaces
         run: just nightly-build
+
+      - name: WASM all contracts
+        run: just wasm-all

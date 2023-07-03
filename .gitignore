@@ -7,3 +7,4 @@
 ./artifacts
 
 **/*.wasm
+**/checksums*.txt
