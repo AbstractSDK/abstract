@@ -23,11 +23,10 @@ use croncat_integration_testing::DENOM;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::{coin, Addr, Decimal, Uint128};
-use wyndex_bundle::{WynDex, EUR, USD};
+use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 // consts for testing
 const ADMIN: &str = "admin";
-const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
 
 #[allow(unused)]
 struct CronCatAddrs {
