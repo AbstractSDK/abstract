@@ -30,5 +30,5 @@ check path:
 check-all path:
     (cd {{path}}; cargo check --all-features)
 
-pre-release:
-  (cd framework && cargo package --all-features)
+nightly-build:
+  just cargo-all build --all-features
