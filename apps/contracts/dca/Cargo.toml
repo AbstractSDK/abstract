@@ -36,9 +36,9 @@ schema = ["abstract-app/schema"]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-controllers = { workspace = true }
-cw-storage-plus = {workspace = true}
+cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
-schemars = {workspace = true}
+schemars = { workspace = true }
 cw-asset = { workspace = true }
 
 abstract-core = { workspace = true }
@@ -48,8 +48,8 @@ abstract-sdk = { workspace = true }
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-croncat-app = { workspace = true, default-features = false}
-abstract-dex-adapter = { workspace = true, default-features = false}
+croncat-app = { workspace = true, default-features = false }
+abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
 abstract-dca-app = { path = ".", features = ["interface"] }
@@ -67,8 +67,6 @@ wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
   "juno",
-  "testing"
+  "testing",
 ] }
-croncat-app = { workspace = true, features = [
-  "interface",
-] }
+croncat-app = { workspace = true, features = ["interface"] }

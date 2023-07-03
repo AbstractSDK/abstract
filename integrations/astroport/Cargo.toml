@@ -34,6 +34,3 @@ strip = true
 
 [patch.'https://github.com/astroport-fi/astroport-core']
 astroport = { path = "packages/astroport" }
-
-[patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/add-mock-querier" }

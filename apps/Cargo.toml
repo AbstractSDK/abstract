@@ -12,7 +12,7 @@ members = ["contracts/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.14.0"
+version = "0.15.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -21,7 +21,7 @@ authors = [
 edition = "2021"
 homepage = "https://abstract.money"
 documentation = "https://docs.abstract.money/"
-repository = "https://github.com/Abstract-OS/contracts"
+repository = "https://github.com/AbstractSDK/abstract/apps"
 license = "GPL-3.0-or-later"
 keywords = ["cosmos", "cosmwasm", "framework"]
 
@@ -58,7 +58,7 @@ abstract-adapter = { version = "0.16.1", path = "../framework/packages/abstract-
 
 wyndex-bundle = { path = "../../integration-bundles/bundles/wyndex" }
 abstract-dex-adapter = { path = "../../adapters/contracts/dex" }
-croncat-app = {  path = "./contracts/croncat" }
+croncat-app = { path = "./contracts/croncat" }
 
 ## Testing
 rstest = "0.16.0"
