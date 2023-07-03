@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ActiveTasksByCreatorResponse",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "unchecked"
+      ],
+      "properties": {
+        "unchecked": {
+          "type": "object",
+          "required": [
+            "tasks"
+          ],
+          "properties": {
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "checked"
+      ],
+      "properties": {
+        "checked": {
+          "type": "object",
+          "required": [
+            "removed_tasks",
+            "scheduled_tasks"
+          ],
+          "properties": {
+            "removed_tasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "scheduled_tasks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
