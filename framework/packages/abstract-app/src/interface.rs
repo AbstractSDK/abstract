@@ -150,6 +150,6 @@ macro_rules! cw_orch_interface {
 #[macro_export]
 macro_rules! create_interface {
     ($app_const:expr, $app_type:ident) => {
-        abstract_app::cw_orch_interface!($app_const, $app_type, $app_type);
+        $crate::cw_orch_interface!($app_const, $app_type, $app_type);
     };
 }

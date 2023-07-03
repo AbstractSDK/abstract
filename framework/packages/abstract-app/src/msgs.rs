@@ -45,6 +45,6 @@ macro_rules! app_msg_types {
 #[macro_export]
 macro_rules! app_messages {
     ($app_type:ty, $app_execute_msg: ty, $app_query_msg: ty) => {
-        abstract_app::app_msg_types!($app_type, $app_execute_msg, $app_query_msg);
+        $crate::app_msg_types!($app_type, $app_execute_msg, $app_query_msg);
     };
 }
