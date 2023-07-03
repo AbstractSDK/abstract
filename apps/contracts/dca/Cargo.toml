@@ -33,41 +33,42 @@ interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
 schema = ["abstract-app/schema"]
 
 [dependencies]
-cosmwasm-std = { version = "1.2" }
-cosmwasm-schema = { version = "1.2" }
-cw-controllers = { version = "1.0.1" }
-cw-storage-plus = "1.1.0"
-thiserror = { version = "1.0" }
-schemars = "0.8"
-cw-asset = { version = "3.0" }
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = {workspace = true}
+thiserror = { workspace = true }
+schemars = {workspace = true}
+cw-asset = { workspace = true }
 
-abstract-core = { version = "0.16.1" }
-abstract-app = { version = "0.16.1" }
-abstract-sdk = { version = "0.16.1" }
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true }
 
 # Dependencies for interface
-abstract-interface = { version = "0.16.1", optional = true }
-cw-orch = { version = "0.13", optional = true }
-croncat-app = { git = "https://github.com/CronCats/abstract-croncat-app.git", rev = "5077a7e", default-features = false}
-abstract-dex-adapter = { git = "https://github.com/AbstractSDK/adapters.git", default-features = false}
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
+croncat-app = { workspace = true, default-features = false}
+abstract-dex-adapter = { workspace = true, default-features = false}
+
 [dev-dependencies]
 abstract-dca-app = { path = ".", features = ["interface"] }
-abstract-interface = { version = "0.16.1", features = ["daemon"] }
-abstract-testing = { version = "0.16.1" }
-abstract-sdk = { version = "0.16.1", features = ["test-utils"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
 speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = { version = "0.13", features = ["daemon"] }
+cw-orch = { workspace = true, features = ["daemon"] }
 
 croncat-integration-testing = { version = "1.1.0" }
-wyndex-bundle = { git = "https://github.com/AbstractSDK/integration-bundles.git" }
-abstract-dex-adapter = { git = "https://github.com/AbstractSDK/adapters.git", features = [
+wyndex-bundle = { workspace = true }
+abstract-dex-adapter = { workspace = true, features = [
   "interface",
   "juno",
   "testing"
 ] }
-croncat-app = { git = "https://github.com/CronCats/abstract-croncat-app.git", rev = "5077a7e", features = [
+croncat-app = { workspace = true, features = [
   "interface",
 ] }
