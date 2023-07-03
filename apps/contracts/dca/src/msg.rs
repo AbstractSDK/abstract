@@ -19,7 +19,7 @@ use crate::{
 
 // impl app::AppExecuteMsg for AppExecuteMsg {}
 // impl app::AppQueryMsg for AppQueryMsg {}
-abstract_app::app_messages!(DCAApp, DCAExecuteMsg, DCAQueryMsg);
+abstract_app::app_msg_types!(DCAApp, DCAExecuteMsg, DCAQueryMsg);
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
