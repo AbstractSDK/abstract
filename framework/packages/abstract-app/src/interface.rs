@@ -145,3 +145,11 @@ macro_rules! cw_orch_interface {
 
     };
 }
+
+#[deprecated(since = "0.16.2", note = "use cw_orch_interface instead")]
+#[macro_export]
+macro_rules! create_interface {
+    ($app_const:expr, $app_type:ident) => {
+        $crate::cw_orch_interface!($app_const, $app_type, $app_type);
+    };
+}

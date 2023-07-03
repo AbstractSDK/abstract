@@ -40,3 +40,11 @@ macro_rules! app_msg_types {
         impl ::abstract_core::app::AppQueryMsg for $app_query_msg {}
     };
 }
+
+#[deprecated(since = "0.16.2", note = "use app_msg_types instead")]
+#[macro_export]
+macro_rules! app_messages {
+    ($app_type:ty, $app_execute_msg: ty, $app_query_msg: ty) => {
+        $crate::app_msg_types!($app_type, $app_execute_msg, $app_query_msg);
+    };
+}
