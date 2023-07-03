@@ -1,0 +1,9 @@
+/target
+
+artifacts/*
+
+.env
+
+.vscode
+.idea
+daemon_state.json
