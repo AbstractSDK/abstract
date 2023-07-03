@@ -38,6 +38,7 @@ jobs:
         uses: extractions/setup-just@v1
 
       - name: Install dependencies 🔧
+        working-directory: ./framework
         run: just docs-install
 
       - name: Build 🏗️
