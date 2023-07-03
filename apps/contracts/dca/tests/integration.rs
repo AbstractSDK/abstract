@@ -94,7 +94,7 @@ fn setup() -> anyhow::Result<(
         })?;
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["croncat".to_string()])?;
+        .claim_namespace(1, "croncat".to_string())?;
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
 
     // Register factory entry

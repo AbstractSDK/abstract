@@ -41,4 +41,4 @@ const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
 abstract_app::export_endpoints!(DCA_APP, DCAApp);
 
 #[cfg(feature = "interface")]
-abstract_app::create_interface!(DCA_APP, DCAApp);
+abstract_app::cw_orch_interface!(DCA_APP, DCAApp, DCAApp);
