@@ -61,3 +61,195 @@ where
     }
     (to_remove, to_add)
 }
+
+
+
+
+#[cfg(test)]
+mod test{
+    
+    use ibc_chain_registry::chain::ChainData;
+
+    use cw_orch::prelude::networks::JUNO_1;
+    use cw_orch::daemon::ChainInfo;
+    
+    use anyhow::Result as AnyResult;
+
+    use crate::assets::get_scraped_entries;
+    const CHAIN: ChainInfo = JUNO_1;
+
+    #[test]
+    fn assets_not_empty() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        assert!(!scraped.is_empty());
+        Ok(())
+    }
+
+
+    #[test]
+    fn assets_no_diff() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let dummy_scraped = scraped.clone();
+
+        let diff = super::diff(scraped, dummy_scraped)?;
+
+        assert!(diff.0.is_empty());
+        assert!(diff.1.is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn assets_small_diff() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+        let first_key = dummy_scraped.keys().next().unwrap().clone();
+        let first_value = dummy_scraped.get(&first_key).unwrap().clone();
+        dummy_scraped.remove(&first_key);
+
+        let diff = super::diff(scraped, dummy_scraped)?;
+
+        assert!(diff.0.is_empty());
+        assert_eq!(diff.1.into_iter().collect::<Vec<_>>(), vec![(first_key, first_value)]);
+        Ok(())
+    }
+
+    #[test]
+    fn assets_big_diff() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+
+        let n = 6;
+        for _i in 0..n{
+            let first_key = dummy_scraped.keys().next().unwrap().clone();
+            dummy_scraped.remove(&first_key);
+
+        }
+
+        let diff = super::diff(scraped, dummy_scraped)?;
+
+        assert!(diff.0.is_empty());
+        assert_eq!(diff.1.len(), 6);
+        Ok(())
+    }
+
+    #[test]
+    fn assets_inverse_diff() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+        let first_key = dummy_scraped.keys().next().unwrap().clone();
+        dummy_scraped.remove(&first_key);
+
+        let diff = super::diff(dummy_scraped , scraped)?;
+
+        assert!(diff.1.is_empty());
+        assert_eq!(diff.0.into_iter().collect::<Vec<_>>(), vec![first_key]);
+        Ok(())
+    }
+
+    #[test]
+    fn assets_both_diff() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+        let first_key = dummy_scraped.keys().next().unwrap().clone();
+        let first_value = dummy_scraped.get(&first_key).unwrap().clone();
+        dummy_scraped.remove(&first_key);
+
+        dummy_scraped.insert("dummy_key".to_string(), cw_asset::AssetInfoBase::Cw20("dummy_value".to_string()));
+
+        let diff = super::diff(scraped, dummy_scraped)?;
+
+        assert_eq!(diff.0.into_iter().collect::<Vec<_>>(), vec!["dummy_key"]);
+        assert_eq!(diff.1.into_iter().collect::<Vec<_>>(), vec![(first_key, first_value)]);
+        Ok(())
+    }
+
+    #[test]
+    fn assets_same_key() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+        let first_key = dummy_scraped.keys().next().unwrap().clone();
+        let first_value = dummy_scraped.get(&first_key).unwrap().clone();
+        dummy_scraped.remove(&first_key);
+
+        dummy_scraped.insert(first_key.to_string(), cw_asset::AssetInfoBase::Cw20("dummy_value".to_string()));
+
+        let diff = super::diff(scraped, dummy_scraped)?;
+
+        assert!(diff.0.is_empty());
+        assert_eq!(diff.1.into_iter().collect::<Vec<_>>(), vec![(first_key, first_value)]);
+        Ok(())
+    }
+
+    #[test]
+    fn assets_same_key_inv() -> AnyResult<()>{
+
+        let chain: ChainData = CHAIN.into();
+
+        let chain_name = chain.chain_name;
+        let chain_id = chain.chain_id.to_string();
+
+        let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
+
+        let mut dummy_scraped = scraped.clone();
+        let first_key = dummy_scraped.keys().next().unwrap().clone();
+        dummy_scraped.remove(&first_key);
+
+        let new_value = cw_asset::AssetInfoBase::Cw20("dummy_value".to_string());
+        dummy_scraped.insert(first_key.to_string(), new_value.clone());
+
+        let diff = super::diff(dummy_scraped, scraped)?;
+
+        assert!(diff.0.is_empty());
+        assert_eq!(diff.1.into_iter().collect::<Vec<_>>(), vec![(first_key, new_value)]);
+        Ok(())
+    }
+}
