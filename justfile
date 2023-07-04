@@ -22,7 +22,13 @@ push repo branch:
 
 # Run a cargo command in all the workspace repos
 cargo-all *command:
-    for path in {{workspaces}}; do (cd $path; cargo {{command}}); done || exit 1
+  #!/usr/bin/env bash
+  set -e;
+  for path in {{workspaces}}
+  do 
+    (cd $path; cargo {{command}}); 
+  done
+  set +e
 
 check path:
     (cd {{path}}; cargo check)
