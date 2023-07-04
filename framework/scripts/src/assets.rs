@@ -68,25 +68,22 @@ pub fn update(
     Ok(())
 }
 
-
-
-
 #[cfg(test)]
-mod test{
-    
-    use std::env::set_var;
-use tokio::runtime::Runtime;
-use ibc_chain_registry::chain::ChainData;
+mod test {
 
-    use cw_orch::{deploy::Deploy, prelude::networks::JUNO_1};
-use cw_orch::daemon::{DaemonBuilder, ChainInfo};
+    use ibc_chain_registry::chain::ChainData;
+    use std::env::set_var;
+    use tokio::runtime::Runtime;
+
+    use super::{get_on_chain_entries, get_scraped_entries};
     use abstract_interface::Abstract;
-    use super::{get_scraped_entries, get_on_chain_entries};
     use anyhow::Result as AnyResult;
+    use cw_orch::daemon::{ChainInfo, DaemonBuilder};
+    use cw_orch::{deploy::Deploy, prelude::networks::JUNO_1};
     const CHAIN: ChainInfo = JUNO_1;
 
     #[test]
-    fn scraped_data_exists(){
+    fn scraped_data_exists() {
         let chain: ChainData = CHAIN.into();
 
         let chain_name = chain.chain_name;
@@ -98,15 +95,13 @@ use cw_orch::daemon::{DaemonBuilder, ChainInfo};
         assert!(!scraped.is_empty());
     }
 
-
     #[test]
-    fn on_chain_data_exists() -> AnyResult<()>{
-
+    fn on_chain_data_exists() -> AnyResult<()> {
         // We setup a dummy main mnemonic for the daemon
         set_var("MAIN_MNEMONIC", "proof truly city acoustic walnut thrive seat illegal recycle quote kite pudding clarify limit black evidence dove lens velvet penalty glance ghost fog ship");
 
         let rt = Runtime::new()?;
-        
+
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(CHAIN)
@@ -118,7 +113,6 @@ use cw_orch::daemon::{DaemonBuilder, ChainInfo};
         let on_chain = get_on_chain_entries(&ans_host).unwrap();
         // TODO, we could add better tests
         assert!(!on_chain.is_empty());
-
 
         Ok(())
     }
