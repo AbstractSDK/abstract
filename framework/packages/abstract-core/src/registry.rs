@@ -34,5 +34,4 @@ pub static NATIVE_CONTRACTS: &[&str] = &[
     "cw20",
 ];
 pub static ACCOUNT_CONTRACTS: &[&str] = &[MANAGER, PROXY];
-pub const ABSTRACT_EVENT_TYPE: &str = "abstract";
-pub const ABSTRACT_EVENT_NAME: &str = "wasm-abstract";
+pub const ABSTRACT_EVENT_TYPE: &str = "wasm-abstract";

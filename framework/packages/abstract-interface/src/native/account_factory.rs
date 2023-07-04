@@ -3,7 +3,7 @@ pub use abstract_core::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
 use abstract_core::{
-    account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_NAME, MANAGER, PROXY,
+    account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
@@ -62,11 +62,11 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             None,
         )?;
 
-        let manager_address = &result.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
+        let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
         self.get_chain()
             .state()
             .set_address(MANAGER, &Addr::unchecked(manager_address));
-        let proxy_address = &result.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+        let proxy_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
         self.get_chain()
             .state()
             .set_address(PROXY, &Addr::unchecked(proxy_address));
