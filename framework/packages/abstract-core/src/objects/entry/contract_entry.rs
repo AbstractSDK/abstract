@@ -9,7 +9,9 @@ use std::{
 };
 
 /// Key to get the Address of a contract
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Hash)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord, Hash,
+)]
 pub struct UncheckedContractEntry {
     pub protocol: String,
     pub contract: String,
@@ -55,7 +57,9 @@ impl TryFrom<String> for UncheckedContractEntry {
 
 /// Key to get the Address of a contract
 /// Use [`UncheckedContractEntry`] to construct this type.  
-#[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord, Hash)]
+#[derive(
+    Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord, Hash,
+)]
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,

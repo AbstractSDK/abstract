@@ -90,7 +90,6 @@ pub fn update(
         HashMap<UncheckedPoolAddress, PoolMetadata>,
     ),
 ) -> Result<(), AbstractInterfaceError> {
-
     let to_add: Vec<_> = diff.1.into_iter().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 
@@ -117,7 +116,6 @@ pub fn update_dexes(
     ans_host: &AnsHost<Daemon>,
     diff: EntryDif<String, String>,
 ) -> Result<(), AbstractInterfaceError> {
-
     let to_add: Vec<_> = diff.1.into_keys().collect();
     let to_remove: Vec<_> = diff.0.into_iter().collect();
 

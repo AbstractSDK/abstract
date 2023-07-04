@@ -47,7 +47,7 @@ impl AnsEntryConvertor<PoolMetadata> {
     pub fn lp_token_asset(self) -> AssetEntry {
         AnsEntryConvertor::new(self.lp_token()).asset_entry()
     }
-    
+
     /// Get an [`DexAssetPairing`] for this pool.
     pub fn dex_asset_pairing(self) -> AbstractResult<DexAssetPairing> {
         let mut assets = self.entry.assets;
