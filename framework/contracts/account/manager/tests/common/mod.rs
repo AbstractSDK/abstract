@@ -70,8 +70,7 @@ pub(crate) fn add_mock_adapter_install_fee(
 }
 
 pub fn install_adapter(manager: &Manager<Mock>, adapter_id: &str) -> AResult {
-    manager
-        .install_module(adapter_id, &Empty {}, None)?;
+    manager.install_module(adapter_id, &Empty {}, None)?;
     Ok(())
 }
 
@@ -80,9 +79,8 @@ pub fn install_adapter_with_funds(
     adapter_id: &str,
     funds: &[Coin],
 ) -> AResult {
-    manager
-        .install_module(adapter_id, &Empty {}, Some(funds))?;
-        Ok(())
+    manager.install_module(adapter_id, &Empty {}, Some(funds))?;
+    Ok(())
 }
 
 pub fn uninstall_module(manager: &Manager<Mock>, module_id: &str) -> AResult {
