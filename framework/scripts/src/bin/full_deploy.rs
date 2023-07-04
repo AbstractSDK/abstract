@@ -1,6 +1,7 @@
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
+use abstract_interface_scripts::assert_wallet_balance;
 use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
@@ -16,6 +17,9 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
+    
+    rt.block_on(assert_wallet_balance(&networks));
+
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
