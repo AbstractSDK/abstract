@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod channels;
 pub mod contracts;
 pub mod hashmap_diff;
 pub mod pools;
