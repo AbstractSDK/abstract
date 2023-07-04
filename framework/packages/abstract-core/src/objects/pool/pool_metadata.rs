@@ -10,7 +10,7 @@ use std::{fmt, str::FromStr};
 
 type DexName = String;
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema, Hash)]
 pub struct PoolMetadata {
     pub dex: DexName,
     pub pool_type: PoolType,

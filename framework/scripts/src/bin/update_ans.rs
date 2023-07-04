@@ -11,22 +11,28 @@ use cw_orch::{
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const MNEMONIC: &str = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion";
 
-// Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network)
-            .mnemonic(MNEMONIC)
             .build()?;
 
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
-        ans_host.update_all()?;
+
+        // First we get all values
+        let scraped_entries = ans_helper::get_scraped_entries(&ans_host)?;
+        let on_chain_entries = ans_helper::get_on_chain_entries(&ans_host)?;
+
+        // Then we create a diff between the 2 objects
+        let diff = ans_helper::diff(scraped_entries, on_chain_entries)?;
+
+        // Finally we upload on-chain
+        ans_helper::update(&ans_host, diff)?;
     }
     Ok(())
 }
@@ -49,7 +55,7 @@ fn main() {
 
     let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
 
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = update_ans(networks) {
         log::error!("{}", err);
         err.chain()
             .skip(1)

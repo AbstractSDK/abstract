@@ -1,16 +1,21 @@
 use crate::{error::AbstractError, AbstractResult};
 use cosmwasm_std::{Addr, Api, StdError};
+use cw_address_like::AddressLike;
 use std::{fmt, str::FromStr};
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
-pub enum PoolAddressBase<T> {
+#[derive(Eq, Hash, PartialOrd, Ord)]
+pub enum PoolAddressBase<T: AddressLike> {
     SeparateAddresses { swap: T, liquidity: T },
     Contract(T),
     Id(u64),
 }
 
-impl<T> PoolAddressBase<T> {
+impl<T> PoolAddressBase<T>
+where
+    T: AddressLike,
+{
     pub fn contract<C: Into<T>>(contract: C) -> Self {
         Self::Contract(contract.into())
     }

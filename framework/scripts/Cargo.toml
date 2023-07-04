@@ -4,6 +4,8 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [lib]
+name = "ans_helper"
+path = "src/lib.rs"
 
 
 [dependencies]
