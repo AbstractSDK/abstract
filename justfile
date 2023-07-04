@@ -80,3 +80,6 @@ wasm-all:
 
     cd $current_dir
   done
+
+download-wasms:
+  (cd framework/packages/abstract-interface && cargo run --example download_wasms)

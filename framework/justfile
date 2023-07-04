@@ -62,6 +62,3 @@ publish-schemas version:
 deploy-to-all-chains:
   just download-wasms
   just run-script full_deploy uni-6 pisco-1 juno-1 phoenix-1
-
-download-wasms:
-  (cd packages/abstract-interface && cargo run --example download_wasms)
