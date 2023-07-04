@@ -165,7 +165,11 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         };
         let resp = self.install_module(&app.id(), &init_msg, funds)?;
 
-        resp.event_attr_value(ABSTRACT_EVENT_TYPE, attr_key)
+        let app_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
+        let app_address = Addr::unchecked(app_address);
+
+        app.set_address(&app_address);
+        Ok(app_address)
     }
 }
 

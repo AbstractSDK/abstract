@@ -83,7 +83,8 @@ impl<Chain: CwEnv> Manager<Chain> {
                 init_msg: Some(to_binary(init_msg).unwrap()),
             },
             funds,
-        ).map_err(Into::into)
+        )
+        .map_err(Into::into)
     }
 
     pub fn execute_on_module(
