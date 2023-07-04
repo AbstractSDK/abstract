@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/*"]
+members = ["dex", "staking", "utils"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -44,9 +44,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.13.2" }
-
-tokio = { version = "1.4", features = ["full"] }
+cw-orch = { version = "0.13" }
 
 abstract-testing = { version = "0.16.1", path = "../framework/packages/abstract-testing" }
 abstract-core = { version = "0.16.1", path = "../framework/packages/abstract-core" }
@@ -57,13 +55,14 @@ abstract-adapter = { version = "0.16.1", path = "../framework/packages/abstract-
 ## Testing
 rstest = "0.16.0"
 speculoos = "0.11.0"
+
 anyhow = "1"
 wyndex-bundle = { path = "../integration-bundles/bundles/wyndex" }
 
 ## Local
-abstract-adapter-utils = { path = "../adapter-packages/utils" }
-abstract-dex-adapter-traits = { path = "../adapter-packages/dex" }
-abstract-staking-adapter-traits = { path = "../adapter-packages/staking" }
+abstract-adapter-utils = { path = "./utils" }
+abstract-dex-adapter-traits = { path = "./dex" }
+abstract-staking-adapter-traits = { path = "./staking" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }

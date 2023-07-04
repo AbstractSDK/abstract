@@ -39,7 +39,6 @@ abstract-interface = { workspace = true, optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
-tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }

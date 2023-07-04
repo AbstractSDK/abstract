@@ -42,7 +42,6 @@ ibc-chain-registry = { version = "0.24.1", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
-tokio = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }

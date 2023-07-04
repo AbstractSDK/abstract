@@ -24,8 +24,8 @@ full_integration = [
 cosmwasm-std = { workspace = true }
 
 abstract-sdk = { path = "../../../../framework/packages/abstract-sdk" }
-abstract-staking-adapter-traits = { path = "../../../../adapters/packages/staking" }
-abstract-dex-adapter-traits = { path = "../../../../adapters/packages/dex" }
+abstract-staking-adapter-traits = { path = "../../../../adapter-packages/staking" }
+abstract-dex-adapter-traits = { path = "../../../../adapter-packages/dex" }
 # Optional
 wyndex = { path = "../wyndex/", optional = true }
 wyndex-stake = { path = "../../contracts/stake/", features = [
