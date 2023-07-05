@@ -45,7 +45,7 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 tokio = { version = "1.4", features = ["full"] }
 
-cw-orch = { version = "0.13.2" }
+cw-orch = { version = "0.13" }
 abstract-app = { version = "0.16.1", path = "../framework/packages/abstract-app" }
 abstract-testing = { version = "0.16.1", path = "../framework/packages/abstract-testing" }
 abstract-core = { version = "0.16.1", path = "../framework/packages/abstract-core" }
