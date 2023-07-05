@@ -4,11 +4,11 @@
 if [[ $(arch) == "arm64" ]]; then
 image="cosmwasm/rust-optimizer-arm64"
 workspace_image="cosmwasm/workspace-optimizer-arm64"
-abstract_image="abstractsdk/workspace-optimizer-arm64"
+abstract_image="abstractmoney/workspace-optimizer-arm64"
 else
 image="cosmwasm/rust-optimizer"
 workspace_image="cosmwasm/workspace-optimizer"
-abstract_image="abstractsdk/workspace-optimizer"
+abstract_image="abstractmoney/workspace-optimizer"
 fi
 
 current_dir=$(pwd)
