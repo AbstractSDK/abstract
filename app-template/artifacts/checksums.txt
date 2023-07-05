@@ -1,0 +1,2 @@
+23b288f6f6f2428091f1be56d7d188f36920b7748c007eaf8665e01a194b1d9f  app-aarch64.wasm
+1608ddd5db7d8c0015ac499e14bc7d8a181f837dbd9e43fa1d7eb2fe428d1f4b  template_app-aarch64.wasm

@@ -23,11 +23,10 @@ use croncat_integration_testing::DENOM;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::{coin, Addr, Decimal, Uint128};
-use wyndex_bundle::{WynDex, EUR, USD};
+use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 // consts for testing
 const ADMIN: &str = "admin";
-const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
 
 #[allow(unused)]
 struct CronCatAddrs {
@@ -94,7 +93,7 @@ fn setup() -> anyhow::Result<(
         })?;
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["croncat".to_string()])?;
+        .claim_namespace(1, "croncat".to_string())?;
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
 
     // Register factory entry

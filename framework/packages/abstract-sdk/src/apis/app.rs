@@ -19,7 +19,7 @@ pub trait AppInterface: ModuleInterface {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let app: App<MockModule>  = module.apps(deps.as_ref());
+        let apps: Apps<MockModule>  = module.apps(deps.as_ref());
         ```
     */
     fn apps<'a>(&'a self, deps: Deps<'a>) -> Apps<Self> {
@@ -40,7 +40,7 @@ impl<T> AppInterface for T where T: ModuleInterface {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let app: App<MockModule>  = module.apps(deps.as_ref());
+    let apps: Apps<MockModule>  = module.apps(deps.as_ref());
     ```
 */
 #[derive(Clone)]

@@ -18,7 +18,7 @@ pub trait AdapterInterface: ModuleInterface {
         # let module = MockModule::new();
         # let deps = mock_dependencies();
 
-        let adapter: Adapter<MockModule>  = module.adapters(deps.as_ref());
+        let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
         ```
     */
     fn adapters<'a>(&'a self, deps: Deps<'a>) -> Adapters<Self> {
@@ -39,7 +39,7 @@ impl<T> AdapterInterface for T where T: ModuleInterface {}
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let adapter: Adapter<MockModule>  = module.adapters(deps.as_ref());
+    let adapters: Adapters<MockModule>  = module.adapters(deps.as_ref());
     ```
 */
 #[derive(Clone)]

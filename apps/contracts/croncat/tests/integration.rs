@@ -248,7 +248,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["croncat".to_string()])?;
+        .claim_namespace(1, "croncat".to_owned())?;
 
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;

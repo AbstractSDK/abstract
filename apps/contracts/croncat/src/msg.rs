@@ -6,7 +6,7 @@ use cw_asset::AssetListUnchecked;
 use crate::{contract::CroncatApp, state::Config};
 
 // Expose the top-level app messages
-abstract_app::app_messages!(CroncatApp, AppExecuteMsg, AppQueryMsg);
+abstract_app::app_msg_types!(CroncatApp, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
