@@ -23,7 +23,7 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
-default = ["export"]
+default = ["export", "osmosis"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 juno = [
@@ -103,3 +103,4 @@ abstract-wyndex-adapter = { workspace = true, features = ["local"] }
 
 cw20 = { workspace = true, features = ["interface"] }
 cw20-base = { workspace = true, features = ["interface"] }
+cw-orch = { workspace=true, features=["test-tube"]}

@@ -1,3 +1,4 @@
+use abstract_sdk::features::AccountIdentification;
 use crate::handlers::query::exchange_resolver::is_over_ibc;
 
 use crate::exchanges::exchange_resolver::resolve_exchange;
@@ -35,9 +36,9 @@ pub fn query_handler(
                     if is_over_ibc {
                         return Err(DexError::IbcMsgQuery);
                     }
-                    let exchange = exchange_resolver::resolve_exchange(&local_dex_name)?;
+                    let exchange = exchange_resolver::resolve_exchange(&local_dex_name, adapter.proxy_address(deps)?)?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, action, exchange,
+                        adapter, deps, action, exchange.as_ref(),
                     )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }
@@ -55,7 +56,7 @@ pub fn simulate_swap(
     mut ask_asset: AssetEntry,
     dex: String,
 ) -> DexResult<Binary> {
-    let exchange = resolve_exchange(&dex).map_err(|e| StdError::generic_err(e.to_string()))?;
+    let exchange = resolve_exchange(&dex, adapter.proxy_address(deps)?).map_err(|e| StdError::generic_err(e.to_string()))?;
     let ans = adapter.name_service(deps);
     let fee = SWAP_FEE.load(deps.storage)?;
 

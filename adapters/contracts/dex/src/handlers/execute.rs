@@ -9,6 +9,7 @@ use abstract_dex_adapter_traits::DexError;
 use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::AnsAsset;
+use abstract_sdk::features::AccountIdentification;
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -72,9 +73,9 @@ fn handle_local_request(
     action: DexAction,
     exchange: String,
 ) -> DexResult {
-    let exchange = exchange_resolver::resolve_exchange(&exchange)?;
+    let exchange = exchange_resolver::resolve_exchange(&exchange, adapter.proxy_address(deps.as_ref())?)?;
     let (msgs, _) =
-        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange)?;
+        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange.as_ref())?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;

@@ -1,3 +1,4 @@
+use cosmwasm_std::Addr;
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
@@ -23,22 +24,22 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
     }
 }
 
-pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, DexError> {
+pub(crate) fn resolve_exchange(value: &str, proxy_addr: Addr) -> Result<Box<dyn DexCommand>, DexError> {
     match value {
         #[cfg(feature = "juno")]
-        JUNOSWAP => Ok(&JunoSwap {}),
+        JUNOSWAP => Ok(Box::new(JunoSwap {})),
         #[cfg(feature = "juno")]
-        WYNDEX => Ok(&WynDex {}),
+        WYNDEX => Ok(Box::new(WynDex {})),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(&Osmosis {
-            local_proxy_addr: None,
-        }),
+        OSMOSIS => Ok(Box::new(Osmosis {
+            local_proxy_addr: Some(proxy_addr),
+        })),
         #[cfg(feature = "terra")]
-        TERRASWAP => Ok(&Terraswap {}),
+        TERRASWAP => Ok(Box::new(Terraswap {})),
         #[cfg(feature = "terra")]
-        ASTROPORT => Ok(&Astroport {}),
+        ASTROPORT => Ok(Box::new(Astroport {})),
         #[cfg(feature = "kujira")]
-        KUJIRA => Ok(&Kujira {}),
+        KUJIRA => Ok(Box::new(Kujira {})),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
