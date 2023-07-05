@@ -74,7 +74,9 @@ fn swap_native() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0)).proxy.address()?;
+    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0))
+        .proxy
+        .address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -97,7 +99,9 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0)).proxy.address()?;
+    let os0_proxy = AbstractAccount::new(chain.clone(), Some(0))
+        .proxy
+        .address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
