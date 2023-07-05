@@ -57,7 +57,8 @@ impl<Chain: CwEnv> Manager<Chain> {
         // this should check if installed?
         self.uninstall_module(module_id.to_string())?;
 
-        self.install_module(module_id, &Empty {}, funds)
+        self.install_module(module_id, &Empty {}, funds)?;
+        Ok(())
     }
 
     pub fn install_module<TInitMsg: Serialize>(
@@ -65,7 +66,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         module_id: &str,
         init_msg: &TInitMsg,
         funds: Option<&[Coin]>,
-    ) -> Result<(), crate::AbstractInterfaceError> {
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.install_module_version(module_id, ModuleVersion::Latest, init_msg, funds)
     }
 
@@ -75,15 +76,15 @@ impl<Chain: CwEnv> Manager<Chain> {
         version: ModuleVersion,
         init_msg: &M,
         funds: Option<&[Coin]>,
-    ) -> Result<(), crate::AbstractInterfaceError> {
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(module_id, version)?,
                 init_msg: Some(to_binary(init_msg).unwrap()),
             },
             funds,
-        )?;
-        Ok(())
+        )
+        .map_err(Into::into)
     }
 
     pub fn execute_on_module(
