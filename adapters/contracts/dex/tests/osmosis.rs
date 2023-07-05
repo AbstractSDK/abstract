@@ -1,39 +1,36 @@
-
-
 use std::format;
 
-use cosmwasm_std::Uint128;
-use abstract_core::objects::pool_id::PoolAddressBase;
-use abstract_core::objects::PoolMetadata;
-use abstract_osmosis_adapter::OSMOSIS;
-use abstract_core::ans_host::ExecuteMsgFns;
-use abstract_interface::AccountFactory;
 use abstract_core::adapter;
+use abstract_core::ans_host::ExecuteMsgFns;
+use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::pool_id::PoolAddressBase;
 use abstract_core::objects::AnsAsset;
-use abstract_core::MANAGER;
 use abstract_core::objects::AssetEntry;
+use abstract_core::objects::PoolMetadata;
+use abstract_core::MANAGER;
+use abstract_dex_adapter::contract::CONTRACT_VERSION;
+use abstract_dex_adapter::msg::DexInstantiateMsg;
+use abstract_dex_adapter::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use abstract_dex_adapter::EXCHANGE;
 use abstract_dex_adapter_traits::msg::DexAction;
 use abstract_dex_adapter_traits::msg::DexExecuteMsg;
-use abstract_interface::Manager;
-use abstract_interface::AbstractInterfaceError;
-use cw_orch::deploy::Deploy;
-use cosmwasm_std::Decimal;
-use cosmwasm_std::coin;
-use abstract_dex_adapter::contract::CONTRACT_VERSION;
-use abstract_interface::AbstractAccount;
 use abstract_interface::Abstract;
-use abstract_dex_adapter::EXCHANGE;
-use abstract_dex_adapter::msg::DexInstantiateMsg;
+use abstract_interface::AbstractAccount;
+use abstract_interface::AbstractInterfaceError;
+use abstract_interface::AccountFactory;
 use abstract_interface::AdapterDeployer;
-use cw_orch::{prelude::*, interface};
-use abstract_dex_adapter::msg::{InstantiateMsg, QueryMsg, ExecuteMsg};
-use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_interface::Manager;
+use abstract_osmosis_adapter::OSMOSIS;
+use cosmwasm_std::coin;
+use cosmwasm_std::Decimal;
+use cosmwasm_std::Uint128;
+use cw_orch::deploy::Deploy;
+use cw_orch::{interface, prelude::*};
 
 use anyhow::Result as AnyResult;
 
 use cosmwasm_std::coins;
 use cw_orch::test_tube::TestTube;
-
 
 pub fn create_default_account<Chain: CwEnv>(
     factory: &AccountFactory<Chain>,
@@ -107,13 +104,13 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
             proxy_address: None,
             request: DexExecuteMsg::Action {
                 dex,
-                action: DexAction::ProvideLiquidity { 
+                action: DexAction::ProvideLiquidity {
                     assets: vec![
                         AnsAsset::new(asset_entry1, asset1.1),
                         AnsAsset::new(asset_entry2, asset2.1),
-                    ], 
-                    max_spread: Some(Decimal::percent(30)), 
-                } 
+                    ],
+                    max_spread: Some(Decimal::percent(30)),
+                },
             },
         });
         manager.execute_on_module(EXCHANGE, swap_msg)?;
@@ -134,10 +131,10 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
             proxy_address: None,
             request: DexExecuteMsg::Action {
                 dex,
-                action: DexAction::WithdrawLiquidity { 
+                action: DexAction::WithdrawLiquidity {
                     lp_token,
                     amount: amount.into(),
-                } 
+                },
             },
         });
         manager.execute_on_module(EXCHANGE, swap_msg)?;
@@ -145,7 +142,7 @@ impl<Chain: CwEnv> OsmosisDexAdapter<Chain> {
     }
 }
 
-fn get_pool_token(id: u64) -> String{
+fn get_pool_token(id: u64) -> String {
     format!("gamm/pool/{}", id)
 }
 
@@ -155,14 +152,14 @@ fn setup_mock() -> anyhow::Result<(
     OsmosisDexAdapter<TestTube>,
     AbstractAccount<TestTube>,
     Abstract<TestTube>,
-    u64
+    u64,
 )> {
     let atom = "uatom";
     let osmo = "uosmo";
 
     let chain = TestTube::new(vec![
         coin(1_000_000_000_000, osmo),
-        coin(1_000_000_000_000, atom)
+        coin(1_000_000_000_000, atom),
     ]);
 
     let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
@@ -180,21 +177,15 @@ fn setup_mock() -> anyhow::Result<(
 
     // We need to register some pairs and assets on the ans host contract
 
-    let pool_id = chain.create_pool(vec![
-        coin(10_000_000_000, osmo),
-        coin(10_000_000_000, atom)
-    ])?;
+    let pool_id =
+        chain.create_pool(vec![coin(10_000_000_000, osmo), coin(10_000_000_000, atom)])?;
 
-    deployment.ans_host.update_asset_addresses(
+    deployment
+        .ans_host
+        .update_asset_addresses(
             vec![
-                (
-                    "atom".to_string(),
-                    cw_asset::AssetInfoBase::native(atom),
-                ),
-                (
-                    "osmo".to_string(),
-                    cw_asset::AssetInfoBase::native(osmo),
-                ),
+                ("atom".to_string(), cw_asset::AssetInfoBase::native(atom)),
+                ("osmo".to_string(), cw_asset::AssetInfoBase::native(osmo)),
                 (
                     "osmosis/atom,osmo".to_string(),
                     cw_asset::AssetInfoBase::native(get_pool_token(pool_id)),
@@ -204,7 +195,6 @@ fn setup_mock() -> anyhow::Result<(
         )
         .unwrap();
 
-
     deployment
         .ans_host
         .update_dexes(vec![OSMOSIS.into()], vec![])
@@ -213,12 +203,13 @@ fn setup_mock() -> anyhow::Result<(
     deployment
         .ans_host
         .update_pools(
-            vec![
-                (
-                    PoolAddressBase::id(pool_id),
-                    PoolMetadata::constant_product(OSMOSIS, vec!["osmo".to_string(), "atom".to_string()]),
-                )
-            ],
+            vec![(
+                PoolAddressBase::id(pool_id),
+                PoolMetadata::constant_product(
+                    OSMOSIS,
+                    vec!["osmo".to_string(), "atom".to_string()],
+                ),
+            )],
             vec![],
         )
         .unwrap();
@@ -235,10 +226,8 @@ fn setup_mock() -> anyhow::Result<(
     Ok((chain, dex_adapter, account, deployment, pool_id))
 }
 
-
 #[test]
-fn swap() -> AnyResult<()>{
-
+fn swap() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, _pool_id) = setup_mock()?;
 
@@ -250,10 +239,9 @@ fn swap() -> AnyResult<()>{
 
     // Before swap, we need to have 0 uosmo and swap_value uatom
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
-    assert_eq!(balances,coins(swap_value, "uatom") );
+    assert_eq!(balances, coins(swap_value, "uatom"));
     // swap 100_000 uatom to uosmo
     dex_adapter.swap(("atom", swap_value), "osmo", OSMOSIS.into())?;
-
 
     // Assert balances
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -265,8 +253,7 @@ fn swap() -> AnyResult<()>{
 }
 
 #[test]
-fn provide() -> AnyResult<()>{
-
+fn provide() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
 
@@ -281,21 +268,25 @@ fn provide() -> AnyResult<()>{
     chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
 
     // provide to the pool
-    dex_adapter.provide(("atom", provide_value), ("osmo", provide_value), OSMOSIS.into())?;
+    dex_adapter.provide(
+        ("atom", provide_value),
+        ("osmo", provide_value),
+        OSMOSIS.into(),
+    )?;
 
     // After providing, we need to get the liquidity token
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
     println!("{:?}", balances);
-    assert_eq!(balances, coins(10_000_000_000_000_000_000, get_pool_token(pool_id)));
-
+    assert_eq!(
+        balances,
+        coins(10_000_000_000_000_000_000, get_pool_token(pool_id))
+    );
 
     Ok(())
 }
 
-
 #[test]
-fn withdraw() -> AnyResult<()>{
-
+fn withdraw() -> AnyResult<()> {
     // We need to deploy a Testube pool
     let (chain, dex_adapter, os, _abstr, pool_id) = setup_mock()?;
 
@@ -310,13 +301,21 @@ fn withdraw() -> AnyResult<()>{
     chain.bank_send(proxy_addr.to_string(), coins(provide_value, "uosmo"))?;
 
     // provide to the pool
-    dex_adapter.provide(("atom", provide_value), ("osmo", provide_value), OSMOSIS.into())?;
+    dex_adapter.provide(
+        ("atom", provide_value),
+        ("osmo", provide_value),
+        OSMOSIS.into(),
+    )?;
 
     // After providing, we need to get the liquidity token
     let balance = chain.query_balance(proxy_addr.as_ref(), &get_pool_token(pool_id))?;
 
     // withdraw from the pool
-    dex_adapter.withdraw("osmosis/atom,osmo", balance/Uint128::from(2u128), OSMOSIS.into())?;
+    dex_adapter.withdraw(
+        "osmosis/atom,osmo",
+        balance / Uint128::from(2u128),
+        OSMOSIS.into(),
+    )?;
 
     // After withdrawing, we should get some tokens in return and have some lp token left
     let balances = chain.query_all_balances(proxy_addr.as_ref())?;
@@ -325,8 +324,3 @@ fn withdraw() -> AnyResult<()>{
 
     Ok(())
 }
-
-
-
-
-

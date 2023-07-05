@@ -73,9 +73,14 @@ fn handle_local_request(
     action: DexAction,
     exchange: String,
 ) -> DexResult {
-    let exchange = exchange_resolver::resolve_exchange(&exchange, adapter.proxy_address(deps.as_ref())?)?;
-    let (msgs, _) =
-        crate::adapter::DexAdapter::resolve_dex_action(&adapter, deps.as_ref(), action, exchange.as_ref())?;
+    let exchange =
+        exchange_resolver::resolve_exchange(&exchange, adapter.proxy_address(deps.as_ref())?)?;
+    let (msgs, _) = crate::adapter::DexAdapter::resolve_dex_action(
+        &adapter,
+        deps.as_ref(),
+        action,
+        exchange.as_ref(),
+    )?;
     let proxy_msg = adapter
         .executor(deps.as_ref())
         .execute(msgs.into_iter().map(Into::into).collect())?;

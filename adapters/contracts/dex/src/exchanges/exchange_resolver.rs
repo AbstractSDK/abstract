@@ -1,8 +1,8 @@
-use cosmwasm_std::Addr;
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
 use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
+use cosmwasm_std::Addr;
 use cosmwasm_std::Env;
 
 use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
@@ -24,7 +24,10 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
     }
 }
 
-pub(crate) fn resolve_exchange(value: &str, proxy_addr: Addr) -> Result<Box<dyn DexCommand>, DexError> {
+pub(crate) fn resolve_exchange(
+    value: &str,
+    proxy_addr: Addr,
+) -> Result<Box<dyn DexCommand>, DexError> {
     match value {
         #[cfg(feature = "juno")]
         JUNOSWAP => Ok(Box::new(JunoSwap {})),
