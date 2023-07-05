@@ -41,4 +41,5 @@ nightly-build:
 
 # Wasms all the workspaces that can be wasm'd
 wasm-all:
+
   ./scripts/wasm-all.sh
