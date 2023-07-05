@@ -39,8 +39,8 @@ cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
 cw-orch = { version = "0.13.2" }
 
-abstract-core = { path = "../framework/packages/abstract-core" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-core = { version="0.16.1" }
+abstract-interface = { version="0.16.1" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
