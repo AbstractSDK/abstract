@@ -7,7 +7,7 @@ use cw_orch::{
 };
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
-const SUPPORTED_CHAINS: &[ChainInfo] =
+pub const SUPPORTED_CHAINS: &[ChainInfo] =
     &[JUNO_1, UNI_6, PHOENIX_1, PISCO_1, PION_1, NEUTRON_1, OSMO_5];
 
 pub const NEUTRON_1: ChainInfo = ChainInfo {
@@ -21,7 +21,7 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
-pub async fn assert_wallet_balance(mut chains: &[ChainInfo<'_>]) {
+pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a[ChainInfo<'a>]{
     if chains.is_empty() {
         chains = SUPPORTED_CHAINS;
     }
@@ -54,4 +54,6 @@ pub async fn assert_wallet_balance(mut chains: &[ChainInfo<'_>]) {
         }
         // check if we have enough funds
     }
+
+    chains
 }

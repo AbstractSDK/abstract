@@ -22,12 +22,12 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     // remove the state file
     remove_file("./daemon_state.json").unwrap_or_default();
 
-    rt.block_on(assert_wallet_balance(&networks));
+    let networks = rt.block_on(assert_wallet_balance(&networks));
 
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
-            .chain(network)
+            .chain(network.clone())
             .build()?;
         let sender = chain.sender();
         let deployment = Abstract::deploy_on(chain, Empty {})?;
