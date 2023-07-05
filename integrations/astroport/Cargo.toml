@@ -33,4 +33,4 @@ overflow-checks = true
 strip = true
 
 [patch.'https://github.com/astroport-fi/astroport-core']
-astroport = { path = "packages/astroport" }
+astroport = { path = "./packages/astroport" }

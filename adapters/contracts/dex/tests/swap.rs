@@ -15,10 +15,9 @@ use cosmwasm_std::{coin, Addr, Decimal, Empty};
 
 use cw_orch::prelude::*;
 use speculoos::*;
-use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX_OWNER};
+use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
-const WYNDEX: &str = "cosmos-testnet>wyndex";
-const WYNDEX_WITHOUT_CHAIN: &str = "wyndex";
+const WYNDEX: &str = "cosmos-testnet>wynd";
 
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(

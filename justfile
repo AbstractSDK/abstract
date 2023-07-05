@@ -22,7 +22,13 @@ push repo branch:
 
 # Run a cargo command in all the workspace repos
 cargo-all *command:
-    for path in {{workspaces}}; do (cd $path; cargo {{command}}); done || exit 1
+  #!/usr/bin/env bash
+  set -e;
+  for path in {{workspaces}}
+  do 
+    (cd $path; cargo {{command}}); 
+  done
+  set +e
 
 check path:
     (cd {{path}}; cargo check)
@@ -35,48 +41,5 @@ nightly-build:
 
 # Wasms all the workspaces that can be wasm'd
 wasm-all:
-  #!/usr/bin/env bash
-  if [[ $(arch) == "arm64" ]]; then
-    image="cosmwasm/rust-optimizer-arm64"
-    workspace_image="cosmwasm/workspace-optimizer-arm64"
-    abstract_image="abstractsdk/workspace-optimizer-arm64"
-  else
-    image="cosmwasm/rust-optimizer"
-    workspace_image="cosmwasm/workspace-optimizer"
-    abstract_image="abstractsdk/workspace-optimizer"
-  fi
 
-  current_dir=$(pwd)
-
-  for path in ./app-template
-  do 
-    echo "Wasming $path"
-    cd $path
-
-    # Delete all the current wasms first
-    rm -rf ./artifacts/*.wasm
-    # Optimized builds
-    docker run --rm -v "$(pwd)":/code \
-      --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-      --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-      ${image}:0.12.13
-
-    cd $current_dir
-  done
-
-  # TODO: add apps here once they compile
-  for path in ./framework ./adapters
-  do 
-    echo "Wasming $path"
-    cd $path
-
-    # Delete all the current wasms first
-    rm -rf ./artifacts/*.wasm
-    # Optimized builds
-    docker run --rm -v "$(pwd)":/code \
-      --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-      --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-      ${workspace_image}:0.12.13
-
-    cd $current_dir
-  done
+  ./scripts/wasm-all.sh

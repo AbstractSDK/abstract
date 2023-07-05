@@ -26,7 +26,8 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 
 /// [`MockQuerierBuilder`] is a helper to build a [`MockQuerier`].
 /// Usage:
-/// ```rust
+///
+/// ```
 /// use cosmwasm_std::{from_binary, to_binary};
 /// use abstract_testing::MockQuerierBuilder;
 /// use cosmwasm_std::testing::MockQuerier;
@@ -39,7 +40,7 @@ type RawHandler = dyn for<'a> Fn(&'a str) -> BinaryQueryResult;
 ///        _ => panic!("unexpected message"),
 ///    };
 ///
-///   to_binary(&msg).unwrap())
+///   Ok(to_binary(&msg).unwrap())
 /// }).build();
 /// ```
 pub struct MockQuerierBuilder {

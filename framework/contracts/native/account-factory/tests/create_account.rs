@@ -2,7 +2,7 @@ mod common;
 
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
-    ABSTRACT_EVENT_NAME,
+    ABSTRACT_EVENT_TYPE,
 };
 use abstract_interface::{
     AbstractAccount, AccountFactoryExecFns, AccountFactoryQueryFns, VCQueryFns, *,
@@ -53,8 +53,8 @@ fn create_one_account() -> AResult {
         Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
-    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
@@ -110,12 +110,12 @@ fn create_two_account_s() -> AResult {
         Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
-    let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy1 = account_1.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
     let account_1_id = TEST_ACCOUNT_ID;
 
-    let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
     let account_2_id = TEST_ACCOUNT_ID + 1;
 
     let factory_config = factory.config()?;
@@ -168,8 +168,8 @@ fn sender_is_not_admin_monarchy() -> AResult {
         Some(String::from("https://account_link_of_at_least_11_char")),
     )?;
 
-    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "manager_address")?;
-    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_NAME, "proxy_address")?;
+    let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
 
     let account = version_control.account_base(TEST_ACCOUNT_ID)?.account_base;
 
