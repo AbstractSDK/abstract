@@ -1,0 +1,54 @@
+{
+  "juno": {
+    "juno-1": {
+      "code_ids": {
+        "abstract:account-factory": 3274,
+        "abstract:ans-host": 3272,
+        "abstract:manager": 3276,
+        "abstract:module-factory": 3275,
+        "abstract:proxy": 3277,
+        "abstract:version-control": 3273
+      },
+      "default": {
+        "abstract:account-factory": "juno13669aeevw366w3uehpsnke6efyhs2eqauu4ec4dcqpdt36nvl9cs7jdwut",
+        "abstract:ans-host": "juno1v52zpnphqsz0elmgx0za6tyw3cjhxp2ymq76tluxqq53kqw2gy4scwwnjh",
+        "abstract:manager": "juno13xvglvh6ch5g9ygvnfgmyg5ef48782jwn7cayu9q8szux2fplwnszeysw3",
+        "abstract:module-factory": "juno1vwnzs4tvp4r39aecrrpk9ngwtssh7enppxhexcg4478na4dsm9rsdzvw5j",
+        "abstract:proxy": "juno1g7nppry7hjt3k8vxp4tffqp7celwwglp2pc09wqqs4zxty5ysvqsz6hpe9",
+        "abstract:version-control": "juno1vxlg6npg07u06ewv0sqjlhsfeh6l5vd0j0dns0r0fxwa8ga6w5fqhllwql"
+      }
+    },
+    "uni-6": {
+      "code_ids": {
+        "abstract:ans-host": 2721
+      },
+      "default": {}
+    }
+  },
+  "neutron": {
+    "neutron-1": {
+      "code_ids": {},
+      "default": {}
+    },
+    "pion-1": {
+      "code_ids": {},
+      "default": {}
+    }
+  },
+  "osmosis": {
+    "osmo-test-5": {
+      "code_ids": {},
+      "default": {}
+    }
+  },
+  "terra2": {
+    "phoenix-1": {
+      "code_ids": {},
+      "default": {}
+    },
+    "pisco-1": {
+      "code_ids": {},
+      "default": {}
+    }
+  }
+}

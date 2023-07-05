@@ -46,11 +46,11 @@ cw-semver = { version = "1.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 cw-orch = { version = "0.13" }
-abstract-app = { version = "0.16.1", path = "../framework/packages/abstract-app" }
-abstract-testing = { version = "0.16.1", path = "../framework/packages/abstract-testing" }
-abstract-core = { version = "0.16.1", path = "../framework/packages/abstract-core" }
-abstract-interface = { version = "0.16.1", path = "../framework/packages/abstract-interface" }
-abstract-sdk = { version = "0.16.1", path = "../framework/packages/abstract-sdk" }
+abstract-app = { version = "0.17.0", path = "../framework/packages/abstract-app" }
+abstract-testing = { version = "0.17.0", path = "../framework/packages/abstract-testing" }
+abstract-core = { version = "0.17.0", path = "../framework/packages/abstract-core" }
+abstract-interface = { version = "0.17.0", path = "../framework/packages/abstract-interface" }
+abstract-sdk = { version = "0.17.0", path = "../framework/packages/abstract-sdk" }
 
 # Local
 
