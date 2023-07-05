@@ -1,4 +1,4 @@
-workspaces := "./framework ./adapters ./app-template ./integration-bundles"
+workspaces := "./framework ./adapters ./app-template ./integration-bundles ./integrations/astroport/packages/abstract-adapter ./integrations/osmosis/packages/abstract-adapter ./integrations/wyndex/packages/wyndex-adapter"
 
 docs-install:
   cargo install mdbook
