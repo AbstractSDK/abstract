@@ -8,7 +8,7 @@ use cw_orch::{
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] =
-    &[JUNO_1, UNI_6, PHOENIX_1, PISCO_1, PION_1, NEUTRON_1, OSMO_5];
+    &[UNI_6, OSMO_5, PISCO_1, PION_1, PHOENIX_1,NEUTRON_1, JUNO_1];
 
 pub const NEUTRON_1: ChainInfo = ChainInfo {
     kind: cw_orch::daemon::ChainKind::Mainnet,
