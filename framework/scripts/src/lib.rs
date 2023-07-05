@@ -8,7 +8,7 @@ use cw_orch::{
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] =
-    &[UNI_6, OSMO_5, PISCO_1, PION_1, PHOENIX_1,NEUTRON_1, JUNO_1];
+    &[UNI_6, OSMO_5, PISCO_1, PION_1, PHOENIX_1, NEUTRON_1, JUNO_1];
 
 pub const NEUTRON_1: ChainInfo = ChainInfo {
     kind: cw_orch::daemon::ChainKind::Mainnet,
@@ -21,7 +21,7 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
-pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a[ChainInfo<'a>]{
+pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [ChainInfo<'a>] {
     if chains.is_empty() {
         chains = SUPPORTED_CHAINS;
     }
