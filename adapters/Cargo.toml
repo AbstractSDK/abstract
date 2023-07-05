@@ -76,8 +76,8 @@ abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstra
 
 
 [patch.crates-io]
-#cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator", branch="update/add-osmosis-test-tube" }
-cw-orch = { path = "../../cw-orchestrator/cw-orch" }
+cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator", branch="update/add-osmosis-test-tube" }
+# cw-orch = { path = "../../cw-orchestrator/cw-orch" }
 
 [profile.release]
 rpath = false

@@ -1,3 +1,5 @@
+#![cfg(feature="osmosis")]
+
 use std::format;
 
 use abstract_core::adapter;
