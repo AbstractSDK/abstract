@@ -1,3 +1,5 @@
+
+
 use abstract_core::objects::pool_id::PoolAddressBase;
 use abstract_core::objects::PoolMetadata;
 use abstract_osmosis_adapter::OSMOSIS;
@@ -23,7 +25,7 @@ use abstract_interface::AdapterDeployer;
 use cw_orch::{prelude::*, interface};
 use abstract_dex_adapter::msg::{InstantiateMsg, QueryMsg, ExecuteMsg};
 use abstract_core::objects::gov_type::GovernanceDetails;
-
+use cw_orch::test_tube::osmosis_test_tube::{OsmosisTestApp};
 use anyhow::Result as AnyResult;
 
 pub fn create_default_account<Chain: CwEnv>(
@@ -92,10 +94,12 @@ fn setup_mock() -> anyhow::Result<(
     AbstractAccount<TestTube>,
     Abstract<TestTube>,
 )> {
+    let atom = "uatom";
+    let osmo = "uosmo";
 
     let chain = TestTube::new(vec![
-        coin(1_000_000_000_000, "uosmo"),
-        coin(1_000_000_000_000, "uatom")
+        coin(1_000_000_000_000, osmo),
+        coin(1_000_000_000_000, atom)
     ]);
 
     let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
@@ -111,11 +115,16 @@ fn setup_mock() -> anyhow::Result<(
         },
     )?;
 
-    // We need to add pools and provide some liquidity
+
+
 
     // We need to register some pairs and assets on the ans host contract
-    let atom = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2";
-    let osmo = "uosmo";
+
+    let pool_id = chain.create_pool(vec![
+        coin(1_000_000_000, osmo),
+        coin(1_000_000_000, atom)
+    ])?;
+
     deployment.ans_host.update_asset_addresses(
             vec![
                 (
@@ -142,7 +151,7 @@ fn setup_mock() -> anyhow::Result<(
         .update_pools(
             vec![
                 (
-                    PoolAddressBase::id(1u64),
+                    PoolAddressBase::id(pool_id),
                     PoolMetadata::constant_product(OSMOSIS, vec!["osmo".to_string(), "atom".to_string()]),
                 )
             ],
