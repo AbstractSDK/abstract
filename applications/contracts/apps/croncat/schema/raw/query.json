@@ -155,6 +155,32 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Get manager address of task Used to verify sender",
+      "type": "object",
+      "required": [
+        "manager_addr"
+      ],
+      "properties": {
+        "manager_addr": {
+          "type": "object",
+          "required": [
+            "creator_addr",
+            "task_tag"
+          ],
+          "properties": {
+            "creator_addr": {
+              "type": "string"
+            },
+            "task_tag": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }

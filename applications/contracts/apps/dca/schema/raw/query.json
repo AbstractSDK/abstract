@@ -14,6 +14,27 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "d_c_a"
+      ],
+      "properties": {
+        "d_c_a": {
+          "type": "object",
+          "required": [
+            "dca_id"
+          ],
+          "properties": {
+            "dca_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }
