@@ -48,6 +48,5 @@ speculoos = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-wyndex-bundle = { workspace = true }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }

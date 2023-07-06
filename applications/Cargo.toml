@@ -2,8 +2,6 @@
 members = [
   "contracts/apps/*",
   "packages/bundles/wyndex",
-  "packages/adapter/*",
-  "packages/adapter/*",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -69,9 +67,9 @@ abstract-macros = { version = "0.17.0" }
 abstract-ica = { version = "0.17.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { path = "./packages/adapter/utils" }
-abstract-dex-adapter-traits = { path = "./packages/adapter/dex" }
-abstract-staking-adapter-traits = { path = "../packages/adapter/staking" }
+abstract-adapter-utils = { path = "../framework/packages/utils" }
+abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
+abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
