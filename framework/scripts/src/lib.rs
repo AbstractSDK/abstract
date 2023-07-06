@@ -4,13 +4,16 @@ pub mod contracts;
 pub mod hashmap_diff;
 pub mod pools;
 
+use cw_orch::daemon::DaemonAsyncBuilder;
+use cw_orch::daemon::ChainInfo;
+use cw_orch::daemon::networks::*;
 use abstract_core::objects::UniquePoolId;
 use cw_asset::AssetInfoBase;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
 use abstract_core::objects::UncheckedContractEntry;
-use cw_orch::prelude::ContractInstance;
+use cw_orch::prelude::*;
 use cw_orch::state::ChainState;
 
 use abstract_core::objects::pool_id::UncheckedPoolAddress;
@@ -25,7 +28,8 @@ use serde_json::Value;
 use tokio::runtime::Runtime;
 
 const ANS_SCRAPE_URL: &str =
-    "https://raw.githubusercontent.com/AbstractSDK/ans-scraper/mainline/out/";
+    //"https://raw.githubusercontent.com/AbstractSDK/ans-scraper/mainline/out/";
+    "https://raw.githubusercontent.com/AbstractSDK/ans-scraper/feature/add-osmo-test-5/out/";
 
 /// get some json  
 pub fn get_scraped_json_data(suffix: &str) -> Value {
@@ -143,4 +147,46 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: AnsDataDiff) -> Result<(), Abstr
     pools::update(ans_host, diff.pools)?;
 
     Ok(())
+}
+
+
+const GAS_TO_DEPLOY: u64 = 60_000_000;
+pub const SUPPORTED_CHAINS: &[ChainInfo] =
+    &[UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1];
+
+pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [ChainInfo<'a>] {
+    if chains.is_empty() {
+        chains = SUPPORTED_CHAINS;
+    }
+    // check that the wallet has enough gas on all the chains we want to support
+    for chain_info in chains {
+        let chain = DaemonAsyncBuilder::default()
+            .chain(chain_info.clone())
+            .build()
+            .await
+            .unwrap();
+        let fee_token = chain.state.as_ref().chain_data.fees.fee_tokens[0].clone();
+        let fee = (GAS_TO_DEPLOY as f64 * fee_token.fixed_min_gas_price) as u64;
+        let bank = chain.query_client::<queriers::Bank>();
+        let balance = bank
+            .balance(chain.sender(), Some(fee_token.denom.clone()))
+            .await
+            .unwrap()[0]
+            .clone();
+
+        log::debug!(
+            "Checking balance {} on chain {}, address {}. Expecting {}{}",
+            balance.amount,
+            chain_info.chain_id,
+            chain.sender(),
+            fee,
+            fee_token.denom.as_str()
+        );
+        if fee > balance.amount.parse().unwrap() {
+            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance.amount, fee_token.denom);
+        }
+        // check if we have enough funds
+    }
+
+    chains
 }

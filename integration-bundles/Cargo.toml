@@ -37,10 +37,10 @@ cw20 = { package = "abstract-cw20", version = "1.0.1", features = [
 ] }
 cw-asset = { version = "3.0" }
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.13.2" }
+cw-orch = { version = "0.13" }
 
-abstract-core = { path = "../framework/packages/abstract-core" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-core = { version = "0.17.0" }
+abstract-interface = { version = "0.17.0" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }

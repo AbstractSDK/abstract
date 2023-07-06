@@ -24,3 +24,7 @@ for pack in $ALL_PACKAGES; do
 done
 
 echo "Everything is published!"
+
+# VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
+# git tag v"$VERSION"
+# git push origin v"$VERSION"

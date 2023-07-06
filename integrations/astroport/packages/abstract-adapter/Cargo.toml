@@ -22,7 +22,7 @@ full_integration = [
 cosmwasm-std = { version = "1.1" }
 abstract-staking-adapter-traits = { path = "../../../../adapter-packages/staking" }
 abstract-dex-adapter-traits = { path = "../../../../adapter-packages/dex" }
-abstract-sdk = { path = "../../../../framework/packages/abstract-sdk" }
+abstract-sdk = { version = "0.17.0" }
 
 
 cw20 = { version = "0.15", optional = true }
@@ -33,8 +33,8 @@ cw-utils = { version = "1.0.1", optional = true }
 astroport = { path = "../astroport/", optional = true }
 
 [dev-dependencies]
-abstract-dex-adapter-traits = { path = "../../../../adapter-packages/dex", features = [
+abstract-dex-adapter-traits = { version = "0.17.0", path = "../../../../adapter-packages/dex", features = [
   "testing",
 ] }
-cw-orch = { version = "0.13.2", features = ["daemon"] }
+cw-orch = { version = "0.13", features = ["daemon"] }
 ibc-chain-registry = "0.24.1"
