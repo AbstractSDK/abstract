@@ -25,14 +25,14 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let ans_host = deployment.ans_host;
 
         // First we get all values
-        let scraped_entries = ans_helper::get_scraped_entries(&ans_host)?;
-        let on_chain_entries = ans_helper::get_on_chain_entries(&ans_host)?;
+        let scraped_entries = script_helpers::get_scraped_entries(&ans_host)?;
+        let on_chain_entries = script_helpers::get_on_chain_entries(&ans_host)?;
 
         // Then we create a diff between the 2 objects
-        let diff = ans_helper::diff(scraped_entries, on_chain_entries)?;
+        let diff = script_helpers::diff(scraped_entries, on_chain_entries)?;
 
         // Finally we upload on-chain
-        ans_helper::update(&ans_host, diff)?;
+        script_helpers::update(&ans_host, diff)?;
     }
     Ok(())
 }

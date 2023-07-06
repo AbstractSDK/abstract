@@ -28,8 +28,7 @@ use serde_json::Value;
 use tokio::runtime::Runtime;
 
 const ANS_SCRAPE_URL: &str =
-    //"https://raw.githubusercontent.com/AbstractSDK/ans-scraper/mainline/out/";
-    "https://raw.githubusercontent.com/AbstractSDK/ans-scraper/feature/add-osmo-test-5/out/";
+    "https://raw.githubusercontent.com/AbstractSDK/ans-scraper/mainline/out/";
 
 /// get some json  
 pub fn get_scraped_json_data(suffix: &str) -> Value {
@@ -43,7 +42,7 @@ pub fn get_scraped_json_data(suffix: &str) -> Value {
     })
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct AnsData {
     pub contracts: HashMap<UncheckedContractEntry, String>,
     pub assets: HashMap<String, AssetInfoBase<String>>,
@@ -54,7 +53,7 @@ pub struct AnsData {
 
 pub type EntryDif<K, V> = (HashSet<K>, HashMap<K, V>);
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct AnsDataDiff {
     pub contracts: EntryDif<UncheckedContractEntry, String>,
     pub assets: EntryDif<String, AssetInfoBase<String>>,

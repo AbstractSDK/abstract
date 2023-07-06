@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::AbstractInterfaceError;
 use std::collections::HashMap;
 use std::{collections::HashSet, hash::Hash};
@@ -7,8 +8,8 @@ pub fn diff<K, V>(
     on_chain_entries: HashMap<K, V>,
 ) -> Result<(HashSet<K>, HashMap<K, V>), AbstractInterfaceError>
 where
-    K: Eq + Hash + Clone,
-    V: Clone + PartialEq,
+    K: Eq + Hash + Clone + Debug,
+    V: Clone + Debug,
 {
     let union_keys = get_union_keys(&scraped_entries, &on_chain_entries);
     Ok(get_changes(
@@ -38,8 +39,8 @@ fn get_changes<K, V>(
     on_chain_entries: &HashMap<K, V>,
 ) -> (HashSet<K>, HashMap<K, V>)
 where
-    K: Eq + Hash + Clone,
-    V: Clone + PartialEq,
+    K: Eq + Hash + Clone + Debug,
+    V: Clone + Debug,
 {
     let mut to_remove: HashSet<K> = HashSet::new();
     let mut to_add: HashMap<K, V> = HashMap::new();
@@ -51,10 +52,13 @@ where
             let val = scraped_entries.get(*entry).unwrap();
             to_add.insert((*entry).to_owned(), val.clone());
         } else {
-            // If the values are not the same we still update
+            // If the values don't have the same debug representation, we still update
+            // This is because it's not possible for vectors to be equal only if their values are equal
             let val_scraped = scraped_entries.get(*entry).unwrap();
             let val_on_chain = on_chain_entries.get(*entry).unwrap();
-            if val_scraped != val_on_chain {
+            if format!("{:?}",val_scraped) != format!("{:?}",val_on_chain) {
+                log::info!("{:?} - {:?}", val_scraped, val_on_chain);
+                log::info!("entry : {:?}", entry);
                 to_add.insert((*entry).to_owned(), val_scraped.clone());
             }
         }

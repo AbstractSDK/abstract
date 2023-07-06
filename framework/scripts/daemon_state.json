@@ -37,23 +37,23 @@
       }
     }
   },
-  "terra2": {
-    "phoenix-1": {
+  "osmosis": {
+    "osmo-test-5": {
       "code_ids": {
-        "abstract:account-factory": 1673,
-        "abstract:ans-host": 1671,
-        "abstract:manager": 1675,
-        "abstract:module-factory": 1674,
-        "abstract:proxy": 1676,
-        "abstract:version-control": 1672
+        "abstract:account-factory": 1502,
+        "abstract:ans-host": 1500,
+        "abstract:manager": 1504,
+        "abstract:module-factory": 1503,
+        "abstract:proxy": 1505,
+        "abstract:version-control": 1501
       },
       "default": {
-        "abstract:account-factory": "terra1unvwl7hg3yymkhqgplxy2ddl57797h0uzehu7r5gjm2t32m9a5qqsrsujk",
-        "abstract:ans-host": "terra1a3fpfknx43x9y5g6gsjc6za7n65pzn3lex03ly9jzflz3l34wxhqg6hysz",
-        "abstract:manager": "terra1q5260qjg5q759jl4cudsugwgftt2qkzvm8axn8cxuajf2wj8f92suwpt66",
-        "abstract:module-factory": "terra103w4wwq3mvma62h74muycqp3dzlk5g0a37ze569rzlv7pghd86ps5jdxg2",
-        "abstract:proxy": "terra19wanxdg87e7hwesuk2cr8xvpf4j097ql6q4twfkk4t83vwwqynfsw6eug8",
-        "abstract:version-control": "terra17kwvwlmlcvf6cj0yjj4a5ff9u9vtd95jcl5zg0reznm0n3xt2l6qpmymqp"
+        "abstract:account-factory": "osmo1qemv4yxvkt0gz0xn2efw8mv4rze3r7x0sm8swypctyhautj2aeqsavu0k8",
+        "abstract:ans-host": "osmo1cjqmsjzyymnye5ephs9xuryrj4mzgzk070g2v765cs9nlezgdt4s5vl456",
+        "abstract:manager": "osmo1vpezeryhdf8dxzmu5y9t8qs4ackevcr54nxmkq0fwqmggl9g3w4qgcwvec",
+        "abstract:module-factory": "osmo1yeysywhkkgsns6d0j4lz57e8hxa5ngnnt8spcvac5572dxkgm0tsfa5g39",
+        "abstract:proxy": "osmo1x9wcg8h06eevqh4xnxml6kde80gx766plruqngszfcrhf9tmdjrs2m7r5k",
+        "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
       }
     }
   },
@@ -75,23 +75,23 @@
       "abstract:version-control": "terra13ld3ulvcv5pfmas9v2gdlp5l5wdapaksvkfvxf5ttfysaq6msyvq4h847j"
     }
   },
-  "osmosis": {
-    "osmo-test-5": {
+  "terra2": {
+    "phoenix-1": {
       "code_ids": {
-        "abstract:account-factory": 1502,
-        "abstract:ans-host": 1500,
-        "abstract:manager": 1504,
-        "abstract:module-factory": 1503,
-        "abstract:proxy": 1505,
-        "abstract:version-control": 1501
+        "abstract:account-factory": 1673,
+        "abstract:ans-host": 1671,
+        "abstract:manager": 1675,
+        "abstract:module-factory": 1674,
+        "abstract:proxy": 1676,
+        "abstract:version-control": 1672
       },
       "default": {
-        "abstract:account-factory": "osmo1qemv4yxvkt0gz0xn2efw8mv4rze3r7x0sm8swypctyhautj2aeqsavu0k8",
-        "abstract:ans-host": "osmo1cjqmsjzyymnye5ephs9xuryrj4mzgzk070g2v765cs9nlezgdt4s5vl456",
-        "abstract:manager": "osmo1vpezeryhdf8dxzmu5y9t8qs4ackevcr54nxmkq0fwqmggl9g3w4qgcwvec",
-        "abstract:module-factory": "osmo1yeysywhkkgsns6d0j4lz57e8hxa5ngnnt8spcvac5572dxkgm0tsfa5g39",
-        "abstract:proxy": "osmo1x9wcg8h06eevqh4xnxml6kde80gx766plruqngszfcrhf9tmdjrs2m7r5k",
-        "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
+        "abstract:account-factory": "terra1unvwl7hg3yymkhqgplxy2ddl57797h0uzehu7r5gjm2t32m9a5qqsrsujk",
+        "abstract:ans-host": "terra1a3fpfknx43x9y5g6gsjc6za7n65pzn3lex03ly9jzflz3l34wxhqg6hysz",
+        "abstract:manager": "terra1q5260qjg5q759jl4cudsugwgftt2qkzvm8axn8cxuajf2wj8f92suwpt66",
+        "abstract:module-factory": "terra103w4wwq3mvma62h74muycqp3dzlk5g0a37ze569rzlv7pghd86ps5jdxg2",
+        "abstract:proxy": "terra19wanxdg87e7hwesuk2cr8xvpf4j097ql6q4twfkk4t83vwwqynfsw6eug8",
+        "abstract:version-control": "terra17kwvwlmlcvf6cj0yjj4a5ff9u9vtd95jcl5zg0reznm0n3xt2l6qpmymqp"
       }
     }
   }

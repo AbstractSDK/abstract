@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [lib]
-name = "ans_helper"
+name = "script_helpers"
 path = "src/lib.rs"
 
 
