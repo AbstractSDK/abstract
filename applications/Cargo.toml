@@ -1,5 +1,10 @@
 [workspace]
-members = ["contracts/apps/*", "packages/bundles/wyndex", "packages/adapter/*", "packages/adapter/*"]
+members = [
+  "contracts/apps/*",
+  "packages/bundles/wyndex",
+  "packages/adapter/*",
+  "packages/adapter/*",
+]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -32,7 +37,9 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
-cw20-base = { package = "abstract-cw20-base", version = "1.0.1", features = ["library"] }
+cw20-base = { package = "abstract-cw20-base", version = "1.0.1", features = [
+  "library",
+] }
 cw20 = { package = "abstract-cw20", version = "1.0.1" }
 
 cw-asset = { version = "3.0" }

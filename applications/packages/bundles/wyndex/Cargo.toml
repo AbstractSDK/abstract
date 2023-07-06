@@ -17,8 +17,8 @@ wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
 abstract-core = { workspace = true }
 abstract-interface = { workspace = true, features = ["integration"] }
 
-cw20-base = { workspace = true , features = ["interface"] }
-cw20 = { workspace = true , features = ["interface"] }
+cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true, features = ["interface"] }
 cw-orch = { workspace = true }
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
