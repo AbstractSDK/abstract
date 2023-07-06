@@ -38,36 +38,14 @@ docker run --rm -v "$(pwd)":/code \
 ${image}:0.12.13
 
 echo "Wasming apps"
-cd ./apps
+cd ./applications
 
 # Delete all the current wasms first
 rm -rf ./artifacts/*.wasm
 # Optimized builds
 docker run --rm -v "$(pwd)":/code \
--v "$(dirname "$(pwd)")/framework":/framework \
--v "$(dirname "$(pwd)")/adapters":/adapters \
--v "$(dirname "$(pwd)")/integrations":/integrations \
--v "$(dirname "$(pwd)")/integration-bundles":/integration-bundles \
---mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
---mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${workspace_image}:0.12.13
-
-cd $current_dir
-
-echo "Wasming adapters"
-cd ./adapters
-
-# Delete all the current wasms first
-rm -rf ./artifacts/*.wasm
-# Optimized builds
-docker run --rm -v "$(pwd)":/code \
--v "$(dirname "$(pwd)")/framework":/framework \
--v "$(dirname "$(pwd)")/apps":/apps \
--v "$(dirname "$(pwd)")/integrations":/integrations \
--v "$(dirname "$(pwd)")/adapter-packages":/adapter-packages \
--v "$(dirname "$(pwd)")/integration-bundles":/integration-bundles \
---mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
---mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${abstract_image}:0.12.14
-
-cd $current_dir
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  -v "$(dirname "$(pwd)")/integrations":/integrations \
+  -v "$(dirname "$(pwd)")/framework":/framework \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  ${abstract_image}:0.12.13
