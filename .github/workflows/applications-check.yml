@@ -1,14 +1,14 @@
-name: adapters-check
+name: applications-check
 permissions:
   contents: read
 on:
   push:
     branches: [main]
     paths:
-      - "adapters/**"
+      - "applications/**"
   pull_request:
     paths: 
-      - "adapters/**"
+      - "applications/**"
   
 jobs:
   fmt:
@@ -23,7 +23,7 @@ jobs:
         with:
           components: rustfmt
       - name: cargo fmt --check
-        working-directory: ./adapters
+        working-directory: ./applications
         run: cargo fmt --check
   clippy:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: clippy
       - name: cargo clippy
-        working-directory: ./adapters
+        working-directory: ./applications
         run: cargo clippy --all-targets --all-features -- -D warnings
   doc:
     runs-on: ubuntu-latest
@@ -57,7 +57,7 @@ jobs:
       - name: Install nightly
         uses: dtolnay/rust-toolchain@nightly
       - name: cargo doc
-        working-directory: ./adapters
+        working-directory: ./applications
         run: cargo doc --no-deps --all-features
         env:
           RUSTDOCFLAGS: --cfg docsrs
@@ -73,7 +73,7 @@ jobs:
       - name: cargo install cargo-hack
         uses: taiki-e/install-action@cargo-hack
       - name: cargo hack
-        working-directory: ./adapters
+        working-directory: ./applications
         run: cargo hack --feature-powerset check --lib --tests
   msrv:
     runs-on: ubuntu-latest
@@ -92,5 +92,5 @@ jobs:
         with:
           toolchain: ${{ matrix.msrv }}
       - name: cargo +${{ matrix.msrv }} check
-        working-directory: ./adapters
+        working-directory: ./applications
         run: cargo check
