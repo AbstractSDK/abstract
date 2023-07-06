@@ -1,0 +1,22 @@
+{
+  "juno": {
+    "uni-6": {
+      "code_ids": {
+        "abstract:dex": 2766
+      },
+      "default": {
+        "abstract:dex": "juno1dghumlqsvc7k6k54qajymr2c57l0x7wcz3ljj9g5h280shqtxp2qf4rzc8"
+      }
+    }
+  },
+  "osmosis": {
+    "osmo-test-5": {
+      "code_ids": {
+        "abstract:dex": 1533
+      },
+      "default": {
+        "abstract:dex": "osmo1k7s57rr5dxgsmdp8p23s2d457ff9kral0mnd6adqz5qtktf76rqqmakeyt"
+      }
+    }
+  }
+}

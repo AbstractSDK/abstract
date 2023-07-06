@@ -19,6 +19,8 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
+    use std::env;
+
     use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},
@@ -38,6 +40,8 @@ pub mod interface {
     // Implement deployer trait
     impl<Chain: CwEnv> AdapterDeployer<Chain, DexInstantiateMsg> for DexAdapter<Chain> {}
 
+    pub const DEX_ADAPTER_CHAIN_NAME_VAR: &str = "__INTERNAL__DEPLOY_CHAIN_NAME";
+
     impl<Chain: CwEnv> Uploadable for DexAdapter<Chain> {
         fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
             Box::new(ContractWrapper::new_with_empty(
@@ -47,8 +51,9 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
+            let chain_name = env::var(DEX_ADAPTER_CHAIN_NAME_VAR).unwrap_or("".to_string());
             artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_dex_adapter")
+                .find_wasm_path(format!("abstract_dex_adapter-{}", chain_name).as_str())
                 .unwrap()
         }
     }

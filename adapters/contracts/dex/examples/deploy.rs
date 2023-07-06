@@ -1,19 +1,32 @@
+use std::env;
+use tokio::runtime::Runtime;
+
 use abstract_dex_adapter::interface::DexAdapter;
+use abstract_dex_adapter::interface::DEX_ADAPTER_CHAIN_NAME_VAR;
 use abstract_interface::AdapterDeployer;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
+use ibc_chain_registry::chain::ChainData;
 
 use cw_orch::daemon::networks::parse_network;
 
 use abstract_dex_adapter::{msg::DexInstantiateMsg, EXCHANGE};
 use cosmwasm_std::Decimal;
+
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let chain = DaemonBuilder::default().chain(network).build()?;
+    let rt = Runtime::new()?;
+    let chain = DaemonBuilder::default()
+        .chain(network.clone())
+        .handle(rt.handle())
+        .build()?;
+
+    let chain_data: ChainData = network.into();
+    env::set_var(DEX_ADAPTER_CHAIN_NAME_VAR, chain_data.chain_name);
     let dex = DexAdapter::new(EXCHANGE, chain);
     dex.deploy(
         version,
