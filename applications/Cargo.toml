@@ -68,25 +68,18 @@ abstract-core = { version = "0.17.0" }
 abstract-macros = { version = "0.17.0" }
 abstract-ica = { version = "0.17.0" }
 
-
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 abstract-adapter-utils = { path = "./packages/adapter/utils" }
 abstract-dex-adapter-traits = { path = "./packages/adapter/dex" }
 abstract-staking-adapter-traits = { path = "../packages/adapter/staking" }
 
-
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
-
 # Osmosis #
 abstract-osmosis-adapter = { path = "../integrations/osmosis/packages/abstract-adapter", default-features = false }
-
 # Terra #
 abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
-
-
 croncat-app = { path = "./contracts/apps/croncat" }
-
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 
 ## Testing
@@ -94,6 +87,17 @@ cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
+
+# this ensures local compatability when compiling locally
+[patch.crates-io]
+abstract-adapter = { path = "../framework/packages/abstract-adapter" }
+abstract-app = { path = "../framework/packages/abstract-app" }
+abstract-interface = { path = "../framework/packages/abstract-interface" }
+abstract-sdk = { path = "../framework/packages/abstract-sdk" }
+abstract-testing = { path = "../framework/packages/abstract-testing" }
+abstract-core = { path = "../framework/packages/abstract-core" }
+abstract-macros = { path = "../framework/packages/abstract-macros" }
+abstract-ica = { path = "../framework/packages/abstract-ica" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
