@@ -1,0 +1,53 @@
+[package]
+name = "abstract-dex-adapter-traits"
+description = "The tendermint staking adapter is a Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
+
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+
+exclude = ["contract.wasm", "hash.txt"]
+resolver = "2"
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["export"]
+export = []
+testing = ["dep:cw-orch", "dep:ibc-chain-registry"]
+cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true }
+cw20 = { workspace = true }
+cw20-base = { workspace = true }
+thiserror = { workspace = true }
+cw-asset = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-storage-plus = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-adapter = { workspace = true }
+abstract-adapter-utils = { workspace = true }
+cw-orch = { workspace = true, optional = true, features = ["daemon"] }
+abstract-interface = { workspace = true, optional = true }
+ibc-chain-registry = { version = "0.24.1", optional = true }
+
+[dev-dependencies]
+abstract-interface = { workspace = true, features = ["daemon"] }
+semver = { workspace = true }
+anyhow = { workspace = true }
+speculoos = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+clap = { workspace = true }
+wyndex-bundle = { workspace = true }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }

@@ -1,0 +1,21 @@
+[package]
+name = "abstract-adapter-utils"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+description = "Abstract Adapter Utils"
+exclude = ["contract.wasm", "hash.txt"]
+resolver = "2"
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+
+# Keep as is until TendermintStake updates.
+[dependencies]
+cosmwasm-std = { workspace = true }
+cw20 = { workspace = true }
+cw-asset = { workspace = true }

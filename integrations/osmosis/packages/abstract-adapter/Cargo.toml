@@ -19,8 +19,8 @@ full_integration = [
 [dependencies]
 cosmwasm-std = { version = "1.1.2", features = ["stargate"] }
 abstract-core = { version = "0.17.0" }
-abstract-staking-adapter-traits = { version = "0.17.0", path = "../../../../adapter-packages/staking" }
-abstract-dex-adapter-traits = { version = "0.17.0", path = "../../../../adapter-packages/dex" }
+abstract-staking-adapter-traits = { version = "0.17.0", path = "../../../../applications/packages/adapter/staking" }
+abstract-dex-adapter-traits = { version = "0.17.0", path = "../../../../applications/packages/adapter/dex" }
 
 #Abstract dependencies 
 cw20 = { version = "0.15", optional = true }

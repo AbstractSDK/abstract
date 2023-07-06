@@ -20,8 +20,8 @@ full_integration = [
 
 [dependencies]
 cosmwasm-std = { version = "1.1" }
-abstract-staking-adapter-traits = { path = "../../../../adapter-packages/staking" }
-abstract-dex-adapter-traits = { path = "../../../../adapter-packages/dex" }
+abstract-staking-adapter-traits = { path = "../../../../applications/packages/adapter/staking" }
+abstract-dex-adapter-traits = { path = "../../../../applications/packages/adapter/dex" }
 abstract-sdk = { version = "0.17.0" }
 
 
@@ -33,7 +33,7 @@ cw-utils = { version = "1.0.1", optional = true }
 astroport = { path = "../astroport/", optional = true }
 
 [dev-dependencies]
-abstract-dex-adapter-traits = { version = "0.17.0", path = "../../../../adapter-packages/dex", features = [
+abstract-dex-adapter-traits = { version = "0.17.0", path = "../../../../applications/packages/adapter/dex", features = [
   "testing",
 ] }
 cw-orch = { version = "0.13", features = ["daemon"] }
