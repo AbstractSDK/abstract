@@ -1,3 +1,0 @@
-# Run cargo +nightly fmt with this config to properly group imports
-# unstable_features = true
-# imports_granularity = "Crate"

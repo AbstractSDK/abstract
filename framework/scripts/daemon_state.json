@@ -1,170 +1,97 @@
 {
   "juno": {
     "juno-1": {
-      "addresses": {
-        "abstract:ans_host": "juno1t799uvztv2cqngk2w47zd6g20d62fcgznjftyu3f7vxdc2pnq39q88a9uh",
-        "abstract:dex": "juno16ws0uknmxwl86c2a2x6hsf6vcg4gdzn5g4az05h5qjcx87kqwmfswnjvvv",
-        "abstract:idea": "juno1xmszc4u9f7hgghcmf0lgkjyq9j22zqpyqqeu4fa7jda2eyfnc2uqq925gk",
-        "abstract:manager": "juno1hnn6mu6tp9qzura99m286jdpqgkv0jucdkmkznjnwu8v4lx859nql5nu2y",
-        "abstract:module_factory": "juno13hqga309sp2e3ffhqkk5s4py8h9zf42kl0srgxcxqyv8y6azqmgs3c5dwh",
-        "abstract:os_factory": "juno1qfx94jjjuagkx0n8yc9q69035nnjck6t579mnacgy2tfkwr30r2s6q5qmt",
-        "abstract:proxy": "juno18cuhhmyghl0juhrhlnnca2d23mnxykd52v6ds06ew4hdvmtfj40qlgtqjn",
-        "abstract:subscription": "juno1afuwke6dq62t4km2t80kt36ep5gnza5xtgkfzzzzq2k0h6zz258qpxtw76",
-        "abstract:tendermint_staking": "juno1l4tcujd4cruakjg5g4ekywcxfp02cula9fx7vmcm6r87srngkfuqz4uhfa",
-        "abstract:version_control": "juno18jmslrz9qhwg3p6wnchrtjldw9c5ut5leuz5pzg8lrdd8nmxn4gqgpk6d2"
-      },
       "code_ids": {
-        "abstract:account-factory": 3142,
-        "abstract:ans-host": 3140,
-        "abstract:ans_host": 862,
-        "abstract:cw20_vesting": 873,
-        "abstract:dex": 898,
-        "abstract:etf": 894,
-        "abstract:idea": 870,
-        "abstract:manager": 3144,
-        "abstract:module-factory": 3143,
-        "abstract:module_factory": 865,
-        "abstract:os_factory": 864,
-        "abstract:proxy": 3145,
-        "abstract:subscription": 869,
-        "abstract:tendermint_staking": 872,
-        "abstract:version-control": 3141,
-        "abstract:version_control": 863
+        "abstract:account-factory": 3280,
+        "abstract:ans-host": 3278,
+        "abstract:manager": 3282,
+        "abstract:module-factory": 3281,
+        "abstract:proxy": 3283,
+        "abstract:version-control": 3279
       },
       "default": {
-        "abstract:account-factory": "juno1a3tm95jgmzu7czhxtlekxspkwy9g5tdcq697fffxp33yd6dt2dasdmwaal",
-        "abstract:ans-host": "juno13q8rv8w9ew5cn6wecr2p4scegzu9nac0hv2dx807l4vz60h0ldns0ksvz0",
-        "abstract:manager": "juno1js0fg2klnymlfwdxh2grev96y2ededaukcgdathzpa8pd86uzrcskzgczu",
-        "abstract:module-factory": "juno15k3xrd2khsdwpt9g9eyqjf7m73qaenp5rlvmurzjmy6mslgs0vdqfd9fuq",
-        "abstract:proxy": "juno1tlm9r3wmmyej7242ggdscvnh5l62658klxfsg7lece5phhl74m6svzr57t",
-        "abstract:version-control": "juno1cvalgwsv967uxgjkckuuy9v3gtf5wjtys00s2znjw6tdypwzt4dq60fd35"
-      }
-    },
-    "uni-5": {
-      "code_ids": {
-        "abstract:ans_host": 4022,
-        "abstract:dex": 4067,
-        "abstract:manager": 4026,
-        "abstract:module_factory": 4025,
-        "abstract:os_factory": 4024,
-        "abstract:proxy": 4028,
-        "abstract:version_control": 4023
-      },
-      "default": {
-        "abstract:ans_host": "juno1qyetxuhvmpgan5qyjq3julmzz9g3rhn3jfp2jlgy29ftjknv0c6s0xywpp",
-        "abstract:dex": "juno1gsdv3m6czzurqqfvah4ejvwnhxaq3rk7u9zwmxqpq25vslutgl9qsh6dlg",
-        "abstract:module_factory": "juno1vl4dqk6he88ygxmdxl5nl5q9jdpcu858ygfdkwds38ucntzvacaqgnyr0t",
-        "abstract:os_factory": "juno1fzelxmlq5sma803g089w3909m697uj8fxrd667lxdulgjjx6fsrsml5mk7",
-        "abstract:version_control": "juno1q8tuzav8y6aawhc4sddqnwj6q4gdvn7lyk3m9ks4uw69xp37j83ql3ck2q"
+        "abstract:account-factory": "juno127lt5wer3tnrhnf9wt3rg57ccmjj7uterur4yrcjxk88c9f8rv6q6nteat",
+        "abstract:ans-host": "juno1cp8jcjrm4nj5wfy8lqe853sn6qv3as0hafjgad94y9hj6hcd8d5qc8fgk6",
+        "abstract:manager": "juno1vsn5p7hs8cdsjx7rpeffed7ve8wht6zs4t07z7c63e6x5hyddaqs46u98r",
+        "abstract:module-factory": "juno1kw6k35hg20f36a02djaeyf0xuyheqnrqqqyehvjguz3gldqn0aeqcw6fwk",
+        "abstract:proxy": "juno1e3c7jx40rjvv4hthmg4ya7m7ls7d3smpnn256qyltk28qzn76mts96ymv2",
+        "abstract:version-control": "juno1m3uhprdpcg2dw04tyjf3dp5xu79ah0n6r9k46656tz27fzzqhnxsr5vnqu"
       }
     },
     "uni-6": {
       "code_ids": {
-        "abstract:account-factory": 2423,
-        "abstract:ans-host": 2421,
-        "abstract:manager": 2425,
-        "abstract:module-factory": 2424,
-        "abstract:proxy": 2426,
-        "abstract:version-control": 2422
+        "abstract:account-factory": 2736,
+        "abstract:ans-host": 2734,
+        "abstract:manager": 2738,
+        "abstract:module-factory": 2737,
+        "abstract:proxy": 2739,
+        "abstract:version-control": 2735
       },
       "default": {
-        "abstract:account-factory": "juno12dn49n6ryewetduldj4hhe43ulp2s86e8d5wz4l0arglaa7mjs4qvkjk5s",
-        "abstract:ans-host": "juno1s6wlpd3el2wxl57h7ufmavh5m7c42dt56h8wlgg4633wu90ke5js7cv2c9",
-        "abstract:manager": "juno1kx835z2kym2s65spfhvkrpa736wc87rh7tqk46z0w23c8qx8nepqe09j6u",
-        "abstract:module-factory": "juno1hvddmkal6agqt042ence068hqstgu0npf2u2qc0q208rvnur7u5qjg69pm",
-        "abstract:proxy": "juno1th2vsfq69guwrnznvxvlve8cv5224e2406dvk7tsu6qllslkxf2qazz3st",
-        "abstract:version-control": "juno1hpyst0vwll0mwukguwsv8vgu8sc9q9a6enyr6anhptxkhahuqxsqkpqwpd"
-      }
-    }
-  },
-  "neutron": {
-    "test-1": {
-      "code_ids": {
-        "abstract:account-factory": 64,
-        "abstract:ans-host": 62,
-        "abstract:manager": 66,
-        "abstract:module-factory": 65,
-        "abstract:proxy": 67,
-        "abstract:version-control": 63
-      },
-      "default": {
-        "abstract:account-factory": "neutron1lkmgx2r062ky63dtdywcvfjvj52fj4cvhj5zy3kamert3mwrahxq2e7uav",
-        "abstract:ans-host": "neutron1aamj4mq0ny2xctsrze4870xk7ka4tw33h8vte439much7d0uwmzq2xklu4",
-        "abstract:manager": "neutron1zdp2fk6xr90p5e5qvlwmyvct4j4yreys8vmfhqadr5hnh8nh4nhs47tqdx",
-        "abstract:module-factory": "neutron1vk7dtp3y652uhq0hympe0z06ryvz5th95jwngka75nngncq8thhssj86cp",
-        "abstract:proxy": "neutron19nkzdrq94w7enjpr295rkvhsk685mzq34ax5c7y9u88eg8k25uwqf5dthu",
-        "abstract:version-control": "neutron14ry36mwauycz08v8ndcujghxz4hmua5epxcn0mamlr3suqe0l2qs3w0a0v"
-      }
-    }
-  },
-  "osmosis": {
-    "osmo-test-4": {
-      "code_ids": {
-        "abstract:ans-host": 3357,
-        "abstract:cw1_proxy": 3048,
-        "abstract:osmosis_host": 3395
-      },
-      "default": {
-        "abstract:ans-host": "osmo1jn49qkanxfwfwhsrdxqh0yneqfs4uhudk8n066fjrleer5ueg9dsyhkse4",
-        "abstract:osmosis_host": "osmo1fct9ha4stcjysk0e89kfzmg4f9nva9jgpa60lh9mmjshtdgu5tuqkp9vtg"
-      }
-    }
-  },
-  "terra": {
-    "pisco-1": {
-      "code_ids": {
-        "abstract:account-factory": 9181,
-        "abstract:ans-host": 9179,
-        "abstract:manager": 9184,
-        "abstract:module-factory": 9182,
-        "abstract:proxy": 9185,
-        "abstract:version-control": 9180
-      },
-      "default": {
-        "abstract:account-factory": "terra1sjfs2setl7haag3yz4uenpk053z560tgz47cu96q2tga0jvdkj4srx0umj",
-        "abstract:ans-host": "terra1s2uxqa2z3vsns2nllwfd25hkyxmcerjm64nhnn6hmp6nfrut5x3qrc965d",
-        "abstract:manager": "terra1g2r04aac6cuasvsq5hsj776k0a2z7gz4hh3apn952s9sf0gnq92q0qalta",
-        "abstract:module-factory": "terra1emqlg70t4j3h69a7g92sa2fq8pxfxnpns00gskhjxp3n4j7mmaasf872vz",
-        "abstract:proxy": "terra1kvtzhh2kmyy6fk5pfs74dujkzlxhxwqw9zslgf87dl6w5dsyzxeqlm8tyt",
-        "abstract:version-control": "terra1eh57ez78tqrf8zhg2926av346hezerrru285grupy72370jqpu9q9dtkjt"
+        "abstract:account-factory": "juno1gkk3a7nprf3x6ultdm32hhx0xvwlugt88nvs40a02ya6wq9u6uus83w3cf",
+        "abstract:ans-host": "juno1a8tt4m686scca947rqer2m0592raluf34hpsu6vrhlx2d7xlrfpqmta6hd",
+        "abstract:manager": "juno1jlqs59egawn8dx7ym3xyz3f9h8vz5ye0gvxpdn30tzq85vj74mssza43rk",
+        "abstract:module-factory": "juno19nrr0hdumgd9sxxaqt06usg3wkt63rctr77v5xqtgfqpr5gmts2sksh6d3",
+        "abstract:proxy": "juno1pcnjcyyh4e2l3lg9kpx32lmgnqr462svj83vj55c8ttzpdrypvqq4fe26q",
+        "abstract:version-control": "juno1ejsvsctqx69ge6yhfvd29ua48m0xm5chnxfvrnn8ds0ddvfurykq68jswp"
       }
     }
   },
   "terra2": {
     "phoenix-1": {
       "code_ids": {
-        "abstract:account-factory": 1607,
-        "abstract:ans-host": 1605,
-        "abstract:manager": 1609,
-        "abstract:module-factory": 1608,
-        "abstract:proxy": 1610,
-        "abstract:version-control": 1606
+        "abstract:account-factory": 1673,
+        "abstract:ans-host": 1671,
+        "abstract:manager": 1675,
+        "abstract:module-factory": 1674,
+        "abstract:proxy": 1676,
+        "abstract:version-control": 1672
       },
       "default": {
-        "abstract:account-factory": "terra1rlqddkl2nzdsu4uw4jukwrwwdzm7rdqgvvs89ycjudpedulwke9qcrv89j",
-        "abstract:ans-host": "terra139q4v8k2n5anhp97ytrjegzte8yp9eh27dvctm4lssvwzlf74vas089unz",
-        "abstract:manager": "terra1vw7mu95z2nup75rtqncyfwxgqqe7egt9yaemeh6s4qs8vhxt4ywqn2k707",
-        "abstract:module-factory": "terra16ts8m2anhvuyah62c8qg6memtmhu77e25mgu395m3huhlaj52yaqjp7f34",
-        "abstract:proxy": "terra1vh76tjpw34xj86cfxw2x4u6p0dq7vgwu7l4c2jqqeg3whqjz07xqnaprgl",
-        "abstract:version-control": "terra16y4885pv9j2nmjp5dtejepfr6jse87j0gd5x2ftd3ly49jw2289sefhx3d"
+        "abstract:account-factory": "terra1unvwl7hg3yymkhqgplxy2ddl57797h0uzehu7r5gjm2t32m9a5qqsrsujk",
+        "abstract:ans-host": "terra1a3fpfknx43x9y5g6gsjc6za7n65pzn3lex03ly9jzflz3l34wxhqg6hysz",
+        "abstract:manager": "terra1q5260qjg5q759jl4cudsugwgftt2qkzvm8axn8cxuajf2wj8f92suwpt66",
+        "abstract:module-factory": "terra103w4wwq3mvma62h74muycqp3dzlk5g0a37ze569rzlv7pghd86ps5jdxg2",
+        "abstract:proxy": "terra19wanxdg87e7hwesuk2cr8xvpf4j097ql6q4twfkk4t83vwwqynfsw6eug8",
+        "abstract:version-control": "terra17kwvwlmlcvf6cj0yjj4a5ff9u9vtd95jcl5zg0reznm0n3xt2l6qpmymqp"
       }
+    }
+  },
+  "pisco-1": {
+    "code_ids": {
+      "abstract:account-factory": 9520,
+      "abstract:ans-host": 9518,
+      "abstract:manager": 9522,
+      "abstract:module-factory": 9521,
+      "abstract:proxy": 9523,
+      "abstract:version-control": 9519
     },
-    "pisco-1": {
+    "default": {
+      "abstract:account-factory": "terra1nvuxszq7wcpn7uvy3wcxa0lsuetk9c6y3g942thmj9uxmn29t2zqzl8k8y",
+      "abstract:ans-host": "terra1cxw0s6maq4uevgq9lrxa46hy2l0u60985l404sut9cle4yczexrs83ju79",
+      "abstract:manager": "terra100scavp9nyuu4r4q0j4n7qqm3xtpys62665l9a542zwrcqflhz4qjk6zpm",
+      "abstract:module-factory": "terra1nn2252gs58jwkcdh8v8safec4d7ny3xe95kjdww5ge0tr96ye6mqfr4jsg",
+      "abstract:proxy": "terra1p9djau74pklu5wpr9c5u5j9kj63yj0m2jpsdg6vtf0zw8qqfat9s24gstc",
+      "abstract:version-control": "terra13ld3ulvcv5pfmas9v2gdlp5l5wdapaksvkfvxf5ttfysaq6msyvq4h847j"
+    }
+  },
+  "osmosis": {
+    "osmo-test-5": {
       "code_ids": {
-        "abstract:account-factory": 9246,
-        "abstract:ans-host": 9244,
-        "abstract:manager": 9248,
-        "abstract:module-factory": 9247,
-        "abstract:proxy": 9249,
-        "abstract:version-control": 9245
+        "abstract:account-factory": 1502,
+        "abstract:ans-host": 1500,
+        "abstract:manager": 1504,
+        "abstract:module-factory": 1503,
+        "abstract:proxy": 1505,
+        "abstract:version-control": 1501
       },
       "default": {
-        "abstract:account-factory": "terra1mjhjw0p59pvux5p2ff3gfjcqax6fmd08xgcwk2xaajh85egkru8qqwce3c",
-        "abstract:ans-host": "terra1fyxm72rflgdlnx529kngs2mnwmgg546akzzxqtjtecpkncfu3s7qmhkxn7",
-        "abstract:manager": "terra15n4702l4zrgy9f9e5tys5vq9utxksqmeyw7hk7qpjw6r3femc9ysgfelns",
-        "abstract:module-factory": "terra1au2yzn8xxan46h0akrhgk3eclx8mpvgvmuzrtzs7l3tg0rf5u6lql6dvg7",
-        "abstract:proxy": "terra1yfw703xudmhh45wmuvushsm955t4gfpvkj8kgsf20pw4u780aj4qhw6xgf",
-        "abstract:version-control": "terra1ftn53dmf8f493jnqu6lffcxe2ts8574y6k5t6fpx089vq2jytaxq6yws0x"
+        "abstract:account-factory": "osmo1qemv4yxvkt0gz0xn2efw8mv4rze3r7x0sm8swypctyhautj2aeqsavu0k8",
+        "abstract:ans-host": "osmo1cjqmsjzyymnye5ephs9xuryrj4mzgzk070g2v765cs9nlezgdt4s5vl456",
+        "abstract:manager": "osmo1vpezeryhdf8dxzmu5y9t8qs4ackevcr54nxmkq0fwqmggl9g3w4qgcwvec",
+        "abstract:module-factory": "osmo1yeysywhkkgsns6d0j4lz57e8hxa5ngnnt8spcvac5572dxkgm0tsfa5g39",
+        "abstract:proxy": "osmo1x9wcg8h06eevqh4xnxml6kde80gx766plruqngszfcrhf9tmdjrs2m7r5k",
+        "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
       }
     }
   }

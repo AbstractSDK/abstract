@@ -13,6 +13,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.17.0] - 2023-07-05
+
+### Added
+
+- Ability to add module metadata.
+- Ability to set an install fee for modules.
+- Account interaction helpers
+
+### Changed
+
+- Removed the ability to claim multiple namespaces.
+- It is now possible to replace a module code-id/address on testnets.
+
+### Fixed
+
+- Adapter execution from the manager with a provided proxy address is now allowed.
+
 ## [0.7.0] - 2023-02-15
 
 ### Added

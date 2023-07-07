@@ -1,4 +1,4 @@
-workspaces := "./framework ./adapters ./app-template ./integration-bundles"
+workspaces := "./framework ./applications ./app-template"
 
 docs-install:
   cargo install mdbook

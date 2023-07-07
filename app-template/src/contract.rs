@@ -31,4 +31,4 @@ const APP: App = App::new(APP_ID, APP_VERSION, None)
 abstract_app::export_endpoints!(APP, App);
 
 #[cfg(feature = "interface")]
-abstract_app::create_interface!(APP, App);
+abstract_app::cw_orch_interface!(APP, App, AppInterface);

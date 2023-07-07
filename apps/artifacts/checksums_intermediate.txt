@@ -1,2 +1,0 @@
-c867882edd1c7cdbecee349a392e5156d51c57ee5e194698489d2ce18a8fd200  /target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
-59ccbed41340be6e1a7e9e0ecc07ae6b82ee617f6af1f756d9891b2c1b71e324  /target/wasm32-unknown-unknown/release/croncat_app.wasm
