@@ -1,0 +1,2 @@
+514cb5f840cfb7c27d6bdaeb5ced2816ec98b761b6154d025d96153627b99212  abstract_dca_app-aarch64.wasm
+1bdf3134770f20d3bafde7948583f045e50fb6685f41d037e9122b981a3fa8c4  croncat_app-aarch64.wasm

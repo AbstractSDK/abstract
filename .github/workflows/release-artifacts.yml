@@ -36,6 +36,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            framework/cosmwasm-artifacts.tar.gz
-            framework/artifacts/*.wasm
-          body_path: CHANGELOG.md
+            ./framework/cosmwasm-artifacts.tar.gz
+            ./framework/artifacts/*.wasm
+          body_path: ./framework/CHANGELOG.md
