@@ -17,7 +17,7 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn full_deploy(networks: Vec<ChainInfo>, admin: Option<String>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     // remove the state file
     remove_file("./daemon_state.json").unwrap_or_default();
@@ -30,8 +30,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network.clone())
             .build()?;
         let sender = chain.sender();
-        let admin = None;
-        let deployment = Abstract::deploy_on(chain, admin)?;
+        let deployment = Abstract::deploy_on(chain, admin.clone())?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         deployment
@@ -49,6 +48,9 @@ struct Arguments {
     /// Network Id to deploy on
     #[arg(short, long, value_delimiter = ' ', num_args = 1..)]
     network_ids: Vec<String>,
+    /// Admin of the native contracts
+    #[arg(short, long)]
+    admin: Option<String>,
 }
 
 fn main() {
@@ -61,7 +63,7 @@ fn main() {
 
     let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
 
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = full_deploy(networks, args.admin) {
         log::error!("{}", err);
         err.chain()
             .skip(1)
