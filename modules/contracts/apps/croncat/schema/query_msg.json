@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "oneOf": [
+    {
+      "description": "A query to the base.",
+      "type": "object",
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/definitions/BaseQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Custom query",
+      "type": "object",
+      "required": [
+        "module"
+      ],
+      "properties": {
+        "module": {
+          "$ref": "#/definitions/AppQueryMsg"
+        }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "AppQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Get config",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Get active tasks",
+          "type": "object",
+          "required": [
+            "active_tasks"
+          ],
+          "properties": {
+            "active_tasks": {
+              "type": "object",
+              "properties": {
+                "checked": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "start_after": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "maxItems": 2,
+                  "minItems": 2
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Get active tasks by creator",
+          "type": "object",
+          "required": [
+            "active_tasks_by_creator"
+          ],
+          "properties": {
+            "active_tasks_by_creator": {
+              "type": "object",
+              "required": [
+                "creator_addr"
+              ],
+              "properties": {
+                "checked": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "creator_addr": {
+                  "type": "string"
+                },
+                "limit": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint32",
+                  "minimum": 0.0
+                },
+                "start_after": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Get task info",
+          "type": "object",
+          "required": [
+            "task_info"
+          ],
+          "properties": {
+            "task_info": {
+              "type": "object",
+              "required": [
+                "creator_addr",
+                "task_tag"
+              ],
+              "properties": {
+                "creator_addr": {
+                  "type": "string"
+                },
+                "task_tag": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Get task balance",
+          "type": "object",
+          "required": [
+            "task_balance"
+          ],
+          "properties": {
+            "task_balance": {
+              "type": "object",
+              "required": [
+                "creator_addr",
+                "task_tag"
+              ],
+              "properties": {
+                "creator_addr": {
+                  "type": "string"
+                },
+                "task_tag": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Get manager address of task Used to verify sender",
+          "type": "object",
+          "required": [
+            "manager_addr"
+          ],
+          "properties": {
+            "manager_addr": {
+              "type": "object",
+              "required": [
+                "creator_addr",
+                "task_tag"
+              ],
+              "properties": {
+                "creator_addr": {
+                  "type": "string"
+                },
+                "task_tag": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "BaseQueryMsg": {
+      "oneOf": [
+        {
+          "description": "Returns [`AppConfigResponse`]",
+          "type": "object",
+          "required": [
+            "config"
+          ],
+          "properties": {
+            "config": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Returns the admin.",
+          "type": "object",
+          "required": [
+            "admin"
+          ],
+          "properties": {
+            "admin": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

@@ -15,16 +15,32 @@
     ],
     "properties": {
       "dca_creation_amount": {
-        "$ref": "#/definitions/Uint128"
+        "description": "Amount in native coins for creation dca task and refill amount",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint128"
+          }
+        ]
       },
       "max_spread": {
-        "$ref": "#/definitions/Decimal"
+        "description": "Max spread",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Decimal"
+          }
+        ]
       },
       "native_denom": {
+        "description": "Native denom for this chain",
         "type": "string"
       },
       "refill_threshold": {
-        "$ref": "#/definitions/Uint128"
+        "description": "Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks",
+        "allOf": [
+          {
+            "$ref": "#/definitions/Uint128"
+          }
+        ]
       }
     },
     "additionalProperties": false,
@@ -232,6 +248,7 @@
         "additionalProperties": false
       },
       {
+        "description": "Internal method for triggering swap. It can be called only by the Croncat Manager",
         "type": "object",
         "required": [
           "convert"

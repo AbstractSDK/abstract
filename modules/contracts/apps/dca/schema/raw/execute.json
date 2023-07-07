@@ -191,6 +191,7 @@
       "additionalProperties": false
     },
     {
+      "description": "Internal method for triggering swap. It can be called only by the Croncat Manager",
       "type": "object",
       "required": [
         "convert"

@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MigrateMsg",
+  "type": "object",
+  "required": [
+    "base",
+    "module"
+  ],
+  "properties": {
+    "base": {
+      "description": "base migrate information",
+      "allOf": [
+        {
+          "$ref": "#/definitions/BaseMigrateMsg"
+        }
+      ]
+    },
+    "module": {
+      "description": "custom migrate msg",
+      "allOf": [
+        {
+          "$ref": "#/definitions/AppMigrateMsg"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AppMigrateMsg": {
+      "type": "string",
+      "enum": []
+    },
+    "BaseMigrateMsg": {
+      "type": "object",
+      "additionalProperties": false
+    }
+  }
+}
