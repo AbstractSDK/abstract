@@ -4,6 +4,7 @@ use std::rc::Rc;
 use abstract_core::objects::{
     AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
+use abstract_core::AbstractError;
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
 use abstract_dca_app::msg::{DCAResponse, Frequency};
 use abstract_dca_app::state::{Config, DCAEntry};
@@ -22,7 +23,7 @@ use croncat_integration_testing::DENOM;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coin, Addr, Decimal, Uint128};
+use cosmwasm_std::{coin, Addr, Decimal, StdError, Uint128};
 use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 // consts for testing
@@ -180,6 +181,15 @@ fn setup() -> anyhow::Result<(
     ))
 }
 
+fn assert_querrier_err_eq(left: CwOrchError, right: StdError) {
+    let querier_contract_err =
+        |err| StdError::generic_err(format!("Querier contract error: {}", err));
+    assert_eq!(
+        left.root().to_string(),
+        querier_contract_err(right).to_string()
+    )
+}
+
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
@@ -201,7 +211,7 @@ fn successful_install() -> anyhow::Result<()> {
 }
 
 #[test]
-fn successful_swaps() -> anyhow::Result<()> {
+fn create_dca_convert() -> anyhow::Result<()> {
     let (mock, account, _abstr, mut apps, croncat_addrs) = setup()?;
 
     // create 2 dcas
@@ -213,7 +223,8 @@ fn successful_swaps() -> anyhow::Result<()> {
     )?;
     apps.dca_app.create_dca(
         WYNDEX_WITHOUT_CHAIN.to_owned(),
-        Frequency::EveryNBlocks(2),
+        // HAPPY NEW YEAR :D
+        Frequency::Cron("0 0 0 1 1 * *".to_owned()),
         OfferAsset::new(EUR, 250_u128),
         USD.into(),
     )?;
@@ -244,7 +255,7 @@ fn successful_swaps() -> anyhow::Result<()> {
             dca: Some(DCAEntry {
                 source_asset: OfferAsset::new(EUR, 250_u128),
                 target_asset: USD.into(),
-                frequency: Frequency::EveryNBlocks(2),
+                frequency: Frequency::Cron("0 0 0 1 1 * *".to_owned()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
             }),
             pool_references: vec![PoolReference::new(
@@ -275,6 +286,66 @@ fn successful_swaps() -> anyhow::Result<()> {
 }
 
 #[test]
+fn create_dca_convert_negative() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps, _croncat_addrs) = setup()?;
+
+    // Not existing DEX
+    let err = apps.dca_app.create_dca(
+        "not_wyndex".to_owned(),
+        Frequency::EveryNBlocks(1),
+        OfferAsset::new(EUR, 100_u128),
+        USD.into(),
+    );
+    assert_querrier_err_eq(
+        err.unwrap_err(),
+        StdError::generic_err("DEX not_wyndex is not local to this network."),
+    );
+
+    // Not existing pair
+    let err = apps.dca_app.create_dca(
+        WYNDEX_WITHOUT_CHAIN.to_owned(),
+        Frequency::EveryNBlocks(1),
+        OfferAsset::new(USD, 100_u128),
+        USD.into(),
+    );
+    assert_querrier_err_eq(
+        err.unwrap_err(),
+        StdError::generic_err(format!(
+            "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
+            offer_asset = OfferAsset::new(USD, 100_u128),
+            target_asset = AssetEntry::new(USD),
+            e = AbstractError::from(StdError::generic_err(
+                "asset pairing wynd/usd,usd not found in ans_host"
+            ))
+        )),
+    );
+
+    // Bad crontab string
+    let err = apps.dca_app.create_dca(
+        WYNDEX_WITHOUT_CHAIN.to_owned(),
+        Frequency::Cron("bad cron".to_owned()),
+        OfferAsset::new(USD, 100_u128),
+        EUR.into(),
+    );
+    assert_eq!(err.unwrap_err().root().to_string(), "Invalid interval");
+
+    apps.dca_app.create_dca(
+        WYNDEX_WITHOUT_CHAIN.to_owned(),
+        Frequency::EveryNBlocks(1),
+        OfferAsset::new(EUR, 100_u128),
+        USD.into(),
+    )?;
+
+    // Only manager should be able to execute this one
+    let err = apps.dca_app.convert("dca_1".to_owned());
+    assert_eq!(
+        err.unwrap_err().root().to_string(),
+        error::AppError::NotManagerConvert {}.to_string()
+    );
+    Ok(())
+}
+
+#[test]
 fn update_dca() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps, _croncat_addrs) = setup()?;
 
@@ -296,7 +367,7 @@ fn update_dca() -> anyhow::Result<()> {
     apps.dca_app.update_dca(
         "dca_1".to_owned(),
         Some(WYNDEX_WITHOUT_CHAIN.into()),
-        Some(Frequency::EveryNBlocks(3)),
+        Some(Frequency::Cron("0 30 * * * *".to_string())),
         Some(OfferAsset::new(USD, 200_u128)),
         Some(EUR.into()),
     )?;
@@ -308,7 +379,7 @@ fn update_dca() -> anyhow::Result<()> {
             dca: Some(DCAEntry {
                 source_asset: OfferAsset::new(USD, 200_u128),
                 target_asset: EUR.into(),
-                frequency: Frequency::EveryNBlocks(3),
+                frequency: Frequency::Cron("0 30 * * * *".to_string()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
             }),
             pool_references: vec![PoolReference::new(
@@ -343,7 +414,7 @@ fn update_dca() -> anyhow::Result<()> {
             dca: Some(DCAEntry {
                 source_asset: OfferAsset::new(USD, 250_u128),
                 target_asset: AssetEntry::new(EUR),
-                frequency: Frequency::EveryNBlocks(3),
+                frequency: Frequency::Cron("0 30 * * * *".to_string()),
                 dex: WYNDEX_WITHOUT_CHAIN.to_owned()
             }),
             pool_references: vec![PoolReference::new(
@@ -361,6 +432,65 @@ fn update_dca() -> anyhow::Result<()> {
         .task_hash;
 
     assert_eq!(task_hash_after_update, task_hash_after_second_update);
+
+    Ok(())
+}
+
+#[test]
+fn update_dca_negative() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps, _croncat_addrs) = setup()?;
+
+    // create dca
+    apps.dca_app.create_dca(
+        WYNDEX_WITHOUT_CHAIN.to_owned(),
+        Frequency::EveryNBlocks(1),
+        OfferAsset::new(EUR, 150_u128),
+        USD.into(),
+    )?;
+
+    // Not existing dex
+    let err = apps.dca_app.update_dca(
+        "dca_1".to_owned(),
+        Some("not_wyndex".into()),
+        None,
+        None,
+        None,
+    );
+    assert_querrier_err_eq(
+        err.unwrap_err(),
+        StdError::generic_err("DEX not_wyndex is not local to this network."),
+    );
+
+    // Not existing pair
+    let err = apps.dca_app.update_dca(
+        "dca_1".to_owned(),
+        None,
+        None,
+        Some(OfferAsset::new(USD, 200_u128)),
+        Some(USD.into()),
+    );
+
+    assert_querrier_err_eq(
+        err.unwrap_err(),
+        StdError::generic_err(format!(
+            "Failed to get pair address for {offer_asset:?} and {target_asset:?}: {e}",
+            offer_asset = OfferAsset::new(USD, 200_u128),
+            target_asset = AssetEntry::new(USD),
+            e = AbstractError::from(StdError::generic_err(
+                "asset pairing wynd/usd,usd not found in ans_host"
+            ))
+        )),
+    );
+
+    // Bad crontab string
+    let err = apps.dca_app.update_dca(
+        "dca_1".to_owned(),
+        None,
+        Some(Frequency::Cron("bad cron".to_owned())),
+        None,
+        None,
+    );
+    assert_eq!(err.unwrap_err().root().to_string(), "Invalid interval");
 
     Ok(())
 }

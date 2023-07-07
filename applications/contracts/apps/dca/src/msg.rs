@@ -41,9 +41,13 @@ impl Frequency {
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
+    /// Native denom for this chain
     pub native_denom: String,
+    /// Amount in native coins for creation dca task and refill amount
     pub dca_creation_amount: Uint128,
+    /// Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks
     pub refill_threshold: Uint128,
+    /// Max spread
     pub max_spread: Decimal,
 }
 
@@ -89,9 +93,9 @@ pub enum DCAExecuteMsg {
         /// Unique identifier for the DCA
         dca_id: String,
     },
-    Convert {
-        dca_id: String,
-    },
+    /// Internal method for triggering swap.
+    /// It can be called only by the Croncat Manager
+    Convert { dca_id: String },
 }
 
 #[cosmwasm_schema::cw_serde]
