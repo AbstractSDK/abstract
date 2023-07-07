@@ -1,5 +1,5 @@
 workspaces := "./framework ./modules ./app-template"
-modules := "./modules/apps/croncat ./modules/apps/dca ./modules/adapters/dex ./modules/adapters/cw-staking"
+modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
 
 docs-install:
   cargo install mdbook
@@ -44,11 +44,11 @@ nightly-build:
 wasm-all:
   ./scripts/wasm-all.sh
 
-schema-modules *command:
+schema-modules:
   #!/usr/bin/env bash
   set -e;
-  for path in {{workspaces}}
+  for path in {{modules}}
   do 
-    (cd $path; cargo {{command}}); 
+    (cd $path; cargo run --example schema --features schema); 
   done
   set +e
