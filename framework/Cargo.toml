@@ -52,8 +52,8 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter = { path = "packages/abstract-adapter" }
-abstract-app = { path = "packages/abstract-app" }
+abstract-adapter = { version = "0.17.0", path = "packages/abstract-adapter" }
+abstract-app = { version = "0.17.0", path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
@@ -73,7 +73,7 @@ abstract-core = { version = "0.17.0", path = "packages/abstract-core" }
 abstract-macros = { version = "0.17.0", path = "packages/abstract-macros" }
 abstract-ica = { version = "0.17.0", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { path = "packages/utils" }
+abstract-adapter-utils = { version = "0.17.0", path = "packages/utils" }
 abstract-dex-adapter-traits = { path = "packages/dex" }
 abstract-staking-adapter-traits = { path = "packages/staking" }
 
