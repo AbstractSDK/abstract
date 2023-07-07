@@ -28,7 +28,7 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    _msg: InstantiateMsg,
+    msg: InstantiateMsg,
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
 
@@ -43,8 +43,12 @@ pub fn instantiate(
     // Initialize the dexes
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    let owner = match msg.admin.as_deref() {
+        Some(owner) => owner,
+        None => info.sender.as_str(),
+    };
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
 
     Ok(AnsHostResponse::action("instantiate"))
 }

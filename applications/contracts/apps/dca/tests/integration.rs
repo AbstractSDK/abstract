@@ -70,7 +70,7 @@ fn setup() -> anyhow::Result<(
     let mut dca_app = DCAApp::new(DCA_APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), None)?;
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock

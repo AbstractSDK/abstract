@@ -20,6 +20,7 @@ mod testing {
             mock_env(),
             info,
             version_control::InstantiateMsg {
+                admin: None,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },

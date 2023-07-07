@@ -30,7 +30,7 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), None)?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;

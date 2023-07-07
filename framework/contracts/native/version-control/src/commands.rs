@@ -556,6 +556,7 @@ mod test {
             mock_env(),
             info,
             InstantiateMsg {
+                admin: None,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },
@@ -576,6 +577,7 @@ mod test {
             mock_env(),
             admin_info,
             InstantiateMsg {
+                admin: None,
                 allow_direct_module_registration_and_updates: Some(direct_registration_and_update),
                 namespace_registration_fee: None,
             },

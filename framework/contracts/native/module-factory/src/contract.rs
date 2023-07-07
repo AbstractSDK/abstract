@@ -38,7 +38,13 @@ pub fn instantiate(
         },
     )?;
 
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    let owner = match msg.admin.as_deref() {
+        Some(owner) => owner,
+        None => info.sender.as_str(),
+    };
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
+
     Ok(ModuleFactoryResponse::action("instantiate"))
 }
 

@@ -7,14 +7,14 @@ use cosmwasm_std::{Addr, DepsMut};
 use speculoos::prelude::*;
 
 pub(crate) fn instantiate_msg() -> InstantiateMsg {
-    InstantiateMsg {}
+    InstantiateMsg { admin: None }
 }
 
 /**
  * Mocks instantiation.
  */
 pub fn mock_instantiate(deps: DepsMut) {
-    let msg = InstantiateMsg {};
+    let msg = InstantiateMsg { admin: None };
 
     let info = mock_info(TEST_CREATOR, &[]);
     let _res = instantiate(deps, mock_env(), info, msg)

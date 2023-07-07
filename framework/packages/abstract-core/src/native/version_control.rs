@@ -96,6 +96,7 @@ pub struct AccountBase {
 /// Version Control Instantiate Msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
+    pub admin: Option<String>,
     /// allows users to directly register modules without going through approval
     /// Also allows them to change the module reference of an existing module
     /// SHOULD ONLY BE `true` FOR TESTING

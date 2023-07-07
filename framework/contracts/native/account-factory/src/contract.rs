@@ -33,8 +33,12 @@ pub fn instantiate(
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    let owner = match msg.admin.as_deref() {
+        Some(owner) => owner,
+        None => info.sender.as_str(),
+    };
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
     Ok(AccountFactoryResponse::action("instantiate"))
 }
 

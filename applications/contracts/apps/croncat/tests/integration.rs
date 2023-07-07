@@ -237,7 +237,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     // Construct the counter interface
     let mut contract = CroncatApp::new(CRONCAT_ID, mock.clone());
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), None)?;
     // Create a new account to install the app onto
     let account =
         abstr_deployment

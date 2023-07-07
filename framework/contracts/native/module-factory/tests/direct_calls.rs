@@ -12,7 +12,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(TEST_ADMIN);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, None)?;
 
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
@@ -30,7 +30,7 @@ fn caller_must_be_manager() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(TEST_ADMIN);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, None)?;
 
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(

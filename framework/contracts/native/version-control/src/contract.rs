@@ -43,6 +43,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
+        admin,
         allow_direct_module_registration_and_updates,
         namespace_registration_fee,
     } = msg;
@@ -59,8 +60,12 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         },
     )?;
 
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    let owner = match admin.as_deref() {
+        Some(owner) => owner,
+        None => info.sender.as_str(),
+    };
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
 
     // Save the abstract namespace to the Abstract admin account
     namespaces_info().save(
