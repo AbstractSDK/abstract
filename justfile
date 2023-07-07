@@ -1,4 +1,5 @@
-workspaces := "./framework ./applications ./app-template"
+workspaces := "./framework ./modules ./app-template"
+modules := "./modules/apps/croncat ./modules/apps/dca ./modules/adapters/dex ./modules/adapters/cw-staking"
 
 docs-install:
   cargo install mdbook
@@ -42,3 +43,12 @@ nightly-build:
 # Wasms all the workspaces that can be wasm'd
 wasm-all:
   ./scripts/wasm-all.sh
+
+schema-modules *command:
+  #!/usr/bin/env bash
+  set -e;
+  for path in {{workspaces}}
+  do 
+    (cd $path; cargo {{command}}); 
+  done
+  set +e

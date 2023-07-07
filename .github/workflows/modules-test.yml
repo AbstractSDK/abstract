@@ -1,14 +1,14 @@
-name: applications-test
+name: modules-test
 permissions:
   contents: read
 on:
   push:
     branches: [main]
     paths: 
-      - applications/**
+      - modules/**
   pull_request:
     paths: 
-      - applications/**
+      - modules/**
 
 jobs:
   required:
@@ -27,11 +27,11 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
-        working-directory: ./applications
+        working-directory: ./modules
         run: cargo generate-lockfile
       # https://twitter.com/jonhoo/status/1571290371124260865
       - name: cargo test --locked
-        working-directory: ./applications
+        working-directory: ./modules
         run: cargo test --locked --all-features --all-targets
   coverage:
     runs-on: ubuntu-latest
@@ -48,10 +48,10 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
-        working-directory: ./applications
+        working-directory: ./modules
         run: cargo generate-lockfile
       - name: cargo llvm-cov
-        working-directory: ./applications
+        working-directory: ./modules
         run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3

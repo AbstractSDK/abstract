@@ -38,7 +38,7 @@ docker run --rm -v "$(pwd)":/code \
 ${image}:0.12.13
 
 echo "Wasming apps"
-cd ./applications
+cd ./modules
 
 # Delete all the current wasms first
 rm -rf ./artifacts/*.wasm
