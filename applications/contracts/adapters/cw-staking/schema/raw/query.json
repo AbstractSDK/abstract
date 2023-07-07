@@ -123,7 +123,7 @@
   ],
   "definitions": {
     "AssetEntry": {
-      "description": "May key to retrieve information on an asset",
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
       "type": "string"
     },
     "Duration": {

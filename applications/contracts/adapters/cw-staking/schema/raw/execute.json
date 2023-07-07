@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ExecuteMsg",
-  "description": "A request message that's sent to this staking api",
+  "description": "A request message that's sent to this staking adapter",
   "type": "object",
   "required": [
     "action",
@@ -9,7 +9,12 @@
   ],
   "properties": {
     "action": {
-      "$ref": "#/definitions/CwStakingAction"
+      "description": "the action to execute, see [StakingAction]",
+      "allOf": [
+        {
+          "$ref": "#/definitions/StakingAction"
+        }
+      ]
     },
     "provider": {
       "description": "The name of the staking provider",
@@ -34,99 +39,8 @@
       }
     },
     "AssetEntry": {
-      "description": "May key to retrieve information on an asset",
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
       "type": "string"
-    },
-    "CwStakingAction": {
-      "description": "Possible actions to perform on the staking contract All provide the staking token information",
-      "oneOf": [
-        {
-          "description": "Stakes/bonds a given token",
-          "type": "object",
-          "required": [
-            "stake"
-          ],
-          "properties": {
-            "stake": {
-              "type": "object",
-              "required": [
-                "staking_token"
-              ],
-              "properties": {
-                "staking_token": {
-                  "$ref": "#/definitions/AnsAsset"
-                },
-                "unbonding_period": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Duration"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Unstake a given token",
-          "type": "object",
-          "required": [
-            "unstake"
-          ],
-          "properties": {
-            "unstake": {
-              "type": "object",
-              "required": [
-                "staking_token"
-              ],
-              "properties": {
-                "staking_token": {
-                  "$ref": "#/definitions/AnsAsset"
-                },
-                "unbonding_period": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/definitions/Duration"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "description": "Claim rewards for a given token",
-          "type": "object",
-          "required": [
-            "claim_rewards"
-          ],
-          "properties": {
-            "claim_rewards": {
-              "type": "object",
-              "required": [
-                "staking_token"
-              ],
-              "properties": {
-                "staking_token": {
-                  "$ref": "#/definitions/AssetEntry"
-                }
-              },
-              "additionalProperties": false
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "Duration": {
       "description": "Duration is a delta of time. You can add it to a BlockInfo or Expiration to move that further in the future. Note that an height-based Duration and a time-based Expiration cannot be combined",
@@ -156,6 +70,119 @@
               "type": "integer",
               "format": "uint64",
               "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StakingAction": {
+      "description": "Possible actions to perform on the staking contract All provide an asset [AnsAsset] information",
+      "oneOf": [
+        {
+          "description": "Stakes/bonds a given token",
+          "type": "object",
+          "required": [
+            "stake"
+          ],
+          "properties": {
+            "stake": {
+              "type": "object",
+              "required": [
+                "asset"
+              ],
+              "properties": {
+                "asset": {
+                  "$ref": "#/definitions/AnsAsset"
+                },
+                "unbonding_period": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Duration"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Unstake/unbond a given token",
+          "type": "object",
+          "required": [
+            "unstake"
+          ],
+          "properties": {
+            "unstake": {
+              "type": "object",
+              "required": [
+                "asset"
+              ],
+              "properties": {
+                "asset": {
+                  "$ref": "#/definitions/AnsAsset"
+                },
+                "unbonding_period": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Duration"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Claim rewards for a given token",
+          "type": "object",
+          "required": [
+            "claim_rewards"
+          ],
+          "properties": {
+            "claim_rewards": {
+              "type": "object",
+              "required": [
+                "asset"
+              ],
+              "properties": {
+                "asset": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Claim matured unbonding tokens",
+          "type": "object",
+          "required": [
+            "claim"
+          ],
+          "properties": {
+            "claim": {
+              "type": "object",
+              "required": [
+                "asset"
+              ],
+              "properties": {
+                "asset": {
+                  "$ref": "#/definitions/AssetEntry"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

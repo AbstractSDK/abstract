@@ -1,6 +1,6 @@
 {
   "contract_name": "module-schema",
-  "contract_version": "0.6.2",
+  "contract_version": "0.17.0",
   "idl_version": "1.0.0",
   "instantiate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -11,7 +11,7 @@
   "execute": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "ExecuteMsg",
-    "description": "A request message that's sent to this staking api",
+    "description": "A request message that's sent to this staking adapter",
     "type": "object",
     "required": [
       "action",
@@ -19,7 +19,12 @@
     ],
     "properties": {
       "action": {
-        "$ref": "#/definitions/CwStakingAction"
+        "description": "the action to execute, see [StakingAction]",
+        "allOf": [
+          {
+            "$ref": "#/definitions/StakingAction"
+          }
+        ]
       },
       "provider": {
         "description": "The name of the staking provider",
@@ -44,99 +49,8 @@
         }
       },
       "AssetEntry": {
-        "description": "May key to retrieve information on an asset",
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
         "type": "string"
-      },
-      "CwStakingAction": {
-        "description": "Possible actions to perform on the staking contract All provide the staking token information",
-        "oneOf": [
-          {
-            "description": "Stakes/bonds a given token",
-            "type": "object",
-            "required": [
-              "stake"
-            ],
-            "properties": {
-              "stake": {
-                "type": "object",
-                "required": [
-                  "staking_token"
-                ],
-                "properties": {
-                  "staking_token": {
-                    "$ref": "#/definitions/AnsAsset"
-                  },
-                  "unbonding_period": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Duration"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Unstake a given token",
-            "type": "object",
-            "required": [
-              "unstake"
-            ],
-            "properties": {
-              "unstake": {
-                "type": "object",
-                "required": [
-                  "staking_token"
-                ],
-                "properties": {
-                  "staking_token": {
-                    "$ref": "#/definitions/AnsAsset"
-                  },
-                  "unbonding_period": {
-                    "anyOf": [
-                      {
-                        "$ref": "#/definitions/Duration"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          },
-          {
-            "description": "Claim rewards for a given token",
-            "type": "object",
-            "required": [
-              "claim_rewards"
-            ],
-            "properties": {
-              "claim_rewards": {
-                "type": "object",
-                "required": [
-                  "staking_token"
-                ],
-                "properties": {
-                  "staking_token": {
-                    "$ref": "#/definitions/AssetEntry"
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
-          }
-        ]
       },
       "Duration": {
         "description": "Duration is a delta of time. You can add it to a BlockInfo or Expiration to move that further in the future. Note that an height-based Duration and a time-based Expiration cannot be combined",
@@ -166,6 +80,119 @@
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "StakingAction": {
+        "description": "Possible actions to perform on the staking contract All provide an asset [AnsAsset] information",
+        "oneOf": [
+          {
+            "description": "Stakes/bonds a given token",
+            "type": "object",
+            "required": [
+              "stake"
+            ],
+            "properties": {
+              "stake": {
+                "type": "object",
+                "required": [
+                  "asset"
+                ],
+                "properties": {
+                  "asset": {
+                    "$ref": "#/definitions/AnsAsset"
+                  },
+                  "unbonding_period": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Duration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Unstake/unbond a given token",
+            "type": "object",
+            "required": [
+              "unstake"
+            ],
+            "properties": {
+              "unstake": {
+                "type": "object",
+                "required": [
+                  "asset"
+                ],
+                "properties": {
+                  "asset": {
+                    "$ref": "#/definitions/AnsAsset"
+                  },
+                  "unbonding_period": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Duration"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Claim rewards for a given token",
+            "type": "object",
+            "required": [
+              "claim_rewards"
+            ],
+            "properties": {
+              "claim_rewards": {
+                "type": "object",
+                "required": [
+                  "asset"
+                ],
+                "properties": {
+                  "asset": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "description": "Claim matured unbonding tokens",
+            "type": "object",
+            "required": [
+              "claim"
+            ],
+            "properties": {
+              "claim": {
+                "type": "object",
+                "required": [
+                  "asset"
+                ],
+                "properties": {
+                  "asset": {
+                    "$ref": "#/definitions/AssetEntry"
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "additionalProperties": false
@@ -303,7 +330,7 @@
     ],
     "definitions": {
       "AssetEntry": {
-        "description": "May key to retrieve information on an asset",
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
         "type": "string"
       },
       "Duration": {
@@ -390,7 +417,7 @@
           "type": "string"
         },
         "AssetInfoBase_for_Addr": {
-          "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
           "oneOf": [
             {
               "type": "object",
@@ -412,28 +439,6 @@
               "properties": {
                 "cw20": {
                   "$ref": "#/definitions/Addr"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "cw1155"
-              ],
-              "properties": {
-                "cw1155": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/Addr"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
                 }
               },
               "additionalProperties": false
@@ -498,7 +503,7 @@
           "type": "string"
         },
         "AssetInfoBase_for_Addr": {
-          "description": "Represents the type of an fungible asset\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address. - CW1155 tokens. To create an **asset info** instance of this type, provide the contract address and token ID.",
+          "description": "Represents the type of an fungible asset.\n\nEach **asset info** instance can be one of three variants:\n\n- Native SDK coins. To create an **asset info** instance of this type, provide the denomination. - CW20 tokens. To create an **asset info** instance of this type, provide the contract address.",
           "oneOf": [
             {
               "type": "object",
@@ -520,28 +525,6 @@
               "properties": {
                 "cw20": {
                   "$ref": "#/definitions/Addr"
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "required": [
-                "cw1155"
-              ],
-              "properties": {
-                "cw1155": {
-                  "type": "array",
-                  "items": [
-                    {
-                      "$ref": "#/definitions/Addr"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ],
-                  "maxItems": 2,
-                  "minItems": 2
                 }
               },
               "additionalProperties": false
