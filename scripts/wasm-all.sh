@@ -11,7 +11,7 @@ workspace_image="cosmwasm/workspace-optimizer"
 abstract_image="abstractmoney/workspace-optimizer"
 fi
 
-current_dir=$(pwd)
+starting_dir=$(pwd)
 
 echo "Wasming app-template"
 cd ./app-template
@@ -24,7 +24,7 @@ docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
 ${image}:0.12.13
 
-cd $current_dir
+cd $starting_dir
 
 echo "Wasming framework"
 cd ./framework
@@ -35,7 +35,9 @@ rm -rf ./artifacts/*.wasm
 docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${image}:0.12.13
+${workspace_image}:0.12.13
+
+cd $starting_dir
 
 echo "Wasming apps"
 cd ./modules
@@ -48,4 +50,4 @@ docker run --rm -v "$(pwd)":/code \
   -v "$(dirname "$(pwd)")/integrations":/integrations \
   -v "$(dirname "$(pwd)")/framework":/framework \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-  ${abstract_image}:0.12.13
+  ${abstract_image}:0.12.14
