@@ -1,0 +1,19 @@
+[package]
+name = "abstract-ics-999"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+description = "ICS-999 helpers"
+license = { workspace = true }
+readme = "README.md"
+repository = "https://github.com/AbstractSDK/contracts/tree/main/packages/abstract-ics-999"
+resolver = "2"
+
+# for quicker tests, cargo test --lib
+[features]
+
+[dependencies]
+cosmwasm-std = { workspace = true, features = ["iterator", "staking"] }
+schemars = { workspace = true }
+serde = { workspace = true }
+cosmwasm-schema = { workspace = true, optional = true }
