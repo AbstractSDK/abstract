@@ -12,7 +12,7 @@ use cosmwasm_std::Response;
 /// The version of your app
 pub const CRONCAT_MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The id of the app
-pub const CRONCAT_ID: &str = "croncat:app";
+pub const CRONCAT_ID: &str = "croncat:cron";
 
 /// The type of the result returned by your app's entry points.
 pub type CroncatResult<T = Response> = Result<T, AppError>;
