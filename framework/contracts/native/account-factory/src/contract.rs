@@ -20,7 +20,7 @@ pub type AccountFactoryResult<T = Response> = Result<T, AccountFactoryError>;
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> AccountFactoryResult {
     let config = Config {
@@ -34,11 +34,7 @@ pub fn instantiate(
 
     CONFIG.save(deps.storage, &config)?;
     // Set up the admin
-    let owner = match msg.admin.as_deref() {
-        Some(owner) => owner,
-        None => info.sender.as_str(),
-    };
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
     Ok(AccountFactoryResponse::action("instantiate"))
 }
 

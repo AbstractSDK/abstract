@@ -44,7 +44,7 @@ use crate::objects::{account_id::AccountId, gov_type::GovernanceDetails};
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
     /// Admin of the contract
-    pub admin: Option<String>,
+    pub admin: String,
     /// Version control contract used to get code-ids and register Account
     pub version_control_address: String,
     /// AnsHost contract

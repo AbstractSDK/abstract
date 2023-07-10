@@ -77,7 +77,7 @@ pub mod state {
 /// AnsHost Instantiate msg
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
-    pub admin: Option<String>,
+    pub admin: String,
 }
 
 /// AnsHost Execute msg

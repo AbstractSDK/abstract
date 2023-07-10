@@ -39,7 +39,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> VCResult {
+pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: InstantiateMsg) -> VCResult {
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
@@ -61,11 +61,7 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
     )?;
 
     // Set up the admin
-    let owner = match admin.as_deref() {
-        Some(owner) => owner,
-        None => info.sender.as_str(),
-    };
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
     namespaces_info().save(

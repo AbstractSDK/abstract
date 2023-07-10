@@ -18,12 +18,8 @@ mod test_common {
 
     pub fn mock_init(mut deps: DepsMut) -> Result<Response, AnsHostError> {
         let info = mock_info(TEST_CREATOR, &[]);
+        let admin = info.sender.to_string();
 
-        contract::instantiate(
-            deps.branch(),
-            mock_env(),
-            info,
-            InstantiateMsg { admin: None },
-        )
+        contract::instantiate(deps.branch(), mock_env(), info, InstantiateMsg { admin })
     }
 }

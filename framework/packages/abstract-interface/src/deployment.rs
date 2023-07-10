@@ -19,7 +19,7 @@ pub struct Abstract<Chain: CwEnv> {
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = Option<String>;
+    type DeployData = String;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
@@ -48,7 +48,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, data: Option<String>) -> Result<Self, AbstractInterfaceError> {
+    fn deploy_on(chain: Chain, data: String) -> Result<Self, AbstractInterfaceError> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
 
@@ -129,7 +129,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain, admin: Option<String>) -> Result<(), CwOrchError> {
+    pub fn instantiate(&mut self, chain: &Chain, admin: String) -> Result<(), CwOrchError> {
         let sender = &chain.sender();
 
         self.ans_host.instantiate(

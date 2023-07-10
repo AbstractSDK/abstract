@@ -19,7 +19,7 @@ pub type ModuleFactoryResult<T = Response> = Result<T, ModuleFactoryError>;
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> ModuleFactoryResult {
     let config = Config {
@@ -39,11 +39,7 @@ pub fn instantiate(
     )?;
 
     // Set up the admin
-    let owner = match msg.admin.as_deref() {
-        Some(owner) => owner,
-        None => info.sender.as_str(),
-    };
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner))?;
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
 
     Ok(ModuleFactoryResponse::action("instantiate"))
 }

@@ -551,12 +551,14 @@ mod test {
     /// Initialize the version_control with admin and updated account_factory
     fn mock_init_with_factory(mut deps: DepsMut) -> VCResult {
         let info = mock_info(TEST_ADMIN, &[]);
+        let admin = info.sender.to_string();
+
         contract::instantiate(
             deps.branch(),
             mock_env(),
             info,
             InstantiateMsg {
-                admin: None,
+                admin,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },
@@ -572,12 +574,14 @@ mod test {
     /// Initialize the version_control with admin as creator and test account
     fn mock_init_with_account(mut deps: DepsMut, direct_registration_and_update: bool) -> VCResult {
         let admin_info = mock_info(TEST_ADMIN, &[]);
+        let admin = admin_info.sender.to_string();
+
         contract::instantiate(
             deps.branch(),
             mock_env(),
             admin_info,
             InstantiateMsg {
-                admin: None,
+                admin,
                 allow_direct_module_registration_and_updates: Some(direct_registration_and_update),
                 namespace_registration_fee: None,
             },

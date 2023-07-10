@@ -15,12 +15,14 @@ mod testing {
     /// Initialize the version_control with admin as creator and factory
     pub fn mock_init(mut deps: DepsMut) -> Result<Response, VCError> {
         let info = mock_info(TEST_ADMIN, &[]);
+        let admin = info.sender.to_string();
+
         contract::instantiate(
             deps.branch(),
             mock_env(),
             info,
             version_control::InstantiateMsg {
-                admin: None,
+                admin,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },

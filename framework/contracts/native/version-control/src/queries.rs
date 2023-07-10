@@ -320,12 +320,14 @@ mod test {
 
     fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
         let info = mock_info(TEST_ADMIN, &[]);
+        let admin = info.sender.to_string();
+
         contract::instantiate(
             deps.branch(),
             mock_env(),
             info,
             InstantiateMsg {
-                admin: None,
+                admin,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },

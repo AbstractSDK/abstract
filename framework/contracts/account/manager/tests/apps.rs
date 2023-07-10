@@ -12,7 +12,7 @@ use speculoos::prelude::*;
 fn execute_on_proxy_through_manager() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), None)?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     // mint coins to proxy address
