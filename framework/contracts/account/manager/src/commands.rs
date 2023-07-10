@@ -6,7 +6,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::InternalConfigAction;
+use abstract_core::manager::{InternalConfigAction, QueryMsg};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::ModuleResponse;
@@ -39,6 +39,7 @@ use cosmwasm_std::{
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -88,7 +89,7 @@ pub fn install_module(
     init_msg: Option<Binary>,
 ) -> ManagerResult {
     // only owner can call this method
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
     if ACCOUNT_MODULES
@@ -176,7 +177,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -199,7 +200,7 @@ pub fn exec_on_sub_account(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
     let config = CONFIG.load(deps.storage)?;
 
     let manager_addr = VersionControlContract::new(config.version_control_address)
@@ -230,7 +231,7 @@ pub fn create_subaccount(
     link: Option<String>,
 ) -> ManagerResult {
     // only owner can create a subaccount
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let account_factory_addr = query_module(
         deps.as_ref(),
@@ -270,7 +271,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -350,7 +351,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -587,7 +588,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -609,7 +610,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -623,7 +624,7 @@ pub fn update_ibc_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update IBC status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -798,12 +799,33 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
             // required to add Proxy after init by Account Factory.
             ACCOUNT_FACTORY
                 .assert_admin(deps.as_ref(), &info.sender)
-                .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
+                .or_else(|_| assert_admin_right(deps.as_ref(), &info.sender))?;
             update_module_addresses(deps, to_add, to_remove)
         }
         _ => Err(ManagerError::InvalidConfigAction {
             error: StdError::generic_err("Unknown config action"),
         }),
+    }
+}
+
+fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
+    let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
+
+    let account_info = INFO.load(deps.storage)?;
+    match account_info.governance_details {
+        // If the account has SubAccountMonarch governance, the owner of the monarch of this account also has admin rights over this account
+        GovernanceDetails::SubAccountMonarchy { monarch } => {
+            // We try to query the ownership of the monarch account
+            let Ownership::<String> { owner, .. } = deps
+                .querier
+                .query_wasm_smart(monarch, &QueryMsg::Ownership {})?;
+            // We assert that the sender is the owner
+            if *sender != owner.unwrap() {
+                return Err(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+            }
+            Ok(())
+        }
+        _ => Ok(ownership_test?),
     }
 }
 
