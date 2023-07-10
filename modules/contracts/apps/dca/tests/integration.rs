@@ -20,6 +20,7 @@ use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
 use croncat_integration_testing::test_helpers::set_up_croncat_contracts;
 use croncat_integration_testing::DENOM;
+use cw_asset::AssetInfo;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
@@ -72,6 +73,13 @@ fn setup() -> anyhow::Result<(
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), Empty {})?;
+    abstr_deployment.ans_host.execute(
+        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
+            to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
+            to_remove: vec![],
+        },
+        None,
+    )?;
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock
@@ -143,7 +151,7 @@ fn setup() -> anyhow::Result<(
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
             },
             module: AppInstantiateMsg {
-                native_denom: DENOM.to_owned(),
+                native_asset: AssetEntry::new("denom"),
                 dca_creation_amount: Uint128::new(5_000_000),
                 refill_threshold: Uint128::new(1_000_000),
                 max_spread: Decimal::percent(30),

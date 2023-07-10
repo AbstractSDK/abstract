@@ -41,8 +41,8 @@ impl Frequency {
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
-    /// Native denom for this chain
-    pub native_denom: String,
+    /// Native gas/stake asset for this chain
+    pub native_asset: AssetEntry,
     /// Amount in native coins for creation dca task and refill amount
     pub dca_creation_amount: Uint128,
     /// Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks

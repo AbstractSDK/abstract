@@ -1,4 +1,7 @@
+use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use cw_asset::AssetInfoBase;
 
 use crate::contract::{AppResult, DCAApp};
 use crate::msg::AppInstantiateMsg;
@@ -8,11 +11,20 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _app: DCAApp,
+    app: DCAApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
+    let ans_host = app.ans_host(deps.as_ref())?;
+    let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
+    let native_denom = match asset {
+        AssetInfoBase::Native(denom) => denom,
+        AssetInfoBase::Cw20(_) => {
+            return Err(AbstractSdkError::generic_err("native_asset should be native").into())
+        }
+        _ => unimplemented!(),
+    };
     let config: Config = Config {
-        native_denom: msg.native_denom,
+        native_denom,
         dca_creation_amount: msg.dca_creation_amount,
         refill_threshold: msg.refill_threshold,
         max_spread: msg.max_spread,
