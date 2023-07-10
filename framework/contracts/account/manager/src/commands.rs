@@ -8,11 +8,11 @@ use abstract_core::adapter::{
 };
 use abstract_core::manager::{InternalConfigAction, QueryMsg};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::AccountId;
+
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
-use abstract_sdk::AccountVerification;
+
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -192,35 +192,6 @@ pub fn exec_on_module(
     Ok(response)
 }
 
-/// Execute the [`exec_msg`] on the provided [`sub_account_id`],
-pub fn exec_on_sub_account(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    sub_account_id: AccountId,
-    exec_msg: Binary,
-) -> ManagerResult {
-    // only owner can forward messages to modules
-    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
-    let config = CONFIG.load(deps.storage)?;
-
-    let manager_addr = VersionControlContract::new(config.version_control_address)
-        .account_registry(deps.as_ref())
-        .account_base(sub_account_id)?
-        .manager;
-
-    let response = ManagerResponse::new(
-        "exec_on_sub_account",
-        vec![("sub_account", sub_account_id.to_string())],
-    )
-    .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: manager_addr.into(),
-        msg: to_binary(&exec_msg)?,
-        funds: vec![],
-    }));
-
-    Ok(response)
-}
-
 /// Creates a sub-account for this account,
 pub fn create_subaccount(
     deps: DepsMut,
@@ -245,8 +216,8 @@ pub fn create_subaccount(
     let account_message = wasm_execute(
         account_factory_addr,
         &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-            governance: GovernanceDetails::SubAccountMonarchy {
-                monarch: env.contract.address.to_string(),
+            governance: GovernanceDetails::SubAccount {
+                owner_account_manager: env.contract.address.to_string(),
             },
             name,
             description,
@@ -808,22 +779,43 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
     }
 }
 
+fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<String> {
+    let Ownership::<String> { owner, .. } = deps
+        .querier
+        .query_wasm_smart(maybe_manager, &QueryMsg::Ownership {})?;
+
+    owner.ok_or(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}))
+}
+
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
+
+    if ownership_test.is_ok() {
+        return Ok(());
+    }
 
     let account_info = INFO.load(deps.storage)?;
     match account_info.governance_details {
         // If the account has SubAccountMonarch governance, the owner of the monarch of this account also has admin rights over this account
-        GovernanceDetails::SubAccountMonarchy { monarch } => {
-            // We try to query the ownership of the monarch account
-            let Ownership::<String> { owner, .. } = deps
-                .querier
-                .query_wasm_smart(monarch, &QueryMsg::Ownership {})?;
-            // We assert that the sender is the owner
-            if *sender != owner.unwrap() {
-                return Err(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+        GovernanceDetails::SubAccount {
+            owner_account_manager,
+        } => {
+            // We try to query the ownership of the manager monarch account if the first query failed
+            let mut current = owner_account_manager;
+            loop {
+                if let Ok(owner) = query_ownership(deps, current) {
+                    // If the owner account is indeed owned by another instance
+                    if *sender == owner {
+                        // If the owner of the current contract is the sender, the admin test is passed
+                        return Ok(());
+                    } else {
+                        // If not, we try again with the queried owner
+                        current = deps.api.addr_validate(&owner)?
+                    }
+                } else {
+                    return Err(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+                }
             }
-            Ok(())
         }
         _ => Ok(ownership_test?),
     }

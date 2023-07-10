@@ -117,10 +117,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module_id,
                     exec_msg,
                 } => exec_on_module(deps, info, module_id, exec_msg),
-                ExecuteMsg::ExecOnSubAccount {
-                    sub_account_id,
-                    exec_msg,
-                } => exec_on_sub_account(deps, info, sub_account_id, exec_msg),
                 ExecuteMsg::CreateSubAccount {
                     name,
                     description,

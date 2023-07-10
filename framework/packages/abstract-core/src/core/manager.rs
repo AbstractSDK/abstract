@@ -165,11 +165,6 @@ pub enum ExecuteMsg {
         description: Option<String>,
         link: Option<String>,
     },
-    /// Forward execution message to sub-account
-    ExecOnSubAccount {
-        sub_account_id: AccountId,
-        exec_msg: Binary,
-    },
     /// Update info
     UpdateInfo {
         name: Option<String>,

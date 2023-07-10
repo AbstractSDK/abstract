@@ -20,9 +20,9 @@ pub enum GovernanceDetails<T: AddressLike> {
         monarch: T,
     },
     /// A single address is admin, but the admin of the manager can also be an admin
-    SubAccountMonarchy {
+    SubAccount {
         /// The monarch's address
-        monarch: T,
+        owner_account_manager: T,
     },
     /// An external governance source
     External {
@@ -41,9 +41,13 @@ impl GovernanceDetails<String> {
                 let addr = api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
             }
-            GovernanceDetails::SubAccountMonarchy { monarch } => {
-                let addr = api.addr_validate(&monarch)?;
-                Ok(GovernanceDetails::Monarchy { monarch: addr })
+            GovernanceDetails::SubAccount {
+                owner_account_manager,
+            } => {
+                let addr = api.addr_validate(&owner_account_manager)?;
+                Ok(GovernanceDetails::SubAccount {
+                    owner_account_manager: addr,
+                })
             }
             GovernanceDetails::External {
                 governance_address,
@@ -95,7 +99,9 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self) -> Addr {
         match self {
             GovernanceDetails::Monarchy { monarch } => monarch.clone(),
-            GovernanceDetails::SubAccountMonarchy { monarch } => monarch.clone(),
+            GovernanceDetails::SubAccount {
+                owner_account_manager,
+            } => owner_account_manager.clone(),
             GovernanceDetails::External {
                 governance_address, ..
             } => governance_address.clone(),
@@ -109,11 +115,11 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
                 monarch: monarch.to_string(),
             },
-            GovernanceDetails::SubAccountMonarchy { monarch } => {
-                GovernanceDetails::SubAccountMonarchy {
-                    monarch: monarch.to_string(),
-                }
-            }
+            GovernanceDetails::SubAccount {
+                owner_account_manager,
+            } => GovernanceDetails::SubAccount {
+                owner_account_manager: owner_account_manager.to_string(),
+            },
             GovernanceDetails::External {
                 governance_address,
                 governance_type,
@@ -129,7 +135,7 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
     fn to_string(&self) -> String {
         match self {
             GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
-            GovernanceDetails::SubAccountMonarchy { .. } => "sub-account-monarch".to_string(),
+            GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
             GovernanceDetails::External {
                 governance_type, ..
             } => governance_type.to_owned(),
