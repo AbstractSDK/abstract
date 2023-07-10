@@ -1,5 +1,6 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
+use abstract_core::manager::state::ACCOUNT_FACTORY;
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
@@ -7,10 +8,11 @@ use abstract_core::adapter::{
 };
 use abstract_core::manager::InternalConfigAction;
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::AccountId;
 use abstract_core::version_control::ModuleResponse;
-use abstract_core::ACCOUNT_FACTORY;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
+use abstract_sdk::AccountVerification;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -189,6 +191,35 @@ pub fn exec_on_module(
     Ok(response)
 }
 
+/// Execute the [`exec_msg`] on the provided [`sub_account_id`],
+pub fn exec_on_sub_account(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    sub_account_id: AccountId,
+    exec_msg: Binary,
+) -> ManagerResult {
+    // only owner can forward messages to modules
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    let config = CONFIG.load(deps.storage)?;
+
+    let manager_addr = VersionControlContract::new(config.version_control_address)
+        .account_registry(deps.as_ref())
+        .account_base(sub_account_id)?
+        .manager;
+
+    let response = ManagerResponse::new(
+        "exec_on_sub_account",
+        vec![("sub_account", sub_account_id.to_string())],
+    )
+    .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: manager_addr.into(),
+        msg: to_binary(&exec_msg)?,
+        funds: vec![],
+    }));
+
+    Ok(response)
+}
+
 /// Creates a sub-account for this account,
 pub fn create_subaccount(
     deps: DepsMut,
@@ -203,7 +234,7 @@ pub fn create_subaccount(
 
     let account_factory_addr = query_module(
         deps.as_ref(),
-        ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
+        ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
         None,
     )?
     .module
