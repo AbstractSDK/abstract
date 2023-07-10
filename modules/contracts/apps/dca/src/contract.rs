@@ -1,13 +1,11 @@
-use crate::msg::AppMigrateMsg;
 use crate::{
     error::AppError,
     handlers,
     msg::{AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg},
-    replies::{self, INSTANTIATE_REPLY_ID},
 };
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use cosmwasm_std::Response;
+use cosmwasm_std::{Response, Empty};
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 /// The version of your app
@@ -20,14 +18,12 @@ pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
 pub type DCAApp =
-    AppContract<AppError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, AppMigrateMsg>;
+    AppContract<AppError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, Empty>;
 
 const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
-    .with_migrate(handlers::migrate_handler)
-    .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)])
     .with_dependencies(&[
         StaticDependency::new(CRONCAT_ID, &[CRONCAT_MODULE_VERSION]),
         StaticDependency::new(
