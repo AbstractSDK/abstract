@@ -4,10 +4,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 use croncat_app::croncat_integration_utils::CronCatInterval;
 
-use crate::{
-    contract::DCAApp,
-    state::{Config, DCAEntry},
-};
+use crate::{contract::DCAApp, state::DCAEntry};
 
 // This is used for type safety
 // The second part is used to indicate the messages are used as the apps messages
@@ -111,7 +108,10 @@ pub enum DCAQueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub config: Config,
+    pub native_asset: AssetEntry,
+    pub dca_creation_amount: Uint128,
+    pub refill_threshold: Uint128,
+    pub max_spread: Decimal,
 }
 
 #[cosmwasm_schema::cw_serde]

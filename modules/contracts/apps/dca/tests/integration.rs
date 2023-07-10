@@ -7,7 +7,7 @@ use abstract_core::objects::{
 use abstract_core::AbstractError;
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
 use abstract_dca_app::msg::{DCAResponse, Frequency};
-use abstract_dca_app::state::{Config, DCAEntry};
+use abstract_dca_app::state::DCAEntry;
 use abstract_dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
@@ -207,12 +207,10 @@ fn successful_install() -> anyhow::Result<()> {
     assert_eq!(
         config,
         ConfigResponse {
-            config: Config {
-                native_denom: DENOM.to_owned(),
-                dca_creation_amount: Uint128::new(5_000_000),
-                refill_threshold: Uint128::new(1_000_000),
-                max_spread: Decimal::percent(30),
-            }
+            native_asset: AssetEntry::from("denom"),
+            dca_creation_amount: Uint128::new(5_000_000),
+            refill_threshold: Uint128::new(1_000_000),
+            max_spread: Decimal::percent(30),
         }
     );
     Ok(())

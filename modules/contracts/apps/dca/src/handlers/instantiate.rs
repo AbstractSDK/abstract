@@ -18,10 +18,7 @@ pub fn instantiate_handler(
     let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
     let native_denom = match asset {
         AssetInfoBase::Native(denom) => denom,
-        AssetInfoBase::Cw20(_) => {
-            return Err(AbstractSdkError::generic_err("native_asset should be native").into())
-        }
-        _ => unimplemented!(),
+        _ => return Err(AbstractSdkError::generic_err("native_asset should be native").into()),
     };
     let config: Config = Config {
         native_denom,
