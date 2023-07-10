@@ -217,7 +217,7 @@ pub fn create_subaccount(
         account_factory_addr,
         &abstract_core::account_factory::ExecuteMsg::CreateAccount {
             governance: GovernanceDetails::SubAccount {
-                owner_account_manager: env.contract.address.to_string(),
+                manager: env.contract.address.to_string(),
             },
             name,
             description,
@@ -796,12 +796,10 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
 
     let account_info = INFO.load(deps.storage)?;
     match account_info.governance_details {
-        // If the account has SubAccountMonarch governance, the owner of the monarch of this account also has admin rights over this account
-        GovernanceDetails::SubAccount {
-            owner_account_manager,
-        } => {
+        // If the account has SubAccount governance, the owner of the manager also has admin rights over this account
+        GovernanceDetails::SubAccount { manager } => {
             // We try to query the ownership of the manager monarch account if the first query failed
-            let mut current = owner_account_manager;
+            let mut current = manager;
             loop {
                 if let Ok(owner) = query_ownership(deps, current) {
                     // If the owner account is indeed owned by another instance
