@@ -1,13 +1,14 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
+
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::state::ACCOUNT_FACTORY;
 use abstract_core::manager::InternalConfigAction;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::version_control::ModuleResponse;
+use abstract_core::ACCOUNT_FACTORY;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 use abstract_sdk::{
@@ -32,8 +33,8 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
-    Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, CosmosMsg, Deps,
+    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_storage_plus::Item;
@@ -184,6 +185,46 @@ pub fn exec_on_module(
             funds: vec![],
         }),
     );
+
+    Ok(response)
+}
+
+/// Creates a sub-account for this account,
+pub fn create_subaccount(
+    deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+) -> ManagerResult {
+    // only owner can create a subaccount
+    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+
+    let account_factory_addr = query_module(
+        deps.as_ref(),
+        ModuleInfo::from_id_latest(ACCOUNT_FACTORY)?,
+        None,
+    )?
+    .module
+    .reference
+    .unwrap_native()?;
+
+    let account_message = wasm_execute(
+        account_factory_addr,
+        &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+            governance: GovernanceDetails::SubAccountMonarchy {
+                monarch: env.contract.address.to_string(),
+            },
+            name,
+            description,
+            link,
+        },
+        vec![],
+    )?;
+
+    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
+        .add_message(account_message);
 
     Ok(response)
 }

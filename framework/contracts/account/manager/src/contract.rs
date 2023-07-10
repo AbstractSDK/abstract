@@ -117,6 +117,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module_id,
                     exec_msg,
                 } => exec_on_module(deps, info, module_id, exec_msg),
+                ExecuteMsg::CreateSubAccount {
+                    name,
+                    description,
+                    link,
+                } => create_subaccount(deps, env, info, name, description, link),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,
