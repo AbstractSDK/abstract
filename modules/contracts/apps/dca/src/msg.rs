@@ -110,9 +110,6 @@ pub enum DCAQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub config: Config,
 }

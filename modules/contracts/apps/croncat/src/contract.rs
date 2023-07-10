@@ -6,7 +6,7 @@ use crate::{
     replies::{self},
 };
 use abstract_app::AppContract;
-use cosmwasm_std::{Response, Empty};
+use cosmwasm_std::{Empty, Response};
 
 /// The version of your app
 pub const CRONCAT_MODULE_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -17,8 +17,7 @@ pub const CRONCAT_ID: &str = "croncat:cron";
 pub type CroncatResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type CroncatApp =
-    AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, Empty>;
+pub type CroncatApp = AppContract<AppError, AppInstantiateMsg, AppExecuteMsg, AppQueryMsg, Empty>;
 
 pub const CRONCAT_APP: CroncatApp = CroncatApp::new(CRONCAT_ID, CRONCAT_MODULE_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

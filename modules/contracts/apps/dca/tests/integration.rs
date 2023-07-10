@@ -315,7 +315,7 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
             offer_asset = OfferAsset::new(USD, 100_u128),
             target_asset = AssetEntry::new(USD),
             e = AbstractError::from(StdError::generic_err(
-                "asset pairing wynd/usd,usd not found in ans_host"
+                "asset pairing wyndex/usd,usd not found in ans_host"
             ))
         )),
     );
@@ -477,7 +477,7 @@ fn update_dca_negative() -> anyhow::Result<()> {
             offer_asset = OfferAsset::new(USD, 200_u128),
             target_asset = AssetEntry::new(USD),
             e = AbstractError::from(StdError::generic_err(
-                "asset pairing wynd/usd,usd not found in ans_host"
+                "asset pairing wyndex/usd,usd not found in ans_host"
             ))
         )),
     );

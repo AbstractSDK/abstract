@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use cosmwasm_std::{Response, Empty};
+use cosmwasm_std::{Empty, Response};
 use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 /// The version of your app
@@ -17,8 +17,7 @@ pub const DCA_APP_ID: &str = "abstract:dca";
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type DCAApp =
-    AppContract<AppError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, Empty>;
+pub type DCAApp = AppContract<AppError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, Empty>;
 
 const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
