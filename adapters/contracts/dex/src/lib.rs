@@ -30,7 +30,7 @@ pub mod interface {
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
-    use cosmwasm_std::{Decimal, Empty};
+    use cosmwasm_std::{Decimal, Empty, Uint128};
     use cw_orch::interface;
     use cw_orch::prelude::*;
 
@@ -51,7 +51,7 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
-            let chain_name = env::var(DEX_ADAPTER_CHAIN_NAME_VAR).unwrap_or("".to_string());
+            let chain_name = env::var(DEX_ADAPTER_CHAIN_NAME_VAR).unwrap_or_else(|_| panic!("Internal env variable {}, needs to be set to use the abstract dex adapter", DEX_ADAPTER_CHAIN_NAME_VAR));
             artifacts_dir_from_workspace!()
                 .find_wasm_path(format!("abstract_dex_adapter-{}", chain_name).as_str())
                 .unwrap()
@@ -79,6 +79,58 @@ pub mod interface {
                         ask_asset,
                         max_spread: Some(Decimal::percent(30)),
                         belief_price: None,
+                    },
+                },
+            });
+            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            Ok(())
+        }
+
+        /// Provide liquidity using Abstract's OS (registered in daemon_state).
+        pub fn provide(
+            &self,
+            asset1: (&str, u128),
+            asset2: (&str, u128),
+            dex: String,
+        ) -> Result<(), AbstractInterfaceError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let asset_entry1 = AssetEntry::new(asset1.0);
+            let asset_entry2 = AssetEntry::new(asset2.0);
+
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::Action {
+                    dex,
+                    action: DexAction::ProvideLiquidity {
+                        assets: vec![
+                            AnsAsset::new(asset_entry1, asset1.1),
+                            AnsAsset::new(asset_entry2, asset2.1),
+                        ],
+                        max_spread: Some(Decimal::percent(30)),
+                    },
+                },
+            });
+            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            Ok(())
+        }
+
+        /// Withdraw liquidity using Abstract's OS (registered in daemon_state).
+        pub fn withdraw(
+            &self,
+            lp_token: &str,
+            amount: impl Into<Uint128>,
+            dex: String,
+        ) -> Result<(), AbstractInterfaceError> {
+            let manager = Manager::new(MANAGER, self.get_chain().clone());
+            let lp_token = AssetEntry::new(lp_token);
+
+            let swap_msg = crate::msg::ExecuteMsg::Module(adapter::AdapterRequestMsg {
+                proxy_address: None,
+                request: DexExecuteMsg::Action {
+                    dex,
+                    action: DexAction::WithdrawLiquidity {
+                        lp_token,
+                        amount: amount.into(),
                     },
                 },
             });
