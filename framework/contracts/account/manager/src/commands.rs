@@ -43,6 +43,8 @@ use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
 
+pub const MAX_ADMIN_RECURSION: usize = 5;
+
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
 
@@ -800,6 +802,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
         GovernanceDetails::SubAccount { manager } => {
             // We try to query the ownership of the manager monarch account if the first query failed
             let mut current = manager;
+            let mut i = 0;
             loop {
                 if let Ok(owner) = query_ownership(deps, current) {
                     // If the owner account is indeed owned by another instance
@@ -812,6 +815,15 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                     }
                 } else {
                     return Err(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+                }
+                if {
+                    i += 1;
+                    i
+                } > MAX_ADMIN_RECURSION
+                {
+                    return Err(ManagerError::Std(StdError::generic_err(
+                        "Admin recursion error, too much recursion",
+                    )));
                 }
             }
         }
