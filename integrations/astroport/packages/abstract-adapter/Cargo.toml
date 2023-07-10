@@ -33,9 +33,7 @@ cw-utils = { version = "1.0.1", optional = true }
 astroport = { path = "../astroport/", optional = true }
 
 [dev-dependencies]
-abstract-dex-adapter-traits = { version = "0.17.1", features = [
-  "testing",
-] }
+abstract-dex-adapter-traits = { version = "0.17.1", features = ["testing"] }
 cw-orch = { version = "0.13", features = ["daemon"] }
 ibc-chain-registry = "0.24.1"
 
