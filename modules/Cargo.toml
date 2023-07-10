@@ -68,9 +68,9 @@ abstract-macros = { version = "0.17.0" }
 abstract-ica = { version = "0.17.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
-abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+abstract-adapter-utils = { version = "0.17.1" }
+abstract-dex-adapter-traits = { version = "0.17.1" }
+abstract-staking-adapter-traits = { version = "0.17.1" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
@@ -97,6 +97,10 @@ anyhow = "1"
 # abstract-core = { path = "../framework/packages/abstract-core" }
 # abstract-macros = { path = "../framework/packages/abstract-macros" }
 # abstract-ica = { path = "../framework/packages/abstract-ica" }
+# abstract-adapter-utils = { path = "../framework/packages/utils" }
+# abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
+# abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
