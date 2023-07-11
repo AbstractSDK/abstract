@@ -41,7 +41,7 @@ wasm:
 
   # Delete all the current wasms first
   rm -rf ./artifacts/*.wasm
-  
+
   if [[ $(arch) == "arm64" ]]; then
     image="cosmwasm/rust-optimizer-arm64"
   else
@@ -84,7 +84,7 @@ publish-schemas namespace name version: schema
   fi
 
   tmp_dir="$(mktemp -d)"
-  schema_out_dir="$tmp_dir/schemas/{{namespace}}/{{name}}/{{version}}"
+  schema_out_dir="$tmp_dir/{{namespace}}/{{name}}/{{version}}"
 
   # Clone the repository to the temporary directory
   git clone https://github.com/AbstractSDK/schemas "$tmp_dir"

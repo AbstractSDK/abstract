@@ -37,7 +37,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+        .claim_namespace(1, "my-namespace".to_string())?;
 
     contract.deploy(APP_VERSION.parse()?)?;
 

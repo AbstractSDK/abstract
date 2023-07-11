@@ -2,16 +2,7 @@ use cosmwasm_schema::QueryResponses;
 
 use crate::contract::App;
 
-// This is used for type safety
-// The second part is used to indicate the messages are used as the apps messages
-// This is equivalent to
-// pub type InstantiateMsg = <App as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
-// pub type ExecuteMsg = <App as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
-// pub type QueryMsg = <App as abstract_sdk::base::QueryEndpoint>::QueryMsg;
-// pub type MigrateMsg = <App as abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
-
-// impl app::AppExecuteMsg for AppExecuteMsg {}
-// impl app::AppQueryMsg for AppQueryMsg {}
+// This is used for type safety and re-exporting the contract endpoint structs.
 abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
