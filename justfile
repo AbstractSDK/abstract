@@ -5,6 +5,8 @@ install-tools:
   cargo install cargo-watch
   cargo install cargo-limit
 
+## Development Helpers ##
+
 # Build everything
 build:
   cargo build --all-features
@@ -34,9 +36,6 @@ watch:
 check:
   cargo check --all-features
 
-deploy:
-  cargo run --example deploy --features
-
 wasm:
   #!/usr/bin/env bash
 
@@ -54,6 +53,8 @@ wasm:
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
     ${image}:0.12.13
+
+## Schema commands ##
 
 # Generate the schemas for the app contract
 schema:
@@ -107,3 +108,20 @@ publish-schemas namespace name version: schema
 
   # Create a pull request using 'gh' CLI tool
   gh pr create --title 'Add schemas for {{namespace}} {{name}} {{version}}' --body ""
+
+## Exection commands ##
+
+run-script script +CHAINS:
+  cargo run --example {{script}} -- --network-ids {{CHAINS}}
+
+deploy +CHAINS:
+  just run-script deploy {{CHAINS}}
+
+create-account +CHAINS:
+  just run-script create-account {{CHAINS}}
+
+claim-namespace +CHAINS:
+  just run-script claim-namespace {{CHAINS}}
+
+install-module +CHAINS:
+  just run-script install-module {{CHAINS}}
