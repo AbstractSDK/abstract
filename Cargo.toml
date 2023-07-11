@@ -60,11 +60,3 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { version = "0.13", features = ["daemon"] }
 clap = { version = "4.3.7", features = ["derive"] }
-
-[patch.crates-io]
-abstract-core = { git= "https://github.com/AbstractSDK/contracts.git" }
-abstract-app = { git= "https://github.com/AbstractSDK/contracts.git" }
-abstract-sdk = { git= "https://github.com/AbstractSDK/contracts.git" }
-
-# Dependencies for interface
-abstract-interface = { git= "https://github.com/AbstractSDK/contracts.git", optional = true }

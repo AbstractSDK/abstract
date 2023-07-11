@@ -7,18 +7,18 @@
 //! `cargo run --example test-local`
 
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_interface::{Abstract, AppDeployer, VCExecFns};
+use app::{
+    contract::{APP_ID, APP_VERSION},
+    msg::AppInstantiateMsg,
+    AppInterface,
+};
 use cosmwasm_std::Empty;
 use cw_orch::{
     anyhow,
     deploy::Deploy,
     prelude::{networks::LOCAL_JUNO, ContractInstance, Daemon, TxHandler},
     tokio::runtime::Runtime,
-};
-use abstract_interface::{Abstract, AppDeployer, VCExecFns};
-use app::{
-    contract::{APP_ID, APP_VERSION},
-    msg::AppInstantiateMsg,
-    AppInterface,
 };
 use semver::Version;
 use speculoos::{assert_that, prelude::BooleanAssertions};
@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
         .unwrap();
     // Deploy abstract locally
     let abstract_deployment = Abstract::deploy_on(daemon.clone(), Empty {})?;
-    
+
     let app = AppInterface::new(APP_ID, daemon.clone());
 
     // Create account
@@ -51,10 +51,9 @@ fn main() -> anyhow::Result<()> {
     )?;
 
     // Claim namespace
-    abstract_deployment.version_control.claim_namespaces(
-        account.id()?,
-        vec!["my-namespace".to_owned()],
-    )?;
+    abstract_deployment
+        .version_control
+        .claim_namespace(account.id()?, "my-namespace".to_owned())?;
 
     // Deploy
     app.deploy(version)?;

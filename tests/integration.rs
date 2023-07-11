@@ -1,8 +1,8 @@
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
 // Use prelude to get all the necessary imports
@@ -21,7 +21,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = AppInterface::new(APP_ID, mock.clone());
+    let app = AppInterface::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock, Empty {})?;
@@ -39,23 +39,11 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
         .version_control
         .claim_namespace(1, "my-namespace".to_string())?;
 
-    contract.deploy(APP_VERSION.parse()?)?;
+    app.deploy(APP_VERSION.parse()?)?;
 
-    account.install_module(
-        APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(app.clone(), &AppInstantiateMsg {}, None)?;
 
-    let modules = account.manager.module_infos(None, None)?;
-    contract.set_address(&modules.module_infos[1].address);
-
-    Ok((account, abstr_deployment, contract))
+    Ok((account, abstr_deployment, app))
 }
 
 #[test]

@@ -26,9 +26,6 @@ use cw_orch::{
     prelude::{networks::parse_network, DaemonBuilder},
     tokio::runtime::Runtime,
 };
-
-use abstract_interface::AppDeployer;
-use app::{contract::APP_ID, AppInterface};
 use semver::Version;
 
 fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
