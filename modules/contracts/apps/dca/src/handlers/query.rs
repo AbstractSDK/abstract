@@ -4,19 +4,29 @@ use crate::state::{CONFIG, DCA_LIST};
 use abstract_core::objects::DexAssetPairing;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Resolve;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env};
+use cw_asset::AssetInfo;
 
 pub fn query_handler(deps: Deps, _env: Env, app: &DCAApp, msg: DCAQueryMsg) -> AppResult<Binary> {
     match msg {
-        DCAQueryMsg::Config {} => to_binary(&query_config(deps)?),
+        DCAQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
         DCAQueryMsg::DCA { dca_id } => to_binary(&query_dca(deps, app, dca_id)?),
     }
     .map_err(Into::into)
 }
 
-fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+fn query_config(deps: Deps, app: &DCAApp) -> AppResult<ConfigResponse> {
     let config = CONFIG.load(deps.storage)?;
-    Ok(ConfigResponse { config })
+    let asset = AssetInfo::native(config.native_denom);
+    let native_asset = app
+        .ans_host(deps)?
+        .query_asset_reverse(&deps.querier, &asset)?;
+    Ok(ConfigResponse {
+        native_asset,
+        dca_creation_amount: config.dca_creation_amount,
+        refill_threshold: config.refill_threshold,
+        max_spread: config.max_spread,
+    })
 }
 
 /// Get dca
