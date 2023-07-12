@@ -132,7 +132,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         adapter: T,
         custom_init_msg: &CustomInitMsg,
         funds: Option<&[Coin]>,
-    ) -> Result<(), crate::AbstractInterfaceError> {
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.manager.get_chain().to_owned())?;
 
@@ -143,8 +143,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 version_control_address: abstr.version_control.address()?.into(),
             },
         };
-        self.install_module(&adapter.id(), &init_msg, funds)?;
-        Ok(())
+
+        let resp = self.install_module(&adapter.id(), &init_msg, funds)?;
+        let adapter_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module").unwrap();
+        let adapter_address = Addr::unchecked(adapter_address);
+        
+        adapter.set_address(&adapter_address);
+        Ok(adapter_address)
     }
 
     /// Installs an app from an app object

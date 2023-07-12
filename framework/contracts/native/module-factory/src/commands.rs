@@ -103,7 +103,7 @@ pub fn execute_create_module(
             )?
             .into();
             Ok(
-                ModuleFactoryResponse::new("execute_create_module", vec![("module", &module_id)])
+                ModuleFactoryResponse::new("execute_create_module", vec![("new_module", &module_id)])
                     .add_message(register_msg),
             )
         }

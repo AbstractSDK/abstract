@@ -366,3 +366,26 @@ fn installing_specific_version_should_install_expected() -> AResult {
 
     Ok(())
 }
+
+#[test]
+fn account_install_adapter() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(1, "tester".to_owned())?;
+
+    let adapter = BootMockAdapter1V1::new_test(chain.clone());
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg)?;
+    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
+    let module_addr = account
+        .manager
+        .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
+        .unwrap()
+        .address;
+    assert_that!(adapter_addr).is_equal_to(module_addr);
+    Ok(())
+}

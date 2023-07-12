@@ -1,4 +1,5 @@
 mod common;
+use abstract_app::gen_app_mock;
 use abstract_core::PROXY;
 use abstract_interface::*;
 
@@ -7,6 +8,10 @@ use cosmwasm_std::{Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
+
+const APP_ID: &str = "tester:app";
+const APP_VERSION: &str = "1.0.0";
+gen_app_mock!(MockApp, APP_ID, APP_VERSION, &[]);
 
 #[test]
 fn execute_on_proxy_through_manager() -> AResult {
@@ -47,5 +52,24 @@ fn execute_on_proxy_through_manager() -> AResult {
         .query_all_balances(account.proxy.address()?)?;
     assert_that!(proxy_balance).is_equal_to(vec![Coin::new(100_000 - 10_000, TEST_COIN)]);
 
+    Ok(())
+}
+
+#[test]
+fn account_install_app() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(1, "tester".to_owned())?;
+
+    let app = MockApp::new_test(chain.clone());
+    app.deploy(APP_VERSION.parse().unwrap())?;
+    let app_addr = account.install_app(app, &MockInitMsg, None)?;
+    let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
+    assert_that!(app_addr).is_equal_to(module_addr);
     Ok(())
 }
