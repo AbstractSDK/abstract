@@ -102,10 +102,11 @@ pub fn execute_create_module(
                 vec![],
             )?
             .into();
-            Ok(
-                ModuleFactoryResponse::new("execute_create_module", vec![("new_module", &module_id)])
-                    .add_message(register_msg),
+            Ok(ModuleFactoryResponse::new(
+                "execute_create_module",
+                vec![("new_module", &module_id)],
             )
+            .add_message(register_msg))
         }
         ModuleReference::Standalone(code_id) => instantiate_contract(
             block_height,
