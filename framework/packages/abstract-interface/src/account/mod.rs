@@ -143,13 +143,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 version_control_address: abstr.version_control.address()?.into(),
             },
         };
-
-        let resp = self.install_module(&adapter.id(), &init_msg, funds)?;
-        let adapter_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module").unwrap();
-        let adapter_address = Addr::unchecked(adapter_address);
-        
-        adapter.set_address(&adapter_address);
-        Ok(adapter_address)
+        self.install_module_parse_addr(adapter, &init_msg, funds)
     }
 
     /// Installs an app from an app object
@@ -168,13 +162,22 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
                 ans_host_address: abstr.ans_host.address()?.into(),
             },
         };
-        let resp = self.install_module(&app.id(), &init_msg, funds)?;
+        self.install_module_parse_addr(app, &init_msg, funds)
+    }
 
-        let app_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
-        let app_address = Addr::unchecked(app_address);
+    fn install_module_parse_addr<InitMsg: Serialize, T: ContractInstance<Chain>>(
+        &self,
+        module: T,
+        init_msg: &InitMsg,
+        funds: Option<&[Coin]>,
+    ) -> Result<Addr, crate::AbstractInterfaceError> {
+        let resp = self.install_module(&module.id(), &init_msg, funds)?;
 
-        app.set_address(&app_address);
-        Ok(app_address)
+        let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
+        let module_address = Addr::unchecked(module_address);
+
+        module.set_address(&module_address);
+        Ok(module_address)
     }
 }
 
