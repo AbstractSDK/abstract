@@ -120,8 +120,7 @@ pub fn handle_module_list_query(
             mod_lib
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
+                .collect::<StdResult<Vec<_>>>()?,
         );
     };
 
@@ -162,8 +161,7 @@ pub fn handle_namespaces_query(
                 .account_id
                 .prefix(account_id)
                 .range(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
+                .collect::<StdResult<Vec<_>>>()?,
         );
     }
 
