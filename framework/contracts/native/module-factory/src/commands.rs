@@ -93,6 +93,7 @@ pub fn execute_create_module(
         ),
         ModuleReference::Adapter(addr) => {
             let module_id = new_module.info.id_with_version();
+            let new_module_addr = addr.to_string();
             let register_msg: CosmosMsg<Empty> = wasm_execute(
                 account_base.manager.into_string(),
                 &ManagerMsg::RegisterModule {
@@ -104,7 +105,7 @@ pub fn execute_create_module(
             .into();
             Ok(ModuleFactoryResponse::new(
                 "execute_create_module",
-                vec![("new_module", &module_id)],
+                vec![("module", module_id), ("new_module", new_module_addr)],
             )
             .add_message(register_msg))
         }

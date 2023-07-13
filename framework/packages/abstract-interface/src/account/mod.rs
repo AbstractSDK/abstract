@@ -172,7 +172,6 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         let resp = self.install_module(&module.id(), &init_msg, funds)?;
-
         let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
         let module_address = Addr::unchecked(module_address);
 
