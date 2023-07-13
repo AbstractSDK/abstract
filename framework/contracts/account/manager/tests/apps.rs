@@ -66,7 +66,7 @@ fn account_install_app() -> AResult {
         .version_control
         .claim_namespace(1, "tester".to_owned())?;
 
-    let app = MockApp::new_test(chain.clone());
+    let app = MockApp::new_test(chain);
     app.deploy(APP_VERSION.parse().unwrap())?;
     let app_addr = account.install_app(app, &MockInitMsg, None)?;
     let module_addr = account.manager.module_info(APP_ID)?.unwrap().address;
