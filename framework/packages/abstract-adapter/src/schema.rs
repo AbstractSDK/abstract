@@ -1,15 +1,13 @@
 use std::path::Path;
 
+use abstract_core::adapter;
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
 use schemars::JsonSchema;
 use serde::Serialize;
-use abstract_core::adapter;
 
 use abstract_core::adapter::{AdapterExecuteMsg, AdapterQueryMsg};
-use abstract_sdk::{
-    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-};
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 
 use crate::{AdapterContract, AdapterError};
 
@@ -26,7 +24,6 @@ impl<
     > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
-
         write_api! {
             name: "schema",
             instantiate: adapter::InstantiateMsg<CustomInitMsg>,
