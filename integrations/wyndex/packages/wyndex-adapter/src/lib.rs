@@ -1,5 +1,5 @@
 // Wyndex is only available on juno
-pub const WYNDEX: &str = "wynd";
+pub const WYNDEX: &str = "wyndex";
 
 #[cfg(feature = "local")]
 pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL_CHAIN;
