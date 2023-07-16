@@ -42,7 +42,7 @@ wasm:
 
   # Delete all the current wasms first
   rm -rf ./artifacts/*.wasm
-  
+
   if [[ $(arch) == "arm64" ]]; then
     image="cosmwasm/rust-optimizer-arm64"
   else
@@ -54,7 +54,7 @@ wasm:
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
     ${image}:0.12.13
-    
+
 # Generate the schemas for the app contract
 schema:
   cargo schema
@@ -83,7 +83,7 @@ publish-schemas namespace name version: schema
   fi
 
   tmp_dir="$(mktemp -d)"
-  schema_out_dir="$tmp_dir/schemas/{{namespace}}/{{name}}/{{version}}"
+  schema_out_dir="$tmp_dir/{{namespace}}/{{name}}/{{version}}"
 
   # Clone the repository to the temporary directory
   git clone https://github.com/AbstractSDK/schemas "$tmp_dir"
