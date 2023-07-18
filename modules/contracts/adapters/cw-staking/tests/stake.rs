@@ -21,7 +21,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
-const WYNDEX: &str = "cosmos-testnet>wynd";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;

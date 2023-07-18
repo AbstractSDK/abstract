@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
+- Address of App/Adapter returned and set by default.
+
 ### Fixed
 
 ## [0.17.0] - 2023-07-05
