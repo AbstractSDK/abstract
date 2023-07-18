@@ -41,10 +41,10 @@
           "description": "Returns [`AdapterConfigResponse`].",
           "type": "object",
           "required": [
-            "config"
+            "base_config"
           ],
           "properties": {
-            "config": {
+            "base_config": {
               "type": "object",
               "additionalProperties": false
             }

@@ -38,7 +38,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     });
 
     // Configuration is correct
-    let adapter_config = staking_adapter.config()?;
+    let adapter_config = staking_adapter.base_config()?;
     assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
         dependencies: vec![],
