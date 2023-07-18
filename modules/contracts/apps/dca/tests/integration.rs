@@ -72,7 +72,7 @@ fn setup() -> anyhow::Result<(
     let mut dca_app = DCAApp::new(DCA_APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
     abstr_deployment.ans_host.execute(
         &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
             to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
