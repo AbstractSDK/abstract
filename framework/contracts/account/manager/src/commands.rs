@@ -43,7 +43,7 @@ use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
 
-pub const MAX_ADMIN_RECURSION: usize = 5;
+pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -803,7 +803,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
             // We try to query the ownership of the manager monarch account if the first query failed
             let mut current = manager;
             let mut i = 0;
-            loop {
+            while i < MAX_ADMIN_RECURSION {
                 if let Ok(owner) = query_ownership(deps, current) {
                     // If the owner account is indeed owned by another instance
                     if *sender == owner {
@@ -826,6 +826,8 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                     )));
                 }
             }
+            // return ownership error
+            Ok(ownership_test?)
         }
         _ => Ok(ownership_test?),
     }
