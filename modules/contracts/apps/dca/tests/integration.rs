@@ -1,11 +1,16 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use abstract_core::app::AppModuleDataResponse;
+use abstract_core::objects::dependency::DependencyResponse;
 use abstract_core::objects::{
     AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
 use abstract_core::AbstractError;
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_core::{
+    app::{BaseInstantiateMsg, BaseQueryMsgFns},
+    objects::gov_type::GovernanceDetails,
+};
 use abstract_dca_app::msg::{DCAResponse, Frequency};
 use abstract_dca_app::state::DCAEntry;
 use abstract_dca_app::{
@@ -17,6 +22,7 @@ use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::EXCHANGE;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use croncat_app::contract::CRONCAT_MODULE_VERSION;
 use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
 use croncat_integration_testing::test_helpers::set_up_croncat_contracts;
 use croncat_integration_testing::DENOM;
@@ -211,6 +217,29 @@ fn successful_install() -> anyhow::Result<()> {
             dca_creation_amount: Uint128::new(5_000_000),
             refill_threshold: Uint128::new(1_000_000),
             max_spread: Decimal::percent(30),
+        }
+    );
+
+    let module_data = apps.dca_app.base_module_data()?;
+    assert_eq!(
+        module_data,
+        AppModuleDataResponse {
+            module: DCA_APP_ID.to_owned(),
+            version: DCA_APP_VERSION.to_owned(),
+            dependencies: vec![
+                DependencyResponse {
+                    id: CRONCAT_ID.to_owned(),
+                    version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
+                },
+                DependencyResponse {
+                    id: EXCHANGE.to_owned(),
+                    version_req: vec![format!(
+                        "^{}",
+                        abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()
+                    )]
+                }
+            ],
+            metadata: None
         }
     );
     Ok(())
