@@ -40,6 +40,7 @@ use cosmwasm_std::{Addr, Binary};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
+    pub admin: String,
     /// Version control address used to get code-ids and register Account
     pub version_control_address: String,
     /// AnsHost address
