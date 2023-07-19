@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Ability to set admin to native contracts during instantiation
+- Query handler for module data
 
 ### Changed
 
