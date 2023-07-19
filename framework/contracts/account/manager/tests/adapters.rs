@@ -371,7 +371,7 @@ fn installing_specific_version_should_install_expected() -> AResult {
 fn account_install_adapter() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     deployment
