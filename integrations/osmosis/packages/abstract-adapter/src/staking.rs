@@ -2,6 +2,8 @@ use crate::AVAILABLE_CHAINS;
 use crate::OSMOSIS;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
+use abstract_core::objects::{PoolReference};
+use abstract_sdk::AbstractSdkResult;
 
 #[derive(Default)]
 pub struct Osmosis {
@@ -32,7 +34,7 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::AssetEntry;
+    use abstract_core::objects::{AnsEntryConvertor, AssetEntry};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
@@ -63,6 +65,17 @@ pub mod fns {
     }
 
     impl Osmosis {
+        /// Take the staking asset and query the pool id via the ans host
+        pub fn query_pool_id_via_ans(&self, querier: &QuerierWrapper, ans_host: &AnsHost, staking_asset: AssetEntry) -> AbstractSdkResult<u64> {
+            let dex_pair = AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?).dex_asset_pairing()?;
+
+            let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
+            // Currently takes the first pool found, but should be changed to take the best pool
+            let found: PoolReference = pool_ref.pop().ok_or(StdError::generic_err(format!("No pool found for asset pairing {:?}", dex_pair)))?;
+
+            Ok(found.pool_address.expect_id()?)
+        }
+
         pub fn query_pool_data(&self, querier: &QuerierWrapper) -> StdResult<Pool> {
             let querier = PoolmanagerQuerier::new(querier);
 
@@ -88,25 +101,25 @@ pub mod fns {
         fn fetch_data(
             &mut self,
             deps: cosmwasm_std::Deps,
-            _env: Env,
+            env: Env,
             ans_host: &AnsHost,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            let provider_staking_contract_entry = self.staking_entry(&staking_asset);
-
             let account_registry = self.account_registry(deps);
             // TODO, this will never work
             // We need a receiver address to make that work
-            self.local_proxy_addr = Some(
-                account_registry
-                    .assert_manager(&Addr::unchecked("manager address from calling info ?"))?
-                    .proxy,
-            );
+            // if env.transaction.is_some() {
+            //     self.local_proxy_addr = Some(
+            //         account_registry
+            //             .assert_manager(&Addr::unchecked(env.))?
+            //             // .assert_manager(&Addr::unchecked("manager address from calling info ?"))?
+            //             .proxy,
+            //     )
+            // };
 
-            let pool_addr =
-                ans_host.query_contract(&deps.querier, &provider_staking_contract_entry)?;
+            let pool_id = self.query_pool_id_via_ans(&deps.querier, ans_host, staking_asset)?;
 
-            self.pool_id = Some(pool_addr.to_string().parse().unwrap());
+            self.pool_id = Some(pool_id);
             self.lp_token = Some(format!("gamm/pool/{}", self.pool_id.unwrap()));
 
             Ok(())

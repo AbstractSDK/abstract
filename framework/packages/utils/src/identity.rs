@@ -38,3 +38,18 @@ pub fn is_available_on(platform: Box<dyn Identify>, env: Env, chain_name: Option
         platform.is_available_on(&chain_name)
     }
 }
+
+#[cfg(test)]
+mod test {
+    mod get_chain_name {
+        use cosmwasm_std::testing::mock_env;
+
+        #[test]
+        fn test_osmo_testnet() {
+            let chain_name = "osmo-test-5";
+            let mut env = mock_env();
+            env.block.chain_id = chain_name.to_string();
+            assert_eq!(crate::identity::get_chain_name(env), "osmo-test");
+        }
+    }
+}

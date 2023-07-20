@@ -34,6 +34,7 @@ impl DexAssetPairing {
     }
 }
 
+/// osmosis/kyvedevnet>kyve,osmosis5>osmo
 impl Display for DexAssetPairing {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -106,6 +107,7 @@ mod test {
     use crate::objects::{AnsEntryConvertor, LpToken, PoolReference, UniquePoolId};
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+    use speculoos::assert_that;
 
     fn mock_key() -> DexAssetPairing {
         DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")
@@ -212,6 +214,15 @@ mod test {
             key,
             DexAssetPairing::new("juno".into(), "osmo".into(), "junoswap")
         );
+    }
+
+    #[test]
+    fn try_staking_entry_to_dex_pairing() {
+        let staking_asset = AssetEntry::new("osmosis/kyvedevnet>kyve,osmosis5>osmo");
+        let dex_pair = AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token().unwrap()).dex_asset_pairing().unwrap();
+
+        assert_that!(dex_pair).is_equal_to(DexAssetPairing::new("kyvedevnet>kyve".into(), "osmosis5>osmo".into(), "osmosis"));
+
     }
 
     #[test]

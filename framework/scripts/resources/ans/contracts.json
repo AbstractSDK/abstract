@@ -25,7 +25,107 @@
     ]
   },
   "osmosis": {
-    "osmosis-1": []
+    "osmosis-1": [],
+    "osmo-test-5": [
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/kyvedevnet>kyve,osmosis5>osmo"
+        },
+        "4"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/akash>akt,osmosis5>osmo"
+        },
+        "17"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/axelar>ausdc,chain4energy>c4e"
+        },
+        "37"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/cosmoshub>atom,osmosis5>osmo"
+        },
+        "43"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/osmosis5>ion,osmosis5>osmo"
+        },
+        "62"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/axelar>ausdc,nolus>nls"
+        },
+        "41"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/juno>junox,osmosis5>osmo"
+        },
+        "3"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/axelar>ausdc,osmosis5>osmo"
+        },
+        "5"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/axelar>usdc,osmosis5>osmo"
+        },
+        "6"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/mars>mars,osmosis5>osmo"
+        },
+        "9"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/osmosis5>osmo,quicksilver>qck"
+        },
+        "34"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/neutron>ntrn,osmosis5>osmo"
+        },
+        "35"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/evmos>tevmos,osmosis5>osmo"
+        },
+        "48"
+      ],
+      [
+        {
+          "protocol": "osmosis",
+          "contract": "staking/osmosis/osmosis5>osmo,quasar>qsr"
+        },
+        "50"
+      ]
+    ]
   },
   "juno": {
     "juno-1": [

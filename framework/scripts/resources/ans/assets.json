@@ -635,6 +635,98 @@
           "native": "ibc/9712DBB13B9631EDFA9BF61B55F1B2D290B2ADB67E3A4EB3A875F3B6081B3B84"
         }
       ]
+    ],
+    "osmo-test-5": [
+      [
+        "osmosis5>osmo",
+        {
+          "native": "uosmo"
+        }
+      ],
+      [
+        "osmosis5>ion",
+        {
+          "native": "uion"
+        }
+      ],
+      [
+        "chain4energy>c4e",
+        {
+          "native": "ibc/E3D323CB6F427C49E56F913C853A416F6B71BAA9B0164625AD0203266F92B3ED"
+        }
+      ],
+      [
+        "mars>mars",
+        {
+          "native": "ibc/2E7368A14AC9AB7870F32CFEA687551C5064FA861868EDF7437BC877358A81F9"
+        }
+      ],
+      [
+        "axelar>ausdc",
+        {
+          "native": "ibc/6F34E1BD664C36CE49ACC28E60D62559A5F96C4F9A6CCE4FC5A67B2852E24CFE"
+        }
+      ],
+      [
+        "akash>akt",
+        {
+          "native": "ibc/7153C8C55DB988805FAC69E449B680A8BAAC15944B87CF210ADCD1A3A9542857"
+        }
+      ],
+      [
+        "nolus>nls",
+        {
+          "native": "ibc/5E7589614F0B4B80D91923D15D8EB0972AAA6226F7566921F1D6A07EA0DB0D2C"
+        }
+      ],
+      [
+        "axelar>usdc",
+        {
+          "native": "ibc/B3504E092456BA618CC28AC671A71FB08C6CA0FD0BE7C8A5B5A3E2DD933CC9E4"
+        }
+      ],
+      [
+        "evmos>tevmos",
+        {
+          "native": "ibc/F7985F7A0D7D56189F23404FA802EC957F9DB1C78274C8AFC70CA4E69EE9852A"
+        }
+      ],
+      [
+        "kyvedevnet>kyve",
+        {
+          "native": "ibc/AB8AF05799E299FB5C5C80781DA35887F53E029745D20E5641233DB4E6B28515"
+        }
+      ],
+      [
+        "quasar>qsr",
+        {
+          "native": "ibc/206DE6A2D1882D91A12F01C8BD85A33C9673C6A39761D36CF736436D6EF4C588"
+        }
+      ],
+      [
+        "juno>junox",
+        {
+          "native": "ibc/8E2FEFCBD754FA3C97411F0126B9EC76191BAA1B3959CB73CECF396A4037BBF0"
+        }
+      ],
+      [
+        "neutron>ntrn",
+        {
+          "native": "ibc/B9D46CE056020FEC3524850AAC90172D8FEAA159579A865AC64D31D1113BDD6D"
+        }
+      ],
+      [
+        "cosmoshub>atom",
+        {
+          "native": "ibc/A8C2D23A1E6F95DA4E48BA349667E322BD7A6C996D8A4AAE8BA72E190F3D1477"
+        }
+      ],
+      [
+        "quicksilver>qck",
+        {
+          "native": "ibc/F37CF69589DE12342758382F8770C0852CD8D2E4519F55166EBDAF472AD667C9"
+        }
+      ]
     ]
   },
   "juno": {
