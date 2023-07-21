@@ -91,8 +91,15 @@ mod test {
 
         let scraped = get_scraped_entries(&chain_name, &chain_id).unwrap();
 
+        println!("scraped: {scraped:?}");
+
         // TODO, we could add better tests
         assert!(!scraped.is_empty());
+        // We would have juno asset for sure
+        assert_eq!(
+            scraped.get("juno>juno").unwrap().to_owned(),
+            cw_asset::AssetInfoBase::Native(CHAIN.gas_denom.to_owned())
+        );
     }
 
     #[test]
@@ -113,7 +120,10 @@ mod test {
         let on_chain = get_on_chain_entries(&ans_host).unwrap();
         // TODO, we could add better tests
         assert!(!on_chain.is_empty());
-
+        assert_eq!(
+            on_chain.get("juno>juno").unwrap().to_owned(),
+            cw_asset::AssetInfoBase::Native(CHAIN.gas_denom.to_owned())
+        );
         Ok(())
     }
 }
