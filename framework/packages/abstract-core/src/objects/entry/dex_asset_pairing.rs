@@ -219,10 +219,16 @@ mod test {
     #[test]
     fn try_staking_entry_to_dex_pairing() {
         let staking_asset = AssetEntry::new("osmosis/kyvedevnet>kyve,osmosis5>osmo");
-        let dex_pair = AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token().unwrap()).dex_asset_pairing().unwrap();
+        let dex_pair =
+            AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token().unwrap())
+                .dex_asset_pairing()
+                .unwrap();
 
-        assert_that!(dex_pair).is_equal_to(DexAssetPairing::new("kyvedevnet>kyve".into(), "osmosis5>osmo".into(), "osmosis"));
-
+        assert_that!(dex_pair).is_equal_to(DexAssetPairing::new(
+            "kyvedevnet>kyve".into(),
+            "osmosis5>osmo".into(),
+            "osmosis",
+        ));
     }
 
     #[test]

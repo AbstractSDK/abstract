@@ -19,7 +19,7 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         ASTROPORT => Ok(Box::<Astroport>::default()),
         OSMOSIS => Ok(Box::<Osmosis>::default()),
         KUJIRA => Ok(Box::<Kujira>::default()),
-        _ => Err(CwStakingError::UnknownDex(value.to_string())),
+        _ => Err(CwStakingError::UnknownStakingProvider(value.to_string())),
     }
 }
 
@@ -36,7 +36,7 @@ pub(crate) fn resolve_local_provider(
         ASTROPORT => Ok(Box::<Astroport>::default()),
         #[cfg(feature = "kujira")]
         KUJIRA => Ok(Box::<Kujira>::default()),
-        _ => Err(CwStakingError::ForeignDex(name.to_owned())),
+        _ => Err(CwStakingError::ForeignStakingProvider(name.to_owned())),
     }
 }
 
@@ -49,7 +49,7 @@ pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool
         let platform_id = identify_provider(&local_platform_name)?;
         // We verify the adapter is available on the current chain
         if !is_available_on(platform_id, env, chain_name.as_deref()) {
-            return Err(CwStakingError::UnknownDex(platform_name.to_string()));
+            return Err(CwStakingError::UnknownStakingProvider(platform_name.to_string()));
         }
         Ok((local_platform_name, false))
     }

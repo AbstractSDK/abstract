@@ -29,7 +29,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
             }
         }
@@ -47,7 +47,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_staked(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
@@ -68,7 +68,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_unbonding(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
@@ -87,7 +87,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
                 Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)
             }
         }

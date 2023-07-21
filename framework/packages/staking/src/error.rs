@@ -1,10 +1,10 @@
 use abstract_adapter::AdapterError;
+use abstract_core::objects::DexAssetPairing;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use thiserror::Error;
-use abstract_core::AbstractError;
-use abstract_core::objects::DexAssetPairing;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum CwStakingError {
@@ -27,11 +27,19 @@ pub enum CwStakingError {
     #[error("IBC queries not supported.")]
     IbcQueryNotSupported,
 
-    #[error("Staking provider {0} is not a known provider on this network.")]
+    #[deprecated(since = "0.17.1", note = "use UnknownStakingProvider variant instead")]
+    #[error("DEX {0} is not a known dex on this network.")]
     UnknownDex(String),
 
-    #[error("Staking provider {0} is not local to this network.")]
+    #[deprecated(since = "0.17.1", note = "use ForeignStakingProvider variant instead")]
+    #[error("DEX {0} is not local to this network.")]
     ForeignDex(String),
+
+    #[error("Staking provider {0} is not a known provider on this network.")]
+    UnknownStakingProvider(String),
+
+    #[error("Staking provider {0} is not local to this network.")]
+    ForeignStakingProvider(String),
 
     #[error("Cw1155 is unsupported.")]
     Cw1155Unsupported,
@@ -62,7 +70,6 @@ pub enum CwStakingError {
 
     #[error("Unbonding period {0} not supported for staking {1}")]
     UnbondingPeriodNotSupported(String, String),
-
 
     #[error("Asset pairing {} not found.", asset_pairing)]
     AssetPairingNotFound { asset_pairing: DexAssetPairing },

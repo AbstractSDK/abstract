@@ -2,7 +2,7 @@ use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
-use cosmwasm_std::{Addr, Env};
+use cosmwasm_std::{Addr, Env, MessageInfo};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WynDex {
@@ -67,6 +67,7 @@ impl CwStakingCommand for WynDex {
         &mut self,
         deps: Deps,
         env: Env,
+        _info: Option<MessageInfo>,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {

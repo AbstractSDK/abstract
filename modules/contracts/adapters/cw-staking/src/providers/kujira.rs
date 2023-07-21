@@ -1,6 +1,6 @@
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, MessageInfo};
 
 pub const KUJIRA: &str = "kujira";
 #[cfg(feature = "local")]
@@ -59,6 +59,7 @@ impl CwStakingCommand for Kujira {
         &mut self,
         deps: Deps,
         _env: Env,
+        _info: Option<MessageInfo>,
         ans_host: &AnsHost,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {

@@ -1,9 +1,8 @@
 use crate::AVAILABLE_CHAINS;
 use crate::OSMOSIS;
+use abstract_core::objects::PoolReference;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
-use abstract_core::objects::{PoolReference};
-use abstract_sdk::AbstractSdkResult;
 
 #[derive(Default)]
 pub struct Osmosis {
@@ -37,8 +36,11 @@ pub mod fns {
     use abstract_core::objects::{AnsEntryConvertor, AssetEntry};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
+    use abstract_sdk::AbstractSdkResult;
     use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
-    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
+    use cosmwasm_std::{
+        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
+    };
     use cw_asset::AssetInfoBase;
 
     use super::*;
@@ -66,12 +68,22 @@ pub mod fns {
 
     impl Osmosis {
         /// Take the staking asset and query the pool id via the ans host
-        pub fn query_pool_id_via_ans(&self, querier: &QuerierWrapper, ans_host: &AnsHost, staking_asset: AssetEntry) -> AbstractSdkResult<u64> {
-            let dex_pair = AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?).dex_asset_pairing()?;
+        pub fn query_pool_id_via_ans(
+            &self,
+            querier: &QuerierWrapper,
+            ans_host: &AnsHost,
+            staking_asset: AssetEntry,
+        ) -> AbstractSdkResult<u64> {
+            let dex_pair =
+                AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?)
+                    .dex_asset_pairing()?;
 
             let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
             // Currently takes the first pool found, but should be changed to take the best pool
-            let found: PoolReference = pool_ref.pop().ok_or(StdError::generic_err(format!("No pool found for asset pairing {:?}", dex_pair)))?;
+            let found: PoolReference = pool_ref.pop().ok_or(StdError::generic_err(format!(
+                "No pool found for asset pairing {:?}",
+                dex_pair
+            )))?;
 
             Ok(found.pool_address.expect_id()?)
         }
@@ -101,11 +113,14 @@ pub mod fns {
         fn fetch_data(
             &mut self,
             deps: cosmwasm_std::Deps,
-            env: Env,
+            _env: Env,
+            info: Option<MessageInfo>,
             ans_host: &AnsHost,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
             let account_registry = self.account_registry(deps);
+            // TODO: it's manager addr, we have to retrieve proxy from it
+            self.local_proxy_addr = info.map(|i| i.sender);
             // TODO, this will never work
             // We need a receiver address to make that work
             // if env.transaction.is_some() {

@@ -1,6 +1,6 @@
 use crate::msg::StakingAction;
 use abstract_staking_adapter_traits::CwStakingError;
-use cosmwasm_std::{DepsMut, Env, SubMsg};
+use cosmwasm_std::{DepsMut, Env, SubMsg, MessageInfo};
 
 use abstract_staking_adapter_traits::CwStakingCommand;
 
@@ -17,6 +17,7 @@ pub trait CwStakingAdapter: AbstractNameService + Execution {
         &self,
         deps: DepsMut,
         env: Env,
+        info: MessageInfo,
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
@@ -25,6 +26,7 @@ pub trait CwStakingAdapter: AbstractNameService + Execution {
         provider.fetch_data(
             deps.as_ref(),
             env,
+            Some(info),
             &self.ans_host(deps.as_ref())?,
             staking_asset,
         )?;
