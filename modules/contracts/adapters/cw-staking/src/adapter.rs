@@ -1,6 +1,6 @@
 use crate::msg::StakingAction;
 use abstract_staking_adapter_traits::CwStakingError;
-use cosmwasm_std::{DepsMut, Env, SubMsg, MessageInfo};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 
 use abstract_staking_adapter_traits::CwStakingCommand;
 
