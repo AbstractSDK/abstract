@@ -27,10 +27,10 @@ pub enum CwStakingError {
     #[error("IBC queries not supported.")]
     IbcQueryNotSupported,
 
-    #[error("Provider {0} is not a known provider on this network.")]
+    #[error("Staking provider {0} is not a known provider on this network.")]
     UnknownDex(String),
 
-    #[error("DEX {0} is not local to this network.")]
+    #[error("Staking provider {0} is not local to this network.")]
     ForeignDex(String),
 
     #[error("Cw1155 is unsupported.")]
