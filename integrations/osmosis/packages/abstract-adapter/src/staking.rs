@@ -132,7 +132,6 @@ pub mod fns {
             let base = info
                 .map(|i| account_registry.assert_manager(&i.sender))
                 .transpose()?;
-            // TODO: it's manager addr, we have to retrieve proxy from it
             self.local_proxy_addr = base.map(|b| b.proxy);
             // TODO, this will never work
             // We need a receiver address to make that work
