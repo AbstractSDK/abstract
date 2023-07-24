@@ -5,7 +5,7 @@ use abstract_interface::*;
 
 use common::{create_default_account, AResult, TEST_COIN};
 use cosmwasm_std::{Addr, Coin, CosmosMsg};
-use cw_orch::deploy::Deploy;
+use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 

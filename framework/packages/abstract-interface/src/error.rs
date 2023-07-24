@@ -1,6 +1,6 @@
 use abstract_core::AbstractError;
 use cosmwasm_std::StdError;
-use cw_orch::prelude::CwOrchError;
+use cw_orch::{daemon::DaemonError, prelude::CwOrchError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -16,6 +16,9 @@ pub enum AbstractInterfaceError {
 
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[error{"{0}"}]
+    DaemonError(#[from] DaemonError),
 }
 
 impl AbstractInterfaceError {

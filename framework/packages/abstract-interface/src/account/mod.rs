@@ -15,7 +15,7 @@ use crate::Abstract;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
 use abstract_core::ABSTRACT_EVENT_TYPE;
-use cw_orch::deploy::Deploy;
+use cw_orch::contract::Deploy;
 
 mod manager;
 mod proxy;

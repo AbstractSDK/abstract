@@ -1,9 +1,6 @@
-use cw_orch::{
-    daemon::ChainInfo,
-    prelude::{
-        networks::{JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
-        *,
-    },
+use cw_orch::prelude::{
+    networks::{ChainInfo, ChainKind, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
+    *,
 };
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
@@ -11,7 +8,7 @@ pub const SUPPORTED_CHAINS: &[ChainInfo] =
     &[UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1];
 
 pub const NEUTRON_1: ChainInfo = ChainInfo {
-    kind: cw_orch::daemon::ChainKind::Mainnet,
+    kind: ChainKind::Mainnet,
     chain_id: "neutron-1",
     gas_denom: "untrn",
     gas_price: 0.001,
@@ -32,7 +29,7 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
             .build()
             .await
             .unwrap();
-        let fee_token = chain.state.as_ref().chain_data.fees.fee_tokens[0].clone();
+        let fee_token = chain.state.0.as_ref().chain_data.fees.fee_tokens[0].clone();
         let fee = (GAS_TO_DEPLOY as f64 * fee_token.fixed_min_gas_price) as u64;
         let bank = chain.query_client::<queriers::Bank>();
         let balance = bank

@@ -8,7 +8,7 @@ use wyndex_stake::msg::{QueryMsg as StakeQueryMsg, ReceiveDelegationMsg, StakedR
 use wyndex_stake::state::Config as WyndexStakeConfig;
 
 mod staking {
-    use cw_orch::mock::Mock;
+    use cw_orch::Mock;
     use wyndex::factory::{DefaultStakeConfig, DistributionFlow};
     use wyndex_bundle::{suite::SuiteBuilder, WYNDEX_OWNER};
 

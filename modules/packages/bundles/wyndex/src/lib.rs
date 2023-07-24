@@ -2,7 +2,7 @@ use cw20::msg::Cw20ExecuteMsgFns;
 pub mod suite;
 
 use abstract_interface::AbstractInterfaceError;
-use cw_orch::deploy::Deploy;
+use cw_orch::contract::Deploy;
 use std::fmt::Debug;
 
 use self::suite::{Suite, SuiteBuilder};

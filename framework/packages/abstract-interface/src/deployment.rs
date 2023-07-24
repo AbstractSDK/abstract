@@ -5,7 +5,7 @@ use crate::{
     AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
 };
 use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
-use cw_orch::deploy::Deploy;
+use cw_orch::contract::Deploy;
 use cw_orch::prelude::*;
 
 pub struct Abstract<Chain: CwEnv> {

@@ -2,7 +2,7 @@ use abstract_interface::Abstract;
 
 use clap::Parser;
 use cw_orch::{
-    deploy::Deploy,
+    contract::Deploy,
     prelude::{
         networks::{parse_network, ChainInfo},
         *,
