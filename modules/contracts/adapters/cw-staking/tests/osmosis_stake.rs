@@ -5,6 +5,8 @@ use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::ans_host::QueryMsgFns;
 use abstract_core::objects::pool_id::PoolAddressBase;
 use abstract_core::objects::PoolMetadata;
+use abstract_core::objects::UncheckedContractEntry;
+use abstract_core::VERSION_CONTROL;
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::msg::StakingQueryMsgFns;
@@ -68,6 +70,11 @@ fn setup_osmosis() -> anyhow::Result<(
     // transfer some LP tokens to the AbstractAccount, as if it provided liquidity
     let pool_id = tube.create_pool(vec![coin(1_000, ASSET_1), coin(1_000, ASSET_2)])?;
 
+    let version_control = UncheckedContractEntry::try_from(VERSION_CONTROL.to_owned())?;
+    deployment.ans_host.update_contract_addresses(
+        vec![(version_control, deployment.version_control.addr_str()?)],
+        vec![],
+    )?;
     deployment
         .ans_host
         .update_asset_addresses(
