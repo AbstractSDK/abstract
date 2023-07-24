@@ -5,6 +5,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
+    pub version_control_addr: Option<Addr>,
     pub local_proxy_addr: Option<Addr>,
     pub pool_id: Option<u64>,
     pub lp_token: Option<String>,
@@ -21,8 +22,9 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 pub mod fns {
-    use abstract_sdk::features::AbstractRegistryAccess;
-    use abstract_sdk::AccountVerification;
+    use abstract_core::VERSION_CONTROL;
+    use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
+    use abstract_sdk::{AbstractSdkError, AccountVerification};
     use abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     };
@@ -32,8 +34,8 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::PoolReference;
     use abstract_core::objects::{AnsEntryConvertor, AssetEntry};
+    use abstract_core::objects::{ContractEntry, PoolReference, UncheckedContractEntry};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;
@@ -103,7 +105,11 @@ pub mod fns {
             &self,
             _: cosmwasm_std::Deps<'_>,
         ) -> std::result::Result<cosmwasm_std::Addr, abstract_sdk::AbstractSdkError> {
-            panic!("Not implementable for now");
+            self.version_control_addr
+                .clone()
+                .ok_or(AbstractSdkError::generic_err(
+                    "version_control address is not set",
+                ))
             // We need to get to the version control somehow (possible from Ans Host ?)
         }
     }
@@ -118,9 +124,16 @@ pub mod fns {
             ans_host: &AnsHost,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
+            let entry: ContractEntry =
+                UncheckedContractEntry::try_from(VERSION_CONTROL.to_owned())?.into();
+            self.version_control_addr = Some(ans_host.query_contract(&deps.querier, &entry)?);
             let account_registry = self.account_registry(deps);
+
+            let base = info
+                .map(|i| account_registry.assert_manager(&i.sender))
+                .transpose()?;
             // TODO: it's manager addr, we have to retrieve proxy from it
-            self.local_proxy_addr = info.map(|i| i.sender);
+            self.local_proxy_addr = base.map(|b| b.proxy);
             // TODO, this will never work
             // We need a receiver address to make that work
             // if env.transaction.is_some() {
