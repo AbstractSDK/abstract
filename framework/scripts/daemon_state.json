@@ -1,4 +1,24 @@
 {
+  "archway": {
+    "archway-1": {
+      "code_ids": {
+        "abstract:account-factory": 81,
+        "abstract:ans-host": 79,
+        "abstract:manager": 83,
+        "abstract:module-factory": 82,
+        "abstract:proxy": 84,
+        "abstract:version-control": 80
+      },
+      "default": {
+        "abstract:account-factory": "archway1ww34htljgygw86qywwk6hgez95neh42p95kwq8z2wu8q3ddmdmtquftwk9",
+        "abstract:ans-host": "archway1regptyhzp3eg96ngz04pm6ypwn22rr6ezj6068ysd0ldxace95pskymynn",
+        "abstract:manager": "archway1rev0l9afwdex3fc9enhxxq5ay78ac77sa25g32h9cu5ndsyu8hnqf45t4r",
+        "abstract:module-factory": "archway1vftl04tnhvm5r2jj5e0vjt7355u77yythqt5828zgc443llhcg8qp2z2qe",
+        "abstract:proxy": "archway1lv38l68ctpae5hxl077w08jpkedlyvcrvfhf8hfmlfygxz2hww2sdy3nj6",
+        "abstract:version-control": "archway147dklelcp55pl4gwme4u0y3rr0vvu284lqdv2cajkl6l6zdx4pastvx5rc"
+      }
+    }
+  },
   "juno": {
     "juno-1": {
       "code_ids": {
