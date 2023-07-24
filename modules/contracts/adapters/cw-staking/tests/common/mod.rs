@@ -6,9 +6,9 @@ use abstract_interface::AccountFactory;
 use cosmwasm_std::Addr;
 use cw_orch::prelude::*;
 
-pub fn create_default_account(
-    factory: &AccountFactory<Mock>,
-) -> anyhow::Result<AbstractAccount<Mock>> {
+pub fn create_default_account<Chain: CwEnv>(
+    factory: &AccountFactory<Chain>,
+) -> anyhow::Result<AbstractAccount<Chain>> {
     let os = factory.create_default_account(GovernanceDetails::Monarchy {
         monarch: Addr::unchecked(ROOT_USER).to_string(),
     })?;
