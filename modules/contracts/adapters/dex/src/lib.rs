@@ -19,6 +19,8 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
+    use std::env;
+
     use crate::{msg::*, EXCHANGE};
     use abstract_core::{
         adapter::{self},

@@ -94,6 +94,7 @@ clap = { workspace = true }
 cw-staking = { path = ".", features = [
   "interface",
   "juno",
+  "osmosis"
 ], package = "abstract-cw-staking" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
