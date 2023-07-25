@@ -48,6 +48,7 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
+            // TODO: fix before merging
             // let block = self.as_instance().get_chain().block_info().unwrap();
             // let chain_info = parse_network(&block.chain_id);
             // let chain_name = chain_info.network_info.id;
