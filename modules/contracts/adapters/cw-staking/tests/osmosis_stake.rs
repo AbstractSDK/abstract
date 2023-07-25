@@ -25,6 +25,10 @@ use abstract_staking_adapter_traits::msg::{
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw_asset::AssetInfoBase;
+use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::AccountLockedCoinsRequest;
+use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::AccountLockedCoinsResponse;
+use cw_orch::osmosis_test_tube::osmosis_test_tube::osmosis_std::types::osmosis::lockup::LockupQuerier;
+use cw_orch::osmosis_test_tube::osmosis_test_tube::Runner;
 use cw_orch::prelude::networks::parse_network;
 use cw_orch::prelude::*;
 use speculoos::*;
@@ -116,6 +120,11 @@ fn setup_osmosis() -> anyhow::Result<(
         os.manager.module_info(CW_STAKING)?.unwrap().address,
     ));
 
+    tube.bank_send(
+        os.proxy.addr_str()?,
+        coins(1_000u128, get_pool_token(pool_id)),
+    )?;
+
     Ok((tube, pool_id, staking, os))
 }
 
@@ -147,17 +156,57 @@ fn stake_lp() -> anyhow::Result<()> {
 
     let dur = Some(cw_utils::Duration::Time(2));
 
-    // stake 100 atom
+    // stake 100 stake-coins
     staking.stake(AnsAsset::new(LP, 100u128), OSMOSIS.into(), dur)?;
 
     // query stake
+    // TODO: Unsupported query type: '/osmosis.lockup.Query/AccountLockedCoins' path is not allowed from the contract: query wasm contract failed
+    let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
+        "/osmosis.lockup.Query/AccountLockedCoins",
+        &AccountLockedCoinsRequest {
+            owner: proxy_addr.to_string(),
+        },
+    )?;
     // let staked_balance = staking.staked(
     //     OSMOSIS.into(),
     //     proxy_addr.to_string(),
     //     AssetEntry::new(LP),
     //     dur,
     // )?;
-    // assert_that!(staked_balance.amount.u128()).is_equal_to(100u128);
+    assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
 
+    Ok(())
+}
+
+#[test]
+fn unstake_lp() -> anyhow::Result<()> {
+    let (tube, _, staking, os) = setup_osmosis()?;
+    let proxy_addr = os.proxy.address()?;
+
+    let dur = Some(cw_utils::Duration::Time(2));
+
+    // stake 100 EUR
+    staking.stake(AnsAsset::new(LP, 100u128), OSMOSIS.into(), dur)?;
+
+    // query stake
+    let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
+        "/osmosis.lockup.Query/AccountLockedCoins",
+        &AccountLockedCoinsRequest {
+            owner: proxy_addr.to_string(),
+        },
+    )?;
+    assert_that!(staked_balance.coins[0].amount).is_equal_to(100u128.to_string());
+
+    // now unbond 50
+    staking.unstake(AnsAsset::new(LP, 50u128), OSMOSIS.into(), dur)?;
+    // query stake
+    let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
+        "/osmosis.lockup.Query/AccountLockedCoins",
+        &AccountLockedCoinsRequest {
+            owner: proxy_addr.to_string(),
+        },
+    )?;
+    assert_that!(staked_balance.coins[0].amount).is_equal_to(50u128.to_string());
+    
     Ok(())
 }

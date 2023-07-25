@@ -133,16 +133,6 @@ pub mod fns {
                 .map(|i| account_registry.assert_manager(&i.sender))
                 .transpose()?;
             self.local_proxy_addr = base.map(|b| b.proxy);
-            // TODO, this will never work
-            // We need a receiver address to make that work
-            // if env.transaction.is_some() {
-            //     self.local_proxy_addr = Some(
-            //         account_registry
-            //             .assert_manager(&Addr::unchecked(env.))?
-            //             // .assert_manager(&Addr::unchecked("manager address from calling info ?"))?
-            //             .proxy,
-            //     )
-            // };
 
             let pool_id = self.query_pool_id_via_ans(&deps.querier, ans_host, staking_asset)?;
 
@@ -179,6 +169,7 @@ pub mod fns {
             amount: Uint128,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
+            // TODO: Generic error: Querier system error: Unsupported query type: '/osmosis.lockup.Query/AccountLockedPastTimeNotUnlockingOnly' path is not allowed from the contract: execute wasm contract failed
             let lockup_request = LockupQuerier::new(&deps.querier);
             let locked_up = lockup_request.account_locked_past_time_not_unlocking_only(
                 self.local_proxy_addr.as_ref().unwrap().to_string(),
@@ -280,6 +271,7 @@ pub mod fns {
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
             // We query all the locked tokens that correspond to the token in question
+            // TODO: Unsupported query type: '/osmosis.lockup.Query/AccountLockedCoins' path is not allowed from the contract: query wasm contract failed
             let lockup_request = LockupQuerier::new(querier);
             let locked_up = lockup_request
                 .account_locked_coins(staker.to_string())?
