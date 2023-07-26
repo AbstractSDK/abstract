@@ -21,10 +21,9 @@ pub const ICS20: &str = "ics-20";
 pub const JUNO: &[&str] = &["juno", "uni"];
 pub const OSMOSIS: &[&str] = &["osmosis", "osmo", "osmo-test"];
 pub const TERRA: &[&str] = &["phoenix", "pisco"];
-pub const NEUTRON: &[&str] = &["pion", "neutron"];
 pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
 pub const NEUTRON: &[&str] = &["pion", "neutron"];
-pub const ARCHWAY: &[&str] = &["constantine"];
+pub const ARCHWAY: &[&str] = &["constantine", "archway"];
 pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
 /// Useful when deploying version control
 #[allow(unused)]

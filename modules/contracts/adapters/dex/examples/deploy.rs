@@ -18,7 +18,8 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
     dex.deploy(
         version,
         DexInstantiateMsg {
-            swap_fee: Decimal::percent(1),
+            // 0.3% swap fee
+            swap_fee: Decimal::from_ratio(3u128, 1000u128),
             recipient_account: 0,
         },
     )?;

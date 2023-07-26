@@ -35,7 +35,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         }),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
-        #[cfg(feature = "terra")]
+        #[cfg(any(feature = "terra", feature = "neutron"))]
         ASTROPORT => Ok(&Astroport {}),
         #[cfg(feature = "kujira")]
         KUJIRA => Ok(&Kujira {}),
