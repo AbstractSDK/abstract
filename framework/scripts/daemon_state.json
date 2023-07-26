@@ -114,5 +114,25 @@
         "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
       }
     }
+  },
+  "neutron": {
+    "pion-1": {
+      "code_ids": {
+        "abstract:account-factory": 1286,
+        "abstract:ans-host": 1284,
+        "abstract:manager": 1288,
+        "abstract:module-factory": 1287,
+        "abstract:proxy": 1289,
+        "abstract:version-control": 1285
+      },
+      "default": {
+        "abstract:account-factory": "neutron1nw4waa8lsjfq5a3x96h0ekscqfy0dn6fez7yy597ph3r8weurqsq49udpm",
+        "abstract:ans-host": "neutron1fcmwjrfjw9z306m8cy5d9j2c50xxxtjdgnyzq4yjdht95cm8mj0q3pj8rm",
+        "abstract:manager": "neutron1gze9yud8mmlvpecpptvhw7j3njf2gwtyhswj7q9jl50q9gyx7wuqfuarq4",
+        "abstract:module-factory": "neutron1aujd27w8q7v2yvprh5m8xlz47e6czl069snehwudtgk3g3qu8huqrsvvgs",
+        "abstract:proxy": "neutron1gdutu5mptq8geettvlt2pz9teq5c5p7sv3lsfgnh6cklhw0knrhquu54h7",
+        "abstract:version-control": "neutron1fetr8pjntvzl7pzkvyg4d3lz9qyjta6tmfc3pw6hj2nafatguyhqrqt79f"
+      }
+    }
   }
 }
