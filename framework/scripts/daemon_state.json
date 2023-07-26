@@ -58,6 +58,24 @@
     }
   },
   "neutron": {
+    "neutron-1": {
+      "code_ids": {
+        "abstract:account-factory": 139,
+        "abstract:ans-host": 137,
+        "abstract:manager": 141,
+        "abstract:module-factory": 140,
+        "abstract:proxy": 142,
+        "abstract:version-control": 138
+      },
+      "default": {
+        "abstract:account-factory": "neutron1z727rvjswmuz3l6efwps69ehcvlcf964mnn639x89dteyjlgme8qwamzhq",
+        "abstract:ans-host": "neutron1mjxz7ns3ucm54wddegxzm9axsmyfcauv7ygpfu00k75gmeya77fqnhv28p",
+        "abstract:manager": "neutron1qk87xgcw75rgttfnkctsmfk2gs3hzl45ucryzluql8ykyvrqc64q5g8ekp",
+        "abstract:module-factory": "neutron1pvdcfyz8n55vcendhn8zmhdw66uukzcfv4u7th8cdml43ny9th9sa5gqls",
+        "abstract:proxy": "neutron1y2grhn2xgvmcvwswzrkhphltqlahy3zm78c3x536wth5lj4yw5ts24y99c",
+        "abstract:version-control": "neutron1us95yk9jp6ahl6jlv5mvk3g5ydykh37pzd27axmj0hzfw0catgcqcuv2fp"
+      }
+    },
     "pion-1": {
       "code_ids": {
         "abstract:account-factory": 1286,
