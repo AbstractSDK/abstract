@@ -29,7 +29,9 @@ pub mod fns {
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     };
     use cw_utils::Expiration;
-    use osmosis_std::types::osmosis::lockup::LockupQuerier;
+    use osmosis_std::types::osmosis::lockup::{
+        LockupQuerier, ModuleLockedAmountRequest, ModuleLockedAmountResponse, MsgBeginUnlockingAll,
+    };
     use std::cmp::min;
     use std::str::FromStr;
 
@@ -41,7 +43,7 @@ pub mod fns {
     use abstract_sdk::AbstractSdkResult;
     use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
     use cosmwasm_std::{
-        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
+        to_binary, Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
     };
     use cw_asset::AssetInfoBase;
 
@@ -169,45 +171,48 @@ pub mod fns {
             amount: Uint128,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-            // TODO: Generic error: Querier system error: Unsupported query type: '/osmosis.lockup.Query/AccountLockedPastTimeNotUnlockingOnly' path is not allowed from the contract: execute wasm contract failed
-            let lockup_request = LockupQuerier::new(&deps.querier);
-            let locked_up = lockup_request.account_locked_past_time_not_unlocking_only(
-                self.local_proxy_addr.as_ref().unwrap().to_string(),
-                None,
-            )?;
-            let lock_ids: Vec<_> = locked_up
-                .locks
-                .into_iter()
-                .filter(|lock| {
-                    lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
-                })
-                .collect();
+            let msg = MsgBeginUnlockingAll {
+                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            };
+            Ok(vec![msg.into()])
+            // let lockup_request = LockupQuerier::new(&deps.querier);
+            // let locked_up = lockup_request.account_locked_past_time_not_unlocking_only(
+            //     self.local_proxy_addr.as_ref().unwrap().to_string(),
+            //     None,
+            // )?;
+            // let lock_ids: Vec<_> = locked_up
+            //     .locks
+            //     .into_iter()
+            //     .filter(|lock| {
+            //         lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
+            //     })
+            //     .collect();
 
-            let mut msgs = vec![];
-            let mut remaining_amount = amount;
-            for period_lock in lock_ids {
-                let period_amount = Uint128::from_str(&period_lock.coins[0].amount).unwrap();
-                let withdraw_amount = min(remaining_amount, period_amount);
-                remaining_amount -= withdraw_amount;
-                msgs.push(
-                    MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                        coins: vec![Coin {
-                            denom: self.lp_token.clone().unwrap(),
-                            amount: withdraw_amount,
-                        }
-                        .into()], // We withdraw all
-                        id: period_lock.id,
-                    }
-                    .into(),
-                );
+            // let mut msgs = vec![];
+            // let mut remaining_amount = amount;
+            // for period_lock in lock_ids {
+            //     let period_amount = Uint128::from_str(&period_lock.coins[0].amount).unwrap();
+            //     let withdraw_amount = min(remaining_amount, period_amount);
+            //     remaining_amount -= withdraw_amount;
+            //     msgs.push(
+            //         MsgBeginUnlocking {
+            //             owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            //             coins: vec![Coin {
+            //                 denom: self.lp_token.clone().unwrap(),
+            //                 amount: withdraw_amount,
+            //             }
+            //             .into()], // We withdraw all
+            //             id: period_lock.id,
+            //         }
+            //         .into(),
+            //     );
 
-                if remaining_amount.is_zero() {
-                    break;
-                }
-            }
+            //     if remaining_amount.is_zero() {
+            //         break;
+            //     }
+            // }
 
-            Ok(msgs)
+            // Ok(msgs)
         }
 
         fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
@@ -270,18 +275,20 @@ pub mod fns {
             staker: Addr,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
-            // We query all the locked tokens that correspond to the token in question
-            // TODO: Unsupported query type: '/osmosis.lockup.Query/AccountLockedCoins' path is not allowed from the contract: query wasm contract failed
-            let lockup_request = LockupQuerier::new(querier);
-            let locked_up = lockup_request
-                .account_locked_coins(staker.to_string())?
-                .coins
-                .into_iter()
-                .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
-                .map(|lock| Uint128::from_str(&lock.amount).unwrap())
-                .sum();
+            panic!("Not implementable for now");
+            // TODO: 
+            // This will return staked coins by all users? But we need to get only locked by this account  
+            // let lockup_request = LockupQuerier::new(querier);
+            // let locked_up = lockup_request.module_locked_amount()?;
 
-            Ok(StakeResponse { amount: locked_up })
+            // let amount = locked_up
+            //     .coins
+            //     .into_iter()
+            //     .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
+            //     .map(|lock| Uint128::from_str(&lock.amount).unwrap())
+            //     .sum();
+
+            // Ok(StakeResponse { amount })
         }
 
         fn query_unbonding(
