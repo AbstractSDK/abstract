@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     convert::{TryFrom, TryInto},
     fmt::Display,
+    str::FromStr,
 };
 
 /// Key to get the Address of a contract
@@ -39,10 +40,19 @@ impl From<ContractEntry> for UncheckedContractEntry {
     }
 }
 
+// TODO?: Find a way for a harmless removing it
 impl TryFrom<String> for UncheckedContractEntry {
     type Error = StdError;
     /// Try from a string like "protocol:contract_name"
     fn try_from(entry: String) -> Result<Self, Self::Error> {
+        UncheckedContractEntry::try_from(entry.as_str())
+    }
+}
+
+impl TryFrom<&str> for UncheckedContractEntry {
+    type Error = StdError;
+    /// Try from a string slice like "protocol:contract_name"
+    fn try_from(entry: &str) -> Result<Self, Self::Error> {
         let composite: Vec<&str> = entry.split(ATTRIBUTE_DELIMITER).collect();
         if composite.len() != 2 {
             return Err(StdError::generic_err(
@@ -59,6 +69,14 @@ impl TryFrom<String> for UncheckedContractEntry {
 pub struct ContractEntry {
     pub protocol: String,
     pub contract: String,
+}
+
+impl FromStr for ContractEntry {
+    type Err = StdError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        UncheckedContractEntry::try_from(s).map(Into::into)
+    }
 }
 
 impl From<UncheckedContractEntry> for ContractEntry {
