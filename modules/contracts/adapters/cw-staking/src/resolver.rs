@@ -8,16 +8,24 @@ use crate::contract::StakingResult;
 
 use abstract_staking_adapter_traits::Identify;
 
+#[cfg(feature = "kujira")]
 use crate::providers::kujira::{Kujira, KUJIRA};
+#[cfg(any(feature = "terra", feature = "neutron"))]
 use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
+#[cfg(feature = "osmosis")]
 use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
+#[cfg(feature = "juno")]
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
 
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
+        #[cfg(feature = "juno")]
         WYNDEX => Ok(Box::<WynDex>::default()),
-        ASTROPORT => Ok(Box::<Astroport>::default()),
+        #[cfg(feature = "osmosis")]
         OSMOSIS => Ok(Box::<Osmosis>::default()),
+        #[cfg(any(feature = "terra", feature = "neutron"))]
+        ASTROPORT => Ok(Box::<Astroport>::default()),
+        #[cfg(feature = "kujira")]
         KUJIRA => Ok(Box::<Kujira>::default()),
         _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
@@ -32,7 +40,7 @@ pub(crate) fn resolve_local_provider(
         WYNDEX => Ok(Box::<WynDex>::default()),
         #[cfg(feature = "osmosis")]
         OSMOSIS => Ok(Box::<Osmosis>::default()),
-        #[cfg(feature = "terra")]
+        #[cfg(any(feature = "terra", feature = "neutron"))]
         ASTROPORT => Ok(Box::<Astroport>::default()),
         #[cfg(feature = "kujira")]
         KUJIRA => Ok(Box::<Kujira>::default()),

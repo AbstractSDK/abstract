@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::AdapterDeployer;
 use cw_orch::daemon::ChainInfo;
@@ -12,8 +13,9 @@ use semver::Version;
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
+    let rt = Arc::new(Runtime::new()?);
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    let chain = DaemonBuilder::default().chain(network).build()?;
+    let chain = DaemonBuilder::default().handle(rt.handle()).chain(network).build()?;
     let dex = DexAdapter::new(EXCHANGE, chain);
     dex.deploy(
         version,
@@ -27,6 +29,7 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
 }
 
 use clap::Parser;
+use tokio::runtime::Runtime;
 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]

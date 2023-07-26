@@ -24,8 +24,8 @@ full_integration = [
 cosmwasm-std = { workspace = true }
 
 abstract-sdk = { version = "0.17.1" }
-abstract-staking-adapter-traits = { version = "0.17.1", path = "../../../../framework/packages/staking" }
-abstract-dex-adapter-traits = { version = "0.17.1", path = "../../../../framework/packages/dex" }
+abstract-staking-adapter-traits = { version = "0.17.1" }
+abstract-dex-adapter-traits = { version = "0.17.1" }
 
 # Optional
 wyndex = { path = "../wyndex/", optional = true }
