@@ -1,3 +1,4 @@
+#[allow(unused)]
 pub const ROOT_USER: &str = "root_user";
 
 use abstract_core::objects::gov_type::GovernanceDetails;

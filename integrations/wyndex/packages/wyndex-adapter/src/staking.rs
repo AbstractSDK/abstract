@@ -69,6 +69,7 @@ impl CwStakingCommand for WynDex {
         env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        _abstract_registry: Addr,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;

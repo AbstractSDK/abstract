@@ -5,7 +5,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub version_control_addr: Option<Addr>,
+    pub abstract_registry: Option<Addr>,
     pub local_proxy_addr: Option<Addr>,
     pub pool_id: Option<u64>,
     pub lp_token: Option<String>,
@@ -107,7 +107,7 @@ pub mod fns {
             &self,
             _: cosmwasm_std::Deps<'_>,
         ) -> std::result::Result<cosmwasm_std::Addr, abstract_sdk::AbstractSdkError> {
-            self.version_control_addr
+            self.abstract_registry
                 .clone()
                 .ok_or(AbstractSdkError::generic_err(
                     "version_control address is not set",
@@ -124,11 +124,10 @@ pub mod fns {
             _env: Env,
             info: Option<MessageInfo>,
             ans_host: &AnsHost,
+            abstract_registry: Addr,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            let entry: ContractEntry =
-                UncheckedContractEntry::try_from(VERSION_CONTROL.to_owned())?.into();
-            self.version_control_addr = Some(ans_host.query_contract(&deps.querier, &entry)?);
+            self.abstract_registry = Some(abstract_registry);
             let account_registry = self.account_registry(deps);
 
             let base = info
@@ -163,86 +162,30 @@ pub mod fns {
             Ok(vec![lock_tokens_msg.into()])
         }
 
-        // We unstake all the amount from the pools that only have the coin inside it
-        // TODO, this is not perfect, don't know how to do that better for now
         fn unstake(
             &self,
             deps: Deps,
             amount: Uint128,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
+            let msg = MsgBeginUnlocking {
+                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                id: self.pool_id.unwrap(),
+                coins: vec![Coin {
+                    denom: self.lp_token.clone().unwrap(),
+                    amount,
+                }
+                .into()],
+            };
+            Ok(vec![msg.into()])
+        }
+
+        fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
+            // Withdraw all
             let msg = MsgBeginUnlockingAll {
                 owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
             };
             Ok(vec![msg.into()])
-            // let lockup_request = LockupQuerier::new(&deps.querier);
-            // let locked_up = lockup_request.account_locked_past_time_not_unlocking_only(
-            //     self.local_proxy_addr.as_ref().unwrap().to_string(),
-            //     None,
-            // )?;
-            // let lock_ids: Vec<_> = locked_up
-            //     .locks
-            //     .into_iter()
-            //     .filter(|lock| {
-            //         lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
-            //     })
-            //     .collect();
-
-            // let mut msgs = vec![];
-            // let mut remaining_amount = amount;
-            // for period_lock in lock_ids {
-            //     let period_amount = Uint128::from_str(&period_lock.coins[0].amount).unwrap();
-            //     let withdraw_amount = min(remaining_amount, period_amount);
-            //     remaining_amount -= withdraw_amount;
-            //     msgs.push(
-            //         MsgBeginUnlocking {
-            //             owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-            //             coins: vec![Coin {
-            //                 denom: self.lp_token.clone().unwrap(),
-            //                 amount: withdraw_amount,
-            //             }
-            //             .into()], // We withdraw all
-            //             id: period_lock.id,
-            //         }
-            //         .into(),
-            //     );
-
-            //     if remaining_amount.is_zero() {
-            //         break;
-            //     }
-            // }
-
-            // Ok(msgs)
-        }
-
-        fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-            let lockup_request = LockupQuerier::new(&deps.querier);
-            let locked_up = lockup_request.account_unlocked_before_time(
-                self.local_proxy_addr.as_ref().unwrap().to_string(),
-                None,
-            )?;
-            let lock_ids: Vec<u64> = locked_up
-                .locks
-                .into_iter()
-                .filter(|lock| {
-                    lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
-                })
-                .map(|lock| lock.id)
-                .collect();
-
-            let msgs: Vec<CosmosMsg> = lock_ids
-                .iter()
-                .map(|id| {
-                    MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                        coins: vec![], // We withdraw all
-                        id: *id,
-                    }
-                    .into()
-                })
-                .collect();
-
-            Ok(msgs)
         }
 
         // TODO, not sure this is needed in that case
@@ -276,8 +219,8 @@ pub mod fns {
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
             panic!("Not implementable for now");
-            // TODO: 
-            // This will return staked coins by all users? But we need to get only locked by this account  
+            // TODO:
+            // This will return staked coins by whole chain? But we need to get only locked by this account
             // let lockup_request = LockupQuerier::new(querier);
             // let locked_up = lockup_request.module_locked_amount()?;
 

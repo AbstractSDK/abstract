@@ -3,7 +3,7 @@ use crate::{
     msg::StakingQueryMsg,
     resolver::{self, is_over_ibc},
 };
-use abstract_sdk::features::AbstractNameService;
+use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
 use abstract_staking_adapter_traits::CwStakingError;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 /// Handle queries related to staking
@@ -15,6 +15,7 @@ pub fn query_handler(
 ) -> StakingResult<Binary> {
     let name_service = app.name_service(deps);
     let ans_host = name_service.host();
+    let abstract_registry = app.abstract_registry(deps)?;
 
     match msg {
         StakingQueryMsg::Info {
@@ -29,7 +30,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, abstract_registry, staking_token)?;
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
             }
         }
@@ -47,7 +48,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, abstract_registry, staking_token)?;
                 Ok(to_binary(&provider.query_staked(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
@@ -68,7 +69,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, abstract_registry, staking_token)?;
                 Ok(to_binary(&provider.query_unbonding(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
@@ -87,7 +88,7 @@ pub fn query_handler(
                 // the query can be executed on the local chain
                 let mut provider = resolver::resolve_local_provider(&local_provider_name)
                     .map_err(|e| StdError::generic_err(e.to_string()))?;
-                provider.fetch_data(deps, env, None, ans_host, staking_token)?;
+                provider.fetch_data(deps, env, None, ans_host, abstract_registry, staking_token)?;
                 Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)
             }
         }

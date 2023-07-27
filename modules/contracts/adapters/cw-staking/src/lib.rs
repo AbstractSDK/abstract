@@ -30,7 +30,6 @@ pub mod interface {
     use cosmwasm_std::{Addr, Empty};
     use cw_orch::contract::Contract;
     use cw_orch::interface;
-    use cw_orch::prelude::networks::parse_network;
     use cw_orch::prelude::*;
 
     /// Contract wrapper for interacting with BOOT

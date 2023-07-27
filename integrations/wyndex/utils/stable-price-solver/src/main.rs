@@ -106,7 +106,7 @@ macro_rules! assert_f64_eq {
 fn price_is_one_at_middle() {
     for a in [0.1, 1.0, 1.5, 2.0, 10.0, 100.0] {
         for d in [0.1, 1.0, 1.5, 2.0, 10.0, 100.0] {
-            assert_f64_eq!(stable_swap_price(a, d, 1.0, d as f64 / 2.0), 1.0);
+            assert_f64_eq!(stable_swap_price(a, d, 1.0, d / 2.0), 1.0);
         }
     }
 }

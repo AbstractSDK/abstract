@@ -38,6 +38,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         env: Env,
         info: Option<MessageInfo>,
         ans_host: &AnsHost,
+        abstract_registry: Addr,
         staking_asset: AssetEntry,
     ) -> AbstractSdkResult<()>;
 
