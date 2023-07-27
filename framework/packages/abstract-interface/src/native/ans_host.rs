@@ -9,7 +9,7 @@ use abstract_core::{
 use cosmwasm_std::Addr;
 use cw_asset::AssetInfoUnchecked;
 
-use cw_orch::{environment::ChainState, interface, prelude::*};
+use cw_orch::{interface, prelude::*, state::ChainState};
 use serde_json::from_reader;
 use std::{cmp::min, collections::HashSet, env, fs::File};
 
@@ -62,8 +62,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_name = &self.get_chain().state().0.chain_data.chain_name;
-        let chain_id = self.get_chain().state().0.chain_data.chain_id.to_string();
+        let chain_name = &self.get_chain().state().chain_data.chain_name;
+        let chain_id = self.get_chain().state().chain_data.chain_id.to_string();
         let maybe_assets = json
             .get(chain_name)
             .unwrap()
@@ -112,8 +112,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_name = &self.get_chain().state().0.chain_data.chain_name;
-        let chain_id = self.get_chain().state().0.chain_data.chain_id.to_string();
+        let chain_name = &self.get_chain().state().chain_data.chain_name;
+        let chain_id = self.get_chain().state().chain_data.chain_id.to_string();
         let channels = json
             .get(chain_name)
             .unwrap()
@@ -144,8 +144,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_name = &self.get_chain().state().0.chain_data.chain_name;
-        let chain_id = self.get_chain().state().0.chain_data.chain_id.to_string();
+        let chain_name = &self.get_chain().state().chain_data.chain_name;
+        let chain_id = self.get_chain().state().chain_data.chain_id.to_string();
         let contracts = json
             .get(chain_name)
             .unwrap()
@@ -189,8 +189,8 @@ impl AnsHost<Daemon> {
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
         let json: serde_json::Value = from_reader(file)?;
-        let chain_name = &self.get_chain().state().0.chain_data.chain_name;
-        let chain_id = self.get_chain().state().0.chain_data.chain_id.to_string();
+        let chain_name = &self.get_chain().state().chain_data.chain_name;
+        let chain_id = self.get_chain().state().chain_data.chain_id.to_string();
         let pools = json
             .get(chain_name)
             .unwrap()

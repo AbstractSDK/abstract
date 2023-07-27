@@ -22,7 +22,7 @@ use croncat_integration_testing::test_helpers::set_up_croncat_contracts;
 use croncat_integration_testing::DENOM;
 use cw_asset::AssetInfo;
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, contract::Deploy, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::{coin, Addr, Decimal, StdError, Uint128};
 use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};

@@ -121,7 +121,6 @@ impl From<u64> for StakingTarget {
     }
 }
 
-
 impl From<Addr> for StakingTarget {
     fn from(value: Addr) -> Self {
         Self::Contract(value)

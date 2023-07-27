@@ -6,7 +6,7 @@ use app::{
     *,
 };
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, contract::Deploy, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::Addr;
 

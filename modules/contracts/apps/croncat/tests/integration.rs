@@ -40,7 +40,7 @@ use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
 use cw_multi_test::Executor;
 // Use prelude to get all the necessary imports
-use cw_orch::{anyhow, contract::Deploy, prelude::*};
+use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
 use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
 

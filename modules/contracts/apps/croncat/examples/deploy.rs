@@ -1,7 +1,7 @@
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
 use cw_orch::{
     anyhow,
-    contract::Deploy,
+    deploy::Deploy,
     prelude::{networks::parse_network, ContractInstance, DaemonBuilder, TxHandler},
     tokio::runtime::Runtime,
 };

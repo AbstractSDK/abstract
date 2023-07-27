@@ -14,7 +14,7 @@ use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
 use cosmwasm_std::to_binary;
-use cw_orch::contract::Deploy;
+use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
 

@@ -1,6 +1,6 @@
 use crate::Abstract;
 use abstract_core::objects::module::ModuleVersion;
-use cw_orch::contract::Deploy;
+use cw_orch::deploy::Deploy;
 use cw_orch::prelude::CwOrchError::StdErr;
 use cw_orch::prelude::*;
 

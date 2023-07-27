@@ -1,5 +1,5 @@
 use cosmwasm_std::{coin, testing::mock_env, Addr};
-use cw_orch::Mock;
+use cw_orch::mock::Mock;
 use wyndex::asset::{AssetInfo, AssetInfoExt};
 use wyndex_bundle::suite::SuiteBuilder;
 use wyndex_multi_hop::msg::SwapOperation;

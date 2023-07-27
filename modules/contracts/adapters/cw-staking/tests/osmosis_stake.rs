@@ -13,7 +13,7 @@ use abstract_staking_adapter_traits::msg::StakingTarget;
 use cosmwasm_std::coins;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
-use cw_orch::contract::Deploy;
+use cw_orch::deploy::Deploy;
 
 use abstract_staking_adapter_traits::msg::{RewardTokensResponse, StakingInfoResponse};
 use cosmwasm_std::{coin, Addr, Empty, Uint128};
@@ -57,7 +57,8 @@ fn setup_osmosis() -> anyhow::Result<(
     let deployment = Abstract::deploy_on(tube.clone(), sender.to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let staking: CwStakingAdapter<OsmosisTestTube> = CwStakingAdapter::new(CW_STAKING, tube.clone());
+    let staking: CwStakingAdapter<OsmosisTestTube> =
+        CwStakingAdapter::new(CW_STAKING, tube.clone());
 
     staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
 

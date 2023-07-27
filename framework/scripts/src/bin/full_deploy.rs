@@ -6,7 +6,7 @@ use abstract_interface::Abstract;
 use abstract_interface_scripts::assert_wallet_balance;
 use clap::Parser;
 use cw_orch::{
-    contract::Deploy,
+    deploy::Deploy,
     prelude::{
         networks::{parse_network, ChainInfo},
         *,

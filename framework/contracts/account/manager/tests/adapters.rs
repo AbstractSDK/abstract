@@ -10,7 +10,7 @@ use abstract_testing::prelude::{OWNER, TEST_ACCOUNT_ID, TEST_MODULE_ID, TEST_VER
 use common::*;
 use cosmwasm_std::{coin, coins};
 use cosmwasm_std::{Addr, Coin, Empty};
-use cw_orch::contract::Deploy;
+use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
 use speculoos::{assert_that, result::ResultAssertions, string::StrAssertions};

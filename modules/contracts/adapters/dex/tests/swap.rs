@@ -4,7 +4,7 @@ use abstract_dex_adapter::EXCHANGE;
 use abstract_interface::AdapterDeployer;
 use cw20::msg::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
-use cw_orch::contract::Deploy;
+use cw_orch::deploy::Deploy;
 mod common;
 
 use abstract_dex_adapter::interface::DexAdapter;
