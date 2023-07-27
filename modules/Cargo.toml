@@ -16,7 +16,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.17.0"
+version = "0.17.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -58,19 +58,19 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.17.0" }
-abstract-adapter = { version = "0.17.0" }
-abstract-app = { version = "0.17.0" }
-abstract-sdk = { version = "0.17.0" }
-abstract-testing = { version = "0.17.0" }
-abstract-core = { version = "0.17.0" }
-abstract-macros = { version = "0.17.0" }
-abstract-ica = { version = "0.17.0" }
+abstract-interface = { version = "0.17.2" }
+abstract-adapter = { version = "0.17.2" }
+abstract-app = { version = "0.17.2" }
+abstract-sdk = { version = "0.17.2" }
+abstract-testing = { version = "0.17.2" }
+abstract-core = { version = "0.17.2" }
+abstract-macros = { version = "0.17.2" }
+abstract-ica = { version = "0.17.2" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { version = "0.17.1" }
-abstract-dex-adapter-traits = { version = "0.17.1" }
-abstract-staking-adapter-traits = { version = "0.17.1" }
+abstract-adapter-utils = { version = "0.17.2" }
+abstract-dex-adapter-traits = { version = "0.17.2" }
+abstract-staking-adapter-traits = { version = "0.17.2" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }

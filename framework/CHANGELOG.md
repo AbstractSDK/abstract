@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.17.2] - 2023-07-27
+
+### Added
+- Neutron + Archway to registry
+
+### Changed
+
+### Fixed
+
 ## [0.17.0] - 2023-07-05
 
 ### Added
