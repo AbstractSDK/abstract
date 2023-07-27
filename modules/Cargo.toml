@@ -68,9 +68,9 @@ abstract-macros = { version = "0.17.2" }
 abstract-ica = { version = "0.17.2" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { version = "0.17.3" }
-abstract-dex-adapter-traits = { version = "0.17.3" }
-abstract-staking-adapter-traits = { version = "0.17.3" }
+abstract-adapter-utils = { version = "0.17.2" }
+abstract-dex-adapter-traits = { version = "0.17.2" }
+abstract-staking-adapter-traits = { version = "0.17.2" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
