@@ -59,7 +59,7 @@ pub enum CwStakingError {
     #[error("Pair {0} on DEX {1} does not match with pair address {2}")]
     DexMismatch(String, String, String),
 
-    #[error("Not implemented for dex {0}")]
+    #[error("Not implemented for staking provider {0}")]
     NotImplemented(String),
 
     #[error("Maximum spread {0} exceeded for dex {1}")]

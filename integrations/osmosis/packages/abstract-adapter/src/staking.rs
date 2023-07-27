@@ -84,7 +84,7 @@ pub mod fns {
 
             let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
             // Currently takes the first pool found, but should be changed to take the best pool
-            let found: PoolReference = pool_ref.pop().ok_or(StdError::generic_err(format!(
+            let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(format!(
                 "No pool found for asset pairing {:?}",
                 dex_pair
             )))?;
@@ -193,7 +193,7 @@ pub mod fns {
             &self,
             _deps: Deps,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
-            Ok(vec![])
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
         }
 
         // For osmosis, we don't have a staking token or a staking contract, everything happens at the sdk level
@@ -204,7 +204,7 @@ pub mod fns {
         ) -> Result<StakingInfoResponse, CwStakingError> {
             let res = StakingInfoResponse {
                 staking_token: AssetInfoBase::Native(self.lp_token.clone().unwrap()),
-                staking_contract_address: Addr::unchecked(""),
+                staking_target: self.pool_id.clone().unwrap().into(),
                 unbonding_periods: Some(vec![]),
                 max_claims: None,
             };
@@ -218,11 +218,10 @@ pub mod fns {
             staker: Addr,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
-            panic!("Not implementable for now");
-            // TODO:
-            // This will return staked coins by whole chain? But we need to get only locked by this account
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
+            // TODO: whitelist for contracts
             // let lockup_request = LockupQuerier::new(querier);
-            // let locked_up = lockup_request.module_locked_amount()?;
+            // let locked_up = lockup_request.account_locked_coins(staker.to_string())?;
 
             // let amount = locked_up
             //     .coins
@@ -254,13 +253,11 @@ pub mod fns {
             Ok(UnbondingResponse { claims: unlocking })
         }
 
-        // TODO, not sure, how the rewards are being given out during the lockup period. Do users even have to claim rewards ?
-
         fn query_rewards(
             &self,
             _querier: &QuerierWrapper,
         ) -> Result<RewardTokensResponse, CwStakingError> {
-            Ok(RewardTokensResponse { tokens: vec![] })
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
         }
     }
 }

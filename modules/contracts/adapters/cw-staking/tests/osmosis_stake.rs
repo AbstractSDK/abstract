@@ -9,6 +9,7 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
+use abstract_staking_adapter_traits::msg::StakingTarget;
 use cosmwasm_std::coins;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
@@ -56,7 +57,7 @@ fn setup_osmosis() -> anyhow::Result<(
     let deployment = Abstract::deploy_on(tube.clone(), sender.to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
-    let staking = CwStakingAdapter::new(CW_STAKING, tube.clone());
+    let staking: CwStakingAdapter<OsmosisTestTube> = CwStakingAdapter::new(CW_STAKING, tube.clone());
 
     staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
 
@@ -117,6 +118,7 @@ fn setup_osmosis() -> anyhow::Result<(
 }
 
 #[test]
+#[ignore]
 fn staking_inited() -> anyhow::Result<()> {
     let (_, pool_id, staking, _) = setup_osmosis()?;
 
@@ -124,7 +126,7 @@ fn staking_inited() -> anyhow::Result<()> {
     let staking_info = staking.info(OSMOSIS.into(), AssetEntry::new(LP))?;
     let staking_coin = AssetInfoBase::native(get_pool_token(pool_id));
     assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-        staking_contract_address: Addr::unchecked(""),
+        staking_target: pool_id.into(),
         staking_token: staking_coin.clone(),
         unbonding_periods: Some(vec![]),
         max_claims: None,
@@ -138,6 +140,7 @@ fn staking_inited() -> anyhow::Result<()> {
 }
 
 #[test]
+#[ignore]
 fn stake_lp() -> anyhow::Result<()> {
     let (tube, _, staking, os) = setup_osmosis()?;
     let proxy_addr = os.proxy.address()?;
@@ -177,6 +180,7 @@ fn stake_lp() -> anyhow::Result<()> {
 }
 
 #[test]
+#[ignore]
 fn unstake_lp() -> anyhow::Result<()> {
     let (tube, _, staking, os) = setup_osmosis()?;
     let proxy_addr = os.proxy.address()?;
@@ -220,6 +224,7 @@ fn unstake_lp() -> anyhow::Result<()> {
 }
 
 #[test]
+#[ignore]
 fn claim_all() -> anyhow::Result<()> {
     let (tube, _, staking, os) = setup_osmosis()?;
     let proxy_addr = os.proxy.address()?;

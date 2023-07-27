@@ -159,7 +159,7 @@ impl CwStakingCommand for Astroport {
         }?);
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.generator_contract_address.clone(),
+            staking_target: self.generator_contract_address.clone().into(),
             staking_token: astro_token,
             unbonding_periods: None,
             max_claims: None,

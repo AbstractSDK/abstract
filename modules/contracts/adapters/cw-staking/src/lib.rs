@@ -31,6 +31,7 @@ pub mod interface {
     use cw_orch::contract::Contract;
     use cw_orch::interface;
     use cw_orch::prelude::*;
+    use cw_orch::prelude::networks::parse_network;
 
     /// Contract wrapper for interacting with BOOT
     #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, Empty)]
@@ -47,12 +48,11 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
-            // TODO: fix before merging
-            // let block = self.as_instance().get_chain().block_info().unwrap();
-            // let chain_info = parse_network(&block.chain_id);
-            // let chain_name = chain_info.network_info.id;
+            let block = self.as_instance().get_chain().block_info().unwrap();
+            let chain_info = parse_network(&block.chain_id);
+            let chain_name = chain_info.network_info.id;
             artifacts_dir_from_workspace!()
-                .find_wasm_path(format!("abstract_cw_staking-{}", "osmosis").as_str())
+                .find_wasm_path(format!("abstract_cw_staking-{chain_name}").as_str())
                 .unwrap()
         }
     }

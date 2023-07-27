@@ -14,8 +14,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Address of App/Adapter returned and set by default.
+- Updated fetch_data arguments of CwStakingCommand
 
 ### Fixed
+
+- Partially fixed cw-staking for Osmosis
 
 ## [0.17.0] - 2023-07-05
 

@@ -153,7 +153,7 @@ impl CwStakingCommand for WynDex {
         )?;
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.staking_contract_address.clone(),
+            staking_target: self.staking_contract_address.clone().into(),
             staking_token: AssetInfo::Cw20(self.lp_token_address.clone()),
             unbonding_periods: Some(
                 bonding_info_resp
