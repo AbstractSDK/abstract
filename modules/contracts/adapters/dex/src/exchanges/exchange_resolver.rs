@@ -4,20 +4,32 @@ use abstract_adapter_utils::identity::is_current_chain;
 use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
+#[cfg(feature = "juno")]
 use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+#[cfg(feature = "kujira")]
 use crate::exchanges::kujira::{Kujira, KUJIRA};
+#[cfg(feature = "terra")]
 use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
+#[cfg(any(feature = "terra", feature = "neutron"))]
 use abstract_astroport_adapter::{dex::Astroport, ASTROPORT};
+#[cfg(feature = "osmosis")]
 use abstract_osmosis_adapter::{dex::Osmosis, OSMOSIS};
+#[cfg(feature = "juno")]
 use abstract_wyndex_adapter::{dex::WynDex, WYNDEX};
 
 pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexError> {
     match value {
+        #[cfg(feature = "juno")]
         JUNOSWAP => Ok(Box::<JunoSwap>::default()),
+        #[cfg(feature = "juno")]
         WYNDEX => Ok(Box::<WynDex>::default()),
+        #[cfg(feature = "osmosis")]
         OSMOSIS => Ok(Box::<Osmosis>::default()),
+        #[cfg(feature = "terra")]
         TERRASWAP => Ok(Box::<Terraswap>::default()),
+        #[cfg(any(feature = "terra", feature = "neutron"))]
         ASTROPORT => Ok(Box::<Astroport>::default()),
+        #[cfg(feature = "kujira")]
         KUJIRA => Ok(Box::<Kujira>::default()),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
@@ -35,7 +47,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         }),
         #[cfg(feature = "terra")]
         TERRASWAP => Ok(&Terraswap {}),
-        #[cfg(feature = "terra")]
+        #[cfg(any(feature = "terra", feature = "neutron"))]
         ASTROPORT => Ok(&Astroport {}),
         #[cfg(feature = "kujira")]
         KUJIRA => Ok(&Kujira {}),
@@ -43,7 +55,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
     }
 }
 
-/// Given a FULL provider nam (e.g. juno>wyndex), returns wether the request is local or over IBC
+/// Given a FULL provider nam (e.g. juno>wyndex), returns whether the request is local or over IBC
 pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), DexError> {
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
     if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {

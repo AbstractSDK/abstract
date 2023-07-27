@@ -32,6 +32,7 @@ juno = [
   "abstract-wyndex-adapter/full_integration",
 ]
 terra = ["dep:terraswap", "abstract-astroport-adapter/full_integration"]
+neutron = ["abstract-astroport-adapter/full_integration"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 kujira = ["dep:kujira"]
 schema = ["abstract-adapter/schema"]
