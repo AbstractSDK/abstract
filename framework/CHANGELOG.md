@@ -9,8 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.17.1] - 2023-07-26
+
+### Added
+
 - Ability to set admin to native contracts during instantiation
 - Query handler for module data
+- Added neutron
 
 ### Changed
 
