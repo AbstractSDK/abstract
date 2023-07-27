@@ -72,7 +72,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     fn module_data(&self, deps: Deps) -> StdResult<AdapterModuleDataResponse> {
         let module_data = MODULE.load(deps.storage)?;
         Ok(AdapterModuleDataResponse {
-            module: module_data.module,
+            module_id: module_data.module,
             version: module_data.version,
             dependencies: module_data
                 .dependencies

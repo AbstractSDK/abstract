@@ -131,7 +131,7 @@ pub enum BaseQueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct AdapterModuleDataResponse {
-    pub module: String,
+    pub module_id: String,
     pub version: String,
     pub dependencies: Vec<DependencyResponse>,
     pub metadata: Option<String>,
