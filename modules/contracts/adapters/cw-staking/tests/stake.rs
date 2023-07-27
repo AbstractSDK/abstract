@@ -70,7 +70,7 @@ fn staking_inited() -> anyhow::Result<()> {
     // query staking info
     let staking_info = staking.info(WYNDEX.into(), AssetEntry::new(EUR_USD_LP))?;
     assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-        staking_contract_address: wyndex.eur_usd_staking,
+        staking_target: wyndex.eur_usd_staking.into(),
         staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
         unbonding_periods: Some(vec![
             cw_utils::Duration::Time(1),

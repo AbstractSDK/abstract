@@ -128,7 +128,7 @@ impl CwStakingCommand for Kujira {
         let lp_token = AssetInfo::Native(self.lp_token_denom.clone());
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.staking_contract_address.clone(),
+            staking_target: self.staking_contract_address.clone().into(),
             staking_token: lp_token,
             unbonding_periods: None,
             max_claims: None,

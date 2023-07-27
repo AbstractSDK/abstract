@@ -22,28 +22,23 @@ impl Identify for Osmosis {
 
 #[cfg(feature = "full_integration")]
 pub mod fns {
-    use abstract_core::VERSION_CONTROL;
-    use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
+    use abstract_sdk::features::AbstractRegistryAccess;
     use abstract_sdk::{AbstractSdkError, AccountVerification};
     use abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     };
     use cw_utils::Expiration;
-    use osmosis_std::types::osmosis::lockup::{
-        LockupQuerier, ModuleLockedAmountRequest, ModuleLockedAmountResponse, MsgBeginUnlockingAll,
-    };
-    use std::cmp::min;
+    use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::{AnsEntryConvertor, AssetEntry};
-    use abstract_core::objects::{ContractEntry, PoolReference, UncheckedContractEntry};
+    use abstract_core::objects::{AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;
     use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
     use cosmwasm_std::{
-        to_binary, Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
+        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
     };
     use cw_asset::AssetInfoBase;
 
@@ -82,7 +77,7 @@ pub mod fns {
                 AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?)
                     .dex_asset_pairing()?;
 
-            let mut pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
+            let pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
             // Currently takes the first pool found, but should be changed to take the best pool
             let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(format!(
                 "No pool found for asset pairing {:?}",
@@ -164,7 +159,7 @@ pub mod fns {
 
         fn unstake(
             &self,
-            deps: Deps,
+            _deps: Deps,
             amount: Uint128,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
@@ -180,7 +175,7 @@ pub mod fns {
             Ok(vec![msg.into()])
         }
 
-        fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
+        fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
             // Withdraw all
             let msg = MsgBeginUnlockingAll {
                 owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
@@ -214,8 +209,8 @@ pub mod fns {
 
         fn query_staked(
             &self,
-            querier: &QuerierWrapper,
-            staker: Addr,
+            _querier: &QuerierWrapper,
+            _staker: Addr,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
             Err(CwStakingError::NotImplemented("osmosis".to_owned()))

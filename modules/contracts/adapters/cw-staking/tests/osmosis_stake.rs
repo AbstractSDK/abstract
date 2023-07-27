@@ -9,7 +9,6 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
-use abstract_staking_adapter_traits::msg::StakingTarget;
 use cosmwasm_std::coins;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
