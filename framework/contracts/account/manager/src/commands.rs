@@ -784,9 +784,10 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
 fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<String> {
     let Ownership::<String> { owner, .. } = deps
         .querier
-        .query_wasm_smart(maybe_manager, &QueryMsg::Ownership {})?;
+        .query_wasm_smart(maybe_manager.clone(), &QueryMsg::Ownership {})
+        .map_err(|_| ManagerError::NoContractOwner(maybe_manager.to_string()))?;
 
-    owner.ok_or(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}))
+    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.to_string()))
 }
 
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
@@ -804,30 +805,20 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
             let mut current = manager;
             let mut i = 0;
             while i < MAX_ADMIN_RECURSION {
-                if let Ok(owner) = query_ownership(deps, current) {
-                    // If the owner account is indeed owned by another instance
-                    if *sender == owner {
-                        // If the owner of the current contract is the sender, the admin test is passed
-                        return Ok(());
-                    } else {
-                        // If not, we try again with the queried owner
-                        current = deps.api.addr_validate(&owner)?
-                    }
+                let owner = query_ownership(deps, current)
+                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
+                if *sender == owner {
+                    // If the owner of the current contract is the sender, the admin test is passed
+                    return Ok(());
                 } else {
-                    return Err(ManagerError::Admin(cw_controllers::AdminError::NotAdmin {}));
+                    // If not, we try again with the queried owner
+                    current = deps.api.addr_validate(&owner)?
                 }
-                if {
-                    i += 1;
-                    i
-                } > MAX_ADMIN_RECURSION
-                {
-                    return Err(ManagerError::Std(StdError::generic_err(
-                        "Admin recursion error, too much recursion",
-                    )));
-                }
+                i+=1;
             }
-            // return ownership error
-            Ok(ownership_test?)
+            Err(ManagerError::Std(StdError::generic_err(
+                format!("Admin recursion error, too much recursion, maximum allowed admin recursion : {}", MAX_ADMIN_RECURSION),
+            )))
         }
         _ => Ok(ownership_test?),
     }
