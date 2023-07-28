@@ -1,7 +1,7 @@
 // // #[cfg(test)]
 // // mod test_utils;
 //
-// use abstract_boot::{
+// use cw_orch::{
 //     Abstract, AbstractAccount, AbstractBootError, AppDeployer, ManagerQueryFns, ProxyExecFns,
 //     ProxyQueryFns,
 // };
@@ -14,7 +14,7 @@
 // use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 // use abstract_sdk::core as abstract_core;
 //
-// use abstract_boot::boot_core::*;
+// use cw_orch::prelude::*;
 // use abstract_testing::prelude::TEST_ADMIN;
 // use boot_cw_plus::{Cw20Base, Cw20ExecuteMsgFns, Cw20QueryMsgFns};
 // use cosmwasm_std::{coin, Addr, Decimal, Empty};

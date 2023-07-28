@@ -8,7 +8,7 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &EtfApp, msg: EtfQueryMsg) -> 
         EtfQueryMsg::State {} => {
             let fee = FEE.load(deps.storage)?;
             to_binary(&StateResponse {
-                share_token_address: STATE.load(deps.storage)?.share_token_address.to_string(),
+                share_token_address: STATE.load(deps.storage)?.share_token_address,
                 fee: fee.share(),
             })
         }

@@ -36,21 +36,14 @@
 //!
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
-use abstract_core::app;
-use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint};
+
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Decimal;
+use cosmwasm_std::{Addr, Decimal};
 use cw_asset::AssetUnchecked;
 
 use crate::contract::EtfApp;
 
-pub type InstantiateMsg = <EtfApp as InstantiateEndpoint>::InstantiateMsg;
-pub type ExecuteMsg = <EtfApp as ExecuteEndpoint>::ExecuteMsg;
-pub type QueryMsg = <EtfApp as QueryEndpoint>::QueryMsg;
-pub type MigrateMsg = <EtfApp as MigrateEndpoint>::MigrateMsg;
-
-impl app::AppExecuteMsg for EtfExecuteMsg {}
-impl app::AppQueryMsg for EtfQueryMsg {}
+abstract_app::app_msg_types!(EtfApp, EtfExecuteMsg, EtfQueryMsg);
 
 /// Init msg
 #[cosmwasm_schema::cw_serde]
@@ -67,8 +60,9 @@ pub struct EtfInstantiateMsg {
     pub token_symbol: Option<String>,
 }
 
+/// Execute Msg
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(boot_core::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum EtfExecuteMsg {
     /// Deposit asset into the ETF
@@ -78,8 +72,9 @@ pub enum EtfExecuteMsg {
     SetFee { fee: Decimal },
 }
 
+/// Query Msg
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(boot_core::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum EtfQueryMsg {
@@ -97,6 +92,6 @@ pub enum Cw20HookMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
-    pub share_token_address: String,
+    pub share_token_address: Addr,
     pub fee: Decimal,
 }
