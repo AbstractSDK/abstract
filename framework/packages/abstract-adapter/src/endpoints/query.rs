@@ -31,7 +31,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
-            BaseQueryMsg::Config {} => {
+            BaseQueryMsg::BaseConfig {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { proxy_address } => {

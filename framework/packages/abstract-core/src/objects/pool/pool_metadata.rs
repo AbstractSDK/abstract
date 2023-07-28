@@ -101,7 +101,7 @@ impl fmt::Display for PoolMetadata {
         write!(
             f,
             "{}",
-            vec![self.dex.clone(), assets_str, pool_type_str].join(ATTTRIBUTE_SEPARATOR)
+            [self.dex.clone(), assets_str, pool_type_str].join(ATTTRIBUTE_SEPARATOR)
         )
     }
 }

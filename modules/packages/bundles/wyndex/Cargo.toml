@@ -1,0 +1,28 @@
+[package]
+name = "wyndex-bundle"
+version = { workspace = true }
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+
+
+[dependencies]
+wyndex-multi-hop = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-factory = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-pair = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex-stake = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+wyndex = { git = "https://github.com/cosmorama/wynddex.git", rev = "v1.1.2" }
+
+abstract-core = { workspace = true }
+abstract-interface = { workspace = true, features = ["integration"] }
+
+cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true, features = ["interface"] }
+cw-orch = { workspace = true }
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-multi-test = { workspace = true }
+cw-asset = { workspace = true }
+anyhow = { workspace = true }
+cw-controllers = "1.0.1"

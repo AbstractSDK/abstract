@@ -2,12 +2,10 @@ use cosmwasm_schema::QueryResponses;
 use schemars::JsonSchema;
 use serde::Serialize;
 
-use abstract_core::app::{AppExecuteMsg, AppQueryMsg};
+use abstract_core::app::{self, AppExecuteMsg, AppQueryMsg};
 use {
     crate::{ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint},
-    abstract_sdk::core::app::AppConfigResponse,
     cosmwasm_schema::{export_schema_with_title, schema_for, write_api},
-    cw_controllers::AdminResponse,
     std::path::Path,
 };
 
@@ -37,6 +35,14 @@ impl<
     >
 {
     pub fn export_schema(out_dir: &Path) {
+        write_api! {
+            name: "schema",
+            instantiate: app::InstantiateMsg<CustomInitMsg>,
+            query: app::QueryMsg<CustomQueryMsg>,
+            execute: app::ExecuteMsg<CustomExecMsg, ReceiveMsg>,
+            migrate: app::MigrateMsg<CustomMigrateMsg>,
+        };
+
         // write out the module-specific schema
         write_api! {
             name: "module-schema",
@@ -66,7 +72,5 @@ impl<
             out_dir,
             "MigrateMsg",
         );
-        export_schema_with_title(&schema_for!(AdminResponse), out_dir, "AdminResponse");
-        export_schema_with_title(&schema_for!(AppConfigResponse), out_dir, "ConfigResponse");
     }
 }

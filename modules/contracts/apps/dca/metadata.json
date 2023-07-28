@@ -1,0 +1,9 @@
+{
+  "name": "DCA",
+  "description": "Create DCA for your abstract account ",
+  "website": "",
+  "docs": "",
+  "type": "api",
+  "icon": "GiTrade",
+  "enabled": true
+}

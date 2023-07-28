@@ -1,0 +1,2 @@
+05333dc875b3a7e2c9f2b7862a88744b6917b0435c8294921de34f0e5a8ff6b0  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
+229bdba9205e75cd80a5c75fd9a6422cfe9bfa57594260dbf9ac6c2b5c067223  target/wasm32-unknown-unknown/release/croncat_app.wasm
