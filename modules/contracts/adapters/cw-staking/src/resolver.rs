@@ -11,7 +11,7 @@ use abstract_staking_adapter_traits::Identify;
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
         #[cfg(feature = "juno")]
-        abstract_wyndex_adapter::staking::WYNDEX => {
+        abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }
         #[cfg(feature = "osmosis")]
@@ -34,7 +34,7 @@ pub(crate) fn resolve_local_provider(
 ) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
         #[cfg(feature = "juno")]
-        abstract_wyndex_adapter::staking::WYNDEX => {
+        abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }
         #[cfg(feature = "osmosis")]

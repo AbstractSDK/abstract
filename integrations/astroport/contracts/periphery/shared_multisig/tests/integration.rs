@@ -6,15 +6,13 @@ use cw_utils::{Duration, ThresholdResponse};
 use astroport::shared_multisig::{ConfigResponse, ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn mock_app(owner: &Addr, coins: Option<Vec<Coin>>) -> App {
-    let app = App::new(|router, _, storage| {
+    App::new(|router, _, storage| {
         // initialization moved to App construction
         router
             .bank
-            .init_balance(storage, &owner, coins.unwrap_or_default())
+            .init_balance(storage, owner, coins.unwrap_or_default())
             .unwrap();
-    });
-
-    app
+    })
 }
 
 fn store_shared_multisig_code(app: &mut App) -> u64 {
@@ -58,7 +56,7 @@ fn proper_initialization() {
 
     let config_res: ConfigResponse = app
         .wrap()
-        .query_wasm_smart(&shared_multisig_instance, &QueryMsg::Config {})
+        .query_wasm_smart(shared_multisig_instance, &QueryMsg::Config {})
         .unwrap();
 
     assert_eq!(manager, config_res.manager);

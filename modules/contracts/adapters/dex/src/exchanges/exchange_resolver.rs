@@ -11,7 +11,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
             Ok(Box::<crate::exchanges::junoswap::JunoSwap>::default())
         }
         #[cfg(feature = "juno")]
-        abstract_wyndex_adapter::dex::WYNDEX => {
+        abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
         }
         #[cfg(feature = "osmosis")]
@@ -37,7 +37,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         #[cfg(feature = "juno")]
         crate::exchanges::junoswap::JUNOSWAP => Ok(&crate::exchanges::junoswap::JunoSwap {}),
         #[cfg(feature = "juno")]
-        abstract_wyndex_adapter::dex::WYNDEX => Ok(&abstract_wyndex_adapter::dex::WynDex {}),
+        abstract_wyndex_adapter::WYNDEX => Ok(&abstract_wyndex_adapter::dex::WynDex {}),
         #[cfg(feature = "osmosis")]
         abstract_osmosis_adapter::OSMOSIS => Ok(&abstract_osmosis_adapter::dex::Osmosis {
             local_proxy_addr: None,

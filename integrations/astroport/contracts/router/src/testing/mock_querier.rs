@@ -122,9 +122,9 @@ impl WasmMockQuerier {
                 if contract_addr.to_string().starts_with("token")
                     || contract_addr.to_string().starts_with("asset")
                 {
-                    self.handle_cw20(&contract_addr, &msg)
+                    self.handle_cw20(contract_addr, msg)
                 } else {
-                    self.handle_default(&msg)
+                    self.handle_default(msg)
                 }
             }
             _ => self.base.handle_query(request),
@@ -132,7 +132,7 @@ impl WasmMockQuerier {
     }
 
     fn handle_default(&self, msg: &Binary) -> QuerierResult {
-        match from_binary(&msg).unwrap() {
+        match from_binary(msg).unwrap() {
             QueryMsg::Pair { asset_infos } => {
                 let key = asset_infos[0].to_string() + asset_infos[1].to_string().as_str();
                 match self.astroport_factory_querier.pairs.get(&key) {
@@ -166,7 +166,7 @@ impl WasmMockQuerier {
     }
 
     fn handle_cw20(&self, contract_addr: &String, msg: &Binary) -> QuerierResult {
-        match from_binary(&msg).unwrap() {
+        match from_binary(msg).unwrap() {
             Cw20QueryMsg::TokenInfo {} => {
                 let balances: &HashMap<String, Uint128> =
                     match self.token_querier.balances.get(contract_addr) {
@@ -186,7 +186,7 @@ impl WasmMockQuerier {
                     name: "mAPPL".to_string(),
                     symbol: "mAPPL".to_string(),
                     decimals: 6,
-                    total_supply: total_supply,
+                    total_supply,
                 })))
             }
             Cw20QueryMsg::Balance { address } => {

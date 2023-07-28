@@ -67,10 +67,7 @@ fn proper_initialization() {
         .unwrap();
 
     let msg = QueryMsg::Config {};
-    let config_res: ConfigResponse = app
-        .wrap()
-        .query_wasm_smart(&factory_instance, &msg)
-        .unwrap();
+    let config_res: ConfigResponse = app.wrap().query_wasm_smart(factory_instance, &msg).unwrap();
 
     assert_eq!(123, config_res.token_code_id);
     assert_eq!(pair_configs, config_res.pair_configs);
