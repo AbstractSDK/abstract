@@ -67,8 +67,8 @@ pub fn get_on_chain_entries(
             .iter()
             .zip(addresses.iter())
             .flat_map(|(m, a)| {
-                (a.1.iter()
-                    .map(|a| (a.pool_address.clone().into(), m.clone())))
+                a.1.iter()
+                    .map(|a| (a.pool_address.clone().into(), m.clone()))
             })
             .collect();
 
