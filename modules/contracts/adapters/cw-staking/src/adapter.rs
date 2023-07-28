@@ -4,7 +4,11 @@ use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 
 use abstract_staking_adapter_traits::CwStakingCommand;
 
-use abstract_sdk::{core::objects::AssetEntry, features::{AbstractNameService, AbstractRegistryAccess}, Execution};
+use abstract_sdk::{
+    core::objects::AssetEntry,
+    features::{AbstractNameService, AbstractRegistryAccess},
+    Execution,
+};
 
 impl<T> CwStakingAdapter for T where T: AbstractNameService + AbstractRegistryAccess + Execution {}
 
