@@ -1,17 +1,14 @@
 //! # Dao Account Proxy
 
-use cw_utils::Duration;
-use dao_interface::state::ModuleInstantiateInfo;
 use abstract_core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
-    objects::{
-        price_source::{UncheckedPriceSource},
-        AssetEntry,
-    },
+    objects::{price_source::UncheckedPriceSource, AssetEntry},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Empty};
-use cw_asset::{AssetInfo};
+use cw_asset::AssetInfo;
+use cw_utils::Duration;
+use dao_interface::state::ModuleInstantiateInfo;
 
 pub mod state {
     pub use abstract_core::objects::account_id::ACCOUNT_ID;
@@ -36,11 +33,9 @@ pub struct MigrateMsg {
     pub ans_host_address: String,
 }
 
-
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
-    
     // # Abstract Messages
     /// Sets the admin
     SetAdmin { admin: String },
@@ -59,7 +54,7 @@ pub enum ExecuteMsg {
         to_add: Vec<(AssetEntry, UncheckedPriceSource)>,
         to_remove: Vec<AssetEntry>,
     },
-    
+
     // # DAO-DAO Messages
     /// Callable by the Admin, if one is configured.
     /// Executes messages in order.
@@ -107,7 +102,9 @@ pub enum ExecuteMsg {
     WithdrawAdminNomination {},
     /// Callable by the core contract. Replaces the current
     /// governance contract config with the provided config.
-    UpdateConfig { config: dao_interface::state::Config },
+    UpdateConfig {
+        config: dao_interface::state::Config,
+    },
     /// Updates the list of cw20 tokens this contract has registered.
     UpdateCw20List {
         to_add: Vec<String>,
@@ -142,7 +139,6 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
-
     // # Abstract Messages
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]
@@ -182,7 +178,6 @@ pub enum QueryMsg {
     /// Returns [`BaseAssetResponse`]
     #[returns(abstract_core::proxy::BaseAssetResponse)]
     BaseAsset {},
-
 
     // # DAO-DAO Messages
     /// Get's the DAO's admin. Returns `Addr`.
@@ -224,7 +219,7 @@ pub enum QueryMsg {
     DumpState {},
     /// Gets the address associated with an item key.
     #[returns(dao_interface::query::GetItemResponse)]
-    GetItem { key: String }, 
+    GetItem { key: String },
     /// Lists all of the items associted with the contract. For
     /// example, given the items `{ "group": "foo", "subdao": "bar"}`
     /// this query would return `[("group", "foo"), ("subdao",
