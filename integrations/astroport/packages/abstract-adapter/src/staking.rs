@@ -66,7 +66,9 @@ impl CwStakingCommand for Astroport {
         &mut self,
         deps: Deps,
         _env: Env,
+        _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        _abstract_registry: Addr,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =
@@ -157,7 +159,7 @@ impl CwStakingCommand for Astroport {
         }?);
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.generator_contract_address.clone(),
+            staking_target: self.generator_contract_address.clone().into(),
             staking_token: astro_token,
             unbonding_periods: None,
             max_claims: None,

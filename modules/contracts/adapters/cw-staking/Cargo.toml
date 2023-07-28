@@ -88,12 +88,13 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 log = "0.4.14"
 speculoos = { workspace = true }
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch = { workspace = true, features = ["daemon", "osmosis-test-tube"] }
 abstract-interface = { workspace = true }
 clap = { workspace = true }
 cw-staking = { path = ".", features = [
   "interface",
   "juno",
+  "osmosis",
 ], package = "abstract-cw-staking" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
