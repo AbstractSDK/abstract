@@ -188,7 +188,7 @@ pub mod fns {
             &self,
             _deps: Deps,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
-            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
+            Err(CwStakingError::NotImplemented("osmosis does not support claiming rewards".to_owned()))
         }
 
         // For osmosis, we don't have a staking token or a staking contract, everything happens at the sdk level
