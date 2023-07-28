@@ -13,6 +13,10 @@ crate-type = ["cdylib", "rlib"]
 name = "schema"
 required-features = ["schema"]
 
+[[example]]
+name = "deploy"
+required-features = ["interface"]
+
 [features]
 default = ["export"]
 export = []
@@ -46,3 +50,6 @@ abstract-testing = { workspace = true }
 semver = { workspace = true }
 anyhow = { workspace = true }
 speculoos = { workspace = true }
+env_logger = "0.10.0"
+dotenv = "0.15.0"
+clap = { workspace = true }
