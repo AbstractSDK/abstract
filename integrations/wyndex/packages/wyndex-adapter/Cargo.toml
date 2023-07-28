@@ -23,9 +23,9 @@ full_integration = [
 [dependencies]
 cosmwasm-std = { workspace = true }
 
-abstract-sdk = { version = "0.17.3", path = "../../../../framework/packages/abstract-sdk" }
-abstract-staking-adapter-traits = { version = "0.17.3", path = "../../../../framework/packages/staking" }
-abstract-dex-adapter-traits = { version = "0.17.3", path = "../../../../framework/packages/dex" }
+abstract-sdk = { version = "0.18.0", path = "../../../../framework/packages/abstract-sdk" }
+abstract-staking-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/staking" }
+abstract-dex-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/dex" }
 
 # Optional
 wyndex = { path = "../wyndex/", optional = true }

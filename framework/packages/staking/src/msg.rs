@@ -88,6 +88,7 @@ pub enum StakingQueryMsg {
     },
 }
 
+/// Possible staking targets to support staking on cosmwasm contract or cosmos Lockup module
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum StakingTarget {
@@ -96,6 +97,7 @@ pub enum StakingTarget {
 }
 
 impl StakingTarget {
+    /// Extract contract address
     pub fn expect_contract(self) -> abstract_core::AbstractResult<Addr> {
         match self {
             StakingTarget::Contract(addr) => Ok(addr),
@@ -105,6 +107,7 @@ impl StakingTarget {
         }
     }
 
+    /// Extract pool id
     pub fn expect_id(self) -> abstract_core::AbstractResult<u64> {
         match self {
             StakingTarget::Id(id) => Ok(id),
