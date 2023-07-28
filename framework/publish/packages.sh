@@ -27,7 +27,7 @@ done
 
 echo "Packages are published!"
 
-read -p "Please update the version of 'abstract-interface' to the published version and type 'yes' to continue: " input
+read -p "Please update the version of 'abstract-interface' (deps & dev-deps) in the dex and stakingto the published version and type 'yes' to continue: " input
 if [ "$input" != "yes" ]
 then
   echo "The script will terminate now. Please run it again after updating the version."
