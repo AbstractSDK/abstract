@@ -8,25 +8,16 @@ use crate::contract::StakingResult;
 
 use abstract_staking_adapter_traits::Identify;
 
-#[cfg(feature = "kujira")]
-use crate::providers::kujira::{Kujira, KUJIRA};
-#[cfg(any(feature = "terra", feature = "neutron"))]
-use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
-#[cfg(feature = "osmosis")]
-use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
-#[cfg(feature = "juno")]
-use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
-
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
         #[cfg(feature = "juno")]
-        WYNDEX => Ok(Box::<WynDex>::default()),
+        abstract_wyndex_adapter::staking::WYNDEX => Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default()),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(Box::<Osmosis>::default()),
+        abstract_osmosis_adapter::OSMOSIS => Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default()),
         #[cfg(any(feature = "terra", feature = "neutron"))]
-        ASTROPORT => Ok(Box::<Astroport>::default()),
+        abstract_astroport_adapter::ASTROPORT => Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default()),
         #[cfg(feature = "kujira")]
-        KUJIRA => Ok(Box::<Kujira>::default()),
+        crate::providers::kujira::KUJIRA => Ok(Box::<crate::providers::kujira::Kujira>::default()),
         _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
 }
@@ -37,13 +28,13 @@ pub(crate) fn resolve_local_provider(
 ) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
         #[cfg(feature = "juno")]
-        WYNDEX => Ok(Box::<WynDex>::default()),
+        abstract_wyndex_adapter::staking::WYNDEX => Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default()),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(Box::<Osmosis>::default()),
+        abstract_osmosis_adapter::OSMOSIS => Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default()),
         #[cfg(any(feature = "terra", feature = "neutron"))]
-        ASTROPORT => Ok(Box::<Astroport>::default()),
+        abstract_astroport_adapter::ASTROPORT => Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default()),
         #[cfg(feature = "kujira")]
-        KUJIRA => Ok(Box::<Kujira>::default()),
+        crate::providers::kujira::KUJIRA => Ok(Box::<crate::providers::kujira::Kujira>::default()),
         _ => Err(CwStakingError::ForeignDex(name.to_owned())),
     }
 }
