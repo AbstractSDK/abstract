@@ -814,11 +814,12 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                     // If not, we try again with the queried owner
                     current = deps.api.addr_validate(&owner)?
                 }
-                i+=1;
+                i += 1;
             }
-            Err(ManagerError::Std(StdError::generic_err(
-                format!("Admin recursion error, too much recursion, maximum allowed admin recursion : {}", MAX_ADMIN_RECURSION),
-            )))
+            Err(ManagerError::Std(StdError::generic_err(format!(
+                "Admin recursion error, too much recursion, maximum allowed admin recursion : {}",
+                MAX_ADMIN_RECURSION
+            ))))
         }
         _ => Ok(ownership_test?),
     }
