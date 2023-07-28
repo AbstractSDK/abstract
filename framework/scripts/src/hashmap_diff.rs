@@ -1,6 +1,6 @@
-use std::fmt::Debug;
 use crate::AbstractInterfaceError;
 use std::collections::HashMap;
+use std::fmt::Debug;
 use std::{collections::HashSet, hash::Hash};
 
 pub fn diff<K, V>(
@@ -56,7 +56,7 @@ where
             // This is because it's not possible for vectors to be equal only if their values are equal
             let val_scraped = scraped_entries.get(*entry).unwrap();
             let val_on_chain = on_chain_entries.get(*entry).unwrap();
-            if format!("{:?}",val_scraped) != format!("{:?}",val_on_chain) {
+            if format!("{:?}", val_scraped) != format!("{:?}", val_on_chain) {
                 log::info!("{:?} - {:?}", val_scraped, val_on_chain);
                 log::info!("entry : {:?}", entry);
                 to_add.insert((*entry).to_owned(), val_scraped.clone());

@@ -66,7 +66,10 @@ pub fn get_on_chain_entries(
         let metadata_to_save: HashMap<_, _> = metadatas
             .iter()
             .zip(addresses.iter())
-            .flat_map(|(m, a)| (a.1.iter().map(|a| (a.pool_address.clone().into(), m.clone()))))
+            .flat_map(|(m, a)| {
+                (a.1.iter()
+                    .map(|a| (a.pool_address.clone().into(), m.clone())))
+            })
             .collect();
 
         last_pool = metadatas.last().map(|l| l.0);

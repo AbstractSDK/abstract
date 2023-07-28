@@ -3,7 +3,6 @@ use std::fs::remove_file;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
-use script_helpers::assert_wallet_balance;
 use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
@@ -12,6 +11,7 @@ use cw_orch::{
         *,
     },
 };
+use script_helpers::assert_wallet_balance;
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

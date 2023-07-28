@@ -4,11 +4,11 @@ pub mod contracts;
 pub mod hashmap_diff;
 pub mod pools;
 
-use cw_orch::daemon::DaemonAsyncBuilder;
-use cw_orch::daemon::ChainInfo;
-use cw_orch::daemon::networks::*;
 use abstract_core::objects::UniquePoolId;
 use cw_asset::AssetInfoBase;
+use cw_orch::daemon::networks::*;
+use cw_orch::daemon::ChainInfo;
+use cw_orch::daemon::DaemonAsyncBuilder;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -147,7 +147,6 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: AnsDataDiff) -> Result<(), Abstr
 
     Ok(())
 }
-
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] =
