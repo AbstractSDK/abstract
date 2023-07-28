@@ -3,6 +3,7 @@ use crate::AVAILABLE_CHAINS;
 use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
+use cosmwasm_std::MessageInfo;
 
 // TODO: use optional values here?
 #[derive(Clone, Debug)]
@@ -66,7 +67,9 @@ impl CwStakingCommand for Astroport {
         &mut self,
         deps: Deps,
         _env: Env,
+        _info: Option<MessageInfo>,
         ans_host: &AnsHost,
+        _abstract_registry: Addr,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =
@@ -157,7 +160,7 @@ impl CwStakingCommand for Astroport {
         }?);
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.generator_contract_address.clone(),
+            staking_target: self.generator_contract_address.clone().into(),
             staking_token: astro_token,
             unbonding_periods: None,
             max_claims: None,

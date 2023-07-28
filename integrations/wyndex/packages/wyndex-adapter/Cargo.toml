@@ -23,9 +23,9 @@ full_integration = [
 [dependencies]
 cosmwasm-std = { workspace = true }
 
-abstract-sdk = { version = "0.17.2" }
-abstract-staking-adapter-traits = { version = "0.17.2" }
-abstract-dex-adapter-traits = { version = "0.17.2" }
+abstract-sdk = { version = "0.17.3", path = "../../../../framework/packages/abstract-sdk" }
+abstract-staking-adapter-traits = { version = "0.17.3", path = "../../../../framework/packages/staking" }
+abstract-dex-adapter-traits = { version = "0.17.3", path = "../../../../framework/packages/dex" }
 
 # Optional
 wyndex = { path = "../wyndex/", optional = true }
@@ -36,7 +36,3 @@ cw20 = { workspace = true, optional = true }
 cw-asset = { version = "3.0.0", optional = true }
 cw-utils = { workspace = true, optional = true }
 cw-controllers = { workspace = true, optional = true }
-
-[patch.crates-io]
-abstract-staking-adapter-traits = { path = "../../../../framework/packages/staking" }
-abstract-dex-adapter-traits = { path = "../../../../framework/packages/dex" }

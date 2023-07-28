@@ -5,6 +5,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
+    pub abstract_registry: Option<Addr>,
     pub local_proxy_addr: Option<Addr>,
     pub pool_id: Option<u64>,
     pub lp_token: Option<String>,
@@ -22,21 +23,23 @@ impl Identify for Osmosis {
 #[cfg(feature = "full_integration")]
 pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
-    use abstract_sdk::AccountVerification;
+    use abstract_sdk::{AbstractSdkError, AccountVerification};
     use abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     };
     use cw_utils::Expiration;
-    use osmosis_std::types::osmosis::lockup::LockupQuerier;
-    use std::cmp::min;
+    use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::AssetEntry;
+    use abstract_core::objects::{AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
+    use abstract_sdk::AbstractSdkResult;
     use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
-    use cosmwasm_std::{Coin, CosmosMsg, Deps, QuerierWrapper, StdError, StdResult, Uint128};
+    use cosmwasm_std::{
+        Coin, CosmosMsg, Deps, MessageInfo, QuerierWrapper, StdError, StdResult, Uint128,
+    };
     use cw_asset::AssetInfoBase;
 
     use super::*;
@@ -63,6 +66,27 @@ pub mod fns {
     }
 
     impl Osmosis {
+        /// Take the staking asset and query the pool id via the ans host
+        pub fn query_pool_id_via_ans(
+            &self,
+            querier: &QuerierWrapper,
+            ans_host: &AnsHost,
+            staking_asset: AssetEntry,
+        ) -> AbstractSdkResult<u64> {
+            let dex_pair =
+                AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?)
+                    .dex_asset_pairing()?;
+
+            let pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
+            // Currently takes the first pool found, but should be changed to take the best pool
+            let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(format!(
+                "No pool found for asset pairing {:?}",
+                dex_pair
+            )))?;
+
+            Ok(found.pool_address.expect_id()?)
+        }
+
         pub fn query_pool_data(&self, querier: &QuerierWrapper) -> StdResult<Pool> {
             let querier = PoolmanagerQuerier::new(querier);
 
@@ -78,7 +102,11 @@ pub mod fns {
             &self,
             _: cosmwasm_std::Deps<'_>,
         ) -> std::result::Result<cosmwasm_std::Addr, abstract_sdk::AbstractSdkError> {
-            panic!("Not implementable for now");
+            self.abstract_registry
+                .clone()
+                .ok_or(AbstractSdkError::generic_err(
+                    "version_control address is not set",
+                ))
             // We need to get to the version control somehow (possible from Ans Host ?)
         }
     }
@@ -89,24 +117,22 @@ pub mod fns {
             &mut self,
             deps: cosmwasm_std::Deps,
             _env: Env,
+            info: Option<MessageInfo>,
             ans_host: &AnsHost,
+            abstract_registry: Addr,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            let provider_staking_contract_entry = self.staking_entry(&staking_asset);
-
+            self.abstract_registry = Some(abstract_registry);
             let account_registry = self.account_registry(deps);
-            // TODO, this will never work
-            // We need a receiver address to make that work
-            self.local_proxy_addr = Some(
-                account_registry
-                    .assert_manager(&Addr::unchecked("manager address from calling info ?"))?
-                    .proxy,
-            );
 
-            let pool_addr =
-                ans_host.query_contract(&deps.querier, &provider_staking_contract_entry)?;
+            let base = info
+                .map(|i| account_registry.assert_manager(&i.sender))
+                .transpose()?;
+            self.local_proxy_addr = base.map(|b| b.proxy);
 
-            self.pool_id = Some(pool_addr.to_string().parse().unwrap());
+            let pool_id = self.query_pool_id_via_ans(&deps.querier, ans_host, staking_asset)?;
+
+            self.pool_id = Some(pool_id);
             self.lp_token = Some(format!("gamm/pool/{}", self.pool_id.unwrap()));
 
             Ok(())
@@ -131,82 +157,30 @@ pub mod fns {
             Ok(vec![lock_tokens_msg.into()])
         }
 
-        // We unstake all the amount from the pools that only have the coin inside it
-        // TODO, this is not perfect, don't know how to do that better for now
         fn unstake(
             &self,
-            deps: Deps,
+            _deps: Deps,
             amount: Uint128,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-            let lockup_request = LockupQuerier::new(&deps.querier);
-            let locked_up = lockup_request.account_locked_past_time_not_unlocking_only(
-                self.local_proxy_addr.as_ref().unwrap().to_string(),
-                None,
-            )?;
-            let lock_ids: Vec<_> = locked_up
-                .locks
-                .into_iter()
-                .filter(|lock| {
-                    lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
-                })
-                .collect();
-
-            let mut msgs = vec![];
-            let mut remaining_amount = amount;
-            for period_lock in lock_ids {
-                let period_amount = Uint128::from_str(&period_lock.coins[0].amount).unwrap();
-                let withdraw_amount = min(remaining_amount, period_amount);
-                remaining_amount -= withdraw_amount;
-                msgs.push(
-                    MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                        coins: vec![Coin {
-                            denom: self.lp_token.clone().unwrap(),
-                            amount: withdraw_amount,
-                        }
-                        .into()], // We withdraw all
-                        id: period_lock.id,
-                    }
-                    .into(),
-                );
-
-                if remaining_amount.is_zero() {
-                    break;
+            let msg = MsgBeginUnlocking {
+                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                id: self.pool_id.unwrap(),
+                coins: vec![Coin {
+                    denom: self.lp_token.clone().unwrap(),
+                    amount,
                 }
-            }
-
-            Ok(msgs)
+                .into()],
+            };
+            Ok(vec![msg.into()])
         }
 
-        fn claim(&self, deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-            let lockup_request = LockupQuerier::new(&deps.querier);
-            let locked_up = lockup_request.account_unlocked_before_time(
-                self.local_proxy_addr.as_ref().unwrap().to_string(),
-                None,
-            )?;
-            let lock_ids: Vec<u64> = locked_up
-                .locks
-                .into_iter()
-                .filter(|lock| {
-                    lock.coins.len() == 1 && lock.coins[0].denom == self.lp_token.clone().unwrap()
-                })
-                .map(|lock| lock.id)
-                .collect();
-
-            let msgs: Vec<CosmosMsg> = lock_ids
-                .iter()
-                .map(|id| {
-                    MsgBeginUnlocking {
-                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                        coins: vec![], // We withdraw all
-                        id: *id,
-                    }
-                    .into()
-                })
-                .collect();
-
-            Ok(msgs)
+        fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
+            // Withdraw all
+            let msg = MsgBeginUnlockingAll {
+                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            };
+            Ok(vec![msg.into()])
         }
 
         // TODO, not sure this is needed in that case
@@ -214,7 +188,7 @@ pub mod fns {
             &self,
             _deps: Deps,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
-            Ok(vec![])
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
         }
 
         // For osmosis, we don't have a staking token or a staking contract, everything happens at the sdk level
@@ -225,7 +199,7 @@ pub mod fns {
         ) -> Result<StakingInfoResponse, CwStakingError> {
             let res = StakingInfoResponse {
                 staking_token: AssetInfoBase::Native(self.lp_token.clone().unwrap()),
-                staking_contract_address: Addr::unchecked(""),
+                staking_target: self.pool_id.clone().unwrap().into(),
                 unbonding_periods: Some(vec![]),
                 max_claims: None,
             };
@@ -235,21 +209,23 @@ pub mod fns {
 
         fn query_staked(
             &self,
-            querier: &QuerierWrapper,
-            staker: Addr,
+            _querier: &QuerierWrapper,
+            _staker: Addr,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
-            // We query all the locked tokens that correspond to the token in question
-            let lockup_request = LockupQuerier::new(querier);
-            let locked_up = lockup_request
-                .account_locked_coins(staker.to_string())?
-                .coins
-                .into_iter()
-                .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
-                .map(|lock| Uint128::from_str(&lock.amount).unwrap())
-                .sum();
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
+            // TODO: whitelist for contracts
+            // let lockup_request = LockupQuerier::new(querier);
+            // let locked_up = lockup_request.account_locked_coins(staker.to_string())?;
 
-            Ok(StakeResponse { amount: locked_up })
+            // let amount = locked_up
+            //     .coins
+            //     .into_iter()
+            //     .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
+            //     .map(|lock| Uint128::from_str(&lock.amount).unwrap())
+            //     .sum();
+
+            // Ok(StakeResponse { amount })
         }
 
         fn query_unbonding(
@@ -272,13 +248,11 @@ pub mod fns {
             Ok(UnbondingResponse { claims: unlocking })
         }
 
-        // TODO, not sure, how the rewards are being given out during the lockup period. Do users even have to claim rewards ?
-
         fn query_rewards(
             &self,
             _querier: &QuerierWrapper,
         ) -> Result<RewardTokensResponse, CwStakingError> {
-            Ok(RewardTokensResponse { tokens: vec![] })
+            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
         }
     }
 }
