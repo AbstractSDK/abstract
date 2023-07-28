@@ -1,7 +1,6 @@
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{StdError, Uint128};
-use cw_asset::AssetError;
+use cosmwasm_std::{StdError};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]

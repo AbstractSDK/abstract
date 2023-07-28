@@ -1,26 +1,26 @@
 //! # Dao Account Proxy
 
-use crate::{
+use cw_utils::Duration;
+use dao_interface::state::ModuleInstantiateInfo;
+use abstract_core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     objects::{
-        account_id::AccountId,
-        oracle::{AccountValue, Complexity},
-        price_source::{PriceSource, UncheckedPriceSource},
+        price_source::{UncheckedPriceSource},
         AssetEntry,
     },
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Empty, Uint128};
-use cw_asset::{Asset, AssetInfo};
+use cosmwasm_std::{CosmosMsg, Empty};
+use cw_asset::{AssetInfo};
 
 pub mod state {
-    pub use crate::objects::account_id::ACCOUNT_ID;
+    pub use abstract_core::objects::account_id::ACCOUNT_ID;
     use cw_controllers::Admin;
 
     use cosmwasm_std::Addr;
     use cw_storage_plus::Item;
 
-    use crate::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
+    use abstract_core::objects::{ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE};
     #[cosmwasm_schema::cw_serde]
     pub struct State {
         pub modules: Vec<Addr>,
@@ -32,7 +32,8 @@ pub mod state {
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {
-
+    pub abstract_account_id: u32,
+    pub ans_host_address: String,
 }
 
 
@@ -106,7 +107,7 @@ pub enum ExecuteMsg {
     WithdrawAdminNomination {},
     /// Callable by the core contract. Replaces the current
     /// governance contract config with the provided config.
-    UpdateConfig { config: Config },
+    UpdateConfig { config: dao_interface::state::Config },
     /// Updates the list of cw20 tokens this contract has registered.
     UpdateCw20List {
         to_add: Vec<String>,
@@ -132,7 +133,7 @@ pub enum ExecuteMsg {
     UpdateVotingModule { module: ModuleInstantiateInfo },
     /// Update the core module to add/remove SubDAOs and their charters
     UpdateSubDaos {
-        to_add: Vec<SubDao>,
+        to_add: Vec<dao_interface::query::SubDao>,
         to_remove: Vec<String>,
     },
 }
@@ -141,10 +142,12 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
+
+    // # Abstract Messages
     /// Contains the enabled modules
     /// Returns [`ConfigResponse`]
     #[returns(abstract_core::proxy::ConfigResponse)]
-    Config {},
+    AbstractConfig {},
     /// Returns the total value of the assets held by this account
     /// [`AccountValue`]
     #[returns(abstract_core::objects::oracle::AccountValue)]
@@ -179,4 +182,102 @@ pub enum QueryMsg {
     /// Returns [`BaseAssetResponse`]
     #[returns(abstract_core::proxy::BaseAssetResponse)]
     BaseAsset {},
+
+
+    // # DAO-DAO Messages
+    /// Get's the DAO's admin. Returns `Addr`.
+    #[returns(cosmwasm_std::Addr)]
+    Admin {},
+    /// Get's the currently nominated admin (if any).
+    #[returns(dao_interface::query::AdminNominationResponse)]
+    AdminNomination {},
+
+    /* Config is merged with the abstract config */
+    /// Gets the contract's config.
+    #[returns(dao_interface::state::Config)]
+    Config {},
+    /// Gets the token balance for each cw20 registered with the
+    /// contract.
+    #[returns(dao_interface::query::Cw20BalanceResponse)]
+    Cw20Balances {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Lists the addresses of the cw20 tokens in this contract's
+    /// treasury.
+    #[returns(Vec<cosmwasm_std::Addr>)]
+    Cw20TokenList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Lists the addresses of the cw721 tokens in this contract's
+    /// treasury.
+    #[returns(Vec<cosmwasm_std::Addr>)]
+    Cw721TokenList {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Dumps all of the core contract's state in a single
+    /// query. Useful for frontends as performance for queries is more
+    /// limited by network times than compute times.
+    #[returns(dao_interface::query::DumpStateResponse)]
+    DumpState {},
+    /// Gets the address associated with an item key.
+    #[returns(dao_interface::query::GetItemResponse)]
+    GetItem { key: String }, 
+    /// Lists all of the items associted with the contract. For
+    /// example, given the items `{ "group": "foo", "subdao": "bar"}`
+    /// this query would return `[("group", "foo"), ("subdao",
+    /// "bar")]`.
+    #[returns(Vec<String>)]
+    ListItems {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Returns contract version info
+    #[returns(dao_interface::voting::InfoResponse)]
+    Info {},
+    /// Gets all proposal modules associated with the
+    /// contract.
+    #[returns(Vec<dao_interface::state::ProposalModule>)]
+    ProposalModules {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Gets the active proposal modules associated with the
+    /// contract.
+    #[returns(Vec<dao_interface::state::ProposalModule>)]
+    ActiveProposalModules {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Gets the number of active and total proposal modules
+    /// registered with this module.
+    #[returns(dao_interface::query::ProposalModuleCountResponse)]
+    ProposalModuleCount {},
+    /// Returns information about if the contract is currently paused.
+    #[returns(dao_interface::query::PauseInfoResponse)]
+    PauseInfo {},
+    /// Gets the contract's voting module.
+    #[returns(cosmwasm_std::Addr)]
+    VotingModule {},
+    /// Returns all SubDAOs with their charters in a vec.
+    /// start_after is bound exclusive and asks for a string address.
+    #[returns(Vec<dao_interface::query::SubDao>)]
+    ListSubDaos {
+        start_after: Option<String>,
+        limit: Option<u32>,
+    },
+    /// Implements the DAO Star standard: <https://daostar.one/EIP>
+    #[returns(dao_interface::query::DaoURIResponse)]
+    DaoURI {},
+    /// Returns the voting power for an address at a given height.
+    #[returns(dao_interface::voting::VotingPowerAtHeightResponse)]
+    VotingPowerAtHeight {
+        address: String,
+        height: Option<u64>,
+    },
+    /// Returns the total voting power at a given block height.
+    #[returns(dao_interface::voting::TotalPowerAtHeightResponse)]
+    TotalPowerAtHeight { height: Option<u64> },
 }

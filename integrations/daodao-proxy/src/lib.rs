@@ -1,6 +1,7 @@
 pub mod contract;
 mod error;
 pub mod msg;
+mod patch;
 
 // #[cfg(test)]
 // mod test_common {
