@@ -120,8 +120,7 @@ pub fn handle_module_list_query(
             mod_lib
                 .range(deps.storage, start_bound, None, Order::Ascending)
                 .take(limit)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
+                .collect::<StdResult<Vec<_>>>()?,
         );
     };
 
@@ -162,8 +161,7 @@ pub fn handle_namespaces_query(
                 .account_id
                 .prefix(account_id)
                 .range(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<_>>>()?
-                .into_iter(),
+                .collect::<StdResult<Vec<_>>>()?,
         );
     }
 
@@ -320,11 +318,14 @@ mod test {
 
     fn mock_init(mut deps: DepsMut) -> VersionControlTestResult {
         let info = mock_info(TEST_ADMIN, &[]);
+        let admin = info.sender.to_string();
+
         contract::instantiate(
             deps.branch(),
             mock_env(),
             info,
             InstantiateMsg {
+                admin,
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },

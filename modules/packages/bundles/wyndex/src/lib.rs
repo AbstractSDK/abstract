@@ -23,23 +23,23 @@ use wyndex::{
 
 use cw20_base::contract::AbstractCw20Base;
 
-pub const STAKING: &str = "wynd:staking";
-pub const FACTORY: &str = "wynd:factory";
+pub const STAKING: &str = "wyndex:staking";
+pub const FACTORY: &str = "wyndex:factory";
 pub const WYND_TOKEN: &str = "wynd";
-const EUR_USD_PAIR: &str = "wynd:eur_usd_pair";
-pub const EUR_USD_STAKE: &str = "wynd:eur_usd_staking";
-pub const EUR_USD_LP: &str = "wynd/eur,usd";
-const WYND_EUR_PAIR: &str = "wynd:wynd_eur_pair";
-pub const WYND_EUR_LP: &str = "wynd/wynd,eur";
+const EUR_USD_PAIR: &str = "wyndex:eur_usd_pair";
+pub const EUR_USD_STAKE: &str = "wyndex:eur_usd_staking";
+pub const EUR_USD_LP: &str = "wyndex/eur,usd";
+const WYND_EUR_PAIR: &str = "wyndex:wynd_eur_pair";
+pub const WYND_EUR_LP: &str = "wyndex/wynd,eur";
 pub const EUR: &str = "eur";
 pub const USD: &str = "usd";
-pub const WYNDEX: &str = "wynd";
+pub const WYNDEX: &str = "wyndex";
 pub const WYNDEX_OWNER: &str = "wyndex_owner";
 pub const POOL_FACTORY: &str = "pool_factory";
 pub const MULTI_HOP: &str = "multi_hop";
 pub const RAW_TOKEN: &str = "raw";
-pub const RAW_EUR_LP: &str = "wynd/eur,raw";
-const RAW_EUR_PAIR: &str = "wynd:eur_raw_pair";
+pub const RAW_EUR_LP: &str = "wyndex/eur,raw";
+const RAW_EUR_PAIR: &str = "wyndex:eur_raw_pair";
 
 pub struct WynDex {
     /// Suite can be used to create new pools and register new rewards.

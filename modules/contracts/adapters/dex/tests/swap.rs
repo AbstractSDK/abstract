@@ -17,7 +17,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR, RAW_TOKEN, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER};
 
-const WYNDEX: &str = "cosmos-testnet>wynd";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 #[allow(clippy::type_complexity)]
 fn setup_mock() -> anyhow::Result<(
@@ -30,7 +30,7 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::deploy_on(chain.clone(), Empty {})?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;

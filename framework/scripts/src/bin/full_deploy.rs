@@ -30,7 +30,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network.clone())
             .build()?;
         let sender = chain.sender();
-        let deployment = Abstract::deploy_on(chain, Empty {})?;
+        let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         deployment

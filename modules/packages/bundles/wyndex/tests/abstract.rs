@@ -15,7 +15,7 @@ mod abstrct {
         let owner = Addr::unchecked(WYNDEX_OWNER);
         let mock = Mock::new(&owner);
 
-        Abstract::deploy_on(mock.clone(), Empty {}).unwrap();
+        Abstract::deploy_on(mock.clone(), owner.to_string()).unwrap();
 
         let deployed = WynDex::deploy_on(mock.clone(), Empty {}).unwrap();
         let loaded = WynDex::load_from(mock).unwrap();

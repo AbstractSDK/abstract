@@ -21,7 +21,7 @@ use cw_orch::prelude::*;
 use speculoos::*;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
-const WYNDEX: &str = "cosmos-testnet>wynd";
+const WYNDEX: &str = "cosmos-testnet>wyndex";
 
 use abstract_cw_staking::CW_STAKING;
 use common::create_default_account;
@@ -35,7 +35,7 @@ fn setup_mock() -> anyhow::Result<(
     let sender = Addr::unchecked(common::ROOT_USER);
     let chain = Mock::new(&sender);
 
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let wyndex = wyndex_bundle::WynDex::store_on(chain.clone())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;

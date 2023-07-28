@@ -1,15 +1,13 @@
 use std::path::Path;
 
+use abstract_core::adapter;
 use cosmwasm_schema::{export_schema_with_title, schema_for, write_api, QueryResponses};
 use cosmwasm_std::Empty;
 use schemars::JsonSchema;
 use serde::Serialize;
 
 use abstract_core::adapter::{AdapterExecuteMsg, AdapterQueryMsg};
-use abstract_sdk::{
-    base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint},
-    core::adapter::{AdapterConfigResponse, AuthorizedAddressesResponse},
-};
+use abstract_sdk::base::{ExecuteEndpoint, InstantiateEndpoint, QueryEndpoint};
 
 use crate::{AdapterContract, AdapterError};
 
@@ -26,6 +24,14 @@ impl<
     > AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
     pub fn export_schema(out_dir: &Path) {
+        write_api! {
+            name: "schema",
+            instantiate: adapter::InstantiateMsg<CustomInitMsg>,
+            query: adapter::QueryMsg<CustomQueryMsg>,
+            execute: adapter::ExecuteMsg<CustomExecMsg, ReceiveMsg>,
+            migrate: Empty,
+        };
+
         // write out the module schema
         write_api! {
             name: "module-schema",
@@ -49,16 +55,6 @@ impl<
             &schema_for!(<Self as QueryEndpoint>::QueryMsg),
             out_dir,
             "QueryMsg",
-        );
-        export_schema_with_title(
-            &schema_for!(AuthorizedAddressesResponse),
-            out_dir,
-            "AuthorizedAddressesResponse",
-        );
-        export_schema_with_title(
-            &schema_for!(AdapterConfigResponse),
-            out_dir,
-            "ConfigResponse",
         );
     }
 }
