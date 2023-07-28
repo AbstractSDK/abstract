@@ -40,15 +40,6 @@ impl From<ContractEntry> for UncheckedContractEntry {
     }
 }
 
-// TODO?: Find a way for a harmless removing it
-impl TryFrom<String> for UncheckedContractEntry {
-    type Error = StdError;
-    /// Try from a string like "protocol:contract_name"
-    fn try_from(entry: String) -> Result<Self, Self::Error> {
-        UncheckedContractEntry::try_from(entry.as_str())
-    }
-}
-
 impl TryFrom<&str> for UncheckedContractEntry {
     type Error = StdError;
     /// Try from a string slice like "protocol:contract_name"
