@@ -2,7 +2,7 @@ mod common;
 
 use abstract_interface::*;
 use common::*;
-use cosmwasm_std::{Addr};
+use cosmwasm_std::Addr;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
