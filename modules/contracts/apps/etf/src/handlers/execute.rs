@@ -181,12 +181,14 @@ pub fn try_withdraw_liquidity(
     }
 
     // Construct repay msg by transferring the assets back to the sender
-    let refund_msg = bank.transfer(shares_assets, &sender)?;
+    let refund_msg = app
+        .executor(deps.as_ref())
+        .execute(vec![bank.transfer(shares_assets, &sender)?])?;
 
     // LP burn msg
     let burn_msg: CosmosMsg = wasm_execute(
         state.share_token_address,
-        // Burn exludes fee
+        // Burn excludes fee
         &Cw20ExecuteMsg::Burn {
             amount: (amount - manager_fee),
         },
@@ -199,7 +201,7 @@ pub fn try_withdraw_liquidity(
         // Burn LP tokens
         .add_message(burn_msg)
         // Send proxy funds to owner
-        .add_messages(refund_msg.messages()))
+        .add_message(refund_msg))
 }
 
 fn set_fee(deps: DepsMut, msg_info: MessageInfo, app: EtfApp, new_fee: Decimal) -> EtfResult {
