@@ -152,8 +152,8 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
 impl<'a> Prefixer<'a> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.namespace.prefix();
-        res.extend(self.name.prefix().into_iter());
-        res.extend(self.version.prefix().into_iter());
+        res.extend(self.name.prefix());
+        res.extend(self.version.prefix());
         res
     }
 }

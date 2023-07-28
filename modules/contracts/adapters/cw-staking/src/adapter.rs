@@ -1,22 +1,27 @@
 use crate::msg::StakingAction;
 use abstract_staking_adapter_traits::CwStakingError;
-use cosmwasm_std::{DepsMut, Env, SubMsg};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 
 use abstract_staking_adapter_traits::CwStakingCommand;
 
-use abstract_sdk::{core::objects::AssetEntry, features::AbstractNameService, Execution};
+use abstract_sdk::{
+    core::objects::AssetEntry,
+    features::{AbstractNameService, AbstractRegistryAccess},
+    Execution,
+};
 
-impl<T> CwStakingAdapter for T where T: AbstractNameService + Execution {}
+impl<T> CwStakingAdapter for T where T: AbstractNameService + AbstractRegistryAccess + Execution {}
 
 /// Trait for dispatching *local* staking actions to the appropriate provider
 /// Resolves the required data for that provider
 /// Identifies an Adapter as a Staking Adapter
-pub trait CwStakingAdapter: AbstractNameService + Execution {
+pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execution {
     /// resolve the provided staking action on a local provider
     fn resolve_staking_action(
         &self,
         deps: DepsMut,
         env: Env,
+        info: MessageInfo,
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
@@ -25,7 +30,9 @@ pub trait CwStakingAdapter: AbstractNameService + Execution {
         provider.fetch_data(
             deps.as_ref(),
             env,
+            Some(info),
             &self.ans_host(deps.as_ref())?,
+            self.abstract_registry(deps.as_ref())?,
             staking_asset,
         )?;
 

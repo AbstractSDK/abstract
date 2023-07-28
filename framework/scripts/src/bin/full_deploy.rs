@@ -1,5 +1,3 @@
-use std::fs::remove_file;
-
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 

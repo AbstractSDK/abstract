@@ -72,7 +72,7 @@ impl<'a> PrimaryKey<'a> for &ChannelEntry {
 impl<'a> Prefixer<'a> for &ChannelEntry {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.connected_chain.prefix();
-        res.extend(self.protocol.prefix().into_iter());
+        res.extend(self.protocol.prefix());
         res
     }
 }
