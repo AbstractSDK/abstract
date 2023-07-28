@@ -2,7 +2,7 @@ mod common;
 
 use abstract_interface::*;
 use common::*;
-use cosmwasm_std::{Addr, Empty};
+use cosmwasm_std::{Addr};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 // use cw_multi_test::StakingInfo;
@@ -11,7 +11,7 @@ use cw_orch::prelude::*;
 fn creating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account
         .manager
@@ -23,7 +23,7 @@ fn creating_on_subaccount_should_succeed() -> AResult {
 fn updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account
         .manager
@@ -48,7 +48,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
 fn manager_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let manager_address = account.manager.address()?;
     account
@@ -78,7 +78,7 @@ fn manager_updating_on_subaccount_should_succeed() -> AResult {
 fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     account
         .manager
