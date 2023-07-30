@@ -10,7 +10,7 @@ pub trait NoisInterface: AbstractNameService + Sized {
     fn nois_proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
 
     /// Construct the nois client.
-    fn nois_client<'a>(&'a self, deps: Deps<'a>) -> NoisClient<Self> {
+    fn nois<'a>(&'a self, deps: Deps<'a>) -> NoisClient<Self> {
         NoisClient {
             _base: self,
             _deps: deps,
