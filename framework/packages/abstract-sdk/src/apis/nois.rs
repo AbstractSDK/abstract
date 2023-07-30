@@ -1,5 +1,5 @@
+use crate::cw_helpers::wasm_smart_query;
 use crate::features::AbstractNameService;
-/// ANCHOR: ans
 use crate::AbstractSdkResult;
 use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
@@ -10,12 +10,12 @@ pub trait NoisInterface: AbstractNameService + Sized {
     fn nois_proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
 
     /// Construct the nois client.
-    fn nois<'a>(&'a self, deps: Deps<'a>) -> NoisClient<Self> {
-        NoisClient {
+    fn nois<'a>(&'a self, deps: Deps<'a>) -> AbstractSdkResult<NoisClient<Self>> {
+        Ok(NoisClient {
             _base: self,
-            _deps: deps,
-            proxy: self.nois_proxy_address(deps).unwrap(),
-        }
+            deps: deps,
+            proxy: self.nois_proxy_address(deps)?,
+        })
     }
 }
 
@@ -24,15 +24,32 @@ pub trait NoisInterface: AbstractNameService + Sized {
 pub struct NoisClient<'a, T: NoisInterface> {
     _base: &'a T,
     /// Cw deps.
-    _deps: Deps<'a>,
+    deps: Deps<'a>,
     /// The address of the nois proxy.
     pub proxy: Addr,
 }
+
+// enum PaymentOption {
+//     FromCaller {
+//         funds: Vec<Coin>,
+//     },
+//     FromModule,
+//     FromProxy {
+//         env: cosmwasm_std::Env,
+//     }
+// }
 
 impl<'a, T: NoisInterface> NoisClient<'a, T> {
     /// Retrieve the address of the Nois proxy
     pub fn proxy(&self) -> &Addr {
         &self.proxy
+    }
+
+    /// Retrieve the prices from the nois proxy.
+    pub fn prices(&self) -> AbstractSdkResult<Vec<Coin>> {
+        let query = wasm_smart_query(self.proxy(), &nois_proxy::msg::QueryMsg::Prices {})?;
+        let resp: nois_proxy::msg::PricesResponse = self.deps.querier.query(&query)?;
+        Ok(resp.prices)
     }
 
     /// Request the next randomness from the nois proxy.
@@ -42,11 +59,29 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
         job_id: impl ToString,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<Vec<CosmosMsg>> {
+        let prices = self.prices()?;
+        // check that the funds that they sent match one of the assets in prices and is at least as much
+        // as the price
+        for Coin { denom, amount } in prices.iter() {
+            for Coin {
+                denom: fund_denom,
+                amount: fund_amount,
+            } in funds.iter()
+            {
+                if denom == fund_denom && fund_amount < amount {
+                    return Err(cosmwasm_std::StdError::generic_err(format!(
+                        "Insufficient funds. {} is less than {}",
+                        fund_amount, amount
+                    ))
+                    .into());
+                }
+            }
+        }
+
         let msg = wasm_execute(
             self.proxy(),
             // GetNextRandomness requests the randomness from the proxy
             // The job id is needed to know what randomness we are referring to upon reception in the callback
-            // In this example, the job_id represents one round of dice rolling.
             &nois::ProxyExecuteMsg::GetNextRandomness {
                 job_id: job_id.to_string(),
             },
