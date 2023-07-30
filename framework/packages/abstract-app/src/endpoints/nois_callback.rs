@@ -6,15 +6,8 @@ use cosmwasm_std::{
     ensure_eq
 };
 use nois::NoisCallback;
-use abstract_core::objects::{UncheckedContractEntry};
-use abstract_sdk::{
-    base::NoisHandler,
-    features::AbstractNameService
-};
+use abstract_sdk::{base::NoisHandler, NoisInterface};
 use crate::{AppContract, NoisCallbackEndpoint, AppError};
-
-const NOIS_PROTOCOL: &str = "nois";
-const NOIS_PROXY_CONTRACT: &str = "proxy";
 
 impl<
     Error: From<cosmwasm_std::StdError>
@@ -40,16 +33,22 @@ for AppContract<
 >
 {
     fn nois_callback(self, deps: DepsMut, env: Env, info: MessageInfo, callback: NoisCallback) -> Result<Response, Self::Error> {
-        let ans_host = self.ans_host(deps.as_ref())?;
+        let nois_proxy = self.nois_proxy_address(deps.as_ref())?;
 
-        let nois_proxy = ans_host.query_contract(&deps.querier, &UncheckedContractEntry::new(NOIS_PROTOCOL, NOIS_PROXY_CONTRACT).check())?;
-
-        //callback should only be allowed to be called by the proxy contract
+        // callback should only be allowed to be called by the proxy contract
         // otherwise anyone can cut the randomness workflow and cheat the randomness by sending the randomness directly to this contract
         ensure_eq!(info.sender, nois_proxy, AppError::UnauthorizedNoisCallback {
             caller: info.sender,
             proxy_addr: nois_proxy
         });
+
+        // Save the randomness to the state
+        self.randomness.update(deps.storage, callback.job_id.clone(), |prev| -> Result<_, AppError> {
+            match prev {
+                Some(_) => Err(AppError::RandomnessAlreadySet(callback.job_id.to_string())),
+                None => Ok(callback.randomness.clone())
+            }
+        })?;
 
         let Some(handler) = self.maybe_nois_callback_handler() else {
             return Ok(Response::new())

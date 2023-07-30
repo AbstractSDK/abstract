@@ -1,16 +1,10 @@
 /// ANCHOR: ans
-use crate::{ans_resolve::Resolve, cw_helpers::wasm_smart_query, AbstractSdkResult};
-use abstract_core::{
-    objects::{ans_host::AnsHost, DexAssetPairing},
-};
+use crate::{ AbstractSdkResult};
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Timestamp, wasm_execute};
-use nois::NoisCallback;
 use crate::features::AbstractNameService;
-use crate::error::AbstractSdkError;
 
 /// Accessor to the Nois client.
 /// TODO: query the nois-proxy for prices
-/// TODO: store the randmoness
 pub trait NoisInterface: AbstractNameService + Sized {
     /// Get the Nois proxy address.
     fn nois_proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
@@ -19,7 +13,7 @@ pub trait NoisInterface: AbstractNameService + Sized {
     fn nois_client<'a>(&'a self, deps: Deps<'a>) -> NoisClient<Self> {
         NoisClient {
             _base: self,
-            deps,
+            _deps: deps,
             proxy: self.nois_proxy_address(deps).unwrap(),
         }
     }
@@ -29,12 +23,14 @@ pub trait NoisInterface: AbstractNameService + Sized {
 #[derive(Clone)]
 pub struct NoisClient<'a, T: NoisInterface> {
     _base: &'a T,
-    deps: Deps<'a>,
+    /// Cw deps.
+    _deps: Deps<'a>,
     /// The address of the nois proxy.
     pub proxy: Addr,
 }
 
 impl<'a, T: NoisInterface> NoisClient<'a, T> {
+    /// Retrieve the address of the Nois proxy
     pub fn proxy(&self) -> &Addr {
         &self.proxy
     }

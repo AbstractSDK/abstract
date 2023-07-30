@@ -21,4 +21,8 @@ pub enum AppError {
         caller: cosmwasm_std::Addr,
         proxy_addr: cosmwasm_std::Addr,
     },
+
+    #[cfg(feature = "nois")]
+    #[error("Randomness already set for job_id {0}")]
+    RandomnessAlreadySet(String)
 }

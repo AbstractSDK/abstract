@@ -12,7 +12,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
-use cw_storage_plus::Item;
+use cw_storage_plus::{Item};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -59,6 +59,10 @@ pub struct AppContract<
 
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
+
+    #[cfg(feature = "nois")]
+    /// Storage of a nois job id to the randomness
+    pub randomness: cw_storage_plus::Map<'static, String, cosmwasm_std::HexBinary>
 }
 
 /// Constructor
@@ -90,6 +94,8 @@ impl<
             base_state: Item::new(BASE_STATE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
+            #[cfg(feature = "nois")]
+            randomness: cw_storage_plus::Map::new("randomness"),
         }
     }
 
