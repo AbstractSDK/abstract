@@ -6,6 +6,8 @@ mod query;
 mod receive;
 mod reply;
 mod sudo;
+#[cfg(feature = "nois")]
+mod nois_callback;
 
 #[macro_export]
 /// Exports all entry-points, should be enabled by default.

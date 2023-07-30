@@ -9,11 +9,19 @@ mod handler;
 #[cfg(feature = "nois")]
 mod nois_handler;
 
+
 pub use contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     VersionString,
 };
+#[cfg(feature = "nois")]
+pub use {
+    nois_handler::NoisHandler,
+    contract_base::NoisCallbackHandlerFn,
+    endpoints::NoisCallbackEndpoint
+};
+
 pub use endpoints::{
     migrate::MigrateEndpoint, ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint,
     QueryEndpoint, ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,

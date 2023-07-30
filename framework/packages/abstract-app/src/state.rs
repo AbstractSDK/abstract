@@ -166,6 +166,35 @@ impl<
     }
 }
 
+#[cfg(feature = "nois")]
+impl<
+    Error: ContractError,
+    CustomInitMsg,
+    CustomExecMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+    SudoMsg,
+>
+AppContract<
+    Error,
+    CustomInitMsg,
+    CustomExecMsg,
+    CustomQueryMsg,
+    CustomMigrateMsg,
+    ReceiveMsg,
+    SudoMsg,
+>
+{
+    pub const fn with_nois_callback(
+        mut self,
+        nois_callback_handler: abstract_sdk::base::NoisCallbackHandlerFn<Self, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_nois_callback(nois_callback_handler);
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use abstract_testing::prelude::{TEST_MODULE_ID, TEST_VERSION};

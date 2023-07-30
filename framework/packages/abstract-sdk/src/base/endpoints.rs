@@ -134,6 +134,8 @@ mod query;
 mod receive;
 mod reply;
 mod sudo;
+#[cfg(feature = "nois")]
+mod nois_callback;
 
 // Provide endpoints under ::base::traits::
 pub use execute::ExecuteEndpoint;
@@ -144,3 +146,5 @@ pub use query::QueryEndpoint;
 pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
 pub use sudo::SudoEndpoint;
+#[cfg(feature = "nois")]
+pub use nois_callback::NoisCallbackEndpoint;

@@ -1,5 +1,5 @@
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{StdError};
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -13,4 +13,12 @@ pub enum AppError {
 
     #[error("{0}")]
     Admin(#[from] AdminError),
+
+    // Unauthorized callback error
+    #[cfg(feature = "nois")]
+    #[error("Nois callback was not from proxy contract: expected {proxy_addr}, was {caller}")]
+    UnauthorizedNoisCallback {
+        caller: cosmwasm_std::Addr,
+        proxy_addr: cosmwasm_std::Addr,
+    },
 }

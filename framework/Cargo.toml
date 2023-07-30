@@ -77,6 +77,9 @@ abstract-adapter-utils = { version = "0.17.1", path = "packages/utils" }
 abstract-dex-adapter-traits = { path = "packages/dex" }
 abstract-staking-adapter-traits = { path = "packages/staking" }
 
+## Integrations
+nois = "0.7.0"
+
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"

@@ -6,6 +6,7 @@ use crate::{
     AbstractSdkError, AbstractSdkResult,
 };
 
+/// Accessor trait for nois-related callback handler(s).
 pub trait NoisHandler: Handler
     where
         Self: Sized + 'static,
