@@ -67,6 +67,13 @@ pub type SudoHandlerFn<Module, CustomSudoMsg, Error> =
 pub type ReplyHandlerFn<Module, Error> = fn(DepsMut, Env, Module, Reply) -> Result<Response, Error>;
 // ANCHOR_END: reply
 
+// ANCHOR: nois
+#[cfg(feature = "nois")]
+/// Function signature for a nois callback handler.
+pub type NoisCallbackHandlerFn<Module, Error> =
+    fn(DepsMut, Env, MessageInfo, Module, nois::NoisCallback) -> Result<Response, Error>;
+// ANCHOR_END: nois
+
 /// There can be two locations where reply handlers are added.
 /// 1. Base implementation of the contract.
 /// 2. Custom implementation of the contract.
@@ -102,6 +109,11 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
     /// IBC callbacks handlers following an IBC action, per callback ID.
     pub(crate) ibc_callback_handlers:
         &'static [(&'static str, IbcCallbackHandlerFn<Module, Error>)],
+
+    #[cfg(feature = "nois")]
+    /// Nois callback handler.
+    pub(crate) nois_callback_handler:
+    Option<NoisCallbackHandlerFn<Module, Error>>,
 }
 
 impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>
@@ -122,6 +134,8 @@ where
             sudo_handler: None,
             instantiate_handler: None,
             query_handler: None,
+            #[cfg(feature = "nois")]
+            nois_callback_handler: None,
         }
     }
     /// Gets the cw2 version of the contract.
@@ -168,7 +182,7 @@ where
         self
     }
 
-    /// Add query handler to the contract.
+    /// Add migrate handler to the contract.
     pub const fn with_migrate(
         mut self,
         migrate_handler: MigrateHandlerFn<Module, <Module as Handler>::CustomMigrateMsg, Error>,

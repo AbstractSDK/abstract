@@ -6,6 +6,8 @@ mod contract_base;
 mod endpoints;
 pub(crate) mod features;
 mod handler;
+#[cfg(feature = "nois")]
+mod nois_handler;
 
 pub use contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
