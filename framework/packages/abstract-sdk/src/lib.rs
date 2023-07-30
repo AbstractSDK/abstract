@@ -25,6 +25,8 @@ pub use crate::apis::{
     accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
     verify::*, version_registry::*,
 };
+#[cfg(feature = "nois")]
+pub use crate::apis::nois::*;
 
 pub use account_action::AccountAction;
 

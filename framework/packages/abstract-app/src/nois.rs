@@ -7,7 +7,7 @@ use abstract_core::objects::{UncheckedContractEntry};
 use abstract_sdk::base::NoisHandler;
 
 use cosmwasm_std::{Addr, Deps};
-use abstract_sdk::features::NoisAccess;
+use abstract_sdk::NoisInterface;
 
 const NOIS_PROTOCOL: &str = "nois";
 const NOIS_PROXY_CONTRACT: &str = "proxy";
@@ -25,7 +25,7 @@ impl<
     CustomMigrateMsg,
     ReceiveMsg,
     SudoMsg,
-> NoisAccess
+> NoisInterface
 for AppContract<
     Error,
     CustomInitMsg,

@@ -9,7 +9,9 @@ use crate::features::AbstractNameService;
 use crate::error::AbstractSdkError;
 
 /// Accessor to the Nois client.
-pub trait NoisAccess: AbstractNameService + Sized {
+/// TODO: query the nois-proxy for prices
+/// TODO: store the randmoness
+pub trait NoisInterface: AbstractNameService + Sized {
     /// Get the Nois proxy address.
     fn nois_proxy_address(&self, deps: Deps) -> AbstractSdkResult<Addr>;
 
@@ -22,16 +24,17 @@ pub trait NoisAccess: AbstractNameService + Sized {
         }
     }
 }
-/// ANCHOR_END: ans
 
+/// The Nois client.
 #[derive(Clone)]
-pub struct NoisClient<'a, T: NoisAccess> {
+pub struct NoisClient<'a, T: NoisInterface> {
     _base: &'a T,
     deps: Deps<'a>,
+    /// The address of the nois proxy.
     pub proxy: Addr,
 }
 
-impl<'a, T: NoisAccess> NoisClient<'a, T> {
+impl<'a, T: NoisInterface> NoisClient<'a, T> {
     pub fn proxy(&self) -> &Addr {
         &self.proxy
     }
