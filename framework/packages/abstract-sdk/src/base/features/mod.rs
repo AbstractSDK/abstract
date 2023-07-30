@@ -10,4 +10,3 @@ pub use abstract_registry_access::AbstractRegistryAccess;
 pub use dependencies::Dependencies;
 pub use identification::AccountIdentification;
 pub use module_identification::ModuleIdentification;
-

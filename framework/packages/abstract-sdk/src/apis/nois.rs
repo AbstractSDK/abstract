@@ -1,7 +1,7 @@
-/// ANCHOR: ans
-use crate::{ AbstractSdkResult};
-use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Timestamp, wasm_execute};
 use crate::features::AbstractNameService;
+/// ANCHOR: ans
+use crate::AbstractSdkResult;
+use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg, Deps, Timestamp};
 
 /// Accessor to the Nois client.
 /// TODO: query the nois-proxy for prices
@@ -37,41 +37,56 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
 
     /// Request the next randomness from the nois proxy.
     /// The *job_id* is needed to know what randomness we are referring to upon reception in the callback.
-    pub fn next_randomness(&self, job_id: impl ToString, funds: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn next_randomness(
+        &self,
+        job_id: impl ToString,
+        funds: Vec<Coin>,
+    ) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let msg = wasm_execute(
             self.proxy(),
             // GetNextRandomness requests the randomness from the proxy
             // The job id is needed to know what randomness we are referring to upon reception in the callback
             // In this example, the job_id represents one round of dice rolling.
-            &nois::ProxyExecuteMsg::GetNextRandomness { job_id: job_id.to_string() },
+            &nois::ProxyExecuteMsg::GetNextRandomness {
+                job_id: job_id.to_string(),
+            },
             //In this example the randomness is sent from the gambler, but you may also send the funds from the contract balance
-           funds,
-        )?.into();
+            funds,
+        )?
+        .into();
 
-        Ok(msg)
+        Ok(vec![msg])
     }
 
     /// Request the next randomness after a given timestamp.
     /// The *job_id* is needed to know what randomness we are referring to upon reception in the callback.
-    pub fn randomness_after(&self, job_id: impl ToString, after: Timestamp, funds: Vec<Coin>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn randomness_after(
+        &self,
+        job_id: impl ToString,
+        after: Timestamp,
+        funds: Vec<Coin>,
+    ) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let msg = wasm_execute(
             self.proxy(),
-            //GetNextRandomnessAfter requests the randomness from the proxy after a given timestamp
-            //The job id is needed to know what randomness we are referring to upon reception in the callback
-            //In this example, the job_id represents one round of dice rolling.
-            &nois::ProxyExecuteMsg::GetRandomnessAfter { after, job_id: job_id.to_string() },
+            // GetNextRandomnessAfter requests the randomness from the proxy after a given timestamp
+            &nois::ProxyExecuteMsg::GetRandomnessAfter {
+                after,
+                job_id: job_id.to_string(),
+            },
             //In this example the randomness is sent from the gambler, but you may also send the funds from the contract balance
             funds,
-        )?.into();
+        )?
+        .into();
 
-        Ok(msg)
+        Ok(vec![msg])
     }
 
     /// Parse the randmess from a callback into a 32 byte array.
     /// Check out the means to leverage the parsed randomness in the [nois] crate.
-    pub fn parse_randomness(&self, randomness: cosmwasm_std::HexBinary) -> AbstractSdkResult<[u8; 32]> {
-        Ok(randomness
-            .to_array()?)
+    pub fn parse_randomness(
+        &self,
+        randomness: cosmwasm_std::HexBinary,
+    ) -> AbstractSdkResult<[u8; 32]> {
+        Ok(randomness.to_array()?)
     }
-
 }

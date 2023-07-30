@@ -1,10 +1,10 @@
 mod endpoints;
 pub mod error;
 pub mod features;
-#[cfg(feature = "nois")]
-pub mod nois;
 pub(crate) mod handler;
 pub mod msgs;
+#[cfg(feature = "nois")]
+pub mod nois;
 #[cfg(feature = "schema")]
 pub mod schema;
 pub mod state;

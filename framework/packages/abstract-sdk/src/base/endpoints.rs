@@ -130,21 +130,21 @@ mod execute;
 mod ibc_callback;
 mod instantiate;
 pub(crate) mod migrate;
+#[cfg(feature = "nois")]
+mod nois_callback;
 mod query;
 mod receive;
 mod reply;
 mod sudo;
-#[cfg(feature = "nois")]
-mod nois_callback;
 
 // Provide endpoints under ::base::traits::
 pub use execute::ExecuteEndpoint;
 pub use ibc_callback::IbcCallbackEndpoint;
 pub use instantiate::InstantiateEndpoint;
 pub use migrate::MigrateEndpoint;
+#[cfg(feature = "nois")]
+pub use nois_callback::NoisCallbackEndpoint;
 pub use query::QueryEndpoint;
 pub use receive::ReceiveEndpoint;
 pub use reply::ReplyEndpoint;
 pub use sudo::SudoEndpoint;
-#[cfg(feature = "nois")]
-pub use nois_callback::NoisCallbackEndpoint;

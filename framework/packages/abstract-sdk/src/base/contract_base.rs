@@ -112,8 +112,7 @@ pub struct AbstractContract<Module: Handler + 'static, Error: From<AbstractSdkEr
 
     #[cfg(feature = "nois")]
     /// Nois callback handler.
-    pub(crate) nois_callback_handler:
-    Option<NoisCallbackHandlerFn<Module, Error>>,
+    pub(crate) nois_callback_handler: Option<NoisCallbackHandlerFn<Module, Error>>,
 }
 
 impl<Module, Error: From<AbstractSdkError>> AbstractContract<Module, Error>

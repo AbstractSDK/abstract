@@ -1,5 +1,5 @@
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{StdError};
+use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
@@ -24,5 +24,5 @@ pub enum AppError {
 
     #[cfg(feature = "nois")]
     #[error("Randomness already set for job_id {0}")]
-    RandomnessAlreadySet(String)
+    RandomnessAlreadySet(String),
 }

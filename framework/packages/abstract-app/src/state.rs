@@ -12,7 +12,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{Addr, Empty, StdResult, Storage};
 use cw_controllers::Admin;
-use cw_storage_plus::{Item};
+use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -62,7 +62,7 @@ pub struct AppContract<
 
     #[cfg(feature = "nois")]
     /// Storage of a nois job id to the randomness
-    pub randomness: cw_storage_plus::Map<'static, String, cosmwasm_std::HexBinary>
+    pub randomness: cw_storage_plus::Map<'static, String, cosmwasm_std::HexBinary>,
 }
 
 /// Constructor
@@ -174,23 +174,23 @@ impl<
 
 #[cfg(feature = "nois")]
 impl<
-    Error: ContractError,
-    CustomInitMsg,
-    CustomExecMsg,
-    CustomQueryMsg,
-    CustomMigrateMsg,
-    ReceiveMsg,
-    SudoMsg,
->
-AppContract<
-    Error,
-    CustomInitMsg,
-    CustomExecMsg,
-    CustomQueryMsg,
-    CustomMigrateMsg,
-    ReceiveMsg,
-    SudoMsg,
->
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+    AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
 {
     pub const fn with_nois_callback(
         mut self,
