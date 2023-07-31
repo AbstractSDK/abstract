@@ -1,7 +1,7 @@
 use crate::cw_helpers::wasm_smart_query;
 use crate::features::AbstractNameService;
 use crate::AbstractSdkResult;
-use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg, Deps, Timestamp};
+use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg, Deps, StdError, StdResult, Timestamp};
 
 /// Accessor to the Nois client.
 /// TODO: query the nois-proxy for prices
@@ -59,6 +59,9 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
         job_id: impl ToString,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<Vec<CosmosMsg>> {
+        let job_id = job_id.to_string();
+        self.validate_job_id(&job_id)?;
+
         let prices = self.prices()?;
         // check that the funds that they sent match one of the assets in prices and is at least as much
         // as the price
@@ -82,9 +85,7 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
             self.proxy(),
             // GetNextRandomness requests the randomness from the proxy
             // The job id is needed to know what randomness we are referring to upon reception in the callback
-            &nois::ProxyExecuteMsg::GetNextRandomness {
-                job_id: job_id.to_string(),
-            },
+            &nois::ProxyExecuteMsg::GetNextRandomness { job_id },
             //In this example the randomness is sent from the gambler, but you may also send the funds from the contract balance
             funds,
         )?
@@ -101,12 +102,15 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
         after: Timestamp,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<Vec<CosmosMsg>> {
+        let job_id = job_id.to_string();
+        self.validate_job_id(&job_id)?;
+
         let msg = wasm_execute(
             self.proxy(),
             // GetNextRandomnessAfter requests the randomness from the proxy after a given timestamp
             &nois::ProxyExecuteMsg::GetRandomnessAfter {
                 after,
-                job_id: job_id.to_string(),
+                job_id: job_id,
             },
             //In this example the randomness is sent from the gambler, but you may also send the funds from the contract balance
             funds,
@@ -123,5 +127,17 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
         randomness: cosmwasm_std::HexBinary,
     ) -> AbstractSdkResult<[u8; 32]> {
         Ok(randomness.to_array()?)
+    }
+
+    /// Validate that a given job id is valid.
+    pub fn validate_job_id(&self, job_id: &str) -> StdResult<()> {
+        if job_id.len() > nois::MAX_JOB_ID_LEN {
+            Err(StdError::generic_err(format!(
+                "Job id is too long. Max length is {}",
+                nois::MAX_JOB_ID_LEN
+            )))
+        } else {
+            Ok(())
+        }
     }
 }
