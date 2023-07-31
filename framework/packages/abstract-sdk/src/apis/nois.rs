@@ -116,7 +116,7 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
         Ok(vec![msg])
     }
 
-    /// Parse the randmess from a callback into a 32 byte array.
+    /// Parse the randomness from a callback into a 32 byte array.
     /// Check out the means to leverage the parsed randomness in the [nois] crate.
     pub fn parse_randomness(
         &self,
