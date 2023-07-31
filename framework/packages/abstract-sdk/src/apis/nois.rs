@@ -2,6 +2,9 @@ use crate::cw_helpers::wasm_smart_query;
 use crate::features::AbstractNameService;
 use crate::AbstractSdkResult;
 use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg, Deps, StdError, StdResult, Timestamp};
+use schemars::JsonSchema;
+use serde::{Serialize, Deserialize};
+
 
 /// Accessor to the Nois client.
 /// TODO: query the nois-proxy for prices
@@ -29,6 +32,7 @@ pub struct NoisClient<'a, T: NoisInterface> {
     pub proxy: Addr,
 }
 
+// TODO: payment option so that the caller can specify whether they actually want the funds pulled from the account
 // enum PaymentOption {
 //     FromCaller {
 //         funds: Vec<Coin>,
@@ -39,6 +43,19 @@ pub struct NoisClient<'a, T: NoisInterface> {
 //     }
 // }
 
+/// TODO: don't copy these from the nois-proxy
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub enum NoisProxyQueryMsg {
+    /// Get the prices.
+    Prices {},
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct NoisPricesResponse {
+    /// Prices are encoded in a one-of list.
+    pub prices: Vec<cosmwasm_std::Coin>,
+}
+
 impl<'a, T: NoisInterface> NoisClient<'a, T> {
     /// Retrieve the address of the Nois proxy
     pub fn proxy(&self) -> &Addr {
@@ -47,8 +64,11 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
 
     /// Retrieve the prices from the nois proxy.
     pub fn prices(&self) -> AbstractSdkResult<Vec<Coin>> {
-        let query = wasm_smart_query(self.proxy(), &nois_proxy::msg::QueryMsg::Prices {})?;
-        let resp: nois_proxy::msg::PricesResponse = self.deps.querier.query(&query)?;
+        // let query = wasm_smart_query(self.proxy(), &nois_proxy::msg::QueryMsg::Prices {})?;
+        // let resp: nois_proxy::msg::PricesResponse = self.deps.querier.query(&query)?;
+        // TODO: this doesn't seem to work?
+        let resp: NoisPricesResponse = self.deps.querier.query_wasm_smart(self.proxy(), &NoisProxyQueryMsg::Prices {}).map_err(|e| {
+            StdError::generic_err(format!("failed to query nois proxy for prices: {}", e)) })?;
         Ok(resp.prices)
     }
 
@@ -61,25 +81,25 @@ impl<'a, T: NoisInterface> NoisClient<'a, T> {
     ) -> AbstractSdkResult<Vec<CosmosMsg>> {
         let job_id = job_id.to_string();
         self.validate_job_id(&job_id)?;
-
-        let prices = self.prices()?;
-        // check that the funds that they sent match one of the assets in prices and is at least as much
-        // as the price
-        for Coin { denom, amount } in prices.iter() {
-            for Coin {
-                denom: fund_denom,
-                amount: fund_amount,
-            } in funds.iter()
-            {
-                if denom == fund_denom && fund_amount < amount {
-                    return Err(cosmwasm_std::StdError::generic_err(format!(
-                        "Insufficient funds. {} is less than {}",
-                        fund_amount, amount
-                    ))
-                    .into());
-                }
-            }
-        }
+        //
+        // let prices = self.prices()?;
+        // // check that the funds that they sent match one of the assets in prices and is at least as much
+        // // as the price
+        // for Coin { denom, amount } in prices.iter() {
+        //     for Coin {
+        //         denom: fund_denom,
+        //         amount: fund_amount,
+        //     } in funds.iter()
+        //     {
+        //         if denom == fund_denom && fund_amount < amount {
+        //             return Err(cosmwasm_std::StdError::generic_err(format!(
+        //                 "Insufficient funds. {} is less than {}",
+        //                 fund_amount, amount
+        //             ))
+        //             .into());
+        //         }
+        //     }
+        // }
 
         let msg = wasm_execute(
             self.proxy(),

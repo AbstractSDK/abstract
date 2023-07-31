@@ -13,7 +13,7 @@ resolver = "2"
 [features]
 default = []
 stargate = ["dep:cosmos-sdk-proto", "dep:prost-types"]
-nois = ["dep:nois", "dep:nois-proxy"]
+nois = ["dep:nois", "abstract-core/nois"]
 
 # Expose MockModule for testing with other Adapters
 test-utils = ["dep:abstract-testing", "dep:cosmwasm-schema"]
@@ -38,7 +38,7 @@ abstract-macros = { workspace = true }
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 nois = { workspace = true, optional = true }
-nois-proxy = { workspace = true, optional = true }
+#nois-proxy = { workspace = true, optional = true, default-features = false, features = ["library"] }
 
 [dev-dependencies]
 speculoos = { workspace = true }

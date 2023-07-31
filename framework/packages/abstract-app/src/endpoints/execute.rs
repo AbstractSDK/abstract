@@ -7,6 +7,7 @@ use abstract_sdk::{base::ReceiveEndpoint, features::AbstractResponse};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
 use schemars::JsonSchema;
 use serde::Serialize;
+use abstract_sdk::base::NoisCallbackEndpoint;
 
 impl<
         Error: From<cosmwasm_std::StdError>
@@ -47,6 +48,8 @@ impl<
                 .map_err(From::from),
             ExecuteMsg::IbcCallback(msg) => self.ibc_callback(deps, env, info, msg),
             ExecuteMsg::Receive(msg) => self.receive(deps, env, info, msg),
+            #[cfg(feature = "nois")]
+            ExecuteMsg::NoisReceive { callback } => self.nois_callback(deps, env, info, callback),
             #[allow(unreachable_patterns)]
             _ => Err(StdError::generic_err("Unsupported App execute message variant").into()),
         }

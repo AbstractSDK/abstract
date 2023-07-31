@@ -13,7 +13,7 @@ resolver = "2"
 [features]
 test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
 schema = []
-nois = ["dep:nois", "abstract-sdk/nois"]
+nois = ["dep:nois", "abstract-sdk/nois", "abstract-core/nois"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }

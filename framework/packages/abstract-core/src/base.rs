@@ -14,6 +14,9 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
     IbcCallback(IbcResponseMsg),
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),
+    #[cfg(feature = "nois")]
+    /// Nois receive endpoint to process nois callbacks
+    NoisReceive { callback: nois::NoisCallback }
 }
 // ANCHOR_END: exec
 

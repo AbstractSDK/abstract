@@ -3,7 +3,7 @@
   "description": "Create DCA for your abstract account ",
   "website": "",
   "docs": "",
-  "type": "api",
+  "type": "app",
   "icon": "GiTrade",
   "enabled": true
 }

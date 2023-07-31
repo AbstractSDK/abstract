@@ -11,6 +11,7 @@ repository = "https://github.com/AbstractSDK/contracts"
 
 [features]
 interface = ["dep:cw-orch"]
+nois = ["dep:nois"]
 # for quicker tests, cargo test --lib
 
 [dependencies]
@@ -31,6 +32,7 @@ cw20 = { workspace = true }
 abstract-ica = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
+nois = { workspace = true, optional = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

@@ -1,7 +1,7 @@
 use crate::{state::ContractError, AppContract};
 use abstract_core::objects::UncheckedContractEntry;
 use abstract_sdk::base::NoisHandler;
-use abstract_sdk::{features::AbstractNameService, AbstractSdkResult};
+use abstract_sdk::{features::AbstractNameService, AbstractSdkResult, AbstractSdkError};
 
 use abstract_sdk::NoisInterface;
 use cosmwasm_std::{Addr, Deps};
