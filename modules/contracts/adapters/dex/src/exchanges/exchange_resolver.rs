@@ -4,21 +4,30 @@ use abstract_adapter_utils::identity::is_current_chain;
 use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
-use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
-use crate::exchanges::kujira::{Kujira, KUJIRA};
-use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
-use abstract_astroport_adapter::{dex::Astroport, ASTROPORT};
-use abstract_osmosis_adapter::{dex::Osmosis, OSMOSIS};
-use abstract_wyndex_adapter::{dex::WynDex, WYNDEX};
-
 pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexError> {
     match value {
-        JUNOSWAP => Ok(Box::<JunoSwap>::default()),
-        WYNDEX => Ok(Box::<WynDex>::default()),
-        OSMOSIS => Ok(Box::<Osmosis>::default()),
-        TERRASWAP => Ok(Box::<Terraswap>::default()),
-        ASTROPORT => Ok(Box::<Astroport>::default()),
-        KUJIRA => Ok(Box::<Kujira>::default()),
+        #[cfg(feature = "juno")]
+        crate::exchanges::junoswap::JUNOSWAP => {
+            Ok(Box::<crate::exchanges::junoswap::JunoSwap>::default())
+        }
+        #[cfg(feature = "juno")]
+        abstract_wyndex_adapter::WYNDEX => {
+            Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
+        }
+        #[cfg(feature = "osmosis")]
+        abstract_osmosis_adapter::OSMOSIS => {
+            Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
+        }
+        #[cfg(feature = "terra")]
+        crate::exchanges::terraswap::TERRASWAP => {
+            Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
+        }
+        #[cfg(any(feature = "terra", feature = "neutron"))]
+        abstract_astroport_adapter::ASTROPORT => {
+            Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
+        }
+        #[cfg(feature = "kujira")]
+        crate::exchanges::kujira::KUJIRA => Ok(Box::<crate::exchanges::kujira::Kujira>::default()),
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -26,24 +35,24 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
 pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, DexError> {
     match value {
         #[cfg(feature = "juno")]
-        JUNOSWAP => Ok(&JunoSwap {}),
+        crate::exchanges::junoswap::JUNOSWAP => Ok(&crate::exchanges::junoswap::JunoSwap {}),
         #[cfg(feature = "juno")]
-        WYNDEX => Ok(&WynDex {}),
+        abstract_wyndex_adapter::WYNDEX => Ok(&abstract_wyndex_adapter::dex::WynDex {}),
         #[cfg(feature = "osmosis")]
-        OSMOSIS => Ok(&Osmosis {
+        abstract_osmosis_adapter::OSMOSIS => Ok(&abstract_osmosis_adapter::dex::Osmosis {
             local_proxy_addr: None,
         }),
         #[cfg(feature = "terra")]
-        TERRASWAP => Ok(&Terraswap {}),
-        #[cfg(feature = "terra")]
-        ASTROPORT => Ok(&Astroport {}),
+        crate::exchanges::terraswap::TERRASWAP => Ok(&crate::exchanges::terraswap::Terraswap {}),
+        #[cfg(any(feature = "terra", feature = "neutron"))]
+        abstract_astroport_adapter::ASTROPORT => Ok(&abstract_astroport_adapter::dex::Astroport {}),
         #[cfg(feature = "kujira")]
-        KUJIRA => Ok(&Kujira {}),
+        crate::exchanges::kujira::KUJIRA => Ok(&crate::exchanges::kujira::Kujira {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }
 
-/// Given a FULL provider nam (e.g. juno>wyndex), returns wether the request is local or over IBC
+/// Given a FULL provider nam (e.g. juno>wyndex), returns whether the request is local or over IBC
 pub fn is_over_ibc(env: Env, platform_name: &str) -> Result<(String, bool), DexError> {
     let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
     if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
