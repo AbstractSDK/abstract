@@ -1,6 +1,6 @@
-use abstract_adapter_utils::Identify;
-
-pub const KUJIRA: &str = "kujira";
+use abstract_dex_adapter_traits::Identify;
+use crate::AVAILABLE_CHAINS;
+use crate::KUJIRA;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -11,11 +11,11 @@ impl Identify for Kujira {
         KUJIRA
     }
     fn is_available_on(&self, chain_name: &str) -> bool {
-        chain_name == "kujira"
+        AVAILABLE_CHAINS.contains(&chain_name)
     }
 }
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_adapter_traits::{
@@ -36,7 +36,7 @@ use ::{
     },
 };
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 impl DexCommand for Kujira {
     fn swap(
         &self,
@@ -298,7 +298,7 @@ impl DexCommand for Kujira {
     }
 }
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(kujira::Asset {
@@ -311,7 +311,7 @@ fn cw_asset_to_kujira(asset: &Asset) -> Result<kujira::Asset, DexError> {
     }
 }
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 /// Converts [`Decimal`] to [`Decimal256`].
 pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
     Decimal256::from_atomics(dec_value.atomics(), dec_value.decimal_places()).map_err(|_| {

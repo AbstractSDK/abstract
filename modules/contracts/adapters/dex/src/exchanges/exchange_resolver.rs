@@ -5,8 +5,8 @@ use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
 use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
-use crate::exchanges::kujira::{Kujira, KUJIRA};
 use crate::exchanges::terraswap::{Terraswap, TERRASWAP};
+use abstract_kujira_adapter::{dex::Kujira, KUJIRA};
 use abstract_astroport_adapter::{dex::Astroport, ASTROPORT};
 use abstract_osmosis_adapter::{dex::Osmosis, OSMOSIS};
 use abstract_wyndex_adapter::{dex::WynDex, WYNDEX};

@@ -8,7 +8,7 @@ use crate::contract::StakingResult;
 
 use abstract_staking_adapter_traits::Identify;
 
-use crate::providers::kujira::{Kujira, KUJIRA};
+use abstract_kujira_adapter::{staking::Kujira, KUJIRA};
 use abstract_astroport_adapter::{staking::Astroport, ASTROPORT};
 use abstract_osmosis_adapter::{staking::Osmosis, OSMOSIS};
 use abstract_wyndex_adapter::staking::{WynDex, WYNDEX};
