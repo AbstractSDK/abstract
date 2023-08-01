@@ -650,6 +650,12 @@
         {
           "native": "factory/kujira1ltvwg69sw3c5z99c6rr08hal7v0kdzfxz07yj5/demo"
         }
+      ],
+      [
+        "kujira/kujira>kuji,kujira>demo",
+        {
+          "native": "factory/kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq/ulp"
+        }
       ]
     ]
   },
