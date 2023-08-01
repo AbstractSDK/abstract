@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
+- StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis
