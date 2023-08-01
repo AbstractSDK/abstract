@@ -1,0 +1,16 @@
+{
+  "juno": {
+    "juno-1": {
+      "code_ids": {
+        "test:jury-duty": 3382
+      },
+      "default": {}
+    },
+    "uni-6": {
+      "code_ids": {
+        "test:jury-duty": 3091
+      },
+      "default": {}
+    }
+  }
+}

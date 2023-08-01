@@ -1,0 +1,9 @@
+{
+  "name": "Jury Duty",
+  "description": "Randomly selected jury for multisig",
+  "website": "",
+  "docs": "",
+  "type": "app",
+  "icon": "GiTrade",
+  "enabled": true
+}
