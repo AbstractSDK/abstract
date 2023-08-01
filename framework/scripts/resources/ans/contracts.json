@@ -27,6 +27,9 @@
   "osmosis": {
     "osmosis-1": []
   },
+  "kujira": {
+    "harpoon-4": []
+  },
   "juno": {
     "juno-1": [
       [

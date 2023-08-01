@@ -62,6 +62,7 @@
       "code_ids": {
         "abstract:account-factory": 2268,
         "abstract:ans-host": 2266,
+        "abstract:cw-staking": 2273,
         "abstract:manager": 2270,
         "abstract:module-factory": 2269,
         "abstract:proxy": 2271,
@@ -70,6 +71,7 @@
       "default": {
         "abstract:account-factory": "kujira1ujw9xxem29qyvlktzllllmsq4enfqnq3y626nlx42c88vvvtsvxq7ac0ju",
         "abstract:ans-host": "kujira10k2kalgwpfrtydf0ea98p98f9t9d07qq4e0zh675xd8x4c9h5j0sdum5up",
+        "abstract:cw-staking": "kujira1yjrn6tcugqmkhs2cduuvcy678q0gwgcu27upuvedf5d5299ny4hqczjdff",
         "abstract:manager": "kujira16z3kzv53pjwyfcjgmddklq3qh6ku8dh9q7crachtwckl9tqlacksa7wyuh",
         "abstract:module-factory": "kujira1e72x4a0pp5ufst23829ukuazplxwc424wj2lyv7vd4rkwjzxtzhq4jr689",
         "abstract:proxy": "kujira1zv5mhz4u6azyspkptlmx69wksmqpxw2em5srs4wwk242ps2qaxas93zjcj",

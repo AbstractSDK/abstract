@@ -341,6 +341,23 @@
       ]
     ]
   },
+  "kujira": {
+    "harpoon-4": [
+      [
+        {
+          "contract": "kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq"
+        },
+        {
+          "dex": "kujira",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "kujira>kuji",
+            "kujira>demo"
+          ]
+        }
+      ]
+    ]
+  },
   "juno": {
     "juno-1": [
       [
