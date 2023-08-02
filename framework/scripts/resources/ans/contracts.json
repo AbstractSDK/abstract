@@ -28,7 +28,15 @@
     "osmosis-1": []
   },
   "kujira": {
-    "harpoon-4": []
+    "harpoon-4": [
+      [
+        {
+          "protocol": "kujira",
+          "contract": "staking/kujira/kujira>kuji,kujira>demo"
+        },
+        "kujira1e7hxytqdg6v05f8ev3wrfcm5ecu3qyhl7y4ga73z76yuufnlk2rqd4uwf4"
+      ]
+    ]
   },
   "juno": {
     "juno-1": [

@@ -345,7 +345,10 @@
     "harpoon-4": [
       [
         {
-          "contract": "kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq"
+          "separate_addresses": {
+            "swap": "kujira1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrsqq4jjh",
+            "liquidity": "kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq"
+          }
         },
         {
           "dex": "kujira",
