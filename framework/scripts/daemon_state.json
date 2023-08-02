@@ -75,24 +75,63 @@
         "abstract:proxy": "terra19wanxdg87e7hwesuk2cr8xvpf4j097ql6q4twfkk4t83vwwqynfsw6eug8",
         "abstract:version-control": "terra17kwvwlmlcvf6cj0yjj4a5ff9u9vtd95jcl5zg0reznm0n3xt2l6qpmymqp"
       }
+    },
+    "pisco-1": {
+      "code_ids": {
+        "abstract:account-factory": 9520,
+        "abstract:ans-host": 9518,
+        "abstract:manager": 9522,
+        "abstract:module-factory": 9521,
+        "abstract:proxy": 9523,
+        "abstract:version-control": 9519
+      },
+      "default": {
+        "abstract:account-factory": "terra1nvuxszq7wcpn7uvy3wcxa0lsuetk9c6y3g942thmj9uxmn29t2zqzl8k8y",
+        "abstract:ans-host": "terra1cxw0s6maq4uevgq9lrxa46hy2l0u60985l404sut9cle4yczexrs83ju79",
+        "abstract:manager": "terra100scavp9nyuu4r4q0j4n7qqm3xtpys62665l9a542zwrcqflhz4qjk6zpm",
+        "abstract:module-factory": "terra1nn2252gs58jwkcdh8v8safec4d7ny3xe95kjdww5ge0tr96ye6mqfr4jsg",
+        "abstract:proxy": "terra1p9djau74pklu5wpr9c5u5j9kj63yj0m2jpsdg6vtf0zw8qqfat9s24gstc",
+        "abstract:version-control": "terra13ld3ulvcv5pfmas9v2gdlp5l5wdapaksvkfvxf5ttfysaq6msyvq4h847j"
+      }
     }
   },
-  "pisco-1": {
-    "code_ids": {
-      "abstract:account-factory": 9520,
-      "abstract:ans-host": 9518,
-      "abstract:manager": 9522,
-      "abstract:module-factory": 9521,
-      "abstract:proxy": 9523,
-      "abstract:version-control": 9519
+
+  "neutron": {
+    "neutron-1": {
+      "code_ids": {
+        "abstract:account-factory": 139,
+        "abstract:ans-host": 137,
+        "abstract:manager": 141,
+        "abstract:module-factory": 140,
+        "abstract:proxy": 142,
+        "abstract:version-control": 138
+      },
+      "default": {
+        "abstract:account-factory": "neutron1z727rvjswmuz3l6efwps69ehcvlcf964mnn639x89dteyjlgme8qwamzhq",
+        "abstract:ans-host": "neutron1mjxz7ns3ucm54wddegxzm9axsmyfcauv7ygpfu00k75gmeya77fqnhv28p",
+        "abstract:manager": "neutron1qk87xgcw75rgttfnkctsmfk2gs3hzl45ucryzluql8ykyvrqc64q5g8ekp",
+        "abstract:module-factory": "neutron1pvdcfyz8n55vcendhn8zmhdw66uukzcfv4u7th8cdml43ny9th9sa5gqls",
+        "abstract:proxy": "neutron1y2grhn2xgvmcvwswzrkhphltqlahy3zm78c3x536wth5lj4yw5ts24y99c",
+        "abstract:version-control": "neutron1us95yk9jp6ahl6jlv5mvk3g5ydykh37pzd27axmj0hzfw0catgcqcuv2fp"
+      }
     },
-    "default": {
-      "abstract:account-factory": "terra1nvuxszq7wcpn7uvy3wcxa0lsuetk9c6y3g942thmj9uxmn29t2zqzl8k8y",
-      "abstract:ans-host": "terra1cxw0s6maq4uevgq9lrxa46hy2l0u60985l404sut9cle4yczexrs83ju79",
-      "abstract:manager": "terra100scavp9nyuu4r4q0j4n7qqm3xtpys62665l9a542zwrcqflhz4qjk6zpm",
-      "abstract:module-factory": "terra1nn2252gs58jwkcdh8v8safec4d7ny3xe95kjdww5ge0tr96ye6mqfr4jsg",
-      "abstract:proxy": "terra1p9djau74pklu5wpr9c5u5j9kj63yj0m2jpsdg6vtf0zw8qqfat9s24gstc",
-      "abstract:version-control": "terra13ld3ulvcv5pfmas9v2gdlp5l5wdapaksvkfvxf5ttfysaq6msyvq4h847j"
+    "pion-1": {
+      "code_ids": {
+        "abstract:account-factory": 1286,
+        "abstract:ans-host": 1284,
+        "abstract:manager": 1288,
+        "abstract:module-factory": 1287,
+        "abstract:proxy": 1289,
+        "abstract:version-control": 1285
+      },
+      "default": {
+        "abstract:account-factory": "neutron1nw4waa8lsjfq5a3x96h0ekscqfy0dn6fez7yy597ph3r8weurqsq49udpm",
+        "abstract:ans-host": "neutron1fcmwjrfjw9z306m8cy5d9j2c50xxxtjdgnyzq4yjdht95cm8mj0q3pj8rm",
+        "abstract:manager": "neutron1gze9yud8mmlvpecpptvhw7j3njf2gwtyhswj7q9jl50q9gyx7wuqfuarq4",
+        "abstract:module-factory": "neutron1aujd27w8q7v2yvprh5m8xlz47e6czl069snehwudtgk3g3qu8huqrsvvgs",
+        "abstract:proxy": "neutron1gdutu5mptq8geettvlt2pz9teq5c5p7sv3lsfgnh6cklhw0knrhquu54h7",
+        "abstract:version-control": "neutron1fetr8pjntvzl7pzkvyg4d3lz9qyjta6tmfc3pw6hj2nafatguyhqrqt79f"
+      }
     }
   },
   "osmosis": {
@@ -114,5 +153,5 @@
         "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
       }
     }
-  }
+  },
 }

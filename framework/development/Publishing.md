@@ -19,3 +19,5 @@ Now we have all the
 Now you should proceed with deploying the contracts to the different chains. The resulting data (addresses, code-ids) is used when publishing the abstract-interface.
 5. `abstract-interface`
 6. `abstract-adapter`, `abstract-app` and `abstract-ibc-host`
+
+7. When our customers take a git dependency on our abstract-wyndex-adapter, for example, we must ensure that 
