@@ -1,4 +1,5 @@
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_core::objects::price_source::UncheckedPriceSource;
+use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
     to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
@@ -32,6 +33,7 @@ pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
 /// Function that starts the creation of the Account
+#[allow(clippy::too_many_arguments)]
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
@@ -40,6 +42,8 @@ pub fn execute_create_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    namespace: Option<String>,
+    base_asset: Option<AssetEntry>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -58,6 +62,11 @@ pub fn execute_create_account(
             account_manager_address: None,
             manager_module: Some(module.clone()),
             proxy_module: None,
+
+            additional_config: AdditionalContextConfig {
+                namespace,
+                base_asset,
+            },
         },
     )?;
 
@@ -224,6 +233,36 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         })?,
     });
 
+    let set_base_asset_msg = context
+        .additional_config
+        .base_asset
+        .map(|a| {
+            Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: proxy_address.to_string(),
+                funds: vec![],
+                msg: to_binary(&ProxyExecMsg::UpdateAssets {
+                    to_add: vec![(a, UncheckedPriceSource::None)],
+                    to_remove: vec![],
+                })?,
+            }))
+        })
+        .transpose()?;
+
+    let set_namespace_msg = context
+        .additional_config
+        .namespace
+        .map(|n| {
+            Ok::<_, StdError>(CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: config.version_control_contract.to_string(),
+                funds: vec![],
+                msg: to_binary(&VCExecuteMsg::ClaimNamespace {
+                    account_id: config.next_account_id,
+                    namespace: n,
+                })?,
+            }))
+        })
+        .transpose()?;
+
     let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
@@ -253,15 +292,27 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         vec![],
     )?;
 
-    Ok(AccountFactoryResponse::new(
+    let mut resp = AccountFactoryResponse::new(
         "create_proxy",
         vec![("proxy_address", res.get_contract_address())],
     )
     .add_message(add_account_to_version_control_msg)
     .add_message(add_proxy_address_msg)
-    .add_message(whitelist_manager)
-    .add_message(set_proxy_admin_msg)
-    .add_message(set_manager_admin_msg))
+    .add_message(whitelist_manager);
+
+    if let Some(set_base_asset_msg) = set_base_asset_msg {
+        resp = resp.add_message(set_base_asset_msg);
+    }
+
+    if let Some(set_namespace_msg) = set_namespace_msg {
+        resp = resp.add_message(set_namespace_msg);
+    }
+
+    resp = resp
+        .add_message(set_proxy_admin_msg)
+        .add_message(set_manager_admin_msg);
+
+    Ok(resp)
 }
 
 // Only owner can execute it
