@@ -59,6 +59,10 @@ pub struct AppContract<
 
     // Scaffolding contract that handles type safety and provides helper methods
     pub(crate) contract: AbstractContract<Self, Error>,
+
+    #[cfg(feature = "nois")]
+    /// Storage of a nois job id to the randomness
+    pub randomness: cw_storage_plus::Map<'static, String, cosmwasm_std::HexBinary>,
 }
 
 /// Constructor
@@ -90,6 +94,8 @@ impl<
             base_state: Item::new(BASE_STATE),
             admin: Admin::new(ADMIN_NAMESPACE),
             contract: AbstractContract::new(name, version, metadata),
+            #[cfg(feature = "nois")]
+            randomness: cw_storage_plus::Map::new("randomness"),
         }
     }
 
@@ -162,6 +168,35 @@ impl<
         callbacks: &'static [(&'static str, IbcCallbackHandlerFn<Self, Error>)],
     ) -> Self {
         self.contract = self.contract.with_ibc_callbacks(callbacks);
+        self
+    }
+}
+
+#[cfg(feature = "nois")]
+impl<
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+    AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+{
+    pub const fn with_nois_callback(
+        mut self,
+        nois_callback_handler: abstract_sdk::base::NoisCallbackHandlerFn<Self, Error>,
+    ) -> Self {
+        self.contract = self.contract.with_nois_callback(nois_callback_handler);
         self
     }
 }

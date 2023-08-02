@@ -6,12 +6,20 @@ mod contract_base;
 mod endpoints;
 pub(crate) mod features;
 mod handler;
+#[cfg(feature = "nois")]
+mod nois_handler;
 
 pub use contract_base::{
     AbstractContract, ExecuteHandlerFn, IbcCallbackHandlerFn, InstantiateHandlerFn,
     MigrateHandlerFn, QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     VersionString,
 };
+#[cfg(feature = "nois")]
+pub use {
+    contract_base::NoisCallbackHandlerFn, endpoints::NoisCallbackEndpoint,
+    nois_handler::NoisHandler,
+};
+
 pub use endpoints::{
     migrate::MigrateEndpoint, ExecuteEndpoint, IbcCallbackEndpoint, InstantiateEndpoint,
     QueryEndpoint, ReceiveEndpoint, ReplyEndpoint, SudoEndpoint,

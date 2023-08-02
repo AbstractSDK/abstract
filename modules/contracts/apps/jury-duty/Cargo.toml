@@ -1,0 +1,70 @@
+[package]
+name = "abstract-jury-duty-multisig"
+version = "0.0.1"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = ""
+documentation = ""
+repository = ""
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+resolver = "2"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[[example]]
+name = "deploy"
+required-features = ["interface"]
+
+[features]
+default = ["export"]
+export = []
+#interface = ["export", "dep:abstract-interface"]
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-app = { workspace = true, features = ["nois"] }
+abstract-sdk = { workspace = true, features = ["nois"] }
+nois = { workspace = true }
+cw3 = "1.1.0"
+cw4 = "1.1.0"
+cw3-fixed-multisig = { version = "1.1.0", features = ["library"] }
+cw4-group = { version = "1.1.0", features = ["library"] }
+
+# Dependencies for interface
+abstract-interface = { workspace = true, optional = true }
+cw-utils.workspace = true
+cw-orch = { workspace = true, optional = true }
+
+
+[dev-dependencies]
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
+speculoos = "0.11.0"
+semver = "1.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+cw-orch = { workspace = true, features = ["daemon"] }
+clap = { workspace = true }

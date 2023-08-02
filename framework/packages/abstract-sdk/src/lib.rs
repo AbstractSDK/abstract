@@ -21,6 +21,8 @@ pub mod prelude;
 
 pub use error::{AbstractSdkError, EndpointError};
 
+#[cfg(feature = "nois")]
+pub use crate::apis::nois::*;
 pub use crate::apis::{
     accounting::*, adapter::*, app::*, bank::*, execution::*, ibc::*, modules::*, respond::*,
     verify::*, version_registry::*,

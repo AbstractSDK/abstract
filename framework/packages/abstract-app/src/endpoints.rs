@@ -2,6 +2,8 @@ mod execute;
 mod ibc_callback;
 pub mod instantiate;
 mod migrate;
+#[cfg(feature = "nois")]
+mod nois_callback;
 mod query;
 mod receive;
 mod reply;

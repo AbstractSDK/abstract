@@ -77,6 +77,10 @@ abstract-adapter-utils = { version = "0.17.1", path = "packages/utils" }
 abstract-dex-adapter-traits = { path = "packages/dex" }
 abstract-staking-adapter-traits = { path = "packages/staking" }
 
+## Integrations
+nois = "0.7.0"
+nois-proxy = { git = "https://github.com/noislabs/nois-contracts", rev = "bc28964eafd07eee6d0617d5342fb14fb3670ac5" }
+
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
