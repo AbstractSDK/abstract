@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-pub const CHAIN_DELIMITER: &str = ">";
+use crate::constants::CHAIN_DELIMITER;
 
 /// An unchecked ANS asset entry. This is a string that is formatted as
 /// `src_chain>[intermediate_chain>]asset_name`

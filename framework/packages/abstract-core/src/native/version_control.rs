@@ -23,7 +23,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        account_id::AccountId,
+        account::AccountId,
         common_namespace::ADMIN_NAMESPACE,
         module::{ModuleInfo, ModuleMetadata, Monetization},
         module_reference::ModuleReference,
@@ -49,7 +49,7 @@ pub mod state {
     pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("account");
 }
 
 /// Sub indexes for namespaces.
@@ -67,13 +67,13 @@ impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
 /// Primary index for namespaces.
 pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
     let indexes = NamespaceIndexes {
-        account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
+        account_id: MultiIndex::new(|_pk, d| d.clone(), "namespace", "namespace_account"),
     };
     IndexedMap::new("namespace", indexes)
 }
 
 use crate::objects::{
-    account_id::AccountId,
+    account::AccountId,
     module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, ModuleVersion, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,

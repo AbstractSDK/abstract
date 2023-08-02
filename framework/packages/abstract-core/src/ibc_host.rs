@@ -8,38 +8,42 @@
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use crate::{
-    base::{
-        ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
-        MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
-    },
     ibc_client::CallbackInfo,
-    objects::account_id::AccountId,
+    manager,
+    objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
 
-pub type ExecuteMsg<T, R = Empty> = MiddlewareExecMsg<BaseExecuteMsg, T, R>;
-pub type QueryMsg<T = Empty> = MiddlewareQueryMsg<BaseQueryMsg, T>;
-pub type InstantiateMsg<T = Empty> = MiddlewareInstantiateMsg<BaseInstantiateMsg, T>;
-pub type MigrateMsg<T = Empty> = MiddlewareMigrateMsg<BaseMigrateMsg, T>;
-
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]
-pub struct BaseInstantiateMsg {
+pub struct InstantiateMsg {
     /// Used to easily perform address translation on the app chain
     pub ans_host_address: String,
-    /// Code-id for cw1 proxy contract
-    pub cw1_code_id: u64,
+    /// Used to create remote abstract accounts
+    pub account_factory_address: String,
+    /// Version control address
+    pub version_control_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct BaseMigrateMsg {}
+pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
-    Register { account_proxy_address: String },
-    WhoAmI,
+    /// Registers a new account on the remote chain
+    Register {
+        account_proxy_address: String,
+        name: String,
+        description: Option<String>,
+        link: Option<String>,
+    },
+    /// Message used to know the name of the counterparty chain with which a channel was just created
+    WhoAmI {
+        // Client chain to assign to the channel
+        client_chain: ChainName,
+    },
 }
 
 /// Callable actions on a remote host
@@ -49,7 +53,7 @@ pub enum HostAction {
         msg: Binary,
     },
     Dispatch {
-        msgs: Vec<CosmosMsg<Empty>>,
+        manager_msg: manager::ExecuteMsg,
     },
     Query {
         msgs: Vec<QueryRequest<Empty>>,
@@ -65,11 +69,11 @@ impl HostAction {
         self,
         account_id: AccountId,
         retries: u8,
-        client_chain: String,
+        host_chain: ChainName,
         callback_info: Option<CallbackInfo>,
     ) -> PacketMsg {
         PacketMsg {
-            client_chain,
+            host_chain,
             retries,
             callback_info,
             account_id,
@@ -80,8 +84,8 @@ impl HostAction {
 /// This is the message we send over the IBC channel
 #[cosmwasm_schema::cw_serde]
 pub struct PacketMsg {
-    /// Chain of the client
-    pub client_chain: String,
+    /// `ChainName` of the host
+    pub host_chain: ChainName,
     /// Amount of retries to attempt if packet returns with StdAck::Error
     pub retries: u8,
     pub account_id: AccountId,
@@ -93,12 +97,13 @@ pub struct PacketMsg {
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
-pub enum BaseExecuteMsg {
+pub enum ExecuteMsg {
     /// Update the Admin
     UpdateAdmin { admin: String },
     UpdateConfig {
         ans_host_address: Option<String>,
-        cw1_code_id: Option<u64>,
+        account_factory_address: Option<String>,
+        version_control_address: Option<String>,
     },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
@@ -111,43 +116,17 @@ pub enum BaseExecuteMsg {
 /// Query Host message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
-pub enum BaseQueryMsg {
-    /// Returns [`HostConfigResponse`].
-    #[returns(HostConfigResponse)]
+pub enum QueryMsg {
+    /// Returns [`ConfigResponse`].
+    #[returns(ConfigResponse)]
     Config {},
-    /// Returns (reflect) account that is attached to this channel,
-    /// or none.
-    #[returns(AccountResponse)]
-    Account {
-        client_chain: String,
-        account_id: AccountId,
-    },
-    /// Returns all (channel, reflect_account) pairs.
-    /// No pagination - this is a test contract
-    #[returns(ListAccountsResponse)]
-    ListAccounts {},
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct HostConfigResponse {
+pub struct ConfigResponse {
     pub ans_host_address: Addr,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountResponse {
-    pub account: Option<String>,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct ListAccountsResponse {
-    pub accounts: Vec<AccountInfo>,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountInfo {
-    pub account_id: AccountId,
-    pub account: String,
-    pub channel_id: String,
+    pub account_factory_address: Addr,
+    pub version_control_address: Addr,
 }
 
 #[cfg(test)]

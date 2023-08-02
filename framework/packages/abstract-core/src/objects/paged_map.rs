@@ -407,7 +407,7 @@ mod tests {
             store: &mut dyn Storage,
             mut value: Data,
             #[allow(clippy::ptr_arg)] _context: &String,
-        ) -> AbstractResult<Option<AccountId>> {
+        ) -> AbstractResult<Option<u32>> {
             let balance = value.balance;
             value.balance = 0;
             USERS.unsafe_save(store, key, &value)?;

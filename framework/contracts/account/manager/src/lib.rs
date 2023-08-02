@@ -21,7 +21,7 @@ mod test_common {
             mock_env(),
             info,
             manager::InstantiateMsg {
-                account_id: 1,
+                account_id: AccountId::new(1, AccountTrace::Local).unwrap(),
                 owner: GovernanceDetails::Monarchy {
                     monarch: TEST_OWNER.to_string(),
                 },

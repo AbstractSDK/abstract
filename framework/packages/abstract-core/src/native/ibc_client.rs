@@ -1,5 +1,8 @@
-use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::account_id::AccountId};
+use crate::{
+    abstract_ica::StdAck,
+    ibc_host::HostAction,
+    objects::{account::AccountId, chain_name::ChainName},
+};
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
@@ -8,39 +11,33 @@ pub mod state {
 
     use super::LatestQueryResponse;
     use crate::{
-        objects::{account_id::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
+        objects::{
+            account::AccountId, ans_host::AnsHost, chain_name::ChainName,
+            common_namespace::ADMIN_NAMESPACE,
+        },
         ANS_HOST as ANS_HOST_KEY,
     };
-    use cosmwasm_std::{Addr, Coin, Timestamp};
+    use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control_address: Addr,
-        pub chain: String,
-    }
-
-    #[cosmwasm_schema::cw_serde]
-    #[derive(Default)]
-    pub struct AccountData {
-        /// last block balance was updated (0 is never)
-        pub last_update_time: Timestamp,
-        /// In normal cases, it should be set, but there is a delay between binding
-        /// the channel and making a query and in that time it is empty.
-        ///
-        /// Since we do not have a way to validate the remote address format, this
-        /// must not be of type `Addr`.
-        pub remote_addr: Option<String>,
-        pub remote_balance: Vec<Coin>,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    /// host_chain -> channel-id
-    pub const CHANNELS: Map<&str, String> = Map::new("channels");
+
+    // chain_name --> allowed port
+    // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
+    pub const ALLOWED_PORTS: Map<&ChainName, String> = Map::new("allowed_ports");
+    /// chain -> channel-id
+    /// these channels have been verified by the host.
+    pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
+
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (channel-id,account_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, AccountId), AccountData> = Map::new("accounts");
+    /// (account_id, chain_name) -> remote proxy account address
+    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accounts");
     /// Todo: see if we can remove this
     pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
@@ -77,6 +74,12 @@ pub enum ExecuteMsg {
     UpdateAdmin {
         admin: String,
     },
+    // Allows the indicated port on the chain to be connected to the current contract
+    // This allows for monitoring which chain are connected to the contract remotely
+    AllowChainPort {
+        chain: String,
+        port: String,
+    },
     /// Changes the config
     UpdateConfig {
         ans_host: Option<String>,
@@ -86,18 +89,18 @@ pub enum ExecuteMsg {
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
-        host_chain: String,
+        host_chain: ChainName,
         funds: Vec<Coin>,
     },
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
-        host_chain: String,
+        host_chain: ChainName,
     },
     SendPacket {
         // host chain to be executed on
         // Example: "osmosis"
-        host_chain: String,
+        host_chain: ChainName,
         // execute the custom host function
         action: HostAction,
         // optional callback info
@@ -106,7 +109,7 @@ pub enum ExecuteMsg {
         retries: u8,
     },
     RemoveHost {
-        host_chain: String,
+        host_chain: ChainName,
     },
 }
 
@@ -146,11 +149,15 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<AccountInfo>,
+    pub accounts: Vec<(AccountId, ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListChannelsResponse {
-    pub channels: Vec<(String, String)>,
+    pub channels: Vec<(ChainName, String)>,
+}
+#[cosmwasm_schema::cw_serde]
+pub struct AccountResponse {
+    pub remote_proxy_addr: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -166,51 +173,6 @@ pub struct RemoteProxyResponse {
     pub channel_id: String,
     /// address of the remote proxy
     pub proxy_address: String,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountInfo {
-    pub channel_id: String,
-    pub account_id: AccountId,
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl AccountInfo {
-    /// Use the provided *channel_id* and *account_id* to create a new [`AccountInfo`] based off of the provided *input* [`AccountData`].
-    pub fn convert(channel_id: String, account_id: AccountId, input: AccountData) -> Self {
-        AccountInfo {
-            channel_id,
-            account_id,
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountResponse {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl From<AccountData> for AccountResponse {
-    fn from(input: AccountData) -> Self {
-        AccountResponse {
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
 }
 
 #[cfg(test)]
@@ -240,21 +202,6 @@ mod tests {
         };
 
         let actual = AccountInfo::convert(channel_id, TEST_ACCOUNT_ID, input);
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn test_account_response_from() {
-        let input = AccountData::default();
-
-        let expected = AccountResponse {
-            last_update_time: input.last_update_time,
-            remote_addr: input.clone().remote_addr,
-            remote_balance: input.clone().remote_balance,
-        };
-
-        let actual = AccountResponse::from(input);
 
         assert_that!(actual).is_equal_to(expected);
     }

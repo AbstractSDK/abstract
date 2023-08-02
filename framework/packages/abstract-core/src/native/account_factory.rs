@@ -12,7 +12,10 @@ pub mod state {
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{account_id::AccountId, module::Module};
+    use crate::objects::{
+        account::{AccountId, AccountSequence},
+        module::Module,
+    };
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -20,7 +23,7 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub next_account_id: AccountId,
+        pub ibc_host: Option<Addr>,
     }
 
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
@@ -29,16 +32,21 @@ pub mod state {
         pub account_manager_address: Option<Addr>,
         pub manager_module: Option<Module>,
         pub proxy_module: Option<Module>,
+        pub account_id: AccountId,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("\u{0}{6}acc_seq");
 }
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
-use crate::objects::{account_id::AccountId, gov_type::GovernanceDetails};
+use crate::objects::{
+    account::{AccountId, AccountSequence, AccountTrace},
+    gov_type::GovernanceDetails,
+};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
@@ -66,6 +74,8 @@ pub enum ExecuteMsg {
         version_control_contract: Option<String>,
         // New module factory contract
         module_factory_address: Option<String>,
+        // New ibc host contract
+        ibc_host: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
@@ -78,6 +88,8 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // Account link
         link: Option<String>,
+        /// Creator chain of the account. AccountTrace::Local if not specified.
+        origin: Option<AccountId>,
     },
 }
 
@@ -97,9 +109,25 @@ pub struct ConfigResponse {
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
-    pub next_account_id: AccountId,
+    pub ibc_host: Option<Addr>,
+    pub local_account_sequence: AccountSequence,
+}
+
+/// Sequence numbers for each origin.
+#[cosmwasm_schema::cw_serde]
+pub struct SequencesResponse {
+    pub sequences: Vec<(AccountTrace, AccountSequence)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SequenceResponse {
+    pub sequence: AccountSequence,
 }
 
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AccountTraceFilter {}
