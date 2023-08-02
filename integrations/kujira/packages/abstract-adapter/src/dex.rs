@@ -1,6 +1,6 @@
-use abstract_dex_adapter_traits::Identify;
 use crate::AVAILABLE_CHAINS;
 use crate::KUJIRA;
+use abstract_dex_adapter_traits::Identify;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]

@@ -4,5 +4,5 @@ pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL_CHAIN;
 #[cfg(not(feature = "local"))]
 pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::KUJIRA;
 
-pub mod staking;
 pub mod dex;
+pub mod staking;
