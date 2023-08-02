@@ -1,9 +1,7 @@
-use abstract_core::{
-    objects::{
-        fee::FixedFee,
-        module::{self, Module, ModuleMetadata, Monetization},
-        validation::validate_link,
-    },
+use abstract_core::objects::{
+    fee::FixedFee,
+    module::{self, Module, ModuleMetadata, Monetization},
+    validation::validate_link,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
