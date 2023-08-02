@@ -4,7 +4,6 @@ use abstract_core::{
         module::{self, Module, ModuleMetadata, Monetization},
         validation::validate_link,
     },
-    ACCOUNT_FACTORY,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
