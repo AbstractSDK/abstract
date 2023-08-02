@@ -237,7 +237,7 @@ impl DexCommand for Kujira {
         let coins = coins_in_assets(&offer_assets);
 
         let msg = bow::market_maker::ExecuteMsg::Deposit {
-            max_slippage: None,
+            max_slippage: Some(Decimal::percent(5)),
             callback: None,
         };
 
