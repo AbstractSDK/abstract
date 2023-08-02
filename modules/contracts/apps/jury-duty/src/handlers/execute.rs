@@ -2,7 +2,7 @@
 
 use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo};
 use cw3::Vote;
-use cw3_flex_multisig::state::CONFIG;
+use cw3_fixed_multisig::state::CONFIG;
 use cw4::MemberChangedHookMsg;
 use cw_utils::{Expiration, Threshold};
 
@@ -32,13 +32,10 @@ pub fn execute_handler(
             execute_vote(deps, env, info, app, proposal_id, vote)?
         }
         JuryDutyExecuteMsg::Execute { proposal_id } => {
-            cw3_flex_multisig::contract::execute_execute(deps, env, info, proposal_id)?
+            cw3_fixed_multisig::contract::execute_execute(deps, env, info, proposal_id)?
         }
         JuryDutyExecuteMsg::Close { proposal_id } => {
-            cw3_flex_multisig::contract::execute_close(deps, env, info, proposal_id)?
-        }
-        JuryDutyExecuteMsg::MemberChangedHook(MemberChangedHookMsg { diffs }) => {
-            cw3_flex_multisig::contract::execute_membership_hook(deps, env, info, diffs)?
+            cw3_fixed_multisig::contract::execute_close(deps, env, info, proposal_id)?
         }
     })
 }
@@ -53,17 +50,17 @@ fn execute_vote(
 ) -> AppResult {
     let jury = JURIES.may_load(deps.storage, &proposal_id)?;
 
+    // check that the voter is in the jury
     match jury {
         None => return Err(AppError::JuryNotSet(proposal_id)),
         Some(jury) => {
-            let voter = info.sender.to_string();
-            if !jury.contains(&voter) {
-                return Err(AppError::NotJuryMember(voter));
+            if !jury.contains(&info.sender) {
+                return Err(AppError::NotJuryMember(info.sender.to_string()));
             }
         }
     };
 
-    Ok(cw3_flex_multisig::contract::execute_vote(
+    Ok(cw3_fixed_multisig::contract::execute_vote(
         deps,
         env,
         info,
@@ -71,8 +68,6 @@ fn execute_vote(
         vote,
     )?)
 }
-
-const MAX_MEMBER_COUNT: u32 = 30;
 
 pub fn execute_random_propose(
     deps: DepsMut,
@@ -92,19 +87,6 @@ pub fn execute_random_propose(
         _ => Err(AppError::ThresholdMustBeAbsoluteCount),
     }?;
 
-    let member_count = cfg
-        .group_addr
-        .list_members(&deps.querier, None, Some(MAX_MEMBER_COUNT))?
-        .len();
-    let total_weight = cfg.group_addr.total_weight(&deps.querier)?;
-
-    // Check that the group is not too big
-    if member_count >= MAX_MEMBER_COUNT as usize {
-        return Err(AppError::TooManyMembers(MAX_MEMBER_COUNT));
-    } else if total_weight >= member_count as u64 {
-        return Err(AppError::MembersMustHaveWeightOfOne);
-    }
-
     // Get the next proposal id
     let next_proposal_id = cw3_fixed_multisig::state::PROPOSAL_COUNT
         .may_load(deps.storage)?
@@ -115,7 +97,7 @@ pub fn execute_random_propose(
         .nois(deps.as_ref())?
         .next_randomness(next_proposal_id.to_string(), info.clone().funds)?;
 
-    let propose_response = cw3_flex_multisig::contract::execute_propose(
+    let propose_response = cw3_fixed_multisig::contract::execute_propose(
         deps,
         env,
         info,

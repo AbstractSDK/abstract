@@ -11,7 +11,7 @@ pub fn query_handler(
     msg: JuryDutyQueryMsg,
 ) -> AppResult<Binary> {
     match msg {
-        // JuryDutyQueryMsg::Cw3Query(msg) => cw3_flex_multisig::contract::query(deps, _env, msg),
+        // JuryDutyQueryMsg::Cw3Query(msg) => cw3_fixed_multisig::contract::query(deps, _env, msg),
         JuryDutyQueryMsg::Jury { proposal_id } => to_binary(&query_jury(deps, app, proposal_id)?),
     }
     .map_err(Into::into)

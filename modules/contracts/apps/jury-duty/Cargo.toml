@@ -47,7 +47,6 @@ abstract-core = { workspace = true }
 abstract-app = { workspace = true, features = ["nois"] }
 abstract-sdk = { workspace = true, features = ["nois"] }
 nois = { workspace = true }
-cw3-flex-multisig = { version = "1.1.0", features = ["library"] }
 cw3 = "1.1.0"
 cw4 = "1.1.0"
 cw3-fixed-multisig = { version = "1.1.0", features = ["library"] }

@@ -1,5 +1,5 @@
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use cw3_flex_multisig::state::CONFIG;
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Order, Response, StdError};
+use cw3_fixed_multisig::state::CONFIG;
 use cw_utils::Threshold;
 use nois::{pick, NoisCallback};
 
@@ -34,12 +34,8 @@ pub fn nois_callback_handler(
         _ => Err(AppError::ThresholdMustBeAbsoluteCount),
     }?;
 
-    let member_addrs = cfg
-        .group_addr
-        .list_members(&deps.querier, None, None)?
-        .iter()
-        .map(|m| m.addr.clone())
-        .collect();
+    let member_addrs = cw3_fixed_multisig::state::VOTERS.keys(deps.storage, None, None, Order::Ascending)
+        .collect::<Result<Vec<Addr>, StdError>>()?;
 
     let jury = pick(randomness, threshold as usize, member_addrs);
 

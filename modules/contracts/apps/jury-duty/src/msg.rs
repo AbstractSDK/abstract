@@ -1,4 +1,4 @@
-use cosmwasm_std::{CosmosMsg, Empty};
+use cosmwasm_std::{Addr, CosmosMsg, Empty};
 use cw3::Vote;
 use cw4::MemberChangedHookMsg;
 use cw_utils::Expiration;
@@ -7,7 +7,7 @@ use crate::contract::JuryDutyApp;
 
 abstract_app::app_msg_types!(JuryDutyApp, JuryDutyExecuteMsg, JuryDutyQueryMsg);
 
-pub type JuryDutyInstantiateMsg = cw3_flex_multisig::msg::InstantiateMsg;
+pub type JuryDutyInstantiateMsg = cw3_fixed_multisig::msg::InstantiateMsg;
 
 /// App execute messages
 #[cosmwasm_schema::cw_serde]
@@ -31,8 +31,6 @@ pub enum JuryDutyExecuteMsg {
     Close {
         proposal_id: u64,
     },
-    /// Handles update hook messages from the group contract
-    MemberChangedHook(MemberChangedHookMsg),
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -40,12 +38,12 @@ pub enum JuryDutyExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(cosmwasm_schema::QueryResponses)]
 pub enum JuryDutyQueryMsg {
-    // Cw3Query(cw3_flex_multisig::msg::QueryMsg),
+    // Cw3Query(cw3_fixed_multisig::msg::QueryMsg),
     #[returns(JuryResponse)]
     Jury { proposal_id: u64 },
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct JuryResponse {
-    pub jury: Option<Vec<String>>,
+    pub jury: Option<Vec<Addr>>,
 }

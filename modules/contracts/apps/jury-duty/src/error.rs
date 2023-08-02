@@ -30,7 +30,7 @@ pub enum AppError {
     Cw4GroupError(#[from] cw4_group::error::ContractError),
 
     #[error("{0}")]
-    Cw3GroupError(#[from] cw3_flex_multisig::error::ContractError),
+    Cw3Error(#[from] cw3_fixed_multisig::ContractError),
 
     #[error("{0} is not a member of the group")]
     NotMember(String),
@@ -42,7 +42,7 @@ pub enum AppError {
     ThresholdMustBeAbsoluteCount,
 
     #[error("All members each must have one weight")]
-    MembersMustHaveWeightOfOne,
+    MembersMustHaveSameWeight,
 
     #[error("The jury has not been set for proposal {0}")]
     JuryNotSet(u64),

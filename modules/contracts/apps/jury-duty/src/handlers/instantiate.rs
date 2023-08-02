@@ -1,16 +1,24 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use crate::contract::{AppResult, JuryDutyApp};
+use crate::error::AppError;
 use crate::msg::JuryDutyInstantiateMsg;
 
 pub fn instantiate_handler(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
     _app: JuryDutyApp,
-    _msg: JuryDutyInstantiateMsg,
+    msg: JuryDutyInstantiateMsg,
 ) -> AppResult {
-    Ok(cw3_flex_multisig::contract::instantiate(
-        _deps, _env, _info, _msg,
+    // Validate that each jury member has the same weight
+    let weight = msg.voters[0].weight;
+    for voter in &msg.voters {
+        if voter.weight != weight {
+            return Err(AppError::MembersMustHaveSameWeight);
+        }
+    }
+    Ok(cw3_fixed_multisig::contract::instantiate(
+        deps, env, info, msg,
     )?)
 }
