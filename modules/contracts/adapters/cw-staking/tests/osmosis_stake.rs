@@ -65,7 +65,6 @@ impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
         ))
     }
     fn wasm(&self) -> WasmPath {
-
         let mut artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         artifacts_path.push("../../../artifacts");
 

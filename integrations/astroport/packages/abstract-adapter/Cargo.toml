@@ -10,7 +10,13 @@ repository = "https://github.com/astroport-fi/astroport"
 [features]
 default = ["full_integration"]
 local = []
-full_integration = ["dep:cw20", "dep:cosmwasm-schema", "dep:cw-asset", "dep:cw-utils", "dep:astroport"]
+full_integration = [
+  "dep:cw20",
+  "dep:cosmwasm-schema",
+  "dep:cw-asset",
+  "dep:cw-utils",
+  "dep:astroport",
+]
 
 [dependencies]
 cosmwasm-std = { version = "1.1" }
@@ -28,6 +34,8 @@ astroport = { path = "../astroport/", optional = true }
 lazy_static = "1.4.0"
 
 [dev-dependencies]
-abstract-dex-adapter-traits = { version = "0.18.0", features = ["testing"], path = "../../../../framework/packages/dex"}
+abstract-dex-adapter-traits = { version = "0.18.0", features = [
+  "testing",
+], path = "../../../../framework/packages/dex" }
 cw-orch = { version = "0.13", features = ["daemon"] }
 ibc-chain-registry = "0.24.1"
