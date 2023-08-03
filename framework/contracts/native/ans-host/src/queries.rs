@@ -321,8 +321,9 @@ mod test {
 
     fn mock_init(mut deps: DepsMut) -> AnsHostResult {
         let info = mock_info(TEST_CREATOR, &[]);
+        let admin = info.sender.to_string();
 
-        instantiate(deps.branch(), mock_env(), info, InstantiateMsg {})
+        instantiate(deps.branch(), mock_env(), info, InstantiateMsg { admin })
     }
 
     fn query_helper(deps: Deps, msg: QueryMsg) -> StdResult<Binary> {

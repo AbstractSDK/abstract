@@ -107,14 +107,6 @@ pub enum AppQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
-pub enum Cw20HookMsg {
-    Deposit {},
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub config: Config,
 }

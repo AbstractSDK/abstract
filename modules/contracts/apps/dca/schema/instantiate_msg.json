@@ -32,7 +32,7 @@
       "required": [
         "dca_creation_amount",
         "max_spread",
-        "native_denom",
+        "native_asset",
         "refill_threshold"
       ],
       "properties": {
@@ -52,9 +52,13 @@
             }
           ]
         },
-        "native_denom": {
-          "description": "Native denom for this chain",
-          "type": "string"
+        "native_asset": {
+          "description": "Native gas/stake asset for this chain",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            }
+          ]
         },
         "refill_threshold": {
           "description": "Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks",
@@ -66,6 +70,10 @@
         }
       },
       "additionalProperties": false
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
     },
     "BaseInstantiateMsg": {
       "description": "Used by Module Factory to instantiate App",

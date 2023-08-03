@@ -71,10 +71,10 @@ impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
 pub enum BaseQueryMsg {
     /// Returns [`AppConfigResponse`]
     #[returns(AppConfigResponse)]
-    Config {},
+    BaseConfig {},
     /// Returns the admin.
     #[returns(AdminResponse)]
-    Admin {},
+    BaseAdmin {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
