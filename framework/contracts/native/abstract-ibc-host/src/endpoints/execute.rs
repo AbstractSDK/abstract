@@ -1,26 +1,14 @@
 use crate::{
-    account_commands::{receive_balances, receive_dispatch, receive_send_all_back},
     contract::{HostResponse, HostResult},
-    error::HostError,
-    ibc::{receive_query, receive_register, receive_who_am_i},
-    state::{CLIENT_PROXY, CONFIG, PROCESSING_PACKET},
+    state::CONFIG,
 };
-use abstract_core::{
-    objects::chain_name::ChainName, proxy::state::ADMIN, version_control::AccountBase,
-};
-use abstract_sdk::{
-    base::{ExecuteEndpoint, Handler},
-    core::ibc_host::{ExecuteMsg, HostAction, InternalAction, PacketMsg},
-    feature_objects::VersionControlContract,
-    features::AbstractRegistryAccess,
-    AccountVerification, Execution,
-};
+use abstract_core::proxy::state::ADMIN;
+use abstract_sdk::core::ibc_host::ExecuteMsg;
 use cosmwasm_std::{
-    from_binary, from_slice, DepsMut, Env, IbcPacketReceiveMsg, IbcReceiveResponse, MessageInfo,
-    Response, StdError,
+    DepsMut, Env, MessageInfo,
 };
 
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
+pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => {
             let new_admin = deps.api.addr_validate(&admin)?;
@@ -40,9 +28,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             account_factory_address,
         ),
         ExecuteMsg::RecoverAccount {
-            closed_channel,
-            account_id,
-            msgs,
+            closed_channel: _,
+            account_id: _,
+            msgs: _,
         } => {
             cw_ownable::assert_owner(deps.storage, &info.sender).unwrap();
             // TODO:

@@ -30,7 +30,7 @@ pub mod state {
 
     // chain_name --> allowed port
     // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
-    pub const ALLOWED_PORTS: Map<&ChainName, String> = Map::new("allowed_ports");
+    pub const CHAIN_HOSTS: Map<&ChainName, String> = Map::new("chain_hosts");
     /// chain -> channel-id
     /// these channels have been verified by the host.
     pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
@@ -76,9 +76,9 @@ pub enum ExecuteMsg {
     },
     // Allows the indicated port on the chain to be connected to the current contract
     // This allows for monitoring which chain are connected to the contract remotely
-    AllowChainPort {
+    RegisterChainHost {
         chain: String,
-        port: String,
+        host: String,
     },
     /// Changes the config
     UpdateConfig {

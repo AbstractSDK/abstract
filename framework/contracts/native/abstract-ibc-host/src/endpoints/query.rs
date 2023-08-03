@@ -1,9 +1,6 @@
-use abstract_core::{ibc_host::ConfigResponse, objects::AccountId};
-use abstract_sdk::{
-    base::{Handler, QueryEndpoint},
-    core::ibc_host::QueryMsg,
-};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use abstract_core::ibc_host::ConfigResponse;
+use abstract_sdk::core::ibc_host::QueryMsg;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 
 use crate::state::CONFIG;
 

@@ -1,6 +1,8 @@
+use std::error::Error;
+
 use crate::error::IbcClientError;
 use abstract_core::{
-    ibc_client::state::ALLOWED_PORTS,
+    ibc_client::state::{CHAIN_HOSTS},
     objects::{account::AccountTrace, chain_name::ChainName, AccountId},
 };
 use abstract_sdk::core::{
@@ -16,7 +18,7 @@ use abstract_sdk::core::{
 use cosmwasm_std::{
     from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
-    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult, ensure_eq, StdError,
 };
 
 // TODO: make configurable?
@@ -228,13 +230,21 @@ fn acknowledge_who_am_i(
         return Err(IbcClientError::HostAlreadyExists {});
     }
 
-    // ensure the contract that connects is allowed to connect
-    let allowed_port = ALLOWED_PORTS
-        .load(deps.storage, &chain)
-        .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
-    if allowed_port != port_id {
-        return Err(IbcClientError::UnauthorizedConnection {});
-    }
+     // ensure the contract that connects is allowed to connect
+    let registered_host = CHAIN_HOSTS
+     .load(deps.storage, &chain)
+     .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
+    let counterparty_host =
+        port_id
+            .strip_prefix("wasm.")
+            .ok_or(IbcClientError::Std(StdError::generic_err(
+                "mis-formatted wasm port",
+            )))?;
+    ensure_eq!(
+        &registered_host,
+        counterparty_host,
+        IbcClientError::UnauthorizedConnection {}
+    );
 
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;

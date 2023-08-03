@@ -2,17 +2,18 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::{features::AccountIdentification, AbstractSdkResult};
+use crate::{features::{AccountIdentification, AbstractRegistryAccess}, AbstractSdkResult, ModuleInterface};
 use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
-    objects::chain_name::ChainName,
-    proxy::ExecuteMsg,
+    objects::{chain_name::ChainName, module::{ModuleInfo, ModuleVersion}},
+    proxy::ExecuteMsg, IBC_CLIENT, manager,
 };
-use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
+use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, to_binary, Addr};
+use serde::Serialize;
 
 /// Interact with other chains over IBC.
-pub trait IbcInterface: AccountIdentification {
+pub trait IbcInterface: AccountIdentification + ModuleInterface {
     /**
         API for interacting with the Abstract IBC client.
 
@@ -32,7 +33,7 @@ pub trait IbcInterface: AccountIdentification {
     }
 }
 
-impl<T> IbcInterface for T where T: AccountIdentification {}
+impl<T> IbcInterface for T where T: AccountIdentification + ModuleInterface {}
 
 #[derive(Clone)]
 /**
@@ -55,6 +56,105 @@ pub struct IbcClient<'a, T: IbcInterface> {
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
+    
+    // TODO, this is not up to date anymore ?
+    /*
+    /// Registers the ibc client to be able to use IBC capabilities
+    pub fn register_ibc_client(
+        &self,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        // We start by querying the contract address of the register ibc client module
+        let ibc_client_address = self.base.modules(self.deps).module_address(IBC_CLIENT)?;
+
+        Ok(wasm_execute(
+            self.base.manager_address(self.deps)?,
+            &manager::ExecuteMsg::InstallModule { 
+                module: ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
+                init_msg: ()
+            },
+            vec![],
+        )?
+        .into())
+    }
+
+    */
+
+    /// A simple hepler to create and register a distant account
+    pub fn create_distant_account(
+        &self,
+        host_chain: ChainName // The chain on which you want to create an account
+    ) -> AbstractSdkResult<CosmosMsg> {
+        Ok(wasm_execute(
+            self.base.proxy_address(self.deps)?.to_string(),
+            &ExecuteMsg::IbcAction { msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register{
+                host_chain,
+            }] } ,
+            vec![],
+        )?
+        .into())
+    }
+
+    /// A simple hepler to create and register a distant account
+    pub fn install_distant_app<M: Serialize>(
+        &self,
+        host_chain: ChainName, // The chain on which you want to create an account,
+        remote_ans_host_address: Addr,
+        module: ModuleInfo,
+        init_msg: &M
+    ) -> AbstractSdkResult<CosmosMsg> {
+
+        self.host_action(host_chain, HostAction::Dispatch { 
+            manager_msg: abstract_core::manager::ExecuteMsg::InstallModule{
+                module,
+                init_msg: Some(to_binary(&abstract_core::app::InstantiateMsg { 
+                    base: abstract_core::app::BaseInstantiateMsg{
+                        ans_host_address: remote_ans_host_address.to_string(),
+                    }, 
+                    module: init_msg
+                }).unwrap())
+            }
+        }, None, 2)
+    }
+
+    /// A simple helper install a distant api Module providing only the chain name
+    pub fn install_distant_api<M: Serialize>(
+        &self,
+        host_chain: ChainName, // The chain on which you want to create an account,
+        remote_ans_host_address: Addr,
+        remote_version_control_address: Addr,
+        module: ModuleInfo,
+        init_msg: &M
+    ) -> AbstractSdkResult<CosmosMsg> {
+
+        self.host_action(host_chain, HostAction::Dispatch { 
+            manager_msg: abstract_core::manager::ExecuteMsg::InstallModule{
+                module,
+                init_msg: Some(to_binary(&abstract_core::adapter::InstantiateMsg { 
+                    base: abstract_core::adapter::BaseInstantiateMsg{
+                        ans_host_address: remote_ans_host_address.to_string(),
+                        version_control_address: remote_version_control_address.to_string()
+                    }, 
+                    module: init_msg
+                }).unwrap())
+            }
+        }, None, 2)
+    }
+
+    /// A simple helper to execute on a module
+    pub fn execute_on_module<M: Serialize>(
+        &self,
+        host_chain: ChainName, // The chain on which you want to create an account,
+        module_id: String,
+        exec_msg: &M
+    ) -> AbstractSdkResult<CosmosMsg> {
+
+        self.host_action(host_chain, HostAction::Dispatch { 
+            manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule { 
+                module_id,
+                exec_msg: to_binary(exec_msg)?,
+            }
+        }, None, 2)
+    }
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,

@@ -2,20 +2,15 @@ use crate::{
     account_commands::{self, get_account, send_all_back},
     contract::HostResponse,
     state::{
-        CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS,
+        CHAIN_OF_CHANNEL, CLIENT_PROXY, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS,
     },
     HostError,
 };
 use abstract_core::objects::AccountId;
-use abstract_sdk::{
-    base::{Handler, ReplyEndpoint},
-    core::{
+use abstract_sdk::core::{
         abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
         ibc_host::PacketMsg,
-    },
-    feature_objects::VersionControlContract,
-    AccountVerification,
-};
+    };
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 

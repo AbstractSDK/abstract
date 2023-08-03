@@ -3,7 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
-use abstract_core::{ibc_client::state::ALLOWED_PORTS, manager, objects::chain_name::ChainName};
+use abstract_core::{ibc_client::state::{CHAIN_HOSTS}, manager, objects::chain_name::ChainName};
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
@@ -52,15 +52,15 @@ pub fn execute_update_config(
     Ok(IbcClientResponse::action("update_config"))
 }
 
-pub fn execute_allow_chain_port(
+pub fn execute_allow_chain_host(
     deps: DepsMut,
     info: MessageInfo,
     chain: String,
-    port: String,
+    host: String,
 ) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    ALLOWED_PORTS.save(deps.storage, &ChainName::from(chain), &port)?;
+    CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &host)?;
 
     Ok(IbcClientResponse::action("allow_chain_port"))
 }
