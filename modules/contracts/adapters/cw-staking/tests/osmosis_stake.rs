@@ -1,5 +1,7 @@
 mod common;
 
+use std::path::PathBuf;
+
 use abstract_core::adapter;
 use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::objects::pool_id::PoolAddressBase;
@@ -63,7 +65,11 @@ impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
         ))
     }
     fn wasm(&self) -> WasmPath {
-        artifacts_dir_from_workspace!()
+
+        let mut artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        artifacts_path.push("../../../artifacts");
+
+        ArtifactsDir::new(artifacts_path)
             .find_wasm_path("abstract_cw_staking-osmosis")
             .unwrap()
     }
