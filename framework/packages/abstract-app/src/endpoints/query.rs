@@ -57,8 +57,8 @@ impl<
 {
     pub fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> StdResult<Binary> {
         match query {
-            BaseQueryMsg::Config {} => to_binary(&self.dapp_config(deps)?),
-            BaseQueryMsg::Admin {} => to_binary(&self.admin(deps)?),
+            BaseQueryMsg::BaseConfig {} => to_binary(&self.dapp_config(deps)?),
+            BaseQueryMsg::BaseAdmin {} => to_binary(&self.admin(deps)?),
         }
     }
 
@@ -143,7 +143,7 @@ mod test {
         fn config() -> AppTestResult {
             let deps = mock_init();
 
-            let config_query = QueryMsg::Base(BaseQueryMsg::Config {});
+            let config_query = QueryMsg::Base(BaseQueryMsg::BaseConfig {});
             let res = query_helper(deps.as_ref(), config_query)?;
 
             assert_that!(from_binary(&res).unwrap()).is_equal_to(AppConfigResponse {
@@ -159,7 +159,7 @@ mod test {
         fn admin() -> AppTestResult {
             let deps = mock_init();
 
-            let admin_query = QueryMsg::Base(BaseQueryMsg::Admin {});
+            let admin_query = QueryMsg::Base(BaseQueryMsg::BaseAdmin {});
             let res = query_helper(deps.as_ref(), admin_query)?;
 
             assert_that!(from_binary(&res).unwrap()).is_equal_to(AdminResponse {

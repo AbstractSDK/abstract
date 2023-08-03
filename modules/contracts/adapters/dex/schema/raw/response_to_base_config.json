@@ -1,20 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "ConfigResponse",
+  "title": "AdapterConfigResponse",
   "type": "object",
   "required": [
     "ans_host_address",
-    "manager_address",
-    "proxy_address"
+    "dependencies",
+    "version_control_address"
   ],
   "properties": {
     "ans_host_address": {
       "$ref": "#/definitions/Addr"
     },
-    "manager_address": {
-      "$ref": "#/definitions/Addr"
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    "proxy_address": {
+    "version_control_address": {
       "$ref": "#/definitions/Addr"
     }
   },

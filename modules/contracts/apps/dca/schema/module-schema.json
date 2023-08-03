@@ -10,7 +10,7 @@
     "required": [
       "dca_creation_amount",
       "max_spread",
-      "native_denom",
+      "native_asset",
       "refill_threshold"
     ],
     "properties": {
@@ -30,9 +30,13 @@
           }
         ]
       },
-      "native_denom": {
-        "description": "Native denom for this chain",
-        "type": "string"
+      "native_asset": {
+        "description": "Native gas/stake asset for this chain",
+        "allOf": [
+          {
+            "$ref": "#/definitions/AssetEntry"
+          }
+        ]
       },
       "refill_threshold": {
         "description": "Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks",
@@ -45,6 +49,10 @@
     },
     "additionalProperties": false,
     "definitions": {
+      "AssetEntry": {
+        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+        "type": "string"
+      },
       "Decimal": {
         "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
         "type": "string"
@@ -375,8 +383,8 @@
   "migrate": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "MigrateMsg",
-    "type": "string",
-    "enum": []
+    "description": "An empty struct that serves as a placeholder in different places, such as contracts that don't set a custom message.\n\nIt is designed to be expressable in correct JSON and JSON Schema but contains no meaningful data. Previously we used enums without cases, but those cannot represented as valid JSON Schema (https://github.com/CosmWasm/cosmwasm/issues/451)",
+    "type": "object"
   },
   "sudo": null,
   "responses": {
@@ -385,38 +393,30 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "config"
+        "dca_creation_amount",
+        "max_spread",
+        "native_asset",
+        "refill_threshold"
       ],
       "properties": {
-        "config": {
-          "$ref": "#/definitions/Config"
+        "dca_creation_amount": {
+          "$ref": "#/definitions/Uint128"
+        },
+        "max_spread": {
+          "$ref": "#/definitions/Decimal"
+        },
+        "native_asset": {
+          "$ref": "#/definitions/AssetEntry"
+        },
+        "refill_threshold": {
+          "$ref": "#/definitions/Uint128"
         }
       },
       "additionalProperties": false,
       "definitions": {
-        "Config": {
-          "type": "object",
-          "required": [
-            "dca_creation_amount",
-            "max_spread",
-            "native_denom",
-            "refill_threshold"
-          ],
-          "properties": {
-            "dca_creation_amount": {
-              "$ref": "#/definitions/Uint128"
-            },
-            "max_spread": {
-              "$ref": "#/definitions/Decimal"
-            },
-            "native_denom": {
-              "type": "string"
-            },
-            "refill_threshold": {
-              "$ref": "#/definitions/Uint128"
-            }
-          },
-          "additionalProperties": false
+        "AssetEntry": {
+          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+          "type": "string"
         },
         "Decimal": {
           "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",

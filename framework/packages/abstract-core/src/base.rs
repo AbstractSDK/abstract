@@ -1,4 +1,5 @@
 use abstract_ica::IbcResponseMsg;
+use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Empty;
 
 // ANCHOR: exec
@@ -28,6 +29,8 @@ pub struct InstantiateMsg<BaseMsg, CustomInitMsg = Empty> {
 
 // ANCHOR: query
 #[cosmwasm_schema::cw_serde]
+#[derive(QueryResponses)]
+#[query_responses(nested)]
 pub enum QueryMsg<BaseMsg, CustomQueryMsg = Empty> {
     /// A query to the base.
     Base(BaseMsg),
