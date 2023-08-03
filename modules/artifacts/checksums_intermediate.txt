@@ -1,8 +1,8 @@
 <<<<<<< Updated upstream
 =======
 >>>>>>> Stashed changes
-c83f178ea25dc7181460174be6496e078fb068f4e4395dac03851e10136c46ad  target/wasm32-unknown-unknown/release/abstract_cw_staking.wasm
-78bdc36614fe66d08e821445593a0541b2f97f905805f4f9c5e9588a23505d90  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
-d96a8778ef849b7d332a0e9208c88180fae8c3c63e39896fbc216a8b657b8e2c  target/wasm32-unknown-unknown/release/abstract_dex_adapter.wasm
-2ccd60fb03e5cc9202ef44d3f639afc8add402f6b86070b1fa52d38d0b1c686b  target/wasm32-unknown-unknown/release/abstract_tendermint_staking_adapter.wasm
-72aa2cb05b7e3c4f2bd0ce291e23fe741226f492f07a52f9cbe397ac8eb2c0b8  target/wasm32-unknown-unknown/release/croncat_app.wasm
+18089bf5748e1106d73a87a8cf0333f101fa1c7282fec992cba7024aadf309a0  target/wasm32-unknown-unknown/release/abstract_cw_staking.wasm
+33e3d624da3558ef98a6bc83f5d824509bb2f6b98fa84b6b59bf99be5f969453  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
+d786e34bdd6667fc7753a083cdbe1ead0c954c8fd87c8e11873974cc6310192d  target/wasm32-unknown-unknown/release/abstract_dex_adapter.wasm
+c9a782acf0d97e999e4c3c7d5c4bbaf7dd7654fc36a2261cc287d3724b2f7dda  target/wasm32-unknown-unknown/release/abstract_tendermint_staking_adapter.wasm
+66b8ee396172de940ff40ccf5047fa2de89d297d04810b96b5c7d0b4bfbebf13  target/wasm32-unknown-unknown/release/croncat_app.wasm
