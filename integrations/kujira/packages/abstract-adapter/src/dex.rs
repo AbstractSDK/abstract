@@ -237,7 +237,7 @@ impl DexCommand for Kujira {
         let coins = coins_in_assets(&offer_assets);
 
         let msg = bow::market_maker::ExecuteMsg::Deposit {
-            max_slippage: Some(Decimal::percent(5)),
+            max_slippage: None,
             callback: None,
         };
 
@@ -320,4 +320,239 @@ pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
             dec_value
         ))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use abstract_dex_adapter_traits::tests::expect_eq;
+    use cosmwasm_schema::serde::Deserialize;
+    use cosmwasm_std::Coin;
+    use cosmwasm_std::Decimal256;
+
+    use cosmwasm_std::coin;
+    use cosmwasm_std::from_binary;
+    use cosmwasm_std::CosmosMsg;
+    use cosmwasm_std::WasmMsg;
+    use kujira::bow;
+    use kujira::fin;
+
+    use super::decimal2decimal256;
+    use super::Kujira;
+    use abstract_dex_adapter_traits::tests::DexCommandTester;
+    use abstract_sdk::core::objects::PoolAddress;
+    use cosmwasm_std::coins;
+    use cosmwasm_std::Decimal;
+    use cosmwasm_std::{wasm_execute, Addr};
+    use cw_asset::{Asset, AssetInfo};
+    use cw_orch::daemon::networks::HARPOON_4;
+    use std::assert_eq;
+    use std::str::FromStr;
+
+    fn create_setup() -> DexCommandTester {
+        DexCommandTester::new(HARPOON_4.into(), Kujira {})
+    }
+
+    const POOL_CONTRACT: &str = "kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq";
+    const SWAP_CONTRACT: &str = "kujira1suhgf5svhu4usrurvxzlgn54ksxmn8gljarjtxqnapv8kjnp4nrsqq4jjh";
+    const LP_TOKEN: &str =
+        "factory/kujira19kxd9sqk09zlzqfykk7tzyf70hl009hkekufq8q0ud90ejtqvvxs8xg5cq/ulp";
+    const DEMO: &str = "factory/kujira1ltvwg69sw3c5z99c6rr08hal7v0kdzfxz07yj5/demo";
+    const KUJI: &str = "ukuji";
+
+    fn pool_addr() -> PoolAddress {
+        PoolAddress::SeparateAddresses {
+            swap: Addr::unchecked(SWAP_CONTRACT),
+            liquidity: Addr::unchecked(POOL_CONTRACT),
+        }
+    }
+
+    fn max_spread() -> Decimal {
+        Decimal::from_str("0.1").unwrap()
+    }
+
+    fn get_wasm_msg<T: for<'de> Deserialize<'de>>(msg: CosmosMsg) -> T {
+        match msg {
+            CosmosMsg::Wasm(WasmMsg::Execute { msg, .. }) => from_binary(&msg).unwrap(),
+            _ => panic!("Expected execute wasm msg, got a different enum"),
+        }
+    }
+
+    fn get_wasm_addr(msg: CosmosMsg) -> String {
+        match msg {
+            CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, .. }) => contract_addr,
+            _ => panic!("Expected execute wasm msg, got a different enum"),
+        }
+    }
+
+    fn get_wasm_funds(msg: CosmosMsg) -> Vec<Coin> {
+        match msg {
+            CosmosMsg::Wasm(WasmMsg::Execute { funds, .. }) => funds,
+            _ => panic!("Expected execute wasm msg, got a different enum"),
+        }
+    }
+
+    #[test]
+    fn swap() {
+        let amount = 100_000u128;
+        let msgs = create_setup()
+            .test_swap(
+                pool_addr(),
+                Asset::new(AssetInfo::native(DEMO), amount),
+                AssetInfo::native(KUJI),
+                Some(Decimal::from_str("0.2").unwrap()),
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        expect_eq(
+            vec![wasm_execute(
+                SWAP_CONTRACT,
+                &fin::ExecuteMsg::Swap {
+                    offer_asset: Some(coin(amount, DEMO)),
+                    belief_price: Some(Decimal256::from_str("0.2").unwrap()),
+                    max_spread: Some(decimal2decimal256(max_spread()).unwrap()),
+                    to: None,
+                    callback: None,
+                },
+                coins(amount, DEMO),
+            )
+            .unwrap()
+            .into()],
+            msgs,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn provide_liquidity() {
+        let amount_demo = 100_000u128;
+        let amount_kuji = 50_000u128;
+        let msgs = create_setup()
+            .test_provide_liquidity(
+                pool_addr(),
+                vec![
+                    Asset::new(AssetInfo::native(DEMO), amount_demo),
+                    Asset::new(AssetInfo::native(KUJI), amount_kuji),
+                ],
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        expect_eq(
+            vec![wasm_execute(
+                POOL_CONTRACT,
+                &bow::market_maker::ExecuteMsg::Deposit {
+                    max_slippage: Some(max_spread()),
+                    callback: None,
+                },
+                vec![coin(amount_demo, DEMO), coin(amount_kuji, KUJI)],
+            )
+            .unwrap()
+            .into()],
+            msgs,
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn provide_liquidity_one_side() {
+        let amount_demo = 100_000u128;
+        let amount_kuji = 0u128;
+        let msgs = create_setup()
+            .test_provide_liquidity(
+                pool_addr(),
+                vec![
+                    Asset::new(AssetInfo::native(DEMO), amount_demo),
+                    Asset::new(AssetInfo::native(KUJI), amount_kuji),
+                ],
+                Some(max_spread()),
+            )
+            .unwrap();
+
+        // There should be a swap before providing liquidity
+        // We can't really test much further, because this unit test is querying mainnet liquidity pools
+        expect_eq(
+            wasm_execute(
+                SWAP_CONTRACT,
+                &fin::ExecuteMsg::Swap {
+                    offer_asset: Some(coin(amount_demo / 2u128, DEMO)),
+                    belief_price: None,
+                    max_spread: Some(decimal2decimal256(max_spread()).unwrap()),
+                    to: None,
+                    callback: None,
+                },
+                coins(amount_demo / 2u128, DEMO),
+            )
+            .unwrap()
+            .into(),
+            msgs[0].clone(),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn provide_liquidity_symmetric() {
+        let amount_demo = 100_000u128;
+        let msgs = create_setup()
+            .test_provide_liquidity_symmetric(
+                pool_addr(),
+                Asset::new(AssetInfo::native(DEMO), amount_demo),
+                vec![AssetInfo::native(KUJI)],
+            )
+            .unwrap();
+
+        assert_eq!(msgs.len(), 1);
+        assert_eq!(get_wasm_addr(msgs[0].clone()), POOL_CONTRACT);
+
+        let unwrapped_msg: bow::market_maker::ExecuteMsg = get_wasm_msg(msgs[0].clone());
+        match unwrapped_msg {
+            bow::market_maker::ExecuteMsg::Deposit {
+                max_slippage,
+                callback,
+            } => {
+                assert_eq!(max_slippage, None);
+                assert_eq!(callback, None);
+            }
+            _ => panic!("Expected a provide liquidity variant"),
+        }
+
+        let funds = get_wasm_funds(msgs[0].clone());
+        assert_eq!(funds.len(), 2);
+        assert_eq!(funds[0], coin(amount_demo, DEMO),);
+    }
+
+    #[test]
+    fn withdraw_liquidity() {
+        let amount_lp = 100_000u128;
+        let msgs = create_setup()
+            .test_withdraw_liquidity(
+                pool_addr(),
+                Asset::new(AssetInfo::native(Addr::unchecked(LP_TOKEN)), amount_lp),
+            )
+            .unwrap();
+
+        assert_eq!(
+            msgs,
+            vec![wasm_execute(
+                POOL_CONTRACT,
+                &bow::market_maker::ExecuteMsg::Withdraw { callback: None },
+                coins(amount_lp, LP_TOKEN)
+            )
+            .unwrap()
+            .into()]
+        );
+    }
+
+    #[test]
+    fn simulate_swap() {
+        let amount = 100_000u128;
+        // We siply verify it's executed, no check on what is returned
+        create_setup()
+            .test_simulate_swap(
+                pool_addr(),
+                Asset::new(AssetInfo::native(DEMO), amount),
+                AssetInfo::native(KUJI),
+            )
+            .unwrap();
+    }
 }
