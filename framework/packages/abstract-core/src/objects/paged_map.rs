@@ -264,7 +264,6 @@ mod tests {
     use super::*;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::account_id::AccountId;
     use cosmwasm_std::testing::{mock_dependencies, MockStorage};
 
     #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]

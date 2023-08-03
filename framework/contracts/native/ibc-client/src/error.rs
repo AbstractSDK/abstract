@@ -21,8 +21,8 @@ pub enum IbcClientError {
     #[error("{0}")]
     Admin(#[from] AdminError),
 
-    #[error("No account for channel {0}")]
-    UnregisteredChannel(String),
+    #[error("No account for chain {0}")]
+    UnregisteredChain(String),
 
     #[error("remote account changed from {old} to {addr}")]
     RemoteAccountChanged { addr: String, old: String },
@@ -32,4 +32,7 @@ pub enum IbcClientError {
 
     #[error("The host you are trying to connect is already connected")]
     HostAlreadyExists {},
+
+    #[error("Only authorized ports can connect to the contract on the remote chain")]
+    UnauthorizedConnection {},
 }

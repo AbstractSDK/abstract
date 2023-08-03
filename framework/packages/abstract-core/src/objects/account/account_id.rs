@@ -225,7 +225,7 @@ mod test {
             map.save(deps.as_mut().storage, &key3, &999).unwrap();
 
             let items = map
-                .prefix(&AccountTrace::Remote(vec![
+                .prefix(AccountTrace::Remote(vec![
                     ChainName::from("ethereum"),
                     ChainName::from("bitcoin"),
                 ]))

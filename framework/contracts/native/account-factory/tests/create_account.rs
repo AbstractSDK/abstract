@@ -1,5 +1,7 @@
 mod common;
 
+use abstract_core::objects::account::AccountTrace;
+use abstract_core::objects::AccountId;
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_TYPE,
@@ -29,7 +31,8 @@ fn instantiate() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        next_account_id: 1,
+        local_account_sequence: 1,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -51,6 +54,7 @@ fn create_one_account() -> AResult {
         String::from("first_account"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -61,7 +65,8 @@ fn create_one_account() -> AResult {
         ans_host_contract: deployment.ans_host.address()?,
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        next_account_id: 2,
+        local_account_sequence: 2,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -99,6 +104,7 @@ fn create_two_account_s() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
     )?;
     // second account
     let account_2 = factory.create_account(
@@ -108,6 +114,7 @@ fn create_two_account_s() -> AResult {
         String::from("second_os"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager1 = account_1.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -116,7 +123,7 @@ fn create_two_account_s() -> AResult {
 
     let manager2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
     let proxy2 = account_2.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
-    let account_2_id = TEST_ACCOUNT_ID + 1;
+    let account_2_id = AccountId::new(TEST_ACCOUNT_ID.seq() + 1, AccountTrace::Local)?;
 
     let factory_config = factory.config()?;
     let expected = account_factory::ConfigResponse {
@@ -124,7 +131,8 @@ fn create_two_account_s() -> AResult {
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         // we created two accounts
-        next_account_id: account_2_id + 1,
+        local_account_sequence: account_2_id.seq() + 1,
+        ibc_host: None,
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -166,6 +174,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let manager = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -189,7 +198,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
     let account_config = account_1.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        account_id: Uint64::from(TEST_ACCOUNT_ID),
+        account_id: TEST_ACCOUNT_ID,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         is_suspended: false,
@@ -214,13 +223,14 @@ fn sender_is_not_admin_external() -> AResult {
         String::from("first_os"),
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
+        None,
     )?;
 
     let account = AbstractAccount::new(&deployment, Some(TEST_ACCOUNT_ID));
     let account_config = account.manager.config()?;
 
     assert_that!(account_config).is_equal_to(abstract_core::manager::ConfigResponse {
-        account_id: Uint64::from(TEST_ACCOUNT_ID),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,

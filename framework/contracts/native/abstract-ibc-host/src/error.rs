@@ -28,6 +28,9 @@ pub enum HostError {
     #[error("{0}")]
     SimpleIca(#[from] SimpleIcaError),
 
+    #[error("Semver parsing error: {0}")]
+    SemVer(String),
+
     #[error("Cannot register over an existing channel")]
     ChannelAlreadyRegistered,
 
@@ -43,6 +46,15 @@ pub enum HostError {
     #[error("Missing target proxy to send messages to.")]
     NoTarget,
 
-    #[error("Ibc hopping not supported")]
-    IbcHopping,
+    #[error("Remote account can not be created from a Local trace")]
+    LocalTrace,
+
+    #[error("Expected port {0} got {1} instead.")]
+    ClientMismatch(String, String),
+}
+
+impl From<cw_semver::Error> for HostError {
+    fn from(err: cw_semver::Error) -> Self {
+        Self::SemVer(err.to_string())
+    }
 }

@@ -6,6 +6,7 @@ use cw_storage_plus::Item;
 pub use self::{account_id::AccountId, account_trace::AccountTrace};
 
 pub const ABSTRACT_ACCOUNT_ID: AccountId = AccountId::const_new(0, AccountTrace::Local);
+pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
 
 /// Identifier for a chain
 /// Example: "juno", "terra", "osmosis", ...

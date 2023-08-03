@@ -123,14 +123,14 @@ pub fn update_channels(
     cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
-        let key = key.check();
+        let key = key.check()?;
         // Update function for new or existing keys
         let insert = |_| -> StdResult<String> { Ok(new_channel) };
         CHANNELS.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
-        let key = key.check();
+        let key = key.check()?;
         CHANNELS.remove(deps.storage, &key);
     }
 
@@ -928,7 +928,7 @@ mod test {
         fn from_checked_entry((key, value): (ChannelEntry, String)) -> UncheckedChannelMapEntry {
             (
                 UncheckedChannelEntry {
-                    connected_chain: key.clone().connected_chain,
+                    connected_chain: key.clone().connected_chain.to_string(),
                     protocol: key.protocol,
                 },
                 value,

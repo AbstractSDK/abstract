@@ -38,7 +38,6 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        chain: msg.chain,
         version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
     };
     CONFIG.save(deps.storage, &cfg)?;
@@ -81,11 +80,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             callback_info,
             retries,
         ),
+        ExecuteMsg::AllowChainPort { chain, port } => {
+            commands::execute_allow_chain_port(deps, info, chain, port)
+        }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
         ExecuteMsg::Register { host_chain } => {
-            commands::execute_register_os(deps, env, info, host_chain)
+            commands::execute_register_account(deps, env, info, host_chain)
         }
         ExecuteMsg::RemoveHost { host_chain } => {
             commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
@@ -94,17 +96,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&queries::config(deps, env)?),
         QueryMsg::Account { chain, account_id } => {
-            to_binary(&queries::query_account(deps, chain, account_id)?)
+            to_binary(&queries::account(deps, chain, account_id)?)
         }
-        QueryMsg::ListAccounts {} => to_binary(&queries::query_list_accounts(deps)?),
-        QueryMsg::LatestQueryResult { chain, account_id } => to_binary(
-            &queries::query_latest_ibc_query_result(deps, chain, account_id)?,
-        ),
-        QueryMsg::ListChannels {} => to_binary(&queries::query_list_channels(deps)?),
+        QueryMsg::ListAccounts {} => to_binary(&queries::list_accounts(deps)?),
+        QueryMsg::ListChannels {} => to_binary(&queries::list_channels(deps)?),
     }
 }
 
@@ -121,7 +120,7 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::queries::query_config;
+    use crate::queries::config;
     use crate::test_common::*;
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
@@ -137,7 +136,7 @@ mod tests {
     fn instantiate_works() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
-            chain: "test_chain".into(),
+            chain: "cosmos-testnet".into(),
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };
@@ -147,11 +146,10 @@ mod tests {
 
         // config
         let expected_config = Config {
-            chain: "test_chain".into(),
             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
         };
 
-        let config_resp = query_config(deps.as_ref()).unwrap();
+        let config_resp = config(deps.as_ref(), mock_env()).unwrap();
         assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();

@@ -1,12 +1,15 @@
 use crate::error::IbcClientError;
-use abstract_core::objects::AccountId;
+use abstract_core::{
+    ibc_client::state::ALLOWED_PORTS,
+    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
+};
 use abstract_sdk::core::{
     abstract_ica::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{AccountData, ACCOUNTS, CHANNELS, CONFIG, LATEST_QUERIES},
-        CallbackInfo, LatestQueryResponse,
+        state::{ACCOUNTS, CHANNELS, CONFIG},
+        CallbackInfo,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
 };
@@ -52,9 +55,13 @@ pub fn ibc_channel_connect(
 
     // construct a packet to send
     let packet = PacketMsg {
-        action: HostAction::Internal(InternalAction::WhoAmI),
-        client_chain: cfg.chain,
-        account_id: 0,
+        // empty host chain, we don't know yet
+        host_chain: ChainName::from(""),
+        // Identify myself
+        action: HostAction::Internal(InternalAction::WhoAmI {
+            client_chain: ChainName::new(&env),
+        }),
+        account_id: AccountId::new(0, AccountTrace::Local).unwrap(),
         callback_info: None,
         retries: 0,
     };
@@ -80,7 +87,6 @@ pub fn ibc_channel_close(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
 
-    // remove the channel
     let channel_id = &channel.endpoint.channel_id;
 
     Ok(IbcBasicResponse::new()
@@ -106,8 +112,9 @@ pub fn ibc_packet_ack(
     env: Env,
     msg: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
-    // which local channel was this packet send from
+    // which local channel was this packet sent from
     let channel_id = msg.original_packet.src.channel_id.clone();
+    let port_id = msg.original_packet.dest.port_id.clone();
     // we need to parse the ack based on our request
     let mut original_packet: PacketMsg = from_slice(&msg.original_packet.data)?;
     let res: StdAck = from_slice(&msg.acknowledgement.data)?;
@@ -125,6 +132,7 @@ pub fn ibc_packet_ack(
     }
 
     let PacketMsg {
+        host_chain,
         account_id,
         callback_info,
         action,
@@ -145,9 +153,11 @@ pub fn ibc_packet_ack(
                 IbcBasicResponse::new().add_attribute("action", "acknowledge_send_all_back");
             maybe_add_callback(response, callback_info, msg).map_err(Into::into)
         }
-        HostAction::Internal(InternalAction::WhoAmI) => acknowledge_who_am_i(deps, channel_id, res),
+        HostAction::Internal(InternalAction::WhoAmI { .. }) => {
+            acknowledge_who_am_i(deps, channel_id, port_id, res)
+        }
         HostAction::Internal(InternalAction::Register { .. }) => {
-            acknowledge_register(deps, channel_id, account_id, res)
+            acknowledge_register(deps, host_chain, account_id, res)
         }
     }
 }
@@ -181,24 +191,16 @@ fn maybe_add_callback(
 }
 
 fn acknowledge_query(
-    deps: DepsMut,
-    env: Env,
-    channel_id: String,
-    account_id: AccountId,
+    _deps: DepsMut,
+    _env: Env,
+    _channel_id: String,
+    _account_id: AccountId,
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
-    // store IBC response for later querying from the smart contract?
-    LATEST_QUERIES.save(
-        deps.storage,
-        (&channel_id, account_id),
-        &LatestQueryResponse {
-            last_update_time: env.block.time,
-            response: msg,
-        },
-    )?;
+
     maybe_add_callback(res, callback_info, ack).map_err(Into::into)
 }
 
@@ -207,6 +209,7 @@ fn acknowledge_query(
 fn acknowledge_who_am_i(
     deps: DepsMut,
     channel_id: String,
+    port_id: String,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
@@ -218,10 +221,21 @@ fn acknowledge_who_am_i(
                 .add_attribute("error", e))
         }
     };
+    let chain = ChainName::from(chain);
+    chain.check()?;
     // ensure no third-party can overwrite
     if CHANNELS.has(deps.storage, &chain) {
         return Err(IbcClientError::HostAlreadyExists {});
     }
+
+    // ensure the contract that connects is allowed to connect
+    let allowed_port = ALLOWED_PORTS
+        .load(deps.storage, &chain)
+        .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
+    if allowed_port != port_id {
+        return Err(IbcClientError::UnauthorizedConnection {});
+    }
+
     // Now we know over what channel to communicate!
     CHANNELS.save(deps.storage, &chain, &channel_id)?;
 
@@ -232,7 +246,7 @@ fn acknowledge_who_am_i(
 // store address info in accounts info
 fn acknowledge_register(
     deps: DepsMut,
-    channel_id: String,
+    host_chain: ChainName,
     account_id: AccountId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
@@ -246,18 +260,7 @@ fn acknowledge_register(
         }
     };
 
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| {
-        match acct {
-            Some(mut acct) => {
-                // set the account the first time
-                if acct.remote_addr.is_none() {
-                    acct.remote_addr = Some(account);
-                }
-                Ok(acct)
-            }
-            None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
-        }
-    })?;
+    ACCOUNTS.save(deps.storage, (&account_id, &host_chain), &account)?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_register"))
 }
@@ -279,22 +282,6 @@ fn acknowledge_balances(
                 .add_attribute("error", e))
         }
     };
-
-    ACCOUNTS.update(deps.storage, (&channel_id, account_id), |acct| match acct {
-        Some(acct) => {
-            if let Some(old) = acct.remote_addr {
-                if old != account {
-                    return Err(IbcClientError::RemoteAccountChanged { old, addr: account });
-                }
-            }
-            Ok(AccountData {
-                last_update_time: env.block.time,
-                remote_addr: Some(account),
-                remote_balance: balances,
-            })
-        }
-        None => Err(IbcClientError::UnregisteredChannel(channel_id.clone())),
-    })?;
 
     Ok(IbcBasicResponse::new().add_attribute("action", "acknowledge_balances"))
 }

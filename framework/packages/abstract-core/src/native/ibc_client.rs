@@ -129,12 +129,6 @@ pub enum QueryMsg {
         chain: String,
         account_id: AccountId,
     },
-    // Get remote account info for a chain + Account
-    #[returns(LatestQueryResponse)]
-    LatestQueryResult {
-        chain: String,
-        account_id: AccountId,
-    },
     // get the channels
     #[returns(ListChannelsResponse)]
     ListChannels {},
@@ -183,28 +177,6 @@ mod tests {
     use speculoos::prelude::*;
 
     // ... (other test functions)
-
-    #[test]
-    fn test_account_info_convert() {
-        let channel_id = "channel-123".to_string();
-        let input = AccountData {
-            last_update_time: Default::default(),
-            remote_addr: None,
-            remote_balance: vec![],
-        };
-
-        let expected = AccountInfo {
-            channel_id: channel_id.clone(),
-            account_id: TEST_ACCOUNT_ID,
-            last_update_time: input.last_update_time,
-            remote_addr: input.clone().remote_addr,
-            remote_balance: input.clone().remote_balance,
-        };
-
-        let actual = AccountInfo::convert(channel_id, TEST_ACCOUNT_ID, input);
-
-        assert_that!(actual).is_equal_to(expected);
-    }
 
     #[test]
     fn test_callback_info_to_callback_msg() {

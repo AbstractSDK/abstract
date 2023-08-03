@@ -1,8 +1,9 @@
-use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+use abstract_core::objects::account::AccountTrace;
+use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    ensure_eq, to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -32,6 +33,7 @@ pub const CREATE_ACCOUNT_MANAGER_MSG_ID: u64 = 1u64;
 pub const CREATE_ACCOUNT_PROXY_MSG_ID: u64 = 2u64;
 
 /// Function that starts the creation of the Account
+#[allow(clippy::too_many_arguments)]
 pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
@@ -40,13 +42,38 @@ pub fn execute_create_account(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    account_id: Option<AccountId>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    // Check if the caller is the owner when instantiating the abstract account
-    if config.next_account_id == ABSTRACT_ACCOUNT_ID {
-        cw_ownable::assert_owner(deps.storage, &info.sender)?;
-    }
+    // If an origin is provided, assert the caller is the ibc host and return the account_id.
+    // Else get the next account id and set the origin to local.
+    let account_id = if let Some(account_id) = account_id {
+        // if the account_id is provided, assert that the caller is the ibc host
+        let ibc_host = config.ibc_host.ok_or(AccountFactoryError::IbcHostNotSet)?;
+        ensure_eq!(
+            info.sender,
+            ibc_host,
+            AccountFactoryError::SenderNotIbcHost(info.sender.into(), ibc_host.into())
+        );
+        // then assert that the account trace is remote and properly formatted
+        account_id.trace().verify_remote()?;
+        account_id
+    } else {
+        // else the call is local so we need to look up the account sequence
+        // and set the origin to local
+        let origin = AccountTrace::Local;
+
+        // load the next account id
+        // if it doesn't exist then it's the first account so set it to 0.
+        let next_sequence = LOCAL_ACCOUNT_SEQUENCE.may_load(deps.storage)?.unwrap_or(0);
+
+        // Check if the caller is the owner when instantiating the abstract account
+        if next_sequence == ABSTRACT_ACCOUNT_ID.seq() {
+            cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        }
+        AccountId::new(next_sequence, origin)?
+    };
 
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
@@ -55,6 +82,7 @@ pub fn execute_create_account(
     CONTEXT.save(
         deps.storage,
         &Context {
+            account_id: account_id.clone(),
             account_manager_address: None,
             manager_module: Some(module.clone()),
             proxy_module: None,
@@ -64,7 +92,10 @@ pub fn execute_create_account(
     if let ModuleReference::AccountBase(manager_code_id) = module.reference {
         Ok(AccountFactoryResponse::new(
             "create_account",
-            vec![("account_id", &config.next_account_id.to_string())],
+            vec![
+                ("account_sequence", &account_id.seq().to_string()),
+                ("trace", &account_id.trace().to_string()),
+            ],
         )
         // Create manager
         .add_submessage(SubMsg {
@@ -75,9 +106,10 @@ pub fn execute_create_account(
                 funds: vec![],
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract Account: {}", config.next_account_id),
+                // guarantee uniqueness of label
+                label: format!("Abstract Account: {}", account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
-                    account_id: config.next_account_id,
+                    account_id,
                     version_control_address: config.version_control_contract.to_string(),
                     module_factory_address: config.module_factory_address.to_string(),
                     name,
@@ -97,7 +129,7 @@ pub fn execute_create_account(
     }
 }
 
-/// instantiates the Treasury contract of the newly created DAO
+/// instantiates the Proxy contract of the newly created Account
 pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -112,7 +144,7 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
     // Update the manager address and proxy module in the context.
-    CONTEXT.update(deps.storage, |c| {
+    let context = CONTEXT.update(deps.storage, |c| {
         Result::<_, StdError>::Ok(Context {
             account_manager_address: Some(manager_address.clone()),
             proxy_module: Some(module.clone()),
@@ -133,9 +165,9 @@ pub fn after_manager_create_proxy(deps: DepsMut, result: SubMsgResult) -> Accoun
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(manager_address.to_string()),
-                label: format!("Proxy of Account: {}", config.next_account_id),
+                label: format!("Proxy of Account: {}", context.account_id),
                 msg: to_binary(&ProxyInstantiateMsg {
-                    account_id: config.next_account_id,
+                    account_id: context.account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
                 })?,
             }
@@ -165,13 +197,13 @@ fn query_module(
     Ok(modules.swap_remove(0).module)
 }
 
-/// Registers the DAO on the version_control contract and
+/// Registers the Account on the version_control contract and
 /// adds proxy contract address to Manager
 pub fn after_proxy_add_to_manager_and_set_admin(
     deps: DepsMut,
     result: SubMsgResult,
 ) -> AccountFactoryResult {
-    let mut config = CONFIG.load(deps.storage)?;
+    let config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
     CONTEXT.remove(deps.storage);
 
@@ -184,6 +216,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let manager_address = context
         .account_manager_address
         .expect("manager address set in context");
+    let account_id = context.account_id;
 
     // assert proxy and manager contract information is correct
     assert_module_data_validity(
@@ -210,7 +243,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
-            account_id: config.next_account_id,
+            account_id: account_id.clone(),
             account_base,
         })?,
     });
@@ -237,9 +270,10 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         admin: manager_address.to_string(),
     });
 
-    // Update id sequence
-    config.next_account_id += 1;
-    CONFIG.save(deps.storage, &config)?;
+    // Add 1 to account sequence for local origin
+    if account_id.is_local() {
+        LOCAL_ACCOUNT_SEQUENCE.save(deps.storage, &account_id.seq().checked_add(1).unwrap())?;
+    }
 
     let add_proxy_address_msg = wasm_execute(
         manager_address.to_string(),
@@ -268,11 +302,11 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 #[allow(clippy::too_many_arguments)]
 pub fn execute_update_config(
     deps: DepsMut,
-    _env: Env,
     info: MessageInfo,
     ans_host_contract: Option<String>,
     version_control_contract: Option<String>,
     module_factory_address: Option<String>,
+    ibc_host: Option<String>,
 ) -> AccountFactoryResult {
     cw_ownable::assert_owner(deps.storage, &info.sender)?;
 
@@ -291,6 +325,11 @@ pub fn execute_update_config(
     if let Some(module_factory_address) = module_factory_address {
         // validate address format
         config.module_factory_address = deps.api.addr_validate(&module_factory_address)?;
+    }
+
+    if let Some(ibc_host) = ibc_host {
+        // validate address format
+        config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
 
     CONFIG.save(deps.storage, &config)?;

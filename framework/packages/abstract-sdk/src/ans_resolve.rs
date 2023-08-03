@@ -546,6 +546,8 @@ mod tests {
     }
 
     mod channel_entry {
+        use abstract_core::objects::chain_name::ChainName;
+
         use super::*;
         use core::ans_host::state::CHANNELS;
 
@@ -553,7 +555,7 @@ mod tests {
         fn exists() {
             let test_channel_entry = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: "abstract".to_string(),
+                connected_chain: ChainName::from("abstract"),
             };
 
             let expected_value = "channel-id".to_string();
@@ -574,7 +576,7 @@ mod tests {
         fn does_not_exist() {
             let not_exist_channel = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: "chain".to_string(),
+                connected_chain: ChainName::from("chain"),
             };
 
             test_dne(&not_exist_channel);

@@ -5,7 +5,7 @@ use abstract_sdk::core::manager::{
     ModuleVersionsResponse,
 };
 use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, Uint64, WasmQuery,
+    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, WasmQuery,
 };
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Bound;
@@ -32,7 +32,7 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
-    let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
     let Config {
         version_control_address,
         module_factory_address,

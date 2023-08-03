@@ -6,6 +6,7 @@ use crate::{features::AccountIdentification, AbstractSdkResult};
 use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
+    objects::chain_name::ChainName,
     proxy::ExecuteMsg,
 };
 use cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps};
@@ -57,7 +58,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
     pub fn host_action(
         &self,
-        host_chain: String,
+        host_chain: ChainName,
         action: HostAction,
         callback: Option<CallbackInfo>,
         retries: u8,
@@ -79,7 +80,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     /// IbcClient the provided coins from the Account to its proxy on the `receiving_chain`.
     pub fn ics20_transfer(
         &self,
-        receiving_chain: String,
+        receiving_chain: ChainName,
         funds: Vec<Coin>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
@@ -113,7 +114,7 @@ mod test {
         let client = stub.ibc_client(deps.as_ref());
         let expected_retries = 0;
         let msg = client.host_action(
-            TEST_HOST_CHAIN.to_string(),
+            TEST_HOST_CHAIN.into(),
             HostAction::Balances {},
             None,
             expected_retries,
@@ -124,7 +125,7 @@ mod test {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::SendPacket {
-                    host_chain: TEST_HOST_CHAIN.to_string(),
+                    host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Balances {},
                     callback_info: None,
                     retries: expected_retries,
@@ -150,7 +151,7 @@ mod test {
 
         let expected_retries = 50;
         let actual = client.host_action(
-            TEST_HOST_CHAIN.to_string(),
+            TEST_HOST_CHAIN.into(),
             HostAction::Balances {},
             Some(expected_callback.clone()),
             expected_retries,
@@ -162,7 +163,7 @@ mod test {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::SendPacket {
-                    host_chain: TEST_HOST_CHAIN.to_string(),
+                    host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Balances {},
                     callback_info: Some(expected_callback),
                     retries: expected_retries,
@@ -184,14 +185,14 @@ mod test {
 
         let expected_funds = coins(100, "denom");
 
-        let msg = client.ics20_transfer(TEST_HOST_CHAIN.to_string(), expected_funds.clone());
+        let msg = client.ics20_transfer(TEST_HOST_CHAIN.into(), expected_funds.clone());
         assert_that!(msg).is_ok();
 
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::SendFunds {
-                    host_chain: TEST_HOST_CHAIN.to_string(),
+                    host_chain: TEST_HOST_CHAIN.into(),
                     funds: expected_funds,
                 }],
             })

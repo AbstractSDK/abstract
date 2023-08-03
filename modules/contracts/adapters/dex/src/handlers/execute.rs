@@ -4,11 +4,13 @@ use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
 use crate::state::SWAP_FEE;
+use abstract_core::objects::account::AccountTrace;
+use abstract_core::objects::chain_name::ChainName;
 use abstract_dex_adapter_traits::DexError;
 
 use abstract_core::ibc_client::CallbackInfo;
 use abstract_core::objects::ans_host::AnsHost;
-use abstract_core::objects::AnsAsset;
+use abstract_core::objects::{AnsAsset, AccountId};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -54,7 +56,7 @@ pub fn execute_handler(
                 let mut fee = SWAP_FEE.load(deps.storage)?;
                 let recipient = adapter
                     .account_registry(deps.as_ref())
-                    .proxy_address(account_id)?;
+                    .proxy_address(&AccountId::new(account_id, AccountTrace::Local)?)?;
                 fee.set_recipient(deps.api, recipient)?;
                 SWAP_FEE.save(deps.storage, &fee)?;
             }
@@ -82,6 +84,7 @@ fn handle_local_request(
 }
 
 /// Handle an adapter request that can be executed on an IBC chain
+/// TODO, this doesn't work as is, would have to change this for working with IBC hooks
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
@@ -89,7 +92,8 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = dex_name;
+    let host_chain = ChainName::from(dex_name);
+
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action

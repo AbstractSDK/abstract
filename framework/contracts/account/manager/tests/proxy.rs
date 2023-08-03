@@ -35,7 +35,7 @@ fn instantiate() -> AResult {
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: TEST_ACCOUNT_ID.into(),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
     Ok(())

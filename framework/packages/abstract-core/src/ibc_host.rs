@@ -131,8 +131,10 @@ pub struct ConfigResponse {
 
 #[cfg(test)]
 mod tests {
+    use crate::objects::account::AccountTrace;
+    pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
+
     use super::*;
-    use abstract_testing::prelude::*;
     use speculoos::prelude::*;
 
     #[test]
@@ -142,7 +144,7 @@ mod tests {
 
         // Create required parameters
         let retries = 5u8;
-        let client_chain = String::from("test_client_chain");
+        let host_chain = String::from("test_host_chain");
         let callback_info = Some(CallbackInfo {
             id: "15".to_string(),
             receiver: "receiver".to_string(),
@@ -152,12 +154,12 @@ mod tests {
         let packet_msg = host_action.clone().into_packet(
             TEST_ACCOUNT_ID,
             retries,
-            client_chain.clone(),
+            ChainName::from(host_chain.clone()),
             callback_info.clone(),
         );
 
         // Check if the returned PacketMsg has the expected values
-        assert_that!(packet_msg.client_chain).is_equal_to(client_chain);
+        assert_that!(packet_msg.host_chain.to_string()).is_equal_to(host_chain);
         assert_that!(packet_msg.retries).is_equal_to(retries);
         assert_that!(packet_msg.callback_info).is_equal_to(callback_info);
         assert_that!(packet_msg.account_id).is_equal_to(TEST_ACCOUNT_ID);

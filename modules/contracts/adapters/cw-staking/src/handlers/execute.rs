@@ -2,6 +2,7 @@ use crate::adapter::CwStakingAdapter;
 use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
 use crate::resolver::{self, is_over_ibc};
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
@@ -52,6 +53,7 @@ fn handle_local_request(
 }
 
 /// Handle a request that needs to be executed on a remote chain
+/// TODO, this doesn't work as is. This should be corrected when working with ibc hooks ?
 fn handle_ibc_request(
     deps: &DepsMut,
     info: MessageInfo,
@@ -59,7 +61,7 @@ fn handle_ibc_request(
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
-    let host_chain = provider_name.clone();
+    let host_chain = ChainName::from(provider_name.clone()); // TODO : Especially this line is faulty
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action

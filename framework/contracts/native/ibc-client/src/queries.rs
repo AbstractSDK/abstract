@@ -1,60 +1,57 @@
 use abstract_core::{
     ibc_client::{
-        state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG, LATEST_QUERIES},
-        AccountInfo, AccountResponse, ConfigResponse, LatestQueryResponse, ListAccountsResponse,
-        ListChannelsResponse,
+        state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG},
+        AccountResponse, ConfigResponse, ListAccountsResponse, ListChannelsResponse,
     },
-    objects::AccountId,
+    objects::{chain_name::ChainName, AccountId},
 };
-use cosmwasm_std::{Deps, Order, StdResult};
-
-pub fn query_latest_ibc_query_result(
-    deps: Deps,
-    host_chain: String,
-    account_id: AccountId,
-) -> StdResult<LatestQueryResponse> {
-    let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    LATEST_QUERIES.load(deps.storage, (&channel, account_id))
-}
+use cosmwasm_std::{Deps, Env, Order, StdResult};
 
 // TODO: paging
-pub fn query_list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
-    let accounts = ACCOUNTS
+pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
+    let accounts: StdResult<
+        Vec<(
+            AccountId,
+            abstract_core::objects::chain_name::ChainName,
+            String,
+        )>,
+    > = ACCOUNTS
         .range(deps.storage, None, None, Order::Ascending)
-        .map(|r| {
-            let ((channel_id, account_id), account) = r?;
-            Ok(AccountInfo::convert(channel_id, account_id, account))
-        })
-        .collect::<StdResult<_>>()?;
-    Ok(ListAccountsResponse { accounts })
+        .map(|r| r.map(|((a, c), s)| (a, c, s)))
+        .collect();
+
+    Ok(ListAccountsResponse {
+        accounts: accounts?,
+    })
 }
 
-pub fn query_list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
+pub fn list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
     let channels = CHANNELS
         .range(deps.storage, None, None, Order::Ascending)
         .collect::<StdResult<_>>()?;
     Ok(ListChannelsResponse { channels })
 }
 
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
+pub fn config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {
+    let chain = ChainName::new(&env);
     let Config {
-        chain,
         version_control_address,
     } = CONFIG.load(deps.storage)?;
     let admin = ADMIN.get(deps)?.unwrap();
     Ok(ConfigResponse {
         admin: admin.into(),
-        chain,
+        chain: chain.into_string(),
         version_control_address: version_control_address.into_string(),
     })
 }
 
-pub fn query_account(
+pub fn account(
     deps: Deps,
     host_chain: String,
     account_id: AccountId,
 ) -> StdResult<AccountResponse> {
-    let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    let account = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
-    Ok(account.into())
+    let host_chain = ChainName::from(host_chain);
+    host_chain.check().unwrap();
+    let remote_proxy_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
+    Ok(AccountResponse { remote_proxy_addr })
 }

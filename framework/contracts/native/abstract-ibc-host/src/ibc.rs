@@ -1,18 +1,22 @@
 use crate::{
-    endpoints::reply::INIT_CALLBACK_ID,
-    state::{ContractError, CLIENT_PROXY, CLOSED_CHANNELS, PENDING},
-    Host, HostError,
+    contract::HostResult,
+    endpoints::{packet, reply::INIT_CALLBACK_ID},
+    state::{CHAIN_CLIENTS, CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
+    HostError,
 };
-use abstract_core::objects::AccountId;
+use abstract_core::{
+    account_factory,
+    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
+};
 use abstract_sdk::core::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    entry_point, to_binary, to_vec, Binary, ContractResult, Deps, DepsMut, Empty, Env, Event,
-    Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg, IbcChannelConnectMsg,
-    IbcChannelOpenMsg, IbcChannelOpenResponse, IbcPacketAckMsg, IbcPacketTimeoutMsg,
-    IbcReceiveResponse, QuerierWrapper, QueryRequest, StdError, StdResult, SubMsg, SystemResult,
-    WasmMsg,
+    ensure_eq, entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut,
+    Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
+    IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcEndpoint, IbcPacketAckMsg,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest,
+    StdError, StdResult, SubMsg, SystemResult, WasmMsg,
 };
 
 // one hour
@@ -20,7 +24,7 @@ pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 #[entry_point]
 #[allow(unused)]
-/// enforces ordering and versioing constraints
+/// enforces ordering and versioning constraints
 pub fn ibc_channel_open(
     _deps: DepsMut,
     _env: Env,
@@ -34,6 +38,8 @@ pub fn ibc_channel_open(
     if let Some(counter_version) = msg.counterparty_version() {
         check_version(counter_version)?;
     }
+
+    // we naively assume the counter party is the correct client, this gets checked later.
 
     // We return the version we need (which could be different than the counterparty version)
     Ok(Some(Ibc3ChannelOpenResponse {
@@ -51,14 +57,6 @@ pub fn ibc_channel_connect(
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let chan_id = &channel.endpoint.channel_id;
-    // re-open channel if it was closed previously.
-    let re_open_channel = |mut closed_channels: Vec<String>| -> StdResult<Vec<String>> {
-        Ok(closed_channels
-            .into_iter()
-            .filter(|c| c != chan_id)
-            .collect())
-    };
-    CLOSED_CHANNELS.update(deps.storage, re_open_channel)?;
 
     Ok(IbcBasicResponse::new()
         .add_attribute("action", "ibc_connect")
@@ -73,20 +71,24 @@ pub fn ibc_channel_close(
     env: Env,
     msg: IbcChannelCloseMsg,
 ) -> StdResult<IbcBasicResponse> {
-    let channel = msg.channel();
-    // get contract address and remove lookup
-    let channel_id = channel.endpoint.channel_id.clone();
-    CLOSED_CHANNELS.update(deps.storage, |mut channels| {
-        channels.push(channel_id);
-        Ok::<_, StdError>(channels)
-    })?;
+    match msg {
+        IbcChannelCloseMsg::CloseInit { channel } => {
+            // error on attempt to close channel
+            return Err(StdError::generic_err("IBC channel close is not supported"));
+        }
+        IbcChannelCloseMsg::CloseConfirm { channel } => {}
+    }
 
-    Ok(
-        IbcBasicResponse::new()
-            // .add_submessages(messages)
-            .add_attribute("action", "ibc_close")
-            .add_attribute("channel_id", channel.endpoint.channel_id.clone()), // .add_attribute("rescue_funds", rescue_funds.to_string())
-    )
+    Ok(IbcBasicResponse::new().add_attribute("action", "ibc_close"))
+}
+
+#[entry_point]
+pub fn ibc_packet_receive(
+    deps: DepsMut,
+    env: Env,
+    msg: IbcPacketReceiveMsg,
+) -> Result<IbcReceiveResponse, HostError> {
+    packet::handle_packet(deps, env, msg)
 }
 
 fn unparsed_query(
@@ -126,63 +128,86 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account
-pub fn receive_register<
-    Error: ContractError,
-    CustomExecMsg,
-    CustomInitMsg,
-    CustomQueryMsg,
-    CustomMigrateMsg,
-    ReceiveMsg,
-    SudoMsg,
->(
+pub fn receive_register(
     deps: DepsMut,
     env: Env,
-    host: Host<
-        Error,
-        CustomInitMsg,
-        CustomExecMsg,
-        CustomQueryMsg,
-        CustomMigrateMsg,
-        ReceiveMsg,
-        SudoMsg,
-    >,
     channel: String,
     account_id: AccountId,
     account_proxy_address: String,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
 ) -> Result<IbcReceiveResponse, HostError> {
-    let cfg = host.base_state.load(deps.storage)?;
-    let init_msg = cw1_whitelist::msg::InstantiateMsg {
-        admins: vec![env.contract.address.into_string()],
-        mutable: false,
-    };
-    let msg = WasmMsg::Instantiate {
-        admin: None,
-        code_id: cfg.cw1_code_id,
-        msg: to_binary(&init_msg)?,
-        funds: vec![],
-        label: format!("ibc-reflect-{}", channel.as_str()),
-    };
-    let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
+    let cfg = CONFIG.load(deps.storage)?;
+
+    // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
+    account_id.trace().verify_remote()?;
+
+    // create the message to instantiate the remote account
+    let factory_msg = wasm_execute(
+        cfg.account_factory,
+        &account_factory::ExecuteMsg::CreateAccount {
+            governance: abstract_core::objects::gov_type::GovernanceDetails::External {
+                governance_address: env.contract.address.into_string(),
+                governance_type: "ibc".into(),
+            },
+            name,
+            description,
+            link,
+            // provide the origin chain id
+            origin: Some(account_id.clone()),
+        },
+        vec![],
+    )?;
+    // wrap with a submsg
+    let factory_msg = SubMsg::reply_on_success(factory_msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &account_proxy_address)?;
+    CLIENT_PROXY.save(deps.storage, &account_id, &account_proxy_address)?;
     // store the account info for the reply handler
-    PENDING.save(deps.storage, &(channel, account_id))?;
+    REGISTRATION_CACHE.save(deps.storage, &(channel, account_id.clone()))?;
 
     // We rely on Reply handler to change this to Success!
     let acknowledgement = StdAck::fail(format!("Failed to create proxy for Account {account_id} "));
 
     Ok(IbcReceiveResponse::new()
-        .add_submessage(msg)
+        .add_submessage(factory_msg)
         .set_ack(acknowledgement)
         .add_attribute("action", "register"))
 }
 
 // processes InternalAction::WhoAmI variant
-pub fn receive_who_am_i(this_chain: String) -> Result<IbcReceiveResponse, HostError> {
+pub fn receive_who_am_i(
+    deps: DepsMut,
+    channel: String,
+    packet_source: IbcEndpoint,
+    client_chain: ChainName,
+    this_chain: ChainName,
+) -> Result<IbcReceiveResponse, HostError> {
+    // this means we successfully made a connection, map this channel to the client chain after verifying the correct client is used.
+    let registered_client_for_chain = CHAIN_CLIENTS.load(deps.storage, &client_chain)?;
+    let counterparty_client = packet_source.port_id;
+    // remove the 'wasm.' prefix from the client id
+    let counterparty_client = counterparty_client
+        .strip_prefix("wasm.")
+        .ok_or(HostError::Std(StdError::generic_err(
+            "mis-formatted wasm port",
+        )))?;
+    // ensure the client is the same as the one we registered
+    ensure_eq!(
+        &registered_client_for_chain,
+        counterparty_client,
+        HostError::ClientMismatch(registered_client_for_chain, counterparty_client.to_string())
+    );
+    // add this channel to the map and relate it to the client chain
+    CHAIN_OF_CHANNEL.save(deps.storage, &channel, &client_chain)?;
+
     // let them know we're fine
-    let response = WhoAmIResponse { chain: this_chain };
+    let response = WhoAmIResponse {
+        chain: this_chain.into_string(),
+    };
     let acknowledgement = StdAck::success(response);
+
     Ok(IbcReceiveResponse::new()
         .set_ack(acknowledgement)
         .add_attribute("action", "who_am_i"))

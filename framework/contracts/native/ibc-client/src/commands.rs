@@ -3,11 +3,12 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_core::{ibc_client::state::ALLOWED_PORTS, manager, objects::chain_name::ChainName};
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
         ibc_client::{
-            state::{AccountData, ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG, LATEST_QUERIES},
+            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG},
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -51,11 +52,24 @@ pub fn execute_update_config(
     Ok(IbcClientResponse::action("update_config"))
 }
 
+pub fn execute_allow_chain_port(
+    deps: DepsMut,
+    info: MessageInfo,
+    chain: String,
+    port: String,
+) -> IbcClientResult {
+    // auth check
+    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    ALLOWED_PORTS.save(deps.storage, &ChainName::from(chain), &port)?;
+
+    Ok(IbcClientResponse::action("allow_chain_port"))
+}
+
 // allows admins to clear host if needed
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
@@ -68,7 +82,7 @@ pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     action: HostAction,
     callback_info: Option<CallbackInfo>,
     mut retries: u8,
@@ -93,8 +107,8 @@ pub fn execute_send_packet(
     // ensure the channel exists and loads it.
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     let packet = PacketMsg {
+        host_chain,
         retries,
-        client_chain: cfg.chain,
         account_id,
         callback_info,
         action,
@@ -108,11 +122,11 @@ pub fn execute_send_packet(
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(msg))
 }
 
-pub fn execute_register_os(
+pub fn execute_register_account(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
 ) -> IbcClientResult {
     // auth check
     let cfg = CONFIG.load(deps.storage)?;
@@ -126,22 +140,25 @@ pub fn execute_register_os(
 
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let account_id = account_base.account_id(deps.as_ref())?;
-
+    let mut account_id = account_base.account_id(deps.as_ref())?;
+    // get auxiliary information
+    let account_info: manager::InfoResponse = deps
+        .querier
+        .query_wasm_smart(account_base.manager, &manager::QueryMsg::Info {})?;
+    let account_info = account_info.info;
     // construct a packet to send
     let packet = PacketMsg {
         retries: 0u8,
-        client_chain: cfg.chain,
+        host_chain,
         account_id,
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
+            description: account_info.description,
+            link: account_info.link,
+            name: account_info.name,
         }),
     };
-
-    // save a default value to account
-    let account = AccountData::default();
-    ACCOUNTS.save(deps.storage, (&channel_id, account_id), &account)?;
 
     let msg = IbcMsg::SendPacket {
         channel_id,
@@ -156,7 +173,7 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: String,
+    host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
@@ -173,17 +190,7 @@ pub fn execute_send_funds(
     // get channel used to communicate to host chain
     let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
-    let data = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
-
-    let remote_addr = match data.remote_addr {
-        Some(addr) => addr,
-        None => {
-            return Err(StdError::generic_err(
-                "We don't have the remote address for this channel or Account",
-            )
-            .into())
-        }
-    };
+    let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
 
     let ics20_channel_entry = ChannelEntry {
         connected_chain: host_chain,
@@ -215,7 +222,6 @@ pub fn execute_send_funds(
 
 fn clear_accounts(store: &mut dyn Storage) {
     ACCOUNTS.clear(store);
-    LATEST_QUERIES.clear(store);
 }
 
 #[cfg(test)]
@@ -265,9 +271,8 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_core::{ibc_client::state::Config, objects::account::TEST_ACCOUNT_ID};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
-        use cosmwasm_std::{Empty, Timestamp};
 
         #[test]
         fn only_admin() -> IbcClientTestResult {
@@ -282,7 +287,6 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
             let cfg = Config {
-                chain: "chain".to_string(),
                 version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
             };
             CONFIG.save(deps.as_mut().storage, &cfg)?;
@@ -332,21 +336,8 @@ mod test {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
-                &AccountData {
-                    last_update_time: Timestamp::from_nanos(5u64),
-                    remote_addr: None,
-                    remote_balance: vec![],
-                },
-            )?;
-
-            LATEST_QUERIES.save(
-                deps.as_mut().storage,
-                ("channel", 5u32),
-                &LatestQueryResponse {
-                    last_update_time: Timestamp::from_nanos(5u64),
-                    response: StdAck::Result(to_binary(&Empty {})?),
-                },
+                (&TEST_ACCOUNT_ID, &ChainName::from("channel")),
+                &"Some-remote-account".to_string(),
             )?;
 
             let new_version_control = "new_version_control".to_string();
@@ -360,7 +351,6 @@ mod test {
             assert_that!(res.messages).is_empty();
 
             assert_that!(ACCOUNTS.is_empty(&deps.storage)).is_true();
-            assert_that!(LATEST_QUERIES.is_empty(&deps.storage)).is_true();
 
             Ok(())
         }
@@ -372,7 +362,7 @@ mod test {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host_chain".to_string(),
+                host_chain: ChainName::from("host_chain"),
             })
         }
 
@@ -381,10 +371,14 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            CHANNELS.save(deps.as_mut().storage, TEST_CHAIN, &"test_channel".into())?;
+            CHANNELS.save(
+                deps.as_mut().storage,
+                &ChainName::from(TEST_CHAIN),
+                &"test_channel".into(),
+            )?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.to_string(),
+                host_chain: TEST_CHAIN.into(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;
@@ -401,7 +395,7 @@ mod test {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::RemoveHost {
-                host_chain: TEST_CHAIN.to_string(),
+                host_chain: TEST_CHAIN.into(),
             };
 
             let res = execute_as_admin(deps.as_mut(), msg)?;

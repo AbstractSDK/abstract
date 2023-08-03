@@ -36,4 +36,13 @@ pub enum AccountFactoryError {
 
     #[error("No payment received")]
     NoPaymentReceived {},
+
+    #[error("Can not create remote accounts without configured IBC host.")]
+    IbcHostNotSet,
+
+    #[error("A trace must exist of at least one at at most {0} hops but has {1}")]
+    InvalidTrace(usize, usize),
+
+    #[error("Sender {0} is not the IBC host {1}")]
+    SenderNotIbcHost(String, String),
 }

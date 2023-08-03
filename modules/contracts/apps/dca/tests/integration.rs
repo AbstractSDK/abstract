@@ -1,8 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::{
-    AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
+    AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId, AccountId,
 };
 use abstract_core::AbstractError;
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
@@ -102,7 +103,7 @@ fn setup() -> anyhow::Result<(
         })?;
     abstr_deployment
         .version_control
-        .claim_namespace(1, "croncat".to_string())?;
+        .claim_namespace(AccountId::new(1, AccountTrace::Local)?, "croncat".to_string())?;
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
 
     // Register factory entry
