@@ -31,6 +31,9 @@ pub use account_action::AccountAction;
 #[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, grant::*};
 
+#[cfg(feature = "tokenfactory")]
+pub use crate::apis::token_factory::*;
+
 pub mod features {
     //! # Feature traits
     //! Features are traits that are implemented on the base layer of a module. Implementing a feature unlocks the API objects that are dependent on it.

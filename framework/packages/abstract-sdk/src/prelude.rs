@@ -13,6 +13,8 @@ pub use crate::apis::{
     verify::*, version_registry::*,
 };
 
+#[cfg(feature = "tokenfactory")]
+pub use crate::apis::token_factory::*;
 #[cfg(feature = "stargate")]
 pub use crate::apis::{distribution::*, grant::*};
 

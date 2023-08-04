@@ -14,3 +14,5 @@ pub mod version_registry;
 pub mod distribution;
 #[cfg(feature = "stargate")]
 pub mod grant;
+#[cfg(feature = "tokenfactory")]
+pub mod token_factory;
