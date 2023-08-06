@@ -97,14 +97,17 @@ pub struct PacketMsg {
 
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update the Admin
-    UpdateAdmin { admin: String },
+    UpdateAdmin {
+        admin: String,
+    },
     UpdateConfig {
         ans_host_address: Option<String>,
         account_factory_address: Option<String>,
         version_control_address: Option<String>,
-    }, 
+    },
     RegisterChainClient {
         chain_id: String,
         client: String,
@@ -120,10 +123,11 @@ pub enum ExecuteMsg {
 /// Query Host message
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 pub enum QueryMsg {
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
-    Config {}, 
+    Config {},
     #[returns(RegisteredChainsResponse)]
     RegisteredChains {},
     #[returns(RegisteredChainResponse)]

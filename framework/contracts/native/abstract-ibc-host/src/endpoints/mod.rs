@@ -1,6 +1,6 @@
 mod execute;
 mod instantiate;
-mod migrate;
+pub mod migrate;
 pub mod packet;
 mod query;
 pub(crate) mod reply;

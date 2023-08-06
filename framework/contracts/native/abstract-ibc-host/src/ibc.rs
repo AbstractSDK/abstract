@@ -149,7 +149,7 @@ pub fn receive_register(
         &account_factory::ExecuteMsg::CreateAccount {
             governance: abstract_core::objects::gov_type::GovernanceDetails::External {
                 governance_address: env.contract.address.into_string(),
-                governance_type: "ibc".into(),
+                governance_type: "abstract-ibc".into(), // at least 4 characters
             },
             name,
             description,

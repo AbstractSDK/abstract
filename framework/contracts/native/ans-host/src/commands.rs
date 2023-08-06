@@ -1088,7 +1088,7 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let upper_entry = unchecked_channel_map_entry("UP_CHAIN", "UP_PROTOCOL", "channel_id");
+            let upper_entry = unchecked_channel_map_entry("up_chain", "UP_PROTOCOL", "channel_id");
 
             map_tester.execute_update(deps.as_mut(), (vec![upper_entry], vec![]))?;
 

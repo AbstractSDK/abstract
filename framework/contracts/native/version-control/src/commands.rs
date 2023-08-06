@@ -943,7 +943,7 @@ mod test {
                 deps.as_mut(),
                 TEST_ACCOUNT_FACTORY,
                 ExecuteMsg::AddAccount {
-                    account_id: TEST_ACCOUNT_ID,
+                    account_id: SECOND_TEST_ACCOUNT_ID,
                     account_base: AccountBase {
                         manager: Addr::unchecked(account_1_manager),
                         proxy: Addr::unchecked("proxy2"),
@@ -952,8 +952,8 @@ mod test {
             )?;
 
             // Attempt to claim the abstract namespace with account 1
-            let claim_abstract_msg = ExecuteMsg::ClaimNamespace {
-                account_id: TEST_ACCOUNT_ID,
+            let claim_abstract_msg: ExecuteMsg = ExecuteMsg::ClaimNamespace {
+                account_id: SECOND_TEST_ACCOUNT_ID,
                 namespace: ABSTRACT_NAMESPACE.to_string(),
             };
             let res = execute_as(deps.as_mut(), TEST_OWNER, claim_abstract_msg);

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::error::IbcClientError;
 use abstract_core::{
-    ibc_client::state::{CHAIN_HOSTS},
+    ibc_client::state::CHAIN_HOSTS,
     objects::{account::AccountTrace, chain_name::ChainName, AccountId},
 };
 use abstract_sdk::core::{
@@ -16,9 +16,9 @@ use abstract_sdk::core::{
     ibc_host::{HostAction, InternalAction, PacketMsg},
 };
 use cosmwasm_std::{
-    from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
+    ensure_eq, from_slice, to_binary, DepsMut, Env, Ibc3ChannelOpenResponse, IbcBasicResponse,
     IbcChannelCloseMsg, IbcChannelConnectMsg, IbcChannelOpenMsg, IbcMsg, IbcPacketAckMsg,
-    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdResult, ensure_eq, StdError,
+    IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, IbcTimeout, StdError, StdResult,
 };
 
 // TODO: make configurable?
@@ -230,10 +230,10 @@ fn acknowledge_who_am_i(
         return Err(IbcClientError::HostAlreadyExists {});
     }
 
-     // ensure the contract that connects is allowed to connect
+    // ensure the contract that connects is allowed to connect
     let registered_host = CHAIN_HOSTS
-     .load(deps.storage, &chain)
-     .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
+        .load(deps.storage, &chain)
+        .map_err(|_| IbcClientError::UnregisteredChain(chain.to_string()))?;
     let counterparty_host =
         port_id
             .strip_prefix("wasm.")

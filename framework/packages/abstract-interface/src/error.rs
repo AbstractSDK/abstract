@@ -1,6 +1,6 @@
 use abstract_core::AbstractError;
 use cosmwasm_std::StdError;
-use cw_orch::prelude::CwOrchError;
+use cw_orch::{daemon::DaemonError, prelude::CwOrchError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -10,6 +10,9 @@ pub enum AbstractInterfaceError {
 
     #[error(transparent)]
     Orch(#[from] CwOrchError),
+
+    #[error(transparent)]
+    Daemon(#[from] DaemonError),
 
     #[error("JSON Conversion Error")]
     SerdeJson(#[from] ::serde_json::Error),

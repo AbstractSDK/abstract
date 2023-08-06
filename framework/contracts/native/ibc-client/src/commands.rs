@@ -3,7 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
-use abstract_core::{ibc_client::state::{CHAIN_HOSTS}, manager, objects::chain_name::ChainName};
+use abstract_core::{ibc_client::state::CHAIN_HOSTS, manager, objects::chain_name::ChainName};
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{

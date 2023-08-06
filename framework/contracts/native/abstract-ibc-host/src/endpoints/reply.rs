@@ -1,16 +1,14 @@
 use crate::{
     account_commands::{self, get_account, send_all_back},
     contract::HostResponse,
-    state::{
-        CHAIN_OF_CHANNEL, CLIENT_PROXY, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS,
-    },
+    state::{CHAIN_OF_CHANNEL, CLIENT_PROXY, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS},
     HostError,
 };
 use abstract_core::objects::AccountId;
 use abstract_sdk::core::{
-        abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
-        ibc_host::PacketMsg,
-    };
+    abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
+    ibc_host::PacketMsg,
+};
 use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
 use cw_utils::parse_reply_instantiate_data;
 
@@ -56,18 +54,12 @@ pub fn reply_dispatch_callback(
 }
 
 /// Handle reply after the Account is created, reply with the proxy address of the created account.
-pub fn reply_init_callback(deps: DepsMut, _env: Env, reply: Reply) -> Result<Response, HostError> {
+pub fn reply_init_callback(deps: DepsMut, _env: Env, _reply: Reply) -> Result<Response, HostError> {
     // we use storage to pass info from the caller to the reply
-    let (channel, account_id): (String, AccountId) = REGISTRATION_CACHE.load(deps.storage)?;
+    let (_, account_id): (String, AccountId) = REGISTRATION_CACHE.load(deps.storage)?;
     REGISTRATION_CACHE.remove(deps.storage);
     // get the account for the callback
     let account = account_commands::get_account(deps.as_ref(), &account_id)?;
-
-    // parse contract info from data
-    let raw_addr = parse_reply_instantiate_data(reply)
-        .map_err(HostError::from)?
-        .contract_address;
-    let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
     let data = StdAck::success(RegisterResponse {
         /// return the proxy address of the created account, this allows for coin transfers

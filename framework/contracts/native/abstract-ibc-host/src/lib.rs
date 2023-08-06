@@ -5,6 +5,9 @@ pub mod chains;
 pub mod endpoints;
 pub mod error;
 
-mod contract;
+pub mod contract;
 pub(crate) mod ibc;
 pub mod state;
+
+#[cfg(test)]
+pub mod test;

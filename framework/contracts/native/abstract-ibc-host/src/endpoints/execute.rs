@@ -1,12 +1,10 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    state::CONFIG,
+    state::{CHAIN_CLIENTS, CONFIG},
 };
-use abstract_core::proxy::state::ADMIN;
+use abstract_core::{objects::chain_name::ChainName, proxy::state::ADMIN};
 use abstract_sdk::core::ibc_host::ExecuteMsg;
-use cosmwasm_std::{
-    DepsMut, Env, MessageInfo,
-};
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {
@@ -27,6 +25,9 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             version_control_address,
             account_factory_address,
         ),
+        ExecuteMsg::RegisterChainClient { chain_id, client } => {
+            register_chain_client(deps, info, chain_id, client)
+        }
         ExecuteMsg::RecoverAccount {
             closed_channel: _,
             account_id: _,
@@ -68,4 +69,15 @@ fn update_config(
 
     CONFIG.save(deps.storage, &config)?;
     Ok(HostResponse::action("update_config"))
+}
+
+fn register_chain_client(
+    deps: DepsMut,
+    info: MessageInfo,
+    chain_id: String,
+    client: String,
+) -> HostResult {
+    cw_ownable::is_owner(deps.storage, &info.sender)?;
+    CHAIN_CLIENTS.save(deps.storage, &ChainName::from(chain_id), &client)?;
+    Ok(HostResponse::action("register_chain_client"))
 }

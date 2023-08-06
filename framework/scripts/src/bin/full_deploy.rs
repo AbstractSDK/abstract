@@ -58,7 +58,12 @@ fn main() {
 
     let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n))
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
