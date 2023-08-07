@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::{
-    AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId, AccountId,
+    AccountId, AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
 use abstract_core::AbstractError;
 use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
@@ -101,9 +101,10 @@ fn setup() -> anyhow::Result<(
         .create_default_account(GovernanceDetails::Monarchy {
             monarch: ADMIN.to_string(),
         })?;
-    abstr_deployment
-        .version_control
-        .claim_namespace(AccountId::new(1, AccountTrace::Local)?, "croncat".to_string())?;
+    abstr_deployment.version_control.claim_namespace(
+        AccountId::new(1, AccountTrace::Local)?,
+        "croncat".to_string(),
+    )?;
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
 
     // Register factory entry

@@ -1,4 +1,3 @@
-
 use abstract_core::abstract_ica::IBC_APP_VERSION;
 use abstract_core::ibc_host::InstantiateMsg;
 use abstract_core::objects::chain_name::ChainName;

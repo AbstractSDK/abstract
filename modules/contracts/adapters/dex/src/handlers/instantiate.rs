@@ -1,9 +1,9 @@
 use crate::contract::{DexAdapter, DexResult};
 use crate::msg::DexInstantiateMsg;
 use crate::state::SWAP_FEE;
-use abstract_core::objects::AccountId;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::fee::UsageFee;
+use abstract_core::objects::AccountId;
 use abstract_sdk::AccountVerification;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 

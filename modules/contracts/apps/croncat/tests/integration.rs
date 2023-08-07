@@ -5,7 +5,9 @@ use std::cell::RefMut;
 use abstract_core::{
     ans_host::ContractsResponse,
     app::BaseInstantiateMsg,
-    objects::{gov_type::GovernanceDetails, UncheckedContractEntry, account::AccountTrace, AccountId},
+    objects::{
+        account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
+    },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 
@@ -246,9 +248,10 @@ fn setup() -> anyhow::Result<TestingSetup> {
                 monarch: ADMIN.to_string(),
             })?;
     // claim the namespace so app can be deployed
-    abstr_deployment
-        .version_control
-        .claim_namespace(AccountId::new(1, AccountTrace::Local)?, "croncat".to_owned())?;
+    abstr_deployment.version_control.claim_namespace(
+        AccountId::new(1, AccountTrace::Local)?,
+        "croncat".to_owned(),
+    )?;
 
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;
