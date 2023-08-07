@@ -11,7 +11,7 @@ use abstract_interface::{
 };
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
-use cosmwasm_std::{Addr, Uint64};
+use cosmwasm_std::Addr;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::Mock;
 use cw_orch::prelude::*;

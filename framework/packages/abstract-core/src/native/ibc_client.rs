@@ -172,7 +172,6 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::prelude::*;
     use cosmwasm_std::to_binary;
     use speculoos::prelude::*;
 

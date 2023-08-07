@@ -19,9 +19,7 @@ use abstract_sdk::{
     features::AccountIdentification,
     AccountVerification, Execution, Resolve,
 };
-use cosmwasm_std::{
-    to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, StdError, Storage,
-};
+use cosmwasm_std::{to_binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage};
 
 pub fn execute_update_config(
     deps: DepsMut,
@@ -140,7 +138,7 @@ pub fn execute_register_account(
 
     // ensure the channel exists (not found if not registered)
     let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
-    let mut account_id = account_base.account_id(deps.as_ref())?;
+    let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
     let account_info: manager::InfoResponse = deps
         .querier
@@ -187,8 +185,6 @@ pub fn execute_send_funds(
 
     // get account_id of Account
     let account_id = account_base.account_id(deps.as_ref())?;
-    // get channel used to communicate to host chain
-    let channel = CHANNELS.load(deps.storage, &host_chain)?;
     // load remote account
     let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
 

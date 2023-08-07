@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use crate::error::IbcClientError;
 use abstract_core::{
     ibc_client::state::CHAIN_HOSTS,
@@ -10,7 +8,7 @@ use abstract_sdk::core::{
         check_order, check_version, BalancesResponse, RegisterResponse, StdAck, WhoAmIResponse,
     },
     ibc_client::{
-        state::{ACCOUNTS, CHANNELS, CONFIG},
+        state::{ACCOUNTS, CHANNELS},
         CallbackInfo,
     },
     ibc_host::{HostAction, InternalAction, PacketMsg},
@@ -44,16 +42,12 @@ pub fn ibc_channel_open(
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn ibc_channel_connect(
-    deps: DepsMut,
+    _deps: DepsMut,
     env: Env,
     msg: IbcChannelConnectMsg,
 ) -> StdResult<IbcBasicResponse> {
     let channel = msg.channel();
     let channel_id = &channel.endpoint.channel_id;
-    // // // create an account holder the channel exists (not found if not registered)
-    // let data = AccountData::default();
-    // ACCOUNTS.save(deps.storage, channel_id, &data)?;
-    let cfg = CONFIG.load(deps.storage)?;
 
     // construct a packet to send
     let packet = PacketMsg {
@@ -200,7 +194,7 @@ fn acknowledge_query(
     callback_info: Option<CallbackInfo>,
     ack: IbcPacketAckMsg,
 ) -> Result<IbcBasicResponse, IbcClientError> {
-    let msg: StdAck = from_slice(&ack.acknowledgement.data)?;
+    let _msg: StdAck = from_slice(&ack.acknowledgement.data)?;
     let res = IbcBasicResponse::new().add_attribute("action", "acknowledge_ibc_query");
 
     maybe_add_callback(res, callback_info, ack).map_err(Into::into)
@@ -277,14 +271,17 @@ fn acknowledge_register(
 
 // receive PacketMsg::Balances response
 fn acknowledge_balances(
-    deps: DepsMut,
-    env: Env,
-    channel_id: String,
-    account_id: AccountId,
+    _deps: DepsMut,
+    _env: Env,
+    _channel_id: String,
+    _account_id: AccountId,
     ack: StdAck,
 ) -> Result<IbcBasicResponse, IbcClientError> {
     // ignore errors (but mention in log)
-    let BalancesResponse { account, balances } = match ack {
+    let BalancesResponse {
+        account: _,
+        balances: _,
+    } = match ack {
         StdAck::Result(res) => from_slice(&res)?,
         StdAck::Error(e) => {
             return Ok(IbcBasicResponse::new()

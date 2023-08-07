@@ -2,20 +2,12 @@
 //! The IbcClient object provides helper function for ibc-related queries or actions.
 //!
 
-use crate::{
-    features::{AbstractRegistryAccess, AccountIdentification},
-    AbstractSdkResult, ModuleInterface,
-};
+use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface};
 use abstract_core::{
     ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
     ibc_host::HostAction,
-    manager,
-    objects::{
-        chain_name::ChainName,
-        module::{ModuleInfo, ModuleVersion},
-    },
+    objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,
-    IBC_CLIENT,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use serde::Serialize;

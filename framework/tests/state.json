@@ -1,0 +1,14 @@
+{
+  "juno": {
+    "juno-1": {
+      "code_ids": {},
+      "default": {}
+    }
+  },
+  "osmosis": {
+    "osmosis-1": {
+      "code_ids": {},
+      "default": {}
+    }
+  }
+}

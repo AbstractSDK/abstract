@@ -1,4 +1,4 @@
-use cosmwasm_std::{from_slice, to_binary, Binary, Coin};
+use cosmwasm_std::{from_slice, to_binary, Binary, Coin, SubMsgResponse};
 use serde::{de::DeserializeOwned, Serialize};
 
 /// This is a generic ICS acknowledgement format.
@@ -48,7 +48,7 @@ impl StdAck {
 /// Return the data field for each message
 #[cosmwasm_schema::cw_serde]
 pub struct DispatchResponse {
-    pub results: Vec<Binary>,
+    pub results: Vec<SubMsgResponse>,
 }
 
 #[cosmwasm_schema::cw_serde]

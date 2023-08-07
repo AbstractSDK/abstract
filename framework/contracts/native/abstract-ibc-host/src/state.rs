@@ -1,28 +1,8 @@
-use crate::{
-    endpoints::reply::{
-        reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID,
-    },
-    HostError,
-};
-use abstract_core::{
-    objects::{chain_name::ChainName, AccountId},
-    version_control::AccountBase,
-};
-use abstract_sdk::{
-    base::{
-        AbstractContract, ExecuteHandlerFn, InstantiateHandlerFn, QueryHandlerFn, ReceiveHandlerFn,
-        ReplyHandlerFn, SudoHandlerFn,
-    },
-    core::ibc_host::PacketMsg,
-    feature_objects::AnsHost,
-    namespaces::{ADMIN_NAMESPACE, BASE_STATE},
-    AbstractSdkError,
-};
-use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Binary, Empty, StdResult, Storage};
-use cw_controllers::Admin;
-use cw_storage_macro::index_list;
-use cw_storage_plus::{IndexList, IndexedMap, Item, Map, MultiIndex, UniqueIndex};
+use abstract_core::objects::{chain_name::ChainName, AccountId};
+use abstract_sdk::{core::ibc_host::PacketMsg, feature_objects::AnsHost};
+use cosmwasm_std::{Addr, SubMsgResponse};
+
+use cw_storage_plus::{Item, Map};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +17,7 @@ pub const CHAIN_OF_CHANNEL: Map<&str, ChainName> = Map::new("cac");
 /// Maps a chain name to its client proxy address
 pub const CHAIN_CLIENTS: Map<&ChainName, String> = Map::new("ccl");
 // this stores all results from current dispatch
-pub const RESULTS: Item<Vec<Binary>> = Item::new("res");
+pub const RESULTS: Item<Vec<SubMsgResponse>> = Item::new("res");
 /// Configuration of the IBC host
 pub const CONFIG: Item<'static, Config> = Item::new("cfg");
 /// The BaseState contains the main addresses needed for sending and verifying messages

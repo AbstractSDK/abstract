@@ -1,22 +1,21 @@
 use crate::{
-    contract::HostResult,
     endpoints::{packet, reply::INIT_CALLBACK_ID},
     state::{CHAIN_CLIENTS, CHAIN_OF_CHANNEL, CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
     HostError,
 };
 use abstract_core::{
     account_factory,
-    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
+    objects::{chain_name::ChainName, AccountId},
 };
 use abstract_sdk::core::abstract_ica::{
     check_order, check_version, IbcQueryResponse, StdAck, WhoAmIResponse, IBC_APP_VERSION,
 };
 use cosmwasm_std::{
-    ensure_eq, entry_point, to_binary, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut,
-    Empty, Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
+    ensure_eq, entry_point, to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty,
+    Env, Event, Ibc3ChannelOpenResponse, IbcBasicResponse, IbcChannelCloseMsg,
     IbcChannelConnectMsg, IbcChannelOpenMsg, IbcChannelOpenResponse, IbcEndpoint, IbcPacketAckMsg,
     IbcPacketReceiveMsg, IbcPacketTimeoutMsg, IbcReceiveResponse, QuerierWrapper, QueryRequest,
-    StdError, StdResult, SubMsg, SystemResult, WasmMsg,
+    StdError, StdResult, SubMsg, SystemResult,
 };
 
 // one hour
@@ -128,6 +127,7 @@ pub fn receive_query(
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account
+#[allow(clippy::too_many_arguments)]
 pub fn receive_register(
     deps: DepsMut,
     env: Env,

@@ -30,7 +30,7 @@ impl<Chain: CwEnv> Uploadable for IbcHost<Chain> {
     }
     fn wasm(&self) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("ibc_client")
+            .find_wasm_path("ibc_host")
             .unwrap()
     }
 }

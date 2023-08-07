@@ -4,7 +4,11 @@ use abstract_sdk::core::ibc_host::MigrateMsg;
 
 use cw_semver::Version;
 
-pub fn migrate(deps: cosmwasm_std::DepsMut, env: cosmwasm_std::Env, msg: MigrateMsg) -> HostResult {
+pub fn migrate(
+    deps: cosmwasm_std::DepsMut,
+    _env: cosmwasm_std::Env,
+    _msg: MigrateMsg,
+) -> HostResult {
     let to_version: Version = CONTRACT_VERSION.parse()?;
 
     assert_cw_contract_upgrade(deps.storage, IBC_HOST, to_version)?;

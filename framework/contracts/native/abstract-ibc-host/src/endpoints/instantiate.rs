@@ -1,25 +1,13 @@
 use crate::{
     contract::{HostResponse, HostResult, CONTRACT_VERSION},
     state::{Config, CONFIG},
-    HostError,
 };
-use abstract_core::{objects::module_version::set_module_data, IBC_HOST};
-use abstract_sdk::{
-    base::{Handler, InstantiateEndpoint},
-    core::ibc_host::InstantiateMsg,
-    feature_objects::AnsHost,
-};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
+use abstract_core::IBC_HOST;
+use abstract_sdk::{core::ibc_host::InstantiateMsg, feature_objects::AnsHost};
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 use cw2::set_contract_version;
-use schemars::JsonSchema;
-use serde::Serialize;
 
-pub fn instantiate(
-    mut deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    msg: InstantiateMsg,
-) -> HostResult {
+pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> HostResult {
     let ans_host = AnsHost {
         address: deps.api.addr_validate(&msg.ans_host_address)?,
     };

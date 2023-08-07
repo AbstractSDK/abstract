@@ -14,7 +14,6 @@ pub use mock_querier::{
 pub type MockDeps = OwnedDeps<MockStorage, MockApi, MockQuerier>;
 pub const OWNER: &str = "owner";
 pub mod addresses {
-    use abstract_core::objects::{account::AccountTrace, AccountId};
     use abstract_core::version_control::AccountBase;
     use cosmwasm_std::Addr;
 

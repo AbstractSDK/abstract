@@ -1,42 +1,14 @@
 use crate::{
-    account_commands::{self, get_account, send_all_back},
-    contract::HostResponse,
-    state::{CHAIN_OF_CHANNEL, CLIENT_PROXY, PROCESSING_PACKET, REGISTRATION_CACHE, RESULTS},
+    account_commands::{self},
+    state::{REGISTRATION_CACHE, RESULTS},
     HostError,
 };
 use abstract_core::objects::AccountId;
-use abstract_sdk::core::{
-    abstract_ica::{DispatchResponse, RegisterResponse, StdAck},
-    ibc_host::PacketMsg,
-};
-use cosmwasm_std::{DepsMut, Empty, Env, Reply, Response};
-use cw_utils::parse_reply_instantiate_data;
+use abstract_sdk::core::abstract_ica::{DispatchResponse, RegisterResponse, StdAck};
+use cosmwasm_std::{DepsMut, Env, Reply, Response};
 
 pub const RECEIVE_DISPATCH_ID: u64 = 1234;
 pub const INIT_CALLBACK_ID: u64 = 7890;
-
-fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, HostError> {
-    let id = msg.id;
-
-    let (packet, channel) = PROCESSING_PACKET.load(deps.storage)?;
-    PROCESSING_PACKET.remove(deps.storage);
-    let client_chain = CHAIN_OF_CHANNEL.load(deps.storage, &channel)?;
-    let PacketMsg { account_id, .. } = packet;
-    let client_proxy_addr = CLIENT_PROXY.load(deps.storage, &account_id)?;
-    let account_base = get_account(deps.as_ref(), &account_id)?;
-    // send everything back to client
-    let send_back_msg = send_all_back(
-        deps.as_ref(),
-        env,
-        account_base,
-        client_proxy_addr,
-        client_chain,
-    )?;
-
-    Ok(HostResponse::action("reply")
-        .add_message(send_back_msg)
-        .set_data(StdAck::success(&Empty {})))
-}
 
 pub fn reply_dispatch_callback(
     deps: DepsMut,
@@ -45,7 +17,7 @@ pub fn reply_dispatch_callback(
 ) -> Result<Response, HostError> {
     // add the new result to the current tracker
     let mut results = RESULTS.load(deps.storage)?;
-    results.push(reply.result.unwrap().data.unwrap_or_default());
+    results.push(reply.result.unwrap());
     RESULTS.save(deps.storage, &results)?;
 
     // update result data if this is the last
