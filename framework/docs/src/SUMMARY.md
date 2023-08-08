@@ -1,9 +1,9 @@
 # Summary
 
-[Introduction](./1_intro.md)
+[Abstract Documentation](./0_abstract_documentation.md)
 
 # About Abstract
-
+- [What is Abstract?](./8_vision.md)
 - [Abstract SDK - Overview](./3_framework/1_abstract_sdk.md)
   - [Actor Model](./3_framework/2_actor_model.md)
   - [Account Abstraction](./3_framework/3_account_abstraction.md)
@@ -62,6 +62,7 @@
   - [Tutorials]()
   - [FAQ](./video_and_content/faq.md)
 
+[Glossary](./9_glossary.md)
 [Contributing & Community](./contributing.md)
 
 
