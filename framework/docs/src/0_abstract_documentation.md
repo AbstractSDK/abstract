@@ -1,8 +1,7 @@
 # Abstract Documentation
 
 Hi and welcome to Abstract, the interchain CosmWasm development platform! Abstract's CosmWasm framework is your gateway 
-to creating amazing things! Whether you're a coding genius or just getting started, Abstract has got your back! By 
-building composable modules you'll be crafting scalable masterpieces in no time!.
+to taking amazing ideas from concept to reality. Whether you're a coding genius or just getting started, Abstract has got your back! By building composable modules you'll be crafting scalable masterpieces in no time.
 
 ## Getting Started
 
