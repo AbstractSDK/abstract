@@ -26,7 +26,7 @@ cw-utils = { version = "1.0.1", optional = true }
 
 [dev-dependencies]
 abstract-dex-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/dex", features = [
-    "testing",
+  "testing",
 ] }
 cw-orch = { version = "0.13.3", features = ["daemon"] }
 cosmwasm-schema = "1.3.1"
