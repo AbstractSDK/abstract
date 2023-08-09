@@ -18,7 +18,7 @@ use cw_utils::PaymentError;
 const OWNER1: &str = "owner1";
 const USER1: &str = "user1";
 const USER2: &str = "user2";
-const TOKEN_INITIAL_AMOUNT: u128 = 1_000_000_000_000000;
+const TOKEN_INITIAL_AMOUNT: u128 = 1_000_000_000_000_000;
 const IBC_ASTRO: &str = "ibc/ASTRO-TOKEN";
 
 #[test]
@@ -30,8 +30,12 @@ fn claim() {
 
     let token_code_id = store_token_code(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let vesting_instance = instantiate_vesting(&mut app, &astro_token_instance);
 
@@ -225,9 +229,9 @@ fn claim_native() {
     let token_code_id = store_token_code(&mut app);
 
     let random_token_instance =
-        instantiate_token(&mut app, token_code_id, "RND", Some(1_000_000000));
+        instantiate_token(&mut app, token_code_id, "RND", Some(1_000_000_000));
 
-    mint_tokens(&mut app, &random_token_instance, &owner, 1_000_000000);
+    mint_tokens(&mut app, &random_token_instance, &owner, 1_000_000_000);
 
     let vesting_instance = instantiate_vesting_remote_chain(&mut app);
 
@@ -391,14 +395,18 @@ fn register_vesting_accounts() {
 
     let token_code_id = store_token_code(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let noname_token_instance = instantiate_token(
         &mut app,
         token_code_id,
         "NONAME",
-        Some(1_000_000_000_000000),
+        Some(1_000_000_000_000_000),
     );
 
     mint_tokens(
@@ -693,7 +701,7 @@ fn register_vesting_accounts_native() {
     let token_code_id = store_token_code(&mut app);
 
     let random_token_instance =
-        instantiate_token(&mut app, token_code_id, "RND", Some(1_000_000_000_000000));
+        instantiate_token(&mut app, token_code_id, "RND", Some(1_000_000_000_000_000));
 
     mint_tokens(
         &mut app,
@@ -943,7 +951,7 @@ fn withdraw_from_active_schedule() {
     let vesting_instance = instantiate_vesting(&mut app, &astro_token);
 
     let user1 = Addr::unchecked("user1");
-    let vested_amount = Uint128::new(100_000_000_000000);
+    let vested_amount = Uint128::new(100_000_000_000_000);
     let start_time = 1654599600;
     let end_time = 1686135600;
     let now_ts = 1675159485;
@@ -958,11 +966,11 @@ fn withdraw_from_active_schedule() {
                 schedules: vec![VestingSchedule {
                     start_point: VestingSchedulePoint {
                         time: start_time,
-                        amount: Uint128::new(1_000_000_000000),
+                        amount: Uint128::new(1_000_000_000_000),
                     },
                     end_point: Some(VestingSchedulePoint {
                         time: end_time,
-                        amount: Uint128::new(100_000_000_000000),
+                        amount: Uint128::new(100_000_000_000_000),
                     }),
                 }],
             }],
@@ -981,10 +989,10 @@ fn withdraw_from_active_schedule() {
         &user1,
         &vesting_instance,
         &astro_token,
-        65_543_017_979452,
+        65_543_017_979_452,
     );
 
-    let withdraw_amount = Uint128::new(10_000_000_000000);
+    let withdraw_amount = Uint128::new(10_000_000_000_000);
     let recipient = Addr::unchecked("recipient");
     let withdraw_msg = ExecuteMsg::WithdrawFromActiveSchedule {
         account: user1.to_string(),
@@ -1004,7 +1012,7 @@ fn withdraw_from_active_schedule() {
         &user1,
         &vesting_instance,
         &astro_token,
-        65_543_017_979452,
+        65_543_017_979_452,
     );
 
     app.update_block(|b| b.time = b.time.plus_seconds(86400 * 7));
@@ -1015,7 +1023,7 @@ fn withdraw_from_active_schedule() {
         &user1,
         &vesting_instance,
         &astro_token,
-        66_890_633_481478,
+        66_890_633_481_478,
     );
 
     app.update_block(|b| b.time = Timestamp::from_seconds(end_time));
@@ -1039,7 +1047,7 @@ fn withdraw_overlapping_schedules() {
     let vesting_instance = instantiate_vesting(&mut app, &astro_token);
 
     let user1 = Addr::unchecked("user1");
-    let vested_amount = Uint128::new(100_000_000_000000);
+    let vested_amount = Uint128::new(100_000_000_000_000);
     let start_time = 1654599600;
     let end_time = 1686135600;
     let now_ts = 1675159485;
@@ -1055,17 +1063,17 @@ fn withdraw_overlapping_schedules() {
                     VestingSchedule {
                         start_point: VestingSchedulePoint {
                             time: start_time,
-                            amount: Uint128::new(1_000_000_000000),
+                            amount: Uint128::new(1_000_000_000_000),
                         },
                         end_point: Some(VestingSchedulePoint {
                             time: end_time,
-                            amount: Uint128::new(50_000_000_000000),
+                            amount: Uint128::new(50_000_000_000_000),
                         }),
                     },
                     VestingSchedule {
                         start_point: VestingSchedulePoint {
                             time: now_ts - 86400 * 7,
-                            amount: Uint128::new(50_000_000_000000),
+                            amount: Uint128::new(50_000_000_000_000),
                         },
                         end_point: None,
                     },
@@ -1085,10 +1093,10 @@ fn withdraw_overlapping_schedules() {
         &user1,
         &vesting_instance,
         &astro_token,
-        82_945_534_151445,
+        82_945_534_151_445,
     );
 
-    let withdraw_amount = Uint128::new(10_000_000_000000);
+    let withdraw_amount = Uint128::new(10_000_000_000_000);
     let recipient = Addr::unchecked("recipient");
     let withdraw_msg = ExecuteMsg::WithdrawFromActiveSchedule {
         account: user1.to_string(),
@@ -1111,7 +1119,7 @@ fn withdraw_overlapping_schedules() {
         &user1,
         &vesting_instance,
         &astro_token,
-        82_945_534_151445,
+        82_945_534_151_445,
     );
 
     // Go to the end of the 1st schedule
@@ -1136,7 +1144,7 @@ fn withdraw_overlapping_schedules2() {
     let vesting_instance = instantiate_vesting(&mut app, &astro_token);
 
     let user1 = Addr::unchecked("user1");
-    let vested_amount = Uint128::new(100_000_000_000000);
+    let vested_amount = Uint128::new(100_000_000_000_000);
     let start_time = 1654599600;
     let end_time = 1686135600;
     let now_ts = 1675159485;
@@ -1152,21 +1160,21 @@ fn withdraw_overlapping_schedules2() {
                     VestingSchedule {
                         start_point: VestingSchedulePoint {
                             time: start_time,
-                            amount: Uint128::new(1_000_000_000000),
+                            amount: Uint128::new(1_000_000_000_000),
                         },
                         end_point: Some(VestingSchedulePoint {
                             time: end_time,
-                            amount: Uint128::new(50_000_000_000000),
+                            amount: Uint128::new(50_000_000_000_000),
                         }),
                     },
                     VestingSchedule {
                         start_point: VestingSchedulePoint {
                             time: now_ts - 86400 * 7,
-                            amount: Uint128::new(1_000_000_000000),
+                            amount: Uint128::new(1_000_000_000_000),
                         },
                         end_point: Some(VestingSchedulePoint {
                             time: end_time + 86400 * 7,
-                            amount: Uint128::new(50_000_000_000000),
+                            amount: Uint128::new(50_000_000_000_000),
                         }),
                     },
                 ],
@@ -1185,14 +1193,14 @@ fn withdraw_overlapping_schedules2() {
         &user1,
         &vesting_instance,
         &astro_token,
-        36_377_496_494237,
+        36_377_496_494_237,
     );
 
     let recipient = Addr::unchecked("recipient");
     let withdraw_msg = ExecuteMsg::WithdrawFromActiveSchedule {
         account: user1.to_string(),
         recipient: Some(recipient.to_string()),
-        withdraw_amount: Uint128::new(10_000_000_000000),
+        withdraw_amount: Uint128::new(10_000_000_000_000),
     };
     let err = app
         .execute_contract(owner.clone(), vesting_instance.clone(), &withdraw_msg, &[])
@@ -1211,7 +1219,7 @@ fn withdraw_overlapping_schedules2() {
         .unwrap_err();
     // There is no 10M ASTRO available for withdrawal
     assert_eq!(
-        ContractError::NotEnoughTokens(Uint128::new(2_431_962_342793)),
+        ContractError::NotEnoughTokens(Uint128::new(2_431_962_342_793)),
         err.downcast().unwrap(),
     );
 
@@ -1224,7 +1232,7 @@ fn withdraw_overlapping_schedules2() {
     );
 
     // Withdrawing 1M ASTRO
-    let withdraw_amount = Uint128::new(1_000_000_000000);
+    let withdraw_amount = Uint128::new(1_000_000_000_000);
     let withdraw_msg = ExecuteMsg::WithdrawFromActiveSchedule {
         account: user1.to_string(),
         recipient: Some(recipient.to_string()),
@@ -1267,7 +1275,7 @@ fn mock_app(owner: &Addr) -> App {
                 owner,
                 vec![
                     coin(TOKEN_INITIAL_AMOUNT, IBC_ASTRO),
-                    coin(1_000_0000000u128, "random-coin"),
+                    coin(10_000_000_000_u128, "random-coin"),
                 ],
             )
             .unwrap()
@@ -1294,7 +1302,7 @@ fn instantiate_token(app: &mut App, token_code_id: u64, name: &str, cap: Option<
         initial_balances: vec![],
         mint: Some(MinterResponse {
             minter: String::from(OWNER1),
-            cap: cap.map(|v| Uint128::from(v)),
+            cap: cap.map(Uint128::from),
         }),
         marketing: None,
     };
@@ -1344,19 +1352,9 @@ fn instantiate_vesting(mut app: &mut App, astro_token_instance: &Addr) -> Addr {
         res.vesting_token.to_string()
     );
 
-    mint_tokens(
-        &mut app,
-        &astro_token_instance,
-        &owner,
-        TOKEN_INITIAL_AMOUNT,
-    );
+    mint_tokens(app, astro_token_instance, &owner, TOKEN_INITIAL_AMOUNT);
 
-    check_token_balance(
-        &mut app,
-        &astro_token_instance,
-        &owner,
-        TOKEN_INITIAL_AMOUNT,
-    );
+    check_token_balance(app, astro_token_instance, &owner, TOKEN_INITIAL_AMOUNT);
 
     vesting_instance
 }
@@ -1430,6 +1428,6 @@ fn claim_and_check(
         &[],
     )
     .unwrap();
-    let astro_amount = query_token_balance(app, &astro_token, &who);
+    let astro_amount = query_token_balance(app, astro_token, who);
     assert_eq!(astro_amount.u128(), expected_amount);
 }

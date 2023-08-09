@@ -16,7 +16,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.17.1"
+version = "0.18.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -58,19 +58,19 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.17.1" }
-abstract-adapter = { version = "0.17.1" }
-abstract-app = { version = "0.17.1" }
-abstract-sdk = { version = "0.17.1" }
-abstract-testing = { version = "0.17.1" }
-abstract-core = { version = "0.17.1" }
-abstract-macros = { version = "0.17.1" }
-abstract-ica = { version = "0.17.1" }
+abstract-interface = { version = "0.18.0" }
+abstract-adapter = { version = "0.18.0" }
+abstract-app = { version = "0.18.0" }
+abstract-sdk = { version = "0.18.0" }
+abstract-testing = { version = "0.18.0" }
+abstract-core = { version = "0.18.0" }
+abstract-macros = { version = "0.18.0" }
+abstract-ica = { version = "0.18.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
-abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+abstract-adapter-utils = { version = "0.18.0" }
+abstract-dex-adapter-traits = { version = "0.18.0" }
+abstract-staking-adapter-traits = { version = "0.18.0" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
@@ -97,6 +97,11 @@ abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
+abstract-adapter-utils = { path = "../framework/packages/utils" }
+abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
+abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+# TODO: remove after new version with osmosis-test-tube deployed
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "13c11e4" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

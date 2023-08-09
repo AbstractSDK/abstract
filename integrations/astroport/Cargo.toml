@@ -34,3 +34,4 @@ strip = true
 
 [patch.'https://github.com/astroport-fi/astroport-core']
 astroport = { path = "./packages/astroport" }
+cosmwasm-std = { version = "1.2" }

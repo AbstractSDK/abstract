@@ -15,7 +15,7 @@ fn proper_initialization() {
     };
 
     let env = mock_env();
-    let info = mock_info("addr0000", &vec![]);
+    let info = mock_info("addr0000", &[]);
     let _res = instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
 
     assert_eq!(
