@@ -28,5 +28,7 @@ pub fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
             coins.push(Coin::new(asset.amount.u128(), denom.clone()));
         }
     }
+    // TODO: Hopefully some day tokenfactory coins can be last and we can get rid of this nonsense
+    coins.sort_unstable_by_key(|c| std::cmp::Reverse(c.denom.len()));
     coins
 }
