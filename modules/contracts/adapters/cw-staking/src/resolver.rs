@@ -8,21 +8,20 @@ use crate::contract::StakingResult;
 
 use abstract_staking_adapter_traits::Identify;
 
+/// Any cw-staking provider should be identified by the adapter
+/// This allows erroring the execution before sending any IBC message to another chain
+/// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
     match value {
-        #[cfg(feature = "juno")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }
-        #[cfg(feature = "osmosis")]
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
-        #[cfg(any(feature = "terra", feature = "neutron"))]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        #[cfg(feature = "kujira")]
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }

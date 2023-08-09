@@ -4,10 +4,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128};
 use croncat_app::croncat_integration_utils::CronCatInterval;
 
-use crate::{
-    contract::DCAApp,
-    state::{Config, DCAEntry},
-};
+use crate::{contract::DCAApp, state::DCAEntry};
 
 // This is used for type safety
 // The second part is used to indicate the messages are used as the apps messages
@@ -41,8 +38,8 @@ impl Frequency {
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
-    /// Native denom for this chain
-    pub native_denom: String,
+    /// Native gas/stake asset for this chain
+    pub native_asset: AssetEntry,
     /// Amount in native coins for creation dca task and refill amount
     pub dca_creation_amount: Uint128,
     /// Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks
@@ -110,11 +107,11 @@ pub enum DCAQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum AppMigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub config: Config,
+    pub native_asset: AssetEntry,
+    pub dca_creation_amount: Uint128,
+    pub refill_threshold: Uint128,
+    pub max_spread: Decimal,
 }
 
 #[cosmwasm_schema::cw_serde]

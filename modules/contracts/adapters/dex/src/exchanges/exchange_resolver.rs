@@ -4,29 +4,26 @@ use abstract_adapter_utils::identity::is_current_chain;
 use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
+/// Any exchange should be identified by the adapter
+/// This allows erroring the execution before sending any IBC message to another chain
+/// This provides superior UX in case of an IBC execution
 pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexError> {
     match value {
-        #[cfg(feature = "juno")]
         crate::exchanges::junoswap::JUNOSWAP => {
             Ok(Box::<crate::exchanges::junoswap::JunoSwap>::default())
         }
-        #[cfg(feature = "juno")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::dex::WynDex>::default())
         }
-        #[cfg(feature = "osmosis")]
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::dex::Osmosis>::default())
         }
-        #[cfg(feature = "terra")]
         crate::exchanges::terraswap::TERRASWAP => {
             Ok(Box::<crate::exchanges::terraswap::Terraswap>::default())
         }
-        #[cfg(any(feature = "terra", feature = "neutron"))]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
-        #[cfg(feature = "kujira")]
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
         }

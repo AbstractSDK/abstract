@@ -32,7 +32,7 @@ mod test {
 
     #[test]
     fn test_wasm_smart_query() {
-        let query_msg = app::QueryMsg::<Empty>::Base(BaseQueryMsg::Admin {});
+        let query_msg = app::QueryMsg::<Empty>::Base(BaseQueryMsg::BaseAdmin {});
         let query = wasm_smart_query::<Empty>("contract", &query_msg).unwrap();
         match query {
             QueryRequest::Wasm(WasmQuery::Smart { contract_addr, msg }) => {

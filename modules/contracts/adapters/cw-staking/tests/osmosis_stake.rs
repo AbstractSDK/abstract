@@ -1,5 +1,7 @@
 mod common;
 
+use std::path::PathBuf;
+
 use abstract_core::adapter;
 use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::objects::pool_id::PoolAddressBase;
@@ -63,7 +65,10 @@ impl<Chain: CwEnv> Uploadable for OsmosisStakingAdapter<Chain> {
         ))
     }
     fn wasm(&self) -> WasmPath {
-        artifacts_dir_from_workspace!()
+        let mut artifacts_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        artifacts_path.push("../../../artifacts");
+
+        ArtifactsDir::new(artifacts_path)
             .find_wasm_path("abstract_cw_staking-osmosis")
             .unwrap()
     }
@@ -159,7 +164,7 @@ fn setup_osmosis() -> anyhow::Result<(
         coin(1_000_000_000_000, ASSET_2),
     ]);
 
-    let deployment = Abstract::deploy_on(tube.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(tube.clone(), tube.sender().to_string())?;
 
     let _root_os = create_default_account(&deployment.account_factory)?;
     let staking: OsmosisStakingAdapter<OsmosisTestTube> =

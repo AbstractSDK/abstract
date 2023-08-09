@@ -117,7 +117,7 @@ pub enum BaseExecuteMsg {
 pub enum BaseQueryMsg {
     /// Returns [`AdapterConfigResponse`].
     #[returns(AdapterConfigResponse)]
-    Config {},
+    BaseConfig {},
     /// Returns [`AuthorizedAddressesResponse`].
     #[returns(AuthorizedAddressesResponse)]
     AuthorizedAddresses { proxy_address: String },

@@ -21,7 +21,7 @@ use crate::common::mock_modules::{BootMockAdapter1V1, BootMockAdapter1V2, V1, V2
 fn installing_one_adapter_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
@@ -38,7 +38,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
     });
 
     // Configuration is correct
-    let adapter_config = staking_adapter.config()?;
+    let adapter_config = staking_adapter.base_config()?;
     assert_that!(adapter_config).is_equal_to(adapter::AdapterConfigResponse {
         ans_host_address: deployment.ans_host.address()?,
         dependencies: vec![],
@@ -58,7 +58,7 @@ fn installing_one_adapter_without_fee_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     chain.set_balance(&sender, coins(12, "ujunox"))?;
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
     add_mock_adapter_install_fee(
@@ -86,7 +86,7 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     chain.set_balance(&sender, coins(45, "ujunox"))?;
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain.clone(), &deployment, None)?;
     add_mock_adapter_install_fee(
@@ -110,7 +110,7 @@ fn installing_one_adapter_with_fee_should_succeed() -> AResult {
 fn install_non_existent_adapterid_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
 
     let res = install_adapter(&account.manager, "lol:no_chance");
@@ -123,7 +123,7 @@ fn install_non_existent_adapterid_should_fail() -> AResult {
 fn install_non_existent_version_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     init_mock_adapter(chain, &deployment, None)?;
 
@@ -144,7 +144,7 @@ fn install_non_existent_version_should_fail() -> AResult {
 fn installation_of_duplicate_adapter_should_fail() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
 
@@ -178,7 +178,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
 fn reinstalling_adapter_should_be_allowed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
 
@@ -215,7 +215,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
 fn reinstalling_new_version_should_install_latest() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     deployment
         .version_control
@@ -286,7 +286,7 @@ fn unauthorized_exec() -> AResult {
     let sender = Addr::unchecked(OWNER);
     let unauthorized = Addr::unchecked("unauthorized");
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let staking_adapter = init_mock_adapter(chain, &deployment, None)?;
     install_adapter(&account.manager, TEST_MODULE_ID)?;
@@ -312,7 +312,7 @@ fn unauthorized_exec() -> AResult {
 fn manager_adapter_exec() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let _staking_adapter_one = init_mock_adapter(chain.clone(), &deployment, None)?;
 
@@ -335,7 +335,7 @@ fn manager_adapter_exec() -> AResult {
 fn installing_specific_version_should_install_expected() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     deployment
         .version_control
@@ -364,5 +364,28 @@ fn installing_specific_version_should_install_expected() -> AResult {
     let installed_module: ManagerModuleInfo = modules[1].clone();
     assert_that!(installed_module.id).is_equal_to(adapter1.id());
 
+    Ok(())
+}
+
+#[test]
+fn account_install_adapter() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    deployment
+        .version_control
+        .claim_namespace(1, "tester".to_owned())?;
+
+    let adapter = BootMockAdapter1V1::new_test(chain);
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg)?;
+    let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
+    let module_addr = account
+        .manager
+        .module_info(common::mock_modules::adapter_1::MOCK_ADAPTER_ID)?
+        .unwrap()
+        .address;
+    assert_that!(adapter_addr).is_equal_to(module_addr);
     Ok(())
 }

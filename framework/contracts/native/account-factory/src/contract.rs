@@ -20,7 +20,7 @@ pub type AccountFactoryResult<T = Response> = Result<T, AccountFactoryError>;
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> AccountFactoryResult {
     let config = Config {
@@ -33,8 +33,8 @@ pub fn instantiate(
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
 
     CONFIG.save(deps.storage, &config)?;
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
     Ok(AccountFactoryResponse::action("instantiate"))
 }
 
