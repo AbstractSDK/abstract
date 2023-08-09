@@ -1,2 +1,8 @@
-05333dc875b3a7e2c9f2b7862a88744b6917b0435c8294921de34f0e5a8ff6b0  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
-229bdba9205e75cd80a5c75fd9a6422cfe9bfa57594260dbf9ac6c2b5c067223  target/wasm32-unknown-unknown/release/croncat_app.wasm
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+b10a5241504f5e02471897d95a107426b108dfd6d24d478cfc341b3dd061f1cc  target/wasm32-unknown-unknown/release/abstract_cw_staking.wasm
+db2c9fafb3808aceba41b42b07fbf43ad479c85d7ee3de199eceef7af932d500  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
+9f4af931d53aa87097b40f4f331c0185bc53d953146047dc8da4c3aef8124c97  target/wasm32-unknown-unknown/release/abstract_dex_adapter.wasm
+833a8dc2005c8c19a37b8ced7fe9b8dadeae83158d667a5daeb78c98f75418d8  target/wasm32-unknown-unknown/release/abstract_tendermint_staking_adapter.wasm
+bfd1493d7036e59c97739f951ddc55d592cf3f9a7dd8f0c4be021c625a5cd5c0  target/wasm32-unknown-unknown/release/croncat_app.wasm

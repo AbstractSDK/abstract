@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 ### Changed
+- Updated fetch_data arguments of CwStakingCommand
+
+### Fixed
+- Partially fixed cw-staking for Osmosis
+
+## [0.17.2] - 2023-07-27
+
+### Added
+- Neutron + Archway to registry
+
+### Changed
 
 ### Fixed
 
