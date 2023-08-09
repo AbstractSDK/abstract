@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis
+- Fixed and separated cw-staking and dex adapters for kujira
 
 ## [0.17.2] - 2023-07-27
 
