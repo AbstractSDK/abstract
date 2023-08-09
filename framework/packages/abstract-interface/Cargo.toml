@@ -39,6 +39,7 @@ ibc-host = { package = "abstract-ibc-host", path = "../../contracts/native/abstr
 
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.17.1" }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.17.1" }
+cosmrs = "0.14.0"
 
 [build-dependencies]
 serde_json = "1.0.79"

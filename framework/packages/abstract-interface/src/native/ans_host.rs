@@ -50,14 +50,14 @@ use cw_orch::prelude::Daemon;
 
 #[cfg(feature = "daemon")]
 impl AnsHost<Daemon> {
-    pub fn update_all(&self) -> Result<(), crate::AbstractInterfaceError> {
-        self.update_assets()?;
-        self.update_contracts()?;
-        self.update_pools()?;
+    pub fn update_all_local(&self) -> Result<(), crate::AbstractInterfaceError> {
+        self.update_assets_local()?;
+        self.update_contracts_local()?;
+        self.update_pools_local()?;
         Ok(())
     }
 
-    pub fn update_assets(&self) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn update_assets_local(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_ASSETS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -107,7 +107,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_channels(&self) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn update_channels_local(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_CHANNELS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));
@@ -138,7 +138,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_contracts(&self) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn update_contracts_local(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_CONTRACTS").unwrap();
 
         let file =
@@ -184,7 +184,7 @@ impl AnsHost<Daemon> {
         Ok(())
     }
 
-    pub fn update_pools(&self) -> Result<(), crate::AbstractInterfaceError> {
+    pub fn update_pools_local(&self) -> Result<(), crate::AbstractInterfaceError> {
         let path = env::var("ANS_HOST_POOLS").unwrap();
         let file =
             File::open(&path).unwrap_or_else(|_| panic!("file should be present at {}", &path));

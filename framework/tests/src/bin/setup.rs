@@ -4,6 +4,7 @@ use abstract_core::objects::chain_name::ChainName;
 use abstract_core::{IBC_CLIENT, IBC_HOST};
 
 use abstract_interface::{Abstract, AccountFactoryExecFns, IbcClient, IbcHost};
+use abstract_interface_integration_tests::ibc::set_env;
 use abstract_interface_integration_tests::{JUNO, OSMOSIS};
 use anyhow::Result as AnyResult;
 
@@ -147,9 +148,7 @@ fn join_host_and_clients(
 }
 
 fn ibc_abstract_setup() -> AnyResult<()> {
-    std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
-    std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
-    std::env::set_var("RUST_LOG", "INFO"); // Set in code for tests
+    set_env();
 
     // Chains setup
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();

@@ -49,10 +49,10 @@ pub use registry::*;
 pub mod adapter;
 pub mod app;
 pub mod objects;
+pub mod proto;
 pub mod registry;
 
 mod error;
-
 pub use error::AbstractError;
 
 mod core;

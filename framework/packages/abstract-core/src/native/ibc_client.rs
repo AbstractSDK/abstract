@@ -41,6 +41,9 @@ pub mod state {
     /// Todo: see if we can remove this
     pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
     pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
+
+    // For callbacks tests
+    pub const ACKS: Item<Vec<String>> = Item::new("temp-callback-storage");
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -53,6 +56,34 @@ pub struct InstantiateMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+#[cosmwasm_schema::cw_serde]
+pub enum IBCLifecycleComplete {
+    #[serde(rename = "ibc_ack")]
+    IBCAck {
+        /// The source channel (osmosis side) of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+        /// String encoded version of the ack as seen by OnAcknowledgementPacket(..)
+        ack: String,
+        /// Weather an ack is a success of failure according to the transfer spec
+        success: bool,
+    },
+    #[serde(rename = "ibc_timeout")]
+    IBCTimeout {
+        /// The source channel (osmosis side) of the IBC packet
+        channel: String,
+        /// The sequence number that the packet was sent with
+        sequence: u64,
+    },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum SudoMsg {
+    #[serde(rename = "ibc_lifecycle_complete")]
+    IBCLifecycleComplete(IBCLifecycleComplete),
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackInfo {

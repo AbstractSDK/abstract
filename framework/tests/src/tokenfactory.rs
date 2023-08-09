@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
-use crate::types::{
+use abstract_interface::proto::{
     ibc::MsgTransfer,
-    token_factory::{MsgCreateDenom, MsgMint},
+    tokenfactory::{MsgCreateDenom, MsgMint},
 };
 use anyhow::Result as AnyResult;
 use cosmrs::{AccountId, Denom};

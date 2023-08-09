@@ -1,3 +1,8 @@
+use abstract_core::{
+    objects::{account::AccountTrace, chain_name::ChainName, AccountId},
+    IBC_CLIENT, PROXY,
+};
+
 #[cfg(test)]
 mod test {
 
@@ -8,27 +13,19 @@ mod test {
     use cw_orch::starship::Starship;
 
     use abstract_core::objects::chain_name::ChainName;
-    use abstract_core::{
-        manager::ConfigResponse,
-        objects::{account::AccountTrace, AccountId},
-        PROXY,
-    };
+    use abstract_core::{manager::ConfigResponse, PROXY};
     use abstract_interface::{IbcHost, Manager, ManagerExecFns, ManagerQueryFns};
     use cosmwasm_std::{to_binary, wasm_execute};
 
-    use abstract_core::{IBC_CLIENT, IBC_HOST};
-    use abstract_interface::{Abstract, AccountDetails};
+    use abstract_core::IBC_HOST;
     use anyhow::Result as AnyResult;
 
+    use super::*;
+    use crate::ibc::create_test_remote_account;
     use cw_orch::prelude::*;
 
     const JUNO: &str = "juno-1";
     const OSMOSIS: &str = "osmosis-1";
-
-    fn set_env() {
-        std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
-        std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
-    }
 
     #[test]
     fn test_create_ibc_account() -> AnyResult<()> {
@@ -48,61 +45,10 @@ mod test {
         let juno_abstr = Abstract::load_from(juno.clone())?;
         let osmo_abstr = Abstract::load_from(osmosis.clone())?;
 
-        // Create a local account for testing
-        let account_name = "osmo-test".to_string();
-        let description = Some("Description of the account".to_string());
-        let link = Some("https://google.com".to_string());
-        osmo_abstr.account_factory.create_new_account(
-            AccountDetails {
-                name: account_name.clone(),
-                description: description.clone(),
-                link: link.clone(),
-            },
-            abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
-                monarch: osmosis.sender().to_string(),
-            },
-        )?;
-
         let juno_host = IbcHost::new(IBC_HOST, juno.clone());
 
-        // We need to register the ibc client as a module of the manager (account specific)
-        osmo_abstr
-            .account
-            .manager
-            .install_module(IBC_CLIENT, &Empty {}, None)?;
-
-        // Now we send a message to the client saying that we want to create an account on osmosis
-        let register_tx = osmo_abstr.account.manager.exec_on_module(
-            to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
-                    host_chain: ChainName::from("juno"),
-                }],
-            })?,
-            PROXY.to_string(),
-        )?;
-
-        rt.block_on(interchain.await_ibc_execution(OSMOSIS.to_owned(), register_tx.txhash))?;
-
-        // After this is all ended, we query the accounts to make sure everything is executed and setup alright on the distant chain
-        // First we query the account id from the manager
-        let account_config = osmo_abstr.account.manager.config()?;
-        /*
-
-                // Test query the account id corresponding to the proxy
-                let test_proxy = Proxy::new("test-proxy", juno.clone());
-                test_proxy.set_address(&Addr::unchecked("juno1jfelp8ny0wqfz3j62qy2p42nfnt379c58hpztsdm9qpswf8ycmzqc2n2a8"));
-
-                let test_manager = Manager::new("test-manager", juno.clone());
-                test_manager.set_address(&Addr::unchecked("juno170n33vv4zdzq5xt3xzntxqax6easje4akke0d3gfa0f00sa4vetqrt9qua"));
-
-                let accounts = test_manager.config()?;
-                log::info!("e{:?}", accounts);
-        */
-
-        let distant_account = AccountId::new(
-            account_config.account_id.seq(),
-            AccountTrace::Remote(vec![ChainName::from("osmosis")]),
-        )?;
+        let distant_account =
+            create_test_remote_account(&rt, &osmosis, "osmosis", "juno", &interchain)?;
         let distant_account_config = juno_abstr
             .version_control
             .get_account(distant_account.clone())?;
@@ -125,6 +71,10 @@ mod test {
         );
 
         let manager_info = distant_manager.info()?;
+
+        let account_name = TEST_ACCOUNT_NAME.to_string();
+        let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
+        let link = Some(TEST_ACCOUNT_LINK.to_string());
         assert_eq!(
             manager_info,
             InfoResponse {
@@ -191,3 +141,75 @@ mod test {
     }
 }
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
+
+use abstract_interface::{Abstract, AccountDetails, ManagerExecFns, ManagerQueryFns};
+use anyhow::Result as AnyResult;
+use cosmwasm_std::{to_binary, Empty};
+use cw_orch::{
+    deploy::Deploy,
+    prelude::{Daemon, InterchainEnv, TxHandler},
+};
+use tokio::runtime::Runtime;
+
+use crate::OSMOSIS;
+
+pub const TEST_ACCOUNT_NAME: &str = "account-test";
+pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
+pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
+
+pub fn set_env() {
+    std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
+    std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
+}
+
+pub fn create_test_remote_account(
+    rt: &Runtime,
+    origin: &Daemon,
+    origin_name: &str,
+    destination: &str,
+    interchain: &InterchainEnv,
+) -> AnyResult<AccountId> {
+    let origin_abstract = Abstract::load_from(origin.clone())?;
+
+    // Create a local account for testing
+    let account_name = TEST_ACCOUNT_NAME.to_string();
+    let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());
+    let link = Some(TEST_ACCOUNT_LINK.to_string());
+    origin_abstract.account_factory.create_new_account(
+        AccountDetails {
+            name: account_name.clone(),
+            description: description.clone(),
+            link: link.clone(),
+        },
+        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
+            monarch: origin.sender().to_string(),
+        },
+    )?;
+
+    // We need to register the ibc client as a module of the manager (account specific)
+    origin_abstract
+        .account
+        .manager
+        .install_module(IBC_CLIENT, &Empty {}, None)?;
+
+    // Now we send a message to the client saying that we want to create an account on osmosis
+    let register_tx = origin_abstract.account.manager.exec_on_module(
+        to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                host_chain: ChainName::from(destination),
+            }],
+        })?,
+        PROXY.to_string(),
+    )?;
+
+    rt.block_on(interchain.await_ibc_execution(OSMOSIS.to_owned(), register_tx.txhash))?;
+
+    // After this is all ended, we query the accounts to make sure everything is executed and setup alright on the distant chain
+    // First we query the account id from the manager
+    let account_config = origin_abstract.account.manager.config()?;
+
+    Ok(AccountId::new(
+        account_config.account_id.seq(),
+        AccountTrace::Remote(vec![ChainName::from(origin_name)]),
+    )?)
+}

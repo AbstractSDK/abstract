@@ -26,7 +26,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
-        ans_host.update_all()?;
+        ans_host.update_all_local()?;
     }
     Ok(())
 }
