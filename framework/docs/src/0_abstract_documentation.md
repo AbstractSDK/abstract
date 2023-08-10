@@ -44,9 +44,18 @@ If you feel lost or have any doubts along the way, please reach out to us! We ar
 
 - [Discord](https://discord.com/invite/uch3Tq3aym)
 - [X](https://x.com/AbstractSDK)
-- [Telegram](https://t.me/AbstractSDK)
 
 ## Want to make Abstract better?
 
 We are always looking for ways to improve Abstract and welcome everybody to contribute to the project. Look at the 
 [Contributing & Community](./contributing.md) section if you want to get involved.
+
+## Links
+
+- [Website](https://abstract.money/)
+- [Github](https://github.com/AbstractSDK)
+- [Medium](https://medium.com/@abstractmoney)
+- [Docs](https://docs.abstract.money/)
+- [Account Console](https://app.abstract.money)
+- [Subgraph Explorer](https://abstract-subgraph-0-17.fly.dev/)
+- [Graphql API Explorer](https://api.abstract.money/)
