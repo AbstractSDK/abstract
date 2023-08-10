@@ -19,10 +19,10 @@ Building a CosmWasm smart-contract with the Abstract SDK automatically makes it 
 
 ## Seamless Integration with Financial Services
 
-With Abstract, you can seamlessly integrate your applications with a wide range of financial services. Whether you're
+With Abstract, you can seamlessly integrate your applications with any financial service available on the interchain. Whether you're
 building decentralized lending platforms, automated market makers, or yield farming protocols, Abstract provides the
-necessary tools and interoperability to connect with existing financial systems and protocols. This allows you to tap
-into the vast ecosystem of decentralized finance and provide users with a seamless and comprehensive financial experience.
+necessary tools and interoperability to connect with existing protocols and applications. This allows you to tap
+into the vast ecosystem of DeFi and provide users with a seamless and comprehensive financial experience.
 
 ## Continuous Funding
 
