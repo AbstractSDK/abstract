@@ -26,13 +26,10 @@ into the vast ecosystem of DeFi and provide users with a seamless and comprehens
 
 ## Continuous Funding
 
-Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's
-tokenomics and community-driven incentives. As a developer you can design and offer smart contracts on the Module 
-Marketplace and receive a portion of Abstract tokens from each sale. By participating in or forming Developer DAOs, 
+Developers on the Abstract platform can earn ongoing revenue for their contributions by leveraging the platform's community-driven incentives. As a developer you can publish your smart contract modules on the marketplace and receive proceeds directly from sales to other teams via subscription or one-time fee. By participating in or forming Developer DAOs, 
 developers gain access to funding for building smart contracts and dApps, sharing profits among members. Furthermore, 
-they can create smart contracts based on user bounties, earning tokens for their efforts. This collaborative environment 
-encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting 
-value for all parties involved.
+individual developers can fulfill user-created bounties, earning real assets for their efforts. This collaborative environment 
+encourages the creation of top-quality smart contracts, offering developers a continuous income stream and promoting value for all parties involved.
 
 ## Continuous Innovation and Collaboration
 
