@@ -14,11 +14,8 @@ allows you to focus on the specific features and logic of your application, redu
 
 ## Secure and Reliable Infrastructure
 
-Abstract offers a secure and reliable infrastructure, built on robust blockchain technology. You can trust that your
-applications and transactions are protected by advanced cryptographic protocols and decentralized consensus mechanisms.
-Abstract's framework ensures the integrity and immutability of your applications, providing a solid foundation for trust
-and transparency. Furthermore, our composable modules are thoroughly tested and audited by security experts, ensuring
-that your applications are built on a solid foundation.
+Abstract offers secure and reliable infrastructure for smart-contract development. Modules available on the registry are thoroughly tested and audited by security experts, ensuring that your applications are built on a solid foundation. 
+Building a CosmWasm smart-contract with the Abstract SDK automatically makes it more secure, with an "off-by-default" permission system, fully configurable by you.
 
 ## Seamless Integration with Financial Services
 
