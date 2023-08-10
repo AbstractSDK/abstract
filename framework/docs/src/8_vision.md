@@ -1,16 +1,16 @@
 # What is Abstract?
 
-Abstract is a CosmWasm framework that empowers developers to create secure and powerful decentralized applications 
-with ease. With Abstract, you can unleash your creativity and build innovative solutions without much of the complexities
-typically associated with blockchain development.
+Abstract is a framework that empowers developers to create secure and powerful decentralized applications 
+in the Cosmos ecosystem with ease. With Abstract, you can unleash your creativity and build innovative solutions without much 
+of the complexities typically associated with blockchain development.
 
 ## Simplified Development
 
-Abstract simplifies the development process by providing a modular architecture and a comprehensive set of tools. We 
-believe that developers should be able to focus on building their applications, rather than spending time on repetitive
-tasks. There's no need to reinvent the wheel! Developers can leverage pre-built functionalities and smart contract 
-templates to accelerate application development. Abstract's modular approach allows you to focus on the specific 
-features and logic of your application, reducing development time and effort.
+Abstract simplifies the development process by providing a modular architecture and a comprehensive set of tools both for
+the **frontend and backend**. We believe that developers should be able to focus on building their applications, rather than
+spending time on repetitive tasks. There's no need to reinvent the wheel! Developers can leverage pre-built functionalities
+and templates for both the frontend and smart contracts to accelerate application development. Abstract's modular approach 
+allows you to focus on the specific features and logic of your application, reducing development time and effort.
 
 ## Secure and Reliable Infrastructure
 

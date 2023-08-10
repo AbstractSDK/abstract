@@ -8,14 +8,14 @@ to taking amazing ideas from concept to reality. Whether you're a coding genius 
 You can read the documentation in the order it is presented, or you can jump to the section that interests you the most! We 
 also have a section with code tutorials that will help you get started with the Abstract SDK if you are more of a hands-on.
 
-- [Abstract SDK Overview](./1_sdk_intro.md)
+- [Abstract Overview](./1_abstract_platform_overview.md)
 - [Tutorials](./10_tutorials.md)
 
 ## Explore the Abstract SDK
 
-- [Abstract SDK Overview](./1_sdk_intro.md)
-- [Core Features](./1_sdk_intro.md)
-- [Platform Essentials](./1_sdk_intro.md)
+- [Abstract Overview](./1_abstract_platform_overview.md)
+- [Core Features](./1_abstract_platform_overview.md)
+- [Platform Essentials](./1_abstract_platform_overview.md)
 - [Build with Abstract](./4_get_started/)
 - [Glossary](./9_glossary.md)
 
@@ -57,5 +57,4 @@ We are always looking for ways to improve Abstract and welcome everybody to cont
 - [Medium](https://medium.com/@abstractmoney)
 - [Docs](https://docs.abstract.money/)
 - [Account Console](https://app.abstract.money)
-- [Subgraph Explorer](https://abstract-subgraph-0-17.fly.dev/)
 - [Graphql API Explorer](https://api.abstract.money/)

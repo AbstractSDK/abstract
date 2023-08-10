@@ -1,4 +1,11 @@
-# Abstract SDK - Overview
+# Abstract SDK
+
+
+!todo
+
+The Abstract SDK is a modular smart-contract framework designed to enhance the development of decentralized applications. The SDK is built on top of [CosmWasm][1]: a battle-tested WASM-based smart-contract framework, written in [Rust][2]. The Abstract SDK is comprised of two main components:
+
+
 
 The Abstract SDK is at the core of the Abstract development platform. It's a modular smart-contract framework designed to simplify and accelerate the development of CosmWasm dApps. It does this by prioritizing re-usability and composability through an account-abstraction oriented architecture.
 

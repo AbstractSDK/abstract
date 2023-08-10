@@ -4,7 +4,7 @@
 
 # About Abstract
 - [What is Abstract?](./8_vision.md)
-- [Abstract SDK - Overview](./3_framework/1_abstract_sdk.md)
+- [Platform Overview](./3_framework/1_abstract_sdk.md)
   - [Actor Model](./3_framework/2_actor_model.md)
   - [Account Abstraction](./3_framework/3_account_abstraction.md)
   - [Architecture](./3_framework/4_architecture.md)
