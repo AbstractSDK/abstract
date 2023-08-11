@@ -45,7 +45,6 @@ abstract-interface = { workspace = true, optional = true }
 [dev-dependencies]
 cw20-base = { workspace = true, features = ["interface"] }
 cw20 = { workspace = true, features = ["interface"] }
-#abstract-etf = { path = ".", features = ["interface"] }
 wyndex-bundle = { workspace = true }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
