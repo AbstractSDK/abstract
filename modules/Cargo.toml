@@ -100,6 +100,7 @@ abstract-ica = { path = "../framework/packages/abstract-ica" }
 abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+# TODO: remove after new version with osmosis-test-tube deployed
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "13c11e4" }
 
 # Backup release profile, will result in warnings during optimization
