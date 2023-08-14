@@ -40,6 +40,9 @@ pub const MULTI_HOP: &str = "multi_hop";
 pub const RAW_TOKEN: &str = "raw";
 pub const RAW_EUR_LP: &str = "wyndex/eur,raw";
 const RAW_EUR_PAIR: &str = "wyndex:eur_raw_pair";
+pub const ABSTR_TOKEN: &str = "abstr";
+pub const ABSTR_USD_LP: &str = "wyndex/abstr,usd";
+const ABSTR_USD_PAIR: &str = "wyndex:abstr_usd_pair";
 
 pub struct WynDex {
     /// Suite can be used to create new pools and register new rewards.
@@ -57,6 +60,9 @@ pub struct WynDex {
     pub raw_token: AbstractCw20Base<Mock>,
     pub raw_eur_pair: Addr,
     pub raw_eur_lp: AbstractCw20Base<Mock>,
+    pub abstr_token: AssetInfo,
+    pub abstr_usd_pair: Addr,
+    pub abstr_usd_lp: AbstractCw20Base<Mock>,
 }
 
 // Shitty implementation until https://github.com/AbstractSDK/cw-orchestrator/issues/60 is done
@@ -69,6 +75,8 @@ impl PartialEq for WynDex {
             && self.eur_usd_pair == other.eur_usd_pair
             && self.wynd_token == other.wynd_token
             && self.wynd_eur_pair == other.wynd_eur_pair
+            && self.abstr_token == other.abstr_token
+            && self.abstr_usd_pair == other.abstr_usd_pair
     }
 }
 
@@ -81,6 +89,7 @@ impl Debug for WynDex {
             .field("eur_usd_pair", &self.eur_usd_pair)
             .field("wynd_token", &self.wynd_token)
             .field("wynd_eur_pair", &self.wynd_eur_pair)
+            // TODO
             .finish()
     }
 }
@@ -118,12 +127,14 @@ impl Deploy<Mock> for WynDex {
         let eur_usd_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(EUR_USD_LP, chain.clone());
         let wynd_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
         let raw_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(RAW_EUR_LP, chain.clone());
-
+        let abstr_usd_lp: AbstractCw20Base<Mock> =
+            AbstractCw20Base::new(ABSTR_USD_LP, chain.clone());
         let owner = Addr::unchecked(WYNDEX_OWNER);
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
         let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
+        let abstr_info = AssetInfo::Native(ABSTR_TOKEN.to_string());
         let raw = AbstractCw20Base::new(RAW_TOKEN, chain.clone());
         raw.upload()?;
         create_new_cw20(&raw, &owner, Uint128::new(100_000_000_000))?;
@@ -133,8 +144,9 @@ impl Deploy<Mock> for WynDex {
             &owner,
             vec![
                 coin(30_000, EUR),
-                coin(10_000, USD),
+                coin(20_000, USD),
                 coin(20_000, WYND_TOKEN),
+                coin(10_000, ABSTR_TOKEN),
             ],
         )?;
 
@@ -144,7 +156,7 @@ impl Deploy<Mock> for WynDex {
             .with_stake_config(DefaultStakeConfig {
                 staking_code_id: 0,
                 tokens_per_power: Uint128::new(1),
-                min_bond: Uint128::new(1),
+                min_bond: Uint128::new(0),
                 unbonding_periods: vec![1, 2],
                 max_distributions: 1,
             })
@@ -191,6 +203,51 @@ impl Deploy<Mock> for WynDex {
                     usd_info.with_balance(10_000u128),
                 ],
                 &[coin(10_000, EUR), coin(10_000, USD)],
+            )
+            .unwrap();
+
+        // create abstr_usd pair
+        let abstr_usd_pair = suite
+            .create_pair(
+                owner.as_str(),
+                wyndex::factory::PairType::Xyk {},
+                [abstr_info.clone(), usd_info.clone()],
+                Some(PartialStakeConfig {
+                    tokens_per_power: Some(Uint128::new(100)),
+                    ..Default::default()
+                }),
+                None,
+            )
+            .unwrap();
+
+        let pair_info = suite
+            .query_pair(vec![abstr_info.clone(), usd_info.clone()])
+            .unwrap();
+
+        let abstr_usd_lp_token = pair_info.liquidity_token;
+        abstr_usd_lp.set_address(&abstr_usd_lp_token);
+        state.set_address(ABSTR_USD_PAIR, &abstr_usd_pair);
+
+        suite
+            .provide_liquidity(
+                owner.as_str(),
+                &abstr_usd_pair,
+                [
+                    abstr_info.with_balance(10_000u128),
+                    usd_info.with_balance(10_000u128),
+                ],
+                &[coin(10_000, ABSTR_TOKEN), coin(10_000, USD)],
+            )
+            .unwrap();
+
+        // create rewards distribution
+        // wynd tokens are distributed to the pool's stakers.
+        suite
+            .create_distribution_flow(
+                owner.as_str(),
+                vec![abstr_info.clone(), usd_info.clone()],
+                wynd_info.clone(),
+                vec![(1, Decimal::percent(50)), (2, Decimal::one())],
             )
             .unwrap();
 
@@ -307,6 +364,9 @@ impl Deploy<Mock> for WynDex {
             wynd_token: wynd_info,
             eur_token: eur_info,
             usd_token: usd_info,
+            abstr_token: abstr_info,
+            abstr_usd_lp,
+            abstr_usd_pair,
         };
 
         // register contracts in abstract host
@@ -324,10 +384,14 @@ impl Deploy<Mock> for WynDex {
         let eur_usd_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(EUR_USD_LP, chain.clone());
         let wynd_eur_pair = state.get_address(WYND_EUR_PAIR)?;
         let wynd_eur_lp: AbstractCw20Base<Mock> = AbstractCw20Base::new(WYND_EUR_LP, chain.clone());
+        let abstr_usd_lp: AbstractCw20Base<Mock> =
+            AbstractCw20Base::new(ABSTR_USD_LP, chain.clone());
+        let abstr_usd_pair = state.get_address(ABSTR_USD_PAIR)?;
 
         let eur_info = AssetInfo::Native(EUR.to_string());
         let usd_info = AssetInfo::Native(USD.to_string());
         let wynd_info = AssetInfo::Native(WYND_TOKEN.to_string());
+        let abstr_info = AssetInfo::Native(ABSTR_TOKEN.to_string());
         let raw = AbstractCw20Base::new(RAW_TOKEN, chain.clone());
 
         Ok(Self {
@@ -343,6 +407,9 @@ impl Deploy<Mock> for WynDex {
             eur_token: eur_info,
             usd_token: usd_info,
             eur_usd_staking: state.get_address(EUR_USD_STAKE)?,
+            abstr_token: abstr_info,
+            abstr_usd_lp,
+            abstr_usd_pair,
         })
     }
     fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> {
