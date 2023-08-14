@@ -6,7 +6,7 @@ use cosmos_sdk_proto::traits::Message;
 use cosmwasm_std::{Addr, Deps, Uint128};
 use osmosis_std::types::cosmos::bank::v1beta1::Metadata;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
-    MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetDenomMetadata,
+    MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetDenomMetadata, MsgSetBeforeSendHook,
 };
 use std::cell::RefCell;
 
@@ -90,7 +90,6 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
     pub fn denom(&self) -> AbstractSdkResult<String> {
         Ok(vec!["factory", self.sender()?.as_str(), self.subdenom.as_str()].join("/"))
     }
-
     ///  Create denom
     /// ```
     /// # use cosmwasm_std::{ReplyOn, Response};
@@ -101,15 +100,15 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
     /// # let deps = mock_dependencies();
     /// const CREATE_DENOM_REPLY_ID: u64 = 1;
     /// let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "denom".to_string());
-    /// let denom_msg = token_factory.create_denom("denom".to_string());
+    /// let denom_msg = token_factory.create_denom()?;
     /// let denom_msg = module.executor(deps.as_ref()).execute_with_reply(vec![denom_msg], ReplyOn::Always, CREATE_DENOM_REPLY_ID)?;
     ///
     ///  let response = Response::new().add_submessage(denom_msg);
     /// ```
-    pub fn create_denom(&self, subdenom: impl ToString) -> AbstractSdkResult<AccountAction> {
+    pub fn create_denom(&self) -> AbstractSdkResult<AccountAction> {
         let msg = MsgCreateDenom {
             sender: self.sender()?,
-            subdenom: subdenom.to_string(),
+            subdenom: self.subdenom.to_string(),
         }
         .encode_to_vec();
 
@@ -219,6 +218,19 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         .encode_to_vec();
 
         let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgForceTransfer", &msg)?;
+
+        Ok(msg.into())
+    }
+
+    pub fn set_before_send_hook(&self, cosmwasm_address: Addr) -> AbstractSdkResult<AccountAction> {
+        let msg = MsgSetBeforeSendHook {
+            sender: self.sender()?,
+            denom: self.denom()?,
+            cosmwasm_address: cosmwasm_address.to_string(),
+        }
+        .encode_to_vec();
+
+        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgSetBeforeSendHook", &msg)?;
 
         Ok(msg.into())
     }
