@@ -19,6 +19,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
 #[allow(unused_imports)]
 use cw_controllers::AdminResponse;
+use cw_orch_cli::ParseCwMsg;
 use serde::Serialize;
 
 /// Trait indicates that the type is used as an app message
@@ -28,6 +29,13 @@ pub trait AppExecuteMsg: Serialize {}
 impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     fn from(app: T) -> Self {
         Self::Module(app)
+    }
+}
+
+#[cfg(feature = "interface")]
+impl<T: AppExecuteMsg + ParseCwMsg, R: Serialize> ParseCwMsg for ExecuteMsg<T, R> {
+    fn cw_parse() -> cw_orch::anyhow::Result<Self> {
+        Ok(Self::Module(T::cw_parse()?))
     }
 }
 

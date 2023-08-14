@@ -14,7 +14,7 @@ pub struct AppInstantiateMsg {}
 
 /// App execute messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns, cw_orch_cli::ParseCwMsg))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum AppExecuteMsg {
     UpdateConfig {},
