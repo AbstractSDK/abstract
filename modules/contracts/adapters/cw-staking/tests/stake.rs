@@ -19,6 +19,7 @@ use cosmwasm_std::{coin, Addr, Empty, Uint128};
 use cw_asset::AssetInfoBase;
 use cw_orch::prelude::*;
 use speculoos::*;
+use wyndex_bundle::ABSTR_USD_LP;
 use wyndex_bundle::{EUR_USD_LP, WYNDEX as WYNDEX_WITHOUT_CHAIN, WYNDEX_OWNER, WYND_TOKEN};
 
 const WYNDEX: &str = "cosmos-testnet>wyndex";
@@ -52,6 +53,10 @@ fn setup_mock() -> anyhow::Result<(
         .eur_usd_lp
         .call_as(&Addr::unchecked(WYNDEX_OWNER))
         .transfer(1000u128.into(), proxy_addr.to_string())?;
+    wyndex
+        .abstr_usd_lp
+        .call_as(&Addr::unchecked(WYNDEX_OWNER))
+        .transfer(1000u128.into(), proxy_addr.to_string())?;
 
     // install exchange on AbstractAccount
     os.manager.install_module(CW_STAKING, &Empty {}, None)?;
@@ -73,6 +78,7 @@ fn staking_inited() -> anyhow::Result<()> {
         staking_target: wyndex.eur_usd_staking.into(),
         staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
         unbonding_periods: Some(vec![
+            cw_utils::Duration::Time(0),
             cw_utils::Duration::Time(1),
             cw_utils::Duration::Time(2),
         ]),
@@ -231,6 +237,32 @@ fn claim_rewards() -> anyhow::Result<()> {
 
     // now claim rewards
     staking.claim_rewards(AssetEntry::new(EUR_USD_LP), WYNDEX.into())?;
+
+    // query balance
+    let balance = chain.query_balance(&proxy_addr, WYND_TOKEN)?;
+    assert_that!(balance.u128()).is_equal_to(10_000u128);
+
+    Ok(())
+}
+
+#[test]
+fn claim_rewards_no_bonding() -> anyhow::Result<()> {
+    let (chain, mut wyndex, staking, os) = setup_mock()?;
+    let proxy_addr = os.proxy.address()?;
+
+    let dur = Some(cw_utils::Duration::Time(0));
+
+    // stake 100 EUR
+    staking.stake(AnsAsset::new(ABSTR_USD_LP, 100u128), WYNDEX.into(), dur)?;
+
+    chain.set_balance(&wyndex.abstr_usd_staking, vec![coin(10_000, WYND_TOKEN)])?;
+    wyndex
+        .suite
+        .distribute_funds(wyndex.abstr_usd_staking, WYNDEX_OWNER, &[])
+        .unwrap();
+
+    // now claim rewards
+    staking.claim_rewards(AssetEntry::new(ABSTR_USD_LP), WYNDEX.into())?;
 
     // query balance
     let balance = chain.query_balance(&proxy_addr, WYND_TOKEN)?;

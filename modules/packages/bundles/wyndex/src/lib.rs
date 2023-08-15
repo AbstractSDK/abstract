@@ -43,6 +43,7 @@ const RAW_EUR_PAIR: &str = "wyndex:eur_raw_pair";
 pub const ABSTR_TOKEN: &str = "abstr";
 pub const ABSTR_USD_LP: &str = "wyndex/abstr,usd";
 const ABSTR_USD_PAIR: &str = "wyndex:abstr_usd_pair";
+pub const ABSTR_USD_STAKE: &str = "wyndex:abstr_usd_staking";
 
 pub struct WynDex {
     /// Suite can be used to create new pools and register new rewards.
@@ -63,6 +64,8 @@ pub struct WynDex {
     pub abstr_token: AssetInfo,
     pub abstr_usd_pair: Addr,
     pub abstr_usd_lp: AbstractCw20Base<Mock>,
+    // zero bond stake
+    pub abstr_usd_staking: Addr,
 }
 
 // Shitty implementation until https://github.com/AbstractSDK/cw-orchestrator/issues/60 is done
@@ -157,7 +160,7 @@ impl Deploy<Mock> for WynDex {
                 staking_code_id: 0,
                 tokens_per_power: Uint128::new(1),
                 min_bond: Uint128::new(0),
-                unbonding_periods: vec![1, 2],
+                unbonding_periods: vec![0, 1, 2],
                 max_distributions: 1,
             })
             .build(&chain);
@@ -226,7 +229,10 @@ impl Deploy<Mock> for WynDex {
 
         let abstr_usd_lp_token = pair_info.liquidity_token;
         abstr_usd_lp.set_address(&abstr_usd_lp_token);
+
+        let abstr_usd_staking = pair_info.staking_addr;
         state.set_address(ABSTR_USD_PAIR, &abstr_usd_pair);
+        state.set_address(ABSTR_USD_STAKE, &eur_usd_staking);
 
         suite
             .provide_liquidity(
@@ -247,7 +253,11 @@ impl Deploy<Mock> for WynDex {
                 owner.as_str(),
                 vec![abstr_info.clone(), usd_info.clone()],
                 wynd_info.clone(),
-                vec![(1, Decimal::percent(50)), (2, Decimal::one())],
+                vec![
+                    (0, Decimal::one()),
+                    (1, Decimal::one()),
+                    (2, Decimal::one()),
+                ],
             )
             .unwrap();
 
@@ -294,7 +304,11 @@ impl Deploy<Mock> for WynDex {
                 owner.as_str(),
                 vec![eur_info.clone(), usd_info.clone()],
                 wynd_info.clone(),
-                vec![(1, Decimal::percent(50)), (2, Decimal::one())],
+                vec![
+                    (0, Decimal::zero()),
+                    (1, Decimal::percent(50)),
+                    (2, Decimal::one()),
+                ],
             )
             .unwrap();
 
@@ -348,7 +362,11 @@ impl Deploy<Mock> for WynDex {
                 owner.as_str(),
                 vec![raw_info, eur_info.clone()],
                 wynd_info.clone(),
-                vec![(1, Decimal::percent(50)), (2, Decimal::one())],
+                vec![
+                    (0, Decimal::zero()),
+                    (1, Decimal::percent(50)),
+                    (2, Decimal::one()),
+                ],
             )
             .unwrap();
         let wyndex = Self {
@@ -367,6 +385,7 @@ impl Deploy<Mock> for WynDex {
             abstr_token: abstr_info,
             abstr_usd_lp,
             abstr_usd_pair,
+            abstr_usd_staking,
         };
 
         // register contracts in abstract host
@@ -410,6 +429,7 @@ impl Deploy<Mock> for WynDex {
             abstr_token: abstr_info,
             abstr_usd_lp,
             abstr_usd_pair,
+            abstr_usd_staking: state.get_address(ABSTR_USD_STAKE)?,
         })
     }
     fn get_contracts_mut(&mut self) -> Vec<Box<&mut dyn ContractInstance<Mock>>> {
@@ -429,10 +449,13 @@ impl WynDex {
     ///   - USD
     ///   - WYND
     ///   - RAW
+    ///   - ABSTR
     ///   - EUR/USD LP
     ///   - EUR/WYND LP
-    /// - Register the staking contract
+    ///   - ABSTR/USD LP
+    /// - Register the staking contracts
     ///   - wyndex:staking/wyndex/eur,usd
+    ///   - wyndex:staking/wyndex/abstr,usd
     /// - Register the pair contracts
     ///   - wyndex/eur,usd
     ///   - wyndex/eur,wynd
@@ -444,9 +467,11 @@ impl WynDex {
         let usd_asset = AssetEntry::new(USD);
         let raw_asset = AssetEntry::new(RAW_TOKEN);
         let wynd_asset = AssetEntry::new(WYND_TOKEN);
+        let abstr_asset = AssetEntry::new(ABSTR_TOKEN);
         let eur_usd_lp_asset = LpToken::new(WYNDEX, vec![EUR, USD]);
         let eur_wynd_lp_asset = LpToken::new(WYNDEX, vec![WYND_TOKEN, EUR]);
         let eur_raw_lp_asset = LpToken::new(WYNDEX, vec![RAW_TOKEN, EUR]);
+        let abstr_usd_lp_asset = LpToken::new(WYNDEX, vec![ABSTR_TOKEN, USD]);
 
         // Register addresses on ANS
         abstrct
@@ -481,6 +506,14 @@ impl WynDex {
                         raw_asset.to_string(),
                         cw_asset::AssetInfoBase::cw20(self.raw_token.addr_str()?),
                     ),
+                    (
+                        abstr_asset.to_string(),
+                        cw_asset::AssetInfoBase::native(self.abstr_token.to_string()),
+                    ),
+                    (
+                        abstr_usd_lp_asset.to_string(),
+                        cw_asset::AssetInfoBase::cw20(self.abstr_usd_lp.addr_str()?),
+                    ),
                 ],
                 vec![],
             )
@@ -489,13 +522,22 @@ impl WynDex {
         abstrct
             .ans_host
             .update_contract_addresses(
-                vec![(
-                    UncheckedContractEntry::new(
-                        WYNDEX.to_string(),
-                        format!("staking/{eur_usd_lp_asset}"),
+                vec![
+                    (
+                        UncheckedContractEntry::new(
+                            WYNDEX.to_string(),
+                            format!("staking/{eur_usd_lp_asset}"),
+                        ),
+                        self.eur_usd_staking.to_string(),
                     ),
-                    self.eur_usd_staking.to_string(),
-                )],
+                    (
+                        UncheckedContractEntry::new(
+                            WYNDEX.to_string(),
+                            format!("staking/{abstr_usd_lp_asset}"),
+                        ),
+                        self.abstr_usd_staking.to_string(),
+                    ),
+                ],
                 vec![],
             )
             .unwrap();
@@ -510,7 +552,10 @@ impl WynDex {
                 vec![
                     (
                         PoolAddressBase::contract(self.eur_usd_pair.to_string()),
-                        PoolMetadata::constant_product(WYNDEX, vec![eur_asset.clone(), usd_asset]),
+                        PoolMetadata::constant_product(
+                            WYNDEX,
+                            vec![eur_asset.clone(), usd_asset.clone()],
+                        ),
                     ),
                     (
                         PoolAddressBase::contract(self.wynd_eur_pair.to_string()),
@@ -519,6 +564,10 @@ impl WynDex {
                     (
                         PoolAddressBase::contract(self.raw_eur_pair.to_string()),
                         PoolMetadata::constant_product(WYNDEX, vec![raw_asset, eur_asset]),
+                    ),
+                    (
+                        PoolAddressBase::contract(self.abstr_usd_pair.to_string()),
+                        PoolMetadata::constant_product(WYNDEX, vec![abstr_asset, usd_asset]),
                     ),
                 ],
                 vec![],
