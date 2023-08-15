@@ -4,9 +4,11 @@
 
 # About Abstract
 - [What is Abstract?](./8_vision.md)
-- [Platform Overview](./3_framework/1_abstract_sdk.md)
-  - [Actor Model](./3_framework/2_actor_model.md)
+- [Prerequisites](./3_framework/0_prerequisites.md)
+- [Platform Overview](1_abstract_platform_overview.md)
   - [Account Abstraction](./3_framework/3_account_abstraction.md)
+  - [Abstract SDK](./3_framework/1_abstract_sdk.md)
+  - [CW-Orchestrator](./3_framework/1_abstract_sdk.md)
   - [Architecture](./3_framework/4_architecture.md)
   - [Account Ownership](./3_framework/5_ownership.md)
   - [Modularity](./3_framework/6_modularity.md)

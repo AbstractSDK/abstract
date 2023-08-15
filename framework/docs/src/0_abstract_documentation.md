@@ -42,8 +42,8 @@ See how others are using Abstract in the [Use Cases](./7_use_cases/index.md) sec
 
 If you feel lost or have any doubts along the way, please reach out to us! We are here to help you!
 
-- [Discord](https://discord.com/invite/uch3Tq3aym)
-- [X](https://x.com/AbstractSDK)
+- [Discord](https://discord.com/invite/uch3Tq3aym){target="_blank"}
+- [X](https://x.com/AbstractSDK){target="_blank"}
 
 ## Want to make Abstract better?
 
@@ -52,9 +52,9 @@ We are always looking for ways to improve Abstract and welcome everybody to cont
 
 ## Links
 
-- [Website](https://abstract.money/)
-- [Github](https://github.com/AbstractSDK)
-- [Medium](https://medium.com/@abstractmoney)
-- [Docs](https://docs.abstract.money/)
-- [Account Console](https://app.abstract.money)
-- [Graphql API Explorer](https://api.abstract.money/)
+- [Website](https://abstract.money/){target="_blank"}
+- [Github](https://github.com/AbstractSDK){target="_blank"}
+- [Medium](https://medium.com/@abstractmoney){target="_blank"}
+- [Docs](https://docs.abstract.money/){target="_blank"}
+- [Account Console](https://app.abstract.money){target="_blank"}
+- [Graphql API Explorer](https://api.abstract.money/){target="_blank"}
