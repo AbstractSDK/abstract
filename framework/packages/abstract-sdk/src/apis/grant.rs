@@ -5,8 +5,11 @@
 use std::time::Duration;
 
 use crate::features::AccountIdentification;
+use cosmos_sdk_proto::cosmos::base::v1beta1::Coin as SdkCoin;
 
 use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
+use cosmos_sdk_proto::cosmos::feegrant::v1beta1::MsgGrantAllowance;
+use cosmos_sdk_proto::traits::TypeUrl;
 use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
 
 use crate::AbstractSdkResult;
@@ -59,16 +62,27 @@ impl Grant {
         grantee: &Addr,
         basic: BasicAllowance,
     ) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::MsgGrantAllowance {
+        let allowance = feegrant::v1beta1::BasicAllowance {
+            spend_limit: vec![SdkCoin {
+                denom: "uosmo".to_string(),
+                amount: 10000.to_string(),
+            }],
+            expiration: None,
+        };
+
+        let grant_msg = feegrant::v1beta1::MsgGrantAllowance {
             granter: granter.into(),
             grantee: grantee.into(),
-            allowance: Some(build_any_basic(basic)),
-        }
-        .encode_to_vec();
+            allowance: Some(Any {
+                type_url: feegrant::v1beta1::BasicAllowance::TYPE_URL.to_string(),
+                value: allowance.encode_to_vec()
+            }),
+            // allowance: Some(build_any_basic(basic)),
+        };
 
         let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
+            type_url: MsgGrantAllowance::TYPE_URL.to_string(),
+            value: cosmwasm_std::Binary(grant_msg.encode_to_vec()),
         };
 
         Ok(msg.into())
@@ -192,14 +206,14 @@ pub struct PeriodicAllowance {
 
 fn build_any_basic(basic: BasicAllowance) -> Any {
     Any {
-        type_url: "/cosmos.feegrant.v1beta1.BasicAllowance".to_string(),
+        type_url: feegrant::v1beta1::BasicAllowance::TYPE_URL.to_string(),
         value: build_basic_allowance(basic).encode_to_vec(),
     }
 }
 
 fn build_any_periodic(periodic: PeriodicAllowance, basic: Option<BasicAllowance>) -> Any {
     Any {
-        type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
+        type_url: feegrant::v1beta1::PeriodicAllowance::TYPE_URL.to_string(),
         value: feegrant::v1beta1::PeriodicAllowance {
             basic: basic.map(build_basic_allowance),
             period: periodic.period.map(|p| prost_types::Duration {

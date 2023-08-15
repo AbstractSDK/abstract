@@ -37,6 +37,8 @@ pub fn execute_module_action_response(
         return Err(ProxyError::SenderNotWhitelisted {});
     }
 
+    // // TODO: MAKE REPLY_ON_SUCCESS!!!!!
+    // let submsg = SubMsg::reply_always(msg, RESPONSE_REPLY_ID);
     let submsg = SubMsg::reply_on_success(msg, RESPONSE_REPLY_ID);
 
     Ok(ProxyResponse::action("execute_module_action_response").add_submessage(submsg))

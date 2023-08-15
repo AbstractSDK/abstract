@@ -5,6 +5,7 @@ use cw_storage_plus::{Item, Map};
 pub struct Config {}
 
 pub type GasGrade = String;
+pub type GasPumpItem = (GasGrade, GasPump);
 #[cosmwasm_schema::cw_serde]
 pub struct GasPump {
     pub denom: String,

@@ -24,6 +24,7 @@ name = "schema"
 required-features = ["schema"]
 
 [features]
+backtraces = ["cosmwasm-std/backtraces"]
 default = ["export"]
 export = []
 # enable node-backed tests (ensure Docker is running)
@@ -52,6 +53,9 @@ croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 #osmosis-std = {version = "0.16.1" }
 osmosis-std = { path = "../../../../integrations/osmosis/packages/osmosis-std" }
+# TODO: remove
+cosmos-sdk-proto = { version = "0.19.0", default-features = false }
+cw-utils = { workspace = true }
 
 [dev-dependencies]
 abstract-gas-station-app = { path = ".", features = ["interface"] }
@@ -62,13 +66,7 @@ speculoos = "0.11.0"
 semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
-cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch = { workspace = true, features = ["daemon", "osmosis-test-tube"] }
 
-croncat-integration-testing = { version = "1.1.0" }
-wyndex-bundle = { workspace = true }
-abstract-dex-adapter = { workspace = true, features = [
-  "interface",
-  "juno",
-  "testing",
-] }
-croncat-app = { workspace = true, features = ["interface"] }
+[patch.crates-io]
+cosmwasm-std = { version = "1.2" }

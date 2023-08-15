@@ -1,6 +1,7 @@
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
+use cw_utils::ParseReplyError;
 use thiserror::Error;
 
 use abstract_app::AppError as AbstractAppError;
@@ -8,7 +9,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum AppError {
+pub enum GasStationError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -44,4 +45,5 @@ pub enum AppError {
 
     #[error("Only native tokens can be used as gas")]
     OnlyNativeTokensCanBeUsedAsGas {},
+
 }

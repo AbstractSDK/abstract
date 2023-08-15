@@ -1,4 +1,4 @@
-# Abstract Gas Token Issuer
+# Abstract Gas Station
 The goal of this module is to allow your Account to issue tokens representing a fee-grant from the Account. This can be used not only to create a new Cosmos-SDK EOA, but also for allowing the user to use gas on your Account's behalf. You essentially can give them an onboarding token.
 
 ## Details
@@ -11,4 +11,4 @@ The benefit of tokenizing the gas is that you are essentially issuing a gas gift
 3. Issue tokens to any address you want
 4. The user can spend the gas on your Account's behalf
 
-The reason that this is better than plain ol' FeeGrant is that it's more trackable and easier to manage.
+The reason that this is better than plain ol' FeeGrant is that it's more trackable and easier to manage. However, there is the caveat that the tokens can still exist in a user's account after the grant has expired.

@@ -3,7 +3,7 @@
 //!
 
 use cosmos_sdk_proto::traits::Message;
-use cosmwasm_std::{Addr, Deps, Uint128};
+use cosmwasm_std::{Addr, Deps, StdError, Uint128};
 use osmosis_std::types::cosmos::bank::v1beta1::Metadata;
 use osmosis_std::types::osmosis::tokenfactory::v1beta1::{
     MsgBurn, MsgChangeAdmin, MsgCreateDenom, MsgForceTransfer, MsgMint, MsgSetDenomMetadata, MsgSetBeforeSendHook,
@@ -12,10 +12,11 @@ use std::cell::RefCell;
 
 use abstract_core::AbstractError;
 
-use crate::cw_helpers::stargate_msg;
+use crate::cw_helpers::prost_stargate_msg;
 use crate::features::AccountIdentification;
 use crate::AbstractSdkResult;
 use crate::AccountAction;
+
 
 /// An interface to the CosmosSDK FeeTokenFactory module which allows for granting fee expenditure rights.
 pub trait TokenFactoryInterface: AccountIdentification {
@@ -31,7 +32,7 @@ pub trait TokenFactoryInterface: AccountIdentification {
     # let module = MockModule::new();
     # let deps = mock_dependencies();
 
-    let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "uusd".to_string());
+    let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "uusd", None)?;
     ```
      */
     fn token_factory<'a>(
@@ -39,13 +40,18 @@ pub trait TokenFactoryInterface: AccountIdentification {
         deps: Deps<'a>,
         subdenom: impl ToString,
         sender: Option<Addr>,
-    ) -> TokenFactory<Self> {
-        TokenFactory {
+    ) -> AbstractSdkResult<TokenFactory<Self>> {
+        // Check that the subdenom is valid
+        let subdenom = subdenom.to_string();
+        if !subdenom.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '/') {
+            return Err(StdError::generic_err("Invalid character found. Only alphanumeric characters, '.' and '/' are allowed.").into());
+        }
+        Ok(TokenFactory {
             base: self,
             deps,
             subdenom: subdenom.to_string(),
             sender: sender.into(),
-        }
+        })
     }
 }
 
@@ -55,13 +61,14 @@ impl<T> TokenFactoryInterface for T where T: AccountIdentification {}
 API for accessing the Osmosis TokenFactory module.
 
 # Example
-```
+```rust
 use abstract_sdk::prelude::*;
 # use cosmwasm_std::testing::mock_dependencies;
 # use abstract_sdk::mock_module::MockModule;
 # let module = MockModule::new();
+# let deps = mock_dependencies();
 
-let token_factory: TokenFactory  = module.grant();
+let token_factory: TokenFactory  = module.token_factory(deps.as_ref(), "uusd".to_string(), None)?;
 ```
  */
 #[derive(Clone)]
@@ -88,6 +95,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
 
     ///  Retrieves the actual denom of the asset
     pub fn denom(&self) -> AbstractSdkResult<String> {
+
         Ok(vec!["factory", self.sender()?.as_str(), self.subdenom.as_str()].join("/"))
     }
     ///  Create denom
@@ -99,7 +107,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
     /// # let module = MockModule::new();
     /// # let deps = mock_dependencies();
     /// const CREATE_DENOM_REPLY_ID: u64 = 1;
-    /// let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "denom".to_string());
+    /// let token_factory: TokenFactory<MockModule> = module.token_factory(deps.as_ref(), "denom", None)?;
     /// let denom_msg = token_factory.create_denom()?;
     /// let denom_msg = module.executor(deps.as_ref()).execute_with_reply(vec![denom_msg], ReplyOn::Always, CREATE_DENOM_REPLY_ID)?;
     ///
@@ -112,7 +120,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgCreateDenom", &msg)?;
+        let msg = prost_stargate_msg(MsgCreateDenom::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -136,7 +144,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgMint", &msg)?;
+        let msg = prost_stargate_msg(MsgMint::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -161,7 +169,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgBurn", &msg)?;
+        let msg = prost_stargate_msg(MsgBurn::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -177,7 +185,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgChangeAdmin", &msg)?;
+        let msg = prost_stargate_msg(MsgChangeAdmin::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -196,7 +204,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgSetDenomMetadata", &msg)?;
+        let msg = prost_stargate_msg(MsgSetDenomMetadata::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -211,17 +219,18 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         let msg = MsgForceTransfer {
             sender: self.sender()?,
             amount: Some(self.build_coin(amount)?),
-            // We send from the proxy address
             transfer_from_address: self.sender()?.to_string(),
             transfer_to_address: recipient.to_string(),
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgForceTransfer", &msg)?;
+        let msg = prost_stargate_msg(MsgForceTransfer::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
 
+    /// Set the token factory before send hook.
+    /// TODO: this is not yet possible on the chain
     pub fn set_before_send_hook(&self, cosmwasm_address: Addr) -> AbstractSdkResult<AccountAction> {
         let msg = MsgSetBeforeSendHook {
             sender: self.sender()?,
@@ -230,7 +239,7 @@ impl<'a, T: TokenFactoryInterface> TokenFactory<'a, T> {
         }
         .encode_to_vec();
 
-        let msg = stargate_msg("/osmosis.tokenfactory.v1beta1.MsgSetBeforeSendHook", &msg)?;
+        let msg = prost_stargate_msg(MsgSetBeforeSendHook::TYPE_URL, &msg)?;
 
         Ok(msg.into())
     }
@@ -285,7 +294,7 @@ mod test {
             let module = MockModule::new();
             let deps = mock_dependencies();
             let token_factory: TokenFactory<MockModule> =
-                module.token_factory(deps.as_ref(), "denom".to_string(), None);
+                module.token_factory(deps.as_ref(), "denom".to_string(), None)?;
 
             let mint_msg = token_factory
                 .mint(100u128.into(), &Addr::unchecked("mint_to_address"))
@@ -315,7 +324,7 @@ mod test {
             let module = MockModule::new();
             let deps = mock_dependencies();
             let token_factory: TokenFactory<MockModule> =
-                module.token_factory(deps.as_ref(), "denom".to_string(), None);
+                module.token_factory(deps.as_ref(), "denom".to_string(), None)?;
 
             let mint_msg = token_factory.mint(0u128.into(), &Addr::unchecked("mint_to_address"));
 

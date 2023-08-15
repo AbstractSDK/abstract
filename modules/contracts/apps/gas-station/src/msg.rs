@@ -10,7 +10,7 @@ abstract_app::app_msg_types!(GasStationApp, GasStationExecuteMsg, GasStationQuer
 /// App instantiate message
 /// This message is used to initialize the GasStationApp upon deployment.
 #[cosmwasm_schema::cw_serde]
-pub struct AppInstantiateMsg {
+pub struct GasStationInstantiateMsg {
     // Any initialization parameters can be added here if needed in the future.
 }
 
@@ -47,6 +47,9 @@ pub enum GasStationQueryMsg {
     GasPumpInfo {
         grade: String, // The grade of the gas to query.
     },
+    /// Retrieve a list of all gas pumps.
+    #[returns(GasPumpListResponse)]
+    GasPumpList {}
 }
 
 /// SudoMsg is only exposed for internal Cosmos SDK modules to call.
@@ -66,4 +69,9 @@ pub struct GasPumpInfoResponse {
     pub grade: String,        // The grade of the gas.
     pub denom: String,        // The denom of the gas pump token.
     pub fuel_mix: Vec<Asset>, // The amount of gas this grade represents.
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct GasPumpListResponse {
+    pub pumps: Vec<GasPumpInfoResponse>, // The list of gas pumps.
 }

@@ -4,9 +4,9 @@ use abstract_app::AppContract;
 
 use crate::msg::GasStationSudoMsg;
 use crate::{
-    error::AppError,
+    error::GasStationError,
     handlers,
-    msg::{AppInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg},
+    msg::{GasStationInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg},
     replies,
 };
 
@@ -16,12 +16,12 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const GAS_STATION_APP_ID: &str = "abstract:gas-station";
 
 /// The type of the result returned by your app's entry points.
-pub type AppResult<T = Response> = Result<T, AppError>;
+pub type GasStationResult<T = Response> = Result<T, GasStationError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
 pub type GasStationApp = AppContract<
-    AppError,
-    AppInstantiateMsg,
+    GasStationError,
+    GasStationInstantiateMsg,
     GasStationExecuteMsg,
     GasStationQueryMsg,
     Empty,

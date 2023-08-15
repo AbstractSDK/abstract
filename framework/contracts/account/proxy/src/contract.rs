@@ -108,6 +108,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> ProxyResult<Binary> {
 /// This just stores the result for future query
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn reply(_deps: DepsMut, _env: Env, msg: Reply) -> ProxyResult {
+    // panic!("Unexpected reply: {:?}", msg);
     match &msg {
         Reply {
             id: RESPONSE_REPLY_ID,
