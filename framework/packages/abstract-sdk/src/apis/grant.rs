@@ -1,223 +1,185 @@
-//! # Grant
-//! Interacts with the feegrant module of cosmos
-//!
+//! # Fee Granter
+//! This module provides functionality to interact with the feegrant module of Cosmos.
+//! It allows for granting fee expenditure rights to other accounts.
 
 use std::time::Duration;
 
-use crate::features::AccountIdentification;
-
-use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
-use cosmwasm_std::{to_binary, Addr, Coin, CosmosMsg, Timestamp};
+use cosmos_sdk_proto::{Any, cosmos::base, cosmos::feegrant, traits::Message};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
+use serde::{Serialize, Deserialize};
+use schemars::JsonSchema;
+use cosmos_sdk_proto::traits::TypeUrl;
+use std::cell::RefCell;
 
 use crate::AbstractSdkResult;
-use crate::AccountAction;
+use crate::features::AccountIdentification;
+
+const BASIC_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::BasicAllowance::TYPE_URL;
+const PERIODIC_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::PeriodicAllowance::TYPE_URL;
+const ALLOWED_MSG_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::AllowedMsgAllowance::TYPE_URL;
+
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
-    /**
-        API for accessing the Cosmos SDK FeeGrant module.
+    /// API for accessing the Cosmos SDK FeeGrant module.
+    /// The **granter** is the address of the user granting an allowance of their funds.
+    /// By default, it is the proxy address of the Account.
 
-        # Example
-        ```
-        use abstract_sdk::prelude::*;
-        # use cosmwasm_std::testing::mock_dependencies;
-        # use abstract_sdk::mock_module::MockModule;
-        # let module = MockModule::new();
+/// ```
+/// use abstract_sdk::prelude::*;
+/// # use cosmwasm_std::testing::mock_dependencies;
+/// # use abstract_sdk::mock_module::MockModule;
+/// # let module = MockModule::new();
+/// # let deps = mock_dependencies();
 
-        let grant: Grant = module.grant();
-        ```
-    */
-    fn grant(&self) -> Grant {
-        Grant {}
+/// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None);
+/// ```
+    fn fee_granter<'a>(&'a self, deps: cosmwasm_std::Deps<'a>, granter: Option<Addr>) -> FeeGranter<Self> {
+        FeeGranter { base: self, deps, granter: RefCell::new(granter) }
     }
 }
 
 impl<T> GrantInterface for T where T: AccountIdentification {}
 
-/**
-    API for accessing the Cosmos SDK FeeGrant module.
-
-    # Example
-    ```
-    use abstract_sdk::prelude::*;
-    # use cosmwasm_std::testing::mock_dependencies;
-    # use abstract_sdk::mock_module::MockModule;
-    # let module = MockModule::new();
-
-    let grant: Grant  = module.grant();
-    ```
-*/
+/// This struct provides methods to grant fee allowances and interact with the feegrant module.
+///
+/// # Example
+/// ```
+/// use abstract_sdk::prelude::*;
+/// # use cosmwasm_std::testing::mock_dependencies;
+/// # use abstract_sdk::mock_module::MockModule;
+/// # let module = MockModule::new();
+///
+/// let grant: FeeGranter  = module.fee_granter();
+/// ```
+/// */
 #[derive(Clone)]
-pub struct Grant {}
+pub struct FeeGranter<'a, T: GrantInterface> {
+    base: &'a T,
+    deps: cosmwasm_std::Deps<'a>,
+    // We use a RefCell here to allow for the granter to be set after the FeeGranter is created
+    granter: RefCell<Option<Addr>>,
+}
 
-impl Grant {
-    /// Implements Allowance with a one-time grant of coins
-    /// that optionally expires. The grantee can use up to SpendLimit to cover fees.
-    pub fn basic(
-        &self,
-        granter: &Addr,
-        grantee: &Addr,
-        basic: BasicAllowance,
-    ) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::MsgGrantAllowance {
-            granter: granter.into(),
-            grantee: grantee.into(),
-            allowance: Some(build_any_basic(basic)),
+impl<'a, T: GrantInterface> FeeGranter<'a, T> {
+    /// Retrieve the granter's address.
+    /// By default, this is the proxy address of the Account.
+    /// If the granter was already set or overridden, it returns that value.
+    fn granter(&self) -> AbstractSdkResult<Addr> {
+        // If the sender was already set or overridden, return it
+        if let Some(granter) = &*self.granter.borrow() {
+            return Ok(granter.clone());
         }
-        .encode_to_vec();
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
-        };
-
-        Ok(msg.into())
+        let granter = self.base.proxy_address(self.deps)?;
+        *self.granter.borrow_mut() = Some(granter.clone());
+        Ok(granter)
     }
 
-    /// Extends Allowance to allow for both a maximum cap,
-    /// as well as a limit per time period.
-    pub fn periodic(
+    /// Removes any existing allowances from the granter to the **grantee**.
+    ///
+    /// # Arguments
+    ///
+    /// * `grantee` - The address of the grantee.
+    pub fn revoke_allowance(&self, grantee: &Addr) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::MsgRevokeAllowance {
+            granter: self.granter()?.to_string(),
+            grantee: grantee.to_string(),
+        }
+            .encode_to_vec();
+
+        let msg = CosmosMsg::Stargate {
+            type_url: feegrant::v1beta1::MsgRevokeAllowance::TYPE_URL.to_string(),
+            value: Binary(msg),
+        };
+
+        Ok(msg)
+    }
+
+    /// Grants an allowance to a **grantee**.
+    ///
+    /// # Arguments
+    ///
+    /// * `grantee` - The address of the grantee.
+    /// * `allowance` - The allowance to be granted.
+    pub fn grant_allowance<A: FeeGranterAllowance>(
         &self,
-        granter: &Addr,
+        grantee: &Addr,
+        allowance: A,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let msg = feegrant::v1beta1::MsgGrantAllowance {
+            granter: self.granter()?.to_string(),
+            grantee: grantee.to_string(),
+            allowance: Some(allowance.to_any()),
+        }
+            .encode_to_vec();
+
+        let msg = CosmosMsg::Stargate {
+            type_url: feegrant::v1beta1::MsgGrantAllowance::TYPE_URL.to_string(),
+            value: Binary(msg),
+        };
+
+        Ok(msg)
+    }
+
+    /// Grants a basic allowance.
+    ///
+    /// # Arguments
+    ///
+    /// * `grantee` - The address of the grantee.
+    /// * `spend_limit` - The maximum amount the grantee can spend.
+    /// * `expiration` - The expiration timestamp of the grant.
+    pub fn grant_basic_allowance(
+        &self,
+        grantee: &Addr,
+        spend_limit: Vec<Coin>,
+        expiration: Option<Timestamp>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let basic_allowance = BasicAllowance::new(spend_limit, expiration);
+        self.grant_allowance(grantee, basic_allowance)
+    }
+
+    /// Grants a periodic allowance to a grantee.
+    ///
+    /// # Arguments
+    ///
+    /// * `grantee` - The address of the grantee.
+    /// * `basic` - The basic allowance details.
+    /// * `period` - The period of the allowance.
+    /// * `period_spend_limit` - The maximum amount the grantee can spend in the period.
+    /// * `period_can_spend` - The amount left for the grantee to spend before the period reset.
+    /// * `period_reset` - The time at which the period resets.
+    pub fn grant_periodic_allowance(
+        &self,
         grantee: &Addr,
         basic: Option<BasicAllowance>,
-        periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::MsgGrantAllowance {
-            granter: granter.into(),
-            grantee: grantee.into(),
-            allowance: Some(build_any_periodic(periodic, basic)),
-        }
-        .encode_to_vec();
+        period: Option<Duration>,
+        period_spend_limit: Vec<Coin>,
+        period_can_spend: Vec<Coin>,
+        period_reset: Option<Timestamp>,
+    ) -> AbstractSdkResult<CosmosMsg> {
+        let periodic_allowance = PeriodicAllowance::new(
+            basic,
+            period,
+            period_spend_limit,
+            period_can_spend,
+            period_reset,
+        );
+        self.grant_allowance(grantee, periodic_allowance)
+    }
 
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.MsgGrantAllowance".to_string(),
-            value: to_binary(&msg)?,
+    /// Grants an allowed message allowance to a grantee.
+    ///
+    /// # Arguments
+    /// * `grantee` - The address of the grantee.
+    /// * `allowed_messages` - The list of allowed messages for the grantee.
+    /// * `allowance` - The allowance details.
+    pub fn grant_allowed_msg_allowance<A: AllowedMsgAllowanceAllowance + 'static>(&self, grantee: &Addr, allowed_messages: Vec<String>, allowance: Option<A>) -> AbstractSdkResult<CosmosMsg> {
+        let allowed_msg_allowance = AllowedMsgAllowance {
+            allowance: allowance.map(|a| Box::new(a) as Box<dyn AllowedMsgAllowanceAllowance>),
+            allowed_messages,
         };
-
-        Ok(msg.into())
-    }
-
-    /// creates allowance only for BasicAllowance.
-    pub fn allow_basic(&self, basic: BasicAllowance) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::AllowedMsgAllowance {
-            allowance: Some(build_any_basic(basic)),
-            allowed_messages: vec!["BasicAllowance".to_owned()],
-        }
-        .encode_to_vec();
-
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
-        };
-
-        Ok(msg.into())
-    }
-
-    /// Creates allowance only for PeriodicAllowance.
-    pub fn allow_periodic(&self, periodic: PeriodicAllowance) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::AllowedMsgAllowance {
-            allowance: Some(build_any_periodic(periodic, None)),
-            allowed_messages: vec!["PeriodicAllowance".to_owned()],
-        }
-        .encode_to_vec();
-
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
-        };
-
-        Ok(msg.into())
-    }
-
-    /// Creates allowance only for BasicAllowance and PeriodicAllowance.
-    pub fn allow_both(
-        &self,
-        basic: BasicAllowance,
-        periodic: PeriodicAllowance,
-    ) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::AllowedMsgAllowance {
-            allowance: Some(build_any_periodic(periodic, Some(basic))),
-            allowed_messages: vec!["BasicAllowance".to_owned(), "PeriodicAllowance".to_owned()],
-        }
-        .encode_to_vec();
-
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.AllowedMsgAllowance".to_string(),
-            value: to_binary(&msg)?,
-        };
-
-        Ok(msg.into())
-    }
-
-    /// Removes any existing Allowance from Granter to Grantee.
-    pub fn revoke_all(&self, granter: &Addr, grantee: &Addr) -> AbstractSdkResult<AccountAction> {
-        let msg = feegrant::v1beta1::MsgRevokeAllowance {
-            granter: granter.into(),
-            grantee: grantee.into(),
-        }
-        .encode_to_vec();
-
-        let msg = CosmosMsg::Stargate {
-            type_url: "/cosmos.feegrant.v1beta1.MsgRevokeAllowance".to_string(),
-            value: to_binary(&msg)?,
-        };
-
-        Ok(msg.into())
-    }
-}
-
-/// Details for a basic fee allowance grant
-pub struct BasicAllowance {
-    /// Maximum amount of tokens that can be spent
-    pub spend_limit: Vec<Coin>,
-    /// When the grant expires
-    pub expiration: Option<Timestamp>,
-}
-
-/// Details for a periodic fee allowance grant
-pub struct PeriodicAllowance {
-    /// period specifies the time duration in which period_spend_limit coins can
-    /// be spent before that allowance is reset
-    pub period: Option<Duration>,
-    /// Maximum amount of tokens that can be spent per period
-    pub period_spend_limit: Vec<Coin>,
-    /// period_can_spend is the number of coins left to be spent before the period_reset time
-    pub period_can_spend: Vec<Coin>,
-    /// period_reset is the time at which this period resets and a new one begins,
-    /// it is calculated from the start time of the first transaction after the
-    /// last period ended
-    pub period_reset: Option<Timestamp>,
-}
-
-fn build_any_basic(basic: BasicAllowance) -> Any {
-    Any {
-        type_url: "/cosmos.feegrant.v1beta1.BasicAllowance".to_string(),
-        value: build_basic_allowance(basic).encode_to_vec(),
-    }
-}
-
-fn build_any_periodic(periodic: PeriodicAllowance, basic: Option<BasicAllowance>) -> Any {
-    Any {
-        type_url: "/cosmos.feegrant.v1beta1.PeriodicAllowance".to_string(),
-        value: feegrant::v1beta1::PeriodicAllowance {
-            basic: basic.map(build_basic_allowance),
-            period: periodic.period.map(|p| prost_types::Duration {
-                seconds: p.as_secs() as i64,
-                nanos: 0,
-            }),
-            period_spend_limit: convert_coins(periodic.period_spend_limit),
-            period_can_spend: convert_coins(periodic.period_can_spend),
-            period_reset: periodic.period_reset.map(convert_stamp),
-        }
-        .encode_to_vec(),
-    }
-}
-
-fn build_basic_allowance(basic: BasicAllowance) -> feegrant::v1beta1::BasicAllowance {
-    feegrant::v1beta1::BasicAllowance {
-        spend_limit: convert_coins(basic.spend_limit),
-        expiration: basic.expiration.map(convert_stamp),
+        self.grant_allowance(grantee, allowed_msg_allowance)
     }
 }
 
@@ -238,166 +200,140 @@ fn convert_stamp(stamp: Timestamp) -> prost_types::Timestamp {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::mock_module::*;
+/// Trait for types that can be used as allowances in the FeeGranter.
+pub trait AllowedMsgAllowanceAllowance: FeeGranterAllowance {}
+impl AllowedMsgAllowanceAllowance for BasicAllowance {}
+impl AllowedMsgAllowanceAllowance for PeriodicAllowance {}
 
-    use cosmwasm_std::coins;
+/// Represents a basic fee allowance grant.
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq, JsonSchema)]
+pub struct BasicAllowance {
+    /// Maximum amount of tokens that can be spent
+    pub spend_limits: Vec<Coin>,
+    /// When the grant expires
+    pub expiration: Option<Timestamp>,
+}
 
-    use speculoos::prelude::*;
-
-    mod basic_allowance {
-        use super::*;
-
-        #[test]
-        fn basic_allowance() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
-            let spend_limit = coins(100, "asset");
-            let expiration = Some(Timestamp::from_seconds(10));
-
-            let res = grant.basic(
-                &granter,
-                &grantee,
-                BasicAllowance {
-                    spend_limit,
-                    expiration,
-                },
-            );
-
-            assert_that!(&res).is_ok();
+impl BasicAllowance {
+    pub fn new(spend_limits: Vec<Coin>, expiration: Option<Timestamp>) -> Self {
+        Self {
+            spend_limits,
+            expiration,
         }
     }
 
-    mod periodic_allowance {
-        use super::*;
-
-        #[test]
-        fn periodic_allowance() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
-            let spend_limit = coins(100, "asset");
-            let period_spend_limit = vec![];
-            let period_can_spend = vec![];
-            let expiration = Some(Timestamp::from_seconds(10));
-
-            let basic = Some(BasicAllowance {
-                spend_limit,
-                expiration,
-            });
-
-            let periodic = PeriodicAllowance {
-                period: None,
-                period_spend_limit,
-                period_can_spend,
-                period_reset: None,
-            };
-
-            let res = grant.periodic(&granter, &grantee, basic, periodic);
-
-            assert_that!(&res).is_ok();
-        }
-    }
-
-    mod allow_basic {
-        use super::*;
-
-        #[test]
-        fn allow_basic() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let spend_limit = coins(100, "asset");
-            let expiration = Some(Timestamp::from_seconds(10));
-
-            let res = grant.allow_basic(BasicAllowance {
-                spend_limit,
-                expiration,
-            });
-
-            assert_that!(&res).is_ok();
-        }
-    }
-
-    mod allow_periodic {
-        use super::*;
-
-        #[test]
-        fn allow_periodic() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let period_spend_limit = vec![];
-            let period_can_spend = vec![];
-
-            let res = grant.allow_periodic(PeriodicAllowance {
-                period: None,
-                period_spend_limit,
-                period_can_spend,
-                period_reset: None,
-            });
-
-            assert_that!(&res).is_ok();
-        }
-    }
-
-    mod allow_both {
-        use super::*;
-
-        #[test]
-        fn allow_both() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let spend_limit = coins(100, "asset");
-            let expiration = Some(Timestamp::from_seconds(10));
-            let period_spend_limit = vec![];
-            let period_can_spend = vec![];
-
-            let res = grant.allow_both(
-                BasicAllowance {
-                    spend_limit,
-                    expiration,
-                },
-                PeriodicAllowance {
-                    period: None,
-                    period_spend_limit,
-                    period_can_spend,
-                    period_reset: None,
-                },
-            );
-
-            assert_that!(&res).is_ok();
-        }
-    }
-
-    mod revoke_all {
-        use super::*;
-
-        #[test]
-        fn revoke_all() {
-            let app = MockModule::new();
-
-            let grant = app.grant();
-
-            let granter = Addr::unchecked("granter");
-            let grantee = Addr::unchecked("grantee");
-
-            let res = grant.revoke_all(&granter, &grantee);
-
-            assert_that!(&res).is_ok();
+    pub fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
+        feegrant::v1beta1::BasicAllowance {
+            spend_limit: self.spend_limits.iter().map(|item| base::v1beta1::Coin {
+                denom: item.denom.clone(),
+                amount: item.amount.to_string(),
+            }).collect(),
+            expiration: self.expiration.map(convert_stamp),
         }
     }
 }
+
+/// Details for a periodic fee allowance grant
+/// @see [cosmos_sdk_proto::cosmos::feegrant::v1beta1::PeriodicAllowance]
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq, JsonSchema)]
+pub struct PeriodicAllowance {
+    /// basic is the instance of [BasicAllowance] which is optional for periodic fee allowance. If empty, the grant will have no expiration and no spend_limit.
+    pub basic: Option<BasicAllowance>,
+    /// period specifies the time duration in which period_spend_limit coins can
+    /// be spent before that allowance is reset
+    pub period: Option<Duration>,
+    /// Maximum amount of tokens that can be spent per period
+    pub period_spend_limit: Vec<Coin>,
+    /// period_can_spend is the number of coins left to be spent before the period_reset time
+    pub period_can_spend: Vec<Coin>,
+    /// period_reset is the time at which this period resets and a new one begins,
+    /// it is calculated from the start time of the first transaction after the
+    /// last period ended
+    pub period_reset: Option<Timestamp>,
+}
+
+impl PeriodicAllowance {
+    pub fn new(
+        basic: Option<BasicAllowance>,
+        period: Option<Duration>,
+        period_spend_limit: Vec<Coin>,
+        period_can_spend: Vec<Coin>,
+        period_reset: Option<Timestamp>,
+    ) -> Self {
+        Self {
+            basic,
+            period,
+            period_spend_limit,
+            period_can_spend,
+            period_reset,
+        }
+    }
+
+    pub fn to_proto(&self) -> feegrant::v1beta1::PeriodicAllowance {
+        feegrant::v1beta1::PeriodicAllowance {
+            basic: self.basic.clone().map(|b| b.to_proto()),
+            period: self.period.map(|p| prost_types::Duration {
+                seconds: p.as_secs() as i64,
+                nanos: 0,
+            }),
+            period_spend_limit: convert_coins(self.period_spend_limit.clone()),
+            period_can_spend: convert_coins(self.period_can_spend.clone()),
+            period_reset: self.period_reset.map(convert_stamp),
+        }
+    }
+}
+
+pub struct AllowedMsgAllowance {
+    /// allowance can be any of basic and periodic fee allowance.
+    pub allowance: Option<Box<dyn AllowedMsgAllowanceAllowance>>,
+    /// allowed_messages are the messages for which the grantee has the access.
+    pub allowed_messages: Vec<String>,
+}
+
+pub trait FeeGranterAllowance {
+    fn to_any(&self) -> Any;
+}
+
+impl FeeGranterAllowance for BasicAllowance {
+    fn to_any(&self) -> Any {
+        Any {
+            type_url: feegrant::v1beta1::BasicAllowance::TYPE_URL.to_string(),
+            value: self.clone().to_proto().encode_to_vec(),
+        }
+    }
+}
+
+impl FeeGranterAllowance for PeriodicAllowance {
+    fn to_any(&self) -> Any {
+        Any {
+            type_url: feegrant::v1beta1::PeriodicAllowance::TYPE_URL.to_string(),
+            value: feegrant::v1beta1::PeriodicAllowance {
+                basic: self.basic.clone().map(|b| b.to_proto()),
+                period: self.period.map(|p| prost_types::Duration {
+                    seconds: p.as_secs() as i64,
+                    nanos: 0,
+                }),
+                period_spend_limit: convert_coins(self.period_spend_limit.clone()),
+                period_can_spend: convert_coins(self.period_can_spend.clone()),
+                period_reset: self.period_reset.map(convert_stamp),
+            }
+                .encode_to_vec(),
+        }
+    }
+}
+
+impl FeeGranterAllowance for AllowedMsgAllowance {
+    fn to_any(&self) -> Any {
+        Any {
+            type_url: feegrant::v1beta1::AllowedMsgAllowance::TYPE_URL.to_string(),
+            value: feegrant::v1beta1::AllowedMsgAllowance {
+                allowance: self.allowance.as_ref().map(|a| a.to_any()),
+                allowed_messages: self.allowed_messages.clone(),
+            }
+                .encode_to_vec(),
+        }
+    }
+}
+
+
+// TODO: tests using test-tube
