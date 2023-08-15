@@ -459,6 +459,7 @@ impl WynDex {
     /// - Register the pair contracts
     ///   - wyndex/eur,usd
     ///   - wyndex/eur,wynd
+    ///   - wyndex/abstr,usd
     pub(crate) fn register_info_on_abstract(
         &self,
         abstrct: &Abstract<Mock>,
