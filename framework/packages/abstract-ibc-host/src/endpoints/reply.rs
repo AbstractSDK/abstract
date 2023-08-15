@@ -99,8 +99,8 @@ pub fn reply_init_callback<
     CustomInitMsg,
     CustomQueryMsg,
     CustomMigrateMsg,
-    SudoMsg,
     ReceiveMsg,
+    SudoMsg,
 >(
     deps: DepsMut,
     _env: Env,

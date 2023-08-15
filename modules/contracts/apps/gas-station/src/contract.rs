@@ -2,8 +2,13 @@ use cosmwasm_std::{Empty, Response};
 
 use abstract_app::AppContract;
 
-use crate::{error::AppError, handlers, msg::{AppInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg}, replies};
 use crate::msg::GasStationSudoMsg;
+use crate::{
+    error::AppError,
+    handlers,
+    msg::{AppInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg},
+    replies,
+};
 
 /// The version of your app
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -14,7 +19,15 @@ pub const GAS_STATION_APP_ID: &str = "abstract:gas-station";
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type GasStationApp = AppContract<AppError, AppInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg, Empty, GasStationSudoMsg>;
+pub type GasStationApp = AppContract<
+    AppError,
+    AppInstantiateMsg,
+    GasStationExecuteMsg,
+    GasStationQueryMsg,
+    Empty,
+    Empty,
+    GasStationSudoMsg,
+>;
 
 const DCA_APP: GasStationApp = GasStationApp::new(GAS_STATION_APP_ID, VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

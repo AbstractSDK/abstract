@@ -10,20 +10,18 @@ pub fn sudo_handler(
     msg: GasStationSudoMsg,
 ) -> AppResult {
     match msg {
-        GasStationSudoMsg::BlockBeforeSend {
-            from,
-            to,
-            amount,
-        } => before_send_hook(deps, app, from, to, amount),
+        GasStationSudoMsg::BlockBeforeSend { from, to, amount } => {
+            before_send_hook(deps, app, from, to, amount)
+        }
     }
 }
 
 pub fn before_send_hook(
-    deps: DepsMut,
-    app: GasStationApp,
-    from: String,
-    to: String,
-    amount: Coin,
+    _deps: DepsMut,
+    _app: GasStationApp,
+    _from: String,
+    _to: String,
+    _amount: Coin,
 ) -> AppResult {
     // TODO: revoke permissions
 

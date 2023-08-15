@@ -4,12 +4,11 @@ use cw_storage_plus::{Item, Map};
 #[cosmwasm_schema::cw_serde]
 pub struct Config {}
 
-
 pub type GasGrade = String;
 #[cosmwasm_schema::cw_serde]
 pub struct GasPump {
     pub denom: String,
-    pub fuel_mix: Vec<Asset>
+    pub fuel_mix: Vec<Asset>,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

@@ -1,7 +1,7 @@
-use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Coin, Uint128};
-use cw_asset::Asset;
 use abstract_core::objects::AnsAsset;
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Coin;
+use cw_asset::Asset;
 
 use crate::contract::GasStationApp;
 
@@ -23,14 +23,14 @@ pub enum GasStationExecuteMsg {
     /// Create a new gas pump with a specific grade and amount.
     /// This allows the contract owner or privileged accounts to define new gas grades.
     CreateGasPump {
-        grade: String,  // The grade of the gas (e.g., "premium_100000").
-        fuel_mix: Vec<AnsAsset>,    // The amount of gas this grade represents.
+        grade: String,           // The grade of the gas (e.g., "premium_100000").
+        fuel_mix: Vec<AnsAsset>, // The amount of gas this grade represents.
     },
     /// Dispense gas to a specific recipient.
     /// This allows users or applications to request gas tokens of a specific grade.
     DispenseGas {
-        grade: String,  // The grade of the gas.
-        recipient: String,  // The address to which the gas token should be issued.
+        grade: String,     // The grade of the gas.
+        recipient: String, // The address to which the gas token should be issued.
     },
 }
 
@@ -45,7 +45,7 @@ pub enum GasStationQueryMsg {
     /// This allows users or applications to understand the details of a specific gas grade.
     #[returns(GasPumpInfoResponse)]
     GasPumpInfo {
-        grade: String,  // The grade of the gas to query.
+        grade: String, // The grade of the gas to query.
     },
 }
 
@@ -63,7 +63,7 @@ pub enum GasStationSudoMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct GasPumpInfoResponse {
-    pub grade: String,  // The grade of the gas.
-    pub denom: String,  // The denom of the gas pump token.
-    pub fuel_mix: Vec<Asset>,    // The amount of gas this grade represents.
+    pub grade: String,        // The grade of the gas.
+    pub denom: String,        // The denom of the gas pump token.
+    pub fuel_mix: Vec<Asset>, // The amount of gas this grade represents.
 }

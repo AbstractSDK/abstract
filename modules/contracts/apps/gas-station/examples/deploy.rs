@@ -4,7 +4,7 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_gas_station_app::{contract::DCA_APP_ID, DCAApp};
+use abstract_gas_station_app::{contract::GAS_STATION_APP_ID, GasStationApp};
 use abstract_interface::AppDeployer;
 use semver::Version;
 
@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = DCAApp::new(DCA_APP_ID, chain);
+    let app = GasStationApp::new(GAS_STATION_APP_ID, chain);
 
     app.deploy(version)?;
     Ok(())

@@ -40,10 +40,7 @@ pub enum AppError {
     DenomAlreadyExists(String),
 
     #[error("Pending gas pump {pending} does not match created gas pump {created}")]
-    PendingGasPumpDoesNotMatchCreatedGasPump {
-        pending: String,
-        created: String,
-    },
+    PendingGasPumpDoesNotMatchCreatedGasPump { pending: String, created: String },
 
     #[error("Only native tokens can be used as gas")]
     OnlyNativeTokensCanBeUsedAsGas {},
