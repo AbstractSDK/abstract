@@ -92,7 +92,9 @@ impl Debug for WynDex {
             .field("eur_usd_pair", &self.eur_usd_pair)
             .field("wynd_token", &self.wynd_token)
             .field("wynd_eur_pair", &self.wynd_eur_pair)
-            // TODO
+            .field("abstr_token", &self.abstr_token)
+            .field("abstr_usd_pair", &self.abstr_usd_pair)
+            .field("abstr_usd_staking", &self.abstr_usd_staking)
             .finish()
     }
 }
