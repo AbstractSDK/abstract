@@ -31,11 +31,10 @@ applications on the Cosmos ecosystem, and we've created Abstract with all the le
 it
 easier and faster to build for you.
 
-- **Based on CosmWasm** 🌟: The Abstract SDK is built on top of the [CosmWasm][1]{target="_blank"} smart-contract
-  framework,
-  which has been battle-tested
-  and proven to be secure and reliable. This also means that you can leverage the existing tooling and community to
-  accelerate your development process.
+- **Based on CosmWasm** 🌟: The Abstract SDK is built on top of the <a href="https://cosmwasm.com/" target="_blank">
+  CosmWasm</a>
+  smart-contract framework, which has been battle-tested and proven to be secure and reliable. This also means that you
+  can leverage the existing tooling and community to accelerate your development process.
 
 
 - **Chain-Agnostic** 🌐: The Abstract platform can support any CosmWasm-based network, even outside the Cosmos ecosystem,
@@ -76,11 +75,10 @@ The following is the list of products that make up the Abstract platform:
 - [Abstract-Testing](1_products/abstract_testing.md): Unit testing utilities for CosmWasm contracts.
 - [Abstract.js](1_products/abstract_js.md): Front-end libraries.
 - [Abstract App Template](1_products/abstract_app_template.md): Starting point for building an Abstract App.
-- [Graphql API Explorer](https://api.abstract.money/){target="_blank"}
+- <a href="https://api.abstract.money/" target="_blank">Graphql API Explorer</a>
 
 Feel free to explore them individually at your own pace or follow the documentation as it is presented to you. If you
 have
-any questions or ideas you want to discuss, please contact us on [Discord](https://discord.com/invite/uch3Tq3aym)
-{target="_blank"}.
+any questions or ideas you want to discuss, please contact us
+on <a href="https://discord.com/invite/uch3Tq3aym" target="_blank">Discord</a>.
 
-[1]: https://cosmwasm.com/

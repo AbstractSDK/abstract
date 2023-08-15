@@ -2,9 +2,9 @@
 
 At the heart of the Abstract development platform lies the Abstract SDK, a modular smart-contract framework intended to
 streamline and expedite the creation of CosmWasm dApps. It achieves this by emphasizing reusability and composability
-via an account-abstraction oriented architecture. The SDK is constructed atop the battle-tested [CosmWasm][1]{target="_
-blank"}: a
-WASM-based smart-contract framework developed in [Rust][2]{target="_blank"}.
+via an account-abstraction oriented architecture. The SDK is constructed atop the
+battle-tested <a href="https://cosmwasm.com/" target="_blank">CosmWasm</a>: a
+WASM-based smart-contract framework developed in <a href="https://www.rust-lang.org/">Rust</a>.
 
 From a high-level perspective, smart-contracts built with the Abstract SDK can use on-chain dependencies (other
 smart-contracts) to isolate specific functionalities. In this way, a smart-contract built with the Abstract SDK can

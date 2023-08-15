@@ -4,15 +4,15 @@ In this section, we'll cover the prerequisites for using the Abstract Platform a
 
 ## Rust
 
-The Abstract SDK is built on top of the [CosmWasm][1]{target="_blank"} smart-contract framework, which is written in [Rust][2]{target="_blank"}.
-Therefore,
-it's important to have a basic understanding of Rust.
+The Abstract SDK is built on top of the <a href="https://cosmwasm.com/" target="_blank">CosmWasm</a> smart-contract
+framework, which is written in <a href="https://www.rust-lang.org/" target="_blank">Rust</a>.
+Therefore, it's important to have a basic understanding of Rust.
 
 Rust is a modern and user-friendly programming language that shines in both performance and safety. Its innovative
 features allow developers to write reliable and efficient code, making it a great choice for smart contracts.
 
-Learn more about Rust [here](https://www.rust-lang.org/), or learn by doing
-the [rustlings](https://github.com/rust-lang/rustlings/).
+Learn more about Rust <a href="https://www.rust-lang.org/" target="_blank">here</a>, or learn by doing
+the <a href="https://github.com/rust-lang/rustlings/" target="_blank">rustlings</a>.
 
 ```admonish info
 Already a CosmWasm expert? Jump to [the next page](./3_account_abstraction.md) to learn about account abstraction!
@@ -20,7 +20,8 @@ Already a CosmWasm expert? Jump to [the next page](./3_account_abstraction.md) t
 
 ## CosmWasm
 
-Some of the products such us the Abstract SDK and CW-Orchestrator are built on top of the [CosmWasm][1]{target="_blank"} smart-contract
+Some of the products such us the Abstract SDK and CW-Orchestrator are built on top of
+the <a href="https://cosmwasm.com/" target="_blank">CosmWasm</a> smart-contract
 framework. Abstract simplifies complexity within CosmWasm, but it's still important to understand the basics.
 
 If you are already familiar with CosmWasm, you can skip this section.
@@ -74,18 +75,15 @@ The application of the actor model in the CosmWasm framework provides the follow
   prevents
   inconsistent states in the contract.
 
-To learn more about CosmWasm, check out the [official documentation](https://book.cosmwasm.com/){target="_blank"}.
+To learn more about CosmWasm, check out the <a href="https://book.cosmwasm.com/" target="_blank">official
+documentation</a>.
 
 ## Javascript
 
-You need to have a basic understanding of [Javascript][3]{target="_blank"} to use out front-end library Abstract.js, which is used to
+You need to have a basic understanding of <a href="https://www.javascript.com/" target="_blank">Javascript</a> to use
+out front-end library Abstract.js, which is used to
 interact with the on-chain Abstract framework.
 
 You can learn about
-Javascript [here](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics){target="_blank"}.
-
-[1]: https://cosmwasm.com/
-
-[2]: https://www.rust-lang.org/
-
-[3]: https://www.javascript.com/
+Javascript <a href="https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/JavaScript_basics" target="_blank">
+here</a>.
