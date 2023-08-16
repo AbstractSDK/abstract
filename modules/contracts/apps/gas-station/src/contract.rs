@@ -5,7 +5,7 @@ use abstract_app::AppContract;
 use crate::{
     error::GasStationError,
     handlers,
-    msg::{GasStationInstantiateMsg, GasStationExecuteMsg, GasStationQueryMsg},
+    msg::{GasStationExecuteMsg, GasStationInstantiateMsg, GasStationQueryMsg},
 };
 
 /// The version of your app

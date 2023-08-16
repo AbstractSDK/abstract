@@ -51,5 +51,4 @@ pub enum GasStationError {
 
     #[error("Only native tokens can be used as gas")]
     OnlyNativeTokensCanBeUsedAsGas {},
-
 }

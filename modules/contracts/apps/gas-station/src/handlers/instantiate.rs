@@ -1,6 +1,6 @@
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{GasStationResult, GasStationApp};
+use crate::contract::{GasStationApp, GasStationResult};
 use crate::msg::GasStationInstantiateMsg;
 
 pub fn instantiate_handler(

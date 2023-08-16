@@ -20,7 +20,7 @@ pub struct GasPass {
     /// The grade of the gas.
     pub grade: GradeName,
     /// The expiration of the pass
-    pub expiration: Option<Timestamp>
+    pub expiration: Option<Timestamp>,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");

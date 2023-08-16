@@ -2,7 +2,6 @@ use abstract_core::objects::AnsAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Coin, Timestamp};
 
-
 use crate::contract::GasStationApp;
 use crate::state::GradeName;
 
@@ -24,13 +23,13 @@ pub enum GasStationExecuteMsg {
     /// Create a new gas pump with a specific grade and amount.
     /// This allows the contract owner or privileged accounts to define new gas grades.
     CreateGrade {
-        grade: GradeName,           // The grade of the gas (e.g., "premium_100000").
+        grade: GradeName, // The grade of the gas (e.g., "premium_100000").
         fuel_mix: Vec<AnsAsset>, // The amount of gas this grade represents.
-        // expiration: Option<Expiration>
+                          // expiration: Option<Expiration>
     },
     /// Activate a gas pass for a specific recipient.
     ActivateGasPass {
-        grade: GradeName,     // The grade of the gas.
+        grade: GradeName,  // The grade of the gas.
         recipient: String, // The address to which the gas pass should be issued.
         // TODO: make this expiration
         expiration: Option<Timestamp>,
@@ -73,8 +72,8 @@ pub enum GasStationQueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct GradeInfoResponse {
-    pub grade: GradeName,        // The grade of the gas.
-    pub fuel_mix: Vec<Coin>,  // The amount of gas this grade represents.
+    pub grade: GradeName,    // The grade of the gas.
+    pub fuel_mix: Vec<Coin>, // The amount of gas this grade represents.
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -89,7 +88,7 @@ pub struct GasPassHoldersResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct GasPassResponse {
-    pub grade: GradeName, // The grade of the gas.
-    pub holder: String, // The holder of the gas pass.
+    pub grade: GradeName,              // The grade of the gas.
+    pub holder: String,                // The holder of the gas pass.
     pub expiration: Option<Timestamp>, // The expiration of the gas pass.
 }
