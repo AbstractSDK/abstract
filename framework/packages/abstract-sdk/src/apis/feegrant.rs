@@ -4,16 +4,15 @@
 
 use std::time::Duration;
 
-use cosmos_sdk_proto::{Any, cosmos::base, cosmos::feegrant, traits::Message};
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
-use serde::{Serialize, Deserialize};
-use schemars::JsonSchema;
 use cosmos_sdk_proto::traits::TypeUrl;
+use cosmos_sdk_proto::{cosmos::base, cosmos::feegrant, traits::Message, Any};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, Timestamp};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 
-use crate::AbstractSdkResult;
 use crate::features::AccountIdentification;
-
+use crate::AbstractSdkResult;
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
@@ -21,17 +20,25 @@ pub trait GrantInterface: AccountIdentification {
     /// The **granter** is the address of the user granting an allowance of their funds.
     /// By default, it is the proxy address of the Account.
 
-/// ```
-/// use abstract_sdk::prelude::*;
-/// # use cosmwasm_std::testing::mock_dependencies;
-/// # use abstract_sdk::mock_module::MockModule;
-/// # let module = MockModule::new();
-/// # let deps = mock_dependencies();
+    /// ```
+    /// use abstract_sdk::prelude::*;
+    /// # use cosmwasm_std::testing::mock_dependencies;
+    /// # use abstract_sdk::mock_module::MockModule;
+    /// # let module = MockModule::new();
+    /// # let deps = mock_dependencies();
 
-/// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None);
-/// ```
-    fn fee_granter<'a>(&'a self, deps: cosmwasm_std::Deps<'a>, granter: Option<Addr>) -> FeeGranter<Self> {
-        FeeGranter { base: self, deps, granter: RefCell::new(granter) }
+    /// let grant: FeeGranter = module.fee_granter(deps.as_ref(), None);
+    /// ```
+    fn fee_granter<'a>(
+        &'a self,
+        deps: cosmwasm_std::Deps<'a>,
+        granter: Option<Addr>,
+    ) -> FeeGranter<Self> {
+        FeeGranter {
+            base: self,
+            deps,
+            granter: RefCell::new(granter),
+        }
     }
 }
 
@@ -82,7 +89,7 @@ impl<'a, T: GrantInterface> FeeGranter<'a, T> {
             granter: self.granter()?.to_string(),
             grantee: grantee.to_string(),
         }
-            .encode_to_vec();
+        .encode_to_vec();
 
         let msg = CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgRevokeAllowance::TYPE_URL.to_string(),
@@ -108,7 +115,7 @@ impl<'a, T: GrantInterface> FeeGranter<'a, T> {
             grantee: grantee.to_string(),
             allowance: Some(allowance.to_any()),
         }
-            .encode_to_vec();
+        .encode_to_vec();
 
         let msg = CosmosMsg::Stargate {
             type_url: feegrant::v1beta1::MsgGrantAllowance::TYPE_URL.to_string(),
@@ -170,7 +177,12 @@ impl<'a, T: GrantInterface> FeeGranter<'a, T> {
     /// * `grantee` - The address of the grantee.
     /// * `allowed_messages` - The list of allowed messages for the grantee.
     /// * `allowance` - The allowance details.
-    pub fn grant_allowed_msg_allowance<A: AllowedMsgAllowanceAllowance + 'static>(&self, grantee: &Addr, allowed_messages: Vec<String>, allowance: Option<A>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn grant_allowed_msg_allowance<A: AllowedMsgAllowanceAllowance + 'static>(
+        &self,
+        grantee: &Addr,
+        allowed_messages: Vec<String>,
+        allowance: Option<A>,
+    ) -> AbstractSdkResult<CosmosMsg> {
         let allowed_msg_allowance = AllowedMsgAllowance {
             allowance: allowance.map(|a| Box::new(a) as Box<dyn AllowedMsgAllowanceAllowance>),
             allowed_messages,
@@ -220,10 +232,14 @@ impl BasicAllowance {
 
     pub fn to_proto(&self) -> feegrant::v1beta1::BasicAllowance {
         feegrant::v1beta1::BasicAllowance {
-            spend_limit: self.spend_limits.iter().map(|item| base::v1beta1::Coin {
-                denom: item.denom.clone(),
-                amount: item.amount.to_string(),
-            }).collect(),
+            spend_limit: self
+                .spend_limits
+                .iter()
+                .map(|item| base::v1beta1::Coin {
+                    denom: item.denom.clone(),
+                    amount: item.amount.to_string(),
+                })
+                .collect(),
             expiration: self.expiration.map(convert_stamp),
         }
     }
@@ -313,7 +329,7 @@ impl FeeGranterAllowance for PeriodicAllowance {
                 period_can_spend: convert_coins(self.period_can_spend.clone()),
                 period_reset: self.period_reset.map(convert_stamp),
             }
-                .encode_to_vec(),
+            .encode_to_vec(),
         }
     }
 }
@@ -326,10 +342,7 @@ impl FeeGranterAllowance for AllowedMsgAllowance {
                 allowance: self.allowance.as_ref().map(|a| a.to_any()),
                 allowed_messages: self.allowed_messages.clone(),
             }
-                .encode_to_vec(),
+            .encode_to_vec(),
         }
     }
 }
-
-
-// TODO: tests using test-tube
