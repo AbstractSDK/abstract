@@ -10,6 +10,7 @@ abstract_app::app_msg_types!(CroncatApp, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
+#[cfg_attr(feature = "interface", derive(cw_orch_cli::ParseCwMsg))]
 pub struct AppInstantiateMsg {}
 
 /// App execute messages
@@ -36,7 +37,7 @@ pub enum AppExecuteMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns, cw_orch_cli::ParseCwMsg))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum AppQueryMsg {

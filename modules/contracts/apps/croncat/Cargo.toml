@@ -66,7 +66,7 @@ croncat-integration-utils = "1.1.0"
 # TODO: avoid using contract dep
 croncat-factory = { version = "1.0.3", features = ["library"] }
 croncat-manager = { version = "1.0.3", features = ["library"] }
-cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "428b136", optional = true}
+cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "ed0894c", optional = true}
 
 [dev-dependencies]
 croncat-app = { path = ".", features = ["interface"] }

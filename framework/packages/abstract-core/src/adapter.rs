@@ -35,6 +35,21 @@ impl<T: AdapterExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     }
 }
 
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Execute messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: AdapterExecuteMsg + cw_orch_cli::ParseCwMsg, R: Serialize> cw_orch_cli::ParseCwMsg
+    for ExecuteMsg<T, R>
+{
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch::anyhow::Result<Self> {
+        Ok(Self::Module(AdapterRequestMsg {
+            proxy_address: None,
+            request: T::cw_parse(state_interface)?,
+        }))
+    }
+}
+
 impl AdapterExecuteMsg for Empty {}
 
 /// Trait indicates that the type is used as an api message
@@ -48,7 +63,35 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
     }
 }
 
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Query messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: AdapterQueryMsg + cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for QueryMsg<T> {
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch::anyhow::Result<Self> {
+        Ok(Self::Module(T::cw_parse(state_interface)?))
+    }
+}
+
 impl AdapterQueryMsg for Empty {}
+
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Instantiate messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for InstantiateMsg<T> {
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch::anyhow::Result<Self> {
+        Ok(Self {
+            base: BaseInstantiateMsg {
+                ans_host_address: state_interface.get_address(crate::ANS_HOST)?.into_string(),
+                version_control_address: state_interface
+                    .get_address(crate::VERSION_CONTROL)?
+                    .into_string(),
+            },
+            module: T::cw_parse(state_interface)?,
+        })
+    }
+}
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
