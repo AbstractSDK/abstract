@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "description": "Messages that query the state of the GasStationApp. These messages allow users or applications to retrieve information from the contract.",
+  "oneOf": [
+    {
+      "description": "Retrieve information about a specific gas pump. This allows users or applications to understand the details of a specific gas grade.",
+      "type": "object",
+      "required": [
+        "grade_info"
+      ],
+      "properties": {
+        "grade_info": {
+          "type": "object",
+          "required": [
+            "grade"
+          ],
+          "properties": {
+            "grade": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Retrieve a list of all gas pumps.",
+      "type": "object",
+      "required": [
+        "grade_list"
+      ],
+      "properties": {
+        "grade_list": {
+          "type": "object",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Retrieve the holders of a given gas pass",
+      "type": "object",
+      "required": [
+        "gas_pass_holders"
+      ],
+      "properties": {
+        "gas_pass_holders": {
+          "type": "object",
+          "required": [
+            "grade"
+          ],
+          "properties": {
+            "grade": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "description": "Retrieve the gas pass for a given holder",
+      "type": "object",
+      "required": [
+        "gas_pass"
+      ],
+      "properties": {
+        "gas_pass": {
+          "type": "object",
+          "required": [
+            "holder"
+          ],
+          "properties": {
+            "holder": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
