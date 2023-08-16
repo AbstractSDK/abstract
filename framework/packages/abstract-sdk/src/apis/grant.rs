@@ -14,10 +14,6 @@ use std::cell::RefCell;
 use crate::AbstractSdkResult;
 use crate::features::AccountIdentification;
 
-const BASIC_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::BasicAllowance::TYPE_URL;
-const PERIODIC_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::PeriodicAllowance::TYPE_URL;
-const ALLOWED_MSG_ALLOWANCE_TYPE_URL: &str = feegrant::v1beta1::AllowedMsgAllowance::TYPE_URL;
-
 
 /// An interface to the CosmosSDK FeeGrant module which allows for granting fee expenditure rights.
 pub trait GrantInterface: AccountIdentification {
