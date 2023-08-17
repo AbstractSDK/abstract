@@ -19,9 +19,9 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// The monarch's address
         monarch: T,
     },
-    /// A single address is admin, but the admin of the manager can also be an admin
+    /// Used when the account is a sub-account of another account.
     SubAccount {
-        /// The manager, which is the owner of the account
+        /// The manager of the account of which this account is the sub-account.
         manager: T,
     },
     /// An external governance source
