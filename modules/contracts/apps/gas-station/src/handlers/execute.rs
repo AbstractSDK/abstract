@@ -146,13 +146,9 @@ fn activate_gas_pass(
         deps.storage,
         &grade,
         |x| -> GasStationResult<HashSet<Addr>> {
-            match x {
-                Some(mut set) => {
-                    set.insert(recipient.clone());
-                    Ok(set)
-                }
-                None => Ok(HashSet::new()),
-            }
+            let mut set = x.unwrap_or_else(|| HashSet::new());
+            set.insert(recipient.clone());
+            Ok(set)
         },
     )?;
 
