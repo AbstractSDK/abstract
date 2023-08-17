@@ -208,7 +208,7 @@ pub fn execute_send_funds(
     let mut transfers: Vec<CosmosMsg> = vec![];
     for amount in funds {
         // construct a packet to send
-        /*
+        
         transfers.push(
             IbcMsg::Transfer {
                 channel_id: ics20_channel_id.clone(),
@@ -218,34 +218,34 @@ pub fn execute_send_funds(
             }
             .into(),
         );
-        */
+    
 
-        // We need to work with the memo, so we serialize the messages ourselved
+        // In case we need to work with the memo, we need to serialize the messages ourselves
 
-        let msg = //ProtoMsgTransfer{
-            MsgTransfer{
-            source_port: "transfer".to_string(),
-            source_channel: ics20_channel_id.clone(),
-            token: Some(cosmos_sdk_proto::cosmos::base::v1beta1::Coin{
-                amount: amount.to_string(),
-                denom: amount.denom.clone(),
-            }),
-            sender: env.contract.address.to_string(),
-            receiver: remote_addr.clone(),
-            timeout_height: Some(Height{
-                revision_height: 0,
-                revision_number: 0,
-            }),
-            timeout_timestamp: env.block.time.plus_seconds(PACKET_LIFETIME).nanos(),
-            //memo: None,
-        };
+        // let msg = //ProtoMsgTransfer{
+        //     MsgTransfer{
+        //     source_port: "transfer".to_string(),
+        //     source_channel: ics20_channel_id.clone(),
+        //     token: Some(cosmos_sdk_proto::cosmos::base::v1beta1::Coin{
+        //         amount: amount.to_string(),
+        //         denom: amount.denom.clone(),
+        //     }),
+        //     sender: env.contract.address.to_string(),
+        //     receiver: remote_addr.clone(),
+        //     timeout_height: Some(Height{
+        //         revision_height: 0,
+        //         revision_number: 0,
+        //     }),
+        //     timeout_timestamp: env.block.time.plus_seconds(PACKET_LIFETIME).nanos(),
+        //     //memo: None,
+        // };
 
-        let msg = CosmosMsg::Stargate {
-            type_url: MsgTransfer::TYPE_URL.to_string(),
-            value: msg.encode_to_vec().into(),
-        };
+        // let msg = CosmosMsg::Stargate {
+        //     type_url: MsgTransfer::TYPE_URL.to_string(),
+        //     value: msg.encode_to_vec().into(),
+        // };
 
-        transfers.push(msg);
+        // transfers.push(msg);
     }
 
     // // let these messages be executed by proxy
