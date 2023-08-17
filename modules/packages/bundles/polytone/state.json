@@ -1,0 +1,16 @@
+{
+  "juno": {
+    "juno-1": {
+      "code_ids": {
+        "polytone:note-1": 1
+      },
+      "default": {}
+    }
+  },
+  "osmosis": {
+    "osmosis-1": {
+      "code_ids": {},
+      "default": {}
+    }
+  }
+}
