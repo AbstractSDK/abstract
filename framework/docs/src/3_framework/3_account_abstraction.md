@@ -54,3 +54,6 @@ functions. They expose an additional App object which, via the `abstract-sdk`, e
 multi-contract transactions with minimum code. Importantly, this simplification does not limit the contract's
 programmability. Instead, it provides a balance of efficient coding and comprehensive control over inter-contract
 interactions.
+
+In the upcoming section we will explore the [architecture of Abstract Accounts](4_architecture.md), providing insights
+into its design.
