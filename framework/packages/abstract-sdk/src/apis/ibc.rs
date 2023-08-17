@@ -10,6 +10,7 @@ use abstract_core::{
     proxy::ExecuteMsg,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
+use polytone::callbacks::CallbackRequest;
 use serde::Serialize;
 
 /// Interact with other chains over IBC.
@@ -177,16 +178,16 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         host_chain: ChainName,
         action: HostAction,
-        callback: Option<CallbackInfo>,
+        callback: Option<CallbackRequest>,
         retries: u8,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendPacket {
+                msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain,
                     action,
-                    callback_info: callback,
+                    callback_request: callback,
                     retries,
                 }],
             },
@@ -241,10 +242,10 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendPacket {
+                msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Balances {},
-                    callback_info: None,
+                    callback_request: None,
                     retries: expected_retries,
                 }],
             })
@@ -261,9 +262,9 @@ mod test {
         let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
 
-        let expected_callback = CallbackInfo {
-            id: "callback_id".to_string(),
+        let expected_callback = CallbackRequest {
             receiver: "callback_receiver".to_string(),
+            msg: Binary::from(b"callback_id"),
         };
 
         let expected_retries = 50;
@@ -279,10 +280,10 @@ mod test {
         let expected = CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: TEST_PROXY.to_string(),
             msg: to_binary(&ExecuteMsg::IbcAction {
-                msgs: vec![IbcClientMsg::SendPacket {
+                msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
                     action: HostAction::Balances {},
-                    callback_info: Some(expected_callback),
+                    callback_request: Some(expected_callback),
                     retries: expected_retries,
                 }],
             })

@@ -6,6 +6,7 @@ use crate::{
 use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
+use polytone::callbacks::{CallbackMessage, CallbackRequest};
 
 pub mod state {
 
@@ -28,12 +29,13 @@ pub mod state {
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
-    // chain_name --> allowed port
-    // These ports are the only one allowed for the chain. This allows to control who can connect to the client on the distant chain
-    pub const CHAIN_HOSTS: Map<&ChainName, String> = Map::new("chain_hosts");
-    /// chain -> channel-id
-    /// these channels have been verified by the host.
-    pub const CHANNELS: Map<&ChainName, String> = Map::new("channels");
+    // Saves the local note deployed contract
+    // This allows sending cross-chain messages
+    pub const POLYTONE_NOTE: Map<&ChainName, Addr> = Map::new("polytone_note");
+    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("reverse-polytone_note");
+    // Saves the remote ibc host addresses
+    // This is used for executing message on the host
+    pub const REMOTE_HOST: Map<&ChainName, String> = Map::new("abstract-ibc-hosts");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
@@ -105,10 +107,11 @@ pub enum ExecuteMsg {
     UpdateAdmin {
         admin: String,
     },
-    // Allows the indicated port on the chain to be connected to the current contract
+    // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
     // This allows for monitoring which chain are connected to the contract remotely
     RegisterChainHost {
-        chain: String,
+        chain: ChainName,
+        note: String,
         host: String,
     },
     /// Changes the config
@@ -128,20 +131,30 @@ pub enum ExecuteMsg {
     Register {
         host_chain: ChainName,
     },
-    SendPacket {
+    RemoteAction {
         // host chain to be executed on
         // Example: "osmosis"
         host_chain: ChainName,
         // execute the custom host function
         action: HostAction,
         // optional callback info
-        callback_info: Option<CallbackInfo>,
+        callback_request: Option<CallbackRequest>,
         // Number of retries if packet errors
         retries: u8,
     },
     RemoveHost {
         host_chain: ChainName,
     },
+
+    /// Callback from the Polytone implementation
+    /// This is only triggered when a contract execution is succesful
+    Callback(CallbackMessage),
+}
+
+/// This enum is used for sending callbacks to the note contract of the IBC client
+#[cosmwasm_schema::cw_serde]
+pub enum IbcClientCallback {
+    CreateAccount { account_id: AccountId },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -161,8 +174,8 @@ pub enum QueryMsg {
         account_id: AccountId,
     },
     // get the channels
-    #[returns(ListChannelsResponse)]
-    ListChannels {},
+    #[returns(ListRemoteHostsResponse)]
+    ListRemoteHosts {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -177,8 +190,8 @@ pub struct ListAccountsResponse {
     pub accounts: Vec<(AccountId, ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
-pub struct ListChannelsResponse {
-    pub channels: Vec<(ChainName, String)>,
+pub struct ListRemoteHostsResponse {
+    pub hosts: Vec<(ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {

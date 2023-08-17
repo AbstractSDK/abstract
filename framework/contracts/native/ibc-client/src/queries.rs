@@ -1,7 +1,7 @@
 use abstract_core::{
     ibc_client::{
-        state::{Config, ACCOUNTS, ADMIN, CHANNELS, CONFIG},
-        AccountResponse, ConfigResponse, ListAccountsResponse, ListChannelsResponse,
+        state::{Config, ACCOUNTS, ADMIN, CONFIG, REMOTE_HOST},
+        AccountResponse, ConfigResponse, ListAccountsResponse, ListRemoteHostsResponse,
     },
     objects::{chain_name::ChainName, AccountId},
 };
@@ -25,11 +25,11 @@ pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
     })
 }
 
-pub fn list_channels(deps: Deps) -> StdResult<ListChannelsResponse> {
-    let channels = CHANNELS
+pub fn list_remote_hosts(deps: Deps) -> StdResult<ListRemoteHostsResponse> {
+    let hosts = REMOTE_HOST
         .range(deps.storage, None, None, Order::Ascending)
         .collect::<StdResult<_>>()?;
-    Ok(ListChannelsResponse { channels })
+    Ok(ListRemoteHostsResponse { hosts })
 }
 
 pub fn config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {

@@ -2,7 +2,7 @@ use crate::{
     endpoints::{
         self,
         reply::{
-            reply_dispatch_callback, reply_init_callback, INIT_CALLBACK_ID, RECEIVE_DISPATCH_ID,
+            reply_forward_response_data, reply_init_callback, INIT_CALLBACK_ID, RESPONSE_REPLY_ID,
         },
     },
     error::HostError,
@@ -44,8 +44,8 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
     if reply_msg.id == INIT_CALLBACK_ID {
         reply_init_callback(deps, env, reply_msg)
-    } else if reply_msg.id == RECEIVE_DISPATCH_ID {
-        reply_dispatch_callback(deps, env, reply_msg)
+    } else if reply_msg.id == RESPONSE_REPLY_ID {
+        reply_forward_response_data(reply_msg)
     } else {
         Err(HostError::Std(StdError::generic_err("Not implemented")))
     }

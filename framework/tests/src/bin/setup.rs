@@ -1,9 +1,10 @@
 use abstract_core::abstract_ica::IBC_APP_VERSION;
+use abstract_core::ibc_client::{ExecuteMsgFns, QueryMsgFns};
 use abstract_core::ibc_host::InstantiateMsg;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::{IBC_CLIENT, IBC_HOST};
 
-use abstract_interface::{Abstract, AccountFactoryExecFns, IbcClient, IbcHost};
+use abstract_interface::{Abstract, AccountFactoryExecFns, IbcClient, IbcClientExecFns, IbcHost};
 use abstract_interface_integration_tests::ibc::set_env;
 use abstract_interface_integration_tests::{JUNO, OSMOSIS};
 use anyhow::Result as AnyResult;
@@ -128,20 +129,9 @@ fn join_host_and_clients(
     let chain1_name = chain1.state().0.chain_data.chain_name.to_string();
     let chain2_name = chain2.state().0.chain_data.chain_name.to_string();
 
-    client.execute(
-        &abstract_core::ibc_client::ExecuteMsg::RegisterChainHost {
-            chain: chain2_name,
-            host: host.address()?.to_string(),
-        },
-        None,
-    )?;
-    host.execute(
-        &abstract_core::ibc_host::ExecuteMsg::RegisterChainClient {
-            chain_id: chain1_name,
-            client: client.address()?.to_string(),
-        },
-        None,
-    )?;
+    client.register_chain_host(chain2_name.into(), host.address()?.to_string(), todo!())?;
+
+    host.register_chain_proxy(chain1_name.into(), todo!())?;
 
     rt.block_on(create_channel(&client, &host, starship))?;
     Ok(())
@@ -169,10 +159,10 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // We query the channels for each host to see if the client has been connected
     let osmosis_client = IbcClient::new(IBC_CLIENT, osmosis);
 
-    let osmosis_channels: abstract_core::ibc_client::ListChannelsResponse =
-        osmosis_client.query(&abstract_core::ibc_client::QueryMsg::ListChannels {})?;
+    let osmosis_channels: abstract_core::ibc_client::ListRemoteHostsResponse =
+        osmosis_client.list_remote_hosts()?;
 
-    assert_eq!(osmosis_channels.channels[0].0, ChainName::from("juno"));
+    assert_eq!(osmosis_channels.hosts[0].0, ChainName::from("juno"));
 
     Ok(())
 }

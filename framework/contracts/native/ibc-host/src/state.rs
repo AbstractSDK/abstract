@@ -7,15 +7,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Store channel information for account creation reply
-pub const REGISTRATION_CACHE: Item<(String, AccountId)> = Item::new("rc");
+pub const REGISTRATION_CACHE: Item<AccountId> = Item::new("rc");
 /// Store the processing packet information for processing in Reply along with the channel id it came from
 pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("pr");
 /// account_id -> client_proxy_addr
 pub const CLIENT_PROXY: Map<&AccountId, String> = Map::new("cp");
-/// Maps a channel to its chain name
-pub const CHAIN_OF_CHANNEL: Map<&str, ChainName> = Map::new("cac");
-/// Maps a chain name to its client proxy address
-pub const CHAIN_CLIENTS: Map<&ChainName, String> = Map::new("ccl");
+/// Maps a chain name to the proxy it uses to interact on this local chain
+pub const CHAIN_PROXYS: Map<&ChainName, Addr> = Map::new("ccl");
+pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("reverse-ccl");
 // this stores all results from current dispatch
 pub const RESULTS: Item<Vec<SubMsgResponse>> = Item::new("res");
 /// Configuration of the IBC host

@@ -71,7 +71,7 @@ version-control = { package = "abstract-version-control", path = "contracts/nati
 
 # Ibc
 ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
-ibc-host = { package = "abstract-ibc-host", path = "contracts/native/abstract-ibc-host" }
+ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
 
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }

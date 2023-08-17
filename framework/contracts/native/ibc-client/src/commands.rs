@@ -1,19 +1,15 @@
 use crate::{
-    contract::{IbcClientResponse, IbcClientResult, MAX_RETRIES},
+    contract::{IbcClientResponse, IbcClientResult},
     error::IbcClientError,
-    ibc::PACKET_LIFETIME,
 };
 use abstract_core::{
-    ibc_client::state::CHAIN_HOSTS, manager, objects::chain_name::ChainName,
-    proto::ibc::ProtoMsgTransfer,
+    ibc_client::state::{POLYTONE_NOTE, REMOTE_HOST, REVERSE_POLYTONE_NOTE},
+    ibc_host, manager,
+    objects::{chain_name::ChainName, AccountId},
 };
-use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
-        ibc_client::{
-            state::{ACCOUNTS, ADMIN, ANS_HOST, CHANNELS, CONFIG},
-            CallbackInfo,
-        },
+        ibc_client::state::{ACCOUNTS, ADMIN, ANS_HOST, CONFIG},
         ibc_host::{HostAction, InternalAction, PacketMsg},
         objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
@@ -29,8 +25,12 @@ use cosmos_sdk_proto::{
     Any,
 };
 use cosmwasm_std::{
-    to_binary, Binary, Coin, CosmosMsg, DepsMut, Env, IbcMsg, MessageInfo, Storage,
+    to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
+    MessageInfo, Storage,
 };
+use polytone::callbacks::CallbackRequest;
+
+pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn execute_update_config(
     deps: DepsMut,
@@ -64,12 +64,17 @@ pub fn execute_update_config(
 pub fn execute_allow_chain_host(
     deps: DepsMut,
     info: MessageInfo,
-    chain: String,
+    chain: ChainName,
     host: String,
+    note: String,
 ) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    CHAIN_HOSTS.save(deps.storage, &ChainName::from(chain), &host)?;
+
+    let note = deps.api.addr_validate(&note)?;
+    POLYTONE_NOTE.save(deps.storage, &chain, &note)?;
+    REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &chain)?;
+    REMOTE_HOST.save(deps.storage, &chain, &host)?;
 
     Ok(IbcClientResponse::action("allow_chain_port"))
 }
@@ -82,9 +87,49 @@ pub fn execute_remove_host(
 ) -> IbcClientResult {
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
-    CHANNELS.remove(deps.storage, &host_chain);
+
+    if let Some(note) = POLYTONE_NOTE.may_load(deps.storage, &host_chain)? {
+        REVERSE_POLYTONE_NOTE.remove(deps.storage, &note);
+    }
+    POLYTONE_NOTE.remove(deps.storage, &host_chain);
+    REMOTE_HOST.remove(deps.storage, &host_chain);
 
     Ok(IbcClientResponse::action("remove_host"))
+}
+
+fn send_remote_host_action(
+    deps: Deps,
+    env: Env,
+    account_id: AccountId,
+    host_chain: ChainName,
+    action: HostAction,
+    callback_request: Option<CallbackRequest>,
+) -> IbcClientResult<CosmosMsg<Empty>> {
+    // Send this message via the Polytone implementation
+    let note_contract = POLYTONE_NOTE.load(deps.storage, &host_chain)?;
+    let remote_ibc_host = REMOTE_HOST.load(deps.storage, &host_chain)?;
+
+    let note_message = wasm_execute(
+        note_contract.to_string(),
+        &polytone_note::msg::ExecuteMsg::Execute {
+            msgs: vec![wasm_execute(
+                remote_ibc_host,
+                &ibc_host::ExecuteMsg::Execute { account_id, action },
+                vec![],
+            )?
+            .into()],
+            callback: callback_request,
+            timeout_seconds: env
+                .block
+                .time
+                .plus_seconds(PACKET_LIFETIME)
+                .seconds()
+                .into(),
+        },
+        vec![],
+    )?;
+
+    Ok(note_message.into())
 }
 
 pub fn execute_send_packet(
@@ -93,7 +138,7 @@ pub fn execute_send_packet(
     info: MessageInfo,
     host_chain: ChainName,
     action: HostAction,
-    callback_info: Option<CallbackInfo>,
+    callback_request: Option<CallbackRequest>,
     mut retries: u8,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
@@ -104,31 +149,38 @@ pub fn execute_send_packet(
         .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
+    // get account_id
+    let account_id = account_base.account_id(deps.as_ref())?;
+
     // Can only call non-internal actions
     if let HostAction::Internal(_) = action {
         return Err(IbcClientError::ForbiddenInternalCall {});
     }
-    // Set max retries
-    retries = retries.min(MAX_RETRIES);
 
-    // get account_id
-    let account_id = account_base.account_id(deps.as_ref())?;
-    // ensure the channel exists and loads it.
-    let channel = CHANNELS.load(deps.storage, &host_chain)?;
-    let packet = PacketMsg {
-        host_chain,
-        retries,
+    let note_message = send_remote_host_action(
+        deps.as_ref(),
+        env,
         account_id,
-        callback_info,
+        host_chain,
         action,
-    };
-    let msg = IbcMsg::SendPacket {
-        channel_id: channel,
-        data: to_binary(&packet)?,
-        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    };
+        callback_request,
+    )?;
 
-    Ok(IbcClientResponse::action("handle_send_msgs").add_message(msg))
+    // Old packet
+    // let packet = PacketMsg {
+    //     host_chain,
+    //     retries,
+    //     account_id,
+    //     callback_info,
+    //     action,
+    // };
+    // let msg = IbcMsg::SendPacket {
+    //     channel_id: channel,
+    //     data: to_binary(&packet)?,
+    //     timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
+    // };
+
+    Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
 
 pub fn execute_register_account(
@@ -137,45 +189,38 @@ pub fn execute_register_account(
     info: MessageInfo,
     host_chain: ChainName,
 ) -> IbcClientResult {
-    // auth check
     let cfg = CONFIG.load(deps.storage)?;
-    // Verify that the sender is a proxy contract
-
     let version_control = VersionControlContract::new(cfg.version_control_address);
 
+    // Verify that the sender is a proxy contract
     let account_base = version_control
         .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
-    // ensure the channel exists (not found if not registered)
-    let channel_id = CHANNELS.load(deps.storage, &host_chain)?;
+    // get account_id
     let account_id = account_base.account_id(deps.as_ref())?;
     // get auxiliary information
+
     let account_info: manager::InfoResponse = deps
         .querier
         .query_wasm_smart(account_base.manager, &manager::QueryMsg::Info {})?;
     let account_info = account_info.info;
-    // construct a packet to send
-    let packet = PacketMsg {
-        retries: 0u8,
-        host_chain,
+
+    let note_message = send_remote_host_action(
+        deps.as_ref(),
+        env,
         account_id,
-        callback_info: None,
-        action: HostAction::Internal(InternalAction::Register {
+        host_chain,
+        HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
         }),
-    };
+        None,
+    )?;
 
-    let msg = IbcMsg::SendPacket {
-        channel_id,
-        data: to_binary(&packet)?,
-        timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    };
-
-    Ok(IbcClientResponse::action("handle_register").add_message(msg))
+    Ok(IbcClientResponse::action("handle_register").add_message(note_message))
 }
 
 pub fn execute_send_funds(
@@ -185,6 +230,7 @@ pub fn execute_send_funds(
     host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
+    todo!();
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
@@ -208,7 +254,7 @@ pub fn execute_send_funds(
     let mut transfers: Vec<CosmosMsg> = vec![];
     for amount in funds {
         // construct a packet to send
-        
+
         transfers.push(
             IbcMsg::Transfer {
                 channel_id: ics20_channel_id.clone(),
@@ -218,7 +264,6 @@ pub fn execute_send_funds(
             }
             .into(),
         );
-    
 
         // In case we need to work with the memo, we need to serialize the messages ourselves
 
@@ -409,10 +454,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            CHANNELS.save(
+            REMOTE_HOST.save(
                 deps.as_mut().storage,
                 &ChainName::from(TEST_CHAIN),
-                &"test_channel".into(),
+                &"test_remote_host".into(),
             )?;
 
             let msg = ExecuteMsg::RemoveHost {
@@ -422,7 +467,7 @@ mod test {
             let res = execute_as_admin(deps.as_mut(), msg)?;
             assert_that!(res.messages).is_empty();
 
-            assert_that!(CHANNELS.is_empty(&deps.storage)).is_true();
+            assert_that!(REMOTE_HOST.is_empty(&deps.storage)).is_true();
 
             Ok(())
         }

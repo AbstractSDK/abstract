@@ -97,7 +97,7 @@ mod test {
         // ii. Now we test that we can indeed create an account remotely from the interchain account
         let create_account_remote_tx = osmo_abstr.account.manager.exec_on_module(
             to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::SendPacket {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                     host_chain: ChainName::from("juno"),
                     action: HostAction::Dispatch {
                         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
@@ -123,7 +123,7 @@ mod test {
                             })?,
                         },
                     },
-                    callback_info: None,
+                    callback_request: None,
                     retries: 2,
                 }],
             })?,

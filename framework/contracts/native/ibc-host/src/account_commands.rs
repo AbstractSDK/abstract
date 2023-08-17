@@ -1,6 +1,6 @@
 use crate::{
-    endpoints::reply::RECEIVE_DISPATCH_ID,
-    ibc::PACKET_LIFETIME,
+    contract::{HostResponse, HostResult},
+    endpoints::reply::RESPONSE_REPLY_ID,
     state::{CONFIG, RESULTS},
     HostError,
 };
@@ -13,7 +13,7 @@ use abstract_core::{
 };
 use abstract_sdk::{
     core::{
-        abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
+        abstract_ica::{BalancesResponse, SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,
     },
@@ -21,8 +21,12 @@ use abstract_sdk::{
     AbstractSdkError, AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, IbcReceiveResponse, SubMsg,
+    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, IbcReceiveResponse, Response,
+    SubMsg,
 };
+
+// one hour
+const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn receive_balances(
     deps: DepsMut,
@@ -45,22 +49,16 @@ pub fn receive_dispatch(
     deps: DepsMut,
     account: AccountBase,
     manager_msg: manager::ExecuteMsg,
-) -> Result<IbcReceiveResponse, HostError> {
-    // let them know we're fine
-    let response = DispatchResponse { results: vec![] };
-    let acknowledgement = StdAck::success(response);
+) -> HostResult {
     // execute the message on the manager
     let manager_call_msg = wasm_execute(account.manager, &manager_msg, vec![])?;
 
-    // we wrap it in a submessage to properly report results
-    let msg = SubMsg::reply_always(manager_call_msg, RECEIVE_DISPATCH_ID);
+    // We want to forward the data that this execution gets
+    let submsg = SubMsg::reply_on_success(manager_call_msg, RESPONSE_REPLY_ID);
 
-    // reset the data field
-    RESULTS.save(deps.storage, &vec![])?;
-
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_submessage(msg)
+    // Polytone handles all the necessary
+    Ok(Response::new()
+        .add_submessage(submsg)
         .add_attribute("action", "receive_dispatch"))
 }
 
@@ -71,7 +69,7 @@ pub fn receive_send_all_back(
     account: AccountBase,
     client_proxy_address: String,
     client_chain: ChainName,
-) -> Result<IbcReceiveResponse, HostError> {
+) -> HostResult {
     // let them know we're fine
     let response = SendAllBackResponse {};
     let acknowledgement = StdAck::success(response);
@@ -86,10 +84,7 @@ pub fn receive_send_all_back(
     // reset the data field
     RESULTS.save(deps.storage, &vec![])?;
 
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_message(wasm_msg)
-        .add_attribute("action", "receive_dispatch"))
+    Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }
 
 /// construct the msg to send all the assets back

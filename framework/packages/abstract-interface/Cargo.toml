@@ -35,7 +35,7 @@ account-factory = { package = "abstract-account-factory", path = "../../contract
 ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-host", default-features = false, version = "0.17.1" }
 version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.17.1" }
 ibc-client = { package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false, version = "0.17.1" }
-ibc-host = { package = "abstract-ibc-host", path = "../../contracts/native/abstract-ibc-host", default-features = false, version = "0.17.1" }
+ibc-host = { package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false, version = "0.17.1" }
 
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.17.1" }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.17.1" }

@@ -5,7 +5,7 @@ use abstract_core::{
 use abstract_sdk::core::ibc_host::QueryMsg;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
-use crate::state::{CHAIN_CLIENTS, CONFIG};
+use crate::state::{CHAIN_PROXYS, CONFIG};
 
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> StdResult<Binary> {
     match query {
@@ -24,15 +24,20 @@ fn dapp_config(deps: Deps) -> StdResult<ConfigResponse> {
 }
 
 fn registered_chains(deps: Deps) -> StdResult<RegisteredChainsResponse> {
-    let chains: StdResult<Vec<(ChainName, String)>> = CHAIN_CLIENTS
+    let chains = CHAIN_PROXYS
         .range(deps.storage, None, None, Order::Ascending)
+        .collect::<StdResult<Vec<_>>>()?
+        .into_iter()
+        .map(|(name, proxy)| (name, proxy.to_string()))
         .collect();
 
-    Ok(RegisteredChainsResponse { chains: chains? })
+    Ok(RegisteredChainsResponse { chains })
 }
 
 fn associated_client(deps: Deps, chain: String) -> StdResult<RegisteredChainResponse> {
-    let client = CHAIN_CLIENTS.load(deps.storage, &ChainName::from(chain))?;
+    let proxy = CHAIN_PROXYS.load(deps.storage, &ChainName::from(chain))?;
 
-    Ok(RegisteredChainResponse { client })
+    Ok(RegisteredChainResponse {
+        proxy: proxy.to_string(),
+    })
 }

@@ -2,6 +2,7 @@ use abstract_core::AbstractError;
 use abstract_sdk::{core::abstract_ica::SimpleIcaError, AbstractSdkError};
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
+use polytone::callbacks::CallbackMessage;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
@@ -35,4 +36,10 @@ pub enum IbcClientError {
 
     #[error("Only authorized ports can connect to the contract on the remote chain")]
     UnauthorizedConnection {},
+
+    #[error("Unauthorized")]
+    Unauthorized {},
+
+    #[error("IBC Execution Failed, {0:?}")]
+    IbcFailed(CallbackMessage),
 }

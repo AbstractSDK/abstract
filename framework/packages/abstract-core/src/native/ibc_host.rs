@@ -13,7 +13,7 @@ use crate::{
     objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
+use cosmwasm_std::{Addr, Binary, CosmosMsg};
 
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
@@ -39,11 +39,6 @@ pub enum InternalAction {
         description: Option<String>,
         link: Option<String>,
     },
-    /// Message used to know the name of the counterparty chain with which a channel was just created
-    WhoAmI {
-        // Client chain to assign to the channel
-        client_chain: ChainName,
-    },
 }
 
 /// Callable actions on a remote host
@@ -55,11 +50,7 @@ pub enum HostAction {
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    Query {
-        msgs: Vec<QueryRequest<Empty>>,
-    },
-    SendAllBack {},
-    Balances {},
+    SendAllBack {}, // This could be a manager message directly ?
     /// Can't be called through the packet endpoint directly
     Internal(InternalAction),
 }
@@ -100,23 +91,27 @@ pub struct PacketMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Update the Admin
-    UpdateAdmin {
-        admin: String,
-    },
+    UpdateAdmin { admin: String },
     UpdateConfig {
         ans_host_address: Option<String>,
         account_factory_address: Option<String>,
         version_control_address: Option<String>,
     },
-    RegisterChainClient {
-        chain_id: String,
-        client: String,
-    },
+    /// Register the Polytone proxy for a specific chain.
+    /// proxy should be a local address (will be validated)
+    RegisterChainProxy { chain_id: ChainName, proxy: String },
+    /// Remove the Polytone proxy for a specific chain.
+    RemoveChainProxy { chain_id: ChainName },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,
         account_id: AccountId,
         msgs: Vec<CosmosMsg>,
+    },
+    /// Allows for remote execution from the Polytone implementation
+    Execute {
+        account_id: AccountId,
+        action: HostAction,
     },
 }
 
@@ -148,7 +143,7 @@ pub struct RegisteredChainsResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct RegisteredChainResponse {
-    pub client: String,
+    pub proxy: String,
 }
 
 #[cfg(test)]

@@ -31,14 +31,8 @@ pub enum HostError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error("Cannot register over an existing channel")]
-    ChannelAlreadyRegistered,
-
     #[error("Invalid reply id")]
     InvalidReplyId,
-
-    #[error("This channel has not been closed.")]
-    ChannelNotClosed,
 
     #[error("A valid proxy address must be provided.")]
     MissingProxyAddress,
@@ -51,6 +45,9 @@ pub enum HostError {
 
     #[error("Expected port {0} got {1} instead.")]
     ClientMismatch(String, String),
+
+    #[error("Chain or proxy address already registered.")]
+    ProxyAddressExists,
 }
 
 impl From<cw_semver::Error> for HostError {

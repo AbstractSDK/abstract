@@ -1,12 +1,15 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    state::{CHAIN_CLIENTS, CONFIG},
+    state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS},
+    HostError,
 };
 use abstract_core::{objects::chain_name::ChainName, proxy::state::ADMIN};
 use abstract_sdk::core::ibc_host::ExecuteMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
-pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
+use super::packet::handle_host_action;
+
+pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> HostResult {
     match msg {
         ExecuteMsg::UpdateAdmin { admin } => {
             let new_admin = deps.api.addr_validate(&admin)?;
@@ -25,9 +28,10 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             version_control_address,
             account_factory_address,
         ),
-        ExecuteMsg::RegisterChainClient { chain_id, client } => {
-            register_chain_client(deps, info, chain_id, client)
+        ExecuteMsg::RegisterChainProxy { chain_id, proxy } => {
+            register_chain_proxy(deps, info, chain_id, proxy)
         }
+        ExecuteMsg::RemoveChainProxy { chain_id } => remove_chain_proxy(deps, info, chain_id),
         ExecuteMsg::RecoverAccount {
             closed_channel: _,
             account_id: _,
@@ -36,6 +40,9 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
             cw_ownable::assert_owner(deps.storage, &info.sender).unwrap();
             // TODO:
             todo!()
+        }
+        ExecuteMsg::Execute { account_id, action } => {
+            handle_host_action(deps, env, info, account_id, action)
         }
     }
 }
@@ -71,13 +78,33 @@ fn update_config(
     Ok(HostResponse::action("update_config"))
 }
 
-fn register_chain_client(
+fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
-    chain_id: String,
-    client: String,
+    chain_id: ChainName,
+    proxy: String,
 ) -> HostResult {
     cw_ownable::is_owner(deps.storage, &info.sender)?;
-    CHAIN_CLIENTS.save(deps.storage, &ChainName::from(chain_id), &client)?;
+
+    // We validate the proxy address, because this is the Polytone counterpart on the local chain
+    let proxy = deps.api.addr_validate(&proxy)?;
+    // Can't register if it already exists
+    if CHAIN_PROXYS.has(deps.storage, &chain_id) || REVERSE_CHAIN_PROXYS.has(deps.storage, &proxy) {
+        return Err(HostError::ProxyAddressExists);
+    }
+
+    CHAIN_PROXYS.save(deps.storage, &chain_id, &proxy)?;
+    REVERSE_CHAIN_PROXYS.save(deps.storage, &proxy, &chain_id)?;
+    Ok(HostResponse::action("register_chain_client"))
+}
+
+fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain_id: ChainName) -> HostResult {
+    cw_ownable::is_owner(deps.storage, &info.sender)?;
+
+    if let Some(proxy) = CHAIN_PROXYS.may_load(deps.storage, &chain_id)? {
+        REVERSE_CHAIN_PROXYS.remove(deps.storage, &proxy);
+    }
+
+    CHAIN_PROXYS.remove(deps.storage, &chain_id);
     Ok(HostResponse::action("register_chain_client"))
 }

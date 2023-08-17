@@ -11,7 +11,6 @@ use cosmwasm_std::IbcEndpoint;
 use crate::contract::execute;
 use crate::contract::instantiate;
 use crate::contract::query;
-use crate::ibc::receive_who_am_i;
 
 #[test]
 fn test_registered_client() {
@@ -35,9 +34,9 @@ fn test_registered_client() {
         deps.as_mut(),
         mock_env(),
         info,
-        abstract_core::ibc_host::ExecuteMsg::RegisterChainClient {
-            chain_id: "juno".to_string(),
-            client: "juno-client".to_string(),
+        abstract_core::ibc_host::ExecuteMsg::RegisterChainProxy {
+            chain_id: "juno".into(),
+            proxy: "juno-proxy".to_string(),
         },
     )
     .unwrap();
@@ -52,17 +51,5 @@ fn test_registered_client() {
     )
     .unwrap();
     let queried_client_name: RegisteredChainResponse = from_binary(&client_name).unwrap();
-    assert_eq!(queried_client_name.client, "juno-client");
-
-    receive_who_am_i(
-        deps.as_mut(),
-        "channel-1".to_string(),
-        IbcEndpoint {
-            channel_id: "channel-1".to_string(),
-            port_id: "wasm.juno-client".to_string(),
-        },
-        ChainName::from("juno"),
-        ChainName::from("osmosis-2"),
-    )
-    .unwrap();
+    assert_eq!(queried_client_name.proxy, "juno-client");
 }

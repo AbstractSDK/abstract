@@ -1,3 +1,4 @@
+use crate::ibc;
 use crate::{commands, error::IbcClientError, queries};
 use abstract_core::objects::module_version::assert_cw_contract_upgrade;
 use abstract_core::{
@@ -66,10 +67,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             version_control,
         } => commands::execute_update_config(deps, info, ans_host, version_control)
             .map_err(Into::into),
-        ExecuteMsg::SendPacket {
+        ExecuteMsg::RemoteAction {
             host_chain,
             action,
-            callback_info,
+            callback_request,
             retries,
         } => commands::execute_send_packet(
             deps,
@@ -77,11 +78,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             info,
             host_chain,
             action,
-            callback_info,
+            callback_request,
             retries,
         ),
-        ExecuteMsg::RegisterChainHost { chain, host } => {
-            commands::execute_allow_chain_host(deps, info, chain, host)
+        ExecuteMsg::RegisterChainHost { chain, note, host } => {
+            commands::execute_allow_chain_host(deps, info, chain, host, note)
         }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
@@ -91,6 +92,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         }
         ExecuteMsg::RemoveHost { host_chain } => {
             commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)
+        }
+        ExecuteMsg::Callback(c) => {
+            ibc::receive_action_callback(deps, env, info, c).map_err(Into::into)
         }
     }
 }
@@ -103,7 +107,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
             to_binary(&queries::account(deps, chain, account_id)?)
         }
         QueryMsg::ListAccounts {} => to_binary(&queries::list_accounts(deps)?),
-        QueryMsg::ListChannels {} => to_binary(&queries::list_channels(deps)?),
+        QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
     }
 }
 

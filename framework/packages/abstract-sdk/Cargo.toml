@@ -36,6 +36,7 @@ abstract-macros = { workspace = true }
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
+polytone = "1.0.0"
 
 [dev-dependencies]
 speculoos = { workspace = true }
