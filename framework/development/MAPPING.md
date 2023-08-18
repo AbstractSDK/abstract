@@ -48,7 +48,7 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
 ## Naming rules
 
     * All names must be lowercase
-    * Assets must be prexfixed with the chain name, seperated by '>'
+    * Assets must be prefixed with the chain name, separated by '>'
 
 ## Items
 
