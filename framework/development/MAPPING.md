@@ -57,17 +57,20 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
 - Value: `{ "<native\|cw20\|cw1155>": "$ASSET_ADDRESS" }`
 #### Examples
 - Key:
-  - ```json
+
+    ```json
     "terra2>luna"
     ```
-  - ```json
+    ```json
     "terra2>stb"
     ```
-- Value: 
-  - ```json
+
+- Value:
+
+    ```json
     { "native": "uluna" }
     ```
-  - ```json
+    ```json
     { "cw20": "terra...ehcu2" }
     ```
 
@@ -80,17 +83,20 @@ All assets must be alphabetized
 
 #### Examples
 - Key: 
-  - ```json
+
+    ```json
       "junoswap/juno>dao,juno>juno"
     ```
-  - ```json
+    ```json
       "kujira/kujira>kuji,kujira>demo"
     ```
-- Value: 
-  - ```json
+
+- Value:
+
+    ```json
     { "cw20": "juno...vfpn2" }
     ```
-  - ```json
+    ```json
     { "native": "factory/kujira...g5cq/ulp"}
     ```
 
@@ -99,15 +105,18 @@ All assets must be alphabetized
 - Value: `$CONTRACT_ADDRESS`
 
 #### Examples
-- Key: 
-  - ```json
+- Key:
+
+    ```json
     { "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }
-    ```
-  - ```json
+    ```    
+    ```json
     { "protocol": "croncat", "contract": "factory" }
     ```
+
 - Value: 
-  - ```json
+    
+    ```json
     "terra...aoeu"
     ```
 
@@ -119,13 +128,16 @@ All assets must be alphabetized
 - Value: `$CHANNEL_ID`
 
 #### Examples
-- Key: 
-  - ```json
+- Key:
+
+    ```json
     { "connected_chain": "osmosis", "protocol": "ics20" }
     ```
-- Value: 
-  - ```json
-      channel-13
+
+- Value:
+ 
+    ```json
+    "channel-13"
     ```
 
 ### Asset pairs
@@ -134,23 +146,26 @@ All assets must be alphabetized
 
 #### Examples
 - Key: 
-  - ```json
+
+    ```json
     ["terra2>astro", "terra2>luna", "astroport"]
     ```
-  - ```json
+    ```json
     ["kujira>kuji", "kujira>demo", "kujira"]
     ```
-  - ```json
+    ```json
     ["axelar>usdc", "osmosis>osmo", "osmosis"]
     ```
-- Value: 
-  - ```json
+
+- Value:
+    
+    ```json
     [{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]
     ```
-  - ```json
+    ```json
     [{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]
     ```
-  - ```json
+    ```json
     [{ "unique_id": "11", "pool_address": { "id": 678 } }]
     ```
 
@@ -159,12 +174,15 @@ All assets must be alphabetized
 - Value: `{ "dex": "$DEX", "pool_type": "<constant_product\|stable\|weighted\|liquidity_bootstrap>", "assets": ["$ASSET_A", $ASSET_B"] }`
  
 #### Examples
-- Key: 
-  - ```json
+- Key:
+
+    ```json
     10
     ```
+
 - Value:
-  - ```json
+
+    ```json
     { "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }
     ```
 
