@@ -1,5 +1,31 @@
 # Naming Convention Reference
 
+## Table of Contents
+- [Naming Convention Reference](#naming-convention-reference)
+  - [Table of Contents](#table-of-contents)
+  - [Delimiter Definitions](#delimiter-definitions)
+    - [Delimiter targets](#delimiter-targets)
+    - [Delimiters](#delimiters)
+    - [Delimiter priorities](#delimiter-priorities)
+  - [Naming rules](#naming-rules)
+  - [Items](#items)
+    - [Asset](#asset)
+      - [Examples](#examples)
+      - [Notes](#notes)
+    - [LP Token](#lp-token)
+      - [Examples](#examples-1)
+    - [Contract](#contract)
+      - [Examples](#examples-2)
+      - [Notes](#notes-1)
+    - [Ibc Channel](#ibc-channel)
+      - [Examples](#examples-3)
+    - [Asset pairs](#asset-pairs)
+      - [Examples](#examples-4)
+    - [Pool Metadata](#pool-metadata)
+      - [Examples](#examples-5)
+  - [Storage maps](#storage-maps)
+
+
 ## Delimiter Definitions
 
 ### Delimiter targets
@@ -7,7 +33,7 @@
   - type - protocol type, examples: `juno/croncat/factory`(chain protocol, app protocol, contract name), `juno:staking/wynd/juno>juno,juno>wynd` (protocol, contract(dapp protocol, additional info which is assets for this staking target))
   - attribute - abstract namespace attribute, abstract app name attribute or pool type, examples: `abstract:proxy`, (namespace, app), `junoswap/uusd,uust:stable` (chain protocol, assets, pool type)
 
-### Delimiters: 
+### Delimiters
   - `,` - delimiter between assets, example: asset1,asset2
   - `/` - delimiter between types, example: contract_type/asset1,asset2
   - `:` - delimiter between attributes, example: abstract_namespace:contract
@@ -31,28 +57,60 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
 - Key: `$CHAIN_NAME>$ASSET_NAME`
 - Value: `{ "<native\|cw20\|cw1155>": "$ASSET_ADDRESS" }`
 #### Examples
-- Key: `terra2>luna`, `terra2>stb`
-- Value: `{ "native": "uluna" }`, `{ "cw20": "terra...ehcu2" }`
+- Key:
+  - ```json
+    "terra2>luna"
+    ```
+  - ```json
+    "terra2>stb"
+    ```
+- Value: 
+  - ```json
+    { "native": "uluna" }
+    ```
+  - ```json
+    { "cw20": "terra...ehcu2" }
+    ```
+
+#### Notes
+All assets must be alphabetized
 
 ### LP Token
 - Key: `$PROTOCOL/$ASSET_A,$ASSET_B[,$ASSET_X+]`
 - Value: `{ "<native\|cw20\|cw1155>": "$ASSET_ADDRESS" }`
 
 #### Examples
-- Key: `junoswap/juno>dao,juno>juno`, `kujira/kujira>kuji,kujira>demo`
-- Value: `{ "cw20": "juno...vfpn2" }`, `{ "native": "factory/kujira...g5cq/ulp"}`
-
-#### Notes
-TODO: why this note was here and not in assets? 
-All assets must be alphabetized
+- Key: 
+  - ```json
+      "junoswap/juno>dao,juno>juno"
+    ```
+  - ```json
+      "kujira/kujira>kuji,kujira>demo"
+    ```
+- Value: 
+  - ```json
+    { "cw20": "juno...vfpn2" }
+    ```
+  - ```json
+    { "native": "factory/kujira...g5cq/ulp"}
+    ```
 
 ### Contract
 - Key: `{ "protocol": "$PROTOCOL", "contract": "$ADDITIONAL_INFO" }`
 - Value: `$CONTRACT_ADDRESS`
 
 #### Examples
-- Key: `{ "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }`, `{ "protocol": "croncat", "contract": "factory" }`
-- Value: `terra...aoeu`
+- Key: 
+  - ```json
+    { "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }
+    ```
+  - ```json
+    { "protocol": "croncat", "contract": "factory" }
+    ```
+- Value: 
+  - ```json
+    "terra...aoeu"
+    ```
 
 #### Notes
 - Staking contracts will belong here as well
@@ -62,35 +120,60 @@ All assets must be alphabetized
 - Value: `$CHANNEL_ID`
 
 #### Examples
-- Key: `{ "connected_chain": "osmosis", "protocol": "ics20" }`
-- Value: `channel-13`
+- Key: 
+  - ```json
+    { "connected_chain": "osmosis", "protocol": "ics20" }
+    ```
+- Value: 
+  - ```json
+      channel-13
+    ```
 
 ### Asset pairs
 - Key: `[$ASSET_A, $ASSET_B, $DEX_NAME]`
 - Value: `[{ "unique_id": "$ABSTRACT_POOL_ID", "pool_address": { "<contract\|id|separate_addresses>": $POOL_ADDRESS_ID_OR_SEPARATE_ADDRESSES } }]`
 
 #### Examples
-- Key: `["terra2>astro", "terra2>luna", "astroport"]`, `["kujira>kuji", "kujira>demo", "kujira"]`, `["axelar>usdc", "osmosis>osmo", "osmosis"]`
-- Value: `[{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]`, `[{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]`, `[{ "unique_id": "11", "pool_address": { "id": 678 } }]`
+- Key: 
+  - ```json
+    ["terra2>astro", "terra2>luna", "astroport"]
+    ```
+  - ```json
+    ["kujira>kuji", "kujira>demo", "kujira"]
+    ```
+  - ```json
+    ["axelar>usdc", "osmosis>osmo", "osmosis"]
+    ```
+- Value: 
+  - ```json
+    [{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]
+    ```
+  - ```json
+    [{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]
+    ```
+  - ```json
+    [{ "unique_id": "11", "pool_address": { "id": 678 } }]
+    ```
 
 ### Pool Metadata
 - Key: `$ABSTRACT_POOL_ID`
 - Value: `{ "dex": "$DEX", "pool_type": "<constant_product\|stable\|weighted\|liquidity_bootstrap>", "assets": ["$ASSET_A", $ASSET_B"] }`
  
 #### Examples
-- Key: `10`
-- Value: `{ "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }`
+- Key: 
+  - ```json
+    10
+    ```
+- Value:
+  - ```json
+    { "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }
+    ```
 
-## Storage keys for raw querying
-
-Below is the human-readable version of your markdown table:
-
-| Type | Storage | Key | Ex Key | Value | Ex Value | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
-| Asset | `ASSET_ADDRESSES` | `$chain>$asset_name` | `terra2>luna` | `{ "<native\|cw20\|cw1155>": "$ASSET_ADDRESS" }` | `{ "native": "uluna }` |  |
-| LP Token | `ASSET_ADDRESSES` | `$PROTOCOL/$ASSET_A,$ASSET_B[,$ASSET_X+]` | `junoswap/juno>dao,juno>juno` | `{ "<cw20\|cw1155>": "$ASSET_ADDRESS" }` | `{ "cw20": "juno...vfpn2" }` | All assets must be alphabetized |
-| Contract | `CONTRACT_ADDRESSES` | `{ "protocol": "$PROTOCOL", "contract": "$TYPE/$PROTOCOL/$ADDITIONAL_INFO", }` | `{ "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }` | `$CONTRACT_ADDRESS` | `terra...aoeu` |  |
-| Staking Contract | `CONTRACT_ADDRESSES` | `{ "protocol": "$PROTOCOL", "contract": "staking/$PROTOCOL/$ASSET_A,$ASSET_B[,$ASSET_X+]" }` | `{ "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }` | `$CONTRACT_ADDRESS` | `terra...aoeu` |  |
-| Ibc Channel | `CHANNELS` | `{ "connected_chain": "$HOST_CHAIN", "protocol": "$PROTOCOL" }` | `{ "connected_chain": "osmosis", "protocol": "ics20" }` | `$CHANNEL_ID` | `channel-13` |  |
-| Asset pairs | `ASSET_PAIRINGS` | `[$ASSET_A, $ASSET_B, $DEX_NAME]` | `["terra2>astro", "terra2>luna", "astroport"]` | `[{ "unique_id": "$ABSTRACT_POOL_ID", "pool_address": { "<contract\|id>": "$POOL_ADDRESS_OR_ID" } }]` | `[{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]` |  |
-| Pool Metadata | `POOL_METADATA` | `$ABSTRACT_POOL_ID` | 10 | `{ "dex": "$DEX", "pool_type": "<constant_product\|stable\|weighted\|liquidity_bootstrap>", "assets": ["$ASSET_A", $ASSET_B"] }` | `{ "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }` |  |
+## Storage maps
+Those maps can be found in [ans state](../packages/abstract-core/src/native/ans_host.rs)
+  - [Asset](#asset) - `ASSET_ADDRESSES`
+  - [LP Token](#lp-token) - `ASSET_ADDRESSES`
+  - [Contract](#contract) - `CONTRACT_ADDRESSES`
+  - [Ibc Channel](#ibc-channel) - `CHANNELS`
+  - [Asset pairs](#asset-pairs) - `ASSET_PAIRINGS`
+  - [Pool Metadata](#pool-metadata) - `POOL_METADATA`
