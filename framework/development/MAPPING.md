@@ -61,6 +61,7 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
     ```json
     "terra2>luna"
     ```
+
     ```json
     "terra2>stb"
     ```
@@ -70,6 +71,7 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
     ```json
     { "native": "uluna" }
     ```
+
     ```json
     { "cw20": "terra...ehcu2" }
     ```
@@ -87,6 +89,7 @@ All assets must be alphabetized
     ```json
       "junoswap/juno>dao,juno>juno"
     ```
+
     ```json
       "kujira/kujira>kuji,kujira>demo"
     ```
@@ -96,6 +99,7 @@ All assets must be alphabetized
     ```json
     { "cw20": "juno...vfpn2" }
     ```
+
     ```json
     { "native": "factory/kujira...g5cq/ulp"}
     ```
@@ -109,7 +113,8 @@ All assets must be alphabetized
 
     ```json
     { "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }
-    ```    
+    ```
+ 
     ```json
     { "protocol": "croncat", "contract": "factory" }
     ```
@@ -150,9 +155,11 @@ All assets must be alphabetized
     ```json
     ["terra2>astro", "terra2>luna", "astroport"]
     ```
+
     ```json
     ["kujira>kuji", "kujira>demo", "kujira"]
     ```
+
     ```json
     ["axelar>usdc", "osmosis>osmo", "osmosis"]
     ```
@@ -162,9 +169,11 @@ All assets must be alphabetized
     ```json
     [{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]
     ```
+
     ```json
     [{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]
     ```
+
     ```json
     [{ "unique_id": "11", "pool_address": { "id": 678 } }]
     ```
