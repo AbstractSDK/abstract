@@ -58,23 +58,23 @@ Priority of delimiters, highest priority will overwrite delimiter from both side
 #### Examples
 - Key:
 
-      ```json
-      "terra2>luna"
-      ```
+    ```json
+    "terra2>luna"
+    ```
 
-      ```json
-      "terra2>stb"
-      ```
+    ```json
+    "terra2>stb"
+    ```
 
 - Value:
 
-      ```json
-      { "native": "uluna" }
-      ```
+    ```json
+    { "native": "uluna" }
+    ```
 
-      ```json
-      { "cw20": "terra...ehcu2" }
-      ```
+    ```json
+    { "cw20": "terra...ehcu2" }
+    ```
 
 #### Notes
 All assets must be alphabetized
@@ -86,23 +86,23 @@ All assets must be alphabetized
 #### Examples
 - Key: 
 
-      ```json
+    ```json
       "junoswap/juno>dao,juno>juno"
-      ```
+    ```
 
-      ```json
+    ```json
       "kujira/kujira>kuji,kujira>demo"
-      ```
+    ```
 
 - Value:
 
-      ```json
-      { "cw20": "juno...vfpn2" }
-      ```
+    ```json
+    { "cw20": "juno...vfpn2" }
+    ```
 
-      ```json
-      { "native": "factory/kujira...g5cq/ulp"}
-      ```
+    ```json
+    { "native": "factory/kujira...g5cq/ulp"}
+    ```
 
 ### Contract
 - Key: `{ "protocol": "$PROTOCOL", "contract": "$ADDITIONAL_INFO" }`
@@ -111,19 +111,19 @@ All assets must be alphabetized
 #### Examples
 - Key:
 
-      ```json
-      { "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }
-      ```
+    ```json
+    { "protocol": "astroport", "contract": "staking/astroport/terra2>astro,terra2>luna" }
+    ```
  
-      ```json
-      { "protocol": "croncat", "contract": "factory" }
-      ```
+    ```json
+    { "protocol": "croncat", "contract": "factory" }
+    ```
 
 - Value: 
     
-      ```json
-      "terra...aoeu"
-      ```
+    ```json
+    "terra...aoeu"
+    ```
 
 #### Notes
 - Staking contracts will belong here as well
@@ -135,15 +135,15 @@ All assets must be alphabetized
 #### Examples
 - Key:
 
-      ```json
-      { "connected_chain": "osmosis", "protocol": "ics20" }
-      ```
+    ```json
+    { "connected_chain": "osmosis", "protocol": "ics20" }
+    ```
 
 - Value:
  
-      ```json
-      "channel-13"
-      ```
+    ```json
+    "channel-13"
+    ```
 
 ### Asset pairs
 - Key: `[$ASSET_A, $ASSET_B, $DEX_NAME]`
@@ -152,31 +152,31 @@ All assets must be alphabetized
 #### Examples
 - Key: 
 
-      ```json
-      ["terra2>astro", "terra2>luna", "astroport"]
-      ```
+    ```json
+    ["terra2>astro", "terra2>luna", "astroport"]
+    ```
 
-      ```json
-      ["kujira>kuji", "kujira>demo", "kujira"]
-      ```
+    ```json
+    ["kujira>kuji", "kujira>demo", "kujira"]
+    ```
 
-      ```json
-      ["axelar>usdc", "osmosis>osmo", "osmosis"]
-      ```
+    ```json
+    ["axelar>usdc", "osmosis>osmo", "osmosis"]
+    ```
 
 - Value:
     
-      ```json
-      [{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]
-      ```
+    ```json
+    [{ "unique_id": "10", "pool_address": { "contract": "terrax...aoeu" } }]
+    ```
 
-      ```json
-      [{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]
-      ```
+    ```json
+    [{ "unique_id": "11", "pool_address": { "separate_addresses": { "swap": "kujira...4jjh", "liquidity": "kuji...g5cq"} } }]
+    ```
 
-      ```json
-      [{ "unique_id": "11", "pool_address": { "id": 678 } }]
-      ```
+    ```json
+    [{ "unique_id": "11", "pool_address": { "id": 678 } }]
+    ```
 
 ### Pool Metadata
 - Key: `$ABSTRACT_POOL_ID`
@@ -185,15 +185,15 @@ All assets must be alphabetized
 #### Examples
 - Key:
 
-      ```json
-      10
-      ```
+    ```json
+    10
+    ```
 
 - Value:
 
-      ```json
-      { "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }
-      ```
+    ```json
+    { "dex": "astroport", "pool_type": "weighted", "assets": ["terra2>astro", "terra2>luna"] }
+    ```
 
 ## Storage maps
 Those maps can be found in [ans state](../packages/abstract-core/src/native/ans_host.rs)
