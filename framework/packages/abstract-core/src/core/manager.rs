@@ -159,6 +159,15 @@ pub enum ExecuteMsg {
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
+    /// Creates a sub-account on the account
+    CreateSubAccount {
+        // Name of the sub-account
+        name: String,
+        // Description of the account
+        description: Option<String>,
+        // URL linked to the account
+        link: Option<String>,
+    },
     /// Update info
     UpdateInfo {
         name: Option<String>,
