@@ -12,7 +12,7 @@ custom modules using the [Abstract SDK](https://docs.rs/abstract-sdk/latest/abst
 application needs and even contributing back to the community.
 
 ```admonish info
-Skip to [Modules](./7_module_types.md) to learn what the kinds of modules there are and why they are relevant to your Abstract Account.
+Skip to [Modules](./7_module_types.md) to learn what the kinds of modules are and why they are relevant to your Abstract Account.
 ```
 
 ## How Modules Work
@@ -32,11 +32,10 @@ promoting consistent design across different modules.
 Security is a priority at Abstract, especially when it comes to the modules that extend the capabilities of an Abstract
 Account. Every module listed on the mainnet marketplaces must undergo a thorough auditing process before it's made
 available to developers. This process scrutinizes the module's code, checking for potential vulnerabilities, and
-ensuring
-that it adheres to best security practices.
+ensuring that it adheres to best security practices.
 
 While no system can guarantee absolute security, this rigorous vetting process, coupled with the inherent security
 measures in Abstract and CosmWasm's architecture, mitigates potential risks to a considerable extent.
 
-The Abstract platform also maintains a [Version Control](9_version_control.md) for all the modules, allowing developers
-to track changes, understand the evolution of a module, and choose versions that have passed security audits. 
+The Abstract platform also maintains a [Version Control](../5_platform/version_control.md) for all the modules, allowing
+developers to track changes, understand the evolution of a module, and choose versions that have passed security audits. 
