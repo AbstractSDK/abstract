@@ -59,26 +59,32 @@ powerful synergies and cross-module functionality.
 
 ```mermaid
 flowchart LR
-    subgraph Accounts
-        direction BT
-        subgraph Acc1["Account 1"]
-            App1["abstract:etf"]
-        end
-        subgraph Acc2["Account 2"]
-            App2["abstract:etf"]
-        end
+  subgraph Accounts
+    direction BT
+    subgraph Acc1["Account 1"]
+      App1["abstract:etf"]
     end
-
-
-    subgraph Adapters
-        Acc1 --> Adapter1{{"abstract:dex"}}
-        Acc2 --> Adapter1
+    subgraph Acc2["Account 2"]
+      App2["abstract:etf"]
     end
+  end
 
-    Adapter1 --> dex1([Osmosis])
-    Adapter1 --> dex2([Wyndex])
-    Adapter1 --> dex3([Astroport])
 
+  subgraph Adapters
+    Acc1 --> Adapter1{{"abstract:dex"}}
+    Acc2 --> Adapter1
+  end
+
+  Adapter1 --> dex1([Osmosis])
+  Adapter1 --> dex2([Wyndex])
+  Adapter1 --> dex3([Astroport])
+
+  style App1 fill: #161b25
+  style App2 fill: #161b25
+  style Adapter1 fill: #161b25
+  style dex1 fill: #161b25
+  style dex2 fill: #161b25
+  style dex3 fill: #161b25
 ```
 
 <figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> and <code>abstract:dex</code> modules installed</b></figcaption>

@@ -15,12 +15,16 @@ and the **Proxy** contract.
 
 ```mermaid
 flowchart LR
-    subgraph Abstr[Abstract Account]
-        direction TB
-        Manager --> Proxy
-    end
+  subgraph Abstr[Abstract Account]
+    direction TB
+    Manager --> Proxy
+  end
 
-    Owner -.-> Manager
+  Owner -.-> Manager
+
+  style Owner fill: #161b25
+  style Manager fill: #161b25
+  style Proxy fill: #161b25
 ```
 
 The *owner* of the account, can configure the Abstract account by sending messages to the manager contract. We don't
