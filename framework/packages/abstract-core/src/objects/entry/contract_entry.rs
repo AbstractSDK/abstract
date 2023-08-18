@@ -44,13 +44,12 @@ impl TryFrom<&str> for UncheckedContractEntry {
     type Error = StdError;
     /// Try from a string slice like "protocol:contract_name"
     fn try_from(entry: &str) -> Result<Self, Self::Error> {
-        let composite: Vec<&str> = entry.split(ATTRIBUTE_DELIMITER).collect();
-        if composite.len() != 2 {
+        let Some((protocol, contract_name)) = entry.split_once(ATTRIBUTE_DELIMITER) else {
             return Err(StdError::generic_err(
                 "contract entry should be formatted as \"protocol:contract_name\".",
-            ));
-        }
-        Ok(Self::new(composite[0], composite[1]))
+            ))
+        };
+        Ok(Self::new(protocol, contract_name))
     }
 }
 
@@ -78,7 +77,7 @@ impl From<UncheckedContractEntry> for ContractEntry {
 
 impl Display for ContractEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", self.protocol, self.contract)
+        write!(f, "{}{ATTRIBUTE_DELIMITER}{}", self.protocol, self.contract)
     }
 }
 
@@ -240,6 +239,40 @@ mod test {
             assert_eq!(items.len(), 2);
             assert_eq!(items[0], ("rocket-ship".to_string(), 69420));
             assert_eq!(items[1], ("sailing-ship".to_string(), 42069));
+        }
+
+        #[test]
+        fn test_contract_entry_from_str() {
+            let contract_entry_str = "abstract:rocket-ship";
+            let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();
+
+            assert_eq!(contract_entry.protocol, "abstract");
+            assert_eq!(contract_entry.contract, "rocket-ship");
+
+            let contract_entry_str = "foo:>420/,:z/69";
+            let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();
+
+            assert_eq!(contract_entry.protocol, "foo");
+            assert_eq!(contract_entry.contract, ">420/,:z/69");
+
+            // Wrong formatting
+            let contract_entry_str = "shitcoin/,>rocket-ship";
+            let err = ContractEntry::from_str(contract_entry_str).unwrap_err();
+
+            assert_eq!(
+                err,
+                StdError::generic_err(
+                    "contract entry should be formatted as \"protocol:contract_name\".",
+                )
+            );
+        }
+
+        #[test]
+        fn test_contract_entry_to_string() {
+            let contract_entry_str = "abstract:app";
+            let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();
+    
+            assert_eq!(contract_entry.to_string(), contract_entry_str);
         }
     }
 }
