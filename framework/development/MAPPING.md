@@ -30,8 +30,8 @@
 
 ### Delimiter targets
   - asset - native/cw20/factory coins mappings used inside abstract ans, example: `juno>juno`(mapping for ujunox inside juno chain), `juno>wynd`(mapping for contract address of cw20 wynd coin inside juno chain)
-  - type - protocol type, examples: `juno/croncat/factory`(chain protocol, app protocol, contract name), `juno:staking/wynd/juno>juno,juno>wynd` (protocol, contract(dapp protocol, additional info which is assets for this staking target))
-  - attribute - abstract namespace attribute, abstract app name attribute or pool type, examples: `abstract:proxy`, (namespace, app), `junoswap/uusd,uust:stable` (chain protocol, assets, pool type)
+  - type - protocol type, examples: `juno/croncat/factory`(chain protocol, app protocol, contract name), `juno:staking/wynd/juno>juno,juno>wynd` (protocol, additional attribute(dapp protocol, additional info which is assets for this staking target))
+  - attribute - additional attribute or pool type, examples: `croncat:factory`, (namespace, app), `junoswap/uusd,uust:stable` (chain protocol, assets, pool type)
 
 ### Delimiters
   - `,` - delimiter between assets, example: asset1,asset2
