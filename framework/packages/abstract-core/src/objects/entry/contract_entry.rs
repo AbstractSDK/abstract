@@ -271,7 +271,7 @@ mod test {
         fn test_contract_entry_to_string() {
             let contract_entry_str = "abstract:app";
             let contract_entry = ContractEntry::from_str(contract_entry_str).unwrap();
-    
+
             assert_eq!(contract_entry.to_string(), contract_entry_str);
         }
     }
