@@ -2,18 +2,17 @@
 
 // Then instantiate the voice and note
 
-
 use crate::interface::{Note, Polytone, Proxy, Voice};
 use anyhow::Result as AnyResult;
 
-
 use cw_orch::{
+    deploy::Deploy,
     prelude::{
-        interchain_channel_builder::InterchainChannelBuilder, ContractInstance,
-        CwOrchInstantiate, CwOrchUpload, Daemon, InterchainEnv, CwOrchExecute,
+        interchain_channel_builder::InterchainChannelBuilder, ContractInstance, CwOrchExecute,
+        CwOrchInstantiate, CwOrchUpload, Daemon, InterchainEnv,
     },
     starship::Starship,
-    tokio::runtime::Runtime, deploy::Deploy,
+    tokio::runtime::Runtime,
 };
 
 pub const MAX_BLOCK_GAS: u64 = 100_000_000;
@@ -63,9 +62,13 @@ pub fn deploy(
         InterchainChannelBuilder::default()
             .from_contracts(&note, &voice)
             .create_channel(starship.client(), POLYTONE_VERSION),
-    )?;   
+    )?;
 
-    Ok(Polytone { note, voice, channel: interchain_channel })
+    Ok(Polytone {
+        note,
+        voice,
+        channel: interchain_channel,
+    })
 }
 
 #[test]
@@ -77,8 +80,19 @@ fn polytone_deploy() -> AnyResult<()> {
 
     // Now we test an interaction through the interchain
 
-    let result = polytone.note.execute(&polytone_note::msg::ExecuteMsg::Execute { msgs: vec![], callback: None, timeout_seconds: 1_000_000u64.into() }, None)?;
-    rt.block_on(polytone.channel.await_ibc_execution("juno-1".into(), result.txhash))?;
+    let result = polytone.note.execute(
+        &polytone_note::msg::ExecuteMsg::Execute {
+            msgs: vec![],
+            callback: None,
+            timeout_seconds: 1_000_000u64.into(),
+        },
+        None,
+    )?;
+    rt.block_on(
+        polytone
+            .channel
+            .await_ibc_execution("juno-1".into(), result.txhash),
+    )?;
 
     Ok(())
 }

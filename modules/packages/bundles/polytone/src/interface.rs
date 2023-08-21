@@ -1,4 +1,4 @@
-use cw_orch::{interface, prelude::*, interchain::interchain_channel::InterchainChannel};
+use cw_orch::{interchain::interchain_channel::InterchainChannel, interface, prelude::*};
 // This file contains all interfaces to the polytone contracts
 
 #[interface(
