@@ -103,9 +103,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
         QueryMsg::Config {} => to_binary(&queries::config(deps, env)?),
-        QueryMsg::Host {
-            chain_name
-        } => to_binary(&queries::host(deps, chain_name)?),
+        QueryMsg::Host { chain_name } => to_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
             to_binary(&queries::account(deps, chain, account_id)?)
         }

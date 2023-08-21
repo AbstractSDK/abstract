@@ -132,10 +132,18 @@ fn join_host_and_clients(
     let chain1_id = chain1.state().0.chain_data.chain_id.to_string();
     let chain2_name = chain2.state().0.chain_data.chain_name.to_string();
 
-    let proxy_tx_result = client.register_chain_host(chain2_name.into(), host.address()?.to_string(), polytone.note.address()?.to_string())?;
+    let proxy_tx_result = client.register_chain_host(
+        chain2_name.into(),
+        host.address()?.to_string(),
+        polytone.note.address()?.to_string(),
+    )?;
 
     // We make sure the proxy address is saved
-    rt.block_on(polytone.channel.await_ibc_execution(chain1_id, proxy_tx_result.txhash))?;
+    rt.block_on(
+        polytone
+            .channel
+            .await_ibc_execution(chain1_id, proxy_tx_result.txhash),
+    )?;
 
     let proxy_address = client.host(chain2_name)?;
 
@@ -160,14 +168,7 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // Deploying abstract and the IBC abstract logic
     deploy_contracts(&juno, &osmosis)?;
 
-    let polytone = cw_orch_polytone::deploy(
-        &rt,
-        &starship,
-        JUNO,
-        OSMOSIS,
-        "1".to_string()
-    )?;
-
+    let polytone = cw_orch_polytone::deploy(&rt, &starship, JUNO, OSMOSIS, "1".to_string())?;
 
     // Create the connection between client and host
     join_host_and_clients(&polytone, &osmosis, &juno, &rt, &starship)?;

@@ -1,7 +1,8 @@
 use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CONFIG, REMOTE_HOST, REMOTE_PROXY},
-        AccountResponse, ConfigResponse, ListAccountsResponse, ListRemoteHostsResponse, ListRemoteProxysResponse, HostResponse,
+        AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
+        ListRemoteHostsResponse, ListRemoteProxysResponse,
     },
     objects::{chain_name::ChainName, AccountId},
 };
@@ -53,16 +54,12 @@ pub fn config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {
 }
 
 /// Returns the remote-host and polytone proxy addresses
-pub fn host(
-    deps: Deps,
-    host_chain: ChainName,
-) -> StdResult<HostResponse> {
-    
+pub fn host(deps: Deps, host_chain: ChainName) -> StdResult<HostResponse> {
     let remote_host = REMOTE_HOST.may_load(deps.storage, &host_chain)?;
     let remote_polytone_proxy = REMOTE_PROXY.may_load(deps.storage, &host_chain)?;
-    Ok(HostResponse { 
+    Ok(HostResponse {
         remote_host,
-        remote_polytone_proxy
+        remote_polytone_proxy,
     })
 }
 

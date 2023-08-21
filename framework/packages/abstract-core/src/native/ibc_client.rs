@@ -156,7 +156,7 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
     CreateAccount { account_id: AccountId },
-    WhoAmI {}
+    WhoAmI {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -168,9 +168,7 @@ pub enum QueryMsg {
     Config {},
     // Returns config
     #[returns(HostResponse)]
-    Host {
-        chain_name: ChainName
-    },
+    Host { chain_name: ChainName },
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {},
@@ -209,9 +207,9 @@ pub struct ListRemoteProxysResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct HostResponse { 
+pub struct HostResponse {
     pub remote_host: Option<String>,
-    pub remote_polytone_proxy: Option<String>
+    pub remote_polytone_proxy: Option<String>,
 }
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
