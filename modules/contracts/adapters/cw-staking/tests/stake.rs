@@ -1,6 +1,6 @@
 mod common;
 
-use abstract_core::adapter::AdapterModuleDataResponse;
+use abstract_core::objects::module_version::ModuleDataResponse;
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::msg::StakingQueryMsgFns;
@@ -91,8 +91,8 @@ fn staking_inited() -> anyhow::Result<()> {
     let module_data = staking.base_module_data()?;
     assert_eq!(
         module_data,
-        AdapterModuleDataResponse {
-            module: CW_STAKING.to_owned(),
+        ModuleDataResponse {
+            module_id: CW_STAKING.to_owned(),
             version: CONTRACT_VERSION.to_owned(),
             dependencies: vec![],
             metadata: None

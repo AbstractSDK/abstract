@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use abstract_core::app::AppModuleDataResponse;
 use abstract_core::objects::dependency::DependencyResponse;
+use abstract_core::objects::module_version::ModuleDataResponse;
 use abstract_core::objects::{
     AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
@@ -223,8 +224,8 @@ fn successful_install() -> anyhow::Result<()> {
     let module_data = apps.dca_app.base_module_data()?;
     assert_eq!(
         module_data,
-        AppModuleDataResponse {
-            module: DCA_APP_ID.to_owned(),
+        ModuleDataResponse {
+            module_id: DCA_APP_ID.to_owned(),
             version: DCA_APP_VERSION.to_owned(),
             dependencies: vec![
                 DependencyResponse {
