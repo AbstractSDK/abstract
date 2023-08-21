@@ -179,10 +179,6 @@ fn install_pre_wasmed_modules() -> AResult {
     ));
     let cw20_id = chain.app.borrow_mut().store_code(cw20_contract);
 
-    // let account_base = deployment.version_control.get_account(0)?;
-    // account.manager.set_address(&account_base.manager);
-    // account.proxy.set_address(&account_base.proxy);
-
     deployment.version_control.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
