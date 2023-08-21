@@ -15,10 +15,7 @@ keywords.workspace = true
 anyhow.workspace = true
 bech32 = "0.9.1"
 cosmwasm-std.workspace = true
-cw-orch = { workspace=true, features = [
-  "interchain",
-  "starship",
-] }
+cw-orch = { workspace = true, features = ["interchain", "starship"] }
 polytone-note = { version = "1.0.0", features = ["library"] }
 polytone-proxy = { version = "1.0.0", features = ["library"] }
 polytone-voice = { version = "1.0.0", features = ["library"] }

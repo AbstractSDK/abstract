@@ -10,7 +10,7 @@ use anyhow::Result as AnyResult;
 use cw_orch::{
     prelude::{
         interchain_channel_builder::InterchainChannelBuilder, ContractInstance, CwOrchExecute,
-        CwOrchInstantiate, CwOrchUpload, Daemon, InterchainEnv, CwOrchQuery,
+        CwOrchInstantiate, CwOrchQuery, CwOrchUpload, Daemon, InterchainEnv,
     },
     starship::Starship,
     tokio::runtime::Runtime,
@@ -78,9 +78,8 @@ pub fn load_from(
     starship: &Starship,
     source_id: &str,
     dest_id: &str,
-    id: String
-) -> AnyResult<Polytone<Daemon>>{
-
+    id: String,
+) -> AnyResult<Polytone<Daemon>> {
     let interchain: InterchainEnv = starship.interchain_env();
 
     let source = interchain.daemon(source_id)?;
@@ -89,11 +88,13 @@ pub fn load_from(
     let note = Note::new(format!("polytone:note-{}", id), source.clone());
     let voice = Voice::new(format!("polytone:voice-{}", id), dest.clone());
 
-    let channel: Option<String> = note.query(&polytone_note::msg::QueryMsg::ActiveChannel{})?;
+    let channel: Option<String> = note.query(&polytone_note::msg::QueryMsg::ActiveChannel {})?;
 
-    let interchain_channel = rt.block_on(InterchainChannelBuilder::default()
-        .from_contracts(&note, &voice)
-        .channel_from(ChannelId::from_str(channel.unwrap().as_str())?))?;
+    let interchain_channel = rt.block_on(
+        InterchainChannelBuilder::default()
+            .from_contracts(&note, &voice)
+            .channel_from(ChannelId::from_str(channel.unwrap().as_str())?),
+    )?;
 
     Ok(Polytone {
         note,
@@ -101,7 +102,6 @@ pub fn load_from(
         channel: interchain_channel,
     })
 }
-
 
 #[test]
 fn polytone_deploy() -> AnyResult<()> {

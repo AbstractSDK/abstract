@@ -100,7 +100,7 @@ abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
 
-cw-orch={git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship"}
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
