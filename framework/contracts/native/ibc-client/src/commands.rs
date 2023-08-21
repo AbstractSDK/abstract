@@ -3,7 +3,7 @@ use crate::{
     error::IbcClientError,
 };
 use abstract_core::{
-    ibc_client::state::{POLYTONE_NOTE, REMOTE_HOST, REVERSE_POLYTONE_NOTE},
+    ibc_client::{state::{POLYTONE_NOTE, REMOTE_HOST, REVERSE_POLYTONE_NOTE}, IbcClientCallback},
     ibc_host, manager,
     objects::{chain_name::ChainName, AccountId},
 };
@@ -63,6 +63,7 @@ pub fn execute_update_config(
 
 pub fn execute_allow_chain_host(
     deps: DepsMut,
+    env: Env,
     info: MessageInfo,
     chain: ChainName,
     host: String,
@@ -71,10 +72,27 @@ pub fn execute_allow_chain_host(
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
+    // We need to make sure we are not over-writing anything
+    // TODO
+
     let note = deps.api.addr_validate(&note)?;
     POLYTONE_NOTE.save(deps.storage, &chain, &note)?;
     REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &chain)?;
     REMOTE_HOST.save(deps.storage, &chain, &host)?;
+
+    // When allowing a new chain host, we need to also get the proxy address of that host. 
+    // We do so by calling an empty message on the polytone note. This will come back in form of a execute by callback
+
+    let note_proxy_msg = wasm_execute(note, &polytone_note::msg::ExecuteMsg::Execute { 
+        msgs: vec![], 
+        callback: Some(CallbackRequest { 
+            receiver: env.contract.address.to_string(), 
+            msg: to_binary(&IbcClientCallback::WhoAmI{})?
+        }), 
+        timeout_seconds: PACKET_LIFETIME.into()
+    }, vec![])?;
+
+
 
     Ok(IbcClientResponse::action("allow_chain_port"))
 }

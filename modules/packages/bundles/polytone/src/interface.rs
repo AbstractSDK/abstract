@@ -1,4 +1,4 @@
-use cw_orch::{interface, prelude::*};
+use cw_orch::{interface, prelude::*, interchain::interchain_channel::InterchainChannel};
 // This file contains all interfaces to the polytone contracts
 
 #[interface(
@@ -52,7 +52,8 @@ impl<Chain: CwEnv> Uploadable for Voice<Chain> {
     }
 }
 
-pub struct PolytoneAccount<Chain: CwEnv> {
+pub struct Polytone<Chain: CwEnv> {
     pub note: Note<Chain>,
     pub voice: Voice<Chain>,
+    pub channel: InterchainChannel,
 }

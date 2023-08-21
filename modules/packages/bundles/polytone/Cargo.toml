@@ -1,5 +1,5 @@
 [package]
-name = "polytone"
+name = "cw_orch_polytone"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -23,6 +23,9 @@ polytone-note = { version = "1.0.0", features = ["library"] }
 polytone-proxy = { version = "1.0.0", features = ["library"] }
 polytone-voice = { version = "1.0.0", features = ["library"] }
 sha2 = "0.10.7"
+thread = "0.1.0"
 
 [dev-dependencies]
 env_logger = "0.10.0"
+ibc-relayer-types = "0.24.1"
+log = "0.4.20"

@@ -36,6 +36,7 @@ pub mod state {
     // Saves the remote ibc host addresses
     // This is used for executing message on the host
     pub const REMOTE_HOST: Map<&ChainName, String> = Map::new("abstract-ibc-hosts");
+    pub const REMOTE_PROXY: Map<&ChainName, String> = Map::new("abstract-ibc-client-proxy");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
@@ -155,6 +156,7 @@ pub enum ExecuteMsg {
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
     CreateAccount { account_id: AccountId },
+    WhoAmI {}
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -162,8 +164,13 @@ pub enum IbcClientCallback {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     // Returns config
-    #[returns(ConfigResponse)]
+    #[returns(HostResponse)]
     Config {},
+    // Returns config
+    #[returns(HostResponse)]
+    Host {
+        chain_name: ChainName
+    },
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {},
@@ -173,9 +180,12 @@ pub enum QueryMsg {
         chain: String,
         account_id: AccountId,
     },
-    // get the channels
+    // get the hosts
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
+    // get the IBC execution proxys
+    #[returns(ListRemoteProxysResponse)]
+    ListRemoteProxys {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -192,6 +202,16 @@ pub struct ListAccountsResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteHostsResponse {
     pub hosts: Vec<(ChainName, String)>,
+}
+#[cosmwasm_schema::cw_serde]
+pub struct ListRemoteProxysResponse {
+    pub proxys: Vec<(ChainName, String)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct HostResponse { 
+    pub remote_host: Option<String>,
+    pub remote_polytone_proxy: Option<String>
 }
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {

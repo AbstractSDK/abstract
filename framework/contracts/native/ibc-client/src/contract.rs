@@ -82,7 +82,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             retries,
         ),
         ExecuteMsg::RegisterChainHost { chain, note, host } => {
-            commands::execute_allow_chain_host(deps, info, chain, host, note)
+            commands::execute_allow_chain_host(deps, env, info, chain, host, note)
         }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
@@ -103,11 +103,15 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
     match msg {
         QueryMsg::Config {} => to_binary(&queries::config(deps, env)?),
+        QueryMsg::Host {
+            chain_name
+        } => to_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
             to_binary(&queries::account(deps, chain, account_id)?)
         }
         QueryMsg::ListAccounts {} => to_binary(&queries::list_accounts(deps)?),
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
+        QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
     }
 }
 

@@ -16,6 +16,7 @@ use clap::Parser;
 use cw_orch::prelude::interchain_channel_builder::InterchainChannelBuilder;
 use cw_orch::starship::Starship;
 use cw_orch::state::ChainState;
+use cw_orch_polytone::Polytone;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -117,6 +118,7 @@ async fn create_channel(
 }
 
 fn join_host_and_clients(
+    polytone: &Polytone<Daemon>,
     chain1: &Daemon,
     chain2: &Daemon,
     rt: &tokio::runtime::Runtime,
@@ -127,11 +129,17 @@ fn join_host_and_clients(
 
     // First we register client and host respectively
     let chain1_name = chain1.state().0.chain_data.chain_name.to_string();
+    let chain1_id = chain1.state().0.chain_data.chain_id.to_string();
     let chain2_name = chain2.state().0.chain_data.chain_name.to_string();
 
-    client.register_chain_host(chain2_name.into(), host.address()?.to_string(), todo!())?;
+    let proxy_tx_result = client.register_chain_host(chain2_name.into(), host.address()?.to_string(), polytone.note.address()?.to_string())?;
 
-    host.register_chain_proxy(chain1_name.into(), todo!())?;
+    // We make sure the proxy address is saved
+    rt.block_on(polytone.channel.await_ibc_execution(chain1_id, proxy_tx_result.txhash))?;
+
+    let proxy_address = client.host(chain2_name)?;
+
+    host.register_chain_proxy(chain1_name.into(), proxy_address.remote_polytone_proxy)?;
 
     rt.block_on(create_channel(&client, &host, starship))?;
     Ok(())
@@ -152,8 +160,17 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // Deploying abstract and the IBC abstract logic
     deploy_contracts(&juno, &osmosis)?;
 
+    let polytone = cw_orch_polytone::deploy(
+        &rt,
+        &starship,
+        JUNO,
+        OSMOSIS,
+        "1".to_string()
+    )?;
+
+
     // Create the connection between client and host
-    join_host_and_clients(&osmosis, &juno, &rt, &starship)?;
+    join_host_and_clients(&polytone, &osmosis, &juno, &rt, &starship)?;
 
     // Some tests to make sure the connection has been established between the 2 contracts
     // We query the channels for each host to see if the client has been connected

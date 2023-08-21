@@ -2,7 +2,7 @@ use crate::{
     contract::{IbcClientResponse, IbcClientResult},
     error::IbcClientError,
 };
-use abstract_core::ibc_client::{state::REVERSE_POLYTONE_NOTE, IbcClientCallback};
+use abstract_core::ibc_client::{state::{REVERSE_POLYTONE_NOTE, REMOTE_PROXY}, IbcClientCallback};
 use abstract_sdk::core::ibc_client::state::ACCOUNTS;
 use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
 
@@ -54,6 +54,14 @@ pub fn receive_action_callback(
                     (&account_id, &host_chain),
                     &remote_proxy_address,
                 )?;
+            } else {
+                return Err(IbcClientError::IbcFailed(callback));
+            }
+        }
+        IbcClientCallback::WhoAmI { } => {
+            // This response is used to store the Counterparty proxy address (this is used to whitelist the address on the host side)
+            if let Callback::Execute(Ok(response)) = &callback.result {
+                REMOTE_PROXY.save(deps.storage,&host_chain, &response.executed_by)?;
             } else {
                 return Err(IbcClientError::IbcFailed(callback));
             }
