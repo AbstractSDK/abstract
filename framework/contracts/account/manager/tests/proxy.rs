@@ -1,6 +1,9 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_core::objects::module_reference::ModuleReference;
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
@@ -160,5 +163,46 @@ fn with_response_data() -> AResult {
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
     assert_that!(response_data_attr_present).is_equal_to("true".to_string());
 
+    Ok(())
+}
+
+#[test]
+fn install_pre_wasmed_modules() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = AbstractAccount::new(&deployment, Some(0));
+    let cw20_contract = Box::new(ContractWrapper::new(
+        cw20_base::contract::execute,
+        cw20_base::contract::instantiate,
+        cw20_base::contract::query,
+    ));
+    let cw20_id = chain.app.borrow_mut().store_code(cw20_contract);
+
+    // let account_base = deployment.version_control.get_account(0)?;
+    // account.manager.set_address(&account_base.manager);
+    // account.proxy.set_address(&account_base.proxy);
+
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("abstract")?,
+            name: "cw20".to_owned(),
+            version: ModuleVersion::Version("1.1.0".to_owned()),
+        },
+        ModuleReference::Standalone(cw20_id),
+    )])?;
+
+    account.install_module(
+        "abstract:cw20",
+        &cw20_base::msg::InstantiateMsg {
+            name: "abstr".to_owned(),
+            symbol: "abs".to_owned(),
+            decimals: 6,
+            initial_balances: vec![],
+            mint: None,
+            marketing: None,
+        },
+        None,
+    )?;
     Ok(())
 }
