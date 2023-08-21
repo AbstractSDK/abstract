@@ -1,4 +1,4 @@
-# Checklist
+### Checklist
 
-- CI is green.
-- Changelog updated.
+- [] CI is green.
+- [] Changelog updated.
