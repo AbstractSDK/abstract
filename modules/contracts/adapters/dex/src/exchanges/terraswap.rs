@@ -44,6 +44,7 @@ impl DexCommand for Terraswap {
                 belief_price,
                 max_spread,
                 to: None,
+                deadline: None,
             };
             // Call swap on pair through cw20 Send
             let send_msg = Cw20ExecuteMsg::Send {
@@ -59,6 +60,7 @@ impl DexCommand for Terraswap {
                 max_spread,
                 belief_price,
                 to: None,
+                deadline: None,
             };
             wasm_execute(pair_address, &swap_msg, coins_in_assets(&[offer_asset]))?
         };
@@ -88,6 +90,7 @@ impl DexCommand for Terraswap {
             assets: [terraswap_assets[0].clone(), terraswap_assets[1].clone()],
             slippage_tolerance: max_spread,
             receiver: None,
+            deadline: None,
         };
         // approval msgs for cw20 tokens (if present)
         let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
@@ -160,6 +163,7 @@ impl DexCommand for Terraswap {
             assets: [terraswap_assets[0].clone(), terraswap_assets[1].clone()],
             slippage_tolerance: None,
             receiver: None,
+            deadline: None,
         };
         // actual call to pair
         let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
@@ -175,7 +179,10 @@ impl DexCommand for Terraswap {
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_address = pool_id.expect_contract()?;
-        let hook_msg = terraswap::pair::Cw20HookMsg::WithdrawLiquidity {};
+        let hook_msg = terraswap::pair::Cw20HookMsg::WithdrawLiquidity {
+            deadline: None,
+            min_assets: None,
+        };
         // Call swap on pair through cw20 Send
         let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
 

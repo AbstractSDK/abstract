@@ -100,7 +100,7 @@ impl WasmMockQuerier {
         match &request {
             QueryRequest::Wasm(WasmQuery::Smart { contract_addr, msg }) => {
                 if contract_addr == "factory" {
-                    match from_binary(&msg).unwrap() {
+                    match from_binary(msg).unwrap() {
                         Pair { asset_infos } => SystemResult::Ok(
                             to_binary(&PairInfo {
                                 asset_infos,
@@ -113,7 +113,7 @@ impl WasmMockQuerier {
                         _ => panic!("DO NOT ENTER HERE"),
                     }
                 } else if contract_addr == "pair" {
-                    match from_binary(&msg).unwrap() {
+                    match from_binary(msg).unwrap() {
                         CumulativePrices { .. } => {
                             let balance = match self.token_querier.pairs.get(contract_addr) {
                                 Some(v) => v,
@@ -126,7 +126,7 @@ impl WasmMockQuerier {
                         _ => panic!("DO NOT ENTER HERE"),
                     }
                 } else {
-                    match from_binary(&msg).unwrap() {
+                    match from_binary(msg).unwrap() {
                         Cw20QueryMsg::TokenInfo {} => {
                             let balances: &HashMap<String, Uint128> =
                                 match self.token_querier.balances.get(contract_addr) {
@@ -147,7 +147,7 @@ impl WasmMockQuerier {
                                     name: "mAPPL".to_string(),
                                     symbol: "mAPPL".to_string(),
                                     decimals: 6,
-                                    total_supply: total_supply,
+                                    total_supply,
                                 })
                                 .into(),
                             )

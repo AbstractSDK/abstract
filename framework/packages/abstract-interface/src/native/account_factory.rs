@@ -3,7 +3,9 @@ pub use abstract_core::account_factory::{
     ExecuteMsgFns as AccountFactoryExecFns, QueryMsgFns as AccountFactoryQueryFns,
 };
 use abstract_core::{
-    account_factory::*, objects::gov_type::GovernanceDetails, ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
+    account_factory::*,
+    objects::{gov_type::GovernanceDetails, AssetEntry},
+    ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
 use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
@@ -14,6 +16,8 @@ pub struct AccountDetails {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
+    pub namespace: Option<String>,
+    pub base_asset: Option<AssetEntry>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -50,6 +54,8 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
             name,
             link,
             description,
+            namespace,
+            base_asset,
         } = account_details;
 
         let result = self.execute(
@@ -58,6 +64,8 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 name,
                 link,
                 description,
+                namespace,
+                base_asset,
             },
             None,
         )?;

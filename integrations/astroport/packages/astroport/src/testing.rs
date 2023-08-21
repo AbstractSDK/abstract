@@ -109,24 +109,18 @@ fn test_asset_info() {
         denom: "uusd".to_string(),
     };
 
-    assert_eq!(false, token_info.equal(&native_token_info));
+    assert!(!token_info.equal(&native_token_info));
 
-    assert_eq!(
-        false,
-        token_info.equal(&AssetInfo::Token {
-            contract_addr: Addr::unchecked("asset0001"),
-        })
-    );
+    assert!(!token_info.equal(&AssetInfo::Token {
+        contract_addr: Addr::unchecked("asset0001"),
+    }));
 
-    assert_eq!(
-        true,
-        token_info.equal(&AssetInfo::Token {
-            contract_addr: Addr::unchecked("asset0000"),
-        })
-    );
+    assert!(token_info.equal(&AssetInfo::Token {
+        contract_addr: Addr::unchecked("asset0000"),
+    }));
 
-    assert_eq!(true, native_token_info.is_native_token());
-    assert_eq!(false, token_info.is_native_token());
+    assert!(native_token_info.is_native_token());
+    assert!(!token_info.is_native_token());
 
     let mut deps = mock_dependencies(&[Coin {
         denom: "uusd".to_string(),

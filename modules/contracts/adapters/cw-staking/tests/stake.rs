@@ -73,7 +73,7 @@ fn staking_inited() -> anyhow::Result<()> {
     // query staking info
     let staking_info = staking.info(WYNDEX.into(), AssetEntry::new(EUR_USD_LP))?;
     assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-        staking_contract_address: wyndex.eur_usd_staking,
+        staking_target: wyndex.eur_usd_staking.into(),
         staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
         unbonding_periods: Some(vec![
             cw_utils::Duration::Time(1),
@@ -186,13 +186,13 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     let (chain, wyndex, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
-    let dur = Some(cw_utils::Duration::Time(2));
+    let dur = cw_utils::Duration::Time(2);
 
     // stake 100 EUR
-    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur)?;
+    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), Some(dur))?;
 
     // now unbond 50
-    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), dur)?;
+    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), Some(dur))?;
 
     let unstake_block_info = chain.block_info()?;
 
@@ -202,7 +202,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         proxy_addr.to_string(),
         AssetEntry::new(EUR_USD_LP),
     )?;
-    let claimable_at = dur.unwrap().after(&unstake_block_info);
+    let claimable_at = dur.after(&unstake_block_info);
     assert_that!(unbonding_balance).is_equal_to(UnbondingResponse {
         claims: vec![Claim {
             amount: Uint128::from(50u128),
