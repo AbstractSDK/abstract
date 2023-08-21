@@ -4,6 +4,7 @@ pub mod cosmwasmpool;
 pub mod downtimedetector;
 pub mod epochs;
 pub mod gamm;
+pub mod ibchooks;
 pub mod ibcratelimit;
 pub mod incentives;
 pub mod lockup;
