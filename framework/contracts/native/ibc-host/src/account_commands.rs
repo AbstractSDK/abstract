@@ -46,7 +46,7 @@ pub fn receive_balances(
 
 /// Execute manager message on local manager.
 pub fn receive_dispatch(
-    deps: DepsMut,
+    _deps: DepsMut,
     account: AccountBase,
     manager_msg: manager::ExecuteMsg,
 ) -> HostResult {
@@ -72,7 +72,7 @@ pub fn receive_send_all_back(
 ) -> HostResult {
     // let them know we're fine
     let response = SendAllBackResponse {};
-    let acknowledgement = StdAck::success(response);
+    let _acknowledgement = StdAck::success(response);
 
     let wasm_msg = send_all_back(
         deps.as_ref(),

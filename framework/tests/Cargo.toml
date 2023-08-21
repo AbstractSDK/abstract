@@ -23,6 +23,7 @@ cw20 = { workspace = true }
 cw20-base = { workspace = true }
 
 cw-orch = { workspace = true, features = ["daemon", "interchain", "starship"] }
+cw-orch-starship = { path = "../../../cw-orchestrator/packages/starship" }
 abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true, features = ["daemon"] }
@@ -54,4 +55,4 @@ abstract-etf = { git = "https://github.com/AbstractSDK/apps/" }
 osmosis-std = "0.16.1"
 cosmrs = "0.14.0"
 prost = "0.11.9"
-cw_orch_polytone = { version = "0.17.1", path = "../../modules/packages/bundles/polytone" }
+cw_orch_polytone = { version = "0.17.1", git = "https://github.com/AbstractSDK/abstract", branch = "update/abstract-ibc" }

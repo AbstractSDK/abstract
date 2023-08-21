@@ -9,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_interface_integration_tests::{
     tokenfactory::{create_denom, create_transfer_channel, get_denom, mint, transfer_tokens},
-    JUNO, OSMOSIS,
+    JUNO, STARGAZE,
 };
 
 use cosmwasm_std::coin;
@@ -30,7 +30,7 @@ pub fn main() {
     let interchain: InterchainEnv = starship.interchain_env();
 
     let juno = interchain.daemon(JUNO).unwrap();
-    let osmosis = interchain.daemon(OSMOSIS).unwrap();
+    let osmosis = interchain.daemon(STARGAZE).unwrap();
 
     let sender = juno.sender().to_string();
     let receiver = osmosis.sender().to_string();
@@ -59,7 +59,7 @@ pub fn main() {
 
     // Create a channel between the 2 chains for the transfer ports
     let interchain_channel = rt
-        .block_on(create_transfer_channel(JUNO, OSMOSIS, &starship))
+        .block_on(create_transfer_channel(JUNO, STARGAZE, &starship))
         .unwrap();
 
     // Transfer to the address on the remote chain
@@ -78,7 +78,7 @@ pub fn main() {
         "{}/{}/{}",
         PortId::transfer(),
         interchain_channel
-            .get_chain(OSMOSIS.to_string())
+            .get_chain(STARGAZE.to_string())
             .unwrap()
             .channel
             .unwrap(),

@@ -24,9 +24,6 @@ mod test {
     use crate::ibc::create_test_remote_account;
     use cw_orch::prelude::*;
 
-    const JUNO: &str = "juno-1";
-    const OSMOSIS: &str = "osmosis-1";
-
     #[test]
     fn test_create_ibc_account() -> AnyResult<()> {
         set_env();
@@ -39,7 +36,7 @@ mod test {
         let interchain: InterchainEnv = starship.interchain_env();
 
         let juno = interchain.daemon(JUNO)?;
-        let osmosis = interchain.daemon(OSMOSIS)?;
+        let osmosis = interchain.daemon(STARGAZE)?;
 
         // The setup needs to be done with the setup bin script
         let juno_abstr = Abstract::load_from(juno.clone())?;
@@ -48,7 +45,7 @@ mod test {
         let juno_host = IbcHost::new(IBC_HOST, juno.clone());
 
         let distant_account =
-            create_test_remote_account(&rt, &osmosis, "osmosis", "juno", &interchain)?;
+            create_test_remote_account(&rt, &osmosis, "stargaze", "juno", &interchain)?;
         let distant_account_config = juno_abstr
             .version_control
             .get_account(distant_account.clone())?;
@@ -132,10 +129,8 @@ mod test {
 
         // The create remote account tx is passed ?
         rt.block_on(
-            interchain.await_ibc_execution(OSMOSIS.to_owned(), create_account_remote_tx.txhash),
+            interchain.await_ibc_execution(STARGAZE.to_owned(), create_account_remote_tx.txhash),
         )?;
-
-        // We verify there is a new local account
 
         Ok(())
     }
@@ -151,7 +146,8 @@ use cw_orch::{
 };
 use tokio::runtime::Runtime;
 
-use crate::OSMOSIS;
+use crate::JUNO;
+use crate::STARGAZE;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
@@ -202,7 +198,7 @@ pub fn create_test_remote_account(
         PROXY.to_string(),
     )?;
 
-    rt.block_on(interchain.await_ibc_execution(OSMOSIS.to_owned(), register_tx.txhash))?;
+    rt.block_on(interchain.await_ibc_execution(STARGAZE.to_owned(), register_tx.txhash))?;
 
     // After this is all ended, we query the accounts to make sure everything is executed and setup alright on the distant chain
     // First we query the account id from the manager

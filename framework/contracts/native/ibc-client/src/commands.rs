@@ -99,7 +99,7 @@ pub fn execute_allow_chain_host(
         vec![],
     )?;
 
-    Ok(IbcClientResponse::action("allow_chain_port"))
+    Ok(IbcClientResponse::action("allow_chain_port").add_message(note_proxy_msg))
 }
 
 // allows admins to clear host if needed

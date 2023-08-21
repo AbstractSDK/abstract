@@ -55,6 +55,7 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { version = "~0.13" }
+
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -98,11 +99,8 @@ abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
-## Cw-orch polytone
-# polytone-note = {  path="../../polytone/contracts/main/note" }
-# polytone-proxy = { path="../../polytone/contracts/main/proxy" }
-# polytone-voice = { path="../../polytone/contracts/main/voice" }
 
+cw-orch={git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship"}
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

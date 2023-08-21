@@ -15,7 +15,7 @@ keywords.workspace = true
 anyhow.workspace = true
 bech32 = "0.9.1"
 cosmwasm-std.workspace = true
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship", features = [
+cw-orch = { workspace=true, features = [
   "interchain",
   "starship",
 ] }
@@ -24,8 +24,8 @@ polytone-proxy = { version = "1.0.0", features = ["library"] }
 polytone-voice = { version = "1.0.0", features = ["library"] }
 sha2 = "0.10.7"
 thread = "0.1.0"
+ibc-relayer-types = "0.24.1"
 
 [dev-dependencies]
 env_logger = "0.10.0"
-ibc-relayer-types = "0.24.1"
 log = "0.4.20"

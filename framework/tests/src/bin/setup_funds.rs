@@ -20,7 +20,7 @@ use abstract_interface::{
 use abstract_interface_integration_tests::{
     ibc::{create_test_remote_account, set_env},
     tokenfactory::{create_denom, create_transfer_channel, get_denom, mint},
-    JUNO, OSMOSIS,
+    JUNO, STARGAZE,
 };
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coins, to_binary};
@@ -41,7 +41,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     let interchain: InterchainEnv = starship.interchain_env();
 
     let juno = interchain.daemon(JUNO).unwrap();
-    let osmosis = interchain.daemon(OSMOSIS).unwrap();
+    let osmosis = interchain.daemon(STARGAZE).unwrap();
 
     let osmo_abstr: Abstract<Daemon> = Abstract::load_from(osmosis.clone())?;
     let juno_abstr: Abstract<Daemon> = Abstract::load_from(juno.clone())?;
@@ -72,7 +72,7 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     // Create a channel between the 2 chains for the transfer ports
     let interchain_channel = rt
-        .block_on(create_transfer_channel(JUNO, OSMOSIS, &starship))
+        .block_on(create_transfer_channel(JUNO, STARGAZE, &starship))
         .unwrap();
 
     // Register this channel with the abstract ibc implementation for sending tokens
@@ -83,7 +83,7 @@ pub fn test_send_funds() -> AnyResult<()> {
                 protocol: ICS20.to_string(),
             },
             interchain_channel
-                .get_chain(OSMOSIS.to_string())?
+                .get_chain(STARGAZE.to_string())?
                 .channel
                 .unwrap()
                 .to_string(),
@@ -116,7 +116,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    rt.block_on(interchain.await_ibc_execution(OSMOSIS.to_owned(), send_funds_tx.txhash))?;
+    rt.block_on(interchain.await_ibc_execution(STARGAZE.to_owned(), send_funds_tx.txhash))?;
 
     // Verify the funds have been received
     let distant_account_config = juno_abstr.version_control.get_account(account_id.clone())?;

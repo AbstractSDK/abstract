@@ -4,7 +4,7 @@
 
 use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface};
 use abstract_core::{
-    ibc_client::{CallbackInfo, ExecuteMsg as IbcClientMsg},
+    ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
     objects::{chain_name::ChainName, module::ModuleInfo},
     proxy::ExecuteMsg,

@@ -6,7 +6,7 @@ use abstract_core::{IBC_CLIENT, IBC_HOST};
 
 use abstract_interface::{Abstract, AccountFactoryExecFns, IbcClient, IbcClientExecFns, IbcHost};
 use abstract_interface_integration_tests::ibc::set_env;
-use abstract_interface_integration_tests::{JUNO, OSMOSIS};
+use abstract_interface_integration_tests::{JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
 
 use cw_orch::deploy::Deploy;
@@ -17,6 +17,7 @@ use cw_orch::prelude::interchain_channel_builder::InterchainChannelBuilder;
 use cw_orch::starship::Starship;
 use cw_orch::state::ChainState;
 use cw_orch_polytone::Polytone;
+use cw_orch_starship::StarshipClient;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -133,7 +134,7 @@ fn join_host_and_clients(
     let chain2_name = chain2.state().0.chain_data.chain_name.to_string();
 
     let proxy_tx_result = client.register_chain_host(
-        chain2_name.into(),
+        chain2_name.clone().into(),
         host.address()?.to_string(),
         polytone.note.address()?.to_string(),
     )?;
@@ -145,11 +146,13 @@ fn join_host_and_clients(
             .await_ibc_execution(chain1_id, proxy_tx_result.txhash),
     )?;
 
-    let proxy_address = client.host(chain2_name)?;
+    let proxy_address = client.host(chain2_name.into())?;
 
-    host.register_chain_proxy(chain1_name.into(), proxy_address.remote_polytone_proxy)?;
+    host.register_chain_proxy(
+        chain1_name.into(),
+        proxy_address.remote_polytone_proxy.unwrap(),
+    )?;
 
-    rt.block_on(create_channel(&client, &host, starship))?;
     Ok(())
 }
 
@@ -159,16 +162,16 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // Chains setup
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let starship = Starship::new(rt.handle().to_owned(), None)?;
+    let starship = Starship::new(rt.handle().clone(), None)?;
     let interchain: InterchainEnv = starship.interchain_env();
 
     let juno = interchain.daemon(JUNO)?;
-    let osmosis = interchain.daemon(OSMOSIS)?;
+    let osmosis = interchain.daemon(STARGAZE)?;
 
     // Deploying abstract and the IBC abstract logic
     deploy_contracts(&juno, &osmosis)?;
 
-    let polytone = cw_orch_polytone::deploy(&rt, &starship, JUNO, OSMOSIS, "1".to_string())?;
+    let polytone = cw_orch_polytone::deploy(&rt, &starship, STARGAZE, JUNO, "1".to_string())?;
 
     // Create the connection between client and host
     join_host_and_clients(&polytone, &osmosis, &juno, &rt, &starship)?;
@@ -181,6 +184,8 @@ fn ibc_abstract_setup() -> AnyResult<()> {
         osmosis_client.list_remote_hosts()?;
 
     assert_eq!(osmosis_channels.hosts[0].0, ChainName::from("juno"));
+
+    // We test creating a remote account ?
 
     Ok(())
 }

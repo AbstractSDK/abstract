@@ -1,8 +1,8 @@
 use crate::{
-    account_commands::{self, receive_balances, receive_dispatch, receive_send_all_back},
+    account_commands::{self, receive_dispatch, receive_send_all_back},
     contract::HostResult,
     error::HostError,
-    ibc::{receive_query, receive_register},
+    ibc::receive_register,
     state::{CLIENT_PROXY, REVERSE_CHAIN_PROXYS},
 };
 use abstract_core::objects::AccountId;
