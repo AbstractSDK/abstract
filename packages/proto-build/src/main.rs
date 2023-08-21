@@ -11,13 +11,13 @@ use proto_build::{
 };
 
 /// The Cosmos SDK commit or tag to be cloned and used to build the proto files
-const COSMOS_SDK_REV: &str = "origin/osmosis-main";
+const COSMOS_SDK_REV: &str = "osmosis-main";
 
 /// The osmosis commit or tag to be cloned and used to build the proto files
-const OSMOSIS_REV: &str = "origin/main";
+const OSMOSIS_REV: &str = "v17.0.0-rc0";
 
 /// The wasmd commit or tag to be cloned and used to build the proto files
-const WASMD_REV: &str = "v0.30.0";
+const WASMD_REV: &str = "v0.31.0-osmo-v16";
 
 // All paths must end with a / and either be absolute or include a ./ to reference the current
 // working directory.
@@ -66,6 +66,8 @@ pub fn generate() {
             "authz".to_string(),
             "bank".to_string(),
             "base".to_string(),
+            "gov".to_string(),
+            "feegrant".to_string(),
             "staking/v1beta1/genesis.proto".to_string(),
             "staking/v1beta1/staking.proto".to_string(),
             "staking/v1beta1/tx.proto".to_string(),

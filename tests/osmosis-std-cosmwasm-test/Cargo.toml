@@ -47,7 +47,6 @@ cw-storage-plus = "0.15"
 cw2 = "0.13.2"
 jsonformat = "2.0.0"
 osmosis-std = {path = "../../packages/osmosis-std"}
-osmosis-test-tube = "14.1.1"
 schemars = "0.8.8"
 serde = {version = "1.0.137", default-features = false, features = ["derive"]}
 thiserror = {version = "1.0.31"}
@@ -56,3 +55,4 @@ thiserror = {version = "1.0.31"}
 cw-multi-test = "0.13.2"
 prost = "0.11.0"
 serde_json = "1.0.85"
+osmosis-test-tube = "15.1.0"
