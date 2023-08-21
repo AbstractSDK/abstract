@@ -54,5 +54,5 @@ speculoos = { workspace = true }
 env_logger = "0.10.0"
 dotenv = "0.15.0"
 clap = { workspace = true }
-cw-orch = { workspace = true, features =[ "daemon"] }
+cw-orch = { workspace = true, features = ["daemon"] }
 abstract-etf = { path = ".", features = ["interface"] }
