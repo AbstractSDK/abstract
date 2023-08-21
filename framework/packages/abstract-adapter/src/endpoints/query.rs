@@ -1,10 +1,9 @@
 use crate::state::{AdapterContract, ContractError};
 use abstract_core::{
     adapter::{
-        AdapterConfigResponse, AdapterQueryMsg,
-        AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+        AdapterConfigResponse, AdapterQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
     },
-    objects::module_version::{MODULE, ModuleDataResponse},
+    objects::module_version::{ModuleDataResponse, MODULE},
 };
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
