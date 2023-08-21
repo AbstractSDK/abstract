@@ -1,10 +1,10 @@
 use crate::state::{AdapterContract, ContractError};
 use abstract_core::{
     adapter::{
-        AdapterConfigResponse, AdapterModuleDataResponse, AdapterQueryMsg,
+        AdapterConfigResponse, AdapterQueryMsg,
         AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
     },
-    objects::module_version::MODULE,
+    objects::module_version::{MODULE, ModuleDataResponse},
 };
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
@@ -50,7 +50,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 })
                 .map_err(Into::into)
             }
-            BaseQueryMsg::BaseModuleData {} => {
+            BaseQueryMsg::ModuleData {} => {
                 to_binary(&self.module_data(deps).map_err(Error::from)?).map_err(Into::into)
             }
         }
@@ -69,9 +69,9 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
         })
     }
 
-    fn module_data(&self, deps: Deps) -> StdResult<AdapterModuleDataResponse> {
+    fn module_data(&self, deps: Deps) -> StdResult<ModuleDataResponse> {
         let module_data = MODULE.load(deps.storage)?;
-        Ok(AdapterModuleDataResponse {
+        Ok(ModuleDataResponse {
             module_id: module_data.module,
             version: module_data.version,
             dependencies: module_data

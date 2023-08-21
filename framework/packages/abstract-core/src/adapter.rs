@@ -12,7 +12,7 @@ use crate::{
         ExecuteMsg as MiddlewareExecMsg, InstantiateMsg as MiddlewareInstantiateMsg,
         QueryMsg as MiddlewareQueryMsg,
     },
-    objects::dependency::DependencyResponse,
+    objects::module_version::ModuleDataResponse,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Empty};
@@ -125,16 +125,8 @@ pub enum BaseQueryMsg {
     #[returns(AuthorizedAddressesResponse)]
     AuthorizedAddresses { proxy_address: String },
     /// Returns module data
-    #[returns(AdapterModuleDataResponse)]
-    BaseModuleData {},
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AdapterModuleDataResponse {
-    pub module_id: String,
-    pub version: String,
-    pub dependencies: Vec<DependencyResponse>,
-    pub metadata: Option<String>,
+    #[returns(ModuleDataResponse)]
+    ModuleData {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {

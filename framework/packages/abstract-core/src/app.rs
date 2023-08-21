@@ -9,7 +9,7 @@ use crate::{
         ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
         MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
     },
-    objects::dependency::DependencyResponse,
+    objects::module_version::ModuleDataResponse,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
@@ -79,16 +79,8 @@ pub enum BaseQueryMsg {
     #[returns(AdminResponse)]
     BaseAdmin {},
     /// Returns module data
-    #[returns(AppModuleDataResponse)]
-    BaseModuleData {},
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AppModuleDataResponse {
-    pub module: String,
-    pub version: String,
-    pub dependencies: Vec<DependencyResponse>,
-    pub metadata: Option<String>,
+    #[returns(ModuleDataResponse)]
+    ModuleData {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
