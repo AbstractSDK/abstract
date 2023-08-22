@@ -1,0 +1,11 @@
+[submodule "integrations/osmosis/dependencies/cosmos-sdk"]
+	path = integrations/osmosis/dependencies/cosmos-sdk
+	url = https://github.com/osmosis-labs/cosmos-sdk.git
+	branch = v13.x
+[submodule "integrations/osmosis/dependencies/osmosis"]
+	path = integrations/osmosis/dependencies/osmosis
+	url = https://github.com/osmosis-labs/osmosis.git
+	branch = v13.x
+[submodule "wasmd"]
+	path = integrations/osmosis/dependencies/wasmd
+	url = https://github.com/CosmWasm/wasmd.git
