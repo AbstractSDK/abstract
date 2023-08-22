@@ -36,10 +36,10 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
-cw20-base = { package = "abstract-cw20-base", version = "1.0.1", features = [
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
 ] }
-cw20 = { package = "abstract-cw20", version = "1.0.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
