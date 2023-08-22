@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
-- Install modules on account or Sub-account creation 
+- Install modules on account or Sub-account creation
+- Forced field for moving ownership of manager without claiming
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
