@@ -15,9 +15,7 @@ pub struct Config {
 #[cosmwasm_schema::cw_serde]
 pub struct AccEntry {
     pub source_asset: OfferAsset,
-    pub target_asset: AssetEntry,
     pub frequency: Frequency,
-    pub dex: DexName,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");
