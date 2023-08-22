@@ -167,6 +167,8 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // URL linked to the account
         link: Option<String>,
+        // Provide list of module to install after sub-account creation
+        install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Update info
     UpdateInfo {
@@ -175,7 +177,11 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
-    SetOwner { owner: GovernanceDetails<String> },
+    /// New owner will have to claim ownership, in case force is not true
+    SetOwner {
+        owner: GovernanceDetails<String>,
+        forced: Option<bool>,
+    },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.

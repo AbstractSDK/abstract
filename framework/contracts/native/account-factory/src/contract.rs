@@ -65,6 +65,7 @@ pub fn execute(
             description,
             namespace,
             base_asset,
+            install_modules,
         } => {
             let gov_details = governance.verify(deps.api)?;
             commands::execute_create_account(
@@ -77,6 +78,7 @@ pub fn execute(
                 link,
                 namespace,
                 base_asset,
+                install_modules,
             )
         }
         ExecuteMsg::UpdateOwnership(action) => {

@@ -2,8 +2,8 @@ use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, CosmosMsg, DepsMut, Empty, Env, MessageInfo, QuerierWrapper,
-    ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
+    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    QuerierWrapper, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
@@ -44,6 +44,7 @@ pub fn execute_create_account(
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
+    install_modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -67,6 +68,8 @@ pub fn execute_create_account(
                 namespace,
                 base_asset,
             },
+            install_modules,
+            governance,
         },
     )?;
 
@@ -92,7 +95,9 @@ pub fn execute_create_account(
                     name,
                     description,
                     link,
-                    owner: governance.into(),
+                    owner: GovernanceDetails::Monarchy {
+                        monarch: env.contract.address.to_string(),
+                    },
                 })?,
             }
             .into(),
@@ -263,6 +268,19 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         })
         .transpose()?;
 
+    let instantiate_modules_msgs: Vec<CosmosMsg<Empty>> = context
+        .install_modules
+        .into_iter()
+        .map(|(module, init_msg)| {
+            let msg = CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: manager_address.to_string(),
+                funds: vec![],
+                msg: to_binary(&ExecuteMsg::InstallModule { module, init_msg })?,
+            });
+            Ok(msg)
+        })
+        .collect::<StdResult<_>>()?;
+
     let set_proxy_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
@@ -274,6 +292,15 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let set_manager_admin_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::UpdateAdmin {
         contract_addr: manager_address.to_string(),
         admin: manager_address.to_string(),
+    });
+
+    let set_manager_governance_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: manager_address.to_string(),
+        msg: to_binary(&ExecuteMsg::SetOwner {
+            owner: context.governance.into(),
+            forced: Some(true),
+        })?,
+        funds: vec![],
     });
 
     // Update id sequence
@@ -310,7 +337,9 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     resp = resp
         .add_message(set_proxy_admin_msg)
-        .add_message(set_manager_admin_msg);
+        .add_message(set_manager_admin_msg)
+        .add_messages(instantiate_modules_msgs)
+        .add_message(set_manager_governance_msg);
 
     Ok(resp)
 }

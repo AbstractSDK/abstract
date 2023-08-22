@@ -101,7 +101,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UpdateInternalConfig(config) => {
                     update_internal_config(deps, info, config)
                 }
-                ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
+                ExecuteMsg::SetOwner { owner, forced } => set_owner(deps, env, info, owner, forced),
 
                 ExecuteMsg::InstallModule { module, init_msg } => {
                     install_module(deps, info, env, module, init_msg)
@@ -121,7 +121,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     name,
                     description,
                     link,
-                } => create_subaccount(deps, env, info, name, description, link),
+                    install_modules,
+                } => create_subaccount(deps, env, info, name, description, link, install_modules),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,

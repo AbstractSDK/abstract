@@ -202,6 +202,7 @@ pub fn create_subaccount(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    install_modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -224,6 +225,10 @@ pub fn create_subaccount(
             name,
             description,
             link,
+            install_modules,
+            // TODO?
+            base_asset: None,
+            namespace: None,
         },
         vec![],
     )?;
@@ -281,7 +286,10 @@ pub fn set_owner(
     env: Env,
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
+    forced: Option<bool>,
 ) -> ManagerResult {
+    // Forced defaults to false
+    let forced = forced.unwrap_or(false);
     // verify the provided governance details
     let verified_gov = new_owner.verify(deps.api)?;
     let new_owner_addr = verified_gov.owner_address();
@@ -297,17 +305,22 @@ pub fn set_owner(
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
 
-    // Update the Owner of the Account
-    let ownership = cw_ownable::update_ownership(
-        deps,
-        &env.block,
-        &info.sender,
-        cw_ownable::Action::TransferOwnership {
-            new_owner: new_owner_addr.into_string(),
-            expiry: None,
-        },
-    )?;
-
+    let ownership = if forced {
+        // Force move ownership
+        // Note: this will not require claim
+        cw_ownable::initialize_owner(deps.storage, deps.api, Some(new_owner_addr.as_str()))?
+    } else {
+        // Update the Owner of the Account
+        cw_ownable::update_ownership(
+            deps,
+            &env.block,
+            &info.sender,
+            cw_ownable::Action::TransferOwnership {
+                new_owner: new_owner_addr.into_string(),
+                expiry: None,
+            },
+        )?
+    };
     let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
     attrs.extend(ownership.into_attributes());
 
@@ -898,6 +911,7 @@ mod tests {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "test_owner".to_string(),
                 },
+                forced: None,
             };
 
             test_only_owner(msg)
@@ -912,6 +926,7 @@ mod tests {
                 owner: GovernanceDetails::Monarchy {
                     monarch: "INVALID".to_string(),
                 },
+                forced: None,
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -936,6 +951,7 @@ mod tests {
                 owner: GovernanceDetails::Monarchy {
                     monarch: new_owner.to_string(),
                 },
+                forced: None,
             };
 
             let res = execute_as_owner(deps.as_mut(), set_owner_msg);
@@ -960,6 +976,7 @@ mod tests {
 
             let msg = ExecuteMsg::SetOwner {
                 owner: GovernanceDetails::Monarchy { monarch: new_gov },
+                forced: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
