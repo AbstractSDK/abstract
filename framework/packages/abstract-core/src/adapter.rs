@@ -42,7 +42,7 @@ impl<T: AdapterExecuteMsg + cw_orch_cli::ParseCwMsg, R: Serialize> cw_orch_cli::
 {
     fn cw_parse(
         state_interface: &impl cw_orch::state::StateInterface,
-    ) -> cw_orch::anyhow::Result<Self> {
+    ) -> cw_orch_cli::OrchCliResult<Self> {
         Ok(Self::Module(AdapterRequestMsg {
             proxy_address: None,
             request: T::cw_parse(state_interface)?,
@@ -68,7 +68,7 @@ impl<T: AdapterQueryMsg> From<T> for QueryMsg<T> {
 impl<T: AdapterQueryMsg + cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for QueryMsg<T> {
     fn cw_parse(
         state_interface: &impl cw_orch::state::StateInterface,
-    ) -> cw_orch::anyhow::Result<Self> {
+    ) -> cw_orch_cli::OrchCliResult<Self> {
         Ok(Self::Module(T::cw_parse(state_interface)?))
     }
 }
@@ -80,7 +80,7 @@ impl AdapterQueryMsg for Empty {}
 impl<T: cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for InstantiateMsg<T> {
     fn cw_parse(
         state_interface: &impl cw_orch::state::StateInterface,
-    ) -> cw_orch::anyhow::Result<Self> {
+    ) -> cw_orch_cli::OrchCliResult<Self> {
         Ok(Self {
             base: BaseInstantiateMsg {
                 ans_host_address: state_interface.get_address(crate::ANS_HOST)?.into_string(),

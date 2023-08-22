@@ -30,7 +30,7 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 abstract-ica = { workspace = true }
 cw-orch = { workspace = true, optional = true }
-cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "ed0894c", optional = true}
+cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "2376c5e", optional = true}
 cw-ownable = { workspace = true }
 
 [dev-dependencies]
