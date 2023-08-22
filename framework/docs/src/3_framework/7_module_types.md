@@ -86,9 +86,7 @@ flowchart LR
   style dex2 fill: #161b25
   style dex3 fill: #161b25
 ```
-
 <figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> and <code>abstract:dex</code> modules installed</b></figcaption>
-------
 
 ## How to Use Modules in Your Project
 

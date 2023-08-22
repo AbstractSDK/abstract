@@ -21,7 +21,6 @@
   - [Account Factory](./5_platform/account_factory.md)
 
 - [Execution Flows]()
-	- [Create Account](./6_flows/account/create_account.md)
 	- [Account Actions]()
 		- [Install Module](./6_flows/manager/install_module.md)
 		- [Execute on Module](./6_flows/manager/exec_on_module.md)
