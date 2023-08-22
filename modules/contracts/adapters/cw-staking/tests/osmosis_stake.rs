@@ -46,8 +46,8 @@ mod osmosis_test {
 
     pub const LP: &str = "osmosis/osmo,atom";
 
-    use abstract_cw_staking::CW_STAKING;
     use crate::common::create_default_account;
+    use abstract_cw_staking::CW_STAKING;
 
     fn get_pool_token(id: u64) -> String {
         format!("gamm/pool/{}", id)
