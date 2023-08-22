@@ -195,6 +195,7 @@ pub fn exec_on_module(
     Ok(response)
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
 pub fn create_subaccount(
     deps: DepsMut,
