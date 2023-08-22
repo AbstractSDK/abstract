@@ -80,7 +80,7 @@ jobs:
     # https://docs.github.com/en/actions/learn-github-actions/contexts#context-availability
     strategy:
       matrix:
-        msrv: [1.70.0] # Most of our repos use workspace manifests, which require 1.70.0
+        msrv: [1.71.0] # Most of our repos use workspace manifests, which require 1.71.0
     name: ubuntu / ${{ matrix.msrv }}
     steps:
       - uses: actions/checkout@v3
