@@ -15,6 +15,7 @@ resolver = "2"
 [features]
 test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
 schema = []
+cli = ["dep:semver"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
@@ -31,6 +32,8 @@ abstract-testing = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 # Keep this as a version and update when publishing new versions
 abstract-interface = { path = "../../packages/abstract-interface", version = "0.18.0", optional = true }
+
+semver = { workspace = true, optional = true}
 
 [dev-dependencies]
 speculoos = { workspace = true }

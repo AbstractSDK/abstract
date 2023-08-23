@@ -1,7 +1,7 @@
-use abstract_app::cli::AppContext;
-use croncat_app::{contract::CRONCAT_ID, CroncatApp};
+use abstract_adapter::cli::AdapterContext;
 use cw_orch::{anyhow, prelude::Daemon, tokio::runtime::Runtime};
 use cw_orch_cli::{ContractCli, DaemonFromCli};
+use dex_adapter::{contract::DEX_ID, DexAdapter};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -12,10 +12,16 @@ pub fn main() -> anyhow::Result<()> {
     let rt = Runtime::new()?;
     let chain = Daemon::from_cli(rt.handle())?;
 
-    let croncat = CroncatApp::new(CRONCAT_ID, chain);
+    let dex = DexAdapter::new(CRONCAT_ID, chain);
 
     let version: Version = CONTRACT_VERSION.parse().unwrap();
-    croncat.select_action(AppContext { version })?;
+    dex.select_action(AdapterContext {
+        version,
+        init_msg: DexInstantiateMsg {
+            swap_fee: Decimal::percent(1),
+            recipient_account: 0,
+        },
+    })?;
 
     Ok(())
 }
