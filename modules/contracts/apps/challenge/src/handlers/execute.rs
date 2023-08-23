@@ -3,7 +3,7 @@ use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use cosmwasm_std::{
-    wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
+    wasm_execute, CosmosMsg, Decimal, DepsMut, Env, Error, MessageInfo, Order, Response, Uint128,
 };
 use cw_asset::{Asset, AssetList};
 
@@ -16,6 +16,7 @@ use crate::state::{
 };
 use abstract_dex_adapter::api::DexInterface;
 use abstract_sdk::AbstractSdkResult;
+use chrono::NaiveTime;
 use croncat_app::croncat_intergration_utils::{CronCatAction, CronCatTaskRequest};
 use croncat_app::{CronCat, CronCatInterface};
 
@@ -139,10 +140,12 @@ fn add_friend_for_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     if CHALLENGE_FRIENDS
-        .may_load(deps.storage, (&friend_address, challlenge_id))?
+        .may_load(deps.storage, (friend_address, challlenge_id))?
         .is_some()
     {
-        return AppError::generic_err("Friend already added for this challenge").into();
+        return AppError::Std(Error::generic_err(
+            "Friend already added for this challenge",
+        ));
     }
 
     let friend = Friend {
@@ -150,7 +153,7 @@ fn add_friend_for_challenge(
         name: friend_name,
     };
 
-    CHALLENGE_FRIENDS.save(deps.storage, (&friend_address, challlenge_id), &friend)?;
+    CHALLENGE_FRIENDS.save(deps.storage, (friend_address, challlenge_id), &friend)?;
     Ok(Response::new())
 }
 
@@ -166,15 +169,15 @@ pub fn remove_friend_from_challenge(
 
     // Ensure the friend exists for this challenge before removing
     if CHALLENGE_FRIENDS
-        .may_load(deps.storage, (&friend_address, challenge_id))?
+        .may_load(deps.storage, (friend_address, challenge_id))?
         .is_none()
     {
-        return Err(AppError::NotFound {
-            kind: "Friend".to_string(),
-        });
+        return Err(AppError::Std(Error::generic_err(
+            "Friend not found for this challenge",
+        )));
     }
 
-    CHALLENGE_FRIENDS.remove(deps.storage, (&friend_address, challenge_id));
+    CHALLENGE_FRIENDS.remove(deps.storage, (friend_address, challenge_id));
     Ok(Response::new())
 }
 
@@ -191,18 +194,18 @@ fn add_friends_for_challenge(
     // Ensure the friends don't already exist for this challenge before adding
     for friend in friends.iter() {
         if CHALLENGE_FRIENDS
-            .may_load(deps.storage, (&friend.address, challenge_id))?
+            .may_load(deps.storage, (friend.address, challenge_id))?
             .is_some()
         {
-            return Err(AppError::generic_err(
+            return Err(AppError::Std(Error::generic_err(
                 "Friend already added for this challenge",
-            ));
+            )));
         }
     }
 
     // Add the friends
     for friend in friends.iter() {
-        CHALLENGE_FRIENDS.save(deps.storage, (&friend.address, challenge_id), &friend)?;
+        CHALLENGE_FRIENDS.save(deps.storage, (friend.address, challenge_id), &friend)?;
     }
 
     Ok(Response::new())
@@ -211,15 +214,8 @@ fn add_friends_for_challenge(
 fn daily_check_in(deps: DepsMut, env: Env, info: MessageInfo, app: &ChallengeApp) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let today = format!(
-        "{}-{}-{}",
-        env.block.time.year(),
-        env.block.time.month(),
-        env.block.time.day()
-    );
-
     // Check if Admin has already checked in today
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &today) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &date_from_block(env)) {
         if check_in.last_checked_in == today {
             return Err(StdError::generic_err("Already checked in today."));
         }
@@ -256,16 +252,8 @@ fn cast_vote(
         return Err(StdError::generic_err("Only registered friends can vote."));
     }
 
-    // Check Admin's last check-in
-    let today = format!(
-        "{}-{}-{}",
-        env.block.time.year(),
-        env.block.time.month(),
-        env.block.time.day()
-    );
-
     // If Admin checked in today, friends can't vote
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &today) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &date_from_block(env)) {
         if check_in.last_checked_in == today {
             return Err(StdError::generic_err(
                 "Joe checked in today, no need to vote.",
@@ -323,4 +311,14 @@ fn count_votes(deps: DepsMut, env: Env, challenge_id: u64) -> Result<Response, S
         .add_attribute("passed_votes", passed_votes.to_string())
         .add_attribute("failed_votes", failed_votes.to_string())
         .add_attribute("result", result))
+}
+
+fn date_from_block(env: Env) -> String {
+    // Convert the block's timestamp to NaiveDateTime
+    let seconds = env.block.time.seconds();
+    let nano_seconds = env.block.time.subsec_nanos();
+    let dt = NaiveDateTime::from_timestamp(seconds as i64, nano_seconds as u32);
+
+    // Format the date using the NaiveDateTime object
+    format!("{:04}-{:02}-{:02}", dt.year(), dt.month(), dt.day())
 }

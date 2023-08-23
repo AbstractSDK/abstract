@@ -1,6 +1,6 @@
 use crate::contract::{AccApp, AppResult};
-use crate::msg::{AccQueryMsg, AccResponse, ConfigResponse};
-use crate::state::{ACC_LIST, CONFIG};
+use crate::msg::{AccQueryMsg, AccResponse, ChallengeResponse, ConfigResponse};
+use crate::state::{CHALLENGE_LIST, CONFIG};
 use abstract_core::objects::DexAssetPairing;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Resolve;
@@ -10,7 +10,7 @@ use cw_asset::AssetInfo;
 pub fn query_handler(deps: Deps, _env: Env, app: &AccApp, msg: AccQueryMsg) -> AppResult<Binary> {
     match msg {
         AccQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
-        AccQueryMsg::Acc { acc_id } => to_binary(&query_acc(deps, app, acc_id)?),
+        AccQueryMsg::Acc { acc_id } => unimplemented!(),
     }
     .map_err(Into::into)
 }
@@ -24,15 +24,16 @@ fn query_config(deps: Deps, app: &AccApp) -> AppResult<ConfigResponse> {
     Ok(ConfigResponse {
         native_asset,
         forfeit_amount: config.forfeit_amount,
-        refill_threshold: config.refill_threshold,
     })
 }
 
 /// Get accountability
 fn query_accountability(deps: Deps, app: &AccApp, acc_id: String) -> AppResult<AccResponse> {
-    let dca = ACC_LIST.may_load(deps.storage, acc_id)?;
+    let challenge = CHALLENGE_LIST.may_load(deps.storage, acc_id)?;
     let ans_host = app.ans_host(deps)?;
-    let pool_references = if let Some(entry) = dca.as_ref() {
+
+    // don't need this
+    let pool_references = if let Some(entry) = challenge.as_ref() {
         DexAssetPairing::new(
             entry.source_asset.name.clone(),
             entry.target_asset.clone(),
@@ -42,8 +43,8 @@ fn query_accountability(deps: Deps, app: &AccApp, acc_id: String) -> AppResult<A
     } else {
         vec![]
     };
-    Ok(AccResponse {
-        acc,
+    Ok(ChallengeResponse {
+        challenge: Some(challenge),
         pool_references,
     })
 }

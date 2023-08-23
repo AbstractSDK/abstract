@@ -51,6 +51,7 @@ thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
+chrono = "0.4" 
 semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { version = "~0.13" }

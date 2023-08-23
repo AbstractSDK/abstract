@@ -1,6 +1,6 @@
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdfkError;
-use cosmwasm_std::{env, DepsMut, MessageInfo, Response};
+use abstract_sdk::AbstractSdkError;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetInfoBase;
 
 use crate::contract::{AccApp, AppResult};
@@ -14,7 +14,7 @@ pub fn instantiate_handler(
     app: AccApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let ans_host = app.ans_host(deps.asref())?;
+    let ans_host = app.ans_host(deps.as_ref())?;
     let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
     let native_denom = match asset {
         AssetInfoBase::Native(denom) => denom,

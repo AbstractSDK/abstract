@@ -41,6 +41,8 @@ abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
+chrono = { workspace = true }
+
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
