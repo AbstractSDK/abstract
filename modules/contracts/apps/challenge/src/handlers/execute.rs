@@ -6,11 +6,11 @@ use cosmwasm_std::{
 };
 use cw_asset::{Asset, AssetList};
 
-use crate::contract::{AccApp, AppResult};
+use crate::contract::{AppResult, ChallengeApp};
 
 use crate::error::AppError;
 use crate::msg::{AccExecuteMsg, ExecuteMsg, Frequency};
-use crate::state::{AccEntry, Config, ACC_LIST, CONFIG, NEXT_ID};
+use crate::state::{AccEntry, ChallengeEntry, Config, CHALLENGE_LIST, CONFIG, NEXT_ID};
 use abstract_dex_adapter::api::DexInterface;
 use abstract_sdk::AbstractSdkResult;
 use croncat_app::croncat_intergration_utils::{CronCatAction, CronCatTaskRequest};
@@ -20,7 +20,7 @@ use croncat_app::{CronCat, CronCatInterface};
 fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
-    app: DCAApp,
+    app: ChallengeApp,
     new_native_denom: Option<String>,
     new_forfeit_amount: Option<Uint128>,
     new_refill_threshold: Option<Uint128>,
@@ -33,7 +33,6 @@ fn update_config(
         &Config {
             native_denom: new_native_denom.unwrap_or(old_config.native_denom),
             forfeit_amount: new_forfeit_amount.unwrap_or(old_config.forfeit_amount),
-            refill_threshold: new_refill_threshold.unwrap_or(old_config.refill_threshold),
         },
     )?;
 
@@ -45,17 +44,17 @@ fn create_accountability(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: AccApp,
+    app: ChallengeApp,
     source_asset: OfferAsset,
     frequence: Frequency,
     dex_name: DexName,
 ) -> AppResult {
-    // Only the admin should be able to create accountability
+    // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
-    // Generate the accountability id
+    // Generate the challenge id
     let id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     let dca_id = format!("acc_{id}");
 
@@ -76,12 +75,12 @@ fn create_accountability(
     ))
 }
 
-/// Update an existing Accountability
+/// Update an existing challenge  
 fn update_accountability(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: DCAApp,
+    app: ChallengeApp,
     acc_id: String,
     new_source_asset: Option<OfferAsset>,
     new_frequency: Option<Frequency>,
@@ -91,7 +90,8 @@ fn update_accountability(
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
     let old_accountability = ACC_LIST.load(deps.storage, acc_id.clone())?;
-    let new_accountability = AccEntry {
+    let new_accountability = ChallengeEntry {
+        name: new_name.unwrap_or(old_accountability.name),
         source_asset: new_source_asset.unwrap_or(old_accountability.source_asset),
         frequency: new_frequency.unwrap_or(old_accountability.frequency),
     };
@@ -109,7 +109,7 @@ fn update_accountability(
 fn cancel_accountability(
     deps: DepsMut,
     info: MessageInfo,
-    app: AccApp,
+    app: ChallengeApp,
     acc_id: String,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -123,6 +123,16 @@ fn cancel_accountability(
         Response::new().add_message(remove_task_msg),
         "cancel_accountability",
     ))
+}
+
+fn add_friend(
+    deps: DepsMut,
+    info: MessageInfo,
+    app: AccApp,
+    friend_address: String,
+    balance: Uint128,
+) -> AppResult {
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 }
 
 fn create_task_internal(

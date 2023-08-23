@@ -9,15 +9,30 @@ use crate::msg::Frequency;
 pub struct Config {
     pub native_denom: String,
     pub forfeit_amount: Uint128,
-    pub refill_threshold: Uint128,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct AccEntry {
+pub struct ChallengeEntry {
+    pub name: String,
     pub source_asset: OfferAsset,
     pub frequency: Frequency,
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct Friend {
+    pub address: String,
+    pub name: String,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct Vote {
+    pub voter: String,
+    pub vote: bool,
+    pub challenge_id: u64,
+}
+
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
-pub const ACC_LIST: Map<String, AccEntry> = Map::new("acc_list");
+pub const CHALLENGE_LIST: Map<String, ChallengeEntry> = Map::new("acc_list");
+pub const FRIENDS: Map<String, Friend> = Map::new("friends");
+pub const VOTES: Map<u64, Vec<Vote>> = Map::new("votes");

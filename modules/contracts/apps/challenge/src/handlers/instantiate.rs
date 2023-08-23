@@ -23,11 +23,9 @@ pub fn instantiate_handler(
     let config: Config = Config {
         native_denom,
         forfeit_amount: msg.forfeit_amount,
-        refill_threshold: msg.refill_threshold,
     };
 
     CONFIG.save(deps.storage, &config)?;
     NEXT_ID.save(deps.storage, &0)?;
-    // Example instantiation that doesn't do anything
     Ok(Response::new())
 }

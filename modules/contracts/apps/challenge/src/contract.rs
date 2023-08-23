@@ -5,15 +5,15 @@ use cosmwasm_std::{Empty, Response};
 use croncat_app::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 /// The version of your app
-pub const ACC_APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CHALLENGE_APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// the id of the app
-pub const ACC_APP_ID: &str = "abstract:accountability";
+pub const CHALLENGE_APP_ID: &str = "abstract:accountability";
 
 /// The type of the result returned by your app's entry points.
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type AccApp = AppContract<
+pub type ChallengeApp = AppContract<
     AppError,
     AppInstantiateMsg,
     AccountabilityExecuteMsg,
@@ -21,7 +21,7 @@ pub type AccApp = AppContract<
     Empty,
 >;
 
-const ACC_APP: AccApp = AccApp::new(ACC_APP_ID, ACC_APP_VERSION, None)
+const CHALLENGE_APP: ChallengeApp = ChallengeApp::new(ACC_APP_ID, ACC_APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
@@ -35,7 +35,7 @@ const ACC_APP: AccApp = AccApp::new(ACC_APP_ID, ACC_APP_VERSION, None)
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(ACC_APP, AccApp);
+abstract_app::export_endpoints!(ACC_APP, ChallengeApp);
 
 #[cfg(feature = "interface")]
-abstract_app::cw_orch_interface!(ACC_APP, AccApp, AccApp);
+abstract_app::cw_orch_interface!(ACC_APP, ChallengeApp, ChallengeApp);
