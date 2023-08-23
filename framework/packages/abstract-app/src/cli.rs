@@ -12,19 +12,22 @@ impl std::fmt::Display for AppOptions {
     }
 }
 
+#[derive(Clone)]
+pub struct AppContext {
+    pub version: semver::Version,
+}
+
 #[macro_export]
 macro_rules! cw_cli {
     ($app_type:ident) => {
-        pub mod app_cli {
-            #[derive(Clone)]
-            pub struct AppContext {
-                pub version: semver::Version,
-            }
-
-            impl ::cw_orch_cli::CwCliAddons<AppContext>
-                for super::$app_type<::cw_orch::daemon::Daemon>
+        mod implement_addons {
+            impl ::cw_orch_cli::CwCliAddons<::abstract_app::cli::AppContext>
+                for super::interface::$app_type<::cw_orch::daemon::Daemon>
             {
-                fn addons(&mut self, context: AppContext) -> ::cw_orch_cli::OrchCliResult<()>
+                fn addons(
+                    &mut self,
+                    context: ::abstract_app::cli::AppContext,
+                ) -> ::cw_orch_cli::OrchCliResult<()>
                 where
                     Self: ::cw_orch::prelude::ContractInstance<::cw_orch::daemon::Daemon>,
                 {
