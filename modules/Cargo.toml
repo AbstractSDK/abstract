@@ -87,6 +87,10 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Cli
+# TODO: publish
+cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "2376c5e"}
+
 # this ensures local compatability when compiling locally
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
