@@ -208,8 +208,119 @@ fn add_friends_for_challenge(
     Ok(Response::new())
 }
 
-fn daily_check_in(deps: DepsMut, _env: Env, info: MessageInfo, app: &ChallengeApp) -> AppResult {
+fn daily_check_in(deps: DepsMut, env: Env, info: MessageInfo, app: &ChallengeApp) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let today = env.block.time.seconds() / 86400;
+    let today = format!(
+        "{}-{}-{}",
+        env.block.time.year(),
+        env.block.time.month(),
+        env.block.time.day()
+    );
+
+    // Check if Admin has already checked in today
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &today) {
+        if check_in.last_checked_in == today {
+            return Err(StdError::generic_err("Already checked in today."));
+        }
+    }
+
+    let blocks_per_day = 1440; // dummy value, check this
+    let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
+        Frequency::EveryNBlocks(n) => n,
+        Frequency::Daily => blocks_per_day,
+        Frequency::Weekly => 7 * blocks_per_day,
+        Frequency::Monthly => 30 * blocks_per_day,
+    };
+
+    let next_check_in_block = env.block.height + next_interval_blocks;
+
+    let check_in = CheckIn {
+        last_checked_in: today,
+        next_check_in_by: next_check_in_block,
+    };
+
+    DAILY_CHECKINS.save(deps.storage, &today, &check_in)?;
+    Ok(Response::new().add_attribute("action", "check_in"))
+}
+
+fn cast_vote(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: &ChallengeApp,
+    vote: Option<bool>,
+) -> AppResult {
+    // Ensure sender is a registered friend
+    if !FRIENDS.has(deps.storage, &info.sender.to_string()) {
+        return Err(StdError::generic_err("Only registered friends can vote."));
+    }
+
+    // Check Admin's last check-in
+    let today = format!(
+        "{}-{}-{}",
+        env.block.time.year(),
+        env.block.time.month(),
+        env.block.time.day()
+    );
+
+    // If Admin checked in today, friends can't vote
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &today) {
+        if check_in.last_checked_in == today {
+            return Err(StdError::generic_err(
+                "Joe checked in today, no need to vote.",
+            ));
+        }
+    }
+
+    // If the vote is None, default to true (meaning we assume Admin fulfilled his challenge)
+    let final_vote = vote.unwrap_or(true);
+
+    // Save the vote
+    let vote_entry = Vote {
+        voter: info.sender.to_string(),
+        vote: Some(final_vote),
+        challenge_id: app.current_challenge_id,
+    };
+    VOTES.save(deps.storage, &env.block.height, &vote_entry)?;
+    Ok(Response::new().add_attribute("action", "cast_vote"))
+}
+
+fn count_votes(deps: DepsMut, env: Env, challenge_id: u64) -> Result<Response, StdError> {
+    // Load all votes related to the given challenge_id
+    let votes_for_challenge: Vec<Vote> = VOTES
+        .range(deps.storage, None, None, Order::Ascending)
+        .filter_map(|(_, vote)| {
+            if vote.challenge_id == challenge_id {
+                Some(vote)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if votes_for_challenge.is_empty() {
+        return Err(StdError::generic_err("No votes found for this challenge."));
+    }
+
+    let total_votes = votes_for_challenge.len() as u64;
+    let passed_votes = votes_for_challenge
+        .iter()
+        .filter(|vote| vote.vote.unwrap_or(true))
+        .count() as u64;
+    let failed_votes = total_votes - passed_votes;
+
+    let result = if passed_votes > failed_votes {
+        "passed"
+    } else {
+        "failed"
+    };
+
+    Ok(Response::new()
+        .add_attribute("action", "count_votes")
+        .add_attribute("challenge_id", challenge_id.to_string())
+        .add_attribute("total_votes", total_votes.to_string())
+        .add_attribute("passed_votes", passed_votes.to_string())
+        .add_attribute("failed_votes", failed_votes.to_string())
+        .add_attribute("result", result))
 }

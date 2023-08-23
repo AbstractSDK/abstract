@@ -16,9 +16,9 @@ impl Frequency {
     pub fn to_interval(self) -> CronCatInterval {
         match self {
             Frequency::EveryNBlocks(blocks) => CronCatInterval::Block(blocks),
-            Frequency::Daily => CronCatInterval::Cron("0 0 * * *".to_string()),
-            Frequency::Weekly => CronCatInterval::Cron("0 0 * * 0".to_string()),
-            Frequency::Monthly => CronCatInterval::Cron("0 0 1 * *".to_string()),
+            Frequency::Daily => unimplemented!(),
+            Frequency::Weekly => unimplemented!(),
+            Frequency::Monthly => unimplemented!(),
         }
     }
 }
