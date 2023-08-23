@@ -224,6 +224,8 @@ pub fn create_subaccount(
             name,
             description,
             link,
+            namespace: None,
+            base_asset: None,
         },
         vec![],
     )?;
