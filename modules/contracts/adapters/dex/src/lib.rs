@@ -83,4 +83,5 @@ pub mod interface {
     }
 }
 
+#[cfg(feature = "interface")]
 abstract_adapter::cw_cli!(DexAdapter, abstract_dex_adapter_traits::msg::DexInstantiateMsg);
