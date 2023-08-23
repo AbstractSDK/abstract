@@ -9,7 +9,11 @@ on:
   pull_request:
     paths: 
       - "modules/**"
-  
+
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   fmt:
     runs-on: ubuntu-latest
