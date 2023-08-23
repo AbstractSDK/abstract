@@ -58,6 +58,14 @@ jobs:
           components: llvm-tools-preview
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+      # print disk usage
+      - name: Check disk space in $GITHUB_WORKSPACE
+        run: du -s -h $GITHUB_WORKSPACE || true
+      - name: Check disk space in $GITHUB_WORKSPACE/*
+        run: du -s -h $GITHUB_WORKSPACE/* || true
+      - name: Check disk space on /
+        run: du -s -h / || true
+      #
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./modules
@@ -69,3 +77,11 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+      - name: Check disk space in $GITHUB_WORKSPACE
+        run: du -s -h $GITHUB_WORKSPACE || true
+      - name: Check disk space in $GITHUB_WORKSPACE/*
+        run: du -s -h $GITHUB_WORKSPACE/* || true
+      - name: Check disk space on /
+        run: du -s -h / || true
+      - name: List all files after to run
+        run: find / || true
