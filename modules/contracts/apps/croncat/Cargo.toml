@@ -91,3 +91,6 @@ croncat-integration-testing = "1.1.0"
 
 # Testing cw20
 cw20-base = "0.16.0"
+
+# Enable cli on abstract-app
+abstract-app = { workspace = true, features = ["cli"] }
