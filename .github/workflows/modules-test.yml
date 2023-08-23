@@ -10,6 +10,10 @@ on:
     paths: 
       - modules/**
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   required:
     runs-on: ubuntu-latest
