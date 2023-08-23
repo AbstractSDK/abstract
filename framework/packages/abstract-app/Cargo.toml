@@ -13,6 +13,7 @@ resolver = "2"
 [features]
 test-utils = ["dep:abstract-testing", "dep:abstract-interface", "dep:cw-orch"]
 schema = []
+cli = []
 
 [dependencies]
 cosmwasm-std = { workspace = true }

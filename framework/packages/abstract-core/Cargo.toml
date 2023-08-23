@@ -10,7 +10,7 @@ repository = "https://github.com/AbstractSDK/contracts"
 
 
 [features]
-interface = ["dep:cw-orch"]
+interface = ["dep:cw-orch", "dep:cw-orch-cli"]
 # for quicker tests, cargo test --lib
 
 [dependencies]
@@ -31,6 +31,8 @@ cw20 = { workspace = true }
 abstract-ica = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
+# TODO: publish
+cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "2376c5e", optional = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

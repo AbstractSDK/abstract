@@ -8,6 +8,10 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     Abstract(#[from] AbstractError),
 
+    #[cfg(feature = "daemon")]
+    #[error(transparent)]
+    DaemonError(#[from] cw_orch::daemon::DaemonError),
+
     #[error(transparent)]
     Orch(#[from] CwOrchError),
 

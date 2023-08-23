@@ -34,3 +34,6 @@ abstract_app::export_endpoints!(CRONCAT_APP, CroncatApp);
 
 #[cfg(feature = "interface")]
 abstract_app::cw_orch_interface!(CRONCAT_APP, CroncatApp, CroncatApp);
+
+#[cfg(feature = "interface")]
+abstract_app::cw_cli!(CroncatApp);

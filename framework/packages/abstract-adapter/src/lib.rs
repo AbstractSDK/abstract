@@ -18,6 +18,9 @@ mod handler;
 pub mod schema;
 pub mod state;
 
+#[cfg(feature = "cli")]
+pub mod cli;
+
 #[cfg(feature = "test-utils")]
 pub mod mock {
     use crate::{AdapterContract, AdapterError};

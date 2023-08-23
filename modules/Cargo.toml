@@ -53,7 +53,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "~0.13" }
+cw-orch = { version = "~0.15" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -87,6 +87,10 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+# Cli
+# TODO: publish
+cw-orch-cli = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "2376c5e"}
+
 # this ensures local compatability when compiling locally
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
@@ -101,7 +105,7 @@ abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 # TODO: remove after new version with osmosis-test-tube deployed
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "13c11e4" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator.git", rev = "2376c5e" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

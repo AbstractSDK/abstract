@@ -31,6 +31,18 @@ impl<T: AppExecuteMsg, R: Serialize> From<T> for ExecuteMsg<T, R> {
     }
 }
 
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Execute messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: AppExecuteMsg + cw_orch_cli::ParseCwMsg, R: Serialize> cw_orch_cli::ParseCwMsg
+    for ExecuteMsg<T, R>
+{
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch_cli::OrchCliResult<Self> {
+        Ok(Self::Module(T::cw_parse(state_interface)?))
+    }
+}
+
 impl AppExecuteMsg for Empty {}
 
 /// Trait indicates that the type is used as an app message
@@ -42,7 +54,46 @@ impl<T: AppQueryMsg> From<T> for QueryMsg<T> {
         Self::Module(app)
     }
 }
+
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Query messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: AppQueryMsg + cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for QueryMsg<T> {
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch_cli::OrchCliResult<Self> {
+        Ok(Self::Module(T::cw_parse(state_interface)?))
+    }
+}
+
 impl AppQueryMsg for Empty {}
+
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Instantiate messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for InstantiateMsg<T> {
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch_cli::OrchCliResult<Self> {
+        Ok(Self {
+            base: BaseInstantiateMsg {
+                ans_host_address: state_interface.get_address(crate::ANS_HOST)?.into_string(),
+            },
+            module: T::cw_parse(state_interface)?,
+        })
+    }
+}
+
+/// Enable [`cw_orch_cli::ParseCwMsg`] for Module Migrate messages that implement that trait
+#[cfg(feature = "interface")]
+impl<T: cw_orch_cli::ParseCwMsg> cw_orch_cli::ParseCwMsg for MigrateMsg<T> {
+    fn cw_parse(
+        state_interface: &impl cw_orch::state::StateInterface,
+    ) -> cw_orch_cli::OrchCliResult<Self> {
+        Ok(Self {
+            base: BaseMigrateMsg {},
+            module: T::cw_parse(state_interface)?,
+        })
+    }
+}
 
 /// Used by Module Factory to instantiate App
 #[cosmwasm_schema::cw_serde]
