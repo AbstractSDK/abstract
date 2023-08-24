@@ -8,8 +8,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_interface_integration_tests::{
-    tokenfactory::{create_denom, create_transfer_channel, get_denom, mint, transfer_tokens},
-    JUNO, STARGAZE,
+    JUNO, STARGAZE, ibc::TEST_STARSHIP_CONFIG,
 };
 
 use cosmwasm_std::coin;
@@ -21,12 +20,19 @@ use cw_orch::{
     starship::Starship,
 };
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
+use proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint, transfer_tokens};
 
 pub fn main() {
     env_logger::init();
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let starship = Starship::new(rt.handle().to_owned(), None).unwrap();
+    let config_path = format!(
+        "{}{}",
+        env!("CARGO_MANIFEST_DIR"),
+        TEST_STARSHIP_CONFIG
+    );
+
+    let starship = Starship::new(rt.handle().to_owned(),&config_path ,None).unwrap();
     let interchain: InterchainEnv = starship.interchain_env();
 
     let juno = interchain.daemon(JUNO).unwrap();
@@ -70,6 +76,7 @@ pub fn main() {
         &coin(test_amount, get_denom(&juno, token_subdenom.as_str())),
         &interchain_channel,
         None,
+        None,
     )
     .unwrap();
 
@@ -107,6 +114,7 @@ pub fn main() {
         sender.as_str(),
         &coin(test_amount, denom.clone()),
         &interchain_channel,
+        None, 
         None,
     )
     .unwrap();

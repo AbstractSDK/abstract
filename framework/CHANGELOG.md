@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Ability to use the ExecuteFns and QueryFns traits on Units and Unnamed enum variants by @Kayanski
+
 ### Changed
 
 ### Fixed

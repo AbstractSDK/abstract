@@ -1,0 +1,35 @@
+chains:
+  - name: stargaze-1
+    type: stargaze
+    numValidators: 1
+    ports:
+      rest: 1313
+      rpc: 26653
+      grpc: 30658
+      faucet: 8000
+  - name: juno-1
+    type: juno
+    numValidators: 1
+    ports:
+      rest: 1317
+      rpc: 26657
+      grpc: 30657
+      faucet: 8001
+ 
+relayers:
+  - name: osmo-juno
+    type: hermes
+    replicas: 1
+    chains:
+      - stargaze-1
+      - juno-1
+ 
+explorer:
+  enabled: true
+  ports:
+    rest: 8080
+ 
+registry:
+  enabled: true
+  ports:
+    rest: 8081

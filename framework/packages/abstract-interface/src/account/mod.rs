@@ -177,6 +177,11 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         module.set_address(&module_address);
         Ok(module_address)
     }
+
+    pub fn register_remote_account(&self, destination: &str) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        self.manager.register_remote_account(destination)
+    }
 }
 
 #[cfg(feature = "daemon")]

@@ -62,8 +62,7 @@ fn main() {
         .network_ids
         .iter()
         .map(|n| parse_network(n))
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        .collect::<Vec<_>>();
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);

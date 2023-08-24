@@ -2,7 +2,7 @@ pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as
 use abstract_core::{
     adapter,
     manager::*,
-    objects::module::{ModuleInfo, ModuleVersion},
+    objects::{module::{ModuleInfo, ModuleVersion}, chain_name::ChainName}, PROXY,
 };
 use cosmwasm_std::{to_binary, Empty};
 use cw_orch::environment::TxHandler;
@@ -138,4 +138,20 @@ impl<Chain: CwEnv> Manager<Chain> {
         let module = self.module_info(module_id)?;
         Ok(module.is_some())
     }
+
+    /// Helper to create remote accounts
+    pub fn register_remote_account(&self, destination: &str) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let result = self.exec_on_module(
+            to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
+                msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
+                    host_chain: ChainName::from(destination),
+                }],
+            })?,
+            PROXY.to_string(),
+        )?;
+
+        Ok(result)
+    }
+
 }

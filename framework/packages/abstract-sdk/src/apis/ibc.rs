@@ -233,7 +233,7 @@ mod test {
         let expected_retries = 0;
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
-            HostAction::Balances {},
+            HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
             None,
             expected_retries,
         );
@@ -244,7 +244,7 @@ mod test {
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
-                    action: HostAction::Balances {},
+                    action: HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
                     callback_request: None,
                     retries: expected_retries,
                 }],
@@ -270,7 +270,7 @@ mod test {
         let expected_retries = 50;
         let actual = client.host_action(
             TEST_HOST_CHAIN.into(),
-            HostAction::Balances {},
+            HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
             Some(expected_callback.clone()),
             expected_retries,
         );
@@ -282,7 +282,7 @@ mod test {
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
-                    action: HostAction::Balances {},
+                    action: HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
                     callback_request: Some(expected_callback),
                     retries: expected_retries,
                 }],

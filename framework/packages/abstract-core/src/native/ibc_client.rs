@@ -54,7 +54,6 @@ pub mod state {
 pub struct InstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
-    pub chain: String,
 }
 
 #[cosmwasm_schema::cw_serde]

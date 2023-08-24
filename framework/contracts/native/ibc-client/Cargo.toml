@@ -30,8 +30,8 @@ abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }
 cosmos-sdk-proto = { version = "0.19.0", default-features = false }
-polytone-note = { version = "1.0.0", features = ["library"] }
-polytone = "1.0.0"
+polytone-note = { workspace=true, features = ["library"] }
+polytone = { workspace=true }
 
 [dev-dependencies]
 cosmwasm-schema = { workspace = true }

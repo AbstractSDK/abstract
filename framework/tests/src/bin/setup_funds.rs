@@ -18,10 +18,11 @@ use abstract_interface::{
     ProxyQueryFns,
 };
 use abstract_interface_integration_tests::{
-    ibc::{create_test_remote_account, set_env},
-    tokenfactory::{create_denom, create_transfer_channel, get_denom, mint},
+    ibc::{create_test_remote_account, set_env, TEST_STARSHIP_CONFIG},
     JUNO, STARGAZE,
 };
+
+use proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coins, to_binary};
 use cw_orch::{
@@ -37,7 +38,12 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let starship = Starship::new(rt.handle().to_owned(), None).unwrap();
+    let config_path = format!(
+        "{}{}",
+        env!("CARGO_MANIFEST_DIR"),
+        TEST_STARSHIP_CONFIG
+    );
+    let starship = Starship::new(rt.handle().to_owned(), &config_path, None).unwrap();
     let interchain: InterchainEnv = starship.interchain_env();
 
     let juno = interchain.daemon(JUNO).unwrap();

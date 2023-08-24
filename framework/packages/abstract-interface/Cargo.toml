@@ -28,6 +28,8 @@ tokio = { workspace = true }
 log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
+cosmrs = "0.14.0"
+cw-orch-polytone = { workspace = true }
 
 # Keep these here
 module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.17.1" }
@@ -39,7 +41,6 @@ ibc-host = { package = "abstract-ibc-host", path = "../../contracts/native/ibc-h
 
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.17.1" }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.17.1" }
-cosmrs = "0.14.0"
 
 [build-dependencies]
 serde_json = "1.0.79"
