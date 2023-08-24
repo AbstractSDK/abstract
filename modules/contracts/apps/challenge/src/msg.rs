@@ -36,8 +36,6 @@ pub struct AppInstantiateMsg {
     pub native_asset: AssetEntry,
     /// Amount in native coins to forfeit when a challenge is lost
     pub forfeit_amount: Uint128,
-    /// Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks
-    pub refill_threshold: Uint128,
 }
 
 /// App execute messages

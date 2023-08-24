@@ -17,4 +17,5 @@ fn successful_wasm() {
     let contract = ChallengeApp::new(CHALLENGE_APP_ID, mock);
 
     contract.wasm();
+    let _ = contract.upload();
 }
