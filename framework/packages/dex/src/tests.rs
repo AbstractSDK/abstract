@@ -6,8 +6,8 @@ use cosmwasm_std::Decimal;
 use cosmwasm_std::StdError;
 use cw_asset::Asset;
 use cw_asset::AssetInfo;
-use cw_orch::live_mock::mock_dependencies;
-use ibc_chain_registry::chain::ChainData;
+use cw_orch::daemon::live_mock::mock_dependencies;
+use cw_orch::daemon::ChainRegistryData as ChainData;
 use std::fmt::Debug;
 
 pub struct DexCommandTester {
