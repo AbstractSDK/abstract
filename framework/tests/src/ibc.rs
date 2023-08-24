@@ -22,7 +22,6 @@ pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
 pub const TEST_STARSHIP_CONFIG: &str = "/starship/starship.yaml";
 
-
 pub fn set_env() {
     std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
     std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
@@ -59,7 +58,9 @@ pub fn create_test_remote_account(
         .install_module(IBC_CLIENT, &Empty {}, None)?;
 
     // Now we send a message to the client saying that we want to create an account on osmosis
-    let register_tx = origin_abstract.account.register_remote_account(destination)?;
+    let register_tx = origin_abstract
+        .account
+        .register_remote_account(destination)?;
 
     rt.block_on(interchain.await_ibc_execution(STARGAZE.to_owned(), register_tx.txhash))?;
 
@@ -71,7 +72,6 @@ pub fn create_test_remote_account(
         AccountTrace::Remote(vec![ChainName::from(origin_name)]),
     )?)
 }
-
 
 #[cfg(test)]
 mod test {
@@ -102,11 +102,7 @@ mod test {
         // We start by creating an abstract account
         let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new()?;
 
-        let config_path = format!(
-            "{}{}",
-            env!("CARGO_MANIFEST_DIR"),
-            TEST_STARSHIP_CONFIG
-        );
+        let config_path = format!("{}{}", env!("CARGO_MANIFEST_DIR"), TEST_STARSHIP_CONFIG);
 
         let starship = Starship::new(rt.handle().to_owned(), &config_path, None)?;
         let interchain: InterchainEnv = starship.interchain_env();

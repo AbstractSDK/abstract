@@ -139,8 +139,6 @@ pub enum ExecuteMsg {
         action: HostAction,
         // optional callback info
         callback_request: Option<CallbackRequest>,
-        // Number of retries if packet errors
-        retries: u8,
     },
     RemoveHost {
         host_chain: ChainName,

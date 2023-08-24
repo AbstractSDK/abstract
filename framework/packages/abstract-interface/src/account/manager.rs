@@ -1,13 +1,19 @@
 pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as ManagerQueryFns};
 use abstract_core::{
     adapter,
+    ibc_host::HostAction,
     manager::*,
-    objects::{module::{ModuleInfo, ModuleVersion}, chain_name::ChainName}, PROXY,
+    objects::{
+        chain_name::ChainName,
+        module::{ModuleInfo, ModuleVersion},
+    },
+    PROXY,
 };
 use cosmwasm_std::{to_binary, Empty};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
+use polytone::callbacks::CallbackRequest;
 use serde::Serialize;
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
@@ -140,7 +146,10 @@ impl<Chain: CwEnv> Manager<Chain> {
     }
 
     /// Helper to create remote accounts
-    pub fn register_remote_account(&self, destination: &str) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    pub fn register_remote_account(
+        &self,
+        destination: &str,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
             to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
@@ -154,4 +163,38 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(result)
     }
 
+    pub fn execute_on_remote(
+        &self,
+        destination: &str,
+        msg: ExecuteMsg,
+        callback_request: Option<CallbackRequest>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: ChainName::from(destination),
+                action: HostAction::Dispatch { manager_msg: msg },
+                callback_request,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn send_all_funds_back(
+        &self,
+        destination: &str,
+        callback_request: Option<CallbackRequest>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: ChainName::from(destination),
+                action: HostAction::SendAllBack {},
+                callback_request,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
 }

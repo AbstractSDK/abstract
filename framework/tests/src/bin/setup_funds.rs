@@ -22,7 +22,6 @@ use abstract_interface_integration_tests::{
     JUNO, STARGAZE,
 };
 
-use proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::{coins, to_binary};
 use cw_orch::{
@@ -30,6 +29,7 @@ use cw_orch::{
     prelude::{queriers::Bank, *},
     starship::Starship,
 };
+use proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
 
 pub fn test_send_funds() -> AnyResult<()> {
     env_logger::init();
@@ -38,11 +38,7 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let config_path = format!(
-        "{}{}",
-        env!("CARGO_MANIFEST_DIR"),
-        TEST_STARSHIP_CONFIG
-    );
+    let config_path = format!("{}{}", env!("CARGO_MANIFEST_DIR"), TEST_STARSHIP_CONFIG);
     let starship = Starship::new(rt.handle().to_owned(), &config_path, None).unwrap();
     let interchain: InterchainEnv = starship.interchain_env();
 

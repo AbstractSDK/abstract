@@ -119,7 +119,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 },
             },
             None,
-            2,
         )
     }
 
@@ -150,7 +149,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 },
             },
             None,
-            2,
         )
     }
 
@@ -170,7 +168,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 },
             },
             None,
-            2,
         )
     }
     /// Call a [`HostAction`] on the host of the provided `host_chain`.
@@ -179,7 +176,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         host_chain: ChainName,
         action: HostAction,
         callback: Option<CallbackRequest>,
-        retries: u8,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
@@ -188,7 +184,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                     host_chain,
                     action,
                     callback_request: callback,
-                    retries,
                 }],
             },
             vec![],
@@ -230,12 +225,14 @@ mod test {
         let deps = mock_dependencies();
         let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
-        let expected_retries = 0;
         let msg = client.host_action(
             TEST_HOST_CHAIN.into(),
-            HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
+            HostAction::Dispatch {
+                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                    is_suspended: None,
+                },
+            },
             None,
-            expected_retries,
         );
         assert_that!(msg).is_ok();
 
@@ -244,9 +241,12 @@ mod test {
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
-                    action: HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
+                    action: HostAction::Dispatch {
+                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                            is_suspended: None,
+                        },
+                    },
                     callback_request: None,
-                    retries: expected_retries,
                 }],
             })
             .unwrap(),
@@ -267,12 +267,14 @@ mod test {
             msg: Binary::from(b"callback_id"),
         };
 
-        let expected_retries = 50;
         let actual = client.host_action(
             TEST_HOST_CHAIN.into(),
-            HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
+            HostAction::Dispatch {
+                manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                    is_suspended: None,
+                },
+            },
             Some(expected_callback.clone()),
-            expected_retries,
         );
 
         assert_that!(actual).is_ok();
@@ -282,9 +284,12 @@ mod test {
             msg: to_binary(&ExecuteMsg::IbcAction {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain: TEST_HOST_CHAIN.into(),
-                    action: HostAction::Dispatch { manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus { is_suspended: None }},
+                    action: HostAction::Dispatch {
+                        manager_msg: abstract_core::manager::ExecuteMsg::UpdateStatus {
+                            is_suspended: None,
+                        },
+                    },
                     callback_request: Some(expected_callback),
-                    retries: expected_retries,
                 }],
             })
             .unwrap(),

@@ -53,11 +53,7 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // Chains setup
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let config_path = format!(
-        "{}{}",
-        env!("CARGO_MANIFEST_DIR"),
-        TEST_STARSHIP_CONFIG
-    );
+    let config_path = format!("{}{}", env!("CARGO_MANIFEST_DIR"), TEST_STARSHIP_CONFIG);
 
     let starship = Starship::new(rt.handle().clone(), &config_path, None)?;
     let interchain: InterchainEnv = starship.interchain_env();
@@ -74,7 +70,8 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     let juno_polytone = deploy_polytone(&juno)?;
 
     // Creating a connection between 2 polytone deployments
-    let polytone_account = cw_orch_polytone::deploy(&rt, &starship, &stargaze_polytone, &juno_polytone)?;
+    let polytone_account =
+        cw_orch_polytone::deploy(&rt, &starship, &stargaze_polytone, &juno_polytone)?;
 
     // Create the connection between client and host
     stargaze_abstr.ibc_connection_with(&rt, &juno_abstr, &polytone_account)?;

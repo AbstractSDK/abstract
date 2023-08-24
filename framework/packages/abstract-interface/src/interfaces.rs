@@ -1,7 +1,9 @@
-use crate::{AccountFactory, AnsHost, IbcClient, Manager, ModuleFactory, Proxy, VersionControl, IbcHost};
+use crate::{
+    AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory, Proxy, VersionControl,
+};
 use abstract_core::{
-    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, MANAGER, MODULE_FACTORY, PROXY,
-    VERSION_CONTROL, IBC_HOST,
+    objects::AccountId, ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY,
+    PROXY, VERSION_CONTROL,
 };
 
 use cw_orch::prelude::*;
@@ -22,12 +24,7 @@ where
     let account_factory = AccountFactory::new(ACCOUNT_FACTORY, chain.clone());
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
-    (
-        ans_host,
-        account_factory,
-        version_control,
-        module_factory,
-    )
+    (ans_host, account_factory, version_control, module_factory)
 }
 
 pub fn get_account_contracts<Chain: CwEnv>(
@@ -52,21 +49,12 @@ where
     }
 }
 
-
-pub fn get_ibc_contracts<Chain: CwEnv>(
-    chain: Chain,
-) -> (
-    IbcClient<Chain>,
-    IbcHost<Chain>,
-)
+pub fn get_ibc_contracts<Chain: CwEnv>(chain: Chain) -> (IbcClient<Chain>, IbcHost<Chain>)
 where
     <Chain as cw_orch::environment::TxHandler>::Response: IndexResponse,
 {
     let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
     let ibc_host = IbcHost::new(IBC_HOST, chain);
 
-    (
-        ibc_client,
-        ibc_host
-    )
+    (ibc_client, ibc_host)
 }

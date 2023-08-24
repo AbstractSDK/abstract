@@ -56,4 +56,4 @@ abstract-etf = { git = "https://github.com/AbstractSDK/apps/" }
 osmosis-std = "0.16.1"
 cosmrs = "0.14.0"
 prost = "0.11.9"
-cw-orch-polytone = {workspace = true}
+cw-orch-polytone = { workspace = true }

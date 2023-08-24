@@ -1,13 +1,17 @@
 use std::path::PathBuf;
 
 use crate::{
-    get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl, IbcClient, IbcHost, get_ibc_contracts,
+    get_account_contracts, get_ibc_contracts, get_native_contracts, AbstractAccount,
+    AbstractInterfaceError, AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory,
+    Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
 use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
 use abstract_core::ibc_host::ExecuteMsgFns;
-use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL, IBC_CLIENT, IBC_HOST};
+use abstract_core::{
+    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
+    VERSION_CONTROL,
+};
 use cw_orch::deploy::Deploy;
 use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
@@ -15,9 +19,9 @@ use cw_orch::state::ChainState;
 use cw_orch_polytone::PolytoneAccount;
 use tokio::runtime::Runtime;
 
-pub struct IbcAbstract<Chain: CwEnv>{
+pub struct IbcAbstract<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
-    pub host: IbcHost<Chain>
+    pub host: IbcHost<Chain>,
 }
 
 pub struct Abstract<Chain: CwEnv> {
@@ -26,7 +30,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub account: AbstractAccount<Chain>,
-    pub ibc: IbcAbstract<Chain>
+    pub ibc: IbcAbstract<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -61,7 +65,10 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             version_control,
             module_factory,
             account,
-            ibc: IbcAbstract { client: ibc_client, host: ibc_host }
+            ibc: IbcAbstract {
+                client: ibc_client,
+                host: ibc_host,
+            },
         };
 
         Ok(deployment)
@@ -92,20 +99,22 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             .version_control
             .register_natives(deployment.contracts())?;
 
-
         // This Ibc Client is actually a module that people need to register on their accounts
         deployment.version_control.register_adapters(vec![(
             deployment.ibc.client.as_instance(),
             ibc_client::contract::CONTRACT_VERSION.to_string(),
         )])?;
 
-
         // Only the ibc host is allowed to create remote accounts on the account factory
         deployment
             .account_factory
-            .update_config(None, Some(deployment.ibc.host.address().unwrap().to_string()), None, None)
+            .update_config(
+                None,
+                Some(deployment.ibc.host.address().unwrap().to_string()),
+                None,
+                None,
+            )
             .unwrap();
-
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
@@ -161,7 +170,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             version_control,
             account_factory,
             module_factory,
-            ibc: IbcAbstract { client: ibc_client, host: ibc_host }
+            ibc: IbcAbstract {
+                client: ibc_client,
+                host: ibc_host,
+            },
         }
     }
 
@@ -227,7 +239,6 @@ impl<Chain: CwEnv> Abstract<Chain> {
             None,
         )?;
 
-
         Ok(())
     }
 
@@ -254,17 +265,42 @@ impl<Chain: CwEnv> Abstract<Chain> {
 }
 
 /// This is only used for testing and shouldn't be used in production
-impl Abstract<Daemon>{
-    pub fn ibc_connection_with(&self, rt: &Runtime, dest: &Abstract<Daemon>, polytone: &PolytoneAccount<Daemon>) -> Result<(), InterchainError>{
-
+impl Abstract<Daemon> {
+    pub fn ibc_connection_with(
+        &self,
+        rt: &Runtime,
+        dest: &Abstract<Daemon>,
+        polytone: &PolytoneAccount<Daemon>,
+    ) -> Result<(), InterchainError> {
         // First we register client and host respectively
-        let chain1_name = self.ibc.client.get_chain().state().chain_data.chain_name.to_string();
-        let chain1_id = self.ibc.client.get_chain().state().chain_data.chain_id.to_string();
-        let chain2_name = dest.ibc.host.get_chain().state().chain_data.chain_name.to_string();
-    
+        let chain1_name = self
+            .ibc
+            .client
+            .get_chain()
+            .state()
+            .chain_data
+            .chain_name
+            .to_string();
+        let chain1_id = self
+            .ibc
+            .client
+            .get_chain()
+            .state()
+            .chain_data
+            .chain_id
+            .to_string();
+        let chain2_name = dest
+            .ibc
+            .host
+            .get_chain()
+            .state()
+            .chain_data
+            .chain_name
+            .to_string();
+
         // First, we register the host with the client.
         // We register the polytone note with it because they are linked
-        // This triggers an IBC message that is used to get back the proxy address  
+        // This triggers an IBC message that is used to get back the proxy address
         let proxy_tx_result = self.ibc.client.register_chain_host(
             chain2_name.clone().into(),
             dest.ibc.host.address()?.to_string(),
@@ -279,7 +315,7 @@ impl Abstract<Daemon>{
 
         // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
         let proxy_address = self.ibc.client.host(chain2_name.into())?;
-    
+
         dest.ibc.host.register_chain_proxy(
             chain1_name.into(),
             proxy_address.remote_polytone_proxy.unwrap(),
