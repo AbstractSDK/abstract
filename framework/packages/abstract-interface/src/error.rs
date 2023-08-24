@@ -11,10 +11,6 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     Orch(#[from] CwOrchError),
 
-    #[cfg(feature = "daemon")]
-    #[error(transparent)]
-    DaemonError(#[from] cw_orch::daemon::DaemonError),
-
     #[error("JSON Conversion Error")]
     SerdeJson(#[from] ::serde_json::Error),
 
