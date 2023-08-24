@@ -1,5 +1,9 @@
-use crate::{contract::ChallengeApp, state::ChallengeEntry};
+use crate::{
+    contract::ChallengeApp,
+    state::{ChallengeEntry, Friend},
+};
 use abstract_core::objects::AssetEntry;
+use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 use croncat_app::croncat_integration_utils::CronCatInterval;
@@ -41,7 +45,50 @@ pub struct AppInstantiateMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum ChallengeExecuteMsg {
-    //@Todo: Add ExecuteMsgs
+    UpdateConfig {
+        new_native_denom: Option<String>,
+        new_forfeit_amount: Option<Uint128>,
+    },
+    CreateChallenge {
+        name: String,
+        source_asset: OfferAsset,
+        frequency: Frequency,
+    },
+    UpdateChallenge {
+        challenge_id: String,
+        name: String,
+        source_asset: Option<OfferAsset>,
+        frequency: Option<Frequency>,
+    },
+    CancelChallenge {
+        challenge_id: String,
+    },
+    AddFriendForChallenge {
+        challenge_id: String,
+        friend_address: String,
+        friend_name: String,
+    },
+    RemoveFriendForChallenge {
+        challenge_id: String,
+        friend_address: String,
+    },
+    AddFriendsForChallenge {
+        challenge_id: String,
+        friends: Vec<Friend>,
+    },
+    DailyCheckIn {
+        challenge_id: String,
+    },
+    CastVote {
+        challenge_id: String,
+        vote: Option<bool>,
+    },
+    CountVotes {
+        challenge_id: String,
+    },
+    ChargePenalty {
+        challenge_id: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -52,7 +99,7 @@ pub enum ChallengeQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
     #[returns(ChallengeResponse)]
-    Acc { acc_id: String },
+    Challenge { challenge_id: String },
 }
 
 #[cosmwasm_schema::cw_serde]

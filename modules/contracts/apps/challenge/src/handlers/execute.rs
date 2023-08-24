@@ -20,6 +20,65 @@ pub fn execute_handler(
     app: ChallengeApp,
     msg: ChallengeExecuteMsg,
 ) -> AppResult {
+    match msg {
+        ChallengeExecuteMsg::UpdateConfig {
+            new_native_denom,
+            new_forfeit_amount,
+        } => update_config(deps, info, app, new_native_denom, new_forfeit_amount),
+        ChallengeExecuteMsg::CreateChallenge {
+            name,
+            source_asset,
+            frequency,
+        } => create_challenge(deps, env, info, app, source_asset, frequency, name),
+        ChallengeExecuteMsg::UpdateChallenge {
+            challenge_id,
+            name,
+            source_asset,
+            frequency,
+        } => update_challenge(
+            deps,
+            env,
+            info,
+            app,
+            challenge_id,
+            name,
+            source_asset,
+            frequency,
+        ),
+        ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
+            cancel_challenge(deps, info, app, challenge_id)
+        }
+        ChallengeExecuteMsg::AddFriendForChallenge {
+            challenge_id,
+            friend_name,
+            friend_address,
+        } => add_friend_for_challenge(
+            deps,
+            info,
+            &app,
+            &challenge_id,
+            &friend_name,
+            &friend_address,
+        ),
+        ChallengeExecuteMsg::RemoveFriendForChallenge {
+            challenge_id,
+            friend_address,
+        } => remove_friend_from_challenge(deps, info, &app, challenge_id, friend_address),
+        ChallengeExecuteMsg::AddFriendsForChallenge {
+            challenge_id,
+            friends,
+        } => add_friends_for_challenge(deps, info, &app, challenge_id, friends),
+        ChallengeExecuteMsg::DailyCheckIn { challenge_id } => {
+            daily_check_in(deps, env, info, &app, challenge_id)
+        }
+        ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
+            cast_vote(deps, env, info, &app, vote, &challenge_id)
+        }
+        ChallengeExecuteMsg::CountVotes { challenge_id } => count_votes(deps, env, challenge_id),
+        ChallengeExecuteMsg::ChargePenalty { challenge_id } => {
+            charge_penalty(deps, challenge_id, &app)
+        }
+    }
 }
 
 /// Update the configuration of the app
@@ -29,7 +88,6 @@ fn update_config(
     app: ChallengeApp,
     new_native_denom: Option<String>,
     new_forfeit_amount: Option<Uint128>,
-    new_refill_threshold: Option<Uint128>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let old_config = CONFIG.load(deps.storage)?;
@@ -82,7 +140,8 @@ fn update_challenge(
     env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    acc_id: String,
+    name: String,
+    challenge_id: String,
     new_source_asset: Option<OfferAsset>,
     new_frequency: Option<Frequency>,
 ) -> AppResult {
@@ -90,18 +149,18 @@ fn update_challenge(
 
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
-    let old_challenge = CHALLENGE_LIST.load(deps.storage, acc_id.clone())?;
+    let old_challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let new_challenge = ChallengeEntry {
-        name: old_challenge.name,
+        name,
         source_asset: new_source_asset.unwrap_or(old_challenge.source_asset),
     };
 
-    CHALLENGE_LIST.save(deps.storage, acc_id.clone(), &new_challenge)?;
+    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &new_challenge)?;
 
     let response = if recreate_task {
         let config = CONFIG.load(deps.storage)?;
         let cron_cat = app.cron_cat(deps.as_ref());
-        let remove_task_msg = cron_cat.remove_task(acc_id.clone())?;
+        let remove_task_msg = cron_cat.remove_task(challenge_id.clone())?;
         // @TODO //let create_task_msg =
     };
     Ok(app.tag_response(Response::default(), "update_accountability"))
@@ -111,14 +170,14 @@ fn cancel_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: ChallengeApp,
-    acc_id: String,
+    challenge_id: String,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    CHALLENGE_LIST.remove(deps.storage, acc_id.clone());
+    CHALLENGE_LIST.remove(deps.storage, challenge_id.clone());
 
     let cron_cat = app.cron_cat(deps.as_ref());
-    let remove_task_msg = cron_cat.remove_task(acc_id.clone())?;
+    let remove_task_msg = cron_cat.remove_task(challenge_id.clone())?;
 
     Ok(app.tag_response(
         Response::new().add_message(remove_task_msg),
@@ -130,14 +189,14 @@ fn add_friend_for_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: u64,
-    friend_name: String,
-    friend_address: String,
+    challenge_id: &String,
+    friend_name: &String,
+    friend_address: &String,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     if CHALLENGE_FRIENDS
-        .may_load(deps.storage, (friend_address, challenge_id))?
+        .may_load(deps.storage, (friend_address.clone(), challenge_id.clone()))?
         .is_some()
     {
         return Err(AppError::Std(StdError::generic_err(
@@ -147,10 +206,14 @@ fn add_friend_for_challenge(
 
     let friend = Friend {
         address: friend_address.clone(),
-        name: friend_name,
+        name: friend_name.clone(),
     };
 
-    CHALLENGE_FRIENDS.save(deps.storage, (friend_address, challenge_id), &friend)?;
+    CHALLENGE_FRIENDS.save(
+        deps.storage,
+        (friend_address.clone(), challenge_id.clone()),
+        &friend,
+    )?;
     Ok(Response::new())
 }
 
@@ -158,7 +221,7 @@ pub fn remove_friend_from_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: u64,
+    challenge_id: String,
     friend_address: String,
 ) -> AppResult {
     // Ensure the caller is an admin
@@ -166,7 +229,7 @@ pub fn remove_friend_from_challenge(
 
     // Ensure the friend exists for this challenge before removing
     if CHALLENGE_FRIENDS
-        .may_load(deps.storage, (friend_address, challenge_id))?
+        .may_load(deps.storage, (friend_address.clone(), challenge_id.clone()))?
         .is_none()
     {
         return Err(AppError::Std(StdError::generic_err(
@@ -174,7 +237,7 @@ pub fn remove_friend_from_challenge(
         )));
     }
 
-    CHALLENGE_FRIENDS.remove(deps.storage, (friend_address, challenge_id));
+    CHALLENGE_FRIENDS.remove(deps.storage, (friend_address.clone(), challenge_id.clone()));
     Ok(Response::new())
 }
 
@@ -182,7 +245,7 @@ fn add_friends_for_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: u64,
+    challenge_id: String,
     friends: Vec<Friend>,
 ) -> AppResult {
     // Ensure the caller is an admin
@@ -191,7 +254,7 @@ fn add_friends_for_challenge(
     // Ensure the friends don't already exist for this challenge before adding
     for friend in friends.iter() {
         if CHALLENGE_FRIENDS
-            .may_load(deps.storage, (friend.address, challenge_id))?
+            .may_load(deps.storage, (friend.address.clone(), challenge_id.clone()))?
             .is_some()
         {
             return Err(AppError::Std(StdError::generic_err(
@@ -202,35 +265,45 @@ fn add_friends_for_challenge(
 
     // Add the friends
     for friend in friends.iter() {
-        CHALLENGE_FRIENDS.save(deps.storage, (friend.address, challenge_id), &friend)?;
+        CHALLENGE_FRIENDS.save(
+            deps.storage,
+            (friend.address.clone(), challenge_id.clone()),
+            &friend,
+        )?;
     }
 
     Ok(Response::new())
 }
 
-fn daily_check_in(deps: DepsMut, env: Env, info: MessageInfo, app: &ChallengeApp) -> AppResult {
+fn daily_check_in(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: &ChallengeApp,
+    _challenge_id: String,
+) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let today = date_from_block(env);
+    let today = date_from_block(&env);
     // Check if Admin has already checked in today
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today.clone()) {
         if check_in.last_checked_in == today {
             return Err(AppError::AlreadyCheckedIn {});
         }
     }
 
-    let blocks_per_day = 1440; // dummy value, check this
-                               // let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
-                               //     Frequency::EveryNBlocks(n) => n,
-                               //     Frequency::Daily => blocks_per_day,
-                               //     Frequency::Weekly => 7 * blocks_per_day,
-                               //     Frequency::Monthly => 30 * blocks_per_day,
-                               // };
+    let _blocks_per_day = 1440; // dummy value, check this
+                                // let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
+                                //     Frequency::EveryNBlocks(n) => n,
+                                //     Frequency::Daily => blocks_per_day,
+                                //     Frequency::Weekly => 7 * blocks_per_day,
+                                //     Frequency::Monthly => 30 * blocks_per_day,
+                                // };
 
     let next_check_in_block = env.block.height + 10;
 
     let check_in = CheckIn {
-        last_checked_in: today,
+        last_checked_in: today.clone(),
         next_check_in_by: next_check_in_block,
     };
 
@@ -242,14 +315,14 @@ fn cast_vote(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    app: &ChallengeApp,
+    _app: &ChallengeApp,
     vote: Option<bool>,
-    challenge_id: u64,
+    challenge_id: &String,
 ) -> AppResult {
-    let today = date_from_block(env);
+    let today = date_from_block(&env);
 
     // If Admin checked in today, friends can't vote
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today.clone()) {
         if check_in.last_checked_in == today {
             return Err(AppError::AlreadyCheckedIn {});
         }
@@ -262,29 +335,29 @@ fn cast_vote(
     let vote_entry = Vote {
         voter: info.sender.to_string(),
         vote: Some(final_vote),
-        challenge_id,
+        challenge_id: challenge_id.clone(),
     };
 
     // Load existing votes for the current block height or initialize an empty list if none exist
     let mut votes_for_block = VOTES
-        .load(deps.storage, env.block.height)
+        .load(deps.storage, challenge_id.clone())
         .unwrap_or_else(|_| Vec::new());
 
     // Append the new vote
     votes_for_block.push(vote_entry);
 
     // Save the updated votes
-    VOTES.save(deps.storage, env.block.height, &votes_for_block)?;
+    VOTES.save(deps.storage, challenge_id.clone(), &votes_for_block)?;
 
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
-fn count_votes(deps: DepsMut, env: Env, challenge_id: u64) -> Result<Response, StdError> {
+fn count_votes(_deps: DepsMut, _env: Env, _challenge_id: String) -> AppResult {
     // Load all votes related to the given challenge_id
     Ok(Response::new().add_attribute("action", "count_votes"))
 }
 
-fn date_from_block(env: Env) -> String {
+fn date_from_block(env: &Env) -> String {
     // Convert the block's timestamp to NaiveDateTime
     let seconds = env.block.time.seconds();
     let nano_seconds = env.block.time.subsec_nanos();
@@ -296,7 +369,7 @@ fn date_from_block(env: Env) -> String {
 
 // for now we charge the same penalty regardless of how many false votes there are,
 // we may want to update this to increase the penalty amount for the number of false votes.
-fn charge_penalty(deps: DepsMut, challenge_id: u64, app: &ChallengeApp) -> AppResult {
+fn charge_penalty(deps: DepsMut, challenge_id: String, app: &ChallengeApp) -> AppResult {
     // Load the votes for the given challenge
     let votes = VOTES.load(deps.storage, challenge_id)?;
 

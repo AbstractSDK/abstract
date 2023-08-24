@@ -13,7 +13,7 @@ pub fn query_handler(
 ) -> AppResult<Binary> {
     match msg {
         ChallengeQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
-        ChallengeQueryMsg::Acc { acc_id } => unimplemented!(),
+        ChallengeQueryMsg::Challenge { challenge_id } => unimplemented!(),
     }
     .map_err(Into::into)
 }

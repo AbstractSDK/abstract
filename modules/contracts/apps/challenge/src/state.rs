@@ -24,7 +24,7 @@ pub struct Friend {
 pub struct Vote {
     pub voter: String,
     pub vote: Option<bool>,
-    pub challenge_id: u64,
+    pub challenge_id: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -36,6 +36,6 @@ pub struct CheckIn {
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const CHALLENGE_LIST: Map<String, ChallengeEntry> = Map::new("challenge_list");
-pub const CHALLENGE_FRIENDS: Map<(String, u64), Friend> = Map::new("challenge_friends");
-pub const VOTES: Map<u64, Vec<Vote>> = Map::new("votes");
+pub const CHALLENGE_FRIENDS: Map<(String, String), Friend> = Map::new("challenge_friends");
+pub const VOTES: Map<String, Vec<Vote>> = Map::new("votes");
 pub const DAILY_CHECKINS: Map<String, CheckIn> = Map::new("daily_checkins");
