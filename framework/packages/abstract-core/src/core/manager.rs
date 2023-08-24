@@ -114,6 +114,7 @@ pub struct InstantiateMsg {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
+    pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
 }
 
 /// Callback message to set the dependencies after module upgrades.

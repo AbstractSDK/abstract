@@ -36,7 +36,7 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, CosmosMsg, Deps,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
@@ -91,30 +91,43 @@ pub fn install_module(
     module: ModuleInfo,
     init_msg: Option<Binary>,
 ) -> ManagerResult {
-    // only owner or account_factory can call this method
-    if !ACCOUNT_FACTORY.is_admin(deps.as_ref(), &msg_info.sender)? {
-        assert_admin_right(deps.as_ref(), &msg_info.sender)?;
-    }
-
-    // Check if module is already enabled.
-    if ACCOUNT_MODULES
-        .may_load(deps.storage, &module.id())?
-        .is_some()
-    {
-        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
-    }
+    // only owner can call this method
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
     let response =
         ManagerResponse::new("install_module", vec![("module", module.id_with_version())])
-            .add_message(wasm_execute(
+            .add_message(install_module_internal(
+                deps.storage,
+                module,
                 config.module_factory_address,
-                &ModuleFactoryMsg::InstallModule { module, init_msg },
+                init_msg,
                 msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
             )?);
 
     Ok(response)
+}
+
+// Generate message for installing module
+pub(crate) fn install_module_internal(
+    storage: &mut dyn Storage,
+    module: ModuleInfo,
+    module_factory_address: Addr,
+    init_msg: Option<Binary>,
+    funds: Vec<Coin>,
+) -> ManagerResult<CosmosMsg> {
+    // Check if module is already enabled.
+    if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
+        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
+    }
+
+    let msg = wasm_execute(
+        module_factory_address,
+        &ModuleFactoryMsg::InstallModule { module, init_msg },
+        funds,
+    )?;
+    Ok(msg.into())
 }
 
 // Sets the Treasury address on the module if applicable and adds it to the state
