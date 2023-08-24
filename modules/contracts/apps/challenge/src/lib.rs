@@ -5,6 +5,6 @@ pub mod msg;
 pub mod state;
 
 #[cfg(feature = "interface")]
-pub use contract::interface::DCAApp;
+pub use contract::interface::ChallengeApp;
 #[cfg(feature = "interface")]
-pub use msg::{DCAExecuteMsgFns, DCAQueryMsgFns};
+pub use msg::{ChallengeExecuteMsgFns, ChallengeQueryMsgFns};

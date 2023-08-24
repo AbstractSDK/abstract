@@ -35,6 +35,7 @@ cosmwasm-schema = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
+chrono = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
 
@@ -42,7 +43,6 @@ abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
-chrono = { workspace = true }
 
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
@@ -51,6 +51,7 @@ croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
+abstract-challenge-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
