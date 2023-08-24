@@ -36,7 +36,7 @@ Tokenomics related smart contracts are hosted on ../contracts/tokenomics.
 
 ## Building Contracts
 
-You will need Rust 1.64.0+ with wasm32-unknown-unknown target installed.
+You will need Rust 1.71.0+ with wasm32-unknown-unknown target installed.
 
 ### You can compile each contract:
 Go to contract directory and run 

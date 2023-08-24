@@ -23,3 +23,10 @@ fn main() {
 
     let _: CosmosMsg = msg.into();
 }
+
+mod shim {
+    pub struct Any {
+        pub type_url: String,
+        pub value: Vec<u8>,
+    }
+}
