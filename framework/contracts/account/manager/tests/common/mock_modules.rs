@@ -132,15 +132,15 @@ pub mod app_1 {
 // standalone 1 have cw2
 pub mod standalone_1 {
     pub use super::*;
-    pub const MOCK_STANDALONE_ID: &str = "tester:mock-standalone1";
+    pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
 
     #[cosmwasm_schema::cw_serde]
     pub struct MockMsg;
 
     pub fn mock_instantiate(
-        deps: ::cosmwasm_std::DepsMut,
-        env: ::cosmwasm_std::Env,
-        info: ::cosmwasm_std::MessageInfo,
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
         msg: MockInitMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
         cw2::set_contract_version(deps.storage, MOCK_STANDALONE_ID, V1);
@@ -149,9 +149,9 @@ pub mod standalone_1 {
 
     /// Execute entrypoint
     pub fn mock_execute(
-        deps: ::cosmwasm_std::DepsMut,
-        env: ::cosmwasm_std::Env,
-        info: ::cosmwasm_std::MessageInfo,
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
         msg: MockMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
         Ok(cosmwasm_std::Response::new())
@@ -159,8 +159,8 @@ pub mod standalone_1 {
 
     /// Query entrypoint
     pub fn mock_query(
-        deps: ::cosmwasm_std::Deps,
-        env: ::cosmwasm_std::Env,
+        deps: cosmwasm_std::Deps,
+        env: cosmwasm_std::Env,
         msg: MockMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
         Ok(cosmwasm_std::Binary::default())
@@ -170,14 +170,14 @@ pub mod standalone_1 {
 // standalone 2 does not have cw2
 pub mod standalone_2 {
     pub use super::*;
-    pub const MOCK_STANDALONE_ID: &str = "tester:mock-standalone2";
+    pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
 
     pub use super::standalone_1::{mock_execute, mock_query, MockMsg};
 
     pub fn mock_instantiate(
-        deps: ::cosmwasm_std::DepsMut,
-        env: ::cosmwasm_std::Env,
-        info: ::cosmwasm_std::MessageInfo,
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
         msg: MockInitMsg,
     ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
         Ok(cosmwasm_std::Response::new())
