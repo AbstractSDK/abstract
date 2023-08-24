@@ -1,4 +1,4 @@
-use cw20::msg::Cw20ExecuteMsgFns;
+use cw20::Cw20ExecuteMsgFns;
 pub mod suite;
 
 use abstract_interface::AbstractInterfaceError;
@@ -21,7 +21,7 @@ use wyndex::{
     factory::{DefaultStakeConfig, PartialStakeConfig},
 };
 
-use cw20_base::contract::AbstractCw20Base;
+use cw20_base::contract::Cw20Base as AbstractCw20Base;
 
 pub const STAKING: &str = "wyndex:staking";
 pub const FACTORY: &str = "wyndex:factory";

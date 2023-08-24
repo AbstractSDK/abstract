@@ -37,5 +37,4 @@ lazy_static = "1.4.0"
 abstract-dex-adapter-traits = { version = "0.18.0", features = [
   "testing",
 ], path = "../../../../framework/packages/dex" }
-cw-orch = { version = "0.13", features = ["daemon"] }
-ibc-chain-registry = "0.24.1"
+cw-orch = { version = "0.15.0", features = ["daemon"] }

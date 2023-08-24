@@ -45,11 +45,11 @@ pub struct GenesisState {
     #[prost(message, repeated, tag = "2")]
     pub feetokens: ::prost::alloc::vec::Vec<FeeToken>,
 }
-/// UpdateFeeTokenProposal is a gov Content type for adding a new whitelisted fee
-/// token. It must specify a denom along with gamm pool ID to use as a spot price
-/// calculator. It can be used to add a new denom to the whitelist It can also be
-/// used to update the Pool to associate with the denom. If Pool ID is set to 0,
-/// it will remove the denom from the whitelisted set.
+/// UpdateFeeTokenProposal is a gov Content type for adding new whitelisted fee
+/// token(s). It must specify a denom along with gamm pool ID to use as a spot
+/// price calculator. It can be used to add new denoms to the whitelist. It can
+/// also be used to update the Pool to associate with the denom. If Pool ID is
+/// set to 0, it will remove the denom from the whitelisted set.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -67,8 +67,8 @@ pub struct UpdateFeeTokenProposal {
     pub title: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub description: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
-    pub feetoken: ::core::option::Option<FeeToken>,
+    #[prost(message, repeated, tag = "3")]
+    pub feetokens: ::prost::alloc::vec::Vec<FeeToken>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
