@@ -36,7 +36,9 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &mut self,
         deps: Deps,
         env: Env,
+        info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        abstract_registry: Addr,
         staking_asset: AssetEntry,
     ) -> AbstractSdkResult<()>;
 

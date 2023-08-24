@@ -550,6 +550,20 @@ pub struct MsgCreateGauge {
         deserialize_with = "crate::serde::as_str::deserialize"
     )]
     pub num_epochs_paid_over: u64,
+    /// pool_id is the ID of the pool that the gauge is meant to be associated
+    /// with. if pool_id is set, then the "QueryCondition.LockQueryType" must be
+    /// "NoLock" with all other fields of the "QueryCondition.LockQueryType" struct
+    /// unset, including "QueryCondition.Denom". However, note that, internally,
+    /// the empty string in "QueryCondition.Denom" ends up being overwritten with
+    /// incentivestypes.NoLockExternalGaugeDenom(<pool-id>) so that the gauges
+    /// associated with a pool can be queried by this prefix if needed.
+    #[prost(uint64, tag = "7")]
+    #[serde(alias = "poolID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub pool_id: u64,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(

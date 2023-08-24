@@ -65,17 +65,26 @@ pub fn derive_cosmwasm_ext(input: TokenStream) -> TokenStream {
         impl #ident {
             pub const TYPE_URL: &'static str = #type_url;
             #cosmwasm_query
+
+            pub fn to_proto_bytes(&self) -> Vec<u8> {
+                let mut bytes = Vec::new();
+                prost::Message::encode(self, &mut bytes)
+                    .expect("Message encoding must be infallible");
+                bytes
+            }
+            pub fn to_any(&self) -> crate::shim::Any {
+                crate::shim::Any {
+                    type_url: Self::TYPE_URL.to_string(),
+                    value: self.to_proto_bytes(),
+                }
+            }
         }
 
         #query_request_conversion
 
         impl From<#ident> for cosmwasm_std::Binary {
             fn from(msg: #ident) -> Self {
-                let mut bytes = Vec::new();
-                prost::Message::encode(&msg, &mut bytes)
-                    .expect("Message encoding must be infallible");
-
-                cosmwasm_std::Binary(bytes)
+                cosmwasm_std::Binary(msg.to_proto_bytes())
             }
         }
 
@@ -94,15 +103,15 @@ pub fn derive_cosmwasm_ext(input: TokenStream) -> TokenStream {
             fn try_from(binary: cosmwasm_std::Binary) -> Result<Self, Self::Error> {
                 use ::prost::Message;
                 Self::decode(&binary[..]).map_err(|e| {
-                    cosmwasm_std::StdError::ParseErr {
-                        target_type: stringify!(#ident).to_string(),
-                        msg: format!(
+                    cosmwasm_std::StdError::parse_err(
+                        stringify!(#ident),
+                        format!(
                             "Unable to decode binary: \n  - base64: {}\n  - bytes array: {:?}\n\n{:?}",
                             binary,
                             binary.to_vec(),
                             e
-                        ),
-                    }
+                        )
+                    )
                 })
             }
         }
@@ -113,15 +122,14 @@ pub fn derive_cosmwasm_ext(input: TokenStream) -> TokenStream {
             fn try_from(result: cosmwasm_std::SubMsgResult) -> Result<Self, Self::Error> {
                 result
                     .into_result()
-                    .map_err(|e| cosmwasm_std::StdError::GenericErr { msg: e })?
+                    .map_err(|e| cosmwasm_std::StdError::generic_err(e))?
                     .data
-                    .ok_or_else(|| cosmwasm_std::StdError::NotFound {
-                        kind: "cosmwasm_std::SubMsgResult::<T>".to_string(),
-                    })?
+                    .ok_or_else(|| cosmwasm_std::StdError::not_found("cosmwasm_std::SubMsgResult::<T>"))?
                     .try_into()
             }
         }
-    }).into()
+    })
+    .into()
 }
 
 fn get_type_url(attrs: &[syn::Attribute]) -> proc_macro2::TokenStream {

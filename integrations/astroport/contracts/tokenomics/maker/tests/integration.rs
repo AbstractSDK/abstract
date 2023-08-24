@@ -53,8 +53,8 @@ fn store_coin_registry_code(app: &mut App) -> u64 {
     app.store_code(coin_registry_contract)
 }
 
-fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
-    let coin_registry_id = store_coin_registry_code(&mut app);
+fn instantiate_coin_registry(app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
+    let coin_registry_id = store_coin_registry_code(app);
     let coin_registry_address = app
         .instantiate_contract(
             coin_registry_id,
@@ -84,7 +84,7 @@ fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>
 }
 
 fn instantiate_contracts(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     staking: Addr,
     governance_percent: Uint64,
@@ -149,7 +149,7 @@ fn instantiate_contracts(
     };
 
     let coin_registry_address = instantiate_coin_registry(
-        &mut router,
+        router,
         Some(vec![("uluna".to_string(), 6), ("uusd".to_string(), 6)]),
     );
 
@@ -277,17 +277,9 @@ fn instantiate_token(router: &mut App, owner: Addr, name: String, symbol: String
         marketing: None,
     };
 
-    let token_instance = router
-        .instantiate_contract(
-            token_code_id.clone(),
-            owner.clone(),
-            &msg,
-            &[],
-            symbol,
-            None,
-        )
-        .unwrap();
-    token_instance
+    router
+        .instantiate_contract(token_code_id, owner.clone(), &msg, &[], symbol, None)
+        .unwrap()
 }
 
 fn mint_some_token(router: &mut App, owner: Addr, token_instance: Addr, to: Addr, amount: Uint128) {
@@ -344,7 +336,7 @@ fn check_balance(router: &mut App, user: Addr, token: Addr, expected_amount: Uin
 }
 
 fn create_pair(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     user: Addr,
     factory_instance: &Addr,
@@ -355,7 +347,7 @@ fn create_pair(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 mint_some_token(
-                    &mut router,
+                    router,
                     owner.clone(),
                     contract_addr.clone(),
                     user.clone(),
@@ -403,11 +395,11 @@ fn create_pair(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 allowance_token(
-                    &mut router,
+                    router,
                     user.clone(),
                     pair_info.contract_addr.clone(),
                     contract_addr.clone(),
-                    a.amount.clone(),
+                    a.amount,
                 );
             }
             AssetInfo::NativeToken { denom } => {
@@ -1952,7 +1944,7 @@ fn distribute_initially_accrued_fees() {
         owner.clone(),
         vec![Coin {
             denom: uluna_asset.clone(),
-            amount: Uint128::new(100_000_000_000_000000u128),
+            amount: Uint128::new(100_000_000_000_000_000_u128),
         }],
     );
 

@@ -356,7 +356,7 @@ fn provide_liquidity() {
                 contract_addr: String::from("liquidity0000"),
                 msg: to_binary(&Cw20ExecuteMsg::Mint {
                     recipient: String::from("addr0000"),
-                    amount: Uint128::new(74_981_956_874_579_206461),
+                    amount: Uint128::new(74_981_956_874_579_206_461),
                 })
                 .unwrap(),
                 funds: vec![],
@@ -957,8 +957,7 @@ fn try_token_to_native() {
                     denom: "uusd".to_string(),
                     amount: 1500851252u128.into(),
                 }],
-            })
-            .into(),
+            }),
             id: 0,
             gas_limit: None,
             reply_on: ReplyOn::Never,
@@ -1189,7 +1188,7 @@ fn test_accumulate_prices() {
             Case {
                 block_time: 1000,
                 block_time_last: 1000,
-                last0: 1 * price_precision,
+                last0: price_precision,
                 last1: 2 * price_precision,
                 x_amount: 250_000000,
                 y_amount: 500_000000,
