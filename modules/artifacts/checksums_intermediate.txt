@@ -1,6 +1,3 @@
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
 e04fb23ff560c730adf355ec4a49a2e7eb334fc2ee02d468ddb474dbc04b605a  target/wasm32-unknown-unknown/release/abstract_cw_staking.wasm
 ae5236c71ea1557fd43602ce98e1e3be5bf7a0565c3dfc091c0d0326b4e8c3b6  target/wasm32-unknown-unknown/release/abstract_dca_app.wasm
 c85c9c875aa9769e575bb643b90fb79743406d9831c72bf53f7d9ced804d08ca  target/wasm32-unknown-unknown/release/abstract_dex_adapter.wasm
