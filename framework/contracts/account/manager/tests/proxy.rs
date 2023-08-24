@@ -8,10 +8,13 @@ use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
 use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
-use common::{create_default_account, init_mock_adapter, install_adapter, AResult, TEST_COIN};
+use common::{
+    create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
+};
 use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
+use module_factory::error::ModuleFactoryError;
 use speculoos::prelude::*;
 
 #[test]
@@ -167,38 +170,104 @@ fn with_response_data() -> AResult {
 }
 
 #[test]
-fn install_pre_wasmed_modules() -> AResult {
+fn install_standalone_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, Some(0));
-    let cw20_contract = Box::new(ContractWrapper::new(
-        cw20_base::contract::execute,
-        cw20_base::contract::instantiate,
-        cw20_base::contract::query,
-    ));
-    let cw20_id = chain.app.borrow_mut().store_code(cw20_contract);
 
+    let standalone1_contract = Box::new(ContractWrapper::new(
+        mock_modules::standalone_1::mock_execute,
+        mock_modules::standalone_1::mock_instantiate,
+        mock_modules::standalone_1::mock_query,
+    ));
+    let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
+
+    let standalone2_contract = Box::new(ContractWrapper::new(
+        mock_modules::standalone_2::mock_execute,
+        mock_modules::standalone_2::mock_instantiate,
+        mock_modules::standalone_2::mock_query,
+    ));
+    let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
+
+    // install first standalone
     deployment.version_control.propose_modules(vec![(
         ModuleInfo {
             namespace: Namespace::new("abstract")?,
-            name: "cw20".to_owned(),
-            version: ModuleVersion::Version("1.1.0".to_owned()),
+            name: "standalone1".to_owned(),
+            version: ModuleVersion::Version(mock_modules::V1.to_owned()),
         },
-        ModuleReference::Standalone(cw20_id),
+        ModuleReference::Standalone(standalone1_id),
     )])?;
 
     account.install_module(
-        "abstract:cw20",
-        &cw20_base::msg::InstantiateMsg {
-            name: "abstr".to_owned(),
-            symbol: "abs".to_owned(),
-            decimals: 6,
-            initial_balances: vec![],
-            mint: None,
-            marketing: None,
-        },
+        "abstract:standalone1",
+        &mock_modules::standalone_1::MockMsg,
         None,
     )?;
+
+    // install second standalone
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("abstract")?,
+            name: "standalone2".to_owned(),
+            version: ModuleVersion::Version(mock_modules::V1.to_owned()),
+        },
+        ModuleReference::Standalone(standalone2_id),
+    )])?;
+
+    account.install_module(
+        "abstract:standalone2",
+        &mock_modules::standalone_2::MockMsg,
+        None,
+    )?;
+    Ok(())
+}
+
+#[test]
+fn install_standalone_versions_not_met() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = AbstractAccount::new(&deployment, Some(0));
+
+    let standalone1_contract = Box::new(ContractWrapper::new(
+        mock_modules::standalone_1::mock_execute,
+        mock_modules::standalone_1::mock_instantiate,
+        mock_modules::standalone_1::mock_query,
+    ));
+    let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
+
+    // install first standalone
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("abstract")?,
+            name: "standalone1".to_owned(),
+            version: ModuleVersion::Version(mock_modules::V2.to_owned()),
+        },
+        ModuleReference::Standalone(standalone1_id),
+    )])?;
+
+    let err = account
+        .install_module(
+            "abstract:standalone1",
+            &mock_modules::standalone_1::MockMsg,
+            None,
+        )
+        .unwrap_err();
+
+    if let AbstractInterfaceError::Orch(err) = err {
+        let err: ModuleFactoryError = err.downcast()?;
+        assert_eq!(
+            err,
+            ModuleFactoryError::Abstract(abstract_core::AbstractError::UnequalModuleData {
+                cw2: mock_modules::V1.to_owned(),
+                module: mock_modules::V2.to_owned(),
+            })
+        );
+    } else {
+        panic!("wrong error type")
+    };
+
     Ok(())
 }

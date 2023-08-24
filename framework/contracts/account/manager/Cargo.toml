@@ -55,8 +55,6 @@ abstract-app = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }
 abstract-macros = { workspace = true }
 
-cw20-base = { version = "1.1.0" }
-
 [profile.release]
 rpath = false
 lto = true
