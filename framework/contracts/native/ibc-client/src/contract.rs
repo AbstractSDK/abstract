@@ -71,16 +71,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             host_chain,
             action,
             callback_request,
-            retries,
-        } => commands::execute_send_packet(
-            deps,
-            env,
-            info,
-            host_chain,
-            action,
-            callback_request,
-            retries,
-        ),
+        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_request),
         ExecuteMsg::RegisterChainHost { chain, note, host } => {
             commands::execute_allow_chain_host(deps, env, info, chain, host, note)
         }

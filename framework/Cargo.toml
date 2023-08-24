@@ -55,9 +55,9 @@ semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { version = "0.15.0" }
 tokio = { version = "1.4", features = ["full"] }
-cw-orch-polytone = {git="https://github.com/AbstractSDK/polytone", version="1.0.0"}
-polytone = {git="https://github.com/AbstractSDK/polytone", version="1.0.0"}
-polytone-note = {git="https://github.com/AbstractSDK/polytone", version="1.0.0"}
+cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
+polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
 
 
 ## crates in order of publishing ## see docs/Publishing.md

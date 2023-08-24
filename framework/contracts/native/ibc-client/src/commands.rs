@@ -162,7 +162,6 @@ pub fn execute_send_packet(
     host_chain: ChainName,
     action: HostAction,
     callback_request: Option<CallbackRequest>,
-    mut retries: u8,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(cfg.version_control_address);
@@ -358,7 +357,6 @@ mod test {
         let msg = InstantiateMsg {
             ans_host_address: TEST_ANS_HOST.to_string(),
             version_control_address: TEST_VERSION_CONTROL.to_string(),
-            chain: TEST_CHAIN.to_string(),
         };
         contract::instantiate(deps, mock_env(), mock_info(TEST_ADMIN, &[]), msg)
     }
