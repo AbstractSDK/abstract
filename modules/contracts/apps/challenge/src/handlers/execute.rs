@@ -1,24 +1,26 @@
-use abstract_app::AppError;
-use abstract_core::objects::{AssetEntry, DexName};
+use crate::error::AppError;
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{
-    wasm_execute, CosmosMsg, Decimal, DepsMut, Env, Error, MessageInfo, Order, Response, Uint128,
-};
-use cw_asset::{Asset, AssetList};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Uint128};
+use croncat_app::CronCatInterface;
 
 use crate::contract::{AppResult, ChallengeApp};
+use chrono::{Datelike, NaiveDateTime};
 
-use crate::error::AppError;
-use crate::msg::{AccExecuteMsg, ExecuteMsg, Frequency};
+use crate::msg::{ChallengeExecuteMsg, Frequency};
 use crate::state::{
-    AccEntry, ChallengeEntry, Config, Friend, CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG, NEXT_ID,
+    ChallengeEntry, CheckIn, Config, Friend, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG,
+    DAILY_CHECKINS, NEXT_ID, VOTES,
 };
-use abstract_dex_adapter::api::DexInterface;
-use abstract_sdk::AbstractSdkResult;
-use chrono::NaiveTime;
-use croncat_app::croncat_intergration_utils::{CronCatAction, CronCatTaskRequest};
-use croncat_app::{CronCat, CronCatInterface};
+
+pub fn execute_handler(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: ChallengeApp,
+    msg: ChallengeExecuteMsg,
+) -> AppResult {
+}
 
 /// Update the configuration of the app
 fn update_config(
@@ -51,7 +53,7 @@ fn create_challenge(
     app: ChallengeApp,
     source_asset: OfferAsset,
     frequence: Frequency,
-    dex_name: DexName,
+    name: String,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -60,21 +62,16 @@ fn create_challenge(
 
     // Generate the challenge id
     let id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
-    let dca_id = format!("acc_{id}");
+    let challenge_id = format!("challenge_{id}");
 
-    let acc_entry = AccEntry {
-        source_asset,
-        frequency,
-    };
-    CHALLENGE_LIST.save(deps.storage, dca_id.clone(), &acc_entry)?;
+    let acc_entry = ChallengeEntry { name, source_asset };
+    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &acc_entry)?;
 
     let cron_cat = app.cron_cat(deps.as_ref());
     //let task_msg =
 
     Ok(app.tag_response(
-        Response::new()
-            .add_message(task_msg)
-            .add_attribute("acc_id", acc_id),
+        Response::new().add_attribute("challeng_id", challenge_id),
         "create_accountability",
     ))
 }
@@ -93,14 +90,13 @@ fn update_challenge(
 
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
-    let old_accountability = CHALLENGE_LIST.load(deps.storage, acc_id.clone())?;
-    let new_accountability = ChallengeEntry {
-        name: new_name.unwrap_or(old_accountability.name),
-        source_asset: new_source_asset.unwrap_or(old_accountability.source_asset),
-        frequency: new_frequency.unwrap_or(old_accountability.frequency),
+    let old_challenge = CHALLENGE_LIST.load(deps.storage, acc_id.clone())?;
+    let new_challenge = ChallengeEntry {
+        name: old_challenge.name,
+        source_asset: new_source_asset.unwrap_or(old_challenge.source_asset),
     };
 
-    DCA_LIST.save(deps.storage, acc_id.clone(), &new_accountability)?;
+    CHALLENGE_LIST.save(deps.storage, acc_id.clone(), &new_challenge)?;
 
     let response = if recreate_task {
         let config = CONFIG.load(deps.storage)?;
@@ -108,6 +104,7 @@ fn update_challenge(
         let remove_task_msg = cron_cat.remove_task(acc_id.clone())?;
         // @TODO //let create_task_msg =
     };
+    Ok(app.tag_response(Response::default(), "update_accountability"))
 }
 
 fn cancel_challenge(
@@ -132,7 +129,7 @@ fn cancel_challenge(
 fn add_friend_for_challenge(
     deps: DepsMut,
     info: MessageInfo,
-    app: &AccApp,
+    app: &ChallengeApp,
     challenge_id: u64,
     friend_name: String,
     friend_address: String,
@@ -140,12 +137,12 @@ fn add_friend_for_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     if CHALLENGE_FRIENDS
-        .may_load(deps.storage, (friend_address, challlenge_id))?
+        .may_load(deps.storage, (friend_address, challenge_id))?
         .is_some()
     {
-        return AppError::Std(Error::generic_err(
+        return Err(AppError::Std(StdError::generic_err(
             "Friend already added for this challenge",
-        ));
+        )));
     }
 
     let friend = Friend {
@@ -153,7 +150,7 @@ fn add_friend_for_challenge(
         name: friend_name,
     };
 
-    CHALLENGE_FRIENDS.save(deps.storage, (friend_address, challlenge_id), &friend)?;
+    CHALLENGE_FRIENDS.save(deps.storage, (friend_address, challenge_id), &friend)?;
     Ok(Response::new())
 }
 
@@ -172,7 +169,7 @@ pub fn remove_friend_from_challenge(
         .may_load(deps.storage, (friend_address, challenge_id))?
         .is_none()
     {
-        return Err(AppError::Std(Error::generic_err(
+        return Err(AppError::Std(StdError::generic_err(
             "Friend not found for this challenge",
         )));
     }
@@ -197,7 +194,7 @@ fn add_friends_for_challenge(
             .may_load(deps.storage, (friend.address, challenge_id))?
             .is_some()
         {
-            return Err(AppError::Std(Error::generic_err(
+            return Err(AppError::Std(StdError::generic_err(
                 "Friend already added for this challenge",
             )));
         }
@@ -214,29 +211,30 @@ fn add_friends_for_challenge(
 fn daily_check_in(deps: DepsMut, env: Env, info: MessageInfo, app: &ChallengeApp) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
+    let today = date_from_block(env);
     // Check if Admin has already checked in today
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &date_from_block(env)) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today) {
         if check_in.last_checked_in == today {
-            return Err(StdError::generic_err("Already checked in today."));
+            return Err(AppError::AlreadyCheckedIn {});
         }
     }
 
     let blocks_per_day = 1440; // dummy value, check this
-    let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
-        Frequency::EveryNBlocks(n) => n,
-        Frequency::Daily => blocks_per_day,
-        Frequency::Weekly => 7 * blocks_per_day,
-        Frequency::Monthly => 30 * blocks_per_day,
-    };
+                               // let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
+                               //     Frequency::EveryNBlocks(n) => n,
+                               //     Frequency::Daily => blocks_per_day,
+                               //     Frequency::Weekly => 7 * blocks_per_day,
+                               //     Frequency::Monthly => 30 * blocks_per_day,
+                               // };
 
-    let next_check_in_block = env.block.height + next_interval_blocks;
+    let next_check_in_block = env.block.height + 10;
 
     let check_in = CheckIn {
         last_checked_in: today,
         next_check_in_by: next_check_in_block,
     };
 
-    DAILY_CHECKINS.save(deps.storage, &today, &check_in)?;
+    DAILY_CHECKINS.save(deps.storage, today, &check_in)?;
     Ok(Response::new().add_attribute("action", "check_in"))
 }
 
@@ -246,71 +244,44 @@ fn cast_vote(
     info: MessageInfo,
     app: &ChallengeApp,
     vote: Option<bool>,
+    challenge_id: u64,
 ) -> AppResult {
-    // Ensure sender is a registered friend
-    if !FRIENDS.has(deps.storage, &info.sender.to_string()) {
-        return Err(StdError::generic_err("Only registered friends can vote."));
-    }
+    let today = date_from_block(env);
 
     // If Admin checked in today, friends can't vote
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, &date_from_block(env)) {
+    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today) {
         if check_in.last_checked_in == today {
-            return Err(StdError::generic_err(
-                "Joe checked in today, no need to vote.",
-            ));
+            return Err(AppError::AlreadyCheckedIn {});
         }
     }
 
     // If the vote is None, default to true (meaning we assume Admin fulfilled his challenge)
     let final_vote = vote.unwrap_or(true);
 
-    // Save the vote
+    // Construct the vote
     let vote_entry = Vote {
         voter: info.sender.to_string(),
         vote: Some(final_vote),
-        challenge_id: app.current_challenge_id,
+        challenge_id,
     };
-    VOTES.save(deps.storage, &env.block.height, &vote_entry)?;
+
+    // Load existing votes for the current block height or initialize an empty list if none exist
+    let mut votes_for_block = VOTES
+        .load(deps.storage, env.block.height)
+        .unwrap_or_else(|_| Vec::new());
+
+    // Append the new vote
+    votes_for_block.push(vote_entry);
+
+    // Save the updated votes
+    VOTES.save(deps.storage, env.block.height, &votes_for_block)?;
+
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
 fn count_votes(deps: DepsMut, env: Env, challenge_id: u64) -> Result<Response, StdError> {
     // Load all votes related to the given challenge_id
-    let votes_for_challenge: Vec<Vote> = VOTES
-        .range(deps.storage, None, None, Order::Ascending)
-        .filter_map(|(_, vote)| {
-            if vote.challenge_id == challenge_id {
-                Some(vote)
-            } else {
-                None
-            }
-        })
-        .collect();
-
-    if votes_for_challenge.is_empty() {
-        return Err(StdError::generic_err("No votes found for this challenge."));
-    }
-
-    let total_votes = votes_for_challenge.len() as u64;
-    let passed_votes = votes_for_challenge
-        .iter()
-        .filter(|vote| vote.vote.unwrap_or(true))
-        .count() as u64;
-    let failed_votes = total_votes - passed_votes;
-
-    let result = if passed_votes > failed_votes {
-        "passed"
-    } else {
-        "failed"
-    };
-
-    Ok(Response::new()
-        .add_attribute("action", "count_votes")
-        .add_attribute("challenge_id", challenge_id.to_string())
-        .add_attribute("total_votes", total_votes.to_string())
-        .add_attribute("passed_votes", passed_votes.to_string())
-        .add_attribute("failed_votes", failed_votes.to_string())
-        .add_attribute("result", result))
+    Ok(Response::new().add_attribute("action", "count_votes"))
 }
 
 fn date_from_block(env: Env) -> String {
@@ -321,4 +292,52 @@ fn date_from_block(env: Env) -> String {
 
     // Format the date using the NaiveDateTime object
     format!("{:04}-{:02}-{:02}", dt.year(), dt.month(), dt.day())
+}
+
+// for now we charge the same penalty regardless of how many false votes there are,
+// we may want to update this to increase the penalty amount for the number of false votes.
+fn charge_penalty(deps: DepsMut, challenge_id: u64, app: &ChallengeApp) -> AppResult {
+    // Load the votes for the given challenge
+    let votes = VOTES.load(deps.storage, challenge_id)?;
+
+    // Check if there's any false vote
+    if votes.iter().any(|vote| vote.vote == Some(false)) {
+        // Fetch the penalty amount from Config
+        let config: Config = CONFIG.load(deps.storage)?;
+        let penalty_amount = config.forfeit_amount;
+
+        // Deduct the penalty from the admin's balance/resource
+        deduct_penalty_from_admin(deps, &penalty_amount, app)?;
+
+        // Distribute the penalty among the friends
+        //distribute_penalty_to_friends(deps, &penalty_amount, app)?;
+
+        // Log or notify as required
+        Ok(Response::new().add_attribute("action", "penalty_charged"))
+    } else {
+        Ok(Response::new().add_attribute("action", "no_penalty_charged"))
+    }
+}
+
+fn deduct_penalty_from_admin(
+    deps: DepsMut,
+    penalty_amount: &Uint128,
+    app: &ChallengeApp,
+) -> AppResult {
+    // // Fetch the admin's address from Config
+    // let admin_address = deps.api.addr_validate(&config.admin)?;
+    // let bank = app.bank(deps.as_ref());
+    // let executor = app.executor(deps.as_ref());
+    // let transfer_action = bank.transfer(
+    //     vec![Asset::native(config.native_denom, *penalty_amount)],
+    //     &admin_address,
+    //     &executor,
+    // )?;
+    //
+    // // Deduct the penalty from the admin's balance/resource
+    // let new_balance = admin_account.balance.checked_sub(*penalty_amount)?;
+    // ACCOUNTS.save(deps.storage, &admin_address, &new_account)?;
+    //
+    // Ok(())
+    Ok(Response::new().add_attribute("action", "deduct_penalty"))
 }

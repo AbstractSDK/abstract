@@ -1,9 +1,10 @@
-use crate::{contract::AccApp, state::ChallengeEntry};
-use abstract_core::objects::{AssetEntry, PoolReference};
-use cosmwasm_std::{Decimal, Uint128};
-use croncat_app::croncat_intergration_utils::CronCatInterval;
+use crate::{contract::ChallengeApp, state::ChallengeEntry};
+use abstract_core::objects::AssetEntry;
+use cosmwasm_schema::QueryResponses;
+use cosmwasm_std::Uint128;
+use croncat_app::croncat_integration_utils::CronCatInterval;
 
-abstract_app::app_msg_types!(AccApp, ChallengeExecuteMsg, ChallengeQueryMsg);
+abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
 #[cosmwasm_schema::cw_serde]
 pub enum Frequency {
@@ -29,7 +30,7 @@ impl Frequency {
 pub struct AppInstantiateMsg {
     /// Native gas/stake asset for this chain
     pub native_asset: AssetEntry,
-    /// Amount in native coins for accountability creation task and refill amount
+    /// Amount in native coins to forfeit when a challenge is lost
     pub forfeit_amount: Uint128,
     /// Task balance threshold to trigger refill, put it at zero if you consider to never refill your tasks
     pub refill_threshold: Uint128,
@@ -50,7 +51,7 @@ pub enum ChallengeExecuteMsg {
 pub enum ChallengeQueryMsg {
     #[returns(ConfigResponse)]
     Config {},
-    #[returns(AccResponse)]
+    #[returns(ChallengeResponse)]
     Acc { acc_id: String },
 }
 
@@ -63,5 +64,4 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeResponse {
     pub challenge: Option<ChallengeEntry>,
-    pub pool_references: Vec<PoolReference>,
 }

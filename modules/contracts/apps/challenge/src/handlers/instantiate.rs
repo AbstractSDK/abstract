@@ -1,17 +1,16 @@
+use crate::contract::{AppResult, ChallengeApp};
+use crate::msg::AppInstantiateMsg;
+use crate::state::{Config, CONFIG, NEXT_ID};
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetInfoBase;
 
-use crate::contract::{AccApp, AppResult};
-use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG, NEXT_ID};
-
 pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    app: AccApp,
+    app: ChallengeApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
     let ans_host = app.ans_host(deps.as_ref())?;

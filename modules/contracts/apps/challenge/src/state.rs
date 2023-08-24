@@ -1,10 +1,6 @@
-use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::msg::OfferAsset;
-use cosmwasm_std::{Decimal, Uint128};
-use croncat_app::croncat_integration_utils::CronCatInterval;
+use cosmwasm_std::Uint128;
 use cw_storage_plus::{Item, Map};
-
-use crate::msg::Frequency;
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -16,7 +12,6 @@ pub struct Config {
 pub struct ChallengeEntry {
     pub name: String,
     pub source_asset: OfferAsset,
-    pub frequency: Frequency,
 }
 
 #[cosmwasm_schema::cw_serde]
