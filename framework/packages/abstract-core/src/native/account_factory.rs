@@ -14,7 +14,6 @@ pub mod state {
 
     use crate::objects::{
         account_id::AccountId,
-        gov_type::GovernanceDetails,
         module::{Module, ModuleInfo},
         AssetEntry,
     };
@@ -37,7 +36,6 @@ pub mod state {
 
         pub additional_config: AdditionalContextConfig,
         pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
-        pub governance: GovernanceDetails<Addr>,
     }
 
     /// Account Factory additional config context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation

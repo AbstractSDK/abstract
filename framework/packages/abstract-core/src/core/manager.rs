@@ -183,10 +183,7 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Owner
     /// New owner will have to claim ownership, in case force is not true
-    SetOwner {
-        owner: GovernanceDetails<String>,
-        forced: Option<bool>,
-    },
+    SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.

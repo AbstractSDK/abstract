@@ -69,7 +69,6 @@ pub fn execute_create_account(
                 base_asset,
             },
             install_modules,
-            governance,
         },
     )?;
 
@@ -95,9 +94,7 @@ pub fn execute_create_account(
                     name,
                     description,
                     link,
-                    owner: GovernanceDetails::Monarchy {
-                        monarch: env.contract.address.to_string(),
-                    },
+                    owner: governance.into(),
                 })?,
             }
             .into(),
@@ -294,15 +291,6 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         admin: manager_address.to_string(),
     });
 
-    let set_manager_governance_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
-        contract_addr: manager_address.to_string(),
-        msg: to_binary(&ExecuteMsg::SetOwner {
-            owner: context.governance.into(),
-            forced: Some(true),
-        })?,
-        funds: vec![],
-    });
-
     // Update id sequence
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
@@ -338,9 +326,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     resp = resp
         .add_message(set_proxy_admin_msg)
         .add_message(set_manager_admin_msg)
-        .add_messages(instantiate_modules_msgs)
-        .add_message(set_manager_governance_msg);
-
+        .add_messages(instantiate_modules_msgs);
     Ok(resp)
 }
 
