@@ -105,6 +105,9 @@ pub struct RouteStatistics {
 /// significantly between the different pool types. Each weight roughly
 /// corresponds to the amount of time (in ms) it takes to execute a swap on that
 /// pool type.
+///
+/// DEPRECATED: This field is deprecated and will be removed in the next
+/// release. It is replaced by the `info_by_pool_type` field.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -139,6 +142,161 @@ pub struct PoolWeights {
         deserialize_with = "crate::serde::as_str::deserialize"
     )]
     pub concentrated_weight: u64,
+    /// The weight of a cosmwasm pool
+    #[prost(uint64, tag = "4")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub cosmwasm_weight: u64,
+}
+/// InfoByPoolType contains information pertaining to how expensive (in terms of
+/// gas and time) it is to execute a swap on a given pool type. This distinction
+/// is made and necessary because the execution time ranges significantly between
+/// the different pool types.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.InfoByPoolType")]
+pub struct InfoByPoolType {
+    /// The stable pool info
+    #[prost(message, optional, tag = "1")]
+    pub stable: ::core::option::Option<StablePoolInfo>,
+    /// The balancer pool info
+    #[prost(message, optional, tag = "2")]
+    pub balancer: ::core::option::Option<BalancerPoolInfo>,
+    /// The concentrated pool info
+    #[prost(message, optional, tag = "3")]
+    pub concentrated: ::core::option::Option<ConcentratedPoolInfo>,
+    /// The cosmwasm pool info
+    #[prost(message, optional, tag = "4")]
+    pub cosmwasm: ::core::option::Option<CosmwasmPoolInfo>,
+}
+/// StablePoolInfo contains meta data pertaining to a stableswap pool type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.StablePoolInfo")]
+pub struct StablePoolInfo {
+    /// The weight of a stableswap pool
+    #[prost(uint64, tag = "1")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub weight: u64,
+}
+/// BalancerPoolInfo contains meta data pertaining to a balancer pool type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.BalancerPoolInfo")]
+pub struct BalancerPoolInfo {
+    /// The weight of a balancer pool
+    #[prost(uint64, tag = "1")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub weight: u64,
+}
+/// ConcentratedPoolInfo contains meta data pertaining to a concentrated pool
+/// type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.ConcentratedPoolInfo")]
+pub struct ConcentratedPoolInfo {
+    /// The weight of a concentrated pool
+    #[prost(uint64, tag = "1")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub weight: u64,
+    /// The maximum number of ticks we can move when rebalancing
+    #[prost(uint64, tag = "2")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub max_ticks_crossed: u64,
+}
+/// CosmwasmPoolInfo contains meta data pertaining to a cosmwasm pool type.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.CosmwasmPoolInfo")]
+pub struct CosmwasmPoolInfo {
+    /// The weight of a cosmwasm pool (by contract address)
+    #[prost(message, repeated, tag = "1")]
+    pub weight_maps: ::prost::alloc::vec::Vec<WeightMap>,
+}
+/// WeightMap maps a contract address to a weight. The weight of an address
+/// corresponds to the amount of ms required to execute a swap on that contract.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.WeightMap")]
+pub struct WeightMap {
+    /// The weight of a cosmwasm pool (by contract address)
+    #[prost(uint64, tag = "1")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub weight: u64,
+    /// The contract address
+    #[prost(string, tag = "2")]
+    pub contract_address: ::prost::alloc::string::String,
 }
 /// BaseDenom represents a single base denom that the module uses for its
 /// arbitrage trades. It contains the denom name alongside the step size of the
@@ -211,6 +369,9 @@ pub struct GenesisState {
     pub base_denoms: ::prost::alloc::vec::Vec<BaseDenom>,
     /// The pool weights that are being used to calculate the weight (compute cost)
     /// of each route.
+    ///
+    /// DEPRECATED: This field is deprecated and will be removed in the next
+    /// release. It is replaced by the `info_by_pool_type` field.
     #[prost(message, optional, tag = "4")]
     pub pool_weights: ::core::option::Option<PoolWeights>,
     /// The number of days since module genesis.
@@ -256,6 +417,13 @@ pub struct GenesisState {
         deserialize_with = "crate::serde::as_str::deserialize"
     )]
     pub point_count_for_block: u64,
+    /// All of the profits that have been accumulated by the module.
+    #[prost(message, repeated, tag = "12")]
+    pub profits: ::prost::alloc::vec::Vec<super::super::super::cosmos::base::v1beta1::Coin>,
+    /// Information that is used to estimate execution time / gas
+    /// consumption of a swap on a given pool type.
+    #[prost(message, optional, tag = "13")]
+    pub info_by_pool_type: ::core::option::Option<InfoByPoolType>,
 }
 /// SetProtoRevEnabledProposal is a gov Content type to update whether the
 /// protorev module is enabled
@@ -653,8 +821,8 @@ pub struct QueryGetProtoRevDeveloperAccountResponse {
     #[prost(string, tag = "1")]
     pub developer_account: ::prost::alloc::string::String,
 }
-/// QueryGetProtoRevPoolWeightsRequest is request type for the
-/// Query/GetProtoRevPoolWeights RPC method.
+/// QueryGetProtoRevInfoByPoolTypeRequest is request type for the
+/// Query/GetProtoRevInfoByPoolType RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -666,14 +834,14 @@ pub struct QueryGetProtoRevDeveloperAccountResponse {
     ::schemars::JsonSchema,
     CosmwasmExt,
 )]
-#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevPoolWeightsRequest")]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevInfoByPoolTypeRequest")]
 #[proto_query(
-    path = "/osmosis.protorev.v1beta1.Query/GetProtoRevPoolWeights",
-    response_type = QueryGetProtoRevPoolWeightsResponse
+    path = "/osmosis.protorev.v1beta1.Query/GetProtoRevInfoByPoolType",
+    response_type = QueryGetProtoRevInfoByPoolTypeResponse
 )]
-pub struct QueryGetProtoRevPoolWeightsRequest {}
-/// QueryGetProtoRevPoolWeightsResponse is response type for the
-/// Query/GetProtoRevPoolWeights RPC method.
+pub struct QueryGetProtoRevInfoByPoolTypeRequest {}
+/// QueryGetProtoRevInfoByPoolTypeResponse is response type for the
+/// Query/GetProtoRevInfoByPoolType RPC method.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -685,11 +853,12 @@ pub struct QueryGetProtoRevPoolWeightsRequest {}
     ::schemars::JsonSchema,
     CosmwasmExt,
 )]
-#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevPoolWeightsResponse")]
-pub struct QueryGetProtoRevPoolWeightsResponse {
-    /// pool_weights is a list of all of the pool weights
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevInfoByPoolTypeResponse")]
+pub struct QueryGetProtoRevInfoByPoolTypeResponse {
+    /// InfoByPoolType contains all information pertaining to how different
+    /// pool types are handled by the module.
     #[prost(message, optional, tag = "1")]
-    pub pool_weights: ::core::option::Option<PoolWeights>,
+    pub info_by_pool_type: ::core::option::Option<InfoByPoolType>,
 }
 /// QueryGetProtoRevMaxPoolPointsPerBlockRequest is request type for the
 /// Query/GetProtoRevMaxPoolPointsPerBlock RPC method.
@@ -857,6 +1026,57 @@ pub struct QueryGetProtoRevEnabledResponse {
     #[prost(bool, tag = "1")]
     pub enabled: bool,
 }
+/// QueryGetProtoRevPoolRequest is request type for the
+/// Query/GetProtoRevPool RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevPoolRequest")]
+#[proto_query(
+    path = "/osmosis.protorev.v1beta1.Query/GetProtoRevPool",
+    response_type = QueryGetProtoRevPoolResponse
+)]
+pub struct QueryGetProtoRevPoolRequest {
+    /// base_denom is the base denom set in protorev for the denom pair to pool
+    /// mapping
+    #[prost(string, tag = "1")]
+    pub base_denom: ::prost::alloc::string::String,
+    /// other_denom is the other denom for the denom pair to pool mapping
+    #[prost(string, tag = "2")]
+    pub other_denom: ::prost::alloc::string::String,
+}
+/// QueryGetProtoRevPoolResponse is response type for the
+/// Query/GetProtoRevPool RPC method.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.QueryGetProtoRevPoolResponse")]
+pub struct QueryGetProtoRevPoolResponse {
+    /// pool_id is the pool_id stored for the denom pair
+    #[prost(uint64, tag = "1")]
+    #[serde(alias = "poolID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub pool_id: u64,
+}
 /// MsgSetHotRoutes defines the Msg/SetHotRoutes request type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
@@ -929,7 +1149,7 @@ pub struct MsgSetDeveloperAccount {
 )]
 #[proto_message(type_url = "/osmosis.protorev.v1beta1.MsgSetDeveloperAccountResponse")]
 pub struct MsgSetDeveloperAccountResponse {}
-/// MsgSetPoolWeights defines the Msg/SetPoolWeights request type.
+/// MsgSetInfoByPoolType defines the Msg/SetInfoByPoolType request type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -941,16 +1161,16 @@ pub struct MsgSetDeveloperAccountResponse {}
     ::schemars::JsonSchema,
     CosmwasmExt,
 )]
-#[proto_message(type_url = "/osmosis.protorev.v1beta1.MsgSetPoolWeights")]
-pub struct MsgSetPoolWeights {
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.MsgSetInfoByPoolType")]
+pub struct MsgSetInfoByPoolType {
     /// admin is the account that is authorized to set the pool weights.
     #[prost(string, tag = "1")]
     pub admin: ::prost::alloc::string::String,
-    /// pool_weights is the list of pool weights to set.
+    /// info_by_pool_type contains information about the pool types.
     #[prost(message, optional, tag = "2")]
-    pub pool_weights: ::core::option::Option<PoolWeights>,
+    pub info_by_pool_type: ::core::option::Option<InfoByPoolType>,
 }
-/// MsgSetPoolWeightsResponse defines the Msg/SetPoolWeights response type.
+/// MsgSetInfoByPoolTypeResponse defines the Msg/SetInfoByPoolType response type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
     Clone,
@@ -962,8 +1182,8 @@ pub struct MsgSetPoolWeights {
     ::schemars::JsonSchema,
     CosmwasmExt,
 )]
-#[proto_message(type_url = "/osmosis.protorev.v1beta1.MsgSetPoolWeightsResponse")]
-pub struct MsgSetPoolWeightsResponse {}
+#[proto_message(type_url = "/osmosis.protorev.v1beta1.MsgSetInfoByPoolTypeResponse")]
+pub struct MsgSetInfoByPoolTypeResponse {}
 /// MsgSetMaxPoolPointsPerTx defines the Msg/SetMaxPoolPointsPerTx request type.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
@@ -1135,10 +1355,10 @@ impl<'a, Q: cosmwasm_std::CustomQuery> ProtorevQuerier<'a, Q> {
     ) -> Result<QueryGetProtoRevDeveloperAccountResponse, cosmwasm_std::StdError> {
         QueryGetProtoRevDeveloperAccountRequest {}.query(self.querier)
     }
-    pub fn get_proto_rev_pool_weights(
+    pub fn get_proto_rev_info_by_pool_type(
         &self,
-    ) -> Result<QueryGetProtoRevPoolWeightsResponse, cosmwasm_std::StdError> {
-        QueryGetProtoRevPoolWeightsRequest {}.query(self.querier)
+    ) -> Result<QueryGetProtoRevInfoByPoolTypeResponse, cosmwasm_std::StdError> {
+        QueryGetProtoRevInfoByPoolTypeRequest {}.query(self.querier)
     }
     pub fn get_proto_rev_max_pool_points_per_tx(
         &self,
@@ -1159,5 +1379,16 @@ impl<'a, Q: cosmwasm_std::CustomQuery> ProtorevQuerier<'a, Q> {
         &self,
     ) -> Result<QueryGetProtoRevEnabledResponse, cosmwasm_std::StdError> {
         QueryGetProtoRevEnabledRequest {}.query(self.querier)
+    }
+    pub fn get_proto_rev_pool(
+        &self,
+        base_denom: ::prost::alloc::string::String,
+        other_denom: ::prost::alloc::string::String,
+    ) -> Result<QueryGetProtoRevPoolResponse, cosmwasm_std::StdError> {
+        QueryGetProtoRevPoolRequest {
+            base_denom,
+            other_denom,
+        }
+        .query(self.querier)
     }
 }
