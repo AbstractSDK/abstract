@@ -13,22 +13,16 @@ use abstract_core::{
 use abstract_sdk::{
     core::{
         ibc_client::state::{ACCOUNTS, ADMIN, ANS_HOST, CONFIG},
-        ibc_host::{HostAction, InternalAction, PacketMsg},
+        ibc_host::{HostAction, InternalAction},
         objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
     },
     feature_objects::VersionControlContract,
     features::AccountIdentification,
-    AccountVerification, Execution, Resolve,
-};
-use cosmos_sdk_proto::{
-    cosmos::feegrant,
-    ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
-    traits::{Message, TypeUrl},
-    Any,
+    AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
+    to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
     MessageInfo, Storage,
 };
 use polytone::callbacks::CallbackRequest;
@@ -252,7 +246,6 @@ pub fn execute_send_funds(
     host_chain: ChainName,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
-    todo!();
     let cfg = CONFIG.load(deps.storage)?;
     let mem = ANS_HOST.load(deps.storage)?;
     // Verify that the sender is a proxy contract
@@ -286,6 +279,18 @@ pub fn execute_send_funds(
             }
             .into(),
         );
+
+        // TODO, do a better job and add a callback
+
+
+        
+        // use cosmos_sdk_proto::{
+        //     cosmos::feegrant,
+        //     ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
+        //     traits::{Message, TypeUrl},
+        //     Any,
+        // };
+        
 
         // In case we need to work with the memo, we need to serialize the messages ourselves
 

@@ -14,7 +14,7 @@ name = "setup"
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 serde = { workspace = true }
-semver = { workspace = true, default-features = false }
+semver = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }

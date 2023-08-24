@@ -16,7 +16,6 @@ use cosmwasm_std::{
 use cw_semver::Version;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub(crate) const MAX_RETRIES: u8 = 5;
 
 pub(crate) type IbcClientResult<T = Response> = Result<T, IbcClientError>;
 

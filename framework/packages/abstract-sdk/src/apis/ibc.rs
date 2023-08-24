@@ -6,8 +6,8 @@ use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface}
 use abstract_core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
-    objects::{chain_name::ChainName, module::ModuleInfo},
-    proxy::ExecuteMsg,
+    objects::{chain_name::ChainName, module::{ModuleInfo, ModuleVersion}},
+    proxy::ExecuteMsg, IBC_CLIENT,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use polytone::callbacks::CallbackRequest;
@@ -57,27 +57,23 @@ pub struct IbcClient<'a, T: IbcInterface> {
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
-    // TODO, this is not up to date anymore ?
-    /*
+
     /// Registers the ibc client to be able to use IBC capabilities
     pub fn register_ibc_client(
         &self,
     ) -> AbstractSdkResult<CosmosMsg> {
-        // We start by querying the contract address of the register ibc client module
-        let ibc_client_address = self.base.modules(self.deps).module_address(IBC_CLIENT)?;
 
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
-            &manager::ExecuteMsg::InstallModule {
+            &abstract_core::manager::ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
-                init_msg: ()
+                init_msg: None
             },
             vec![],
         )?
         .into())
     }
 
-    */
 
     /// A simple hepler to create and register a distant account
     pub fn create_distant_account(

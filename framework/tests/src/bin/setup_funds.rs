@@ -6,15 +6,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_core::{
     ans_host::ExecuteMsgFns,
-    ibc_client::QueryMsgFns,
     objects::{
-        account::AccountTrace, chain_name::ChainName, gov_type::GovernanceDetails, AccountId,
-        UncheckedChannelEntry,
+        chain_name::ChainName, UncheckedChannelEntry,
     },
-    IBC_CLIENT, ICS20, PROXY,
+    ICS20, PROXY,
 };
 use abstract_interface::{
-    Abstract, AccountDetails, IbcClient, ManagerExecFns, ManagerQueryFns, ProxyExecFns,
+    Abstract,
     ProxyQueryFns,
 };
 use abstract_interface_integration_tests::{
@@ -23,7 +21,7 @@ use abstract_interface_integration_tests::{
 };
 
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{coins, to_binary};
+use cosmwasm_std::coins;
 use cw_orch::{
     deploy::Deploy,
     prelude::{queriers::Bank, *},

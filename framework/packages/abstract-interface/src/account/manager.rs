@@ -9,7 +9,7 @@ use abstract_core::{
     },
     PROXY,
 };
-use cosmwasm_std::{to_binary, Empty};
+use cosmwasm_std::{to_binary, Empty, Binary};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
@@ -174,6 +174,28 @@ impl<Chain: CwEnv> Manager<Chain> {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: ChainName::from(destination),
                 action: HostAction::Dispatch { manager_msg: msg },
+                callback_request,
+            }],
+        };
+
+        self.execute_on_module(PROXY, msg)
+    }
+
+    pub fn execute_on_remote_module(
+        &self,
+        destination: &str,
+        module_id: &str,
+        msg: Binary,
+        callback_request: Option<CallbackRequest>,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
+            msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
+                host_chain: ChainName::from(destination),
+                action: HostAction::Dispatch { manager_msg: ExecuteMsg::ExecOnModule { 
+                    module_id: module_id.to_string(), 
+                    exec_msg: msg
+                } },
                 callback_request,
             }],
         };

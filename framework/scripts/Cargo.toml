@@ -9,7 +9,7 @@ edition = { workspace = true }
 [dependencies]
 cosmwasm-std = { workspace = true }
 serde = { workspace = true }
-semver = { workspace = true, default-features = false }
+semver = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
 cw-asset = { workspace = true }
@@ -21,7 +21,7 @@ abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true, features = [
   "daemon",
-], default-features = false }
+]}
 tokio = { workspace = true }
 log = "0.4.14"
 anyhow = { workspace = true }

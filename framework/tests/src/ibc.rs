@@ -1,20 +1,18 @@
 use abstract_core::{
     objects::{account::AccountTrace, chain_name::ChainName, AccountId},
-    IBC_CLIENT, PROXY,
+    IBC_CLIENT,
 };
 // We need to rewrite this because cosmrs::Msg is not implemented for IBC types
 
-use abstract_interface::{Abstract, AccountDetails, ManagerExecFns, ManagerQueryFns};
+use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
-use cosmwasm_std::{to_binary, Empty};
+use cosmwasm_std::Empty;
 use cw_orch::{
     deploy::Deploy,
     prelude::{Daemon, InterchainEnv, TxHandler},
 };
 use tokio::runtime::Runtime;
 
-use crate::JUNO;
-use crate::STARGAZE;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
@@ -62,7 +60,7 @@ pub fn create_test_remote_account(
         .account
         .register_remote_account(destination)?;
 
-    rt.block_on(interchain.await_ibc_execution(STARGAZE.to_owned(), register_tx.txhash))?;
+    rt.block_on(interchain.await_ibc_execution(origin_name.to_owned(), register_tx.txhash))?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
     let account_config = origin_abstract.account.manager.config()?;
@@ -76,15 +74,13 @@ pub fn create_test_remote_account(
 #[cfg(test)]
 mod test {
 
-    use abstract_core::ibc_host::HostAction;
     use abstract_core::manager::InfoResponse;
     use abstract_core::objects::gov_type::GovernanceDetails;
     use cw_orch::deploy::Deploy;
     use cw_orch::starship::Starship;
 
-    use abstract_core::objects::chain_name::ChainName;
     use abstract_core::{manager::ConfigResponse, PROXY};
-    use abstract_interface::{IbcHost, Manager, ManagerExecFns, ManagerQueryFns};
+    use abstract_interface::{IbcHost, Manager, ManagerQueryFns};
     use cosmwasm_std::{to_binary, wasm_execute};
 
     use abstract_core::IBC_HOST;
@@ -93,6 +89,9 @@ mod test {
     use super::*;
     use crate::ibc::create_test_remote_account;
     use cw_orch::prelude::*;
+
+    use crate::JUNO;
+    use crate::STARGAZE;
 
     #[test]
     fn test_create_ibc_account() -> AnyResult<()> {
@@ -164,39 +163,31 @@ mod test {
         // We try to execute a message from the proxy contract (account creation for instance)
 
         // ii. Now we test that we can indeed create an account remotely from the interchain account
-        let create_account_remote_tx = osmo_abstr.account.manager.exec_on_module(
-            to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
-                msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
-                    host_chain: ChainName::from("juno"),
-                    action: HostAction::Dispatch {
-                        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
-                            module_id: PROXY.to_string(),
-                            exec_msg: to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
-                                msgs: vec![wasm_execute(
-                                    juno_abstr.account_factory.address()?,
-                                    &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-                                        governance: GovernanceDetails::Monarchy {
-                                            monarch: juno_abstr
-                                                .version_control
-                                                .address()?
-                                                .to_string(),
-                                        },
-                                        name: "Abstract Test Remote Remote account".to_string(),
-                                        description: None,
-                                        link: None,
-                                        origin: None,
-                                    },
-                                    vec![],
-                                )?
-                                .into()],
-                            })?,
+        
+
+        let create_account_remote_tx = osmo_abstr.account.manager.execute_on_remote_module(
+            "juno", 
+            PROXY,
+            to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
+                msgs: vec![wasm_execute(
+                    juno_abstr.account_factory.address()?,
+                    &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+                        governance: GovernanceDetails::Monarchy {
+                            monarch: juno_abstr
+                                .version_control
+                                .address()?
+                                .to_string(),
                         },
+                        name: "Abstract Test Remote Remote account".to_string(),
+                        description: None,
+                        link: None,
+                        origin: None,
                     },
-                    callback_request: None,
-                    retries: 2,
-                }],
+                    vec![],
+                )?
+                .into()],
             })?,
-            PROXY.to_string(),
+            None
         )?;
 
         // The create remote account tx is passed ?

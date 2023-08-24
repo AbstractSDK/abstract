@@ -1,12 +1,10 @@
 use abstract_core::ibc_host::InstantiateMsg;
 use abstract_core::ibc_host::QueryMsg;
 use abstract_core::ibc_host::RegisteredChainResponse;
-use abstract_core::objects::chain_name::ChainName;
 use cosmwasm_std::from_binary;
 use cosmwasm_std::testing::mock_dependencies;
 use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::testing::mock_info;
-use cosmwasm_std::IbcEndpoint;
 
 use crate::contract::execute;
 use crate::contract::instantiate;
