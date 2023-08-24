@@ -50,8 +50,7 @@ pub mod state {
     }
 
     pub const CONFIG: Item<Config> = Item::new("config");
-    //// ANCHOR: ans_state
-
+    // ANCHOR: ans_state
     /// Stores name and address of tokens and pairs
     /// LP token pairs are stored alphabetically
     pub const ASSET_ADDRESSES: Map<&AssetEntry, AssetInfo> = Map::new("assets");
@@ -72,8 +71,7 @@ pub mod state {
 
     /// Stores the metadata for the pools using the unique pool id as the key
     pub const POOL_METADATA: Map<UniquePoolId, PoolMetadata> = Map::new("pools");
-
-    //// ANCHOR_END: ans_state
+    // ANCHOR_END: ans_state
 }
 
 /// AnsHost Instantiate msg

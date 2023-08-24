@@ -8,6 +8,7 @@ use abstract_core::adapter::{
 };
 use abstract_core::manager::{InternalConfigAction, QueryMsg};
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::AssetEntry;
 
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
@@ -194,6 +195,7 @@ pub fn exec_on_module(
     Ok(response)
 }
 
+#[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
 pub fn create_subaccount(
     deps: DepsMut,
@@ -202,10 +204,25 @@ pub fn create_subaccount(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
     install_modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+
+    let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+        /// this contract (the manager) will be the account owner
+        governance: GovernanceDetails::SubAccount {
+            manager: env.contract.address.to_string(),
+        },
+        name,
+        description,
+        link,
+        base_asset,
+        namespace,
+        install_modules,
+    };
 
     let account_factory_addr = query_module(
         deps.as_ref(),
@@ -216,25 +233,12 @@ pub fn create_subaccount(
     .reference
     .unwrap_native()?;
 
-    let account_message = wasm_execute(
-        account_factory_addr,
-        &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-            governance: GovernanceDetails::SubAccount {
-                manager: env.contract.address.to_string(),
-            },
-            name,
-            description,
-            link,
-            install_modules,
-            // TODO?
-            base_asset: None,
-            namespace: None,
-        },
-        vec![],
-    )?;
+    // Call factory and attach all funds that were provided.
+    let account_creation_message =
+        wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
 
     let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
-        .add_message(account_message);
+        .add_message(account_creation_message);
 
     Ok(response)
 }

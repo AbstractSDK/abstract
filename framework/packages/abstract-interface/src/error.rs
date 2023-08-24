@@ -8,10 +8,6 @@ pub enum AbstractInterfaceError {
     #[error(transparent)]
     Abstract(#[from] AbstractError),
 
-    #[cfg(feature = "daemon")]
-    #[error(transparent)]
-    DaemonError(#[from] cw_orch::daemon::DaemonError),
-
     #[error(transparent)]
     Orch(#[from] CwOrchError),
 
@@ -20,6 +16,10 @@ pub enum AbstractInterfaceError {
 
     #[error("{0}")]
     Std(#[from] StdError),
+
+    #[cfg(feature = "daemon")]
+    #[error(transparent)]
+    Daemon(#[from] cw_orch::daemon::DaemonError),
 }
 
 impl AbstractInterfaceError {

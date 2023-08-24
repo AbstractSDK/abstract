@@ -13,9 +13,14 @@ fn creating_on_subaccount_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    account
-        .manager
-        .create_sub_account(vec![], "My subaccount".to_string(), None, None)?;
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
     Ok(())
 }
 
@@ -25,9 +30,14 @@ fn updating_on_subaccount_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    account
-        .manager
-        .create_sub_account(vec![], "My subaccount".to_string(), None, None)?;
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
     let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
@@ -51,9 +61,14 @@ fn manager_updating_on_subaccount_should_succeed() -> AResult {
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
     let manager_address = account.manager.address()?;
-    account
-        .manager
-        .create_sub_account(vec![], "My subaccount".to_string(), None, None)?;
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
     let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
@@ -80,17 +95,27 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    account
-        .manager
-        .create_sub_account(vec![], "My subaccount".to_string(), None, None)?;
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
     let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
 
     // We call as the manager, it should also be possible
-    account_contracts
-        .0
-        .create_sub_account(vec![], "My subsubaccount".to_string(), None, None)?;
+    account_contracts.0.create_sub_account(
+        vec![],
+        "My subsubaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
     let account_contracts = get_account_contracts(&deployment.version_control, Some(3));
     let new_desc = "new desc";
 

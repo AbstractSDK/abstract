@@ -609,7 +609,9 @@ fn create_sub_account_with_installed_module() -> AResult {
             ),
         ],
         String::from("sub_account"),
+        None,
         Some(String::from("account_description")),
+        None,
         None,
     )?;
 
