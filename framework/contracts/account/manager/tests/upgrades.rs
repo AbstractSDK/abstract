@@ -529,7 +529,7 @@ fn create_account_with_installed_module() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
-    )?;
+    ).unwrap();
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
