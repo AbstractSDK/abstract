@@ -128,3 +128,58 @@ pub mod app_1 {
         );
     }
 }
+
+// this standalone have cw2
+pub mod standalone_cw2 {
+    pub use super::*;
+    pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct MockMsg;
+
+    pub fn mock_instantiate(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockInitMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        cw2::set_contract_version(deps.storage, MOCK_STANDALONE_ID, V1);
+        Ok(cosmwasm_std::Response::new())
+    }
+
+    /// Execute entrypoint
+    pub fn mock_execute(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        Ok(cosmwasm_std::Response::new())
+    }
+
+    /// Query entrypoint
+    pub fn mock_query(
+        deps: cosmwasm_std::Deps,
+        env: cosmwasm_std::Env,
+        msg: MockMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Binary> {
+        Ok(cosmwasm_std::Binary::default())
+    }
+}
+
+// this standalone does not have cw2
+pub mod standalone_no_cw2 {
+    pub use super::*;
+    pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
+
+    pub use super::standalone_cw2::{mock_execute, mock_query, MockMsg};
+
+    pub fn mock_instantiate(
+        deps: cosmwasm_std::DepsMut,
+        env: cosmwasm_std::Env,
+        info: cosmwasm_std::MessageInfo,
+        msg: MockInitMsg,
+    ) -> cosmwasm_std::StdResult<cosmwasm_std::Response> {
+        Ok(cosmwasm_std::Response::new())
+    }
+}
