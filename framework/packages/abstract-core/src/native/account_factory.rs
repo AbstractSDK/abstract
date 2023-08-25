@@ -14,6 +14,7 @@ pub mod state {
 
     use crate::objects::{
         account_id::AccountId,
+        gov_type::GovernanceDetails,
         module::{Module, ModuleInfo},
         AssetEntry,
     };
@@ -30,7 +31,7 @@ pub mod state {
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_manager_address: Option<Addr>,
+        pub account_proxy_address: Option<Addr>,
         pub manager_module: Option<Module>,
         pub proxy_module: Option<Module>,
 
@@ -43,6 +44,10 @@ pub mod state {
     pub struct AdditionalContextConfig {
         pub namespace: Option<String>,
         pub base_asset: Option<AssetEntry>,
+        pub name: String,
+        pub description: Option<String>,
+        pub link: Option<String>,
+        pub owner: GovernanceDetails<String>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");

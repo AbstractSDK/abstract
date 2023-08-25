@@ -493,43 +493,48 @@ fn create_account_with_installed_module() -> AResult {
     )?;
     deploy_modules(&chain);
 
-    let account = factory.create_new_account(
-        AccountDetails {
-            name: String::from("second_account"),
-            description: Some(String::from("account_description")),
-            link: Some(String::from("https://account_link_of_at_least_11_char")),
-            namespace: None,
-            base_asset: None,
-            install_modules: vec![
-                (
-                    ModuleInfo::from_id(
-                        adapter_1::MOCK_ADAPTER_ID,
-                        ModuleVersion::Version(V1.to_owned()),
-                    )?,
-                    None,
-                ),
-                (
-                    ModuleInfo::from_id(
-                        adapter_2::MOCK_ADAPTER_ID,
-                        ModuleVersion::Version(V1.to_owned()),
-                    )?,
-                    None,
-                ),
-                (
-                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
-                    Some(to_binary(&app::InstantiateMsg {
-                        module: MockInitMsg,
-                        base: BaseInstantiateMsg {
-                            ans_host_address: deployment.ans_host.addr_str()?,
-                        },
-                    })?),
-                ),
-            ],
-        },
-        GovernanceDetails::Monarchy {
-            monarch: sender.to_string(),
-        },
-    )?;
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: Some(String::from("account_description")),
+                link: Some(String::from("https://account_link_of_at_least_11_char")),
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    (
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    (
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    (
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                            },
+                        })?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+        )
+        .unwrap();
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![

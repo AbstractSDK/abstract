@@ -364,7 +364,7 @@ pub fn assert_module_data_validity(
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
                 // this will be the case when registering a code-id on VC
-                return Ok(())
+                return Ok(());
             };
             addr
         }
@@ -384,7 +384,7 @@ pub fn assert_module_data_validity(
     );
 
     let ModuleVersion::Version(version) = &module_claim.info.version else {
-    panic!("Module version is not versioned, context setting is wrong")
+        panic!("Module version is not versioned, context setting is wrong")
     };
 
     // Assert that the contract version is equal to the module version
