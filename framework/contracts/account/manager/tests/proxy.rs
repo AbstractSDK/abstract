@@ -177,16 +177,16 @@ fn install_standalone_modules() -> AResult {
     let account = AbstractAccount::new(&deployment, Some(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
-        mock_modules::standalone_1::mock_execute,
-        mock_modules::standalone_1::mock_instantiate,
-        mock_modules::standalone_1::mock_query,
+        mock_modules::standalone_cw2::mock_execute,
+        mock_modules::standalone_cw2::mock_instantiate,
+        mock_modules::standalone_cw2::mock_query,
     ));
     let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
 
     let standalone2_contract = Box::new(ContractWrapper::new(
-        mock_modules::standalone_2::mock_execute,
-        mock_modules::standalone_2::mock_instantiate,
-        mock_modules::standalone_2::mock_query,
+        mock_modules::standalone_no_cw2::mock_execute,
+        mock_modules::standalone_no_cw2::mock_instantiate,
+        mock_modules::standalone_no_cw2::mock_query,
     ));
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
@@ -202,7 +202,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone1",
-        &mock_modules::standalone_1::MockMsg,
+        &mock_modules::standalone_cw2::MockMsg,
         None,
     )?;
 
@@ -218,7 +218,7 @@ fn install_standalone_modules() -> AResult {
 
     account.install_module(
         "abstract:standalone2",
-        &mock_modules::standalone_2::MockMsg,
+        &mock_modules::standalone_no_cw2::MockMsg,
         None,
     )?;
     Ok(())
@@ -232,9 +232,9 @@ fn install_standalone_versions_not_met() -> AResult {
     let account = AbstractAccount::new(&deployment, Some(0));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
-        mock_modules::standalone_1::mock_execute,
-        mock_modules::standalone_1::mock_instantiate,
-        mock_modules::standalone_1::mock_query,
+        mock_modules::standalone_cw2::mock_execute,
+        mock_modules::standalone_cw2::mock_instantiate,
+        mock_modules::standalone_cw2::mock_query,
     ));
     let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
 
@@ -251,7 +251,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let err = account
         .install_module(
             "abstract:standalone1",
-            &mock_modules::standalone_1::MockMsg,
+            &mock_modules::standalone_cw2::MockMsg,
             None,
         )
         .unwrap_err();

@@ -129,8 +129,8 @@ pub mod app_1 {
     }
 }
 
-// standalone 1 have cw2
-pub mod standalone_1 {
+// this standalone have cw2
+pub mod standalone_cw2 {
     pub use super::*;
     pub const MOCK_STANDALONE_ID: &str = "crate.io:mock-standalone1";
 
@@ -167,12 +167,12 @@ pub mod standalone_1 {
     }
 }
 
-// standalone 2 does not have cw2
-pub mod standalone_2 {
+// this standalone does not have cw2
+pub mod standalone_no_cw2 {
     pub use super::*;
     pub const MOCK_STANDALONE_ID: &str = "crates.io:mock-standalone2";
 
-    pub use super::standalone_1::{mock_execute, mock_query, MockMsg};
+    pub use super::standalone_cw2::{mock_execute, mock_query, MockMsg};
 
     pub fn mock_instantiate(
         deps: cosmwasm_std::DepsMut,
