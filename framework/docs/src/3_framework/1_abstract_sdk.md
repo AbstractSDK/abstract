@@ -46,8 +46,8 @@ The Abstract SDK is designed to solve the following problems:
   Abstract SDK the first decentralized software distribution platform.
 
 
-- **Collaboration** 👥: The Abstract SDK enables you to collaborate on the creation of dApps its composable
-  architecture and the ability to easily publish testing infrastructure for mock environment construction.
+- **Collaboration** 👥: The Abstract SDK enables you to collaborate on the creation of dApps through its composable
+  architecture and its ability to easily publish testing infrastructure for mock environment construction.
 
 In essence, the Abstract SDK offers a structured yet flexible approach to smart-contract development, promoting
 reusability and efficiency.
@@ -65,8 +65,8 @@ write advanced APIs that are automatically implemented on objects that support i
 ### Abstract APIs
 
 The Abstract APIs are objects that can only be retrieved if a contract or feature-object implements the required
-features/api traits. If the trait constraints for the Adapter is met it is automatically implemented on the object and
-allows you to retrieve the Adapter object.
+features/api traits. If the trait constraints for the API is met it is automatically implemented on the object and
+allows you to retrieve the API object.
 
 ### Abstract Base
 
