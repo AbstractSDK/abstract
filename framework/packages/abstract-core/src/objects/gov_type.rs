@@ -19,6 +19,11 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// The monarch's address
         monarch: T,
     },
+    /// Used when the account is a sub-account of another account.
+    SubAccount {
+        /// The manager of the account of which this account is the sub-account.
+        manager: T,
+    },
     /// An external governance source
     External {
         /// The external contract address
@@ -35,6 +40,10 @@ impl GovernanceDetails<String> {
             GovernanceDetails::Monarchy { monarch } => {
                 let addr = api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
+            }
+            GovernanceDetails::SubAccount { manager } => {
+                let addr = api.addr_validate(&manager)?;
+                Ok(GovernanceDetails::SubAccount { manager: addr })
             }
             GovernanceDetails::External {
                 governance_address,
@@ -86,6 +95,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self) -> Addr {
         match self {
             GovernanceDetails::Monarchy { monarch } => monarch.clone(),
+            GovernanceDetails::SubAccount { manager } => manager.clone(),
             GovernanceDetails::External {
                 governance_address, ..
             } => governance_address.clone(),
@@ -98,6 +108,9 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
         match value {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
                 monarch: monarch.to_string(),
+            },
+            GovernanceDetails::SubAccount { manager } => GovernanceDetails::SubAccount {
+                manager: manager.to_string(),
             },
             GovernanceDetails::External {
                 governance_address,
@@ -114,6 +127,7 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
     fn to_string(&self) -> String {
         match self {
             GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
+            GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
             GovernanceDetails::External {
                 governance_type, ..
             } => governance_type.to_owned(),
