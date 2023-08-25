@@ -300,6 +300,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let add_proxy_address_msg = wasm_execute(
         manager_address.to_string(),
         &ExecuteMsg::UpdateInternalConfig(
+            // Binary format to prevent users from easily calling the endpoint (because that's dangerous.)
             to_binary(&InternalConfigAction::UpdateModuleAddresses {
                 to_add: Some(vec![(PROXY.to_string(), proxy_address.to_string())]),
                 to_remove: None,
@@ -309,25 +310,40 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         vec![],
     )?;
 
+    // The execution order here is important. 
+    // Installing modules on the manager account requires that:
+    // - The account is registered.
+    // - The manager is the Admin of the proxy.
+    // - The proxy is registered on the manager. (this last step triggers the installation of the modules.)
+
     let mut resp = AccountFactoryResponse::new(
-        "create_proxy",
+        "create_manager",
         vec![("manager_address", res.get_contract_address())],
     )
+    // So first register the account on the Version Control
     .add_message(add_account_to_version_control_msg)
-    .add_message(add_proxy_address_msg)
-    .add_message(whitelist_manager);
+    // Then whitelist the manager on the proxy contract so it can execute messages on behalf of the owner.
+    .add_message(whitelist_manager)
+    // And change the wasm-module admin to the manager for both contracts.
+    // This admin is different from our custom defined admin and is solely used for migrations.
+    .add_messages(set_wasm_admin_msgs);
 
+    // Now configure the base asset of the account.
+    // This contract is still the owner of the proxy at this point.
     if let Some(set_base_asset_msg) = set_base_asset_msg {
         resp = resp.add_message(set_base_asset_msg);
     }
-
+    // Claim its namespace if applicable.
     if let Some(set_namespace_msg) = set_namespace_msg {
         resp = resp.add_message(set_namespace_msg);
     }
 
     resp = resp
+        // And now transfer the admin rights to the manager.
         .add_message(set_proxy_admin_msg)
-        .add_messages(set_wasm_admin_msgs);
+        // Set the proxy address on the manager.
+        // This last step will trigger the installation of the modules.
+        .add_message(add_proxy_address_msg);
 
     Ok(resp)
 }
