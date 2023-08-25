@@ -819,7 +819,6 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                 let owner = query_ownership(deps, manager.clone())
                     .map_err(|_| ManagerError::SubAccountAdminVerification)?;
 
-                println!("sender: {sender}, owner: {owner}");
                 if *sender == owner {
                     // If the owner of the current contract is the sender, the admin test is passed
                     return Ok(());
