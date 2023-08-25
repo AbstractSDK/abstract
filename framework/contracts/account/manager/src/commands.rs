@@ -788,11 +788,20 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
     }
 }
 
-fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<Addr> {
+fn query_ownership(deps: Deps, maybe_proxy: Addr) -> ManagerResult<Addr> {
+    // query admin of the proxy (it's manager)
+    let manager_bytes = deps
+        .querier
+        .query_wasm_raw(maybe_proxy, ADMIN_NAMESPACE.as_bytes())?
+        .ok_or(ManagerError::SubAccountAdminVerification)?;
+    let manager = from_binary::<Option<Addr>>(&Binary(manager_bytes))?
+        .ok_or(ManagerError::SubAccountAdminVerification)?;
+
+    // get owner of the manager
     let Ownership { owner, .. } = OWNER
-        .query(&deps.querier, maybe_manager.clone())
-        .map_err(|_| ManagerError::NoContractOwner(maybe_manager.to_string()))?;
-    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.into_string()))
+        .query(&deps.querier, manager.clone())
+        .map_err(|_| ManagerError::NoContractOwner(manager.to_string()))?;
+    owner.ok_or(ManagerError::NoContractOwner(manager.into_string()))
 }
 
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
@@ -811,13 +820,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
             let mut i = 0;
             while i < MAX_ADMIN_RECURSION {
                 // admin of a proxy is a manager
-                let manager = deps
-                    .querier
-                    .query_wasm_raw(current, ADMIN_NAMESPACE.as_bytes())?
-                    .ok_or(ManagerError::SubAccountAdminVerification)?;
-                let manager: Option<Addr> = from_binary(&Binary(manager))?;
-                let manager = manager.ok_or(ManagerError::SubAccountAdminVerification)?;
-                let owner = query_ownership(deps, manager.clone())
+                let owner = query_ownership(deps, current.clone())
                     .map_err(|_| ManagerError::SubAccountAdminVerification)?;
 
                 if *sender == owner {
@@ -825,7 +828,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                     return Ok(());
                 } else {
                     // If not, we try again with the queried owner
-                    current = Addr::unchecked(owner);
+                    current = owner;
                 }
                 i += 1;
             }
