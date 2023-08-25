@@ -1,12 +1,12 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
-use abstract_core::manager::state::ACCOUNT_FACTORY;
+use abstract_core::manager::state::{ACCOUNT_FACTORY, OWNER};
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, QueryMsg};
+use abstract_core::manager::InternalConfigAction;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
@@ -788,13 +788,11 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
     }
 }
 
-fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<String> {
-    let Ownership::<String> { owner, .. } = deps
-        .querier
-        .query_wasm_smart(maybe_manager.clone(), &QueryMsg::Ownership {})
+fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<Addr> {
+    let Ownership { owner, .. } = OWNER
+        .query(&deps.querier, maybe_manager.clone())
         .map_err(|_| ManagerError::NoContractOwner(maybe_manager.to_string()))?;
-
-    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.to_string()))
+    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.into_string()))
 }
 
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
