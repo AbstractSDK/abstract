@@ -41,7 +41,7 @@ fn proper_initialization() {
     let msg = QueryMsg::Config {};
     let config_res: Config = app
         .wrap()
-        .query_wasm_smart(&native_registry_instance, &msg)
+        .query_wasm_smart(native_registry_instance, &msg)
         .unwrap();
 
     assert_eq!(owner, config_res.owner);

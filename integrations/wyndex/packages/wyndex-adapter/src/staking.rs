@@ -67,7 +67,9 @@ impl CwStakingCommand for WynDex {
         &mut self,
         deps: Deps,
         env: Env,
+        _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        _abstract_registry: Addr,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
@@ -151,7 +153,7 @@ impl CwStakingCommand for WynDex {
         )?;
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.staking_contract_address.clone(),
+            staking_target: self.staking_contract_address.clone().into(),
             staking_token: AssetInfo::Cw20(self.lp_token_address.clone()),
             unbonding_periods: Some(
                 bonding_info_resp

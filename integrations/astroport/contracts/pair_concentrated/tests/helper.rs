@@ -30,7 +30,7 @@ use derivative::Derivative;
 
 const NATIVE_TOKEN_PRECISION: u8 = 6;
 
-const INIT_BALANCE: u128 = 1_000_000_000000;
+const INIT_BALANCE: u128 = 1_000_000_000_000;
 
 #[cw_serde]
 pub struct AmpGammaResponse {
@@ -461,7 +461,7 @@ impl Helper {
         block_height: u64,
     ) -> StdResult<Option<Uint128>> {
         self.app.wrap().query_wasm_smart(
-            &self.pair_addr.clone(),
+            self.pair_addr.clone(),
             &QueryMsg::AssetBalanceAt {
                 asset_info: asset_info.clone(),
                 block_height: block_height.into(),

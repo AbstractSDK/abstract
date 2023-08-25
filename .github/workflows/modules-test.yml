@@ -10,6 +10,10 @@ on:
     paths: 
       - modules/**
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   required:
     runs-on: ubuntu-latest
@@ -21,6 +25,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
@@ -40,12 +48,24 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install stable
         uses: dtolnay/rust-toolchain@stable
         with:
           components: llvm-tools-preview
       - name: cargo install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+      # print disk usage
+      - name: Check disk space in $GITHUB_WORKSPACE
+        run: du -s -h $GITHUB_WORKSPACE || true
+      - name: Check disk space in $GITHUB_WORKSPACE/*
+        run: du -s -h $GITHUB_WORKSPACE/* || true
+      - name: Check disk space on /
+        run: du -s -h / || true
+      #
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./modules
@@ -57,3 +77,11 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+      - name: Check disk space in $GITHUB_WORKSPACE
+        run: du -s -h $GITHUB_WORKSPACE || true
+      - name: Check disk space in $GITHUB_WORKSPACE/*
+        run: du -s -h $GITHUB_WORKSPACE/* || true
+      - name: Check disk space on /
+        run: du -s -h / || true
+      - name: List all files after to run
+        run: find / || true
