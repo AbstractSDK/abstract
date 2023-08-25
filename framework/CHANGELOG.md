@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Install modules on account or Sub-account creation
-- Forced field for moving ownership of manager without claiming
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
