@@ -310,7 +310,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         vec![],
     )?;
 
-    // The execution order here is important. 
+    // The execution order here is important.
     // Installing modules on the manager account requires that:
     // - The account is registered.
     // - The manager is the Admin of the proxy.

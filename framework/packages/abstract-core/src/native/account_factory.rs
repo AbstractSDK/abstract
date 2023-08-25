@@ -14,8 +14,9 @@ pub mod state {
 
     use crate::objects::{
         account_id::AccountId,
+        gov_type::GovernanceDetails,
         module::{Module, ModuleInfo},
-        AssetEntry, gov_type::GovernanceDetails,
+        AssetEntry,
     };
 
     /// Account Factory configuration
