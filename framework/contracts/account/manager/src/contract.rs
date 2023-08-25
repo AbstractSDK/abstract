@@ -5,6 +5,7 @@ use crate::{
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     versioning,
 };
+use abstract_core::manager::state::MODULE_QUEUE;
 use abstract_sdk::core::{
     manager::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
@@ -71,41 +72,22 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
-    let installed_modules: Vec<String> = msg
-        .install_modules
-        .iter()
-        .map(|(module, _)| module.id_with_version())
-        .collect();
-    let install_modules_msgs = msg
-        .install_modules
-        .into_iter()
-        .map(|(module, init_msg)| {
-            install_module_internal(
-                deps.storage,
-                module,
-                module_factory_address.clone(),
-                init_msg,
-                vec![],
-            )
-        })
-        .collect::<ManagerResult<Vec<_>>>()?;
+    // Save queue for modules to be installed
+    MODULE_QUEUE.save(deps.storage, &msg.install_modules)?;
 
     // Set owner
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
 
-    let mut response = ManagerResponse::new(
+    let response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
             ("owner", owner.to_string()),
         ],
-    )
-    .add_messages(install_modules_msgs);
-    if !installed_modules.is_empty() {
-        response = response.add_attribute("installed_modules", format!("{installed_modules:?}"))
-    }
+    );
+
     Ok(response)
 }
 
