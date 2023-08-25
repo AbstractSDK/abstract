@@ -812,7 +812,7 @@ pub fn update_internal_config(
     // if the caller is the module factory, and the account is not already instantiated, then instantiate the account and register the modules.
     if ACCOUNT_FACTORY
         .is_admin(deps.as_ref(), &info.sender)
-        .is_ok_and(|a| a == true)
+        .is_ok_and(|a| a)
         && !ACCOUNT_MODULES.has(deps.storage, PROXY)
     {
         // Add the proxy.
