@@ -75,8 +75,8 @@ impl CwStakingCommand for WynDex {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfoBase::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
-            };
+            return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
+        };
         self.lp_token_address = token_addr;
 
         self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
@@ -246,7 +246,10 @@ fn unwrap_unbond(dex: &WynDex, unbonding_period: Option<Duration>) -> Result<u64
         if unbonding_period.is_none() {
             return Err(CwStakingError::UnbondingPeriodNotSet(dex.name().to_owned()));
         } else {
-            return Err(CwStakingError::UnbondingPeriodNotSupported("height".to_owned(), dex.name().to_owned()));
+            return Err(CwStakingError::UnbondingPeriodNotSupported(
+                "height".to_owned(),
+                dex.name().to_owned(),
+            ));
         }
     };
     Ok(unbonding_period)
