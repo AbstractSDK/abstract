@@ -40,7 +40,6 @@ use cosmwasm_std::{
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw_controllers::AdminError;
 use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
