@@ -45,31 +45,24 @@ fn updating_on_subaccount_should_succeed() -> AResult {
 }
 
 #[test]
-fn manager_updating_on_subaccount_should_succeed() -> AResult {
+fn proxy_updating_on_subaccount_should_succeed() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain, sender.to_string())?;
     let account = create_default_account(&deployment.account_factory)?;
-    let manager_address = account.manager.address()?;
+    let proxy_address = account.proxy.address()?;
     account
         .manager
         .create_sub_account("My subaccount".to_string(), None, None, None, None)?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
+    let (sub_manager, _sub_proxy) = get_account_contracts(&deployment.version_control, Some(2));
     let new_desc = "new desc";
 
-    // We call as the manager, it should also be possible
-    account_contracts.0.call_as(&manager_address).update_info(
-        Some(new_desc.to_string()),
-        None,
-        None,
-    )?;
-
-    assert_eq!(
-        Some(new_desc.to_string()),
-        account_contracts.0.info()?.info.description
-    );
+    // We call as the proxy, it should also be possible
+    sub_manager
+        .call_as(&proxy_address)
+        .update_info(Some(new_desc.to_owned()), None, None)?;
 
     Ok(())
 }

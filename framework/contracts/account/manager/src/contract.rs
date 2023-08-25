@@ -123,16 +123,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     link,
                     base_asset,
                     namespace,
-                } => create_subaccount(
-                    deps,
-                    env,
-                    info,
-                    name,
-                    description,
-                    link,
-                    base_asset,
-                    namespace,
-                ),
+                } => create_subaccount(deps, info, name, description, link, base_asset, namespace),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,

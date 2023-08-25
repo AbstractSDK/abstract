@@ -21,8 +21,8 @@ pub enum GovernanceDetails<T: AddressLike> {
     },
     /// Used when the account is a sub-account of another account.
     SubAccount {
-        /// The manager of the account of which this account is the sub-account.
-        manager: T,
+        /// The proxy of the account of which this account is the sub-account.
+        proxy: T,
     },
     /// An external governance source
     External {
@@ -41,9 +41,9 @@ impl GovernanceDetails<String> {
                 let addr = api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
             }
-            GovernanceDetails::SubAccount { manager } => {
-                let addr = api.addr_validate(&manager)?;
-                Ok(GovernanceDetails::SubAccount { manager: addr })
+            GovernanceDetails::SubAccount { proxy } => {
+                let addr = api.addr_validate(&proxy)?;
+                Ok(GovernanceDetails::SubAccount { proxy: addr })
             }
             GovernanceDetails::External {
                 governance_address,
@@ -95,7 +95,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self) -> Addr {
         match self {
             GovernanceDetails::Monarchy { monarch } => monarch.clone(),
-            GovernanceDetails::SubAccount { manager } => manager.clone(),
+            GovernanceDetails::SubAccount { proxy } => proxy.clone(),
             GovernanceDetails::External {
                 governance_address, ..
             } => governance_address.clone(),
@@ -109,8 +109,8 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
                 monarch: monarch.to_string(),
             },
-            GovernanceDetails::SubAccount { manager } => GovernanceDetails::SubAccount {
-                manager: manager.to_string(),
+            GovernanceDetails::SubAccount { proxy } => GovernanceDetails::SubAccount {
+                proxy: proxy.to_string(),
             },
             GovernanceDetails::External {
                 governance_address,

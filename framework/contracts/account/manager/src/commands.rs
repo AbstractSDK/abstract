@@ -14,6 +14,7 @@ use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
+use abstract_sdk::namespaces::ADMIN_NAMESPACE;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -199,7 +200,6 @@ pub fn exec_on_module(
 /// Creates a sub-account for this account,
 pub fn create_subaccount(
     deps: DepsMut,
-    env: Env,
     msg_info: MessageInfo,
     name: String,
     description: Option<String>,
@@ -211,9 +211,9 @@ pub fn create_subaccount(
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-        /// this contract (the manager) will be the account owner
+        /// proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
-            manager: env.contract.address.to_string(),
+            proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
         },
         name,
         description,
@@ -807,19 +807,27 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let account_info = INFO.load(deps.storage)?;
     match account_info.governance_details {
         // If the account has SubAccount governance, the owner of the manager also has admin rights over this account
-        GovernanceDetails::SubAccount { manager } => {
+        GovernanceDetails::SubAccount { proxy } => {
             // We try to query the ownership of the manager monarch account if the first query failed
-            let mut current = manager;
+            let mut current = proxy;
             let mut i = 0;
             while i < MAX_ADMIN_RECURSION {
-                let owner = query_ownership(deps, current)
+                // admin of a proxy is a manager
+                let manager = deps
+                    .querier
+                    .query_wasm_raw(current, ADMIN_NAMESPACE.as_bytes())?
+                    .ok_or(ManagerError::SubAccountAdminVerification)?;
+                let manager: Addr = from_binary(&Binary(manager))?;
+                let owner = query_ownership(deps, manager.clone())
                     .map_err(|_| ManagerError::SubAccountAdminVerification)?;
+
+                println!("sender: {sender}, owner: {owner}");
                 if *sender == owner {
                     // If the owner of the current contract is the sender, the admin test is passed
                     return Ok(());
                 } else {
                     // If not, we try again with the queried owner
-                    current = deps.api.addr_validate(&owner)?
+                    current = Addr::unchecked(owner);
                 }
                 i += 1;
             }
