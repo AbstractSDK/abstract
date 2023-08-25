@@ -737,8 +737,12 @@ fn proper_deposit_and_withdraw() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -813,7 +817,7 @@ fn proper_deposit_and_withdraw() {
     check_pending_rewards(&mut app, &generator_instance, &lp_cny_eur, USER1, (0, None));
     check_pending_rewards(&mut app, &generator_instance, &lp_eur_usd, USER1, (0, None));
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     check_pending_rewards(
         &mut app,
@@ -831,7 +835,7 @@ fn proper_deposit_and_withdraw() {
         (5000000, None),
     );
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     let msg = GeneratorExecuteMsg::Withdraw {
         lp_token: lp_cny_eur.to_string(),
@@ -866,7 +870,7 @@ fn proper_deposit_and_withdraw() {
 
     check_pending_rewards(&mut app, &generator_instance, &lp_eur_usd, USER1, (0, None));
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     check_pending_rewards(&mut app, &generator_instance, &lp_cny_eur, USER1, (0, None));
 
@@ -878,8 +882,12 @@ fn set_tokens_per_block() {
     let mut app = mock_app();
 
     let token_code_id = store_token_code(&mut app);
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
@@ -928,8 +936,12 @@ fn update_config() {
     let mut app = mock_app();
 
     let token_code_id = store_token_code(&mut app);
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
@@ -1002,8 +1014,12 @@ fn update_owner() {
     let token_code_id = store_token_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
     let factory_code_id = store_factory_code(&mut app);
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -1097,8 +1113,12 @@ fn disabling_pool() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -1200,8 +1220,12 @@ fn generator_without_reward_proxies() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -1316,7 +1340,7 @@ fn generator_without_reward_proxies() {
         "astroport::generator::UserInfo not found".to_string()
     );
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // 10 tokens per block split equally between 2 pools
     check_pending_rewards(
@@ -1378,7 +1402,7 @@ fn generator_without_reward_proxies() {
     app.execute_contract(owner.clone(), generator_instance.clone(), &msg, &[])
         .unwrap();
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // 60 to cny_eur, 40 to eur_usd. Each is divided for two users
     check_pending_rewards(
@@ -1534,8 +1558,12 @@ fn generator_update_proxy_balance_failed() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -1619,7 +1647,7 @@ fn generator_update_proxy_balance_failed() {
         200_000_000,
     );
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // User 2
     mint_tokens(&mut app, pair_val_eur.clone(), &lp_val_eur, &user2, 10);
@@ -1656,7 +1684,7 @@ fn generator_update_proxy_balance_failed() {
     )
     .unwrap();
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // check pending rewards for user1
     check_pending_rewards(
@@ -1786,7 +1814,7 @@ fn generator_update_proxy_balance_failed() {
     )
     .unwrap();
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // Let's try claim rewards for user1
     let msg = GeneratorExecuteMsg::ClaimRewards {
@@ -1845,8 +1873,12 @@ fn generator_with_vkr_reward_proxy() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -2001,7 +2033,7 @@ fn generator_with_vkr_reward_proxy() {
         "astroport::generator::UserInfo not found".to_string()
     );
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // Mint tokens on staking for distributing
     mint_tokens(
@@ -2108,7 +2140,7 @@ fn generator_with_vkr_reward_proxy() {
     app.execute_contract(owner.clone(), generator_instance.clone(), &msg, &[])
         .unwrap();
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // Check if proxy reward exists
     let reps: valkyrie::lp_staking::query_msgs::StakerInfoResponse = app
@@ -2338,8 +2370,12 @@ fn move_to_proxy() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
 
@@ -2439,7 +2475,7 @@ fn move_to_proxy() {
         (0, Some(vec![0])),
     );
 
-    app.update_block(|bi| next_block(bi));
+    app.update_block(next_block);
 
     // Check if proxy reward configs
     let reps: ConfigResponse = app
@@ -2508,8 +2544,12 @@ fn query_all_stakers() {
         ],
     );
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let generator_instance =
         instantiate_generator(&mut app, &factory_instance, &astro_token_instance, None);
@@ -2659,8 +2699,12 @@ fn query_pagination_stakers() {
         ],
     );
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let generator_instance =
         instantiate_generator(&mut app, &factory_instance, &astro_token_instance, None);
@@ -2701,7 +2745,7 @@ fn query_pagination_stakers() {
         .unwrap();
 
     // check count of users
-    assert_eq!(reps.len(), 2 as usize);
+    assert_eq!(reps.len(), 2_usize);
 
     assert_eq!(
         vec![
@@ -2774,8 +2818,12 @@ fn update_tokens_blocked_list() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
@@ -2920,7 +2968,7 @@ fn update_tokens_blocked_list() {
         .unwrap_err();
 
     assert_eq!(
-        format!("Generic error: Token {} is blocked!", cny_token.to_string()),
+        format!("Generic error: Token {} is blocked!", cny_token),
         err.root_cause().to_string()
     );
 
@@ -3040,8 +3088,12 @@ fn setup_pools() {
     let factory_code_id = store_factory_code(&mut app);
     let pair_code_id = store_pair_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let factory_instance =
         instantiate_factory(&mut app, factory_code_id, token_code_id, pair_code_id, None);
@@ -3067,7 +3119,7 @@ fn setup_pools() {
 
     let res: FactoryConfigResponse = app
         .wrap()
-        .query_wasm_smart(&factory_instance.clone(), &FactoryQueryMsg::Config {})
+        .query_wasm_smart(factory_instance.clone(), &FactoryQueryMsg::Config {})
         .unwrap();
 
     assert_eq!(res.generator_address, Some(generator_instance.clone()));
@@ -3292,8 +3344,12 @@ fn deactivate_pools_by_pair_types() {
     let pair_code_id = store_pair_code_id(&mut app);
     let pair_stable_code_id = store_pair_stable_code_id(&mut app);
 
-    let astro_token_instance =
-        instantiate_token(&mut app, token_code_id, "ASTRO", Some(1_000_000_000_000000));
+    let astro_token_instance = instantiate_token(
+        &mut app,
+        token_code_id,
+        "ASTRO",
+        Some(1_000_000_000_000_000),
+    );
 
     let factory_instance = instantiate_factory(
         &mut app,
@@ -3324,7 +3380,7 @@ fn deactivate_pools_by_pair_types() {
 
     let res: FactoryConfigResponse = app
         .wrap()
-        .query_wasm_smart(&factory_instance.clone(), &FactoryQueryMsg::Config {})
+        .query_wasm_smart(factory_instance.clone(), &FactoryQueryMsg::Config {})
         .unwrap();
 
     assert_eq!(res.generator_address, Some(generator_instance.clone()));
@@ -3433,7 +3489,7 @@ fn deactivate_pools_by_pair_types() {
     let res: Vec<PairType> = app
         .wrap()
         .query_wasm_smart(
-            &factory_instance.clone(),
+            factory_instance.clone(),
             &FactoryQueryMsg::BlacklistedPairTypes {},
         )
         .unwrap();
@@ -3536,7 +3592,7 @@ fn deactivate_pools_by_pair_types() {
     let res: Vec<PairType> = app
         .wrap()
         .query_wasm_smart(
-            &factory_instance.clone(),
+            factory_instance.clone(),
             &FactoryQueryMsg::BlacklistedPairTypes {},
         )
         .unwrap();
@@ -3872,7 +3928,7 @@ fn instantiate_token(app: &mut App, token_code_id: u64, name: &str, cap: Option<
         initial_balances: vec![],
         mint: Some(MinterResponse {
             minter: String::from(OWNER),
-            cap: cap.map(|v| Uint128::from(v)),
+            cap: cap.map(Uint128::from),
         }),
         marketing: None,
     };
@@ -3882,7 +3938,7 @@ fn instantiate_token(app: &mut App, token_code_id: u64, name: &str, cap: Option<
 }
 
 fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
-    let coin_registry_id = store_coin_registry_code(&mut app);
+    let coin_registry_id = store_coin_registry_code(app);
     let coin_registry_address = app
         .instantiate_contract(
             coin_registry_id,
@@ -3919,7 +3975,7 @@ fn instantiate_factory(
     pair_stable_code_id: Option<u64>,
 ) -> Addr {
     let coin_registry_address = instantiate_coin_registry(
-        &mut app,
+        app,
         Some(vec![("uusd".to_string(), 6), ("cny".to_string(), 6)]),
     );
 
@@ -3994,11 +4050,11 @@ fn instantiate_generator(
         .unwrap();
 
     mint_tokens(
-        &mut app,
+        app,
         owner.clone(),
-        &astro_token_instance,
+        astro_token_instance,
         &owner,
-        1_000_000_000_000000,
+        1_000_000_000_000_000,
     );
 
     // Generator
@@ -4011,7 +4067,7 @@ fn instantiate_generator(
         .with_reply_empty(astroport_generator::contract::reply),
     );
 
-    let whitelist_code_id = store_whitelist_code(&mut app);
+    let whitelist_code_id = store_whitelist_code(app);
     let generator_code_id = app.store_code(generator_contract);
 
     let init_msg = GeneratorInstantiateMsg {
@@ -4042,7 +4098,7 @@ fn instantiate_generator(
     // Vesting to generator:
     let current_block = app.block_info();
 
-    let amount = Uint128::new(63072000_000000);
+    let amount = Uint128::new(63_072_000_000_000);
 
     let msg = Cw20ExecuteMsg::Send {
         contract: vesting_instance.to_string(),
@@ -4102,18 +4158,15 @@ fn instantiate_valkyrie_protocol(
         ],
     };
 
-    let valkyrie_staking_instance = app
-        .instantiate_contract(
-            valkyrie_staking_code_id,
-            Addr::unchecked(OWNER),
-            &init_msg,
-            &[],
-            "Valkyrie staking",
-            None,
-        )
-        .unwrap();
-
-    valkyrie_staking_instance
+    app.instantiate_contract(
+        valkyrie_staking_code_id,
+        Addr::unchecked(OWNER),
+        &init_msg,
+        &[],
+        "Valkyrie staking",
+        None,
+    )
+    .unwrap()
 }
 
 fn store_proxy_code(app: &mut App) -> u64 {
@@ -4275,7 +4328,7 @@ fn create_pair(
         Addr::unchecked(OWNER),
         factory.clone(),
         &FactoryExecuteMsg::CreatePair {
-            pair_type: pair_type.unwrap_or_else(|| PairType::Xyk {}),
+            pair_type: pair_type.unwrap_or(PairType::Xyk {}),
             asset_infos: assets.clone(),
             init_params: init_param,
         },

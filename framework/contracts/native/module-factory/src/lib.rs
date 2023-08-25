@@ -1,6 +1,6 @@
 mod commands;
 pub mod contract;
-mod error;
+pub mod error;
 mod querier;
 mod response;
 

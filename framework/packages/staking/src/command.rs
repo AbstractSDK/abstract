@@ -36,7 +36,9 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &mut self,
         deps: Deps,
         env: Env,
+        info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        abstract_registry: Addr,
         staking_asset: AssetEntry,
     ) -> AbstractSdkResult<()>;
 
@@ -66,6 +68,8 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     fn query_info(&self, querier: &QuerierWrapper) -> Result<StakingInfoResponse, E>;
 
     /// Query the staked token balance of a given staker
+    /// This will not return  the amount of tokens that are currently unbonding.
+    /// For unbonding positions, please see [Self::query_unbonding]
     fn query_staked(
         &self,
         querier: &QuerierWrapper,
@@ -73,7 +77,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         unbonding_period: Option<Duration>,
     ) -> Result<StakeResponse, E>;
 
-    /// Query unbonding information of a given staker
+    /// Query information on unbonding positions for a given staker.
     fn query_unbonding(
         &self,
         querier: &QuerierWrapper,

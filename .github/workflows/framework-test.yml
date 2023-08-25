@@ -12,6 +12,8 @@ on:
 
 env: 
   CODECOV_TOKEN: 7f09ca79-34d7-4a5a-b6fd-b3b477a7b2e9
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
 
 jobs:
   required:
@@ -24,6 +26,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install ${{ matrix.toolchain }}
         uses: dtolnay/rust-toolchain@master
         with:
@@ -43,6 +49,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install stable
         uses: dtolnay/rust-toolchain@stable
         with:

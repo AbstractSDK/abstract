@@ -1,15 +1,19 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
+use abstract_core::manager::state::ACCOUNT_FACTORY;
+
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::state::ACCOUNT_FACTORY;
-use abstract_core::manager::InternalConfigAction;
+use abstract_core::manager::{InternalConfigAction, QueryMsg};
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::AssetEntry;
+
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
+
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -32,12 +36,15 @@ use abstract_sdk::{
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
-    Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, CosmosMsg, Deps,
+    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
+
+pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -85,7 +92,7 @@ pub fn install_module(
     init_msg: Option<Binary>,
 ) -> ManagerResult {
     // only owner can call this method
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     // Check if module is already enabled.
     if ACCOUNT_MODULES
@@ -173,7 +180,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -188,6 +195,52 @@ pub fn exec_on_module(
     Ok(response)
 }
 
+#[allow(clippy::too_many_arguments)]
+/// Creates a sub-account for this account,
+pub fn create_subaccount(
+    deps: DepsMut,
+    env: Env,
+    msg_info: MessageInfo,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
+) -> ManagerResult {
+    // only owner can create a subaccount
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+
+    let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+        /// this contract (the manager) will be the account owner
+        governance: GovernanceDetails::SubAccount {
+            manager: env.contract.address.to_string(),
+        },
+        name,
+        description,
+        link,
+        base_asset,
+        namespace,
+    };
+
+    let account_factory_addr = query_module(
+        deps.as_ref(),
+        ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
+        None,
+    )?
+    .module
+    .reference
+    .unwrap_native()?;
+
+    // Call factory and attach all funds that were provided.
+    let account_creation_message =
+        wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
+
+    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
+        .add_message(account_creation_message);
+
+    Ok(response)
+}
+
 /// Checked load of a module address
 fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, ManagerError> {
     ACCOUNT_MODULES
@@ -198,7 +251,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -278,7 +331,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -515,7 +568,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -537,7 +590,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -551,7 +604,7 @@ pub fn update_ibc_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update IBC status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -726,12 +779,56 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
             // required to add Proxy after init by Account Factory.
             ACCOUNT_FACTORY
                 .assert_admin(deps.as_ref(), &info.sender)
-                .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
+                .or_else(|_| assert_admin_right(deps.as_ref(), &info.sender))?;
             update_module_addresses(deps, to_add, to_remove)
         }
         _ => Err(ManagerError::InvalidConfigAction {
             error: StdError::generic_err("Unknown config action"),
         }),
+    }
+}
+
+fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<String> {
+    let Ownership::<String> { owner, .. } = deps
+        .querier
+        .query_wasm_smart(maybe_manager.clone(), &QueryMsg::Ownership {})
+        .map_err(|_| ManagerError::NoContractOwner(maybe_manager.to_string()))?;
+
+    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.to_string()))
+}
+
+fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
+    let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
+
+    if ownership_test.is_ok() {
+        return Ok(());
+    }
+
+    let account_info = INFO.load(deps.storage)?;
+    match account_info.governance_details {
+        // If the account has SubAccount governance, the owner of the manager also has admin rights over this account
+        GovernanceDetails::SubAccount { manager } => {
+            // We try to query the ownership of the manager monarch account if the first query failed
+            let mut current = manager;
+            let mut i = 0;
+            while i < MAX_ADMIN_RECURSION {
+                let owner = query_ownership(deps, current)
+                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
+                if *sender == owner {
+                    // If the owner of the current contract is the sender, the admin test is passed
+                    return Ok(());
+                } else {
+                    // If not, we try again with the queried owner
+                    current = deps.api.addr_validate(&owner)?
+                }
+                i += 1;
+            }
+            Err(ManagerError::Std(StdError::generic_err(format!(
+                "Admin recursion error, too much recursion, maximum allowed admin recursion : {}",
+                MAX_ADMIN_RECURSION
+            ))))
+        }
+        _ => Ok(ownership_test?),
     }
 }
 

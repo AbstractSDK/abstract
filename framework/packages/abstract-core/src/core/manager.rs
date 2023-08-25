@@ -90,6 +90,7 @@ pub mod state {
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
+use crate::objects::AssetEntry;
 use crate::objects::{
     account_id::AccountId,
     gov_type::GovernanceDetails,
@@ -158,6 +159,19 @@ pub enum ExecuteMsg {
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
+    },
+    /// Creates a sub-account on the account
+    CreateSubAccount {
+        // Name of the sub-account
+        name: String,
+        // Description of the account
+        description: Option<String>,
+        // URL linked to the account
+        link: Option<String>,
+        // Optionally specify a base asset for the sub-account
+        base_asset: Option<AssetEntry>,
+        // optionally specify a namespace for the sub-account
+        namespace: Option<String>,
     },
     /// Update info
     UpdateInfo {

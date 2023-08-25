@@ -72,7 +72,7 @@ fn store_coin_registry_code(app: &mut App) -> u64 {
 }
 
 fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
-    let coin_registry_id = store_coin_registry_code(&mut app);
+    let coin_registry_id = store_coin_registry_code(app);
     let coin_registry_address = app
         .instantiate_contract(
             coin_registry_id,
@@ -103,13 +103,13 @@ fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>
 
 fn instantiate_pair(mut router: &mut App, owner: &Addr) -> Addr {
     let coin_registry_address = instantiate_coin_registry(
-        &mut router,
+        router,
         Some(vec![("uusd".to_string(), 6), ("uluna".to_string(), 6)]),
     );
 
-    let token_contract_code_id = store_token_code(&mut router);
-    let pair_contract_code_id = store_pair_code(&mut router);
-    let factory_code_id = store_factory_code(&mut router);
+    let token_contract_code_id = store_token_code(router);
+    let pair_contract_code_id = store_pair_code(router);
+    let factory_code_id = store_factory_code(router);
 
     let factory_init_msg = FactoryInstantiateMsg {
         fee_address: None,
@@ -363,13 +363,13 @@ fn provide_liquidity_msg(
                 info: AssetInfo::NativeToken {
                     denom: "uusd".to_string(),
                 },
-                amount: uusd_amount.clone(),
+                amount: uusd_amount,
             },
             Asset {
                 info: AssetInfo::NativeToken {
                     denom: "uluna".to_string(),
                 },
-                amount: uluna_amount.clone(),
+                amount: uluna_amount,
             },
         ],
         slippage_tolerance: None,
@@ -380,11 +380,11 @@ fn provide_liquidity_msg(
     let coins = [
         Coin {
             denom: "uluna".to_string(),
-            amount: uluna_amount.clone(),
+            amount: uluna_amount,
         },
         Coin {
             denom: "uusd".to_string(),
-            amount: uusd_amount.clone(),
+            amount: uusd_amount,
         },
     ];
 
@@ -744,7 +744,7 @@ fn test_compatibility_of_tokens_with_different_precision() {
 
     let token_code_id = store_token_code(&mut app);
 
-    let x_amount = Uint128::new(1000000_00000);
+    let x_amount = Uint128::new(100_000_000_000);
     let y_amount = Uint128::new(1000000_0000000);
     let x_offer = Uint128::new(1_00000);
     let y_expected_return = Uint128::new(1_0000000);
@@ -966,11 +966,11 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
         vec![
             Coin {
                 denom: "uusd".to_string(),
-                amount: Uint128::new(100_000_000_000000u128),
+                amount: Uint128::new(100_000_000_000_000_u128),
             },
             Coin {
                 denom: "uluna".to_string(),
-                amount: Uint128::new(100_000_000_000000u128),
+                amount: Uint128::new(100_000_000_000_000_u128),
             },
         ],
     );
@@ -984,11 +984,11 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
         &[
             Coin {
                 denom: "uusd".to_string(),
-                amount: Uint128::new(4666666_000000),
+                amount: Uint128::new(4_666_666_000_000),
             },
             Coin {
                 denom: "uluna".to_string(),
-                amount: Uint128::new(2000000_000000),
+                amount: Uint128::new(2_000_000_000_000),
             },
         ],
     )
@@ -999,8 +999,8 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
 
     // Provide liquidity, accumulators are empty
     let (msg, coins) = provide_liquidity_msg(
-        Uint128::new(1000000_000000),
-        Uint128::new(1000000_000000),
+        Uint128::new(1_000_000_000_000),
+        Uint128::new(1_000_000_000_000),
         None,
     );
     app.execute_contract(user1.clone(), pair_instance.clone(), &msg, &coins)
@@ -1017,8 +1017,8 @@ fn test_if_twap_is_calculated_correctly_when_pool_idles() {
 
     // Provide liquidity, accumulators firstly filled with the same prices
     let (msg, coins) = provide_liquidity_msg(
-        Uint128::new(3000000_000000),
-        Uint128::new(1000000_000000),
+        Uint128::new(3_000_000_000_000),
+        Uint128::new(1_000_000_000_000),
         None,
     );
     app.execute_contract(user1.clone(), pair_instance.clone(), &msg, &coins)

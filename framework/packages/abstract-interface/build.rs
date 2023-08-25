@@ -3,7 +3,7 @@ use std::path::PathBuf;
 fn main() {
     // This is where the custom state comes from, not possible to change that for now
     let state_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("daemon_state.json")
+        .join("state.json")
         .display()
         .to_string();
     // This is where the compiled wasm come from, not possible to change that for now
