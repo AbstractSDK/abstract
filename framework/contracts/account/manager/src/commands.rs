@@ -815,7 +815,8 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
                     .querier
                     .query_wasm_raw(current, ADMIN_NAMESPACE.as_bytes())?
                     .ok_or(ManagerError::SubAccountAdminVerification)?;
-                let manager: Addr = from_binary(&Binary(manager))?;
+                let manager: Option<Addr> = from_binary(&Binary(manager))?;
+                let manager = manager.ok_or(ManagerError::SubAccountAdminVerification)?;
                 let owner = query_ownership(deps, manager.clone())
                     .map_err(|_| ManagerError::SubAccountAdminVerification)?;
 
