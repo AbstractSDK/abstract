@@ -810,7 +810,7 @@ pub fn update_internal_config(
     };
 
     // if the caller is the module factory, and the account is not already instantiated, then instantiate the account and register the modules.
-    if ACCOUNT_FACTORY.is_admin(deps.as_ref(), &info.sender)?
+    if ACCOUNT_FACTORY.is_admin(deps.as_ref(), &info.sender).is_ok_and(|a| a == true)
         && !ACCOUNT_MODULES.has(deps.storage, PROXY)
     {
         // Add the proxy.
@@ -839,6 +839,8 @@ pub fn update_internal_config(
 
         // clear the queue
         MODULE_QUEUE.remove(deps.storage);
+        // Remove account factory from storage
+        ACCOUNT_FACTORY.set(deps, None)?;
 
         Ok(ManagerResponse::action("manager_after_init").add_messages(install_msgs?))
     } else {
