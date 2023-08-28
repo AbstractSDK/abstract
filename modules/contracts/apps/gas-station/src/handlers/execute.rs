@@ -4,9 +4,7 @@ use cosmwasm_std::{Addr, Coin, DepsMut, Env, MessageInfo, Response, Timestamp};
 use cw_asset::AssetInfoBase;
 
 use abstract_core::objects::AnsAsset;
-use abstract_sdk::{
-    features::AbstractNameService, AbstractResponse, Execution, GrantInterface, Resolve,
-};
+use abstract_sdk::{features::AbstractNameService, AbstractResponse, Execution, GrantInterface, Resolve, TransferInterface};
 
 use crate::state::{GasPass, GradeName};
 use crate::{
@@ -71,13 +69,13 @@ fn create_grade(
         }
     }
 
-    // Save the new gas pump
+    // Save the new grade
     GRADES.update(
         deps.storage,
         grade.clone(),
         |x| -> GasStationResult<Grade> {
             match x {
-                Some(_) => Err(GasStationError::GasPumpAlreadyExists(grade.clone())),
+                Some(_) => Err(GasStationError::GradeAlreadyExists(grade.clone())),
                 None => Ok(Grade {
                     fuel_mix: resolved_mix
                         .into_iter()

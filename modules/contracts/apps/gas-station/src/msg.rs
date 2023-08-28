@@ -23,8 +23,10 @@ pub enum GasStationExecuteMsg {
     /// Create a new gas pump with a specific grade and amount.
     /// This allows the contract owner or privileged accounts to define new gas grades.
     CreateGrade {
-        grade: GradeName, // The grade of the gas (e.g., "premium_100000").
-        fuel_mix: Vec<AnsAsset>, // The amount of gas this grade represents.
+        /// The grade of the gas (e.g., "premium_100000").
+        grade: GradeName,
+        /// The amount of gas this grade represents.
+        fuel_mix: Vec<AnsAsset>,
                           // expiration: Option<Expiration>
     },
     /// Activate a gas pass for a specific recipient.

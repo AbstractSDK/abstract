@@ -31,8 +31,8 @@ pub enum GasStationError {
     #[error("Convert can be called only by the croncat manager")]
     NotManagerConvert {},
 
-    #[error("Gas pump {0} already exists")]
-    GasPumpAlreadyExists(String),
+    #[error("Grade {0} already exists")]
+    GradeAlreadyExists(String),
 
     #[error("Gas pass {0} already exists")]
     GasPassAlreadyExists(String),

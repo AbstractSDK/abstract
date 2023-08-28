@@ -1,6 +1,6 @@
 [package]
 name = "abstract-gas-station-app"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -49,8 +49,6 @@ abstract-sdk = { workspace = true, features = ["stargate"] }
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
-croncat-app = { workspace = true, default-features = false }
-abstract-dex-adapter = { workspace = true, default-features = false }
 #osmosis-std = {version = "0.16.1" }
 osmosis-std = { path = "../../../../integrations/osmosis/packages/osmosis-std" }
 # TODO: remove
