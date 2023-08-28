@@ -1,6 +1,8 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
-use abstract_core::manager::state::{ACCOUNT_FACTORY, MODULE_QUEUE, SUB_ACCOUNTS};
+use abstract_core::manager::state::{
+    ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
+};
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
@@ -41,6 +43,7 @@ use cosmwasm_std::{
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -262,6 +265,7 @@ pub fn create_sub_account(
     Ok(response)
 }
 
+// Unregister sub-account from the state
 pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -280,6 +284,28 @@ pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> Mana
         ))
     } else {
         Err(ManagerError::SubAccountRemovalFailed {})
+    }
+}
+
+// Unregister sub-account to the state
+pub fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.save(deps.storage, id, &Empty {})?;
+
+        Ok(ManagerResponse::new(
+            "register_sub_account",
+            vec![("sub_account_added", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRegisterFailed {})
     }
 }
 
@@ -367,6 +393,7 @@ pub fn set_owner(
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
 
+    PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
     let ownership = cw_ownable::update_ownership(
         deps,
@@ -379,6 +406,44 @@ pub fn set_owner(
     )?;
     response = response.add_attributes(ownership.into_attributes());
     Ok(response)
+}
+
+/// Update governance of this account after claim
+pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+    let mut acc_info = INFO.load(storage)?;
+    let mut account_id = None;
+    // Get pending governance and clear it
+    let pending_governance = PENDING_GOVERNANCE
+        .may_load(storage)?
+        .ok_or(OwnershipError::TransferNotFound)?;
+    PENDING_GOVERNANCE.remove(storage);
+
+    // Clear state for previous manager if it was sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+        let id = ACCOUNT_ID.load(storage)?;
+        // For optimizing the gas we save it, in case new owner is sub-account as well
+        account_id = Some(id);
+        let unregister_message =
+            wasm_execute(manager, &ExecuteMsg::UnregisterSubAccount { id }, vec![])?;
+        msgs.push(unregister_message.into());
+    }
+
+    // Update state for new manager if owner will be the sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+        let id = if let Some(id) = account_id {
+            id
+        } else {
+            ACCOUNT_ID.load(storage)?
+        };
+        let register_message =
+            wasm_execute(manager, &ExecuteMsg::RegisterSubAccount { id }, vec![])?;
+        msgs.push(register_message.into());
+    }
+    // Update governance of this account
+    acc_info.governance_details = pending_governance;
+    INFO.save(storage, &acc_info)?;
+    Ok(msgs)
 }
 
 /// Migrate modules through address updates or contract migrations

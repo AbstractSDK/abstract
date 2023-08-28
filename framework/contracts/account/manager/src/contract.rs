@@ -145,6 +145,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     install_modules,
                 ),
                 ExecuteMsg::UnregisterSubAccount { id } => unregister_sub_account(deps, info, id),
+                ExecuteMsg::RegisterSubAccount { id } => register_sub_account(deps, info, id),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,
@@ -165,21 +166,24 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     Ok(response)
                 }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
-                ExecuteMsg::UpdateOwnership(action) => match action {
-                    // Disallow the user from using the TransferOwnership action
-                    cw_ownable::Action::TransferOwnership { .. } => {
-                        Err(ManagerError::MustUseSetOwner {})
-                    }
-                    _ => {
-                        abstract_sdk::execute_update_ownership!(
-                            ManagerResponse,
-                            deps,
-                            env,
-                            info,
-                            action
-                        )
-                    }
-                },
+                ExecuteMsg::UpdateOwnership(action) => {
+                    let msgs = match action {
+                        // Disallow the user from using the TransferOwnership action
+                        cw_ownable::Action::TransferOwnership { .. } => {
+                            return Err(ManagerError::MustUseSetOwner {});
+                        }
+                        cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
+                        _ => vec![],
+                    };
+                    let result: ManagerResult = abstract_sdk::execute_update_ownership!(
+                        ManagerResponse,
+                        deps,
+                        env,
+                        info,
+                        action
+                    );
+                    Ok(result?.add_messages(msgs))
+                }
                 _ => panic!(),
             }
         }
@@ -237,7 +241,10 @@ pub fn reply(deps: DepsMut, _env: Env, msg: cosmwasm_std::Reply) -> ManagerResul
                     create_account_response.0,
                     &cosmwasm_std::Empty {},
                 )?;
-                Ok(Response::new())
+                Ok(ManagerResponse::new(
+                    "sub_account_added",
+                    vec![("account_id", create_account_response.0.to_string())],
+                ))
             } else {
                 Err(ManagerError::UnexpectedReply {})
             }

@@ -99,4 +99,7 @@ pub enum ManagerError {
 
     #[error("Removing sub account failed")]
     SubAccountRemovalFailed {},
+
+    #[error("Register of sub account failed")]
+    SubAccountRegisterFailed {},
 }

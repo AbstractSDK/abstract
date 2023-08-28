@@ -91,6 +91,8 @@ pub mod state {
     pub const MODULE_QUEUE: Item<Vec<(ModuleInfo, Option<Binary>)>> = Item::new("mqueue");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
+    /// Pending new governance
+    pub const PENDING_GOVERNANCE: Item<GovernanceDetails<Addr>> = Item::new("pgov");
 }
 
 use self::state::AccountInfo;
@@ -145,7 +147,10 @@ pub enum InternalConfigAction {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule { module_id: String, exec_msg: Binary },
+    ExecOnModule {
+        module_id: String,
+        exec_msg: Binary,
+    },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
@@ -159,9 +164,14 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModule { module_addr: String, module: Module },
+    RegisterModule {
+        module_addr: String,
+        module: Module,
+    },
     /// Uninstall a module given its ID.
-    UninstallModule { module_id: String },
+    UninstallModule {
+        module_id: String,
+    },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -182,10 +192,19 @@ pub enum ExecuteMsg {
         // Provide list of module to install after sub-account creation
         install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
-    /// UnregisterSubAccount
+    /// Unregister sub-account
     /// It will unregister sub-account from the state
-    /// Should be called only by the sub-account itself
-    UnregisterSubAccount { id: u32 },
+    /// Could be called only by the sub-account itself
+    UnregisterSubAccount {
+        id: u32,
+    },
+    /// Register sub-account
+    /// It will register new sub-account into the state
+    /// Could be called by the sub-account manager
+    /// Note: since it happens after the claim by this manager state won't have spam accounts
+    RegisterSubAccount {
+        id: u32,
+    },
     /// Update info
     UpdateInfo {
         name: Option<String>,
@@ -193,12 +212,18 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
-    /// New owner will have to claim ownership, in case force is not true
-    SetOwner { owner: GovernanceDetails<String> },
+    /// New owner will have to claim ownership
+    SetOwner {
+        owner: GovernanceDetails<String>,
+    },
     /// Update account statuses
-    UpdateStatus { is_suspended: Option<bool> },
+    UpdateStatus {
+        is_suspended: Option<bool>,
+    },
     /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings { ibc_enabled: Option<bool> },
+    UpdateSettings {
+        ibc_enabled: Option<bool>,
+    },
     /// Callback endpoint
     Callback(CallbackMsg),
 }
