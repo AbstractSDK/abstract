@@ -1,6 +1,6 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
-use abstract_core::manager::state::{ACCOUNT_FACTORY, OWNER};
+use abstract_core::manager::state::ACCOUNT_FACTORY;
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
@@ -14,7 +14,6 @@ use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
 
-use abstract_sdk::namespaces::ADMIN_NAMESPACE;
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -41,7 +40,6 @@ use cosmwasm_std::{
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw_ownable::Ownership;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -201,6 +199,7 @@ pub fn exec_on_module(
 pub fn create_subaccount(
     deps: DepsMut,
     msg_info: MessageInfo,
+    env: Env,
     name: String,
     description: Option<String>,
     link: Option<String>,
@@ -213,6 +212,7 @@ pub fn create_subaccount(
     let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
         /// proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
+            manager: env.contract.address.into_string(),
             proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
         },
         name,
@@ -788,56 +788,51 @@ pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) 
     }
 }
 
-fn query_ownership(deps: Deps, maybe_proxy: Addr) -> ManagerResult<Addr> {
-    // query admin of the proxy (it's manager)
-    let manager_bytes = deps
-        .querier
-        .query_wasm_raw(maybe_proxy, ADMIN_NAMESPACE.as_bytes())?
-        .ok_or(ManagerError::SubAccountAdminVerification)?;
-    let manager = from_binary::<Option<Addr>>(&Binary(manager_bytes))?
-        .ok_or(ManagerError::SubAccountAdminVerification)?;
-
-    // get owner of the manager
-    let Ownership { owner, .. } = OWNER
-        .query(&deps.querier, manager.clone())
-        .map_err(|_| ManagerError::NoContractOwner(manager.to_string()))?;
-    owner.ok_or(ManagerError::NoContractOwner(manager.into_string()))
-}
-
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
 
-    if ownership_test.is_ok() {
-        return Ok(());
-    }
+    let mut ownership_error: ManagerError = match ownership_test {
+        Ok(()) => return Ok(()),
+        Err(err) => err.into(),
+    };
 
-    let account_info = INFO.load(deps.storage)?;
-    match account_info.governance_details {
-        // If the account has SubAccount governance, the owner of the manager also has admin rights over this account
-        GovernanceDetails::SubAccount { proxy } => {
-            // We try to query the ownership of the manager monarch account if the first query failed
-            let mut current = proxy;
-            let mut i = 0;
-            while i < MAX_ADMIN_RECURSION {
-                // admin of a proxy is a manager
-                let owner = query_ownership(deps, current.clone())
+    let mut current: AccountInfo = INFO.load(deps.storage)?;
+    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    for _ in 0..MAX_ADMIN_RECURSION {
+        match current.governance_details {
+            GovernanceDetails::SubAccount { manager, .. } => {
+                current = INFO
+                    .query(&deps.querier, manager)
                     .map_err(|_| ManagerError::SubAccountAdminVerification)?;
 
-                if *sender == owner {
-                    // If the owner of the current contract is the sender, the admin test is passed
-                    return Ok(());
-                } else {
-                    // If not, we try again with the queried owner
-                    current = owner;
-                }
-                i += 1;
+                // Change error type if it was sub-account
+                ownership_error = ManagerError::SubAccountAdminVerification;
             }
+            _ => break,
+        }
+    }
+
+    match current.governance_details {
+        GovernanceDetails::Monarchy { monarch: owner }
+        | GovernanceDetails::External {
+            governance_address: owner,
+            ..
+        } => {
+            // If the owner of the current contract is the sender, the admin test is passed
+            if *sender == owner {
+                Ok(())
+            } else {
+                Err(ownership_error)
+            }
+        }
+        // MAX_ADMIN_RECURSION levels deep still sub account
+        GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
                 "Admin recursion error, too much recursion, maximum allowed admin recursion : {}",
                 MAX_ADMIN_RECURSION
             ))))
         }
-        _ => Ok(ownership_test?),
+        _ => Err(ownership_error),
     }
 }
 

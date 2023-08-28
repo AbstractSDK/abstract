@@ -21,6 +21,8 @@ pub enum GovernanceDetails<T: AddressLike> {
     },
     /// Used when the account is a sub-account of another account.
     SubAccount {
+        /// The manager of the account of which this account is the sub-account.
+        manager: T,
         /// The proxy of the account of which this account is the sub-account.
         proxy: T,
     },
@@ -41,9 +43,10 @@ impl GovernanceDetails<String> {
                 let addr = api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
             }
-            GovernanceDetails::SubAccount { proxy } => {
-                let addr = api.addr_validate(&proxy)?;
-                Ok(GovernanceDetails::SubAccount { proxy: addr })
+            GovernanceDetails::SubAccount { manager, proxy } => {
+                let manager = api.addr_validate(&manager)?;
+                let proxy = api.addr_validate(&proxy)?;
+                Ok(GovernanceDetails::SubAccount { manager, proxy })
             }
             GovernanceDetails::External {
                 governance_address,
@@ -95,7 +98,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self) -> Addr {
         match self {
             GovernanceDetails::Monarchy { monarch } => monarch.clone(),
-            GovernanceDetails::SubAccount { proxy } => proxy.clone(),
+            GovernanceDetails::SubAccount { proxy, .. } => proxy.clone(),
             GovernanceDetails::External {
                 governance_address, ..
             } => governance_address.clone(),
@@ -107,16 +110,17 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
     fn from(value: GovernanceDetails<Addr>) -> Self {
         match value {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
-                monarch: monarch.to_string(),
+                monarch: monarch.into_string(),
             },
-            GovernanceDetails::SubAccount { proxy } => GovernanceDetails::SubAccount {
-                proxy: proxy.to_string(),
+            GovernanceDetails::SubAccount { manager, proxy } => GovernanceDetails::SubAccount {
+                manager: manager.into_string(),
+                proxy: proxy.into_string(),
             },
             GovernanceDetails::External {
                 governance_address,
                 governance_type,
             } => GovernanceDetails::External {
-                governance_address: governance_address.to_string(),
+                governance_address: governance_address.into_string(),
                 governance_type,
             },
         }
