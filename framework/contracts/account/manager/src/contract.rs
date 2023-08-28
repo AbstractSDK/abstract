@@ -1,10 +1,11 @@
 use crate::{
     commands::*,
     error::ManagerError,
-    queries,
+    queries::{self, handle_sub_accounts_query},
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     versioning,
 };
+use abstract_core::{account_factory::CreateAccountResponseData, manager::state::SUB_ACCOUNTS};
 use abstract_sdk::core::{
     manager::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
@@ -16,7 +17,7 @@ use abstract_sdk::core::{
     MANAGER,
 };
 use cosmwasm_std::{
-    ensure_eq, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    ensure_eq, from_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -24,6 +25,7 @@ use semver::Version;
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub(crate) const CREATE_SUB_ACCOUNT_ID: u64 = 0;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {
@@ -123,7 +125,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     link,
                     base_asset,
                     namespace,
-                } => create_subaccount(
+                } => create_sub_account(
                     deps,
                     env,
                     info,
@@ -185,6 +187,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Info {} => handle_account_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
+        QueryMsg::SubAccountIds { start_after, limit } => {
+            handle_sub_accounts_query(deps, start_after, limit)
+        }
     }
 }
 
@@ -205,6 +210,30 @@ pub fn handle_callback(mut deps: DepsMut, env: Env, info: MessageInfo) -> Manage
 
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
     Ok(Response::new())
+}
+
+#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
+pub fn reply(deps: DepsMut, _env: Env, msg: cosmwasm_std::Reply) -> ManagerResult {
+    match &msg {
+        cosmwasm_std::Reply {
+            id: CREATE_SUB_ACCOUNT_ID,
+            result: cosmwasm_std::SubMsgResult::Ok(_),
+        } => {
+            let response_data = cw_utils::parse_reply_execute_data(msg)?;
+            if let Some(data) = response_data.data {
+                let create_account_response: CreateAccountResponseData = from_binary(&data)?;
+                SUB_ACCOUNTS.save(
+                    deps.storage,
+                    create_account_response.0,
+                    &cosmwasm_std::Empty {},
+                )?;
+                Ok(Response::new())
+            } else {
+                Err(ManagerError::UnexpectedReply {})
+            }
+        }
+        _ => Err(ManagerError::UnexpectedReply {}),
+    }
 }
 
 #[cfg(test)]

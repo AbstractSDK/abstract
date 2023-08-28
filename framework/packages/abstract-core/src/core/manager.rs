@@ -86,6 +86,8 @@ pub mod state {
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
+    /// List of sub-accounts
+    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
 }
 
 use self::state::AccountInfo;
@@ -218,6 +220,11 @@ pub enum QueryMsg {
     /// Returns [`InfoResponse`]
     #[returns(InfoResponse)]
     Info {},
+    #[returns(SubAccountIdsResponse)]
+    SubAccountIds {
+        start_after: Option<u32>,
+        limit: Option<u8>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -253,4 +260,9 @@ pub struct ManagerModuleInfo {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfosResponse {
     pub module_infos: Vec<ManagerModuleInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SubAccountIdsResponse {
+    pub sub_accounts: Vec<u32>,
 }

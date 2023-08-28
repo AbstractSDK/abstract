@@ -1,5 +1,6 @@
 mod common;
 
+use abstract_core::manager::SubAccountIdsResponse;
 use abstract_interface::*;
 use common::*;
 use cosmwasm_std::Addr;
@@ -16,6 +17,14 @@ fn creating_on_subaccount_should_succeed() -> AResult {
     account
         .manager
         .create_sub_account("My subaccount".to_string(), None, None, None, None)?;
+    let sub_accounts = account.manager.sub_account_ids(None, None)?;
+    assert_eq!(
+        sub_accounts,
+        SubAccountIdsResponse {
+            // only one sub-account and it should be account_id 2
+            sub_accounts: vec![2]
+        }
+    );
     Ok(())
 }
 

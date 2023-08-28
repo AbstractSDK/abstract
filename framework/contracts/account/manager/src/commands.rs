@@ -37,7 +37,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, CosmosMsg, Deps,
-    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::Ownership;
@@ -197,7 +197,7 @@ pub fn exec_on_module(
 
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
-pub fn create_subaccount(
+pub fn create_sub_account(
     deps: DepsMut,
     env: Env,
     msg_info: MessageInfo,
@@ -236,7 +236,10 @@ pub fn create_subaccount(
         wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
 
     let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
-        .add_message(account_creation_message);
+        .add_submessage(SubMsg::reply_on_success(
+            account_creation_message,
+            crate::contract::CREATE_SUB_ACCOUNT_ID,
+        ));
 
     Ok(response)
 }

@@ -1,3 +1,4 @@
+use abstract_core::account_factory::CreateAccountResponseData;
 use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
@@ -182,6 +183,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 ) -> AccountFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
+    let account_id = config.next_account_id;
     CONTEXT.remove(deps.storage);
 
     let res: MsgInstantiateContractResponse =
@@ -219,7 +221,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
-            account_id: config.next_account_id,
+            account_id,
             account_base,
         })?,
     });
@@ -256,7 +258,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
                 contract_addr: config.version_control_contract.to_string(),
                 funds: vec![],
                 msg: to_binary(&VCExecuteMsg::ClaimNamespace {
-                    account_id: config.next_account_id,
+                    account_id,
                     namespace: n,
                 })?,
             }))
@@ -275,6 +277,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: manager_address.to_string(),
         admin: manager_address.to_string(),
     });
+
+    let response_data = CreateAccountResponseData(account_id);
 
     // Update id sequence
     config.next_account_id += 1;
@@ -310,7 +314,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 
     resp = resp
         .add_message(set_proxy_admin_msg)
-        .add_message(set_manager_admin_msg);
+        .add_message(set_manager_admin_msg)
+        .set_data(to_binary(&response_data)?);
 
     Ok(resp)
 }
