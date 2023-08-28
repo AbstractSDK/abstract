@@ -47,7 +47,7 @@ impl TryFrom<&str> for UncheckedContractEntry {
         let Some((protocol, contract_name)) = entry.split_once(ATTRIBUTE_DELIMITER) else {
             return Err(StdError::generic_err(
                 "contract entry should be formatted as \"protocol:contract_name\".",
-            ))
+            ));
         };
         Ok(Self::new(protocol, contract_name))
     }

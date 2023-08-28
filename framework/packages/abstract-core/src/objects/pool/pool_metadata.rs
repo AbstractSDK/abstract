@@ -76,7 +76,7 @@ impl FromStr for PoolMetadata {
         let Some((dex, assets, pool_type)) = parts else {
             return Err(StdError::generic_err(format!(
                 "invalid pool metadata format `{s}`; must be in format `{{dex}}{TYPE_DELIMITER}{{asset1}},{{asset2}}{ATTRIBUTE_DELIMITER}{{pool_type}}...`"
-            )))
+            )));
         };
 
         let assets: Vec<&str> = assets.split(ASSET_DELIMITER).collect();
