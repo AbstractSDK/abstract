@@ -147,10 +147,7 @@ pub enum InternalConfigAction {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
-    ExecOnModule {
-        module_id: String,
-        exec_msg: Binary,
-    },
+    ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
     UpdateInternalConfig(Binary),
@@ -164,14 +161,9 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModule {
-        module_addr: String,
-        module: Module,
-    },
+    RegisterModule { module_addr: String, module: Module },
     /// Uninstall a module given its ID.
-    UninstallModule {
-        module_id: String,
-    },
+    UninstallModule { module_id: String },
     /// Upgrade the module to a new version
     /// If module is `abstract::manager` then the contract will do a self-migration.
     Upgrade {
@@ -195,16 +187,12 @@ pub enum ExecuteMsg {
     /// Unregister sub-account
     /// It will unregister sub-account from the state
     /// Could be called only by the sub-account itself
-    UnregisterSubAccount {
-        id: u32,
-    },
+    UnregisterSubAccount { id: u32 },
     /// Register sub-account
     /// It will register new sub-account into the state
     /// Could be called by the sub-account manager
     /// Note: since it happens after the claim by this manager state won't have spam accounts
-    RegisterSubAccount {
-        id: u32,
-    },
+    RegisterSubAccount { id: u32 },
     /// Update info
     UpdateInfo {
         name: Option<String>,
@@ -213,17 +201,11 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Owner
     /// New owner will have to claim ownership
-    SetOwner {
-        owner: GovernanceDetails<String>,
-    },
+    SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
-    UpdateStatus {
-        is_suspended: Option<bool>,
-    },
+    UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
-    UpdateSettings {
-        ibc_enabled: Option<bool>,
-    },
+    UpdateSettings { ibc_enabled: Option<bool> },
     /// Callback endpoint
     Callback(CallbackMsg),
 }

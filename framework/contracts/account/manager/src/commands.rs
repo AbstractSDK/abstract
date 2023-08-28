@@ -366,10 +366,8 @@ pub fn set_owner(
     let verified_gov = new_owner.verify(deps.api)?;
     let new_owner_addr = verified_gov.owner_address();
 
-    // Update the account information
-    let mut acc_info = INFO.load(deps.storage)?;
-
     // Check that there are changes
+    let acc_info = INFO.load(deps.storage)?;
     if acc_info.governance_details == verified_gov {
         return Err(ManagerError::NoUpdates {});
     }
@@ -378,20 +376,6 @@ pub fn set_owner(
         "update_owner",
         vec![("governance_type", verified_gov.to_string())],
     );
-
-    // TODO: we want this to happen after it's claimed
-    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
-        let account_id = ACCOUNT_ID.load(deps.storage)?;
-        let unregister_message = wasm_execute(
-            manager,
-            &ExecuteMsg::UnregisterSubAccount { id: account_id },
-            vec![],
-        )?;
-        response = response.add_message(unregister_message)
-    }
-    // And this as well?
-    acc_info.governance_details = verified_gov.clone();
-    INFO.save(deps.storage, &acc_info)?;
 
     PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
@@ -1149,10 +1133,19 @@ mod tests {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: GovernanceDetails::Monarchy { monarch: new_gov },
+                owner: GovernanceDetails::Monarchy {
+                    monarch: new_gov.clone(),
+                },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
+
+            let actual_info = INFO.load(deps.as_ref().storage)?;
+            assert_that!(&actual_info.governance_details.owner_address().to_string())
+                .is_equal_to("owner".to_string());
+
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info.governance_details.owner_address().to_string())
@@ -1986,6 +1979,13 @@ mod tests {
                     owner: None,
                     pending_expiry: None,
                     pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+            // mock pending governance
+            Item::new("pgov").save(
+                deps.as_mut().storage,
+                &GovernanceDetails::Monarchy {
+                    monarch: pending_owner.to_owned(),
                 },
             )?;
 
