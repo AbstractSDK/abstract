@@ -1,6 +1,7 @@
 mod common;
 
 use abstract_core::manager::SubAccountIdsResponse;
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::*;
 use common::*;
 use cosmwasm_std::Addr;
@@ -114,6 +115,44 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     assert_eq!(
         Some(new_desc.to_string()),
         account_contracts.0.info()?.info.description
+    );
+
+    Ok(())
+}
+
+#[test]
+fn sub_account_move_ownership() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let new_owner = Addr::unchecked("new_owner");
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+
+    account
+        .manager
+        .create_sub_account("My subaccount".to_string(), None, None, None, None)?;
+    let sub_accounts = account.manager.sub_account_ids(None, None)?;
+    assert_eq!(
+        sub_accounts,
+        SubAccountIdsResponse {
+            // only one sub-account and it should be account_id 2
+            sub_accounts: vec![2]
+        }
+    );
+
+    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    sub_account.manager.set_owner(GovernanceDetails::Monarchy {
+        monarch: new_owner.to_string(),
+    })?;
+
+    let account = AbstractAccount::new(&deployment, Some(1));
+    let sub_accounts = account.manager.sub_account_ids(None, None)?;
+    assert_eq!(
+        sub_accounts,
+        SubAccountIdsResponse {
+            // It's updated here
+            sub_accounts: vec![]
+        }
     );
 
     Ok(())
