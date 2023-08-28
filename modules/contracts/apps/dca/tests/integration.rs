@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use abstract_core::app::AppModuleDataResponse;
 use abstract_core::objects::dependency::DependencyResponse;
 use abstract_core::objects::module_version::ModuleDataResponse;
 use abstract_core::objects::{
@@ -221,7 +220,7 @@ fn successful_install() -> anyhow::Result<()> {
         }
     );
 
-    let module_data = apps.dca_app.base_module_data()?;
+    let module_data = apps.dca_app.module_data()?;
     assert_eq!(
         module_data,
         ModuleDataResponse {

@@ -88,7 +88,7 @@ fn staking_inited() -> anyhow::Result<()> {
         tokens: vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())],
     });
 
-    let module_data = staking.base_module_data()?;
+    let module_data = staking.module_data()?;
     assert_eq!(
         module_data,
         ModuleDataResponse {
