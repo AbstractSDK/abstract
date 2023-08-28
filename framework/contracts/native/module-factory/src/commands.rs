@@ -22,7 +22,7 @@ use protobuf::Message;
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
 
-/// Function that starts the creation of the Account
+/// Function that starts the creation of the Module
 pub fn execute_create_module(
     deps: DepsMut,
     env: Env,

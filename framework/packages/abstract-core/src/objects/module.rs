@@ -364,14 +364,34 @@ pub fn assert_module_data_validity(
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
                 // this will be the case when registering a code-id on VC
-                return Ok(())
+                return Ok(());
             };
             addr
         }
     };
 
+    let ModuleVersion::Version(version) = &module_claim.info.version else {
+        panic!("Module version is not versioned, context setting is wrong")
+    };
+
     // verify that the contract's data is equal to its registered data
-    let cw_2_data = cw2::CONTRACT.query(querier, module_address.clone())?;
+    let cw_2_data_res = cw2::CONTRACT.query(querier, module_address.clone());
+
+    // For standalone we only check the version if cw2 exists
+    if let ModuleReference::Standalone(_) = module_claim.reference {
+        if let Ok(cw_2_data) = cw_2_data_res {
+            ensure_eq!(
+                version,
+                &cw_2_data.version,
+                AbstractError::UnequalModuleData {
+                    cw2: cw_2_data.version,
+                    module: version.to_owned()
+                }
+            );
+        }
+        return Ok(());
+    }
+    let cw_2_data = cw_2_data_res?;
 
     // Assert that the contract name is equal to the module name
     ensure_eq!(
@@ -382,10 +402,6 @@ pub fn assert_module_data_validity(
             module: module_claim.info.id()
         }
     );
-
-    let ModuleVersion::Version(version) = &module_claim.info.version else {
-    panic!("Module version is not versioned, context setting is wrong")
-    };
 
     // Assert that the contract version is equal to the module version
     ensure_eq!(
@@ -400,7 +416,6 @@ pub fn assert_module_data_validity(
     match module_claim.reference {
         ModuleReference::AccountBase(_) => return Ok(()),
         ModuleReference::Native(_) => return Ok(()),
-        ModuleReference::Standalone(_) => return Ok(()),
         _ => {}
     }
 
@@ -749,6 +764,30 @@ mod test {
             let actual: Result<Version, _> = version.try_into();
 
             assert_that!(actual).is_err();
+        }
+    }
+
+    mod standalone_modules_valid {
+        use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
+
+        use super::*;
+
+        #[test]
+        fn no_cw2_contract() {
+            let deps = mock_dependencies();
+            let res = assert_module_data_validity(
+                &deps.as_ref().querier,
+                &Module {
+                    info: ModuleInfo {
+                        namespace: Namespace::new("counter").unwrap(),
+                        name: "counter".to_owned(),
+                        version: ModuleVersion::Version("1.1.0".to_owned()),
+                    },
+                    reference: ModuleReference::Standalone(0),
+                },
+                Some(Addr::unchecked(MOCK_CONTRACT_ADDR)),
+            );
+            assert!(res.is_ok());
         }
     }
 }
