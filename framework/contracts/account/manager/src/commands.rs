@@ -851,18 +851,25 @@ pub fn update_internal_config(
     }
 }
 
+/// Function that guards all the admin rights.
+/// This function should return `Ok` when called by:
+/// - The owner of the contract (i.e. account).
+/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
 
+    // If the sender is the owner, the admin test is passed
     let mut ownership_error: ManagerError = match ownership_test {
         Ok(()) => return Ok(()),
         Err(err) => err.into(),
     };
 
+    // In case it fails we get the account info and check if the current(this) account is a sub-account.
     let mut current: AccountInfo = INFO.load(deps.storage)?;
     // Get sub-accounts until we get non-sub-account governance or reach recursion limit
     for _ in 0..MAX_ADMIN_RECURSION {
         match current.governance_details {
+            // As long as the accounts are sub-accounts, we check the owner of the parent account
             GovernanceDetails::SubAccount { manager, .. } => {
                 current = INFO
                     .query(&deps.querier, manager)
@@ -881,7 +888,8 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
             governance_address: owner,
             ..
         } => {
-            // If the owner of the current contract is the sender, the admin test is passed
+            // If the owner of the top-level account is the sender, the admin test is passed.
+            // This gives the top-level owner the ability to manage all sub-accounts.
             if *sender == owner {
                 Ok(())
             } else {
@@ -891,7 +899,7 @@ fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
         // MAX_ADMIN_RECURSION levels deep still sub account
         GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
-                "Admin recursion error, too much recursion, maximum allowed admin recursion : {}",
+                "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
                 MAX_ADMIN_RECURSION
             ))))
         }

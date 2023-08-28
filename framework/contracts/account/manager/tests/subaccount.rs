@@ -119,6 +119,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
 
     account_contracts
         .0
+        .call_as(&sender)
         .update_info(Some(new_desc.to_string()), None, None)?;
 
     assert_eq!(
