@@ -3,7 +3,7 @@
   "description": "Create cron jobs in your contracts.",
   "docs": "",
   "website": "https://cron.cat",
-  "type": "api",
+  "type": "app",
   "icon": "FaCat",
   "enabled": true
 }

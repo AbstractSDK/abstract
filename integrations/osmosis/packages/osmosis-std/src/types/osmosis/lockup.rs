@@ -43,6 +43,11 @@ pub struct PeriodLock {
     /// Coins are the tokens locked within the lock, kept in the module account.
     #[prost(message, repeated, tag = "5")]
     pub coins: ::prost::alloc::vec::Vec<super::super::cosmos::base::v1beta1::Coin>,
+    /// Reward Receiver Address is the address that would be receiving rewards for
+    /// the incentives for the lock. This is set to owner by default and can be
+    /// changed via separate msg.
+    #[prost(string, tag = "6")]
+    pub reward_receiver_address: ::prost::alloc::string::String,
 }
 /// QueryCondition is a struct used for querying locks upon different conditions.
 /// Duration field and timestamp fields could be optional, depending on the
@@ -128,6 +133,7 @@ pub struct SyntheticLock {
 pub enum LockQueryType {
     ByDuration = 0,
     ByTime = 1,
+    NoLock = 2,
 }
 impl LockQueryType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -138,6 +144,7 @@ impl LockQueryType {
         match self {
             LockQueryType::ByDuration => "ByDuration",
             LockQueryType::ByTime => "ByTime",
+            LockQueryType::NoLock => "NoLock",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -145,6 +152,7 @@ impl LockQueryType {
         match value {
             "ByDuration" => Some(Self::ByDuration),
             "ByTime" => Some(Self::ByTime),
+            "NoLock" => Some(Self::NoLock),
             _ => None,
         }
     }
@@ -606,6 +614,47 @@ pub struct LockedResponse {
     ::schemars::JsonSchema,
     CosmwasmExt,
 )]
+#[proto_message(type_url = "/osmosis.lockup.LockRewardReceiverRequest")]
+#[proto_query(
+    path = "/osmosis.lockup.Query/LockRewardReceiver",
+    response_type = LockRewardReceiverResponse
+)]
+pub struct LockRewardReceiverRequest {
+    #[prost(uint64, tag = "1")]
+    #[serde(alias = "lockID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub lock_id: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.lockup.LockRewardReceiverResponse")]
+pub struct LockRewardReceiverResponse {
+    #[prost(string, tag = "1")]
+    pub reward_receiver: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
 #[proto_message(type_url = "/osmosis.lockup.NextLockIDRequest")]
 #[proto_query(
     path = "/osmosis.lockup.Query/NextLockID",
@@ -649,6 +698,7 @@ pub struct NextLockIdResponse {
     path = "/osmosis.lockup.Query/SyntheticLockupsByLockupID",
     response_type = SyntheticLockupsByLockupIdResponse
 )]
+#[deprecated]
 pub struct SyntheticLockupsByLockupIdRequest {
     #[prost(uint64, tag = "1")]
     #[serde(alias = "lockID")]
@@ -670,9 +720,51 @@ pub struct SyntheticLockupsByLockupIdRequest {
     CosmwasmExt,
 )]
 #[proto_message(type_url = "/osmosis.lockup.SyntheticLockupsByLockupIDResponse")]
+#[deprecated]
 pub struct SyntheticLockupsByLockupIdResponse {
     #[prost(message, repeated, tag = "1")]
     pub synthetic_locks: ::prost::alloc::vec::Vec<SyntheticLock>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.lockup.SyntheticLockupByLockupIDRequest")]
+#[proto_query(
+    path = "/osmosis.lockup.Query/SyntheticLockupByLockupID",
+    response_type = SyntheticLockupByLockupIdResponse
+)]
+pub struct SyntheticLockupByLockupIdRequest {
+    #[prost(uint64, tag = "1")]
+    #[serde(alias = "lockID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub lock_id: u64,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.lockup.SyntheticLockupByLockupIDResponse")]
+pub struct SyntheticLockupByLockupIdResponse {
+    #[prost(message, optional, tag = "1")]
+    pub synthetic_lock: ::core::option::Option<SyntheticLock>,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(
@@ -1072,6 +1164,47 @@ pub struct MsgForceUnlockResponse {
     #[prost(bool, tag = "1")]
     pub success: bool,
 }
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.lockup.MsgSetRewardReceiverAddress")]
+pub struct MsgSetRewardReceiverAddress {
+    #[prost(string, tag = "1")]
+    pub owner: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "2")]
+    #[serde(alias = "lockID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub lock_id: u64,
+    #[prost(string, tag = "3")]
+    pub reward_receiver: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.lockup.MsgSetRewardReceiverAddressResponse")]
+pub struct MsgSetRewardReceiverAddressResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
 pub struct LockupQuerier<'a, Q: cosmwasm_std::CustomQuery> {
     querier: &'a cosmwasm_std::QuerierWrapper<'a, Q>,
 }
@@ -1149,14 +1282,27 @@ impl<'a, Q: cosmwasm_std::CustomQuery> LockupQuerier<'a, Q> {
     pub fn locked_by_id(&self, lock_id: u64) -> Result<LockedResponse, cosmwasm_std::StdError> {
         LockedRequest { lock_id }.query(self.querier)
     }
+    pub fn lock_reward_receiver(
+        &self,
+        lock_id: u64,
+    ) -> Result<LockRewardReceiverResponse, cosmwasm_std::StdError> {
+        LockRewardReceiverRequest { lock_id }.query(self.querier)
+    }
     pub fn next_lock_id(&self) -> Result<NextLockIdResponse, cosmwasm_std::StdError> {
         NextLockIdRequest {}.query(self.querier)
     }
+    #[deprecated]
     pub fn synthetic_lockups_by_lockup_id(
         &self,
         lock_id: u64,
     ) -> Result<SyntheticLockupsByLockupIdResponse, cosmwasm_std::StdError> {
         SyntheticLockupsByLockupIdRequest { lock_id }.query(self.querier)
+    }
+    pub fn synthetic_lockup_by_lockup_id(
+        &self,
+        lock_id: u64,
+    ) -> Result<SyntheticLockupByLockupIdResponse, cosmwasm_std::StdError> {
+        SyntheticLockupByLockupIdRequest { lock_id }.query(self.querier)
     }
     pub fn account_locked_longer_duration(
         &self,

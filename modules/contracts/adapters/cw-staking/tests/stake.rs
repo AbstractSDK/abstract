@@ -6,7 +6,7 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
-use cw20::msg::Cw20ExecuteMsgFns;
+use cw20::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
@@ -173,13 +173,13 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     let (chain, wyndex, staking, os) = setup_mock()?;
     let proxy_addr = os.proxy.address()?;
 
-    let dur = Some(cw_utils::Duration::Time(2));
+    let dur = cw_utils::Duration::Time(2);
 
     // stake 100 EUR
-    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), dur)?;
+    staking.stake(AnsAsset::new(EUR_USD_LP, 100u128), WYNDEX.into(), Some(dur))?;
 
     // now unbond 50
-    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), dur)?;
+    staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), Some(dur))?;
 
     let unstake_block_info = chain.block_info()?;
 
@@ -189,7 +189,7 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
         proxy_addr.to_string(),
         AssetEntry::new(EUR_USD_LP),
     )?;
-    let claimable_at = dur.unwrap().after(&unstake_block_info);
+    let claimable_at = dur.after(&unstake_block_info);
     assert_that!(unbonding_balance).is_equal_to(UnbondingResponse {
         claims: vec![Claim {
             amount: Uint128::from(50u128),

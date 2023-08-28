@@ -19,6 +19,13 @@ pub enum GovernanceDetails<T: AddressLike> {
         /// The monarch's address
         monarch: T,
     },
+    /// Used when the account is a sub-account of another account.
+    SubAccount {
+        /// The manager of the account of which this account is the sub-account.
+        manager: T,
+        /// The proxy of the account of which this account is the sub-account.
+        proxy: T,
+    },
     /// An external governance source
     External {
         /// The external contract address
@@ -35,6 +42,11 @@ impl GovernanceDetails<String> {
             GovernanceDetails::Monarchy { monarch } => {
                 let addr = api.addr_validate(&monarch)?;
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
+            }
+            GovernanceDetails::SubAccount { manager, proxy } => {
+                let manager = api.addr_validate(&manager)?;
+                let proxy = api.addr_validate(&proxy)?;
+                Ok(GovernanceDetails::SubAccount { manager, proxy })
             }
             GovernanceDetails::External {
                 governance_address,
@@ -86,6 +98,7 @@ impl GovernanceDetails<Addr> {
     pub fn owner_address(&self) -> Addr {
         match self {
             GovernanceDetails::Monarchy { monarch } => monarch.clone(),
+            GovernanceDetails::SubAccount { proxy, .. } => proxy.clone(),
             GovernanceDetails::External {
                 governance_address, ..
             } => governance_address.clone(),
@@ -97,13 +110,17 @@ impl From<GovernanceDetails<Addr>> for GovernanceDetails<String> {
     fn from(value: GovernanceDetails<Addr>) -> Self {
         match value {
             GovernanceDetails::Monarchy { monarch } => GovernanceDetails::Monarchy {
-                monarch: monarch.to_string(),
+                monarch: monarch.into_string(),
+            },
+            GovernanceDetails::SubAccount { manager, proxy } => GovernanceDetails::SubAccount {
+                manager: manager.into_string(),
+                proxy: proxy.into_string(),
             },
             GovernanceDetails::External {
                 governance_address,
                 governance_type,
             } => GovernanceDetails::External {
-                governance_address: governance_address.to_string(),
+                governance_address: governance_address.into_string(),
                 governance_type,
             },
         }
@@ -114,6 +131,7 @@ impl<T: AddressLike> ToString for GovernanceDetails<T> {
     fn to_string(&self) -> String {
         match self {
             GovernanceDetails::Monarchy { .. } => "monarch".to_string(),
+            GovernanceDetails::SubAccount { .. } => "sub-account".to_string(),
             GovernanceDetails::External {
                 governance_type, ..
             } => governance_type.to_owned(),

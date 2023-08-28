@@ -8,8 +8,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+- Install modules on account or Sub-account creation
+
+### Changed
+- Updated fetch_data arguments of CwStakingCommand
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
+
+### Fixed
+- Partially fixed cw-staking for Osmosis
+
+## [0.17.2] - 2023-07-27
+
+### Added
+- Neutron + Archway to registry
+
+### Changed
+
+### Fixed
+
+## [0.17.1] - 2023-07-26
+
+### Added
 
 - Ability to set admin to native contracts during instantiation
+- Added neutron
 
 ### Changed
 

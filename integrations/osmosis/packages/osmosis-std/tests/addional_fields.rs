@@ -63,3 +63,10 @@ fn test_additional_fields_does_not_break_but_cause_lossy_proto_deserialization()
     // lossy deserialization
     assert_eq!(deserialized, MsgBeginUnlockingResponse { success: true });
 }
+
+mod shim {
+    pub struct Any {
+        pub type_url: String,
+        pub value: Vec<u8>,
+    }
+}
