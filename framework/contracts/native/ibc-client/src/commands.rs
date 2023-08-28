@@ -22,8 +22,8 @@ use abstract_sdk::{
     AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg,
-    MessageInfo, Storage,
+    to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
+    Storage,
 };
 use polytone::callbacks::CallbackRequest;
 
@@ -282,15 +282,12 @@ pub fn execute_send_funds(
 
         // TODO, do a better job and add a callback
 
-
-        
         // use cosmos_sdk_proto::{
         //     cosmos::feegrant,
         //     ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
         //     traits::{Message, TypeUrl},
         //     Any,
         // };
-        
 
         // In case we need to work with the memo, we need to serialize the messages ourselves
 

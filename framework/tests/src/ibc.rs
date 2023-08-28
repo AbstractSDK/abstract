@@ -13,7 +13,6 @@ use cw_orch::{
 };
 use tokio::runtime::Runtime;
 
-
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
@@ -71,7 +70,7 @@ pub fn create_test_remote_account(
     )?)
 }
 
-#[cfg(all(feature="starship-tests", test))]
+#[cfg(all(feature = "starship-tests", test))]
 mod test {
 
     use abstract_core::manager::InfoResponse;
@@ -92,7 +91,6 @@ mod test {
 
     use crate::JUNO;
     use crate::STARGAZE;
-
 
     #[test]
     fn test_create_ibc_account() -> AnyResult<()> {
@@ -164,20 +162,16 @@ mod test {
         // We try to execute a message from the proxy contract (account creation for instance)
 
         // ii. Now we test that we can indeed create an account remotely from the interchain account
-        
 
         let create_account_remote_tx = osmo_abstr.account.manager.execute_on_remote_module(
-            "juno", 
+            "juno",
             PROXY,
             to_binary(&abstract_core::proxy::ExecuteMsg::ModuleAction {
                 msgs: vec![wasm_execute(
                     juno_abstr.account_factory.address()?,
                     &abstract_core::account_factory::ExecuteMsg::CreateAccount {
                         governance: GovernanceDetails::Monarchy {
-                            monarch: juno_abstr
-                                .version_control
-                                .address()?
-                                .to_string(),
+                            monarch: juno_abstr.version_control.address()?.to_string(),
                         },
                         name: "Abstract Test Remote Remote account".to_string(),
                         description: None,
@@ -188,7 +182,7 @@ mod test {
                 )?
                 .into()],
             })?,
-            None
+            None,
         )?;
 
         // The create remote account tx is passed ?

@@ -6,8 +6,12 @@ use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface}
 use abstract_core::{
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
-    objects::{chain_name::ChainName, module::{ModuleInfo, ModuleVersion}},
-    proxy::ExecuteMsg, IBC_CLIENT,
+    objects::{
+        chain_name::ChainName,
+        module::{ModuleInfo, ModuleVersion},
+    },
+    proxy::ExecuteMsg,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use polytone::callbacks::CallbackRequest;
@@ -57,23 +61,18 @@ pub struct IbcClient<'a, T: IbcInterface> {
 }
 
 impl<'a, T: IbcInterface> IbcClient<'a, T> {
-
     /// Registers the ibc client to be able to use IBC capabilities
-    pub fn register_ibc_client(
-        &self,
-    ) -> AbstractSdkResult<CosmosMsg> {
-
+    pub fn register_ibc_client(&self) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.manager_address(self.deps)?,
             &abstract_core::manager::ExecuteMsg::InstallModule {
                 module: ModuleInfo::from_id(IBC_CLIENT, ModuleVersion::Latest)?,
-                init_msg: None
+                init_msg: None,
             },
             vec![],
         )?
         .into())
     }
-
 
     /// A simple helper to create and register a remote account
     pub fn create_remote_account(

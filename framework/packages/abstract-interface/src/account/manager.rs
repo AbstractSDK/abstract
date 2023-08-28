@@ -9,7 +9,7 @@ use abstract_core::{
     },
     PROXY,
 };
-use cosmwasm_std::{to_binary, Empty, Binary};
+use cosmwasm_std::{to_binary, Binary, Empty};
 use cw_orch::environment::TxHandler;
 use cw_orch::interface;
 use cw_orch::prelude::*;
@@ -192,10 +192,12 @@ impl<Chain: CwEnv> Manager<Chain> {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: ChainName::from(destination),
-                action: HostAction::Dispatch { manager_msg: ExecuteMsg::ExecOnModule { 
-                    module_id: module_id.to_string(), 
-                    exec_msg: msg
-                } },
+                action: HostAction::Dispatch {
+                    manager_msg: ExecuteMsg::ExecOnModule {
+                        module_id: module_id.to_string(),
+                        exec_msg: msg,
+                    },
+                },
                 callback_request,
             }],
         };

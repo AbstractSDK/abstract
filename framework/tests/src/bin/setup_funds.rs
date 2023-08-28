@@ -6,15 +6,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use abstract_core::{
     ans_host::ExecuteMsgFns,
-    objects::{
-        chain_name::ChainName, UncheckedChannelEntry,
-    },
+    objects::{chain_name::ChainName, UncheckedChannelEntry},
     ICS20, PROXY,
 };
-use abstract_interface::{
-    Abstract,
-    ProxyQueryFns,
-};
+use abstract_interface::{Abstract, ProxyQueryFns};
 use abstract_interface_integration_tests::{
     ibc::{create_test_remote_account, set_env, TEST_STARSHIP_CONFIG},
     JUNO, STARGAZE,
