@@ -55,6 +55,7 @@ fn create_one_account() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_account"),
         None,
         Some(String::from("account_description")),
@@ -105,6 +106,7 @@ fn create_two_account_s() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_os"),
         None,
         Some(String::from("account_description")),
@@ -116,6 +118,7 @@ fn create_two_account_s() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("second_os"),
         None,
         Some(String::from("account_description")),
@@ -176,6 +179,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: TEST_OWNER.to_string(),
         },
+        vec![],
         String::from("first_os"),
         None,
         Some(String::from("account_description")),
@@ -226,6 +230,7 @@ fn sender_is_not_admin_external() -> AResult {
             governance_address: TEST_OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
+        vec![],
         String::from("first_os"),
         None,
         Some(String::from("account_description")),
@@ -265,6 +270,7 @@ fn create_one_account_with_base_asset() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_account"),
         Some(AssetEntry::new(asset_name)),
         Some(String::from("account_description")),
@@ -301,6 +307,7 @@ fn create_one_account_with_namespace() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_account"),
         None,
         Some(String::from("account_description")),

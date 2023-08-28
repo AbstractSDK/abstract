@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+- Install modules on account or Sub-account creation
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis

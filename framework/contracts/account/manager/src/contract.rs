@@ -5,6 +5,7 @@ use crate::{
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     versioning,
 };
+use abstract_core::manager::state::MODULE_QUEUE;
 use abstract_core::{account_factory::CreateAccountResponseData, manager::state::SUB_ACCOUNTS};
 use abstract_sdk::core::{
     manager::{
@@ -44,13 +45,13 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
-
+    let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
             version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-            module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
+            module_factory_address: module_factory_address.clone(),
         },
     )?;
 
@@ -73,17 +74,23 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    // Save queue for modules to be installed
+    MODULE_QUEUE.save(deps.storage, &msg.install_modules)?;
+
     // Set owner
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
-    Ok(ManagerResponse::new(
+
+    let response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
             ("owner", owner.to_string()),
         ],
-    ))
+    );
+
+    Ok(response)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -125,15 +132,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     link,
                     base_asset,
                     namespace,
+                    install_modules,
                 } => create_sub_account(
                     deps,
-                    env,
                     info,
+                    env,
                     name,
                     description,
                     link,
                     base_asset,
                     namespace,
+                    install_modules,
                 ),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {

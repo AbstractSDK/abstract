@@ -8,11 +8,16 @@
 //! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your Account.
 //!
 pub mod state {
-    use cosmwasm_std::Addr;
+    use cosmwasm_std::{Addr, Binary};
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{account_id::AccountId, module::Module, AssetEntry};
+    use crate::objects::{
+        account_id::AccountId,
+        gov_type::GovernanceDetails,
+        module::{Module, ModuleInfo},
+        AssetEntry,
+    };
 
     /// Account Factory configuration
     #[cosmwasm_schema::cw_serde]
@@ -26,11 +31,12 @@ pub mod state {
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct Context {
-        pub account_manager_address: Option<Addr>,
+        pub account_proxy_address: Option<Addr>,
         pub manager_module: Option<Module>,
         pub proxy_module: Option<Module>,
 
         pub additional_config: AdditionalContextConfig,
+        pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     }
 
     /// Account Factory additional config context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
@@ -38,6 +44,10 @@ pub mod state {
     pub struct AdditionalContextConfig {
         pub namespace: Option<String>,
         pub base_asset: Option<AssetEntry>,
+        pub name: String,
+        pub description: Option<String>,
+        pub link: Option<String>,
+        pub owner: GovernanceDetails<String>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -45,9 +55,11 @@ pub mod state {
 }
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Binary};
 
-use crate::objects::{account_id::AccountId, gov_type::GovernanceDetails, AssetEntry};
+use crate::objects::{
+    account_id::AccountId, gov_type::GovernanceDetails, module::ModuleInfo, AssetEntry,
+};
 
 /// Msg used on instantiation
 #[cosmwasm_schema::cw_serde]
@@ -91,6 +103,8 @@ pub enum ExecuteMsg {
         link: Option<String>,
         // optionally specify a namespace for the account
         namespace: Option<String>,
+        // Provide list of module to install after account creation
+        install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
 }
 

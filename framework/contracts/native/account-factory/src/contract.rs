@@ -65,6 +65,7 @@ pub fn execute(
             description,
             namespace,
             base_asset,
+            install_modules,
         } => {
             let gov_details = governance.verify(deps.api)?;
             commands::execute_create_account(
@@ -77,6 +78,7 @@ pub fn execute(
                 link,
                 namespace,
                 base_asset,
+                install_modules,
             )
         }
         ExecuteMsg::UpdateOwnership(action) => {
@@ -87,14 +89,14 @@ pub fn execute(
 
 /// This just stores the result for future query
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> AccountFactoryResult {
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> AccountFactoryResult {
     match msg {
         Reply {
-            id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
-            result,
-        } => commands::after_manager_create_proxy(deps, result),
-        Reply {
             id: commands::CREATE_ACCOUNT_PROXY_MSG_ID,
+            result,
+        } => commands::after_proxy_create_manager(deps, env, result),
+        Reply {
+            id: commands::CREATE_ACCOUNT_MANAGER_MSG_ID,
             result,
         } => commands::after_proxy_add_to_manager_and_set_admin(deps, result),
         _ => Err(AccountFactoryError::UnexpectedReply {}),
