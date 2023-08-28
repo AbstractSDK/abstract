@@ -1,9 +1,9 @@
 // Use prelude to get all the necessary imports
+use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{AppResult, CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
         AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, ConfigResponse, InstantiateMsg,
-        QueryMsg,
     },
     state::ChallengeEntry,
     *,
@@ -137,9 +137,9 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         source_asset: OfferAsset::new("denom", Uint128::new(100)),
     };
 
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(challenge.clone())?;
 
-    let challenge_query = crate::msg::QueryMsg::from(ChallengeQueryMsg::Challenge {
+    let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
     });
 
@@ -147,6 +147,85 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         .challenge_app
         .query::<ChallengeResponse>(&challenge_query)?;
 
-    println!("created: {:?}", created);
+    assert_eq!(created.challenge.unwrap(), challenge);
+    Ok(())
+}
+
+#[test]
+fn test_should_update_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
+        challenge_id: "challenge_1".to_string(),
+    });
+
+    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
+    let to_update = ChallengeEntry {
+        name: "update-test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    apps.challenge_app
+        .update_challenge(to_update.clone(), "challenge_1".to_string())?;
+
+    let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
+    assert_eq!(res.challenge.unwrap(), to_update);
+    Ok(())
+}
+
+#[test]
+fn test_should_cancel_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
+        challenge_id: "challenge_1".to_string(),
+    });
+
+    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
+    apps.challenge_app
+        .cancel_challenge("challenge_1".to_string())?;
+
+    let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
+    assert_eq!(res.challenge, None);
+    Ok(())
+}
+
+#[test]
+fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
+        challenge_id: "challenge_1".to_string(),
+    });
+
+    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
+    apps.challenge_app.add_friend_for_challenge(
+        "challenge_1".to_string(),
+        "friend".to_string(),
+        "friend-name".to_string(),
+    )?;
+
+    let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+
     Ok(())
 }

@@ -52,9 +52,7 @@ pub enum ChallengeExecuteMsg {
     },
     UpdateChallenge {
         challenge_id: String,
-        name: String,
-        source_asset: Option<OfferAsset>,
-        frequency: Option<Frequency>,
+        challenge: ChallengeEntry,
     },
     CancelChallenge {
         challenge_id: String,

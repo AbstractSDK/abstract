@@ -30,19 +30,8 @@ pub fn execute_handler(
         }
         ChallengeExecuteMsg::UpdateChallenge {
             challenge_id,
-            name,
-            source_asset,
-            frequency,
-        } => update_challenge(
-            deps,
-            env,
-            info,
-            app,
-            challenge_id,
-            name,
-            source_asset,
-            frequency,
-        ),
+            challenge,
+        } => update_challenge(deps, env, info, app, challenge_id, challenge),
         ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
             cancel_challenge(deps, info, app, challenge_id)
         }
@@ -127,33 +116,22 @@ fn create_challenge(
 /// Update an existing challenge  
 fn update_challenge(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    name: String,
     challenge_id: String,
-    new_source_asset: Option<OfferAsset>,
-    new_frequency: Option<Frequency>,
+    challenge: ChallengeEntry,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    // Only if frequency is changed we have to re-create a task
-    let recreate_task = new_frequency.is_some();
-    let old_challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    let new_challenge = ChallengeEntry {
-        name,
-        source_asset: new_source_asset.unwrap_or(old_challenge.source_asset),
-    };
+    // will return an error if the challenge doesn't exist
+    CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &new_challenge)?;
-
-    let response = if recreate_task {
-        let config = CONFIG.load(deps.storage)?;
-        let cron_cat = app.cron_cat(deps.as_ref());
-        let remove_task_msg = cron_cat.remove_task(challenge_id.clone())?;
-        // @TODO //let create_task_msg =
-    };
-    Ok(app.tag_response(Response::default(), "update_accountability"))
+    Ok(app.tag_response(
+        Response::new().add_attribute("challenge_id", challenge_id),
+        "update_challenge",
+    ))
 }
 
 fn cancel_challenge(
@@ -164,15 +142,10 @@ fn cancel_challenge(
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
+    CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     CHALLENGE_LIST.remove(deps.storage, challenge_id.clone());
 
-    let cron_cat = app.cron_cat(deps.as_ref());
-    let remove_task_msg = cron_cat.remove_task(challenge_id.clone())?;
-
-    Ok(app.tag_response(
-        Response::new().add_message(remove_task_msg),
-        "cancel_accountability",
-    ))
+    Ok(Response::new().add_attribute("action", "cancel_challenge"))
 }
 
 fn add_friend_for_challenge(
