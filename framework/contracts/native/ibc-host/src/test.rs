@@ -33,7 +33,7 @@ fn test_registered_client() {
         mock_env(),
         info,
         abstract_core::ibc_host::ExecuteMsg::RegisterChainProxy {
-            chain_id: "juno".into(),
+            chain: "juno".into(),
             proxy: "juno-proxy".to_string(),
         },
     )
@@ -49,5 +49,5 @@ fn test_registered_client() {
     )
     .unwrap();
     let queried_client_name: RegisteredChainResponse = from_binary(&client_name).unwrap();
-    assert_eq!(queried_client_name.proxy, "juno-client");
+    assert_eq!(queried_client_name.proxy, "juno-proxy");
 }

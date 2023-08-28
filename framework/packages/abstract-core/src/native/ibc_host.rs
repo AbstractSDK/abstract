@@ -99,9 +99,9 @@ pub enum ExecuteMsg {
     },
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
-    RegisterChainProxy { chain_id: ChainName, proxy: String },
+    RegisterChainProxy { chain: ChainName, proxy: String },
     /// Remove the Polytone proxy for a specific chain.
-    RemoveChainProxy { chain_id: ChainName },
+    RemoveChainProxy { chain: ChainName },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,

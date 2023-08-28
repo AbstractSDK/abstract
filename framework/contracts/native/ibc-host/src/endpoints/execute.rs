@@ -28,10 +28,10 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             version_control_address,
             account_factory_address,
         ),
-        ExecuteMsg::RegisterChainProxy { chain_id, proxy } => {
-            register_chain_proxy(deps, info, chain_id, proxy)
+        ExecuteMsg::RegisterChainProxy { chain, proxy } => {
+            register_chain_proxy(deps, info, chain, proxy)
         }
-        ExecuteMsg::RemoveChainProxy { chain_id } => remove_chain_proxy(deps, info, chain_id),
+        ExecuteMsg::RemoveChainProxy { chain } => remove_chain_proxy(deps, info, chain),
         ExecuteMsg::RecoverAccount {
             closed_channel: _,
             account_id: _,

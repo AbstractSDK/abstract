@@ -71,7 +71,7 @@ pub fn create_test_remote_account(
     )?)
 }
 
-#[cfg(test)]
+#[cfg(all(feature="starship-tests", test))]
 mod test {
 
     use abstract_core::manager::InfoResponse;
@@ -92,6 +92,7 @@ mod test {
 
     use crate::JUNO;
     use crate::STARGAZE;
+
 
     #[test]
     fn test_create_ibc_account() -> AnyResult<()> {
@@ -115,30 +116,30 @@ mod test {
 
         let juno_host = IbcHost::new(IBC_HOST, juno.clone());
 
-        let distant_account =
+        let remote_account =
             create_test_remote_account(&rt, &osmosis, "stargaze", "juno", &interchain)?;
-        let distant_account_config = juno_abstr
+        let remote_account_config = juno_abstr
             .version_control
-            .get_account(distant_account.clone())?;
+            .get_account(remote_account.clone())?;
         // This shouldn't fail as we have just created an account using those characteristics
-        log::info!("Distant account config {:?} ", distant_account_config);
+        log::info!("Distant account config {:?} ", remote_account_config);
 
-        let distant_manager = Manager::new("distant_account_manager", juno.clone());
-        distant_manager.set_address(&distant_account_config.manager);
+        let remote_manager = Manager::new("remote_account_manager", juno.clone());
+        remote_manager.set_address(&remote_account_config.manager);
 
         // Now we need to test some things about this account on the juno chain
-        let manager_config = distant_manager.config()?;
+        let manager_config = remote_manager.config()?;
         assert_eq!(
             manager_config,
             ConfigResponse {
-                account_id: distant_account,
+                account_id: remote_account,
                 is_suspended: false,
                 module_factory_address: juno_abstr.module_factory.address()?,
                 version_control_address: juno_abstr.version_control.address()?,
             }
         );
 
-        let manager_info = distant_manager.info()?;
+        let manager_info = remote_manager.info()?;
 
         let account_name = TEST_ACCOUNT_NAME.to_string();
         let description = Some(TEST_ACCOUNT_DESCRIPTION.to_string());

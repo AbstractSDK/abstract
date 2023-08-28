@@ -6,8 +6,6 @@ mod migrate;
 
 pub use crate::account::*;
 
-mod ibc_hosts;
-
 mod native;
 
 pub use crate::native::*;

@@ -32,7 +32,7 @@ fn instantiate() -> AResult {
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         local_account_sequence: 1,
-        ibc_host: None,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -66,7 +66,7 @@ fn create_one_account() -> AResult {
         version_control_contract: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
         local_account_sequence: 2,
-        ibc_host: None,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);
@@ -132,7 +132,7 @@ fn create_two_account_s() -> AResult {
         module_factory_address: deployment.module_factory.address()?,
         // we created two accounts
         local_account_sequence: account_2_id.seq() + 1,
-        ibc_host: None,
+        ibc_host: Some(deployment.ibc.host.address()?),
     };
 
     assert_that!(&factory_config).is_equal_to(&expected);

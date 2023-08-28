@@ -119,11 +119,11 @@ pub fn test_send_funds() -> AnyResult<()> {
     rt.block_on(interchain.await_ibc_execution(STARGAZE.to_owned(), send_funds_tx.txhash))?;
 
     // Verify the funds have been received
-    let distant_account_config = juno_abstr.version_control.get_account(account_id.clone())?;
+    let remote_account_config = juno_abstr.version_control.get_account(account_id.clone())?;
 
     let balance = rt.block_on(
         juno.query_client::<Bank>()
-            .coin_balances(distant_account_config.proxy),
+            .coin_balances(remote_account_config.proxy),
     )?;
 
     log::info!("juno balance, {:?}", balance);

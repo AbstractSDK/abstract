@@ -75,8 +75,8 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
     }
 
 
-    /// A simple hepler to create and register a distant account
-    pub fn create_distant_account(
+    /// A simple helper to create and register a remote account
+    pub fn create_remote_account(
         &self,
         host_chain: ChainName, // The chain on which you want to create an account
     ) -> AbstractSdkResult<CosmosMsg> {
@@ -90,8 +90,8 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         .into())
     }
 
-    /// A simple hepler to create and register a distant account
-    pub fn install_distant_app<M: Serialize>(
+    /// A simple helper to install an app on an account
+    pub fn install_remote_app<M: Serialize>(
         &self,
         host_chain: ChainName, // The chain on which you want to create an account,
         remote_ans_host_address: Addr,
@@ -118,8 +118,8 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         )
     }
 
-    /// A simple helper install a distant api Module providing only the chain name
-    pub fn install_distant_api<M: Serialize>(
+    /// A simple helper install a remote api Module providing only the chain name
+    pub fn install_remote_api<M: Serialize>(
         &self,
         host_chain: ChainName, // The chain on which you want to create an account,
         remote_ans_host_address: Addr,
