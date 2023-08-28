@@ -46,43 +46,25 @@ pub enum AppQueryMsg {
     /// Get active tasks
     #[returns(ActiveTasksResponse)]
     ActiveTasks {
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "The addr and task tag to start listing after."
-        )]
+        /// The addr and task tag to start listing after.
         start_after: Option<(String, String)>,
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "Maximum number of tasks to return. Default limit is 50, if not set"
-        )]
+        /// Maximum number of tasks to return. Default limit is 50, if not set
         limit: Option<u32>,
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "On true check if this task exist on croncat contract and filter if it doesn't."
-        )]
-        #[cfg_attr(not(feature = "interface"), doc = "Defaults to false")]
+        /// On true check if this task exist on croncat contract and filter if it doesn't.
+        /// Defaults to false
         checked: Option<bool>,
     },
     /// Get active tasks by creator
     #[returns(ActiveTasksByCreatorResponse)]
     ActiveTasksByCreator {
-        #[cfg_attr(not(feature = "interface"), doc = "The addr of creator of tasks")]
+        /// The addr of creator of tasks
         creator_addr: String,
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "The task tag to start listing after."
-        )]
+        /// The task tag to start listing after.
         start_after: Option<String>,
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "Maximum number of tasks to return. Default limit is 50, if not set"
-        )]
+        /// Maximum number of tasks to return. Default limit is 50, if not set
         limit: Option<u32>,
-        #[cfg_attr(
-            not(feature = "interface"),
-            doc = "On true check if this task exist on croncat contract and filter if it doesn't."
-        )]
-        #[cfg_attr(not(feature = "interface"), doc = "Defaults to false")]
+        /// On true check if this task exist on croncat contract and filter if it doesn't.
+        /// Defaults to false
         checked: Option<bool>,
     },
     /// Get task info
