@@ -29,7 +29,7 @@ pub enum CwStakingError {
 
     #[deprecated(since = "0.17.1", note = "use UnknownStakingProvider variant instead")]
     #[error("DEX {0} is not a known dex on this network.")]
-    UnknownDex(String),
+    UnknownStakingProvider(String),
 
     #[deprecated(since = "0.17.1", note = "use ForeignStakingProvider variant instead")]
     #[error("DEX {0} is not local to this network.")]
