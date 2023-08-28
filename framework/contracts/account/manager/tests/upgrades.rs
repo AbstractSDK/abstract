@@ -6,7 +6,8 @@ use abstract_core::{
     manager::ModuleVersionsResponse,
     objects::{
         gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion}, AccountId,
+        module::{ModuleInfo, ModuleVersion},
+        AccountId,
     },
     AbstractError,
 };

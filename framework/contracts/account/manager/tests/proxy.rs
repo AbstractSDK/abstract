@@ -1,10 +1,10 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::objects::AccountId;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
+use abstract_core::objects::AccountId;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
 use abstract_manager::contract::CONTRACT_VERSION;
