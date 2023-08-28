@@ -222,6 +222,11 @@ fn sub_account_move_ownership() -> AResult {
         monarch: new_owner.to_string(),
     })?;
 
+    sub_account.manager.call_as(&new_owner).execute(
+        &abstract_core::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
+        None,
+    )?;
+
     let account = AbstractAccount::new(&deployment, Some(1));
     let sub_accounts = account.manager.sub_account_ids(None, None)?;
     assert_eq!(

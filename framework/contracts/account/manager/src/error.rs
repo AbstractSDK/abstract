@@ -96,4 +96,7 @@ pub enum ManagerError {
             You either have the an error in your sub-account configuration or you are not authorized to make this call.
     ")]
     SubAccountAdminVerification,
+
+    #[error("Removing sub account failed")]
+    SubAccountRemovalFailed {},
 }

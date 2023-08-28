@@ -144,6 +144,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     namespace,
                     install_modules,
                 ),
+                ExecuteMsg::UnregisterSubAccount { id } => unregister_sub_account(deps, info, id),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,

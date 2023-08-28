@@ -182,6 +182,10 @@ pub enum ExecuteMsg {
         // Provide list of module to install after sub-account creation
         install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
+    /// UnregisterSubAccount
+    /// It will unregister sub-account from the state
+    /// Should be called only by the sub-account itself
+    UnregisterSubAccount { id: u32 },
     /// Update info
     UpdateInfo {
         name: Option<String>,

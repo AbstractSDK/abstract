@@ -1,6 +1,6 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
-use abstract_core::manager::state::{ACCOUNT_FACTORY, MODULE_QUEUE};
+use abstract_core::manager::state::{ACCOUNT_FACTORY, MODULE_QUEUE, SUB_ACCOUNTS};
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
@@ -10,6 +10,7 @@ use abstract_core::manager::InternalConfigAction;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
+use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
@@ -261,6 +262,27 @@ pub fn create_sub_account(
     Ok(response)
 }
 
+pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.remove(deps.storage, id);
+
+        Ok(ManagerResponse::new(
+            "unregister_sub_account",
+            vec![("sub_account_removed", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRemovalFailed {})
+    }
+}
+
 /// Checked load of a module address
 fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, ManagerError> {
     ACCOUNT_MODULES
@@ -309,6 +331,11 @@ pub fn set_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
+    assert_admin_right(deps.as_ref(), &info.sender)?;
+    // In case it's a top level owner we need to pass current owner into update_ownership method
+    let owner = cw_ownable::get_ownership(deps.storage)?
+        .owner
+        .ok_or(cw_ownable::OwnershipError::NoOwner)?;
     // verify the provided governance details
     let verified_gov = new_owner.verify(deps.api)?;
     let new_owner_addr = verified_gov.owner_address();
@@ -321,6 +348,22 @@ pub fn set_owner(
         return Err(ManagerError::NoUpdates {});
     }
 
+    let mut response = ManagerResponse::new(
+        "update_owner",
+        vec![("governance_type", verified_gov.to_string())],
+    );
+
+    // TODO: we want this to happen after it's claimed
+    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+        let account_id = ACCOUNT_ID.load(deps.storage)?;
+        let unregister_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UnregisterSubAccount { id: account_id },
+            vec![],
+        )?;
+        response = response.add_message(unregister_message)
+    }
+    // And this as well?
     acc_info.governance_details = verified_gov.clone();
     INFO.save(deps.storage, &acc_info)?;
 
@@ -328,17 +371,14 @@ pub fn set_owner(
     let ownership = cw_ownable::update_ownership(
         deps,
         &env.block,
-        &info.sender,
+        &owner,
         cw_ownable::Action::TransferOwnership {
             new_owner: new_owner_addr.into_string(),
             expiry: None,
         },
     )?;
-
-    let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
-    attrs.extend(ownership.into_attributes());
-
-    Ok(ManagerResponse::new("update_owner", attrs))
+    response = response.add_attributes(ownership.into_attributes());
+    Ok(response)
 }
 
 /// Migrate modules through address updates or contract migrations
