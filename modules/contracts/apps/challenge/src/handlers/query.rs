@@ -13,7 +13,9 @@ pub fn query_handler(
 ) -> AppResult<Binary> {
     match msg {
         ChallengeQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
-        ChallengeQueryMsg::Challenge { challenge_id } => unimplemented!(),
+        ChallengeQueryMsg::Challenge { challenge_id } => {
+            to_binary(&query_challenge(deps, app, challenge_id)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -32,11 +34,9 @@ fn query_config(deps: Deps, app: &ChallengeApp) -> AppResult<ConfigResponse> {
 
 fn query_challenge(
     deps: Deps,
-    app: &ChallengeApp,
+    _app: &ChallengeApp,
     challenge_id: String,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
-    let ans_host = app.ans_host(deps)?;
-
     Ok(ChallengeResponse { challenge })
 }

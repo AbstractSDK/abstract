@@ -25,11 +25,9 @@ pub fn execute_handler(
             new_native_denom,
             new_forfeit_amount,
         } => update_config(deps, info, app, new_native_denom, new_forfeit_amount),
-        ChallengeExecuteMsg::CreateChallenge {
-            name,
-            source_asset,
-            frequency,
-        } => create_challenge(deps, env, info, app, source_asset, frequency, name),
+        ChallengeExecuteMsg::CreateChallenge { challenge } => {
+            create_challenge(deps, env, info, app, challenge)
+        }
         ChallengeExecuteMsg::UpdateChallenge {
             challenge_id,
             name,
@@ -109,28 +107,20 @@ fn create_challenge(
     env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    source_asset: OfferAsset,
-    frequence: Frequency,
-    name: String,
+    challenge: ChallengeEntry,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let config = CONFIG.load(deps.storage)?;
 
     // Generate the challenge id
     let id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     let challenge_id = format!("challenge_{id}");
 
-    let acc_entry = ChallengeEntry { name, source_asset };
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &acc_entry)?;
-
-    let cron_cat = app.cron_cat(deps.as_ref());
-    //let task_msg =
+    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
     Ok(app.tag_response(
-        Response::new().add_attribute("challeng_id", challenge_id),
-        "create_accountability",
+        Response::new().add_attribute("challenge_id", challenge_id),
+        "create_challenge",
     ))
 }
 

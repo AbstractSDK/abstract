@@ -1,16 +1,28 @@
 // Use prelude to get all the necessary imports
 use abstract_challenge_app::{
-    contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    contract::{AppResult, CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
+    msg::{
+        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, ConfigResponse, InstantiateMsg,
+        QueryMsg,
+    },
+    state::ChallengeEntry,
     *,
 };
 use abstract_core::{
     app::BaseInstantiateMsg,
-    objects::{gov_type::GovernanceDetails, AssetEntry},
+    objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+        namespace::Namespace,
+        AssetEntry,
+    },
 };
+use abstract_dex_adapter::msg::OfferAsset;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use cosmwasm_std::{coin, Uint128};
+use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use semver::Version;
 use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
 
 // consts for testing
@@ -37,15 +49,39 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     // Create the mock
     let mock = Mock::new(&sender);
     let mut challenge_app = ChallengeApp::new(CHALLENGE_APP_ID, mock.clone());
-
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
-    let account =
-        abstr_deployment
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: sender.to_string(),
-            })?;
+
+    challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?)?;
+
+    let module_info = ModuleInfo::from_id(
+        CHALLENGE_APP_ID,
+        ModuleVersion::Version(CHALLENGE_APP_VERSION.to_string()),
+    )?;
+
+    abstr_deployment.ans_host.execute(
+        &abstract_core::ans_host::ExecuteMsg::UpdateAssetAddresses {
+            to_add: vec![("denom".to_owned(), AssetInfo::native(DENOM).into())],
+            to_remove: vec![],
+        },
+        None,
+    )?;
+
+    let account_details: AccountDetails = AccountDetails {
+        name: "test".to_string(),
+        description: None,
+        link: None,
+        namespace: None,
+        base_asset: None,
+        install_modules: vec![],
+    };
+
+    let account = abstr_deployment.account_factory.create_new_account(
+        account_details,
+        GovernanceDetails::Monarchy {
+            monarch: ADMIN.to_string(),
+        },
+    )?;
 
     let _ = account.install_module(
         CHALLENGE_APP_ID,
@@ -59,7 +95,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
             },
         },
         None,
-    );
+    )?;
 
     let module_addr = account
         .manager
@@ -76,4 +112,41 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 
     let deployed = DeployedApps { challenge_app };
     Ok((mock, account, abstr_deployment, deployed))
+}
+
+#[test]
+fn successful_install() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps) = setup()?;
+
+    let config: ConfigResponse = apps.challenge_app.config()?;
+    assert_eq!(
+        config,
+        ConfigResponse {
+            native_asset: AssetEntry::new("denom"),
+            forfeit_amount: Uint128::new(42),
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn test_should_create_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+
+    let challenge_query = crate::msg::QueryMsg::from(ChallengeQueryMsg::Challenge {
+        challenge_id: "challenge_1".to_string(),
+    });
+
+    let created = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&challenge_query)?;
+
+    println!("created: {:?}", created);
+    Ok(())
 }

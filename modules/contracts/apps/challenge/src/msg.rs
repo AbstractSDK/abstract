@@ -48,9 +48,7 @@ pub enum ChallengeExecuteMsg {
         new_forfeit_amount: Option<Uint128>,
     },
     CreateChallenge {
-        name: String,
-        source_asset: OfferAsset,
-        frequency: Frequency,
+        challenge: ChallengeEntry,
     },
     UpdateChallenge {
         challenge_id: String,
