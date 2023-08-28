@@ -168,7 +168,7 @@ fn instantiate_staking(app: &mut App, owner: Addr, token_instance: &Addr) -> (Ad
 }
 
 fn instantiate_astroport(mut router: &mut App, owner: &Addr) -> AstroportContracts {
-    let pair_code_id = store_pair_code(&mut router);
+    let pair_code_id = store_pair_code(router);
 
     let factory_instance = instantiate_factory_contract(router, owner.clone(), pair_code_id);
     let token_instance = instantiate_token(router, owner.clone());

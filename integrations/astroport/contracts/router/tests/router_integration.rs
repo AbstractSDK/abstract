@@ -28,8 +28,8 @@ fn router_does_not_enforce_spread_assertion() {
     let token_z = instantiate_token(&mut app, helper.cw20_token_code_id, &owner, "TOZ", None);
 
     for (a, b, typ, liq) in [
-        (&token_x, &token_y, PairType::Xyk {}, 100_000_000000),
-        (&token_y, &token_z, PairType::Stable {}, 1_000_000_000000),
+        (&token_x, &token_y, PairType::Xyk {}, 100_000_000_000),
+        (&token_y, &token_z, PairType::Stable {}, 1_000_000_000_000),
     ] {
         let pair = helper
             .create_pair_with_addr(&mut app, &owner, typ, [a, b], None)
@@ -53,13 +53,13 @@ fn router_does_not_enforce_spread_assertion() {
         .unwrap();
 
     // Triggering swap with a huge spread fees
-    mint(&mut app, &owner, &token_x, 50_000_000000, &owner).unwrap();
+    mint(&mut app, &owner, &token_x, 50_000_000_000, &owner).unwrap();
     app.execute_contract(
         owner.clone(),
         token_x.clone(),
         &Cw20ExecuteMsg::Send {
             contract: router.to_string(),
-            amount: 50_000_000000u128.into(),
+            amount: 50_000_000_000_u128.into(),
             msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
                 operations: vec![
                     SwapOperation::AstroSwap {
@@ -82,14 +82,14 @@ fn router_does_not_enforce_spread_assertion() {
     .unwrap();
 
     // However, single hop will still enforce spread assertion
-    mint(&mut app, &owner, &token_x, 50_000_000000, &owner).unwrap();
+    mint(&mut app, &owner, &token_x, 50_000_000_000, &owner).unwrap();
     let err = app
         .execute_contract(
             owner.clone(),
             token_x.clone(),
             &Cw20ExecuteMsg::Send {
                 contract: router.to_string(),
-                amount: 50_000_000000u128.into(),
+                amount: 50_000_000_000_u128.into(),
                 msg: to_binary(&ExecuteMsg::ExecuteSwapOperations {
                     operations: vec![SwapOperation::AstroSwap {
                         offer_asset_info: token_asset_info(token_x.clone()),

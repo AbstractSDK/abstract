@@ -42,6 +42,9 @@ pub fn create_test_remote_account(
             name: account_name.clone(),
             description: description.clone(),
             link: link.clone(),
+            base_asset: None,
+            install_modules: vec![],
+            namespace: None,
         },
         abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: origin.sender().to_string(),

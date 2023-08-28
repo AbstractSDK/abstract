@@ -469,6 +469,65 @@ pub struct QueryExternalIncentiveGaugesResponse {
     #[prost(message, repeated, tag = "1")]
     pub data: ::prost::alloc::vec::Vec<super::super::incentives::Gauge>,
 }
+/// MigrationRecords contains all the links between balancer and concentrated
+/// pools.
+///
+/// This is copied over from the gamm proto file in order to circumnavigate
+/// the circular dependency between the two modules.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.poolincentives.v1beta1.MigrationRecords")]
+pub struct MigrationRecords {
+    #[prost(message, repeated, tag = "1")]
+    pub balancer_to_concentrated_pool_links:
+        ::prost::alloc::vec::Vec<BalancerToConcentratedPoolLink>,
+}
+/// BalancerToConcentratedPoolLink defines a single link between a single
+/// balancer pool and a single concentrated liquidity pool. This link is used to
+/// allow a balancer pool to migrate to a single canonical full range
+/// concentrated liquidity pool position
+/// A balancer pool can be linked to a maximum of one cl pool, and a cl pool can
+/// be linked to a maximum of one balancer pool.
+///
+/// This is copied over from the gamm proto file in order to circumnavigate
+/// the circular dependency between the two modules.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(
+    Clone,
+    PartialEq,
+    Eq,
+    ::prost::Message,
+    ::serde::Serialize,
+    ::serde::Deserialize,
+    ::schemars::JsonSchema,
+    CosmwasmExt,
+)]
+#[proto_message(type_url = "/osmosis.poolincentives.v1beta1.BalancerToConcentratedPoolLink")]
+pub struct BalancerToConcentratedPoolLink {
+    #[prost(uint64, tag = "1")]
+    #[serde(alias = "balancer_poolID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub balancer_pool_id: u64,
+    #[prost(uint64, tag = "2")]
+    #[serde(alias = "cl_poolID")]
+    #[serde(
+        serialize_with = "crate::serde::as_str::serialize",
+        deserialize_with = "crate::serde::as_str::deserialize"
+    )]
+    pub cl_pool_id: u64,
+}
 pub struct PoolincentivesQuerier<'a, Q: cosmwasm_std::CustomQuery> {
     querier: &'a cosmwasm_std::QuerierWrapper<'a, Q>,
 }

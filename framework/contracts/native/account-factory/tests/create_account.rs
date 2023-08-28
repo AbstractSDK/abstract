@@ -1,7 +1,13 @@
 mod common;
 
+use abstract_core::ans_host::ExecuteMsgFns;
 use abstract_core::objects::account::AccountTrace;
+use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
+use abstract_core::objects::AssetEntry;
+use abstract_core::proxy::BaseAssetResponse;
+use abstract_core::version_control::NamespaceResponse;
+use abstract_core::PROXY;
 use abstract_core::{
     account_factory, objects::gov_type::GovernanceDetails, version_control::AccountBase,
     ABSTRACT_EVENT_TYPE,
@@ -11,7 +17,8 @@ use abstract_interface::{
 };
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Uint64};
+use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::Mock;
 use cw_orch::prelude::*;
@@ -51,7 +58,9 @@ fn create_one_account() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_account"),
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -101,7 +110,9 @@ fn create_two_account_s() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("first_os"),
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -111,7 +122,9 @@ fn create_two_account_s() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: sender.to_string(),
         },
+        vec![],
         String::from("second_os"),
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -171,7 +184,9 @@ fn sender_is_not_admin_monarchy() -> AResult {
         GovernanceDetails::Monarchy {
             monarch: TEST_OWNER.to_string(),
         },
+        vec![],
         String::from("first_os"),
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -220,7 +235,9 @@ fn sender_is_not_admin_external() -> AResult {
             governance_address: TEST_OWNER.to_string(),
             governance_type: "some-gov-type".to_string(),
         },
+        vec![],
         String::from("first_os"),
+        None,
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
@@ -234,6 +251,87 @@ fn sender_is_not_admin_external() -> AResult {
         is_suspended: false,
         version_control_address: version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
+    });
+
+    Ok(())
+}
+
+#[test]
+fn create_one_account_with_base_asset() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+    let ans_host = &deployment.ans_host;
+
+    // Register the "juno", test asset for usage with the account
+    let asset_name = "juno";
+    let asset = AssetInfoBase::Native("ujuno".to_string());
+    let checked_asset = AssetInfo::Native("ujuno".to_string());
+    ans_host.update_asset_addresses(vec![(asset_name.to_string(), asset)], vec![])?;
+
+    let account_creation = factory.create_account(
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        vec![],
+        String::from("first_account"),
+        Some(AssetEntry::new(asset_name)),
+        Some(String::from("account_description")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
+        None,
+    )?;
+
+    let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+
+    let proxy = Proxy::new(PROXY, chain.clone());
+    proxy.set_address(&Addr::unchecked(proxy_addr));
+
+    let base_asset = proxy.base_asset()?;
+
+    assert_that!(&base_asset).is_equal_to(&BaseAssetResponse {
+        base_asset: checked_asset,
+    });
+
+    Ok(())
+}
+
+#[test]
+fn create_one_account_with_namespace() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+    let version_control = &deployment.version_control;
+
+    let namespace_to_claim = "namespace-to-claim";
+
+    let account_creation = factory.create_account(
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        vec![],
+        String::from("first_account"),
+        None,
+        Some(String::from("account_description")),
+        Some(String::from("https://account_link_of_at_least_11_char")),
+        Some(namespace_to_claim.to_string()),
+    )?;
+
+    let manager_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
+    let proxy_addr = account_creation.event_attr_value(ABSTRACT_EVENT_TYPE, "proxy_address")?;
+
+    // We need to check if the namespace is associated with this account
+    let namespace = version_control.namespace(Namespace::new(namespace_to_claim)?)?;
+
+    assert_that!(&namespace).is_equal_to(&NamespaceResponse {
+        account_id: TEST_ACCOUNT_ID,
+        account_base: AccountBase {
+            manager: Addr::unchecked(manager_addr),
+            proxy: Addr::unchecked(proxy_addr),
+        },
     });
 
     Ok(())

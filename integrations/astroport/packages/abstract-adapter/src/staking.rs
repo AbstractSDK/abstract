@@ -66,15 +66,17 @@ impl CwStakingCommand for Astroport {
         &mut self,
         deps: Deps,
         _env: Env,
+        _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
+        _abstract_registry: Addr,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =
             self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfo::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
-            };
+            return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
+        };
         self.lp_token_address = token_addr;
         self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         Ok(())
@@ -149,15 +151,13 @@ impl CwStakingCommand for Astroport {
                 ))
             })?;
 
-        let astro_token = AssetInfo::cw20(match astro_token {
-            astroport::asset::AssetInfo::Token { contract_addr } => Ok(contract_addr),
-            astroport::asset::AssetInfo::NativeToken { denom: _ } => Err(StdError::generic_err(
-                "Astro Token seems to be a native token, case not handled",
-            )),
-        }?);
+        let astro_token = match astro_token {
+            astroport::asset::AssetInfo::Token { contract_addr } => AssetInfo::cw20(contract_addr),
+            astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::native(denom),
+        };
 
         Ok(StakingInfoResponse {
-            staking_contract_address: self.generator_contract_address.clone(),
+            staking_target: self.generator_contract_address.clone().into(),
             staking_token: astro_token,
             unbonding_periods: None,
             max_claims: None,
@@ -219,12 +219,10 @@ impl CwStakingCommand for Astroport {
                 ))
             })?;
 
-        let token = AssetInfo::cw20(match reward_info.base_reward_token {
-            astroport::asset::AssetInfo::Token { contract_addr } => Ok(contract_addr),
-            astroport::asset::AssetInfo::NativeToken { denom: _ } => Err(StdError::generic_err(
-                "Reward Token seems to be a native token, case not handled",
-            )),
-        }?);
+        let token = match reward_info.base_reward_token {
+            astroport::asset::AssetInfo::Token { contract_addr } => AssetInfo::cw20(contract_addr),
+            astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::native(denom),
+        };
 
         let mut tokens = { vec![token] };
 

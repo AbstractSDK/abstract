@@ -33,6 +33,7 @@ mod test_common {
                 name: "test".to_string(),
                 description: None,
                 link: None,
+                install_modules: vec![],
             },
         )
     }

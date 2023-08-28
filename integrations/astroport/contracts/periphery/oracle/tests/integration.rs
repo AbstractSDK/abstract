@@ -41,8 +41,8 @@ fn store_coin_registry_code(app: &mut App) -> u64 {
     app.store_code(coin_registry_contract)
 }
 
-fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
-    let coin_registry_id = store_coin_registry_code(&mut app);
+fn instantiate_coin_registry(app: &mut App, coins: Option<Vec<(String, u8)>>) -> Addr {
+    let coin_registry_id = store_coin_registry_code(app);
     let coin_registry_address = app
         .instantiate_contract(
             coin_registry_id,
@@ -71,7 +71,7 @@ fn instantiate_coin_registry(mut app: &mut App, coins: Option<Vec<(String, u8)>>
     coin_registry_address
 }
 
-fn instantiate_contracts(mut router: &mut App, owner: Addr) -> (Addr, Addr, u64) {
+fn instantiate_contracts(router: &mut App, owner: Addr) -> (Addr, Addr, u64) {
     let astro_token_contract = Box::new(ContractWrapper::new_with_empty(
         astroport_token::contract::execute,
         astroport_token::contract::instantiate,
@@ -126,7 +126,7 @@ fn instantiate_contracts(mut router: &mut App, owner: Addr) -> (Addr, Addr, u64)
     let pair_stable_code_id = router.store_code(pair_stable_contract);
 
     let coin_registry_address = instantiate_coin_registry(
-        &mut router,
+        router,
         Some(vec![("uluna".to_string(), 6), ("cny".to_string(), 6)]),
     );
 
@@ -208,17 +208,9 @@ fn instantiate_token(router: &mut App, owner: Addr, name: String, symbol: String
         marketing: None,
     };
 
-    let token_instance = router
-        .instantiate_contract(
-            token_code_id.clone(),
-            owner.clone(),
-            &msg,
-            &[],
-            symbol,
-            None,
-        )
-        .unwrap();
-    token_instance
+    router
+        .instantiate_contract(token_code_id, owner.clone(), &msg, &[], symbol, None)
+        .unwrap()
 }
 
 fn mint_some_token(router: &mut App, owner: Addr, token_instance: Addr, to: Addr, amount: Uint128) {
@@ -275,7 +267,7 @@ fn check_balance(router: &mut App, user: Addr, token: Addr, expected_amount: Uin
 }
 
 fn provide_liquidity(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     user: Addr,
     pair_info: &PairInfo,
@@ -287,11 +279,11 @@ fn provide_liquidity(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 allowance_token(
-                    &mut router,
+                    router,
                     user.clone(),
                     pair_info.contract_addr.clone(),
                     contract_addr.clone(),
-                    a.amount.clone(),
+                    a.amount,
                 );
             }
             AssetInfo::NativeToken { denom } => {
@@ -326,7 +318,7 @@ fn provide_liquidity(
 }
 
 fn create_pair(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     user: Addr,
     factory_instance: &Addr,
@@ -336,7 +328,7 @@ fn create_pair(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 mint_some_token(
-                    &mut router,
+                    router,
                     owner.clone(),
                     contract_addr.clone(),
                     user.clone(),
@@ -367,14 +359,7 @@ fn create_pair(
     assert_eq!(res.events[1].attributes[1], attr("action", "create_pair"));
     assert_eq!(
         res.events[1].attributes[2],
-        attr(
-            "pair",
-            format!(
-                "{}-{}",
-                asset_infos[0].to_string(),
-                asset_infos[1].to_string()
-            ),
-        )
+        attr("pair", format!("{}-{}", asset_infos[0], asset_infos[1]),)
     );
 
     // Get pair
@@ -393,7 +378,7 @@ fn create_pair(
 }
 
 fn create_pair_stable(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     user: Addr,
     factory_instance: &Addr,
@@ -403,7 +388,7 @@ fn create_pair_stable(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 mint_some_token(
-                    &mut router,
+                    router,
                     owner.clone(),
                     contract_addr.clone(),
                     user.clone(),
@@ -461,11 +446,11 @@ fn create_pair_stable(
         match a.info {
             AssetInfo::Token { contract_addr } => {
                 allowance_token(
-                    &mut router,
+                    router,
                     user.clone(),
                     pair_info.contract_addr.clone(),
                     contract_addr.clone(),
-                    a.amount.clone(),
+                    a.amount,
                 );
             }
             AssetInfo::NativeToken { denom } => {
@@ -504,23 +489,17 @@ fn create_pair_stable(
 }
 
 fn change_provide_liquidity(
-    mut router: &mut App,
+    router: &mut App,
     owner: Addr,
     user: Addr,
     pair_contract: Addr,
     assets: Vec<(Addr, Uint128)>,
 ) {
     for (token, amount) in assets.clone() {
-        mint_some_token(
-            &mut router,
-            owner.clone(),
-            token.clone(),
-            user.clone(),
-            amount,
-        );
-        check_balance(&mut router, user.clone(), token.clone(), amount);
+        mint_some_token(router, owner.clone(), token.clone(), user.clone(), amount);
+        check_balance(router, user.clone(), token.clone(), amount);
         allowance_token(
-            &mut router,
+            router,
             user.clone(),
             pair_contract.clone(),
             token.clone(),
@@ -549,7 +528,7 @@ fn change_provide_liquidity(
                 auto_stake: None,
                 receiver: None,
             },
-            &vec![],
+            &[],
         )
         .unwrap();
 }
@@ -733,11 +712,11 @@ fn consult_pair_stable() {
         vec![
             Asset {
                 info: asset_infos[0].clone(),
-                amount: Uint128::from(100_000_000000u128),
+                amount: Uint128::from(100_000_000_000_u128),
             },
             Asset {
                 info: asset_infos[1].clone(),
-                amount: Uint128::from(100_000_000000u128),
+                amount: Uint128::from(100_000_000_000_u128),
             },
         ],
     );
@@ -761,11 +740,11 @@ fn consult_pair_stable() {
         vec![
             (
                 astro_token_instance.clone(),
-                Uint128::from(500_000_000000u128),
+                Uint128::from(500_000_000_000_u128),
             ),
             (
                 usdc_token_instance.clone(),
-                Uint128::from(500_000_000000u128),
+                Uint128::from(500_000_000_000_u128),
             ),
         ],
     );
@@ -806,11 +785,11 @@ fn consult_pair_stable() {
         vec![
             (
                 astro_token_instance.clone(),
-                Uint128::from(100_000_000000u128),
+                Uint128::from(100_000_000_000_u128),
             ),
             (
                 usdc_token_instance.clone(),
-                Uint128::from(100_000_000000u128),
+                Uint128::from(100_000_000_000_u128),
             ),
         ],
     );
@@ -1318,7 +1297,7 @@ fn consult_zero_price() {
     let res: Vec<(AssetInfo, Uint128)> = router
         .wrap()
         .query_wasm_smart(
-            &oracle_instance,
+            oracle_instance,
             &Consult {
                 token: asset_infos[1].clone(),
                 amount: Uint128::from(1u8),
@@ -1371,15 +1350,15 @@ fn consult_multiple_assets() {
         vec![
             Asset {
                 info: asset_infos[0].clone(),
-                amount: Uint128::from(500_000_000000u128),
+                amount: Uint128::from(500_000_000_000_u128),
             },
             Asset {
                 info: asset_infos[1].clone(),
-                amount: Uint128::from(400_000_000000u128),
+                amount: Uint128::from(400_000_000_000_u128),
             },
             Asset {
                 info: asset_infos[2].clone(),
-                amount: Uint128::from(300_000_000000u128),
+                amount: Uint128::from(300_000_000_000_u128),
             },
         ],
     );
@@ -1403,15 +1382,15 @@ fn consult_multiple_assets() {
         vec![
             (
                 usdc_token_instance.clone(),
-                Uint128::from(500_000_000000u128),
+                Uint128::from(500_000_000_000_u128),
             ),
             (
                 astro_token_instance.clone(),
-                Uint128::from(400_000_000000u128),
+                Uint128::from(400_000_000_000_u128),
             ),
             (
                 usdt_token_instance.clone(),
-                Uint128::from(300_000_000000u128),
+                Uint128::from(300_000_000_000_u128),
             ),
         ],
     );
@@ -1454,14 +1433,14 @@ fn consult_multiple_assets() {
     // Change pair liquidity
     for (amount1, amount2, amount3) in [
         (
-            Uint128::from(500_000_000000u128),
-            Uint128::from(400_000_000000u128),
-            Uint128::from(300_000_000000u128),
+            Uint128::from(500_000_000_000_u128),
+            Uint128::from(400_000_000_000_u128),
+            Uint128::from(300_000_000_000_u128),
         ),
         (
-            Uint128::from(500_000_000000u128),
-            Uint128::from(400_000_000000u128),
-            Uint128::from(300_000_000000u128),
+            Uint128::from(500_000_000_000_u128),
+            Uint128::from(400_000_000_000_u128),
+            Uint128::from(300_000_000_000_u128),
         ),
     ] {
         change_provide_liquidity(
@@ -1560,19 +1539,19 @@ fn consult_multiple_assets() {
     // Change pair liquidity
     for (amount1, amount2, amount3) in [
         (
-            Uint128::from(100_000_000000u128),
-            Uint128::from(95_000_000000u128),
-            Uint128::from(100_000_000000u128),
+            Uint128::from(100_000_000_000_u128),
+            Uint128::from(95_000_000_000_u128),
+            Uint128::from(100_000_000_000_u128),
         ),
         (
-            Uint128::from(100_000_000000u128),
-            Uint128::from(95_000_000000u128),
-            Uint128::from(100_000_000000u128),
+            Uint128::from(100_000_000_000_u128),
+            Uint128::from(95_000_000_000_u128),
+            Uint128::from(100_000_000_000_u128),
         ),
         (
-            Uint128::from(100_000_000000u128),
-            Uint128::from(95_000_000000u128),
-            Uint128::from(100_000_000000u128),
+            Uint128::from(100_000_000_000_u128),
+            Uint128::from(95_000_000_000_u128),
+            Uint128::from(100_000_000_000_u128),
         ),
     ] {
         change_provide_liquidity(

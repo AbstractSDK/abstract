@@ -75,7 +75,11 @@ pub fn receive_register(
             description,
             link,
             // provide the origin chain id
-            origin: Some(account_id.clone()),
+            account_id: Some(account_id.clone()),
+
+            base_asset: None,
+            install_modules: vec![],
+            namespace: None,
         },
         vec![],
     )?;

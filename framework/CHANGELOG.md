@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
+- Install modules on account or Sub-account creation
+
+### Changed
+- Updated fetch_data arguments of CwStakingCommand
+
+### Fixed
+- Partially fixed cw-staking for Osmosis
+
+## [0.17.2] - 2023-07-27
+
+### Added
+- Neutron + Archway to registry
 
 - Ability to use the ExecuteFns and QueryFns traits on Units and Unnamed enum variants by @Kayanski
 

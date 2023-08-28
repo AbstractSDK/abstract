@@ -258,7 +258,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
     let (factory_addr, cw20_addr) =
         setup_croncat_contracts(mock.app.as_ref().borrow_mut(), account.proxy.addr_str()?)?;
 
-    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?;
+    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
         &abstract_core::ans_host::ExecuteMsg::UpdateContractAddresses {
             to_add: vec![(factory_entry, factory_addr.to_string())],
@@ -883,9 +883,7 @@ fn remove_task() -> anyhow::Result<()> {
             abstr_deployment
                 .ans_host
                 .query(&abstract_core::ans_host::QueryMsg::Contracts {
-                    entries: vec![
-                        UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?.into(),
-                    ],
+                    entries: vec![UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?.into()],
                 })?;
         let factory_addr: Addr = contracts_response.contracts[0].1.clone();
         let response: ContractMetadataResponse = mock.query(

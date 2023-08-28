@@ -37,14 +37,14 @@ pub fn execute_handler(
 fn handle_local_request(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     adapter: CwStakingContract,
     action: StakingAction,
     provider_name: String,
 ) -> StakingResult {
     let provider = resolver::resolve_local_provider(&provider_name)?;
     let response = Response::new()
-        .add_submessage(adapter.resolve_staking_action(deps, env, action, provider)?);
+        .add_submessage(adapter.resolve_staking_action(deps, env, info, action, provider)?);
     Ok(adapter.custom_tag_response(
         response,
         "handle_local_request",

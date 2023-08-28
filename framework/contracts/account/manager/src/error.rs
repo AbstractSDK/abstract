@@ -84,4 +84,13 @@ pub enum ManagerError {
 
     #[error("Must use SetOwner to change owner")]
     MustUseSetOwner {},
+
+    #[error("The address {0} doesn't have an owner, the manager can't determine admin right")]
+    NoContractOwner(String),
+
+    #[error("
+            Checking the admin recursively failed. 
+            You either have the an error in your sub-account configuration or you are not authorized to make this call.
+    ")]
+    SubAccountAdminVerification,
 }

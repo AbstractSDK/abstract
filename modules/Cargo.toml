@@ -16,7 +16,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.17.1"
+version = "0.18.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -36,10 +36,10 @@ cw-controllers = { version = "1.0" }
 cw-utils = { version = "1.0" }
 cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
-cw20-base = { package = "abstract-cw20-base", version = "1.0.1", features = [
+cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
 ] }
-cw20 = { package = "abstract-cw20", version = "1.0.1" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -53,25 +53,25 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.15" }
+cw-orch = { version = "0.15.0" }
 
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.17.1" }
-abstract-adapter = { version = "0.17.1" }
-abstract-app = { version = "0.17.1" }
-abstract-sdk = { version = "0.17.1" }
-abstract-testing = { version = "0.17.1" }
-abstract-core = { version = "0.17.1" }
-abstract-macros = { version = "0.17.1" }
-abstract-ica = { version = "0.17.1" }
+abstract-interface = { version = "0.18.0" }
+abstract-adapter = { version = "0.18.0" }
+abstract-app = { version = "0.18.0" }
+abstract-sdk = { version = "0.18.0" }
+abstract-testing = { version = "0.18.0" }
+abstract-core = { version = "0.18.0" }
+abstract-macros = { version = "0.18.0" }
+abstract-ica = { version = "0.18.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
-abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+abstract-adapter-utils = { version = "0.18.0" }
+abstract-dex-adapter-traits = { version = "0.18.0" }
+abstract-staking-adapter-traits = { version = "0.18.0" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
@@ -98,6 +98,9 @@ abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
+abstract-adapter-utils = { path = "../framework/packages/utils" }
+abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
+abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
 cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship" }
 

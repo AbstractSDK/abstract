@@ -19,8 +19,9 @@ pub mod state {
 
     pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
+    use crate::objects::module::ModuleInfo;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
-    use cosmwasm_std::{Addr, Api};
+    use cosmwasm_std::{Addr, Api, Binary};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
     use cw_ownable::Ownership;
@@ -86,10 +87,13 @@ pub mod state {
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
+    /// Stores a queue of modules to install on the account after creation.
+    pub const MODULE_QUEUE: Item<Vec<(ModuleInfo, Option<Binary>)>> = Item::new("mqueue");
 }
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
+use crate::objects::AssetEntry;
 use crate::objects::{
     account::AccountId,
     gov_type::GovernanceDetails,
@@ -113,6 +117,8 @@ pub struct InstantiateMsg {
     pub name: String,
     pub description: Option<String>,
     pub link: Option<String>,
+    // Optionally modules can be provided. They will be installed after account registration.
+    pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -159,6 +165,21 @@ pub enum ExecuteMsg {
     Upgrade {
         modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
+    /// Creates a sub-account on the account
+    CreateSubAccount {
+        // Name of the sub-account
+        name: String,
+        // Description of the account
+        description: Option<String>,
+        // URL linked to the account
+        link: Option<String>,
+        // Optionally specify a base asset for the sub-account
+        base_asset: Option<AssetEntry>,
+        // optionally specify a namespace for the sub-account
+        namespace: Option<String>,
+        // Provide list of module to install after sub-account creation
+        install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    },
     /// Update info
     UpdateInfo {
         name: Option<String>,
@@ -166,6 +187,7 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
+    /// New owner will have to claim ownership, in case force is not true
     SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
