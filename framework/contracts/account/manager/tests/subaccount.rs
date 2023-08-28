@@ -1,5 +1,6 @@
 mod common;
 
+use abstract_core::objects::AccountId;
 use abstract_interface::*;
 use common::*;
 use cosmwasm_std::Addr;
@@ -40,7 +41,7 @@ fn updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
+    let account_contracts = get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
     let new_desc = "new desc";
     account_contracts
         .0
@@ -71,7 +72,7 @@ fn manager_updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
+    let account_contracts = get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
     let new_desc = "new desc";
 
     // We call as the manager, it should also be possible
@@ -105,7 +106,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
     )?;
 
     // Subaccount should have id 2 in this test, we try to update the config of this module
-    let account_contracts = get_account_contracts(&deployment.version_control, Some(2));
+    let account_contracts = get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
 
     // We call as the manager, it should also be possible
     account_contracts.0.create_sub_account(
@@ -116,7 +117,7 @@ fn recursive_updating_on_subaccount_should_succeed() -> AResult {
         None,
         None,
     )?;
-    let account_contracts = get_account_contracts(&deployment.version_control, Some(3));
+    let account_contracts = get_account_contracts(&deployment.version_control, Some(AccountId::local(3)));
     let new_desc = "new desc";
 
     account_contracts

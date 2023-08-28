@@ -3,7 +3,7 @@ use std::fmt::Display;
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::AbstractError;
+use crate::{AbstractError, objects::chain_name::ChainName};
 
 use super::{account_trace::AccountTrace, AccountSequence};
 
@@ -30,6 +30,20 @@ impl AccountId {
         trace.verify()?;
         Ok(Self { seq, trace })
     }
+
+    pub fn local(seq: AccountSequence) -> Self{
+        Self{
+            seq,
+            trace: AccountTrace::Local
+        }
+    }
+
+    pub fn remote(seq: AccountSequence, trace: Vec<ChainName>) -> Result<Self, AbstractError> {
+        let trace = AccountTrace::Remote(trace);
+        trace.verify()?;
+        Ok(Self { seq, trace  })
+    }
+
     /// **Does not verify input**. Used internally for testing
     pub const fn const_new(seq: AccountSequence, trace: AccountTrace) -> Self {
         Self { seq, trace }

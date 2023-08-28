@@ -13,16 +13,16 @@ fi
 
 starting_dir=$(pwd)
 
-# echo "Wasming app-template"
-# cd ./app-template
+echo "Wasming app-template"
+cd ./app-template
 
-# # Delete all the current wasms first
-# rm -rf ./artifacts/*.wasm
-# # Optimized builds
-# docker run --rm -v "$(pwd)":/code \
-# --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-# --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-# ${image}:0.12.13
+# Delete all the current wasms first
+rm -rf ./artifacts/*.wasm
+# Optimized builds
+docker run --rm -v "$(pwd)":/code \
+--mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+--mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+${image}:0.14.0
 
 cd $starting_dir
 
@@ -35,19 +35,19 @@ rm -rf ./artifacts/*.wasm
 docker run --rm -v "$(pwd)":/code \
 --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
 --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-${workspace_image}:0.12.13
+${workspace_image}:0.14.0
 
 cd $starting_dir
 
-# echo "Wasming apps"
-# cd ./modules
+echo "Wasming apps"
+cd ./modules
 
-# # Delete all the current wasms first
-# rm -rf ./artifacts/*.wasm
-# # Optimized builds
-# docker run --rm -v "$(pwd)":/code \
-#   --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
-#   -v "$(dirname "$(pwd)")/integrations":/integrations \
-#   -v "$(dirname "$(pwd)")/framework":/framework \
-#   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-#   ${abstract_image}:0.12.14
+# Delete all the current wasms first
+rm -rf ./artifacts/*.wasm
+# Optimized builds
+docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  -v "$(dirname "$(pwd)")/integrations":/integrations \
+  -v "$(dirname "$(pwd)")/framework":/framework \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  ${abstract_image}:0.14.0

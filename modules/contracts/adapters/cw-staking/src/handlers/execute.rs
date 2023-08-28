@@ -81,7 +81,7 @@ fn handle_ibc_request(
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback, ACTION_RETRIES)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback)?;
 
     // call both messages on the proxy
     let response = Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]);

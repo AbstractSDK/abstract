@@ -17,7 +17,7 @@ use abstract_interface::{
 };
 use abstract_testing::addresses::TEST_ACCOUNT_ID;
 use abstract_testing::prelude::TEST_OWNER;
-use cosmwasm_std::{Addr, Uint64};
+use cosmwasm_std::Addr;
 use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::Mock;
@@ -60,6 +60,7 @@ fn create_one_account() -> AResult {
         },
         vec![],
         String::from("first_account"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -113,6 +114,7 @@ fn create_two_account_s() -> AResult {
         vec![],
         String::from("first_os"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -124,6 +126,7 @@ fn create_two_account_s() -> AResult {
         },
         vec![],
         String::from("second_os"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -187,6 +190,7 @@ fn sender_is_not_admin_monarchy() -> AResult {
         vec![],
         String::from("first_os"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
         None,
@@ -238,6 +242,7 @@ fn sender_is_not_admin_external() -> AResult {
         vec![],
         String::from("first_os"),
         None,
+        None,
         Some(String::from("account_description")),
         Some(String::from("http://account_link_of_at_least_11_char")),
         None,
@@ -277,6 +282,7 @@ fn create_one_account_with_base_asset() -> AResult {
         },
         vec![],
         String::from("first_account"),
+        None,
         Some(AssetEntry::new(asset_name)),
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
@@ -314,6 +320,7 @@ fn create_one_account_with_namespace() -> AResult {
         },
         vec![],
         String::from("first_account"),
+        None,
         None,
         Some(String::from("account_description")),
         Some(String::from("https://account_link_of_at_least_11_char")),
