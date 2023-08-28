@@ -72,7 +72,7 @@ impl<
         self.admin.set(deps.branch(), Some(account_base.manager))?;
 
         let Some(handler) = self.maybe_instantiate_handler() else {
-            return Ok(Response::new())
+            return Ok(Response::new());
         };
         handler(deps, env, info, self, msg.module)
     }
