@@ -287,7 +287,7 @@ pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> Mana
     }
 }
 
-// Unregister sub-account to the state
+// Register sub-account to the state
 pub fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
