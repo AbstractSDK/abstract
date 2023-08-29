@@ -363,7 +363,8 @@ pub fn set_owner(
         .owner
         .ok_or(cw_ownable::OwnershipError::NoOwner)?;
     // verify the provided governance details
-    let verified_gov = new_owner.verify(deps.api)?;
+    let config = CONFIG.load(deps.storage)?;
+    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov.owner_address();
 
     // Check that there are changes

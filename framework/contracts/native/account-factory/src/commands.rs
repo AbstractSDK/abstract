@@ -39,7 +39,7 @@ pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    governance: GovernanceDetails<Addr>,
+    governance: GovernanceDetails<String>,
     name: String,
     description: Option<String>,
     link: Option<String>,
@@ -49,6 +49,7 @@ pub fn execute_create_account(
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
+    let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // Check if the caller is the owner when instantiating the abstract account
     if config.next_account_id == ABSTRACT_ACCOUNT_ID {
         cw_ownable::assert_owner(deps.storage, &info.sender)?;

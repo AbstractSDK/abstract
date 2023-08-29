@@ -46,11 +46,13 @@ pub fn instantiate(
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
     let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
+    let version_control_address = deps.api.addr_validate(&msg.version_control_address)?;
+
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
-            version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
+            version_control_address: version_control_address.clone(),
             module_factory_address: module_factory_address.clone(),
         },
     )?;
@@ -60,7 +62,7 @@ pub fn instantiate(
     validate_link(&msg.link)?;
     validate_name(&msg.name)?;
 
-    let governance_details = msg.owner.verify(deps.api)?;
+    let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
     let owner = governance_details.owner_address();
 
     let account_info = AccountInfo {

@@ -389,3 +389,34 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     assert_eq!(new_governance, info.governance_details.into());
     Ok(())
 }
+
+#[test]
+fn account_move_ownership_to_falsy_sub_account() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = create_default_account(&deployment.account_factory)?;
+    let proxy_addr = account.proxy.address()?;
+
+    account.manager.create_sub_account(
+        vec![],
+        "My subaccount".to_string(),
+        None,
+        None,
+        None,
+        None,
+    )?;
+    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_manager_addr = sub_account.manager.address()?;
+
+    let new_account = create_default_account(&deployment.account_factory)?;
+    // proxy and manager of different accounts
+    let new_governance = GovernanceDetails::SubAccount {
+        manager: sub_manager_addr.to_string(),
+        proxy: proxy_addr.to_string(),
+    };
+    let err = new_account.manager.set_owner(new_governance).unwrap_err();
+    let err = err.root().to_string();
+    assert!(err.contains("manager and proxy has different account ids"));
+    Ok(())
+}

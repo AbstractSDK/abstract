@@ -21,7 +21,7 @@ pub mod state {
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     use crate::objects::module::ModuleInfo;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
-    use cosmwasm_std::{Addr, Api, Binary};
+    use cosmwasm_std::{Addr, Binary, Deps};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
     use cw_ownable::Ownership;
@@ -48,8 +48,12 @@ pub mod state {
 
     impl AccountInfo<String> {
         /// Check an account's info, verifying the gov details.
-        pub fn verify(self, api: &dyn Api) -> Result<AccountInfo<Addr>, crate::AbstractError> {
-            let governance_details = self.governance_details.verify(api)?;
+        pub fn verify(
+            self,
+            deps: Deps,
+            version_control_addr: Addr,
+        ) -> Result<AccountInfo<Addr>, crate::AbstractError> {
+            let governance_details = self.governance_details.verify(deps, version_control_addr)?;
             Ok(AccountInfo {
                 name: self.name,
                 governance_details,
