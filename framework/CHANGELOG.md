@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Install modules on account or Sub-account creation
+- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
