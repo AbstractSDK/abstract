@@ -5,4 +5,5 @@ pub const TYPE_DELIMITER: &str = "/";
 /// The delimiter between attributes like contract:protocol
 pub const ATTRIBUTE_DELIMITER: &str = ":";
 /// The delimiter between chains in asset names and traces
+/// chain1>chain2>asset
 pub const CHAIN_DELIMITER: &str = ">";

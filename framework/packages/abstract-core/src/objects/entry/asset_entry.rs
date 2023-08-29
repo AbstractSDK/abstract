@@ -1,11 +1,9 @@
-use crate::{AbstractError, AbstractResult};
+use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
 use cosmwasm_std::StdResult;
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-
-use crate::constants::CHAIN_DELIMITER;
 
 /// An unchecked ANS asset entry. This is a string that is formatted as
 /// `src_chain>[intermediate_chain>]asset_name`
