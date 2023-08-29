@@ -25,7 +25,6 @@ use semver::Version;
 pub type ManagerResult<R = Response> = Result<R, ManagerError>;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-// pub(crate) const CREATE_SUB_ACCOUNT_ID: u64 = 0;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ManagerResult {

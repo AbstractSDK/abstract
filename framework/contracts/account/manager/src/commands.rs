@@ -256,10 +256,8 @@ pub fn create_sub_account(
     let account_creation_message =
         wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
 
-    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![]).add_message(
-        account_creation_message,
-        // crate::contract::CREATE_SUB_ACCOUNT_ID,
-    );
+    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
+        .add_message(account_creation_message);
 
     Ok(response)
 }

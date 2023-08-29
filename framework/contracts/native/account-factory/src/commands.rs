@@ -1,4 +1,3 @@
-use abstract_core::account_factory::CreateAccountResponseData;
 use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
@@ -296,8 +295,6 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         }),
     ];
 
-    let response_data = CreateAccountResponseData(account_id);
-
     // Update id sequence
     config.next_account_id += 1;
     CONFIG.save(deps.storage, &config)?;
@@ -348,8 +345,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         .add_message(set_proxy_admin_msg)
         // Set the proxy address on the manager.
         // This last step will trigger the installation of the modules.
-        .add_message(add_proxy_address_msg)
-        .set_data(to_binary(&response_data)?);
+        .add_message(add_proxy_address_msg);
 
     Ok(resp)
 }

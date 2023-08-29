@@ -130,6 +130,3 @@ pub struct ConfigResponse {
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
-pub struct CreateAccountResponseData(pub u32);

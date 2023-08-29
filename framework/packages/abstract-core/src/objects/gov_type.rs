@@ -50,8 +50,8 @@ impl GovernanceDetails<String> {
                 Ok(GovernanceDetails::Monarchy { monarch: addr })
             }
             GovernanceDetails::SubAccount { manager, proxy } => {
-                let manager = deps.api.addr_validate(&manager)?;
-                let account_id = ACCOUNT_ID.query(&deps.querier, manager.clone())?;
+                let manager_addr = deps.api.addr_validate(&manager)?;
+                let account_id = ACCOUNT_ID.query(&deps.querier, manager_addr)?;
                 let base = crate::version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
@@ -64,7 +64,7 @@ impl GovernanceDetails<String> {
                 };
                 if b.manager == manager && b.proxy == proxy {
                     Ok(GovernanceDetails::SubAccount {
-                        manager,
+                        manager: b.manager,
                         proxy: b.proxy,
                     })
                 } else {
