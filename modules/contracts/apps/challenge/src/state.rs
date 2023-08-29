@@ -1,4 +1,5 @@
 use abstract_dex_adapter::msg::OfferAsset;
+use cosmwasm_std::Addr;
 use cw_storage_plus::{Item, Map};
 
 #[cosmwasm_schema::cw_serde]
@@ -26,7 +27,7 @@ pub enum Penalty {
 
 #[cosmwasm_schema::cw_serde]
 pub struct Friend {
-    pub address: String,
+    pub address: Addr,
     pub name: String,
 }
 

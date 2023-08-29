@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Uint128};
 use cw_asset::Asset;
@@ -313,11 +314,11 @@ fn count_votes(
     app: &ChallengeApp,
     challenge_id: String,
 ) -> AppResult {
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let votes_for_challenge = VOTES
         .load(deps.storage, challenge_id.clone())
         .unwrap_or_else(|_| Vec::new());
 
-    // Check if there's any false vote
     let any_false_vote = votes_for_challenge.iter().any(|v| v.vote == Some(false));
     if any_false_vote {
         return charge_penalty(deps, info, app, challenge_id);
@@ -341,22 +342,43 @@ fn charge_penalty(
 
     match challenge.collateral {
         Penalty::FixedAmount { asset } => {
-            let transfer_action = bank.transfer(vec![asset], &admin_address)?;
-            let transfer_msg = executor.execute(vec![transfer_action])?;
+            let num_friends = friends.len() as u128;
+            if num_friends == 0 {
+                return Err(AppError::Std(StdError::generic_err(
+                    "No friends found for the challenge.",
+                )));
+            }
+
+            // Calculate each friend's share
+            let amount_per_friend = asset.amount.u128() / num_friends;
+            let asset_per_friend = OfferAsset {
+                name: asset.name,
+                amount: Uint128::from(amount_per_friend),
+            };
+
+            // Create a transfer action for each friend
+            let transfer_actions: Result<Vec<_>, _> = friends
+                .into_iter()
+                .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
+                .collect();
+
+            let transfer_msgs = executor.execute(transfer_actions?);
+
             return Ok(Response::new()
-                .add_message(transfer_msg)
+                .add_messages(transfer_msgs)
                 .add_attribute("action", "charge_fixed_amount_penalty"));
         }
         Penalty::Daily {
             asset,
             split_between_friends,
         } => {
+            // Not sure what the exact implementation should be here.
+            // Is it that for this variant we want to only charge_penalty at the end of the
+            // challenge? If so how do we determine when the challenge has come to an end?
             let transfer_action = bank.transfer(vec![asset], &admin_address)?;
+            return Ok(Response::new().add_attribute("action", "charge_daily_penalty"));
         }
     }
-
-    // Check if there's any false vote
-    Ok(Response::new().add_attribute("action", "charge_penalty"))
 }
 
 fn date_from_block(env: &Env) -> String {
