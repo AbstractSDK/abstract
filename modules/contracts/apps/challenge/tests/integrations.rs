@@ -49,6 +49,8 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     let sender = Addr::unchecked(ADMIN);
     // Create the mock
     let mock = Mock::new(&sender);
+    mock.set_balance(&sender, vec![coin(50_000_000, DENOM)])?;
+
     let mut challenge_app = ChallengeApp::new(CHALLENGE_APP_ID, mock.clone());
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
@@ -390,5 +392,53 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
         }]
     );
 
+    Ok(())
+}
+
+#[test]
+fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+    apps.challenge_app.create_challenge(challenge.clone())?;
+
+    for _ in 0..3 {
+        apps.challenge_app
+            .cast_vote("challenge_1".to_string(), Some(true))?;
+    }
+
+    let votes =
+        apps.challenge_app
+            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+                challenge_id: "challenge_1".to_string(),
+                voter_address: account.manager.address()?.to_string(),
+            }))?;
+
+    assert_eq!(
+        votes.votes.unwrap(),
+        vec![
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(true),
+                challenge_id: "challenge_1".to_string(),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(true),
+                challenge_id: "challenge_1".to_string(),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(true),
+                challenge_id: "challenge_1".to_string(),
+            }
+        ]
+    );
+
+    let mut balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    // if no one voted false, no penalty should be charged, so balance will be 50_000_000
+    assert_eq!(balance, coin(50_000_000, DENOM));
     Ok(())
 }

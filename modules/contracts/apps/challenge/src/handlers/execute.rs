@@ -61,9 +61,6 @@ pub fn execute_handler(
             cast_vote(deps, env, info, &app, vote, &challenge_id)
         }
         ChallengeExecuteMsg::CountVotes { challenge_id } => count_votes(deps, env, challenge_id),
-        ChallengeExecuteMsg::ChargePenalty { challenge_id } => {
-            charge_penalty(deps, challenge_id, &app)
-        }
     }
 }
 
@@ -325,8 +322,17 @@ fn cast_vote(
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
-fn count_votes(_deps: DepsMut, _env: Env, _challenge_id: String) -> AppResult {
-    // Load all votes related to the given challenge_id
+fn count_votes(deps: DepsMut, _env: Env, challenge_id: String) -> AppResult {
+    let votes_for_challenge = VOTES
+        .load(deps.storage, challenge_id.clone())
+        .unwrap_or_else(|_| Vec::new());
+
+    // Check if there's any false vote
+    let any_false_vote = votes_for_challenge.iter().any(|v| v.vote == Some(false));
+    if any_false_vote {
+        return charge_penalty(deps, challenge_id);
+    }
+
     Ok(Response::new().add_attribute("action", "count_votes"))
 }
 
@@ -342,7 +348,7 @@ fn date_from_block(env: &Env) -> String {
 
 // for now we charge the same penalty regardless of how many false votes there are,
 // we may want to update this to increase the penalty amount for the number of false votes.
-fn charge_penalty(deps: DepsMut, challenge_id: String, app: &ChallengeApp) -> AppResult {
+fn charge_penalty(deps: DepsMut, challenge_id: String) -> AppResult {
     // Load the votes for the given challenge
     let votes = VOTES.load(deps.storage, challenge_id)?;
 
@@ -353,7 +359,7 @@ fn charge_penalty(deps: DepsMut, challenge_id: String, app: &ChallengeApp) -> Ap
         let penalty_amount = config.forfeit_amount;
 
         // Deduct the penalty from the admin's balance/resource
-        deduct_penalty_from_admin(deps, &penalty_amount, app)?;
+        deduct_penalty_from_admin(deps, &penalty_amount)?;
 
         // Distribute the penalty among the friends
         //distribute_penalty_to_friends(deps, &penalty_amount, app)?;
@@ -365,11 +371,7 @@ fn charge_penalty(deps: DepsMut, challenge_id: String, app: &ChallengeApp) -> Ap
     }
 }
 
-fn deduct_penalty_from_admin(
-    deps: DepsMut,
-    penalty_amount: &Uint128,
-    app: &ChallengeApp,
-) -> AppResult {
+fn deduct_penalty_from_admin(deps: DepsMut, penalty_amount: &Uint128) -> AppResult {
     // // Fetch the admin's address from Config
     // let admin_address = deps.api.addr_validate(&config.admin)?;
     // let bank = app.bank(deps.as_ref());

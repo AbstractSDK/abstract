@@ -39,4 +39,5 @@ pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const CHALLENGE_LIST: Map<String, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<(String, String), Friend> = Map::new("challenge_friends");
 pub const VOTES: Map<String, Vec<Vote>> = Map::new("votes");
+// use a snapshot map?
 pub const DAILY_CHECK_INS: Map<String, CheckIn> = Map::new("daily_checkins");

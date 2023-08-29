@@ -80,9 +80,6 @@ pub enum ChallengeExecuteMsg {
     CountVotes {
         challenge_id: String,
     },
-    ChargePenalty {
-        challenge_id: String,
-    },
 }
 
 #[cosmwasm_schema::cw_serde]
