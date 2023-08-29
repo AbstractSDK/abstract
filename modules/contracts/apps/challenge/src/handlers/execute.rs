@@ -1,13 +1,11 @@
 use crate::error::AppError;
-use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Uint128};
-use croncat_app::CronCatInterface;
 
 use crate::contract::{AppResult, ChallengeApp};
 use chrono::{Datelike, NaiveDateTime};
 
-use crate::msg::{ChallengeExecuteMsg, Frequency};
+use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
     ChallengeEntry, CheckIn, Config, Friend, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG,
     DAILY_CHECKINS, NEXT_ID, VOTES,
@@ -167,6 +165,15 @@ fn add_friend_for_challenge(
         )));
     }
 
+    // validate the address begins with 0x
+    // @TODO - this should be a more robust validation, for easy
+    // testing we are just checking for 0x
+    if !friend_address.starts_with("0x") {
+        return Err(AppError::Std(StdError::generic_err(
+            "Friend address must begin with 0x",
+        )));
+    }
+
     let friend = Friend {
         address: friend_address.clone(),
         name: friend_name.clone(),
@@ -177,7 +184,7 @@ fn add_friend_for_challenge(
         (friend_address.clone(), challenge_id.clone()),
         &friend,
     )?;
-    Ok(Response::new())
+    Ok(Response::new().add_attribute("action", "add_friend"))
 }
 
 pub fn remove_friend_from_challenge(
@@ -201,7 +208,7 @@ pub fn remove_friend_from_challenge(
     }
 
     CHALLENGE_FRIENDS.remove(deps.storage, (friend_address.clone(), challenge_id.clone()));
-    Ok(Response::new())
+    Ok(Response::new().add_attribute("action", "remove_friend"))
 }
 
 fn add_friends_for_challenge(
@@ -235,7 +242,7 @@ fn add_friends_for_challenge(
         )?;
     }
 
-    Ok(Response::new())
+    Ok(Response::new().add_attribute("action", "add_friends"))
 }
 
 fn daily_check_in(

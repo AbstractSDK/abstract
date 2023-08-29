@@ -1,6 +1,6 @@
 use crate::contract::{AppResult, ChallengeApp};
-use crate::msg::{ChallengeQueryMsg, ChallengeResponse, ConfigResponse};
-use crate::state::{CHALLENGE_LIST, CONFIG};
+use crate::msg::{ChallengeQueryMsg, ChallengeResponse, ConfigResponse, FriendResponse};
+use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG};
 use abstract_sdk::features::AbstractNameService;
 use cosmwasm_std::{to_binary, Binary, Deps, Env};
 use cw_asset::AssetInfo;
@@ -16,6 +16,10 @@ pub fn query_handler(
         ChallengeQueryMsg::Challenge { challenge_id } => {
             to_binary(&query_challenge(deps, app, challenge_id)?)
         }
+        ChallengeQueryMsg::Friend {
+            challenge_id,
+            friend_address,
+        } => to_binary(&query_friend(deps, app, challenge_id, friend_address)?),
     }
     .map_err(Into::into)
 }
@@ -39,4 +43,14 @@ fn query_challenge(
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
     Ok(ChallengeResponse { challenge })
+}
+
+fn query_friend(
+    deps: Deps,
+    _app: &ChallengeApp,
+    challenge_id: String,
+    friend_id: String,
+) -> AppResult<FriendResponse> {
+    let friend = CHALLENGE_FRIENDS.may_load(deps.storage, (friend_id, challenge_id))?;
+    Ok(FriendResponse { friend })
 }

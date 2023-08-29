@@ -3,9 +3,10 @@ use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{AppResult, CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, ConfigResponse, InstantiateMsg,
+        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, ConfigResponse, FriendResponse,
+        InstantiateMsg,
     },
-    state::ChallengeEntry,
+    state::{ChallengeEntry, Friend},
     *,
 };
 use abstract_core::{
@@ -213,19 +214,125 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
     };
 
     let created = apps.challenge_app.create_challenge(challenge.clone())?;
-    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
-        challenge_id: "challenge_1".to_string(),
-    });
 
-    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+    let created = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
 
     apps.challenge_app.add_friend_for_challenge(
         "challenge_1".to_string(),
-        "friend".to_string(),
-        "friend-name".to_string(),
+        "0x123".to_string(),
+        "Alice".to_string(),
     )?;
 
-    let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+    let added =
+        apps.challenge_app
+            .query::<FriendResponse>(&QueryMsg::from(ChallengeQueryMsg::Friend {
+                challenge_id: "challenge_1".to_string(),
+                friend_address: "0x123".to_string(),
+            }))?;
+
+    assert_eq!(
+        added.friend.unwrap(),
+        Friend {
+            address: "0x123".to_string(),
+            name: "Alice".to_string(),
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+
+    let created = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
+
+    let friends = vec![
+        Friend {
+            address: "0x123".to_string(),
+            name: "Alice".to_string(),
+        },
+        Friend {
+            address: "0x456".to_string(),
+            name: "Bob".to_string(),
+        },
+        Friend {
+            address: "0x789".to_string(),
+            name: "Charlie".to_string(),
+        },
+    ];
+
+    apps.challenge_app
+        .add_friends_for_challenge("challenge_1".to_string(), friends.clone())?;
+
+    for friend in friends {
+        let added = apps.challenge_app.query::<FriendResponse>(&QueryMsg::from(
+            ChallengeQueryMsg::Friend {
+                challenge_id: "challenge_1".to_string(),
+                friend_address: friend.address.clone(),
+            },
+        ))?;
+
+        assert_eq!(added.friend.unwrap(), friend);
+    }
+    Ok(())
+}
+
+#[test]
+fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+
+    let created = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
+
+    apps.challenge_app.add_friend_for_challenge(
+        "challenge_1".to_string(),
+        "0x123".to_string(),
+        "Alice".to_string(),
+    )?;
+
+    let friend_query = QueryMsg::from(ChallengeQueryMsg::Friend {
+        challenge_id: "challenge_1".to_string(),
+        friend_address: "0x123".to_string(),
+    });
+
+    let added = apps.challenge_app.query::<FriendResponse>(&friend_query)?;
+
+    assert_eq!(
+        added.friend.unwrap(),
+        Friend {
+            address: "0x123".to_string(),
+            name: "Alice".to_string(),
+        }
+    );
+
+    apps.challenge_app
+        .remove_friend_for_challenge("challenge_1".to_string(), "0x123".to_string())?;
+
+    let removed = apps.challenge_app.query::<FriendResponse>(&friend_query)?;
+    assert_eq!(removed.friend, None);
 
     Ok(())
 }

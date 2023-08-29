@@ -94,6 +94,11 @@ pub enum ChallengeQueryMsg {
     Config {},
     #[returns(ChallengeResponse)]
     Challenge { challenge_id: String },
+    #[returns(FriendResponse)]
+    Friend {
+        challenge_id: String,
+        friend_address: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -105,4 +110,9 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeResponse {
     pub challenge: Option<ChallengeEntry>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct FriendResponse {
+    pub friend: Option<Friend>,
 }
