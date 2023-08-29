@@ -8,7 +8,7 @@ use chrono::{Datelike, NaiveDateTime};
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
     ChallengeEntry, CheckIn, Config, Friend, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG,
-    DAILY_CHECKINS, NEXT_ID, VOTES,
+    DAILY_CHECK_INS, NEXT_ID, VOTES,
 };
 
 pub fn execute_handler(
@@ -53,9 +53,10 @@ pub fn execute_handler(
             challenge_id,
             friends,
         } => add_friends_for_challenge(deps, info, &app, challenge_id, friends),
-        ChallengeExecuteMsg::DailyCheckIn { challenge_id } => {
-            daily_check_in(deps, env, info, &app, challenge_id)
-        }
+        ChallengeExecuteMsg::DailyCheckIn {
+            challenge_id,
+            metadata,
+        } => daily_check_in(deps, env, info, &app, challenge_id, metadata),
         ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
             cast_vote(deps, env, info, &app, vote, &challenge_id)
         }
@@ -91,7 +92,7 @@ fn update_config(
 /// Create new Accountability
 fn create_challenge(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
     challenge: ChallengeEntry,
@@ -250,34 +251,33 @@ fn daily_check_in(
     env: Env,
     info: MessageInfo,
     app: &ChallengeApp,
-    _challenge_id: String,
+    challenge_id: String,
+    metadata: Option<String>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let today = date_from_block(&env);
+
     // Check if Admin has already checked in today
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today.clone()) {
-        if check_in.last_checked_in == today {
-            return Err(AppError::AlreadyCheckedIn {});
-        }
+    if DAILY_CHECK_INS
+        .load(deps.storage, today.clone())
+        .map_or(false, |check_in| {
+            check_in.last_checked_in.as_deref() == Some(&today)
+        })
+    {
+        return Err(AppError::AlreadyCheckedIn {});
     }
 
     let _blocks_per_day = 1440; // dummy value, check this
-                                // let next_interval_blocks = match FREQUENCY.load(deps.storage)? {
-                                //     Frequency::EveryNBlocks(n) => n,
-                                //     Frequency::Daily => blocks_per_day,
-                                //     Frequency::Weekly => 7 * blocks_per_day,
-                                //     Frequency::Monthly => 30 * blocks_per_day,
-                                // };
-
     let next_check_in_block = env.block.height + 10;
 
     let check_in = CheckIn {
-        last_checked_in: today.clone(),
+        last_checked_in: Some(today.clone()),
         next_check_in_by: next_check_in_block,
+        metadata,
     };
 
-    DAILY_CHECKINS.save(deps.storage, today, &check_in)?;
+    DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
     Ok(Response::new().add_attribute("action", "check_in"))
 }
 
@@ -292,10 +292,13 @@ fn cast_vote(
     let today = date_from_block(&env);
 
     // If Admin checked in today, friends can't vote
-    if let Ok(check_in) = DAILY_CHECKINS.load(deps.storage, today.clone()) {
-        if check_in.last_checked_in == today {
-            return Err(AppError::AlreadyCheckedIn {});
-        }
+    if DAILY_CHECK_INS
+        .load(deps.storage, today.clone())
+        .map_or(false, |check_in| {
+            check_in.last_checked_in.as_deref() == Some(&today)
+        })
+    {
+        return Err(AppError::AlreadyCheckedIn {});
     }
 
     // If the vote is None, default to true (meaning we assume Admin fulfilled his challenge)

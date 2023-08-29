@@ -29,8 +29,9 @@ pub struct Vote {
 
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
-    pub last_checked_in: String,
+    pub last_checked_in: Option<String>,
     pub next_check_in_by: u64, //block number
+    pub metadata: Option<String>,
 }
 
 pub const CONFIG: Item<Config> = Item::new("config");
@@ -38,4 +39,4 @@ pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const CHALLENGE_LIST: Map<String, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<(String, String), Friend> = Map::new("challenge_friends");
 pub const VOTES: Map<String, Vec<Vote>> = Map::new("votes");
-pub const DAILY_CHECKINS: Map<String, CheckIn> = Map::new("daily_checkins");
+pub const DAILY_CHECK_INS: Map<String, CheckIn> = Map::new("daily_checkins");

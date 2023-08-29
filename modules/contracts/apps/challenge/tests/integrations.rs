@@ -3,10 +3,10 @@ use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{AppResult, CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, ConfigResponse, FriendResponse,
-        InstantiateMsg,
+        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, ConfigResponse,
+        FriendResponse, InstantiateMsg, VotesResponse,
     },
-    state::{ChallengeEntry, Friend},
+    state::{ChallengeEntry, CheckIn, Friend, Vote},
     *,
 };
 use abstract_core::{
@@ -299,13 +299,15 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
         source_asset: OfferAsset::new("denom", Uint128::new(100)),
     };
 
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(challenge.clone())?;
 
     let created = apps
         .challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
             challenge_id: "challenge_1".to_string(),
         }))?;
+
+    assert_eq!(created.challenge.unwrap(), challenge);
 
     apps.challenge_app.add_friend_for_challenge(
         "challenge_1".to_string(),
@@ -333,6 +335,60 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     let removed = apps.challenge_app.query::<FriendResponse>(&friend_query)?;
     assert_eq!(removed.friend, None);
+
+    Ok(())
+}
+
+#[test]
+fn test_should_update_daily_check_in() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    apps.challenge_app.create_challenge(challenge.clone())?;
+    let metadata = Some("some_metadata".to_string());
+    apps.challenge_app
+        .daily_check_in("challenge_1".to_string(), metadata.clone())?;
+
+    let checked_in = apps
+        .challenge_app
+        .query::<CheckInResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIn {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
+
+    assert_eq!(checked_in.check_in.unwrap().metadata, metadata);
+    Ok(())
+}
+
+#[test]
+fn test_should_cast_vote() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    let challenge = ChallengeEntry {
+        name: "test".to_string(),
+        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+    };
+
+    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app
+        .cast_vote("challenge_1".to_string(), Some(true))?;
+
+    let votes =
+        apps.challenge_app
+            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+                challenge_id: "challenge_1".to_string(),
+                voter_address: account.manager.address()?.to_string(),
+            }))?;
+
+    assert_eq!(
+        votes.votes.unwrap(),
+        vec![Vote {
+            voter: "contract7".to_string(),
+            vote: Some(true),
+            challenge_id: "challenge_1".to_string(),
+        }]
+    );
 
     Ok(())
 }

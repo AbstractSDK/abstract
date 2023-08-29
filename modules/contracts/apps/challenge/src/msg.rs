@@ -1,9 +1,8 @@
 use crate::{
     contract::ChallengeApp,
-    state::{ChallengeEntry, Friend},
+    state::{ChallengeEntry, CheckIn, Friend, Vote},
 };
 use abstract_core::objects::AssetEntry;
-use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Uint128;
 use croncat_app::croncat_integration_utils::CronCatInterval;
@@ -72,6 +71,7 @@ pub enum ChallengeExecuteMsg {
     },
     DailyCheckIn {
         challenge_id: String,
+        metadata: Option<String>,
     },
     CastVote {
         challenge_id: String,
@@ -99,6 +99,13 @@ pub enum ChallengeQueryMsg {
         challenge_id: String,
         friend_address: String,
     },
+    #[returns(CheckInResponse)]
+    CheckIn { challenge_id: String },
+    #[returns(VotesResponse)]
+    Votes {
+        challenge_id: String,
+        voter_address: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -115,4 +122,14 @@ pub struct ChallengeResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct FriendResponse {
     pub friend: Option<Friend>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct CheckInResponse {
+    pub check_in: Option<CheckIn>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct VotesResponse {
+    pub votes: Option<Vec<Vote>>,
 }
