@@ -157,7 +157,8 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
         .call_as(&account.manager.address()?)
         .add_module(mock_app.to_string())?;
 
-    let (sub_manager, _sub_proxy) = get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
+    let (sub_manager, _sub_proxy) =
+        get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
     let new_desc = "new desc";
 
     // recover address on first proxy
