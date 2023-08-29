@@ -26,9 +26,6 @@ pub enum ManagerError {
     #[error("{0}")]
     Ownership(#[from] cw_ownable::OwnershipError),
 
-    #[error("{0}")]
-    Parse(#[from] cw_utils::ParseReplyError),
-
     #[error("Module with id: {0} is already installed")]
     ModuleAlreadyInstalled(String),
 

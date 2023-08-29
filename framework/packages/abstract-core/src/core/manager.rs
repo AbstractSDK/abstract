@@ -145,6 +145,19 @@ pub enum InternalConfigAction {
     },
 }
 
+#[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
+pub enum SubAccountAction {
+    /// Unregister sub-account
+    /// It will unregister sub-account from the state
+    /// Could be called only by the sub-account itself
+    UnregisterSubAccount { id: u32 },
+    /// Register sub-account
+    /// It will register new sub-account into the state
+    /// Could be called by the sub-account manager
+    /// Note: since it happens after the claim by this manager state won't have spam accounts
+    RegisterSubAccount { id: u32 },
+}
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -188,15 +201,6 @@ pub enum ExecuteMsg {
         // Provide list of module to install after sub-account creation
         install_modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
-    /// Unregister sub-account
-    /// It will unregister sub-account from the state
-    /// Could be called only by the sub-account itself
-    UnregisterSubAccount { id: u32 },
-    /// Register sub-account
-    /// It will register new sub-account into the state
-    /// Could be called by the sub-account manager
-    /// Note: since it happens after the claim by this manager state won't have spam accounts
-    RegisterSubAccount { id: u32 },
     /// Update info
     UpdateInfo {
         name: Option<String>,
@@ -210,6 +214,8 @@ pub enum ExecuteMsg {
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
     UpdateSettings { ibc_enabled: Option<bool> },
+    /// Actions called by internal or external sub-accounts
+    SubAccount(SubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
 }

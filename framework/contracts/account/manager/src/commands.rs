@@ -8,7 +8,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::InternalConfigAction;
+use abstract_core::manager::{InternalConfigAction, SubAccountAction};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
@@ -40,7 +40,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
-    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, SubMsg, WasmMsg,
+    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
@@ -256,17 +256,28 @@ pub fn create_sub_account(
     let account_creation_message =
         wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
 
-    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
-        .add_submessage(SubMsg::reply_on_success(
-            account_creation_message,
-            crate::contract::CREATE_SUB_ACCOUNT_ID,
-        ));
+    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![]).add_message(
+        account_creation_message,
+        // crate::contract::CREATE_SUB_ACCOUNT_ID,
+    );
 
     Ok(response)
 }
 
+pub fn handle_sub_account_action(
+    deps: DepsMut,
+    info: MessageInfo,
+    action: SubAccountAction,
+) -> ManagerResult {
+    match action {
+        SubAccountAction::UnregisterSubAccount { id } => unregister_sub_account(deps, info, id),
+        SubAccountAction::RegisterSubAccount { id } => register_sub_account(deps, info, id),
+        _ => unimplemented!(),
+    }
+}
+
 // Unregister sub-account from the state
-pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
@@ -288,7 +299,7 @@ pub fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> Mana
 }
 
 // Register sub-account to the state
-pub fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
 
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
@@ -409,8 +420,11 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         let id = ACCOUNT_ID.load(storage)?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
         account_id = Some(id);
-        let unregister_message =
-            wasm_execute(manager, &ExecuteMsg::UnregisterSubAccount { id }, vec![])?;
+        let unregister_message = wasm_execute(
+            manager,
+            &ExecuteMsg::SubAccount(SubAccountAction::UnregisterSubAccount { id }),
+            vec![],
+        )?;
         msgs.push(unregister_message.into());
     }
 
@@ -421,8 +435,11 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         } else {
             ACCOUNT_ID.load(storage)?
         };
-        let register_message =
-            wasm_execute(manager, &ExecuteMsg::RegisterSubAccount { id }, vec![])?;
+        let register_message = wasm_execute(
+            manager,
+            &ExecuteMsg::SubAccount(SubAccountAction::RegisterSubAccount { id }),
+            vec![],
+        )?;
         msgs.push(register_message.into());
     }
     // Update governance of this account
@@ -932,12 +949,26 @@ pub fn update_internal_config(
             })
             .collect::<ManagerResult<Vec<CosmosMsg>>>();
 
+        let mut response =
+            ManagerResponse::action("manager_after_init").add_messages(install_msgs?);
+
+        let account_info = INFO.load(deps.storage)?;
+        if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
+            response = response.add_message(wasm_execute(
+                manager,
+                &ExecuteMsg::SubAccount(SubAccountAction::RegisterSubAccount {
+                    id: ACCOUNT_ID.load(deps.storage)?,
+                }),
+                vec![],
+            )?);
+        }
+
         // clear the queue
         MODULE_QUEUE.remove(deps.storage);
         // Remove account factory from storage
         ACCOUNT_FACTORY.set(deps, None)?;
 
-        Ok(ManagerResponse::action("manager_after_init").add_messages(install_msgs?))
+        Ok(response)
     } else {
         assert_admin_right(deps.as_ref(), &info.sender)?;
         update_module_addresses(deps, add, remove)
