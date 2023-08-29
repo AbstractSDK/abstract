@@ -1,12 +1,9 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
-    ChallengeQueryMsg, ChallengeResponse, CheckInResponse, ConfigResponse, FriendResponse,
-    VotesResponse,
+    ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendsResponse, VotesResponse,
 };
-use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, CONFIG, DAILY_CHECK_INS, VOTES};
-use abstract_sdk::features::AbstractNameService;
+use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, VOTES};
 use cosmwasm_std::{to_binary, Binary, Deps, Env};
-use cw_asset::AssetInfo;
 
 pub fn query_handler(
     deps: Deps,
@@ -15,7 +12,6 @@ pub fn query_handler(
     msg: ChallengeQueryMsg,
 ) -> AppResult<Binary> {
     match msg {
-        ChallengeQueryMsg::Config {} => to_binary(&query_config(deps, app)?),
         ChallengeQueryMsg::Challenge { challenge_id } => {
             to_binary(&query_challenge(deps, app, challenge_id)?)
         }
@@ -34,18 +30,6 @@ pub fn query_handler(
     .map_err(Into::into)
 }
 
-fn query_config(deps: Deps, app: &ChallengeApp) -> AppResult<ConfigResponse> {
-    let config = CONFIG.load(deps.storage)?;
-    let asset = AssetInfo::native(config.native_denom);
-    let native_asset = app
-        .ans_host(deps)?
-        .query_asset_reverse(&deps.querier, &asset)?;
-    Ok(ConfigResponse {
-        native_asset,
-        forfeit_amount: config.forfeit_amount,
-    })
-}
-
 fn query_challenge(
     deps: Deps,
     _app: &ChallengeApp,
@@ -60,9 +44,9 @@ fn query_friend(
     _app: &ChallengeApp,
     challenge_id: String,
     friend_id: String,
-) -> AppResult<FriendResponse> {
-    let friend = CHALLENGE_FRIENDS.may_load(deps.storage, (friend_id, challenge_id))?;
-    Ok(FriendResponse { friend })
+) -> AppResult<FriendsResponse> {
+    let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
+    Ok(FriendsResponse { friends })
 }
 
 fn query_check_in(

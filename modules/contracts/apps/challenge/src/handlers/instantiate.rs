@@ -19,12 +19,7 @@ pub fn instantiate_handler(
         AssetInfoBase::Native(denom) => denom,
         _ => return Err(AbstractSdkError::generic_err("native_asset should be native").into()),
     };
-    let config: Config = Config {
-        native_denom,
-        forfeit_amount: msg.forfeit_amount,
-    };
 
-    CONFIG.save(deps.storage, &config)?;
     NEXT_ID.save(deps.storage, &0)?;
     Ok(Response::new())
 }

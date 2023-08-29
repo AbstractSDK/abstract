@@ -1,12 +1,12 @@
 // Use prelude to get all the necessary imports
 use crate::msg::QueryMsg;
 use abstract_challenge_app::{
-    contract::{AppResult, CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
+    contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, ConfigResponse,
-        FriendResponse, InstantiateMsg, VotesResponse,
+        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendResponse,
+        InstantiateMsg, VotesResponse,
     },
-    state::{ChallengeEntry, CheckIn, Friend, Vote},
+    state::{ChallengeEntry, Friend, Penalty, Vote},
     *,
 };
 use abstract_core::{
@@ -14,21 +14,28 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        namespace::Namespace,
         AssetEntry,
     },
 };
 use abstract_dex_adapter::msg::OfferAsset;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use cosmwasm_std::{coin, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
-use semver::Version;
-use wyndex_bundle::{WynDex, EUR, USD, WYNDEX as WYNDEX_WITHOUT_CHAIN};
+use lazy_static::lazy_static;
 
 // consts for testing
 const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
+lazy_static! {
+    static ref CHALLENGE: ChallengeEntry = ChallengeEntry {
+        name: "test".to_string(),
+        collateral: Penalty::FixedAmount {
+            asset: OfferAsset::new("denom", Uint128::new(100)),
+        },
+        description: "Test Challenge".to_string(),
+    };
+}
 
 #[allow(unused)]
 struct DeployedApps {
@@ -121,26 +128,21 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 fn successful_install() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
-    let config: ConfigResponse = apps.challenge_app.config()?;
+    let query_res = QueryMsg::from(ChallengeQueryMsg::Challenge {
+        challenge_id: "challenge_1".to_string(),
+    });
     assert_eq!(
-        config,
-        ConfigResponse {
-            native_asset: AssetEntry::new("denom"),
-            forfeit_amount: Uint128::new(42),
-        }
+        apps.challenge_app.query::<ChallengeResponse>(&query_res)?,
+        ChallengeResponse { challenge: None }
     );
+
     Ok(())
 }
 
 #[test]
 fn test_should_create_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-
-    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
@@ -150,19 +152,14 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         .challenge_app
         .query::<ChallengeResponse>(&challenge_query)?;
 
-    assert_eq!(created.challenge.unwrap(), challenge);
+    assert_eq!(created.challenge.unwrap(), CHALLENGE.clone());
     Ok(())
 }
 
 #[test]
 fn test_should_update_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
     });
@@ -171,7 +168,10 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
 
     let to_update = ChallengeEntry {
         name: "update-test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
+        collateral: Penalty::FixedAmount {
+            asset: OfferAsset::new("denom", Uint128::new(100)),
+        },
+        description: "Updated Test Challenge".to_string(),
     };
 
     apps.challenge_app
@@ -186,12 +186,8 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
 #[test]
 fn test_should_cancel_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
 
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
     });
@@ -210,12 +206,7 @@ fn test_should_cancel_challenge() -> anyhow::Result<()> {
 #[test]
 fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let created = apps
         .challenge_app
@@ -249,12 +240,7 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
 #[test]
 fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-
-    let created = apps.challenge_app.create_challenge(challenge.clone())?;
+    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let created = apps
         .challenge_app
@@ -296,12 +282,7 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
 #[test]
 fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-
-    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let created = apps
         .challenge_app
@@ -309,7 +290,7 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
             challenge_id: "challenge_1".to_string(),
         }))?;
 
-    assert_eq!(created.challenge.unwrap(), challenge);
+    assert_eq!(created.challenge.unwrap(), CHALLENGE.clone());
 
     apps.challenge_app.add_friend_for_challenge(
         "challenge_1".to_string(),
@@ -344,12 +325,8 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 #[test]
 fn test_should_update_daily_check_in() -> anyhow::Result<()> {
     let (mock, _account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
 
-    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let metadata = Some("some_metadata".to_string());
     apps.challenge_app
         .daily_check_in("challenge_1".to_string(), metadata.clone())?;
@@ -367,12 +344,8 @@ fn test_should_update_daily_check_in() -> anyhow::Result<()> {
 #[test]
 fn test_should_cast_vote() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
 
-    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     apps.challenge_app
         .cast_vote("challenge_1".to_string(), Some(true))?;
 
@@ -398,11 +371,7 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
 #[test]
 fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
-    let challenge = ChallengeEntry {
-        name: "test".to_string(),
-        source_asset: OfferAsset::new("denom", Uint128::new(100)),
-    };
-    apps.challenge_app.create_challenge(challenge.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     for _ in 0..3 {
         apps.challenge_app
@@ -439,6 +408,49 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 
     let mut balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
-    assert_eq!(balance, coin(50_000_000, DENOM));
+    assert_eq!(balance, Uint128::new(50_000_000));
+    Ok(())
+}
+
+#[test]
+fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+
+    for _ in 0..3 {
+        apps.challenge_app
+            .cast_vote("challenge_1".to_string(), Some(false))?;
+    }
+
+    let votes =
+        apps.challenge_app
+            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+                challenge_id: "challenge_1".to_string(),
+                voter_address: account.manager.address()?.to_string(),
+            }))?;
+
+    assert_eq!(
+        votes.votes.unwrap(),
+        vec![
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(false),
+                challenge_id: "challenge_1".to_string(),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(false),
+                challenge_id: "challenge_1".to_string(),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                vote: Some(false),
+                challenge_id: "challenge_1".to_string(),
+            }
+        ]
+    );
+
+    let mut balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    assert_eq!(balance, Uint128::new(49_999_958));
     Ok(())
 }

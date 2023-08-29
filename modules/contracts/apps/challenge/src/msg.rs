@@ -42,10 +42,6 @@ pub struct AppInstantiateMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum ChallengeExecuteMsg {
-    UpdateConfig {
-        new_native_denom: Option<String>,
-        new_forfeit_amount: Option<Uint128>,
-    },
     CreateChallenge {
         challenge: ChallengeEntry,
     },
@@ -87,11 +83,9 @@ pub enum ChallengeExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum ChallengeQueryMsg {
-    #[returns(ConfigResponse)]
-    Config {},
     #[returns(ChallengeResponse)]
     Challenge { challenge_id: String },
-    #[returns(FriendResponse)]
+    #[returns(FriendsResponse)]
     Friend {
         challenge_id: String,
         friend_address: String,
@@ -106,19 +100,13 @@ pub enum ChallengeQueryMsg {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {
-    pub native_asset: AssetEntry,
-    pub forfeit_amount: Uint128,
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct ChallengeResponse {
     pub challenge: Option<ChallengeEntry>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct FriendResponse {
-    pub friend: Option<Friend>,
+pub struct FriendsResponse {
+    pub friends: Option<Vec<Friend>>,
 }
 
 #[cosmwasm_schema::cw_serde]
