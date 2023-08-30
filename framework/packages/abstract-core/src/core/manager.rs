@@ -147,7 +147,7 @@ pub enum InternalConfigAction {
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
-pub enum SubAccountAction {
+pub enum UpdateSubAccountAction {
     /// Unregister sub-account
     /// It will unregister sub-account from the state
     /// Could be called only by the sub-account itself
@@ -215,7 +215,7 @@ pub enum ExecuteMsg {
     /// Update settings for the Account, including IBC enabled, etc.
     UpdateSettings { ibc_enabled: Option<bool> },
     /// Actions called by internal or external sub-accounts
-    SubAccount(SubAccountAction),
+    UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
 }

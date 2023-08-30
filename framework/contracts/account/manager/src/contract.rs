@@ -163,7 +163,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
                     Ok(response)
                 }
-                ExecuteMsg::SubAccount(action) => handle_sub_account_action(deps, info, action),
+                ExecuteMsg::UpdateSubAccount(action) => {
+                    handle_sub_account_action(deps, info, action)
+                }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
                 ExecuteMsg::UpdateOwnership(action) => {
                     let msgs = match action {
