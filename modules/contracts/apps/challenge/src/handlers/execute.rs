@@ -2,7 +2,6 @@ use crate::error::AppError;
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Uint128};
-use cw_asset::Asset;
 
 use crate::contract::{AppResult, ChallengeApp};
 use abstract_sdk::prelude::*;
@@ -308,12 +307,12 @@ fn count_votes(
     app: &ChallengeApp,
     challenge_id: String,
 ) -> AppResult {
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let votes_for_challenge = VOTES
         .load(deps.storage, challenge_id.clone())
         .unwrap_or_else(|_| Vec::new());
 
     let any_false_vote = votes_for_challenge.iter().any(|v| v.vote == Some(false));
+    println!("any_false_vote: {}", any_false_vote);
     if any_false_vote {
         return charge_penalty(deps, info, app, challenge_id);
     }
@@ -364,12 +363,12 @@ fn charge_penalty(
         }
         Penalty::Daily {
             asset,
-            split_between_friends,
+            split_between_friends: _,
         } => {
             // Not sure what the exact implementation should be here.
             // Is it that for this variant we want to only charge_penalty at the end of the
             // challenge? If so how do we determine when the challenge has come to an end?
-            let transfer_action = bank.transfer(vec![asset], &admin_address)?;
+            let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
             return Ok(Response::new().add_attribute("action", "charge_daily_penalty"));
         }
     }

@@ -1,10 +1,7 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::AppInstantiateMsg;
-use crate::state::{Config, CONFIG, NEXT_ID};
-use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdkError;
+use crate::state::NEXT_ID;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
-use cw_asset::AssetInfoBase;
 
 pub fn instantiate_handler(
     deps: DepsMut,
@@ -13,13 +10,6 @@ pub fn instantiate_handler(
     app: ChallengeApp,
     msg: AppInstantiateMsg,
 ) -> AppResult {
-    let ans_host = app.ans_host(deps.as_ref())?;
-    let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
-    let native_denom = match asset {
-        AssetInfoBase::Native(denom) => denom,
-        _ => return Err(AbstractSdkError::generic_err("native_asset should be native").into()),
-    };
-
     NEXT_ID.save(deps.storage, &0)?;
     Ok(Response::new())
 }

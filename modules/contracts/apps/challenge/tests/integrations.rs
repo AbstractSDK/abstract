@@ -3,7 +3,7 @@ use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendResponse,
+        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendsResponse,
         InstantiateMsg, VotesResponse,
     },
     state::{ChallengeEntry, Friend, Penalty, Vote},
@@ -35,6 +35,20 @@ lazy_static! {
         },
         description: "Test Challenge".to_string(),
     };
+    static ref FRIENDS: Vec<Friend> = vec![
+        Friend {
+            address: Addr::unchecked("foo"),
+            name: "Alice".to_string(),
+        },
+        Friend {
+            address: Addr::unchecked("bar"),
+            name: "Bob".to_string(),
+        },
+        Friend {
+            address: Addr::unchecked("baz"),
+            name: "Charlie".to_string(),
+        },
+    ];
 }
 
 #[allow(unused)]
@@ -64,7 +78,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 
     challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?)?;
 
-    let module_info = ModuleInfo::from_id(
+    let _module_info = ModuleInfo::from_id(
         CHALLENGE_APP_ID,
         ModuleVersion::Version(CHALLENGE_APP_VERSION.to_string()),
     )?;
@@ -141,7 +155,7 @@ fn successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_create_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
+    let (_mock, _account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge {
@@ -158,13 +172,13 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_update_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
-    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    let (_mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
     });
 
-    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+    apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
     let to_update = ChallengeEntry {
         name: "update-test".to_string(),
@@ -185,14 +199,14 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_cancel_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
+    let (_mock, _account, _abstr, apps) = setup()?;
 
-    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
         challenge_id: "challenge_1".to_string(),
     });
 
-    let created = apps.challenge_app.query::<ChallengeResponse>(&query)?;
+    apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
     apps.challenge_app
         .cancel_challenge("challenge_1".to_string())?;
@@ -205,83 +219,70 @@ fn test_should_cancel_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
-    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    let (_mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
-    let created = apps
-        .challenge_app
+    apps.challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
             challenge_id: "challenge_1".to_string(),
         }))?;
 
     apps.challenge_app.add_friend_for_challenge(
         "challenge_1".to_string(),
-        "0x123".to_string(),
+        "foo".to_string(),
         "Alice".to_string(),
     )?;
 
-    let added =
-        apps.challenge_app
-            .query::<FriendResponse>(&QueryMsg::from(ChallengeQueryMsg::Friend {
-                challenge_id: "challenge_1".to_string(),
-                friend_address: "0x123".to_string(),
-            }))?;
+    let response = apps
+        .challenge_app
+        .query::<FriendsResponse>(&QueryMsg::from(ChallengeQueryMsg::Friends {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
 
-    assert_eq!(
-        added.friend.unwrap(),
-        Friend {
-            address: "0x123".to_string(),
-            name: "Alice".to_string(),
-        }
-    );
+    if let Some(response) = response.friends {
+        assert_eq!(
+            response,
+            vec![Friend {
+                address: Addr::unchecked("foo"),
+                name: "Alice".to_string(),
+            }]
+        );
+    } else {
+        panic!("Friends not found");
+    }
     Ok(())
 }
 
 #[test]
 fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
-    let created = apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    let (_mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
-    let created = apps
-        .challenge_app
+    apps.challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
             challenge_id: "challenge_1".to_string(),
         }))?;
 
-    let friends = vec![
-        Friend {
-            address: "0x123".to_string(),
-            name: "Alice".to_string(),
-        },
-        Friend {
-            address: "0x456".to_string(),
-            name: "Bob".to_string(),
-        },
-        Friend {
-            address: "0x789".to_string(),
-            name: "Charlie".to_string(),
-        },
-    ];
-
     apps.challenge_app
-        .add_friends_for_challenge("challenge_1".to_string(), friends.clone())?;
+        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
 
-    for friend in friends {
-        let added = apps.challenge_app.query::<FriendResponse>(&QueryMsg::from(
-            ChallengeQueryMsg::Friend {
-                challenge_id: "challenge_1".to_string(),
-                friend_address: friend.address.clone(),
-            },
-        ))?;
+    let response = apps
+        .challenge_app
+        .query::<FriendsResponse>(&QueryMsg::from(ChallengeQueryMsg::Friends {
+            challenge_id: "challenge_1".to_string(),
+        }))?;
 
-        assert_eq!(added.friend.unwrap(), friend);
+    if let Some(response) = response.friends {
+        assert_eq!(response, FRIENDS.clone());
+    } else {
+        panic!("Friends not found");
     }
     Ok(())
 }
 
 #[test]
 fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
+    let (_mock, _account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
     let created = apps
@@ -294,37 +295,37 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     apps.challenge_app.add_friend_for_challenge(
         "challenge_1".to_string(),
-        "0x123".to_string(),
+        "foo".to_string(),
         "Alice".to_string(),
     )?;
 
-    let friend_query = QueryMsg::from(ChallengeQueryMsg::Friend {
+    let friend_query = QueryMsg::from(ChallengeQueryMsg::Friends {
         challenge_id: "challenge_1".to_string(),
-        friend_address: "0x123".to_string(),
     });
 
-    let added = apps.challenge_app.query::<FriendResponse>(&friend_query)?;
+    let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
 
     assert_eq!(
-        added.friend.unwrap(),
-        Friend {
-            address: Bech32::from("0x123").to_string(),
+        response.friends.unwrap(),
+        vec![Friend {
+            address: Addr::unchecked("foo"),
             name: "Alice".to_string(),
-        }
+        }]
     );
 
     apps.challenge_app
-        .remove_friend_for_challenge("challenge_1".to_string(), "0x123".to_string())?;
+        .remove_friend_for_challenge("challenge_1".to_string(), "foo".to_string())?;
 
-    let removed = apps.challenge_app.query::<FriendResponse>(&friend_query)?;
-    assert_eq!(removed.friend, None);
+    let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
+    println!("{:?}", response);
+    assert_eq!(response.friends.unwrap(), vec![]);
 
     Ok(())
 }
 
 #[test]
 fn test_should_update_daily_check_in() -> anyhow::Result<()> {
-    let (mock, _account, _abstr, apps) = setup()?;
+    let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let metadata = Some("some_metadata".to_string());
@@ -343,7 +344,7 @@ fn test_should_update_daily_check_in() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_cast_vote() -> anyhow::Result<()> {
-    let (mock, account, _abstr, apps) = setup()?;
+    let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     apps.challenge_app
@@ -353,7 +354,6 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
                 challenge_id: "challenge_1".to_string(),
-                voter_address: account.manager.address()?.to_string(),
             }))?;
 
     assert_eq!(
@@ -372,6 +372,8 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
 fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    apps.challenge_app
+        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
 
     for _ in 0..3 {
         apps.challenge_app
@@ -382,7 +384,6 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
                 challenge_id: "challenge_1".to_string(),
-                voter_address: account.manager.address()?.to_string(),
             }))?;
 
     assert_eq!(
@@ -405,8 +406,9 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
             }
         ]
     );
+    apps.challenge_app.count_votes("challenge_1".to_string())?;
 
-    let mut balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
     Ok(())
@@ -416,6 +418,8 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    apps.challenge_app
+        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
 
     for _ in 0..3 {
         apps.challenge_app
@@ -426,7 +430,6 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
                 challenge_id: "challenge_1".to_string(),
-                voter_address: account.manager.address()?.to_string(),
             }))?;
 
     assert_eq!(
@@ -450,7 +453,9 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         ]
     );
 
-    let mut balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
-    assert_eq!(balance, Uint128::new(49_999_958));
+    apps.challenge_app.count_votes("challenge_1".to_string())?;
+
+    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    assert_eq!(balance, Uint128::new(49999901));
     Ok(())
 }

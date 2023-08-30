@@ -4,9 +4,7 @@ use crate::{
     msg::{AppInstantiateMsg, ChallengeExecuteMsg, ChallengeQueryMsg},
 };
 use abstract_app::AppContract;
-use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::{Empty, Response};
-use croncat_app::contract::{CRONCAT_ID, CRONCAT_MODULE_VERSION};
 
 /// The version of your app
 pub const CHALLENGE_APP_VERSION: &str = env!("CARGO_PKG_VERSION");

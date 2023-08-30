@@ -86,17 +86,11 @@ pub enum ChallengeQueryMsg {
     #[returns(ChallengeResponse)]
     Challenge { challenge_id: String },
     #[returns(FriendsResponse)]
-    Friend {
-        challenge_id: String,
-        friend_address: String,
-    },
+    Friends { challenge_id: String },
     #[returns(CheckInResponse)]
     CheckIn { challenge_id: String },
     #[returns(VotesResponse)]
-    Votes {
-        challenge_id: String,
-        voter_address: String,
-    },
+    Votes { challenge_id: String },
 }
 
 #[cosmwasm_schema::cw_serde]
