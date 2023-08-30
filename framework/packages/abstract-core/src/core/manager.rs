@@ -149,11 +149,9 @@ pub enum ExecuteMsg {
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
     #[cfg_attr(feature = "interface", payable)]
-    InstallModule {
-        // Module information.
-        module: ModuleInfo,
-        // Instantiate message used to instantiate the contract.
-        init_msg: Option<Binary>,
+    InstallModules {
+        // Module information and Instantiate message to instantiate the contract
+        modules: Vec<(ModuleInfo, Option<Binary>)>,
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.

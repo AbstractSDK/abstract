@@ -83,50 +83,54 @@ pub fn update_module_addresses(
 }
 
 /// Attempts to install a new module through the Module Factory Contract
-pub fn install_module(
+pub fn install_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    module: ModuleInfo,
-    init_msg: Option<Binary>,
+    modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
     // only owner can call this method
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
-    let response =
-        ManagerResponse::new("install_module", vec![("module", module.id_with_version())])
-            .add_message(install_module_internal(
-                deps.storage,
-                module,
-                config.module_factory_address,
-                init_msg,
-                msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
-            )?);
+    let (install_msg, install_attribute) = install_modules_internal(
+        deps.storage,
+        modules,
+        config.module_factory_address,
+        msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
+    )?;
+    let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
+        .add_message(install_msg);
 
     Ok(response)
 }
 
-/// Generate message for installing module
-pub(crate) fn install_module_internal(
+/// Generate message and attribute for installing module
+pub(crate) fn install_modules_internal(
     storage: &dyn Storage,
-    module: ModuleInfo,
+    modules: Vec<(ModuleInfo, Option<Binary>)>,
     module_factory_address: Addr,
-    init_msg: Option<Binary>,
     funds: Vec<Coin>,
-) -> ManagerResult<CosmosMsg> {
-    // Check if module is already enabled.
-    if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
-        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
+) -> ManagerResult<(CosmosMsg, Attribute)> {
+    let mut installed_modules = Vec::with_capacity(modules.len());
+    for (module, _init_msg) in &modules {
+        // Check if module is already enabled.
+        if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
+            return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
+        }
+        installed_modules.push(module.id_with_version());
     }
 
     let msg = wasm_execute(
         module_factory_address,
-        &ModuleFactoryMsg::InstallModule { module, init_msg },
+        &ModuleFactoryMsg::InstallModules { modules },
         funds,
     )?;
-    Ok(msg.into())
+    Ok((
+        msg.into(),
+        Attribute::new("installed_modules", format!("{installed_modules:?}")),
+    ))
 }
 
 // Sets the Treasury address on the module if applicable and adds it to the state
@@ -823,28 +827,22 @@ pub fn update_internal_config(
         let config = CONFIG.load(deps.storage)?;
 
         // TODO: Funds should be forwarded from account factory to this contract after init.
-        let install_msgs: ManagerResult<Vec<CosmosMsg>> = queued_modules
-            .into_iter()
-            .map(|(module, init_msg)| {
-                let module_factory_address = config.module_factory_address.clone();
-                // TODO: query fee from VC
-                let funds = vec![];
-                install_module_internal(
-                    deps.storage,
-                    module,
-                    module_factory_address,
-                    init_msg,
-                    funds,
-                )
-            })
-            .collect::<ManagerResult<Vec<CosmosMsg>>>();
+        let (install_msg, install_attributes) = install_modules_internal(
+            deps.storage,
+            queued_modules,
+            config.module_factory_address,
+            info.funds,
+        )?;
 
         // clear the queue
         MODULE_QUEUE.remove(deps.storage);
         // Remove account factory from storage
         ACCOUNT_FACTORY.set(deps, None)?;
 
-        Ok(ManagerResponse::action("manager_after_init").add_messages(install_msgs?))
+        Ok(
+            ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
+                .add_message(install_msg),
+        )
     } else {
         assert_admin_right(deps.as_ref(), &info.sender)?;
         update_module_addresses(deps, add, remove)
@@ -1190,9 +1188,8 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
             };
 
             let res = execute_as(deps.as_mut(), "not_owner", msg);
@@ -1208,9 +1205,8 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
             };
 
             // manual installation
@@ -1234,9 +1230,8 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1253,9 +1248,8 @@ mod tests {
             let new_module = ModuleInfo::from_id_latest("test:module")?;
             let expected_init = Some(to_binary(&"some init msg")?);
 
-            let msg = ExecuteMsg::InstallModule {
-                module: new_module.clone(),
-                init_msg: expected_init.clone(),
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![(new_module.clone(), expected_init.clone())],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1267,9 +1261,8 @@ mod tests {
 
             let expected_msg: CosmosMsg = wasm_execute(
                 TEST_MODULE_FACTORY,
-                &ModuleFactoryMsg::InstallModule {
-                    module: new_module,
-                    init_msg: expected_init,
+                &ModuleFactoryMsg::InstallModules {
+                    modules: vec![(new_module, expected_init)],
                 },
                 vec![],
             )?

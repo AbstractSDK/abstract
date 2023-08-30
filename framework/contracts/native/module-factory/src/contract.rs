@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::{commands, error::ModuleFactoryError, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
@@ -34,7 +36,7 @@ pub fn instantiate(
         deps.storage,
         &Context {
             account_base: None,
-            module: None,
+            modules: VecDeque::new(),
         },
     )?;
 
@@ -57,8 +59,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
             ans_host_address,
             version_control_address,
         ),
-        ExecuteMsg::InstallModule { module, init_msg } => {
-            commands::execute_create_module(deps, env, info, module, init_msg)
+        ExecuteMsg::InstallModules { modules } => {
+            commands::execute_create_modules(deps, env, info, modules)
         }
         ExecuteMsg::UpdateFactoryBinaryMsgs { to_add, to_remove } => {
             commands::update_factory_binaries(deps, info, to_add, to_remove)
@@ -107,11 +109,11 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
 pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let Context {
         account_base,
-        module,
+        modules,
     }: Context = CONTEXT.load(deps.storage)?;
     let resp = ContextResponse {
         account_base,
-        module,
+        modules: modules.into(),
     };
 
     Ok(resp)

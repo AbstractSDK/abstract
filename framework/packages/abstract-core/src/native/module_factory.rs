@@ -5,6 +5,8 @@
 //! ## Description  
 //! This contract is instantiated by Abstract and only used internally. Adding or upgrading modules is done using the [`crate::manager::ExecuteMsg`] endpoint.  
 pub mod state {
+    use std::collections::VecDeque;
+
     use crate::{
         objects::module::{Module, ModuleInfo},
         version_control::AccountBase,
@@ -23,7 +25,7 @@ pub mod state {
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
         pub account_base: Option<AccountBase>,
-        pub module: Option<Module>,
+        pub modules: VecDeque<Module>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -57,17 +59,24 @@ pub enum ExecuteMsg {
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
-    /// Installs a module on the Account
-    InstallModule {
-        // Module details
-        module: ModuleInfo,
-        init_msg: Option<Binary>,
+    InstallModules {
+        // Module info and init message
+        modules: Vec<(ModuleInfo, Option<Binary>)>,
+        // TODO: alternative API?
+        // modules: Vec<InstallModule>,
     },
     UpdateFactoryBinaryMsgs {
         to_add: Vec<(ModuleInfo, Binary)>,
         to_remove: Vec<ModuleInfo>,
     },
 }
+
+// TODO: do we want to move to that to have more user-friendly api?
+// #[cosmwasm_schema::cw_serde]
+// pub struct InstallModule {
+//     pub module: ModuleInfo,
+//     pub init_msg: Option<Binary>
+// }
 
 /// Module factory query messages
 #[cw_ownable::cw_ownable_query]
@@ -95,7 +104,7 @@ pub struct ConfigResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
     pub account_base: Option<AccountBase>,
-    pub module: Option<Module>,
+    pub modules: Vec<Module>,
 }
 
 /// We currently take no arguments for migrations

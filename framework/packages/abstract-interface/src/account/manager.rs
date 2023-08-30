@@ -61,6 +61,19 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
+    pub fn install_modules<TInitMsg: Serialize>(
+        &self,
+        modules: Vec<(ModuleInfo, Option<&TInitMsg>)>,
+        funds: Option<&[Coin]>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        let modules = modules
+            .into_iter()
+            .map(|(module, init_msg)| (module, init_msg.map(|msg| to_binary(msg).unwrap())))
+            .collect();
+        self.execute(&ExecuteMsg::InstallModules { modules }, funds)
+            .map_err(Into::into)
+    }
+
     pub fn install_module<TInitMsg: Serialize>(
         &self,
         module_id: &str,
@@ -78,9 +91,11 @@ impl<Chain: CwEnv> Manager<Chain> {
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
-            &ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id(module_id, version)?,
-                init_msg: Some(to_binary(init_msg).unwrap()),
+            &ExecuteMsg::InstallModules {
+                modules: vec![(
+                    ModuleInfo::from_id(module_id, version)?,
+                    Some(to_binary(init_msg).unwrap()),
+                )],
             },
             funds,
         )

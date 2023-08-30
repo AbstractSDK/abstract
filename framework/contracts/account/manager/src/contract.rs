@@ -110,9 +110,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
 
-                ExecuteMsg::InstallModule { module, init_msg } => {
-                    install_module(deps, info, env, module, init_msg)
-                }
+                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)
                 }
