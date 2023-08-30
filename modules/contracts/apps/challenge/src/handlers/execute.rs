@@ -134,7 +134,7 @@ fn add_friend_for_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut friends_for_challenge = CHALLENGE_FRIENDS
-        .may_load(deps.storage, challenge_id)?
+        .may_load(deps.storage, challenge_id.clone())?
         .unwrap_or_else(Vec::new);
 
     if friends_for_challenge
@@ -146,13 +146,7 @@ fn add_friend_for_challenge(
         )));
     }
 
-    // validate the address begins with 0x
-    // @TODO - this should be a more robust validation; for easy testing, we are just checking for 0x
-    if !friend_address.starts_with("0x") {
-        return Err(AppError::Std(StdError::generic_err(
-            "Friend address must begin with 0x",
-        )));
-    }
+    let friend_address = deps.api.addr_validate(&friend_address)?;
 
     let friend = Friend {
         address: friend_address.clone(),
@@ -176,7 +170,7 @@ pub fn remove_friend_from_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut friends_for_challenge = CHALLENGE_FRIENDS
-        .may_load(deps.storage, &challenge_id)?
+        .may_load(deps.storage, challenge_id.clone())?
         .unwrap_or_else(Vec::new);
 
     let friend_index = friends_for_challenge
@@ -186,7 +180,7 @@ pub fn remove_friend_from_challenge(
     match friend_index {
         Some(index) => {
             friends_for_challenge.remove(index);
-            CHALLENGE_FRIENDS.save(deps.storage, &challenge_id, &friends_for_challenge)?;
+            CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends_for_challenge)?;
         }
         None => {
             return Err(AppError::Std(StdError::generic_err(

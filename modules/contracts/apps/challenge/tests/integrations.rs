@@ -308,7 +308,7 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     assert_eq!(
         added.friend.unwrap(),
         Friend {
-            address: "0x123".to_string(),
+            address: Bech32::from("0x123").to_string(),
             name: "Alice".to_string(),
         }
     );
