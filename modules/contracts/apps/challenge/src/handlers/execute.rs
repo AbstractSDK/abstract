@@ -127,14 +127,14 @@ fn add_friend_for_challenge(
     info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: String,
-    friend_name: &String,
+    friend_name: &str,
     friend_address: &String,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut friends_for_challenge = CHALLENGE_FRIENDS
         .may_load(deps.storage, challenge_id.clone())?
-        .unwrap_or_else(Vec::new);
+        .unwrap_or_default();
 
     if friends_for_challenge
         .iter()
@@ -145,11 +145,11 @@ fn add_friend_for_challenge(
         )));
     }
 
-    let friend_address = deps.api.addr_validate(&friend_address)?;
+    let friend_address = deps.api.addr_validate(friend_address)?;
 
     let friend = Friend {
         address: friend_address.clone(),
-        name: friend_name.clone(),
+        name: friend_name.to_owned(),
     };
 
     friends_for_challenge.push(friend);
@@ -170,7 +170,7 @@ pub fn remove_friend_from_challenge(
 
     let mut friends_for_challenge = CHALLENGE_FRIENDS
         .may_load(deps.storage, challenge_id.clone())?
-        .unwrap_or_else(Vec::new);
+        .unwrap_or_default();
 
     let friend_index = friends_for_challenge
         .iter()
@@ -203,20 +203,17 @@ fn add_friends_for_challenge(
 
     let mut existing_friends = CHALLENGE_FRIENDS
         .may_load(deps.storage, challenge_id.clone())?
-        .unwrap_or_else(Vec::new);
+        .unwrap_or_default();
 
     for friend in &friends {
-        if existing_friends
-            .iter()
-            .any(|f| &f.address == &friend.address)
-        {
+        if existing_friends.iter().any(|f| f.address == friend.address) {
             return Err(AppError::Std(StdError::generic_err(
                 "Friend already added for this challenge",
             )));
         }
     }
 
-    existing_friends.extend(friends.into_iter());
+    existing_friends.extend(friends);
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
     Ok(Response::new().add_attribute("action", "add_friends"))
 }
@@ -262,7 +259,7 @@ fn cast_vote(
     info: MessageInfo,
     _app: &ChallengeApp,
     vote: Option<bool>,
-    challenge_id: &String,
+    challenge_id: &str,
 ) -> AppResult {
     let today = date_from_block(&env);
 
@@ -283,19 +280,19 @@ fn cast_vote(
     let vote_entry = Vote {
         voter: info.sender.to_string(),
         vote: Some(final_vote),
-        challenge_id: challenge_id.clone(),
+        challenge_id: challenge_id.to_owned(),
     };
 
     // Load existing votes for the current block height or initialize an empty list if none exist
     let mut votes_for_block = VOTES
-        .load(deps.storage, challenge_id.clone())
+        .load(deps.storage, challenge_id.to_owned())
         .unwrap_or_else(|_| Vec::new());
 
     // Append the new vote
     votes_for_block.push(vote_entry);
 
     // Save the updated votes
-    VOTES.save(deps.storage, challenge_id.clone(), &votes_for_block)?;
+    VOTES.save(deps.storage, challenge_id.to_owned(), &votes_for_block)?;
 
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
@@ -312,7 +309,6 @@ fn count_votes(
         .unwrap_or_else(|_| Vec::new());
 
     let any_false_vote = votes_for_challenge.iter().any(|v| v.vote == Some(false));
-    println!("any_false_vote: {}", any_false_vote);
     if any_false_vote {
         return charge_penalty(deps, info, app, challenge_id);
     }
@@ -329,7 +325,7 @@ fn charge_penalty(
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id.clone())?;
 
-    let admin_address = deps.api.addr_validate(&info.sender.to_string())?;
+    let admin_address = deps.api.addr_validate(info.sender.as_ref())?;
     let bank = app.bank(deps.as_ref());
     let executor = app.executor(deps.as_ref());
 
@@ -357,9 +353,9 @@ fn charge_penalty(
 
             let transfer_msgs = executor.execute(transfer_actions?);
 
-            return Ok(Response::new()
+            Ok(Response::new()
                 .add_messages(transfer_msgs)
-                .add_attribute("action", "charge_fixed_amount_penalty"));
+                .add_attribute("action", "charge_fixed_amount_penalty"))
         }
         Penalty::Daily {
             asset,
@@ -369,7 +365,7 @@ fn charge_penalty(
             // Is it that for this variant we want to only charge_penalty at the end of the
             // challenge? If so how do we determine when the challenge has come to an end?
             let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
-            return Ok(Response::new().add_attribute("action", "charge_daily_penalty"));
+            Ok(Response::new().add_attribute("action", "charge_daily_penalty"))
         }
     }
 }
@@ -378,8 +374,12 @@ fn date_from_block(env: &Env) -> String {
     // Convert the block's timestamp to NaiveDateTime
     let seconds = env.block.time.seconds();
     let nano_seconds = env.block.time.subsec_nanos();
-    let dt = NaiveDateTime::from_timestamp(seconds as i64, nano_seconds as u32);
+    let dt = NaiveDateTime::from_timestamp_opt(seconds as i64, nano_seconds as u32);
 
-    // Format the date using the NaiveDateTime object
-    format!("{:04}-{:02}-{:02}", dt.year(), dt.month(), dt.day())
+    format!(
+        "{year}-{month}-{day}",
+        year = dt.unwrap().year(),
+        month = dt.unwrap().month(),
+        day = dt.unwrap().day()
+    )
 }
