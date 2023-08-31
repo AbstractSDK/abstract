@@ -1,6 +1,6 @@
 use crate::{
     contract::ChallengeApp,
-    state::{ChallengeEntry, CheckIn, Friend, Vote},
+    state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
 };
 use abstract_core::objects::AssetEntry;
 use cosmwasm_schema::QueryResponses;
@@ -46,35 +46,31 @@ pub enum ChallengeExecuteMsg {
         challenge: ChallengeEntry,
     },
     UpdateChallenge {
-        challenge_id: String,
-        challenge: ChallengeEntry,
+        challenge_id: u64,
+        challenge: ChallengeEntryUpdate,
     },
     CancelChallenge {
-        challenge_id: String,
+        challenge_id: u64,
     },
-    AddFriendForChallenge {
-        challenge_id: String,
-        friend_address: String,
-        friend_name: String,
-    },
-    RemoveFriendForChallenge {
-        challenge_id: String,
-        friend_address: String,
-    },
-    AddFriendsForChallenge {
-        challenge_id: String,
+    UpdateFriendsForChallenge {
+        challenge_id: u64,
         friends: Vec<Friend>,
+        op_kind: UpdateFriendsOpKind,
     },
     DailyCheckIn {
-        challenge_id: String,
+        challenge_id: u64,
         metadata: Option<String>,
     },
     CastVote {
-        challenge_id: String,
+        challenge_id: u64,
         vote: Option<bool>,
     },
     CountVotes {
-        challenge_id: String,
+        challenge_id: u64,
+    },
+    VetoVote {
+        voter: String,
+        challenge_id: u64,
     },
 }
 
@@ -84,13 +80,13 @@ pub enum ChallengeExecuteMsg {
 #[derive(QueryResponses)]
 pub enum ChallengeQueryMsg {
     #[returns(ChallengeResponse)]
-    Challenge { challenge_id: String },
+    Challenge { challenge_id: u64 },
     #[returns(FriendsResponse)]
-    Friends { challenge_id: String },
+    Friends { challenge_id: u64 },
     #[returns(CheckInResponse)]
-    CheckIn { challenge_id: String },
+    CheckIn { challenge_id: u64 },
     #[returns(VotesResponse)]
-    Votes { challenge_id: String },
+    Votes { challenge_id: u64 },
 }
 
 #[cosmwasm_schema::cw_serde]

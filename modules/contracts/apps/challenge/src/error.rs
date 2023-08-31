@@ -31,4 +31,7 @@ pub enum AppError {
 
     #[error("Already checked in")]
     AlreadyCheckedIn {},
+
+    #[error("Voter already voted")]
+    AlreadyVoted {},
 }

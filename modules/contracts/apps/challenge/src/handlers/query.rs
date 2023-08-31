@@ -31,17 +31,13 @@ pub fn query_handler(
 fn query_challenge(
     deps: Deps,
     _app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
     Ok(ChallengeResponse { challenge })
 }
 
-fn query_friends(
-    deps: Deps,
-    _app: &ChallengeApp,
-    challenge_id: String,
-) -> AppResult<FriendsResponse> {
+fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
     let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
     Ok(FriendsResponse { friends })
 }
@@ -49,13 +45,13 @@ fn query_friends(
 fn query_check_in(
     deps: Deps,
     _app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
 ) -> AppResult<CheckInResponse> {
     let check_in = DAILY_CHECK_INS.may_load(deps.storage, challenge_id)?;
     Ok(CheckInResponse { check_in })
 }
 
-fn query_votes(deps: Deps, _app: &ChallengeApp, challenge_id: String) -> AppResult<VotesResponse> {
+fn query_votes(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<VotesResponse> {
     let votes = VOTES.may_load(deps.storage, challenge_id)?;
     Ok(VotesResponse { votes })
 }

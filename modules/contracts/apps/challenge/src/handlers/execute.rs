@@ -9,8 +9,8 @@ use chrono::{Datelike, NaiveDateTime};
 
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
-    ChallengeEntry, CheckIn, Friend, Penalty, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST,
-    DAILY_CHECK_INS, NEXT_ID, VOTES,
+    ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, Penalty, UpdateFriendsOpKind, Vote,
+    ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, NEXT_ID, VOTES,
 };
 
 pub fn execute_handler(
@@ -31,36 +31,25 @@ pub fn execute_handler(
         ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
             cancel_challenge(deps, info, app, challenge_id)
         }
-        ChallengeExecuteMsg::AddFriendForChallenge {
-            challenge_id,
-            friend_name,
-            friend_address,
-        } => add_friend_for_challenge(
-            deps,
-            info,
-            &app,
-            challenge_id,
-            &friend_name,
-            &friend_address,
-        ),
-        ChallengeExecuteMsg::RemoveFriendForChallenge {
-            challenge_id,
-            friend_address,
-        } => remove_friend_from_challenge(deps, info, &app, challenge_id, friend_address),
-        ChallengeExecuteMsg::AddFriendsForChallenge {
+        ChallengeExecuteMsg::UpdateFriendsForChallenge {
             challenge_id,
             friends,
-        } => add_friends_for_challenge(deps, info, &app, challenge_id, friends),
+            op_kind,
+        } => update_friends_for_challenge(deps, info, &app, challenge_id, friends, op_kind),
         ChallengeExecuteMsg::DailyCheckIn {
             challenge_id,
             metadata,
         } => daily_check_in(deps, env, info, &app, challenge_id, metadata),
         ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
-            cast_vote(deps, env, info, &app, vote, &challenge_id)
+            cast_vote(deps, env, info, &app, vote, challenge_id)
         }
         ChallengeExecuteMsg::CountVotes { challenge_id } => {
             count_votes(deps, info, env, &app, challenge_id)
         }
+        ChallengeExecuteMsg::VetoVote {
+            voter,
+            challenge_id,
+        } => veto_vote(deps, info, env, &app, challenge_id, voter),
     }
 }
 
@@ -76,34 +65,56 @@ fn create_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     // Generate the challenge id
-    let id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
-    let challenge_id = format!("challenge_{id}");
-
+    let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
     Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id),
+        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
         "create_challenge",
     ))
 }
 
-/// Update an existing challenge  
 fn update_challenge(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    challenge_id: String,
-    challenge: ChallengeEntry,
+    challenge_id: u64,
+    new_challenge: ChallengeEntryUpdate,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     // will return an error if the challenge doesn't exist
-    CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+    let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
+        .may_load(deps.storage, challenge_id.clone())
+        .map_err(|_| {
+            AppError::Std(StdError::generic_err(format!(
+                "Error loading challenge with id {}",
+                challenge_id
+            )))
+        })?
+        .ok_or_else(|| {
+            AppError::Std(StdError::generic_err(format!(
+                "Challenge with id {} not found",
+                challenge_id
+            )))
+        })?;
+
+    if let Some(name) = new_challenge.name {
+        loaded_challenge.name = name;
+    }
+    if let Some(collateral) = new_challenge.collateral {
+        loaded_challenge.collateral = collateral;
+    }
+    if let Some(description) = new_challenge.description {
+        loaded_challenge.description = description;
+    }
+
+    // Save the updated challenge
+    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &loaded_challenge)?;
 
     Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id),
+        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
         "update_challenge",
     ))
 }
@@ -112,90 +123,42 @@ fn cancel_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     CHALLENGE_LIST.remove(deps.storage, challenge_id.clone());
 
-    Ok(Response::new().add_attribute("action", "cancel_challenge"))
+    Ok(app.tag_response(
+        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
+        "update_challenge",
+    ))
 }
 
-fn add_friend_for_challenge(
+fn update_friends_for_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: String,
-    friend_name: &str,
-    friend_address: &String,
+    challenge_id: u64,
+    friends: Vec<Friend>,
+    op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let mut friends_for_challenge = CHALLENGE_FRIENDS
-        .may_load(deps.storage, challenge_id.clone())?
-        .unwrap_or_default();
-
-    if friends_for_challenge
-        .iter()
-        .any(|f| &f.address == friend_address)
-    {
-        return Err(AppError::Std(StdError::generic_err(
-            "Friend already added for this challenge",
-        )));
-    }
-
-    let friend_address = deps.api.addr_validate(friend_address)?;
-
-    let friend = Friend {
-        address: friend_address.clone(),
-        name: friend_name.to_owned(),
-    };
-
-    friends_for_challenge.push(friend);
-    CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends_for_challenge)?;
-
-    Ok(Response::new().add_attribute("action", "add_friend"))
-}
-
-pub fn remove_friend_from_challenge(
-    deps: DepsMut,
-    info: MessageInfo,
-    app: &ChallengeApp,
-    challenge_id: String,
-    friend_address: String,
-) -> AppResult {
-    // Ensure the caller is an admin
-    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let mut friends_for_challenge = CHALLENGE_FRIENDS
-        .may_load(deps.storage, challenge_id.clone())?
-        .unwrap_or_default();
-
-    let friend_index = friends_for_challenge
-        .iter()
-        .position(|f| f.address == friend_address);
-
-    match friend_index {
-        Some(index) => {
-            friends_for_challenge.remove(index);
-            CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends_for_challenge)?;
+    match op_kind {
+        UpdateFriendsOpKind::Add => {
+            add_friends_for_challenge(deps, info, app, challenge_id, friends)
         }
-        None => {
-            return Err(AppError::Std(StdError::generic_err(
-                "Friend not found for this challenge",
-            )));
+        UpdateFriendsOpKind::Remove => {
+            remove_friends_from_challenge(deps, info, app, challenge_id, friends)
         }
     }
-
-    Ok(Response::new().add_attribute("action", "remove_friend"))
 }
 
 fn add_friends_for_challenge(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
     friends: Vec<Friend>,
 ) -> AppResult {
     // Ensure the caller is an admin
@@ -218,23 +181,53 @@ fn add_friends_for_challenge(
     Ok(Response::new().add_attribute("action", "add_friends"))
 }
 
+pub fn remove_friends_from_challenge(
+    deps: DepsMut,
+    info: MessageInfo,
+    app: &ChallengeApp,
+    challenge_id: u64,
+    friend_addresses: Vec<Friend>,
+) -> AppResult {
+    // Ensure the caller is an admin
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let mut existing_friends = CHALLENGE_FRIENDS
+        .may_load(deps.storage, challenge_id.clone())?
+        .unwrap_or_default();
+
+    for friend in &friend_addresses {
+        if !existing_friends.iter().any(|f| f.address == friend.address) {
+            return Err(AppError::Std(StdError::generic_err(
+                "Friend not found for this challenge",
+            )));
+        }
+    }
+
+    existing_friends.retain(|f| {
+        !friend_addresses
+            .iter()
+            .any(|friend| f.address == friend.address)
+    });
+    CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
+    Ok(Response::new().add_attribute("action", "remove_friends"))
+}
+
 fn daily_check_in(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
     metadata: Option<String>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let today = date_from_block(&env);
-
+    let now = env.block.time.seconds();
     // Check if Admin has already checked in today
     if DAILY_CHECK_INS
-        .load(deps.storage, today.clone())
+        .load(deps.storage, now.clone())
         .map_or(false, |check_in| {
-            check_in.last_checked_in.as_deref() == Some(&today)
+            check_in.last_checked_in == Some(now.clone())
         })
     {
         return Err(AppError::AlreadyCheckedIn {});
@@ -244,7 +237,7 @@ fn daily_check_in(
     let next_check_in_block = env.block.height + 10;
 
     let check_in = CheckIn {
-        last_checked_in: Some(today.clone()),
+        last_checked_in: Some(now),
         next_check_in_by: next_check_in_block,
         metadata,
     };
@@ -259,16 +252,14 @@ fn cast_vote(
     info: MessageInfo,
     _app: &ChallengeApp,
     vote: Option<bool>,
-    challenge_id: &str,
+    challenge_id: u64,
 ) -> AppResult {
-    let today = date_from_block(&env);
+    let now = env.block.time.seconds();
 
     // If Admin checked in today, friends can't vote
     if DAILY_CHECK_INS
-        .load(deps.storage, today.clone())
-        .map_or(false, |check_in| {
-            check_in.last_checked_in.as_deref() == Some(&today)
-        })
+        .load(deps.storage, now.clone())
+        .map_or(false, |check_in| check_in.last_checked_in == Some(now))
     {
         return Err(AppError::AlreadyCheckedIn {});
     }
@@ -280,13 +271,17 @@ fn cast_vote(
     let vote_entry = Vote {
         voter: info.sender.to_string(),
         vote: Some(final_vote),
-        challenge_id: challenge_id.to_owned(),
     };
 
     // Load existing votes for the current block height or initialize an empty list if none exist
     let mut votes_for_block = VOTES
         .load(deps.storage, challenge_id.to_owned())
         .unwrap_or_else(|_| Vec::new());
+
+    // check if final_vote.voter already exists in votes_for_block
+    if votes_for_block.iter().any(|v| v.voter == vote_entry.voter) {
+        return Err(AppError::AlreadyVoted {});
+    }
 
     // Append the new vote
     votes_for_block.push(vote_entry);
@@ -302,7 +297,7 @@ fn count_votes(
     info: MessageInfo,
     _env: Env,
     app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
 ) -> AppResult {
     let votes_for_challenge = VOTES
         .load(deps.storage, challenge_id.clone())
@@ -316,16 +311,55 @@ fn count_votes(
     Ok(Response::new().add_attribute("action", "count_votes"))
 }
 
+fn veto_vote(
+    deps: DepsMut,
+    info: MessageInfo,
+    _env: Env,
+    app: &ChallengeApp,
+    challenge_id: u64,
+    voter: String,
+) -> AppResult {
+    if info.sender.to_string() != ADMIN.load(deps.storage)? {
+        return Err(AppError::Std(StdError::generic_err(
+            "Only the admin can veto a vote",
+        )));
+    }
+    let votes = VOTES
+        .load(deps.storage, challenge_id.clone())
+        .unwrap_or_else(|_| Vec::new());
+
+    // find the voter in the votes_for_challenge
+    let disputed = votes.iter().find(|v| v.voter == voter).ok_or_else(|| {
+        AppError::Std(StdError::generic_err(format!(
+            "Voter {} not found for this challenge",
+            voter
+        )))
+    })?;
+
+    //remove the disputed from the votes Vec
+    let mut vetoed_votes = votes.clone();
+    vetoed_votes.retain(|v| v.voter != disputed.voter);
+
+    VOTES.remove(deps.storage, challenge_id.clone());
+    VOTES.save(deps.storage, challenge_id.clone(), &vetoed_votes)?;
+
+    let mut disputed = disputed.clone();
+    // set the vote the opposite to what it currently is
+    disputed.vote = Some(!disputed.vote.unwrap());
+
+    Ok(Response::new().add_attribute("action", "count_votes"))
+}
+
 fn charge_penalty(
     deps: DepsMut,
     info: MessageInfo,
     app: &ChallengeApp,
-    challenge_id: String,
+    challenge_id: u64,
 ) -> AppResult {
+    deps.api.addr_validate(info.sender.as_ref())?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id.clone())?;
 
-    let admin_address = deps.api.addr_validate(info.sender.as_ref())?;
     let bank = app.bank(deps.as_ref());
     let executor = app.executor(deps.as_ref());
 
@@ -355,6 +389,7 @@ fn charge_penalty(
 
             Ok(Response::new()
                 .add_messages(transfer_msgs)
+                .add_attribute("total_amount", asset.amount.to_string())
                 .add_attribute("action", "charge_fixed_amount_penalty"))
         }
         Penalty::Daily {
@@ -364,7 +399,7 @@ fn charge_penalty(
             // Not sure what the exact implementation should be here.
             // Is it that for this variant we want to only charge_penalty at the end of the
             // challenge? If so how do we determine when the challenge has come to an end?
-            let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
+            //let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
             Ok(Response::new().add_attribute("action", "charge_daily_penalty"))
         }
     }

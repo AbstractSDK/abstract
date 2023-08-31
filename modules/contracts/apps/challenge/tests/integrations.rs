@@ -6,7 +6,7 @@ use abstract_challenge_app::{
         AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendsResponse,
         InstantiateMsg, VotesResponse,
     },
-    state::{ChallengeEntry, Friend, Penalty, Vote},
+    state::{ChallengeEntry, ChallengeEntryUpdate, Friend, Penalty, UpdateFriendsOpKind, Vote},
     *,
 };
 use abstract_core::{
@@ -49,6 +49,10 @@ lazy_static! {
             name: "Charlie".to_string(),
         },
     ];
+    static ref FRIEND: Friend = Friend {
+        address: Addr::unchecked("foo"),
+        name: "Alice".to_string(),
+    };
 }
 
 #[allow(unused)]
@@ -142,9 +146,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 fn successful_install() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
-    let query_res = QueryMsg::from(ChallengeQueryMsg::Challenge {
-        challenge_id: "challenge_1".to_string(),
-    });
+    let query_res = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
     assert_eq!(
         apps.challenge_app.query::<ChallengeResponse>(&query_res)?,
         ChallengeResponse { challenge: None }
@@ -158,9 +160,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
 
-    let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge {
-        challenge_id: "challenge_1".to_string(),
-    });
+    let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
 
     let created = apps
         .challenge_app
@@ -174,26 +174,34 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 fn test_should_update_challenge() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
-        challenge_id: "challenge_1".to_string(),
-    });
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
 
     apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
-    let to_update = ChallengeEntry {
-        name: "update-test".to_string(),
-        collateral: Penalty::FixedAmount {
+    let to_update = ChallengeEntryUpdate {
+        name: Some("update-test".to_string()),
+        collateral: Some(Penalty::FixedAmount {
             asset: OfferAsset::new("denom", Uint128::new(100)),
-        },
-        description: "Updated Test Challenge".to_string(),
+        }),
+        description: Some("Updated Test Challenge".to_string()),
     };
 
-    apps.challenge_app
-        .update_challenge(to_update.clone(), "challenge_1".to_string())?;
+    apps.challenge_app.update_challenge(to_update.clone(), 1)?;
 
     let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
-    assert_eq!(res.challenge.unwrap(), to_update);
+    assert_eq!(
+        res.challenge.as_ref().unwrap().name,
+        to_update.name.unwrap()
+    );
+    assert_eq!(
+        res.challenge.as_ref().unwrap().collateral,
+        to_update.collateral.unwrap()
+    );
+    assert_eq!(
+        res.challenge.as_ref().unwrap().description,
+        to_update.description.unwrap(),
+    );
     Ok(())
 }
 
@@ -202,14 +210,11 @@ fn test_should_cancel_challenge() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    let query = QueryMsg::from(ChallengeQueryMsg::Challenge {
-        challenge_id: "challenge_1".to_string(),
-    });
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
 
     apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
-    apps.challenge_app
-        .cancel_challenge("challenge_1".to_string())?;
+    apps.challenge_app.cancel_challenge(1)?;
 
     let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
@@ -224,19 +229,19 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
 
     apps.challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
-    apps.challenge_app.add_friend_for_challenge(
-        "challenge_1".to_string(),
-        "foo".to_string(),
-        "Alice".to_string(),
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        vec![FRIEND.clone()],
+        UpdateFriendsOpKind::Add,
     )?;
 
     let response = apps
         .challenge_app
         .query::<FriendsResponse>(&QueryMsg::from(ChallengeQueryMsg::Friends {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
     if let Some(response) = response.friends {
@@ -260,16 +265,19 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
 
     apps.challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
-    apps.challenge_app
-        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        FRIENDS.clone(),
+        UpdateFriendsOpKind::Add,
+    )?;
 
     let response = apps
         .challenge_app
         .query::<FriendsResponse>(&QueryMsg::from(ChallengeQueryMsg::Friends {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
     if let Some(response) = response.friends {
@@ -288,20 +296,19 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     let created = apps
         .challenge_app
         .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
     assert_eq!(created.challenge.unwrap(), CHALLENGE.clone());
 
-    apps.challenge_app.add_friend_for_challenge(
-        "challenge_1".to_string(),
-        "foo".to_string(),
-        "Alice".to_string(),
+    // add friend
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        vec![FRIEND.clone()],
+        UpdateFriendsOpKind::Add,
     )?;
 
-    let friend_query = QueryMsg::from(ChallengeQueryMsg::Friends {
-        challenge_id: "challenge_1".to_string(),
-    });
+    let friend_query = QueryMsg::from(ChallengeQueryMsg::Friends { challenge_id: 1 });
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
 
@@ -313,8 +320,12 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
         }]
     );
 
-    apps.challenge_app
-        .remove_friend_for_challenge("challenge_1".to_string(), "foo".to_string())?;
+    // remove friend
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        vec![FRIEND.clone()],
+        UpdateFriendsOpKind::Remove,
+    )?;
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
     println!("{:?}", response);
@@ -329,13 +340,12 @@ fn test_should_update_daily_check_in() -> anyhow::Result<()> {
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
     let metadata = Some("some_metadata".to_string());
-    apps.challenge_app
-        .daily_check_in("challenge_1".to_string(), metadata.clone())?;
+    apps.challenge_app.daily_check_in(1, metadata.clone())?;
 
     let checked_in = apps
         .challenge_app
         .query::<CheckInResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIn {
-            challenge_id: "challenge_1".to_string(),
+            challenge_id: 1,
         }))?;
 
     assert_eq!(checked_in.check_in.unwrap().metadata, metadata);
@@ -347,13 +357,12 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    apps.challenge_app
-        .cast_vote("challenge_1".to_string(), Some(true))?;
+    apps.challenge_app.cast_vote(1, Some(true))?;
 
     let votes =
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
-                challenge_id: "challenge_1".to_string(),
+                challenge_id: 1,
             }))?;
 
     assert_eq!(
@@ -361,7 +370,6 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
         vec![Vote {
             voter: "contract7".to_string(),
             vote: Some(true),
-            challenge_id: "challenge_1".to_string(),
         }]
     );
 
@@ -372,18 +380,20 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
 fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    apps.challenge_app
-        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        FRIENDS.clone(),
+        UpdateFriendsOpKind::Add,
+    )?;
 
     for _ in 0..3 {
-        apps.challenge_app
-            .cast_vote("challenge_1".to_string(), Some(true))?;
+        apps.challenge_app.cast_vote(1, Some(true))?;
     }
 
     let votes =
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
-                challenge_id: "challenge_1".to_string(),
+                challenge_id: 1,
             }))?;
 
     assert_eq!(
@@ -392,21 +402,18 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(true),
-                challenge_id: "challenge_1".to_string(),
             },
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(true),
-                challenge_id: "challenge_1".to_string(),
             },
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(true),
-                challenge_id: "challenge_1".to_string(),
             }
         ]
     );
-    apps.challenge_app.count_votes("challenge_1".to_string())?;
+    apps.challenge_app.count_votes(1)?;
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
@@ -418,18 +425,20 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    apps.challenge_app
-        .add_friends_for_challenge("challenge_1".to_string(), FRIENDS.clone())?;
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        FRIENDS.clone(),
+        UpdateFriendsOpKind::Add,
+    )?;
 
     for _ in 0..3 {
-        apps.challenge_app
-            .cast_vote("challenge_1".to_string(), Some(false))?;
+        apps.challenge_app.cast_vote(1, Some(false))?;
     }
 
     let votes =
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
-                challenge_id: "challenge_1".to_string(),
+                challenge_id: 1,
             }))?;
 
     assert_eq!(
@@ -438,22 +447,19 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(false),
-                challenge_id: "challenge_1".to_string(),
             },
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(false),
-                challenge_id: "challenge_1".to_string(),
             },
             Vote {
                 voter: "contract7".to_string(),
                 vote: Some(false),
-                challenge_id: "challenge_1".to_string(),
             }
         ]
     );
 
-    apps.challenge_app.count_votes("challenge_1".to_string())?;
+    apps.challenge_app.count_votes(1)?;
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(49999901));
