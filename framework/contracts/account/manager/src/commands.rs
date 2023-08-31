@@ -9,6 +9,7 @@ use abstract_core::adapter::{
     QueryMsg as AdapterQuery,
 };
 use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
@@ -91,7 +92,7 @@ pub fn install_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    modules: Vec<(ModuleInfo, Option<Binary>)>,
+    modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -113,12 +114,12 @@ pub fn install_modules(
 /// Generate message and attribute for installing module
 pub(crate) fn install_modules_internal(
     storage: &dyn Storage,
-    modules: Vec<(ModuleInfo, Option<Binary>)>,
+    modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     funds: Vec<Coin>,
 ) -> ManagerResult<(CosmosMsg, Attribute)> {
     let mut installed_modules = Vec::with_capacity(modules.len());
-    for (module, _init_msg) in &modules {
+    for ModuleInstallConfig { module, .. } in &modules {
         // Check if module is already enabled.
         if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
             return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
@@ -228,7 +229,7 @@ pub fn create_sub_account(
     link: Option<String>,
     base_asset: Option<AssetEntry>,
     namespace: Option<String>,
-    install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    install_modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can create a subaccount
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
@@ -1318,7 +1319,10 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::InstallModules {
-                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             let res = execute_as(deps.as_mut(), "not_owner", msg);
@@ -1335,7 +1339,10 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::InstallModules {
-                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             // manual installation
@@ -1360,7 +1367,10 @@ mod tests {
             mock_init(deps.as_mut())?;
 
             let msg = ExecuteMsg::InstallModules {
-                modules: vec![(ModuleInfo::from_id_latest("test:module")?, None)],
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1378,7 +1388,10 @@ mod tests {
             let expected_init = Some(to_binary(&"some init msg")?);
 
             let msg = ExecuteMsg::InstallModules {
-                modules: vec![(new_module.clone(), expected_init.clone())],
+                modules: vec![ModuleInstallConfig::new(
+                    new_module.clone(),
+                    expected_init.clone(),
+                )],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
@@ -1391,7 +1404,7 @@ mod tests {
             let expected_msg: CosmosMsg = wasm_execute(
                 TEST_MODULE_FACTORY,
                 &ModuleFactoryMsg::InstallModules {
-                    modules: vec![(new_module, expected_init)],
+                    modules: vec![ModuleInstallConfig::new(new_module, expected_init)],
                 },
                 vec![],
             )?

@@ -2,6 +2,7 @@ mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
 use abstract_core::manager::ModuleVersionsResponse;
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
@@ -13,7 +14,7 @@ use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
-use cosmwasm_std::{coin, wasm_execute, Addr, Coin, CosmosMsg};
+use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
 use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -328,13 +329,13 @@ fn install_multiple_modules() -> AResult {
     let err = account
         .install_modules(
             vec![
-                (
+                ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest("abstract:standalone1")?,
-                    Some(&mock_modules::standalone_cw2::MockMsg),
+                    Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
                 ),
-                (
+                ModuleInstallConfig::new(
                     ModuleInfo::from_id_latest("abstract:standalone2")?,
-                    Some(&mock_modules::standalone_no_cw2::MockMsg),
+                    Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
                 ),
             ],
             Some(&[coin(44, "token")]),
@@ -349,13 +350,13 @@ fn install_multiple_modules() -> AResult {
     // successful install
     account.install_modules(
         vec![
-            (
+            ModuleInstallConfig::new(
                 ModuleInfo::from_id_latest("abstract:standalone1")?,
-                Some(&mock_modules::standalone_cw2::MockMsg),
+                Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
             ),
-            (
+            ModuleInstallConfig::new(
                 ModuleInfo::from_id_latest("abstract:standalone2")?,
-                Some(&mock_modules::standalone_no_cw2::MockMsg),
+                Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
             ),
         ],
         Some(&[coin(42, "token")]),

@@ -4,6 +4,7 @@ use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
     manager::ModuleVersionsResponse,
+    module_factory::ModuleInstallConfig,
     objects::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
@@ -506,21 +507,21 @@ fn create_account_with_installed_module() -> AResult {
                 namespace: None,
                 base_asset: None,
                 install_modules: vec![
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             adapter_1::MOCK_ADAPTER_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
                         None,
                     ),
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             adapter_2::MOCK_ADAPTER_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
                         None,
                     ),
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
@@ -595,21 +596,21 @@ fn create_sub_account_with_installed_module() -> AResult {
 
     _deployer_acc.manager.create_sub_account(
         vec![
-            (
+            ModuleInstallConfig::new(
                 ModuleInfo::from_id(
                     adapter_1::MOCK_ADAPTER_ID,
                     ModuleVersion::Version(V1.to_owned()),
                 )?,
                 None,
             ),
-            (
+            ModuleInstallConfig::new(
                 ModuleInfo::from_id(
                     adapter_2::MOCK_ADAPTER_ID,
                     ModuleVersion::Version(V1.to_owned()),
                 )?,
                 None,
             ),
-            (
+            ModuleInstallConfig::new(
                 ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
                 Some(to_binary(&app::InstantiateMsg {
                     module: MockInitMsg,
@@ -718,21 +719,21 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
                 namespace: None,
                 base_asset: None,
                 install_modules: vec![
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             adapter_1::MOCK_ADAPTER_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
                         None,
                     ),
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             adapter_2::MOCK_ADAPTER_ID,
                             ModuleVersion::Version(V1.to_owned()),
                         )?,
                         None,
                     ),
-                    (
+                    ModuleInstallConfig::new(
                         ModuleInfo::from_id(
                             app_1::MOCK_APP_ID,
                             ModuleVersion::Version(V1.to_owned()),
@@ -844,21 +845,21 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
             namespace: None,
             base_asset: None,
             install_modules: vec![
-                (
+                ModuleInstallConfig::new(
                     ModuleInfo::from_id(
                         adapter_1::MOCK_ADAPTER_ID,
                         ModuleVersion::Version(V1.to_owned()),
                     )?,
                     None,
                 ),
-                (
+                ModuleInstallConfig::new(
                     ModuleInfo::from_id(
                         adapter_2::MOCK_ADAPTER_ID,
                         ModuleVersion::Version(V1.to_owned()),
                     )?,
                     None,
                 ),
-                (
+                ModuleInstallConfig::new(
                     ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
                     Some(to_binary(&app::InstantiateMsg {
                         module: MockInitMsg,

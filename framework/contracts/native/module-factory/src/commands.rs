@@ -10,6 +10,7 @@ use crate::{
 use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
+        module_factory::ModuleInstallConfig,
         objects::{module::ModuleInfo, module_reference::ModuleReference},
     },
     feature_objects::VersionControlContract,
@@ -29,7 +30,7 @@ pub fn execute_create_modules(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    modules: Vec<(ModuleInfo, Option<Binary>)>,
+    modules: Vec<ModuleInstallConfig>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
     let block_height = env.block.height;
@@ -45,7 +46,8 @@ pub fn execute_create_modules(
     let account_base = account_registry.assert_manager(&info.sender)?;
 
     // get module info and module config for further use
-    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) = modules.into_iter().unzip();
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
+        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
     let modules_responses = version_registry.query_all_module_config(infos)?;
 
     // fees

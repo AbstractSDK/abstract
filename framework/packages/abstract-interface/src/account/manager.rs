@@ -2,6 +2,7 @@ pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as
 use abstract_core::{
     adapter,
     manager::*,
+    module_factory::ModuleInstallConfig,
     objects::module::{ModuleInfo, ModuleVersion},
 };
 use cosmwasm_std::{to_binary, Empty};
@@ -61,15 +62,11 @@ impl<Chain: CwEnv> Manager<Chain> {
         Ok(())
     }
 
-    pub fn install_modules<TInitMsg: Serialize>(
+    pub fn install_modules(
         &self,
-        modules: Vec<(ModuleInfo, Option<&TInitMsg>)>,
+        modules: Vec<ModuleInstallConfig>,
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
-        let modules = modules
-            .into_iter()
-            .map(|(module, init_msg)| (module, init_msg.map(|msg| to_binary(msg).unwrap())))
-            .collect();
         self.execute(&ExecuteMsg::InstallModules { modules }, funds)
             .map_err(Into::into)
     }
@@ -92,7 +89,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.execute(
             &ExecuteMsg::InstallModules {
-                modules: vec![(
+                modules: vec![ModuleInstallConfig::new(
                     ModuleInfo::from_id(module_id, version)?,
                     Some(to_binary(init_msg).unwrap()),
                 )],

@@ -59,24 +59,27 @@ pub enum ExecuteMsg {
         ans_host_address: Option<String>,
         version_control_address: Option<String>,
     },
-    InstallModules {
-        // Module info and init message
-        modules: Vec<(ModuleInfo, Option<Binary>)>,
-        // TODO: alternative API?
-        // modules: Vec<InstallModule>,
-    },
+    /// Install modules
+    InstallModules { modules: Vec<ModuleInstallConfig> },
     UpdateFactoryBinaryMsgs {
         to_add: Vec<(ModuleInfo, Binary)>,
         to_remove: Vec<ModuleInfo>,
     },
 }
 
-// TODO: do we want to move to that to have more user-friendly api?
-// #[cosmwasm_schema::cw_serde]
-// pub struct InstallModule {
-//     pub module: ModuleInfo,
-//     pub init_msg: Option<Binary>
-// }
+/// Module info and init message
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub struct ModuleInstallConfig {
+    pub module: ModuleInfo,
+    pub init_msg: Option<Binary>,
+}
+
+impl ModuleInstallConfig {
+    pub fn new(module: ModuleInfo, init_msg: Option<Binary>) -> Self {
+        Self { module, init_msg }
+    }
+}
 
 /// Module factory query messages
 #[cw_ownable::cw_ownable_query]

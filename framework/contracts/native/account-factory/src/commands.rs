@@ -1,10 +1,10 @@
-use abstract_core::module_factory::SimulateInstallModulesResponse;
+use abstract_core::module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse};
 use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
 use abstract_core::AbstractError;
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    to_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
     QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
@@ -46,7 +46,7 @@ pub fn execute_create_account(
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
-    install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    install_modules: Vec<ModuleInstallConfig>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -62,10 +62,7 @@ pub fn execute_create_account(
     let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
         config.module_factory_address,
         &abstract_core::module_factory::QueryMsg::SimulateInstallModules {
-            modules: install_modules
-                .iter()
-                .map(|(info, _)| info.clone())
-                .collect(),
+            modules: install_modules.iter().map(|m| m.module.clone()).collect(),
         },
     )?;
     let funds_for_install = simulate_resp.required_funds;

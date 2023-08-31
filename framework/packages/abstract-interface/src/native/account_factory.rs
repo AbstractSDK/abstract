@@ -4,10 +4,11 @@ pub use abstract_core::account_factory::{
 };
 use abstract_core::{
     account_factory::*,
-    objects::{gov_type::GovernanceDetails, module::ModuleInfo, AssetEntry},
+    module_factory::ModuleInstallConfig,
+    objects::{gov_type::GovernanceDetails, AssetEntry},
     ABSTRACT_EVENT_TYPE, MANAGER, PROXY,
 };
-use cosmwasm_std::{Addr, Binary};
+use cosmwasm_std::Addr;
 use cw_orch::{interface, prelude::*};
 
 /// A helper struct that contains fields from [`abstract_core::manager::state::AccountInfo`]
@@ -18,7 +19,7 @@ pub struct AccountDetails {
     pub link: Option<String>,
     pub namespace: Option<String>,
     pub base_asset: Option<AssetEntry>,
-    pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
