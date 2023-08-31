@@ -78,6 +78,13 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         self.manager.install_modules(modules, funds)
     }
 
+    pub fn install_modules_auto(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager.install_modules_auto(modules)
+    }
+
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
     /// Note that the proxy is automatically included in the assertions.
     /// Returns the `Vec<ManagerModuleInfo>` from the manager

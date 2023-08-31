@@ -348,19 +348,16 @@ fn install_multiple_modules() -> AResult {
     )));
 
     // successful install
-    account.install_modules(
-        vec![
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id_latest("abstract:standalone1")?,
-                Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
-            ),
-            ModuleInstallConfig::new(
-                ModuleInfo::from_id_latest("abstract:standalone2")?,
-                Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
-            ),
-        ],
-        Some(&[coin(42, "token")]),
-    )?;
+    account.install_modules_auto(vec![
+        ModuleInstallConfig::new(
+            ModuleInfo::from_id_latest("abstract:standalone1")?,
+            Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+        ),
+        ModuleInstallConfig::new(
+            ModuleInfo::from_id_latest("abstract:standalone2")?,
+            Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+        ),
+    ])?;
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
