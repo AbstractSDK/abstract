@@ -10,7 +10,7 @@ use abstract_core::adapter::{
 };
 use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::{AssetEntry, AccountId};
+use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
@@ -423,7 +423,9 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         account_id = Some(id.clone());
         let unregister_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount { id: id.clone().seq() }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                id: id.clone().seq(),
+            }),
             vec![],
         )?;
         msgs.push(unregister_message.into());
@@ -438,7 +440,9 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         };
         let register_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount { id: id.seq() }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: id.seq(),
+            }),
             vec![],
         )?;
         msgs.push(register_message.into());

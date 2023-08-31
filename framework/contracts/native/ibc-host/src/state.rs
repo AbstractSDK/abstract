@@ -1,5 +1,5 @@
 use abstract_core::objects::{chain_name::ChainName, AccountId};
-use abstract_sdk::{core::ibc_host::PacketMsg, feature_objects::AnsHost};
+use abstract_sdk::feature_objects::AnsHost;
 use cosmwasm_std::{Addr, SubMsgResponse};
 
 use cw_storage_plus::{Item, Map};
@@ -8,8 +8,6 @@ use serde::{Deserialize, Serialize};
 
 /// Store channel information for account creation reply
 pub const REGISTRATION_CACHE: Item<AccountId> = Item::new("rc");
-/// Store the processing packet information for processing in Reply along with the channel id it came from
-pub const PROCESSING_PACKET: Item<(PacketMsg, String)> = Item::new("pr");
 /// account_id -> client_proxy_addr
 pub const CLIENT_PROXY: Map<&AccountId, String> = Map::new("cp");
 /// Maps a chain name to the proxy it uses to interact on this local chain

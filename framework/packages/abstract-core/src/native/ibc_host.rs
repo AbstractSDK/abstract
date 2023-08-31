@@ -8,7 +8,6 @@
 //! The api structure is well-suited for implementing standard interfaces to external services like dexes, lending platforms, etc.
 
 use crate::{
-    ibc_client::CallbackInfo,
     manager,
     objects::{account::AccountId, chain_name::ChainName},
 };
@@ -53,37 +52,6 @@ pub enum HostAction {
     SendAllBack {}, // This could be a manager message directly ?
     /// Can't be called through the packet endpoint directly
     Internal(InternalAction),
-}
-
-impl HostAction {
-    pub fn into_packet(
-        self,
-        account_id: AccountId,
-        retries: u8,
-        host_chain: ChainName,
-        callback_info: Option<CallbackInfo>,
-    ) -> PacketMsg {
-        PacketMsg {
-            host_chain,
-            retries,
-            callback_info,
-            account_id,
-            action: self,
-        }
-    }
-}
-/// This is the message we send over the IBC channel
-#[cosmwasm_schema::cw_serde]
-pub struct PacketMsg {
-    /// `ChainName` of the host
-    pub host_chain: ChainName,
-    /// Amount of retries to attempt if packet returns with StdAck::Error
-    pub retries: u8,
-    pub account_id: AccountId,
-    /// Callback performed after receiving an StdAck::Result
-    pub callback_info: Option<CallbackInfo>,
-    /// execute the custom host function
-    pub action: HostAction,
 }
 
 /// Interface to the Host.
@@ -144,42 +112,4 @@ pub struct RegisteredChainsResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct RegisteredChainResponse {
     pub proxy: String,
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::objects::account::AccountTrace;
-    pub const TEST_ACCOUNT_ID: AccountId = AccountId::const_new(1, AccountTrace::Local);
-
-    use super::*;
-    use speculoos::prelude::*;
-
-    #[test]
-    fn test_into_packet() {
-        // Create an instance of HostAction (assuming a valid variant is `SomeAction`)
-        let host_action = HostAction::SendAllBack {};
-
-        // Create required parameters
-        let retries = 5u8;
-        let host_chain = String::from("test_host_chain");
-        let callback_info = Some(CallbackInfo {
-            id: "15".to_string(),
-            receiver: "receiver".to_string(),
-        });
-
-        // Call into_packet function
-        let packet_msg = host_action.clone().into_packet(
-            TEST_ACCOUNT_ID,
-            retries,
-            ChainName::from(host_chain.clone()),
-            callback_info.clone(),
-        );
-
-        // Check if the returned PacketMsg has the expected values
-        assert_that!(packet_msg.host_chain.to_string()).is_equal_to(host_chain);
-        assert_that!(packet_msg.retries).is_equal_to(retries);
-        assert_that!(packet_msg.callback_info).is_equal_to(callback_info);
-        assert_that!(packet_msg.account_id).is_equal_to(TEST_ACCOUNT_ID);
-        assert_that!(packet_msg.action).is_equal_to(host_action);
-    }
 }

@@ -1,12 +1,10 @@
-use crate::{
-    abstract_ica::StdAck,
-    ibc_host::HostAction,
-    objects::{account::AccountId, chain_name::ChainName},
-};
-use abstract_ica::IbcResponseMsg;
+
+use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::{account::AccountId, chain_name::ChainName}};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
-use polytone::callbacks::{CallbackMessage, CallbackRequest};
+use cosmwasm_std::{Coin, Timestamp};
+use polytone::callbacks::CallbackMessage;
+
+pub use polytone::callbacks::CallbackRequest;
 
 pub mod state {
 
@@ -85,19 +83,6 @@ pub enum IBCLifecycleComplete {
 pub enum SudoMsg {
     #[serde(rename = "ibc_lifecycle_complete")]
     IBCLifecycleComplete(IBCLifecycleComplete),
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct CallbackInfo {
-    pub id: String,
-    pub receiver: String,
-}
-
-impl CallbackInfo {
-    pub fn to_callback_msg(self, ack_data: &Binary) -> StdResult<CosmosMsg> {
-        let msg: StdAck = from_slice(ack_data)?;
-        IbcResponseMsg { id: self.id, msg }.into_cosmos_account_msg(self.receiver)
-    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -226,40 +211,4 @@ pub struct RemoteProxyResponse {
     pub channel_id: String,
     /// address of the remote proxy
     pub proxy_address: String,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use cosmwasm_std::to_binary;
-    use speculoos::prelude::*;
-
-    // ... (other test functions)
-
-    #[test]
-    fn test_callback_info_to_callback_msg() {
-        let receiver = "receiver".to_string();
-        let callback_id = "15".to_string();
-        let callback_info = CallbackInfo {
-            id: callback_id,
-            receiver,
-        };
-        let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
-
-        let actual = callback_info.to_callback_msg(&ack_data.clone()).unwrap();
-
-        let _funds: Vec<Coin> = vec![];
-
-        assert_that!(actual).matches(|e| {
-            matches!(
-                e,
-                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
-                    contract_addr: _receiver,
-                    // we can't test the message because the fields in it are private
-                    msg: _,
-                    funds: _
-                })
-            )
-        });
-    }
 }

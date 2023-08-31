@@ -3,13 +3,11 @@ use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
 use crate::resolver::{self, is_over_ibc};
 use abstract_core::objects::chain_name::ChainName;
-use abstract_sdk::core::ibc_client::CallbackInfo;
+use abstract_sdk::core::ibc_client::CallbackRequest;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
-
-const ACTION_RETRIES: u8 = 3;
 
 /// Execute staking operation locally or over IBC
 pub fn execute_handler(
@@ -76,8 +74,8 @@ fn handle_ibc_request(
     let callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
-            id: IBC_STAKING_PROVIDER_ID.to_string(),
+        Some(CallbackRequest {
+            msg: IBC_STAKING_PROVIDER_ID.as_bytes().into(),
             receiver: info.sender.into_string(),
         })
     };

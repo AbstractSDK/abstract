@@ -13,7 +13,7 @@ pub type DexName = String;
 pub type OfferAsset = AnsAsset;
 pub type AskAsset = AnsAsset;
 
-pub const IBC_DEX_ID: u32 = 11335;
+pub const IBC_DEX_PROVIDER_ID: &str = "IBC_ACTION_CALLBACK";
 
 pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
 pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;

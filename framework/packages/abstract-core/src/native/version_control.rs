@@ -49,7 +49,7 @@ pub mod state {
     pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("account");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("accs");
 }
 
 /// Sub indexes for namespaces.

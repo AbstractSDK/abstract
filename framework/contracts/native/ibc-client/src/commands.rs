@@ -261,7 +261,7 @@ pub fn execute_send_funds(
     let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
 
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: host_chain,
+        connected_chain: host_chain.into(),
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;

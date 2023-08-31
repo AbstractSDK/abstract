@@ -414,7 +414,6 @@ pub fn execute_update_config(
         // validate address format
         config.ibc_host = Some(deps.api.addr_validate(&ibc_host)?);
     }
-
     CONFIG.save(deps.storage, &config)?;
 
     Ok(AccountFactoryResponse::action("update_config"))

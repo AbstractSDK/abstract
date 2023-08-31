@@ -2,20 +2,19 @@ use crate::handlers::execute::exchange_resolver::is_over_ibc;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
-use crate::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
+use crate::msg::{DexAction, DexExecuteMsg, DexName};
 use crate::state::SWAP_FEE;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_dex_adapter_traits::DexError;
 
-use abstract_core::ibc_client::CallbackInfo;
+use abstract_core::ibc_client::CallbackRequest;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
+use abstract_dex_adapter_traits::msg::IBC_DEX_PROVIDER_ID;
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
-
-const ACTION_RETRIES: u8 = 3;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -108,8 +107,8 @@ fn handle_ibc_request(
     let callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackInfo {
-            id: IBC_DEX_ID.to_string(),
+        Some(CallbackRequest {
+            msg: IBC_DEX_PROVIDER_ID.as_bytes().into(),
             receiver: info.sender.into_string(),
         })
     };
