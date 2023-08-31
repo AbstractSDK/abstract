@@ -31,5 +31,5 @@ npm i @abstract-money/abstract.js-react
 ```
 
 To read more about the available types and methods, please refer to
-the <a href="https://jsdocs.abstract.money/" target="_blank">Abstract.js Documentation</a>.
+the <a href="https://abstractjs.abstract.money/" target="_blank">Abstract.js Documentation</a>.
   
