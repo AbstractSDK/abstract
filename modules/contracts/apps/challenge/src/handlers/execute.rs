@@ -5,7 +5,6 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Uint128}
 
 use crate::contract::{AppResult, ChallengeApp};
 use abstract_sdk::prelude::*;
-use chrono::{Datelike, NaiveDateTime};
 
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
@@ -49,7 +48,7 @@ pub fn execute_handler(
         ChallengeExecuteMsg::VetoVote {
             voter,
             challenge_id,
-        } => veto_vote(deps, info, env, &app, challenge_id, voter),
+        } => veto_vote(deps, info, env, challenge_id, voter),
     }
 }
 
@@ -319,7 +318,6 @@ fn veto_vote(
     deps: DepsMut,
     info: MessageInfo,
     _env: Env,
-    app: &ChallengeApp,
     challenge_id: u64,
     voter: String,
 ) -> AppResult {
@@ -398,7 +396,7 @@ fn charge_penalty(
                 .add_attribute("action", "charge_fixed_amount_penalty"))
         }
         Penalty::Daily {
-            asset,
+            asset: _,
             split_between_friends: _,
         } => {
             // Not sure what the exact implementation should be here.
@@ -408,18 +406,4 @@ fn charge_penalty(
             Ok(Response::new().add_attribute("action", "charge_daily_penalty"))
         }
     }
-}
-
-fn date_from_block(env: &Env) -> String {
-    // Convert the block's timestamp to NaiveDateTime
-    let seconds = env.block.time.seconds();
-    let nano_seconds = env.block.time.subsec_nanos();
-    let dt = NaiveDateTime::from_timestamp_opt(seconds as i64, nano_seconds as u32);
-
-    format!(
-        "{year}-{month}-{day}",
-        year = dt.unwrap().year(),
-        month = dt.unwrap().month(),
-        day = dt.unwrap().day()
-    )
 }

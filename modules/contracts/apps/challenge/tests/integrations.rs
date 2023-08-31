@@ -35,54 +35,60 @@ lazy_static! {
         },
         description: "Test Challenge".to_string(),
     };
+    static ref ALICE_ADDRESS: String = "alice0x".to_string();
+    static ref BOB_ADDRESS: String = "bob0x".to_string();
+    static ref CHARLIE_ADDRESS: String = "charlie0x".to_string();
+    static ref ALICE_NAME: String = "Alice".to_string();
+    static ref BOB_NAME: String = "Bob".to_string();
+    static ref CHARLIE_NAME: String = "Charlie".to_string();
     static ref FRIENDS: Vec<Friend<String>> = vec![
         Friend {
-            address: "foo0x".to_string(),
-            name: "Alice".to_string(),
+            address: ALICE_ADDRESS.clone(),
+            name: ALICE_NAME.clone(),
         },
         Friend {
-            address: "bar0x".to_string(),
-            name: "Bob".to_string(),
+            address: BOB_ADDRESS.clone(),
+            name: BOB_NAME.clone(),
         },
         Friend {
-            address: "baz0x".to_string(),
-            name: "Charlie".to_string(),
+            address: CHARLIE_ADDRESS.clone(),
+            name: CHARLIE_NAME.clone(),
         },
     ];
     static ref FRIEND: Friend<String> = Friend {
-        address: "foo0x".to_string(),
-        name: "Alice".to_string(),
+        address: ALICE_ADDRESS.clone(),
+        name: ALICE_NAME.clone(),
     };
     static ref VOTE: Vote<String> = Vote {
-        voter: "foo0x".to_string(),
+        voter: ALICE_ADDRESS.clone(),
         approval: Some(true),
     };
     static ref VOTES: Vec<Vote<String>> = vec![
         Vote {
-            voter: "foo0x".to_string(),
+            voter: ALICE_ADDRESS.clone(),
             approval: Some(true),
         },
         Vote {
-            voter: "bar0x".to_string(),
+            voter: BOB_ADDRESS.clone(),
             approval: Some(true),
         },
         Vote {
-            voter: "baz0x".to_string(),
+            voter: CHARLIE_ADDRESS.clone(),
             approval: Some(true),
         },
     ];
-    static ref NO_VOTES: Vec<Vote<String>> = vec![
+    static ref ONE_NO_VOTE: Vec<Vote<String>> = vec![
         Vote {
-            voter: "foo0x".to_string(),
+            voter: ALICE_ADDRESS.clone(),
             approval: Some(false),
         },
         Vote {
-            voter: "bar0x".to_string(),
-            approval: Some(false),
+            voter: BOB_ADDRESS.clone(),
+            approval: Some(true),
         },
         Vote {
-            voter: "baz0x".to_string(),
-            approval: Some(false),
+            voter: CHARLIE_ADDRESS.clone(),
+            approval: Some(true),
         },
     ];
 }
@@ -270,8 +276,8 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
 
     if let Some(friends) = &response.0 {
         for friend in friends.iter() {
-            assert_eq!(friend.address, Addr::unchecked("foo"));
-            assert_eq!(friend.name, "Alice");
+            assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
+            assert_eq!(friend.name, ALICE_NAME.clone());
         }
     }
     Ok(())
@@ -304,15 +310,15 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
             response,
             vec![
                 Friend {
-                    address: Addr::unchecked("foo"),
+                    address: Addr::unchecked(ALICE_ADDRESS.clone()),
                     name: "Alice".to_string(),
                 },
                 Friend {
-                    address: Addr::unchecked("bar"),
+                    address: Addr::unchecked(BOB_ADDRESS.clone()),
                     name: "Bob".to_string(),
                 },
                 Friend {
-                    address: Addr::unchecked("baz"),
+                    address: Addr::unchecked(CHARLIE_ADDRESS.clone()),
                     name: "Charlie".to_string(),
                 }
             ]
@@ -350,8 +356,8 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     if let Some(friends) = &response.0 {
         for friend in friends.iter() {
-            assert_eq!(friend.address, Addr::unchecked("foo0x"));
-            assert_eq!(friend.name, "Alice");
+            assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
+            assert_eq!(friend.name, ALICE_NAME.clone());
         }
     }
 
@@ -403,7 +409,7 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
 
     if let Some(votes) = &response.0 {
         for vote in votes.iter() {
-            assert_eq!(vote.voter, Addr::unchecked("foo"));
+            assert_eq!(vote.voter, Addr::unchecked(ALICE_ADDRESS.clone()));
             assert_eq!(vote.approval, Some(true));
         }
     }
@@ -419,6 +425,8 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         FRIENDS.clone(),
         UpdateFriendsOpKind::Add,
     )?;
+
+    println!("updated friends");
 
     for vote in VOTES.clone() {
         apps.challenge_app.cast_vote(1, vote)?;
@@ -454,7 +462,7 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for vote in NO_VOTES.clone() {
+    for vote in ONE_NO_VOTE.clone() {
         apps.challenge_app.cast_vote(1, vote)?;
     }
 
@@ -464,9 +472,14 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
                 challenge_id: 1,
             }))?;
 
+    // Only Alice voted false the rest voted true
     if let Some(votes) = &votes.0 {
         for vote in votes.iter() {
-            assert_eq!(vote.approval, Some(false));
+            if vote.voter == Addr::unchecked(ALICE_ADDRESS.clone()) {
+                assert_eq!(vote.approval, Some(false));
+            } else {
+                assert_eq!(vote.approval, Some(true));
+            }
         }
     }
 
@@ -487,7 +500,7 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for vote in NO_VOTES.clone() {
+    for vote in ONE_NO_VOTE.clone() {
         apps.challenge_app.cast_vote(1, vote)?;
     }
 
@@ -497,25 +510,24 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
                 challenge_id: 1,
             }))?;
 
+    // Only Alice voted false the rest voted true
     if let Some(votes) = &votes.0 {
         for vote in votes.iter() {
-            assert_eq!(vote.approval, Some(false));
+            if vote.voter == Addr::unchecked(ALICE_ADDRESS.clone()) {
+                assert_eq!(vote.approval, Some(false));
+            } else {
+                assert_eq!(vote.approval, Some(true));
+            }
         }
     }
 
     let challenge_id = 1;
     apps.challenge_app
-        .veto_vote(challenge_id, "foo0x".to_string())?;
-
-    let votes =
-        apps.challenge_app
-            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
-                challenge_id: 1,
-            }))?;
+        .veto_vote(challenge_id, ALICE_ADDRESS.clone())?;
 
     apps.challenge_app.count_votes(1)?;
-
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    // The false vote was vetoed by the admin, so no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
     Ok(())
 }

@@ -1,5 +1,5 @@
 use abstract_dex_adapter::msg::OfferAsset;
-use cosmwasm_std::{Addr, Deps, DepsMut, StdResult};
+use cosmwasm_std::{Addr, Deps, StdResult};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
