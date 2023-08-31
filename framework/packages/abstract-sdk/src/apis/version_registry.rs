@@ -9,7 +9,8 @@ use abstract_core::{
         namespace::Namespace,
     },
     version_control::{
-        state::REGISTERED_MODULES, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
+        state::REGISTERED_MODULES, ModuleConfiguration, ModuleResponse, ModulesResponse,
+        NamespaceResponse, QueryMsg,
     },
 };
 use cosmwasm_std::Deps;
@@ -78,6 +79,14 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
             .query_all_module_config(vec![module_info])?
             .swap_remove(0)
             .module)
+    }
+
+    /// Smart query for a module config
+    pub fn query_config(&self, module_info: ModuleInfo) -> AbstractSdkResult<ModuleConfiguration> {
+        Ok(self
+            .query_all_module_config(vec![module_info])?
+            .swap_remove(0)
+            .config)
     }
 
     /// Smart query for a modules and its configuration
