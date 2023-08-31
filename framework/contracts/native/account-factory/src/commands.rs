@@ -68,9 +68,9 @@ pub fn execute_create_account(
     let funds_for_install = simulate_resp.total_required_funds;
 
     // Remove all funds used to install the module to pass rest to the proxy contract
-    let mut funds = Coins::try_from(info.funds.clone()).unwrap();
+    let mut funds_to_proxy = Coins::try_from(info.funds.clone()).unwrap();
     for coin in funds_for_install.clone() {
-        funds.sub(coin).map_err(|_| {
+        funds_to_proxy.sub(coin).map_err(|_| {
             AbstractError::Fee(format!(
                 "Invalid fee payment sent. Expected {:?}, sent {:?}",
                 funds_for_install, info.funds
@@ -109,7 +109,7 @@ pub fn execute_create_account(
             gas_limit: None,
             msg: WasmMsg::Instantiate {
                 code_id: proxy_code_id,
-                funds: funds.into_vec(),
+                funds: funds_to_proxy.into_vec(),
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
                 label: format!("Abstract Account: {}", config.next_account_id),
