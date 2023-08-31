@@ -26,12 +26,15 @@ pub enum AppError {
     #[error("{0}")]
     DappError(#[from] AbstractAppError),
 
-    #[error("Convert can be called only by the croncat manager")]
-    NotManagerConvert {},
-
     #[error("Already checked in")]
     AlreadyCheckedIn {},
 
     #[error("Voter already voted")]
     AlreadyVoted {},
+
+    #[error("Friend already vetoed")]
+    AlreadyAdded {},
+
+    #[error("Voter not found")]
+    VoterNotFound {},
 }

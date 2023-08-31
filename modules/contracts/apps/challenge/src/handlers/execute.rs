@@ -45,10 +45,9 @@ pub fn execute_handler(
         ChallengeExecuteMsg::CountVotes { challenge_id } => {
             count_votes(deps, info, env, &app, challenge_id)
         }
-        ChallengeExecuteMsg::VetoVote {
-            voter,
-            challenge_id,
-        } => veto_vote(deps, info, env, challenge_id, voter),
+        ChallengeExecuteMsg::VetoVote { vote, challenge_id } => {
+            veto_vote(deps, info, env, challenge_id, vote)
+        }
     }
 }
 
@@ -131,7 +130,7 @@ fn cancel_challenge(
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "update_challenge",
+        "cancel_challenge",
     ))
 }
 
@@ -169,9 +168,7 @@ fn add_friends_for_challenge(
 
     for friend in &friends {
         if existing_friends.iter().any(|f| f.address == friend.address) {
-            return Err(AppError::Std(StdError::generic_err(
-                "Friend already added for this challenge",
-            )));
+            return Err(AppError::AlreadyAdded {});
         }
     }
 
@@ -233,18 +230,16 @@ fn daily_check_in(
     // Check if Admin has already checked in today
     if DAILY_CHECK_INS
         .load(deps.storage, now.clone())
-        .map_or(false, |check_in| {
-            check_in.last_checked_in == Some(now.clone())
-        })
+        .map_or(false, |check_in| check_in.last_checked_in == now.clone())
     {
         return Err(AppError::AlreadyCheckedIn {});
     }
 
-    let _blocks_per_day = 1440; // dummy value, check this
-    let next_check_in_block = env.block.height + 10;
-
+    // this could be configurable, for now
+    // we set the next check in to be 100 blocks from now
+    let next_check_in_block = env.block.height + 100;
     let check_in = CheckIn {
-        last_checked_in: Some(now),
+        last_checked_in: now,
         next_check_in_by: next_check_in_block,
         metadata,
     };
@@ -268,27 +263,29 @@ fn cast_vote(
     // If Admin checked in today, friends can't vote
     if DAILY_CHECK_INS
         .load(deps.storage, now.clone())
-        .map_or(false, |check_in| check_in.last_checked_in == Some(now))
+        .map_or(false, |check_in| check_in.last_checked_in == now)
     {
         return Err(AppError::AlreadyCheckedIn {});
     }
 
     let vote = vote.optimisitc();
 
-    // Load existing votes for the current block height or initialize an empty list if none exist
-    let mut votes_for_block = VOTES
-        .load(deps.storage, challenge_id.to_owned())
-        .unwrap_or_else(|_| Vec::new());
-
-    // check if final_vote.voter already exists in votes_for_block
-    if votes_for_block.iter().any(|v| v.voter == vote.voter) {
+    // check that the vote.voter has note has not voted
+    if VOTES
+        .may_load(
+            deps.storage,
+            (challenge_id.to_owned(), vote.voter.to_owned()),
+        )
+        .map_or(false, |votes| votes.iter().any(|v| v.voter == vote.voter))
+    {
         return Err(AppError::AlreadyVoted {});
+    } else {
+        VOTES.save(
+            deps.storage,
+            (challenge_id.to_owned(), vote.voter.to_owned()),
+            &vote,
+        )?;
     }
-
-    // Append the new vote and save them to storage
-    votes_for_block.push(vote);
-    VOTES.save(deps.storage, challenge_id.to_owned(), &votes_for_block)?;
-
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
@@ -299,14 +296,12 @@ fn count_votes(
     app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    let votes_for_challenge = VOTES
-        .load(deps.storage, challenge_id.clone())
-        .unwrap_or_else(|_| Vec::new());
+    let votes = VOTES.may_load(
+        deps.storage,
+        (challenge_id.to_owned(), info.sender.to_owned()),
+    )?;
 
-    let any_false_vote = votes_for_challenge
-        .iter()
-        .any(|v| v.approval == Some(false));
-
+    let any_false_vote = votes.iter().any(|v| v.approval == Some(false));
     if any_false_vote {
         return charge_penalty(deps, info, app, challenge_id);
     }
@@ -319,38 +314,34 @@ fn veto_vote(
     info: MessageInfo,
     _env: Env,
     challenge_id: u64,
-    voter: String,
+    vote: Vote<String>,
 ) -> AppResult {
     if info.sender.to_string() != ADMIN.load(deps.storage)? {
         return Err(AppError::Std(StdError::generic_err(
             "Only the admin can veto a vote",
         )));
     }
-    let votes = VOTES
-        .load(deps.storage, challenge_id.clone())
-        .unwrap_or_else(|_| Vec::new());
 
-    // find the voter in the votes_for_challenge
-    let disputed = votes.iter().find(|v| v.voter == voter).ok_or_else(|| {
-        AppError::Std(StdError::generic_err(format!(
-            "Voter {} not found for this challenge",
-            voter
-        )))
-    })?;
+    let vote = vote.check(deps.as_ref())?;
+    let mut fetched_vote = VOTES.may_load(
+        deps.storage,
+        (challenge_id.to_owned(), vote.voter.to_owned()),
+    )?;
 
-    let mut vetoed_votes = votes.clone();
-    //
-    //remove the disputed from the votes Vec
-    vetoed_votes.retain(|v| v.voter != disputed.voter);
+    // we set the vote the opposite to what it currently is
+    if let Some(v) = &mut fetched_vote {
+        v.approval = Some(!v.approval.unwrap());
+        VOTES.remove(deps.storage, (challenge_id.clone(), vote.voter.to_owned()));
+        VOTES.save(
+            deps.storage,
+            (challenge_id.clone(), vote.voter.to_owned()),
+            v,
+        )?;
 
-    VOTES.remove(deps.storage, challenge_id.clone());
-    VOTES.save(deps.storage, challenge_id.clone(), &vetoed_votes)?;
-
-    let mut disputed = disputed.clone();
-    // set the vote the opposite to what it currently is
-    disputed.approval = Some(!disputed.approval.unwrap());
-
-    Ok(Response::new().add_attribute("action", "count_votes"))
+        return Ok(Response::new().add_attribute("action", "count_votes"));
+    } else {
+        Err(AppError::VoterNotFound {})
+    }
 }
 
 fn charge_penalty(

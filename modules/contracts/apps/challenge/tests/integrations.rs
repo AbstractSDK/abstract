@@ -3,8 +3,8 @@ use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        AppInstantiateMsg, ChallengeQueryMsg, ChallengeResponse, CheckInResponse, FriendsResponse,
-        InstantiateMsg, VotesResponse,
+        ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, CheckInResponse, FriendsResponse,
+        InstantiateMsg, VoteResponse,
     },
     state::{ChallengeEntry, ChallengeEntryUpdate, Friend, Penalty, UpdateFriendsOpKind, Vote},
     *,
@@ -77,11 +77,12 @@ lazy_static! {
             approval: Some(true),
         },
     ];
+    static ref ALICE_NO_VOTE: Vote<String> = Vote {
+        voter: ALICE_ADDRESS.clone(),
+        approval: Some(false),
+    };
     static ref ONE_NO_VOTE: Vec<Vote<String>> = vec![
-        Vote {
-            voter: ALICE_ADDRESS.clone(),
-            approval: Some(false),
-        },
+        ALICE_NO_VOTE.clone(),
         Vote {
             voter: BOB_ADDRESS.clone(),
             approval: Some(true),
@@ -147,10 +148,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
             },
-            module: AppInstantiateMsg {
-                native_asset: AssetEntry::new("denom"),
-                forfeit_amount: Uint128::new(42),
-            },
+            module: Empty {},
         },
         None,
     )?;
@@ -274,11 +272,9 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
             challenge_id: 1,
         }))?;
 
-    if let Some(friends) = &response.0 {
-        for friend in friends.iter() {
-            assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
-            assert_eq!(friend.name, ALICE_NAME.clone());
-        }
+    for friend in response.0.iter() {
+        assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
+        assert_eq!(friend.name, ALICE_NAME.clone());
     }
     Ok(())
 }
@@ -305,27 +301,23 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
             challenge_id: 1,
         }))?;
 
-    if let Some(response) = response.0 {
-        assert_eq!(
-            response,
-            vec![
-                Friend {
-                    address: Addr::unchecked(ALICE_ADDRESS.clone()),
-                    name: "Alice".to_string(),
-                },
-                Friend {
-                    address: Addr::unchecked(BOB_ADDRESS.clone()),
-                    name: "Bob".to_string(),
-                },
-                Friend {
-                    address: Addr::unchecked(CHARLIE_ADDRESS.clone()),
-                    name: "Charlie".to_string(),
-                }
-            ]
-        );
-    } else {
-        panic!("Friends not found");
-    }
+    assert_eq!(
+        response.0,
+        vec![
+            Friend {
+                address: Addr::unchecked(ALICE_ADDRESS.clone()),
+                name: "Alice".to_string(),
+            },
+            Friend {
+                address: Addr::unchecked(BOB_ADDRESS.clone()),
+                name: "Bob".to_string(),
+            },
+            Friend {
+                address: Addr::unchecked(CHARLIE_ADDRESS.clone()),
+                name: "Charlie".to_string(),
+            }
+        ]
+    );
 
     Ok(())
 }
@@ -354,11 +346,9 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
 
-    if let Some(friends) = &response.0 {
-        for friend in friends.iter() {
-            assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
-            assert_eq!(friend.name, ALICE_NAME.clone());
-        }
+    for friend in response.0.iter() {
+        assert_eq!(friend.address, Addr::unchecked(ALICE_ADDRESS.clone()));
+        assert_eq!(friend.name, ALICE_NAME.clone());
     }
 
     // remove friend
@@ -369,9 +359,7 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     )?;
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
-    if let Some(friends) = &response.0 {
-        assert_eq!(friends.len(), 0);
-    }
+    assert_eq!(response.0.len(), 0);
 
     Ok(())
 }
@@ -403,16 +391,12 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
 
     let response =
         apps.challenge_app
-            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 challenge_id: 1,
+                voter_addr: ALICE_ADDRESS.clone(),
             }))?;
 
-    if let Some(votes) = &response.0 {
-        for vote in votes.iter() {
-            assert_eq!(vote.voter, Addr::unchecked(ALICE_ADDRESS.clone()));
-            assert_eq!(vote.approval, Some(true));
-        }
-    }
+    assert_eq!(response.vote.unwrap().approval, Some(true));
     Ok(())
 }
 
@@ -432,20 +416,16 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         apps.challenge_app.cast_vote(1, vote)?;
     }
 
-    let votes =
+    let vote =
         apps.challenge_app
-            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 challenge_id: 1,
+                voter_addr: ALICE_ADDRESS.clone(),
             }))?;
 
-    if let Some(votes) = &votes.0 {
-        for vote in votes.iter() {
-            assert_eq!(vote.approval, Some(true));
-        }
-    }
+    assert_eq!(vote.vote.unwrap().approval, Some(true));
 
     apps.challenge_app.count_votes(1)?;
-
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
@@ -466,22 +446,29 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         apps.challenge_app.cast_vote(1, vote)?;
     }
 
-    let votes =
+    let response =
         apps.challenge_app
-            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 challenge_id: 1,
+                voter_addr: ALICE_ADDRESS.clone(),
             }))?;
+    assert_eq!(response.vote.unwrap().approval, Some(false));
 
-    // Only Alice voted false the rest voted true
-    if let Some(votes) = &votes.0 {
-        for vote in votes.iter() {
-            if vote.voter == Addr::unchecked(ALICE_ADDRESS.clone()) {
-                assert_eq!(vote.approval, Some(false));
-            } else {
-                assert_eq!(vote.approval, Some(true));
-            }
-        }
-    }
+    let response =
+        apps.challenge_app
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
+                challenge_id: 1,
+                voter_addr: BOB_ADDRESS.clone(),
+            }))?;
+    assert_eq!(response.vote.unwrap().approval, Some(true));
+
+    let response =
+        apps.challenge_app
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
+                challenge_id: 1,
+                voter_addr: CHARLIE_ADDRESS.clone(),
+            }))?;
+    assert_eq!(response.vote.unwrap().approval, Some(true));
 
     apps.challenge_app.count_votes(1)?;
 
@@ -504,30 +491,71 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
         apps.challenge_app.cast_vote(1, vote)?;
     }
 
-    let votes =
+    let response =
         apps.challenge_app
-            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 challenge_id: 1,
+                voter_addr: ALICE_ADDRESS.clone(),
             }))?;
 
     // Only Alice voted false the rest voted true
-    if let Some(votes) = &votes.0 {
-        for vote in votes.iter() {
-            if vote.voter == Addr::unchecked(ALICE_ADDRESS.clone()) {
-                assert_eq!(vote.approval, Some(false));
-            } else {
-                assert_eq!(vote.approval, Some(true));
-            }
-        }
-    }
+    assert_eq!(response.vote.unwrap().approval, Some(false));
+
+    let response =
+        apps.challenge_app
+            .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
+                challenge_id: 1,
+                voter_addr: BOB_ADDRESS.clone(),
+            }))?;
+
+    assert_eq!(response.vote.unwrap().approval, Some(true));
 
     let challenge_id = 1;
     apps.challenge_app
-        .veto_vote(challenge_id, ALICE_ADDRESS.clone())?;
+        .veto_vote(challenge_id, ALICE_NO_VOTE.clone())?;
 
     apps.challenge_app.count_votes(1)?;
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
-    // The false vote was vetoed by the admin, so no penalty should be charged, so balance will be 50_000_000
+    // The false vote was vetoed by the admin, so no penalty should be charged,
+    // so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
+    Ok(())
+}
+
+#[test]
+fn test_should_query_challenges_within_range() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps) = setup()?;
+    for _ in 0..10 {
+        apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    }
+
+    let response = apps
+        .challenge_app
+        .query::<ChallengesResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenges {
+            start_after: 0,
+            limit: 5,
+        }))?;
+
+    assert_eq!(response.0.len(), 5);
+    Ok(())
+}
+
+#[test]
+fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps) = setup()?;
+    for _ in 0..10 {
+        apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    }
+
+    let response = apps
+        .challenge_app
+        .query::<ChallengesResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenges {
+            start_after: 5,
+            limit: 8,
+        }))?;
+
+    // 10 challenges exist, but we start after 5 and limit to 8,
+    // so we should get 3 challenges
+    assert_eq!(response.0.len(), 3);
     Ok(())
 }

@@ -86,16 +86,16 @@ impl Vote<Addr> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
-    pub last_checked_in: Option<u64>,
-    pub next_check_in_by: u64, //block number
+    pub last_checked_in: u64, // blockheight
+    pub next_check_in_by: u64,
     pub metadata: Option<String>,
 }
 
-pub const CONFIG: Item<Config> = Item::new("config");
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const ADMIN: Item<Addr> = Item::new("admin");
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
-pub const VOTES: Map<u64, Vec<Vote<Addr>>> = Map::new("votes");
+/// Key is a tuple of (challenge_id, voter_address).
+pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
 // use a snapshot map?
 pub const DAILY_CHECK_INS: Map<u64, CheckIn> = Map::new("daily_checkins");

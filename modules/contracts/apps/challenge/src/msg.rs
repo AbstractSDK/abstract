@@ -2,40 +2,10 @@ use crate::{
     contract::ChallengeApp,
     state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
 };
-use abstract_core::objects::AssetEntry;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Uint128};
-use croncat_app::croncat_integration_utils::CronCatInterval;
+use cosmwasm_std::Addr;
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
-
-#[cosmwasm_schema::cw_serde]
-pub enum Frequency {
-    Daily,
-    Weekly,
-    Monthly,
-    EveryNBlocks(u64),
-}
-
-impl Frequency {
-    pub fn to_interval(self) -> CronCatInterval {
-        match self {
-            Frequency::EveryNBlocks(blocks) => CronCatInterval::Block(blocks),
-            Frequency::Daily => unimplemented!(),
-            Frequency::Weekly => unimplemented!(),
-            Frequency::Monthly => unimplemented!(),
-        }
-    }
-}
-
-/// App instantiate message
-#[cosmwasm_schema::cw_serde]
-pub struct AppInstantiateMsg {
-    /// Native gas/stake asset for this chain
-    pub native_asset: AssetEntry,
-    /// Amount in native coins to forfeit when a challenge is lost
-    pub forfeit_amount: Uint128,
-}
 
 /// App execute messages
 #[cosmwasm_schema::cw_serde]
@@ -59,17 +29,23 @@ pub enum ChallengeExecuteMsg {
     },
     DailyCheckIn {
         challenge_id: u64,
+        /// metadata can be added for extra description of the check-in.
+        /// For example, if the check-in is a photo, the metadata can be a link to the photo.
         metadata: Option<String>,
     },
     CastVote {
         challenge_id: u64,
+        /// If the vote.approval is None, we assume the voter approves,
+        /// and the contract will internally set the approval field to Some(true).
+        /// This is because we assume that if a friend didn't vote, the friend approves,
+        /// otherwise the voter would Vote with approval set to Some(false).
         vote: Vote<String>,
     },
     CountVotes {
         challenge_id: u64,
     },
     VetoVote {
-        voter: String,
+        vote: Vote<String>,
         challenge_id: u64,
     },
 }
@@ -81,12 +57,17 @@ pub enum ChallengeExecuteMsg {
 pub enum ChallengeQueryMsg {
     #[returns(ChallengeResponse)]
     Challenge { challenge_id: u64 },
+    #[returns(ChallengesResponse)]
+    Challenges { start_after: u64, limit: u32 },
     #[returns(FriendsResponse)]
     Friends { challenge_id: u64 },
     #[returns(CheckInResponse)]
     CheckIn { challenge_id: u64 },
-    #[returns(VotesResponse)]
-    Votes { challenge_id: u64 },
+    #[returns(VoteResponse)]
+    Vote {
+        challenge_id: u64,
+        voter_addr: String,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -100,7 +81,12 @@ pub struct CheckInResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct FriendsResponse(pub Option<Vec<Friend<Addr>>>);
+pub struct ChallengesResponse(pub Vec<ChallengeEntry>);
 
 #[cosmwasm_schema::cw_serde]
-pub struct VotesResponse(pub Option<Vec<Vote<Addr>>>);
+pub struct FriendsResponse(pub Vec<Friend<Addr>>);
+
+#[cosmwasm_schema::cw_serde]
+pub struct VoteResponse {
+    pub vote: Option<Vote<Addr>>,
+}

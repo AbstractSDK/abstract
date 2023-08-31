@@ -1,7 +1,7 @@
 use crate::{
     error::AppError,
     handlers,
-    msg::{AppInstantiateMsg, ChallengeExecuteMsg, ChallengeQueryMsg},
+    msg::{ChallengeExecuteMsg, ChallengeQueryMsg},
 };
 use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
@@ -15,8 +15,7 @@ pub const CHALLENGE_APP_ID: &str = "abstract:challenge";
 pub type AppResult<T = Response> = Result<T, AppError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type ChallengeApp =
-    AppContract<AppError, AppInstantiateMsg, ChallengeExecuteMsg, ChallengeQueryMsg, Empty>;
+pub type ChallengeApp = AppContract<AppError, Empty, ChallengeExecuteMsg, ChallengeQueryMsg, Empty>;
 
 const CHALLENGE_APP: ChallengeApp =
     ChallengeApp::new(CHALLENGE_APP_ID, CHALLENGE_APP_VERSION, None)
