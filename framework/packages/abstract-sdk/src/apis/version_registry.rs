@@ -76,7 +76,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Smart query for a module
     pub fn query_module(&self, module_info: ModuleInfo) -> AbstractSdkResult<Module> {
         Ok(self
-            .query_all_module_config(vec![module_info])?
+            .query_modules_configs(vec![module_info])?
             .swap_remove(0)
             .module)
     }
@@ -84,13 +84,13 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
     /// Smart query for a module config
     pub fn query_config(&self, module_info: ModuleInfo) -> AbstractSdkResult<ModuleConfiguration> {
         Ok(self
-            .query_all_module_config(vec![module_info])?
+            .query_modules_configs(vec![module_info])?
             .swap_remove(0)
             .config)
     }
 
-    /// Smart query for a modules and its configuration
-    pub fn query_all_module_config(
+    /// Smart query for a modules and its configurations
+    pub fn query_modules_configs(
         &self,
         infos: Vec<ModuleInfo>,
     ) -> AbstractSdkResult<Vec<ModuleResponse>> {

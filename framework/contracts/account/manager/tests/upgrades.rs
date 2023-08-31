@@ -4,7 +4,7 @@ use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
     manager::ModuleVersionsResponse,
-    module_factory::ModuleInstallConfig,
+    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
     objects::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
@@ -706,8 +706,15 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
     ])?;
     assert_eq!(
-        simulate_response.required_funds,
-        vec![coin(10, "coin1"), coin(5, "coin2")]
+        simulate_response,
+        SimulateInstallModulesResponse {
+            total_required_funds: vec![coin(10, "coin1"), coin(5, "coin2")],
+            required_funds: vec![
+                (adapter_1::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
+                (adapter_2::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
+                (app_1::MOCK_APP_ID.to_string(), coin(5, "coin2"))
+            ]
+        }
     );
 
     let account = factory
@@ -833,7 +840,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
     ])?;
     assert_eq!(
-        simulate_response.required_funds,
+        simulate_response.total_required_funds,
         vec![coin(10, "coin1"), coin(5, "coin2")]
     );
 
@@ -882,7 +889,7 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     };
     assert!(e.root().to_string().contains(&format!(
         "Expected {:?}, sent {:?}",
-        simulate_response.required_funds,
+        simulate_response.total_required_funds,
         vec![coin(9, "coin1"), coin(10, "coin2")]
     )));
 

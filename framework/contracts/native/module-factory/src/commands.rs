@@ -48,7 +48,7 @@ pub fn execute_create_modules(
     // get module info and module config for further use
     let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
         modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
-    let modules_responses = version_registry.query_all_module_config(infos)?;
+    let modules_responses = version_registry.query_modules_configs(infos)?;
 
     // fees
     let mut fee_msgs = vec![];
@@ -274,13 +274,8 @@ pub fn update_factory_binaries(
 fn update_context(deps: DepsMut, context: &Context) -> Result<(), StdError> {
     // Update context for after init
     if context.modules.is_empty() {
-        CONTEXT.save(
-            deps.storage,
-            &Context {
-                account_base: None,
-                modules: VecDeque::new(),
-            },
-        )
+        CONTEXT.remove(deps.storage);
+        Ok(())
     } else {
         CONTEXT.save(deps.storage, context)
     }

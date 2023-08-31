@@ -116,7 +116,8 @@ pub struct ContextResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct SimulateInstallModulesResponse {
-    pub required_funds: Vec<Coin>,
+    pub total_required_funds: Vec<Coin>,
+    pub required_funds: Vec<(String, Coin)>,
 }
 
 /// We currently take no arguments for migrations

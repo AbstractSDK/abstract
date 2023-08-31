@@ -1,5 +1,3 @@
-use std::collections::VecDeque;
-
 use crate::{commands, error::ModuleFactoryError, state::*};
 use abstract_core::objects::{
     module::{ModuleInfo, Monetization},
@@ -38,14 +36,6 @@ pub fn instantiate(
 
     set_contract_version(deps.storage, MODULE_FACTORY, CONTRACT_VERSION)?;
     CONFIG.save(deps.storage, &config)?;
-    // Set context for after init
-    CONTEXT.save(
-        deps.storage,
-        &Context {
-            account_base: None,
-            modules: VecDeque::new(),
-        },
-    )?;
 
     // Set up the admin
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
@@ -125,16 +115,20 @@ pub fn query_simulate_install_modules(
     let version_registry = binding.module_registry(deps);
 
     let module_responses = version_registry
-        .query_all_module_config(modules)
+        .query_modules_configs(modules)
         .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
+
     let mut coins = Coins::default();
+    let mut install_funds = vec![];
     for module in module_responses {
         if let Monetization::InstallFee(fee) = module.config.monetization {
             coins.add(fee.fee())?;
+            install_funds.push((module.module.info.id(), fee.fee()))
         }
     }
     let resp = SimulateInstallModulesResponse {
-        required_funds: coins.into_vec(),
+        total_required_funds: coins.into_vec(),
+        required_funds: install_funds,
     };
     Ok(resp)
 }
