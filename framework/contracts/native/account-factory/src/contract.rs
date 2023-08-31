@@ -68,7 +68,6 @@ pub fn execute(
             namespace,
             base_asset,
             install_modules,
-
         } => commands::execute_create_account(
             deps,
             env,

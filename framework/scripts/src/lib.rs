@@ -38,7 +38,8 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
         let balance = bank
             .balance(chain.sender(), fee_token.denom.clone())
             .await
-            .unwrap().clone();
+            .unwrap()
+            .clone();
 
         log::debug!(
             "Checking balance {} on chain {}, address {}. Expecting {}{}",
