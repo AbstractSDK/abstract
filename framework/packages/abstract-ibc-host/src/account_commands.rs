@@ -102,7 +102,7 @@ impl<
     ) -> Result<CosmosMsg, HostError> {
         let ans = self.name_service(deps);
         let ics20_channel_entry = ChannelEntry {
-            connected_chain: client_chain,
+            connected_chain: client_chain.into(),
             protocol: ICS20.to_string(),
         };
         // get the ics20 channel to send funds back to client

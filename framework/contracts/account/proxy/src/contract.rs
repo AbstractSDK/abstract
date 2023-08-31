@@ -6,7 +6,7 @@ use abstract_core::objects::oracle::Oracle;
 use abstract_macros::abstract_response;
 use abstract_sdk::{
     core::{
-        objects::account_id::ACCOUNT_ID,
+        objects::account::ACCOUNT_ID,
         proxy::{
             state::{State, ADMIN, ANS_HOST, STATE},
             AssetConfigResponse, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,

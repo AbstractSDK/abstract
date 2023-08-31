@@ -3,6 +3,7 @@
 use crate::{features::AbstractRegistryAccess, AbstractSdkError, AbstractSdkResult};
 use abstract_core::{
     manager::state::ACCOUNT_ID,
+    objects::AccountId,
     version_control::{state::ACCOUNT_ADDRESSES, AccountBase},
 };
 use cosmwasm_std::{Addr, Deps};
@@ -54,7 +55,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided manager address is indeed a user.
     pub fn assert_manager(&self, maybe_manager: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_manager)?;
-        let account_base = self.account_base(account_id)?;
+        let account_base = self.account_base(&account_id)?;
         if account_base.manager.ne(maybe_manager) {
             Err(AbstractSdkError::NotManager(
                 maybe_manager.clone(),
@@ -68,7 +69,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     /// Verify if the provided proxy address is indeed a user.
     pub fn assert_proxy(&self, maybe_proxy: &Addr) -> AbstractSdkResult<AccountBase> {
         let account_id = self.account_id(maybe_proxy)?;
-        let account_base = self.account_base(account_id)?;
+        let account_base = self.account_base(&account_id)?;
         if account_base.proxy.ne(maybe_proxy) {
             Err(AbstractSdkError::NotProxy(maybe_proxy.clone(), account_id))
         } else {
@@ -77,19 +78,19 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     }
 
     /// Get the proxy address for a given account id.
-    pub fn proxy_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
+    pub fn proxy_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.proxy)
     }
 
     /// Get the manager address for a given account id.
-    pub fn manager_address(&self, account_id: u32) -> AbstractSdkResult<Addr> {
+    pub fn manager_address(&self, account_id: &AccountId) -> AbstractSdkResult<Addr> {
         self.account_base(account_id)
             .map(|account_base| account_base.manager)
     }
 
     /// Get the account base for a given account id.
-    pub fn account_base(&self, account_id: u32) -> AbstractSdkResult<AccountBase> {
+    pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
             self.base.abstract_registry(self.deps)?,
@@ -97,14 +98,14 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
         )?;
         match maybe_account {
             None => Err(AbstractSdkError::UnknownAccountId {
-                account_id,
+                account_id: account_id.clone(),
                 version_control_addr: self.base.abstract_registry(self.deps)?,
             }),
             Some(account_base) => Ok(account_base),
         }
     }
 
-    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<u32> {
+    fn account_id(&self, maybe_core_contract_addr: &Addr) -> AbstractSdkResult<AccountId> {
         ACCOUNT_ID
             .query(&self.deps.querier, maybe_core_contract_addr.clone())
             .map_err(|_| AbstractSdkError::FailedToQueryAccountId {
@@ -116,6 +117,7 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use abstract_core::objects::account::AccountTrace;
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
@@ -130,6 +132,8 @@ mod test {
         }
     }
 
+    pub const SECOND_TEST_ACCOUNT_ID: AccountId = AccountId::const_new(2, AccountTrace::Local);
+
     mod assert_proxy {
 
         use super::*;
@@ -141,9 +145,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 2)
+                .account(TEST_MANAGER, TEST_PROXY, SECOND_TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_proxy", ACCOUNT_ID, &2)
+                .with_contract_item("not_proxy", ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -164,7 +168,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_PROXY, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -191,7 +195,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_account_base()),
+                    (&TEST_ACCOUNT_ID, test_account_base()),
                 )
                 .build();
 
@@ -214,7 +218,7 @@ mod test {
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
                     (
-                        TEST_ACCOUNT_ID,
+                        &TEST_ACCOUNT_ID,
                         AccountBase {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked("not_poxry"),
@@ -246,9 +250,9 @@ mod test {
                 // Setup the addresses as if the Account was registered
                 .account("not_manager", "not_proxy", TEST_ACCOUNT_ID)
                 // update the proxy to be proxy of a different Account
-                .account(TEST_MANAGER, TEST_PROXY, 1)
+                .account(TEST_MANAGER, TEST_PROXY, SECOND_TEST_ACCOUNT_ID)
                 .builder()
-                .with_contract_item("not_manager", ACCOUNT_ID, &1)
+                .with_contract_item("not_manager", ACCOUNT_ID, &SECOND_TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -269,7 +273,7 @@ mod test {
 
             deps.querier = MockQuerierBuilder::default()
                 .with_contract_item(TEST_MANAGER, ACCOUNT_ID, &TEST_ACCOUNT_ID)
-                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, TEST_ACCOUNT_ID)
+                .with_contract_map_key(TEST_VERSION_CONTROL, ACCOUNT_ADDRESSES, &TEST_ACCOUNT_ID)
                 .build();
 
             let binding = MockBinding;
@@ -297,7 +301,7 @@ mod test {
                 .with_contract_map_entry(
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
-                    (TEST_ACCOUNT_ID, test_account_base()),
+                    (&TEST_ACCOUNT_ID, test_account_base()),
                 )
                 .build();
 
@@ -320,7 +324,7 @@ mod test {
                     TEST_VERSION_CONTROL,
                     ACCOUNT_ADDRESSES,
                     (
-                        TEST_ACCOUNT_ID,
+                        &TEST_ACCOUNT_ID,
                         AccountBase {
                             manager: Addr::unchecked("not_manager"),
                             proxy: Addr::unchecked(TEST_PROXY),

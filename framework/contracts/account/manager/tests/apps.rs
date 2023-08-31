@@ -1,5 +1,6 @@
 mod common;
 use abstract_app::gen_app_mock;
+use abstract_core::objects::account::TEST_ACCOUNT_ID;
 use abstract_core::PROXY;
 use abstract_interface::*;
 
@@ -64,7 +65,7 @@ fn account_install_app() -> AResult {
 
     deployment
         .version_control
-        .claim_namespace(1, "tester".to_owned())?;
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let app = MockApp::new_test(chain);
     app.deploy(APP_VERSION.parse().unwrap())?;

@@ -13,9 +13,10 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     use crate::objects::{
-        account_id::AccountId,
+        account::{AccountId, AccountSequence},
         gov_type::GovernanceDetails,
-        module::{Module, ModuleInfo},
+        module::Module,
+        module::ModuleInfo,
         AssetEntry,
     };
 
@@ -25,7 +26,6 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub next_account_id: AccountId,
     }
 
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
@@ -34,6 +34,7 @@ pub mod state {
         pub account_proxy_address: Option<Addr>,
         pub manager_module: Option<Module>,
         pub proxy_module: Option<Module>,
+        pub account_id: AccountId,
 
         pub additional_config: AdditionalContextConfig,
         pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
@@ -52,13 +53,17 @@ pub mod state {
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
     pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("\u{0}{6}acc_seq");
 }
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary};
 
 use crate::objects::{
-    account_id::AccountId, gov_type::GovernanceDetails, module::ModuleInfo, AssetEntry,
+    account::{AccountSequence, AccountTrace},
+    gov_type::GovernanceDetails,
+    module::ModuleInfo,
+    AssetEntry,
 };
 
 /// Msg used on instantiation
@@ -124,9 +129,24 @@ pub struct ConfigResponse {
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
-    pub next_account_id: AccountId,
+    pub local_account_sequence: AccountSequence,
+}
+
+/// Sequence numbers for each origin.
+#[cosmwasm_schema::cw_serde]
+pub struct SequencesResponse {
+    pub sequences: Vec<(AccountTrace, AccountSequence)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SequenceResponse {
+    pub sequence: AccountSequence,
 }
 
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
+
+/// UNUSED - stub for future use
+#[cosmwasm_schema::cw_serde]
+pub struct AccountTraceFilter {}

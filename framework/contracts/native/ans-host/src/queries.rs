@@ -301,6 +301,7 @@ fn load_pool_metadata_entry(
 #[cfg(test)]
 mod test {
     use abstract_core::ans_host::*;
+    use abstract_core::objects::chain_name::ChainName;
     use abstract_core::objects::PoolType;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MockApi};
     use cosmwasm_std::{from_binary, Addr, DepsMut};
@@ -409,7 +410,7 @@ mod test {
             .map(|input| {
                 (
                     ChannelEntry {
-                        connected_chain: input.0.to_string().to_ascii_lowercase(),
+                        connected_chain: ChainName::from(input.0.to_string().to_ascii_lowercase()),
                         protocol: input.1.to_string().to_ascii_lowercase(),
                     },
                     input.2.to_string(),
@@ -423,7 +424,7 @@ mod test {
         let channel_entry: Vec<ChannelEntry> = input
             .into_iter()
             .map(|input| ChannelEntry {
-                connected_chain: input.0.to_string().to_ascii_lowercase(),
+                connected_chain: ChainName::from(input.0.to_string().to_ascii_lowercase()),
                 protocol: input.1.to_string().to_ascii_lowercase(),
             })
             .collect();
@@ -833,7 +834,7 @@ mod test {
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
             start_after: Some(ChannelEntry {
-                connected_chain: "foo".to_string(),
+                connected_chain: ChainName::from("foo"),
                 protocol: "foo1".to_string(),
             }),
             limit: Some(42_u8),

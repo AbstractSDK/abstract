@@ -1,8 +1,11 @@
+use crate::AbstractResult;
 use cosmwasm_std::{StdError, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{convert::TryInto, fmt::Display};
+
+use crate::objects::chain_name::ChainName;
 
 /// Key to get the Address of a connected_chain
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, Eq, JsonSchema, PartialOrd, Ord)]
@@ -18,11 +21,13 @@ impl UncheckedChannelEntry {
             connected_chain: connected_chain.to_string(),
         }
     }
-    pub fn check(self) -> ChannelEntry {
-        ChannelEntry {
-            connected_chain: self.connected_chain.to_ascii_lowercase(),
+    pub fn check(self) -> AbstractResult<ChannelEntry> {
+        let chain_name: ChainName = self.connected_chain.into();
+        chain_name.check()?;
+        Ok(ChannelEntry {
+            connected_chain: chain_name,
             protocol: self.protocol.to_ascii_lowercase(),
-        }
+        })
     }
 }
 
@@ -43,13 +48,13 @@ impl TryFrom<String> for UncheckedChannelEntry {
 /// Use [`UncheckedChannelEntry`] to construct this type.  
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq, JsonSchema, Eq, PartialOrd, Ord)]
 pub struct ChannelEntry {
-    pub connected_chain: String,
+    pub connected_chain: ChainName,
     pub protocol: String,
 }
 
 impl Display for ChannelEntry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/{}", self.connected_chain, self.protocol)
+        write!(f, "{}/{}", self.connected_chain.as_str(), self.protocol)
     }
 }
 
@@ -63,7 +68,7 @@ impl<'a> PrimaryKey<'a> for &ChannelEntry {
     type SuperSuffix = Self;
 
     fn key(&self) -> Vec<cw_storage_plus::Key> {
-        let mut keys = self.connected_chain.key();
+        let mut keys = self.connected_chain.str_ref().key();
         keys.extend(self.protocol.key());
         keys
     }
@@ -71,7 +76,7 @@ impl<'a> PrimaryKey<'a> for &ChannelEntry {
 
 impl<'a> Prefixer<'a> for &ChannelEntry {
     fn prefix(&self) -> Vec<Key> {
-        let mut res = self.connected_chain.prefix();
+        let mut res = self.connected_chain.str_ref().prefix();
         res.extend(self.protocol.prefix());
         res
     }
@@ -87,7 +92,7 @@ impl KeyDeserialize for &ChannelEntry {
         let u = tu.split_off(t_len);
 
         Ok(ChannelEntry {
-            connected_chain: String::from_vec(tu)?,
+            connected_chain: ChainName::from(String::from_vec(tu)?),
             protocol: String::from_vec(u)?,
         })
     }
@@ -115,7 +120,7 @@ mod test {
 
     fn mock_key() -> ChannelEntry {
         ChannelEntry {
-            connected_chain: "osmosis".to_string(),
+            connected_chain: ChainName::from("osmosis"),
             protocol: "ics20".to_string(),
         }
     }
@@ -123,15 +128,15 @@ mod test {
     fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
         (
             ChannelEntry {
-                connected_chain: "osmosis".to_string(),
+                connected_chain: ChainName::from("osmosis"),
                 protocol: "ics20".to_string(),
             },
             ChannelEntry {
-                connected_chain: "osmosis".to_string(),
+                connected_chain: ChainName::from("osmosis"),
                 protocol: "ics".to_string(),
             },
             ChannelEntry {
-                connected_chain: "cosmos".to_string(),
+                connected_chain: ChainName::from("cosmos"),
                 protocol: "abstract".to_string(),
             },
         )

@@ -132,7 +132,7 @@ pub fn execute_register_os(
     let packet = PacketMsg {
         retries: 0u8,
         client_chain: cfg.chain,
-        account_id,
+        account_id: account_id.clone(),
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
@@ -186,7 +186,7 @@ pub fn execute_send_funds(
     };
 
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: host_chain,
+        connected_chain: host_chain.into(),
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;

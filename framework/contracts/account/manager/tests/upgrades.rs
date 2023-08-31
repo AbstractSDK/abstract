@@ -7,6 +7,7 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
+        AccountId,
     },
     AbstractError,
 };
@@ -620,7 +621,7 @@ fn create_sub_account_with_installed_module() -> AResult {
         None,
     )?;
 
-    let account = AbstractAccount::new(&deployment, Some(2));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
 
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
