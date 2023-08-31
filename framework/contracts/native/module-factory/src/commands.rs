@@ -64,7 +64,6 @@ pub fn execute_create_modules(
     for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
     {
-        let version_registry = binding.module_registry(deps.as_ref());
         let new_module = module_response.module;
         let new_module_monetization = module_response.config.monetization;
         module_ids.push(new_module.info.id_with_version());
@@ -111,11 +110,6 @@ pub fn execute_create_modules(
             }
             // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
             ModuleReference::Adapter(addr) => {
-                // TODO: this is a bit messy for installing multiple modules
-                // Because it's harder to track order of execution
-                //
-                // What happens is all the submessage gets executed first,
-                // But since they spawn a new messages
                 let new_module_addr = addr.to_string();
                 let register_msg: CosmosMsg<Empty> = wasm_execute(
                     account_base.manager.to_string(),

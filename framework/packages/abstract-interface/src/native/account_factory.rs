@@ -50,6 +50,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
         &self,
         account_details: AccountDetails,
         governance_details: GovernanceDetails<String>,
+        funds: Option<&[Coin]>,
     ) -> Result<AbstractAccount<Chain>, crate::AbstractInterfaceError> {
         let AccountDetails {
             name,
@@ -70,7 +71,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 base_asset,
                 install_modules,
             },
-            None,
+            funds,
         )?;
 
         let manager_address = &result.event_attr_value(ABSTRACT_EVENT_TYPE, "manager_address")?;
@@ -97,6 +98,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 ..Default::default()
             },
             governance_details,
+            None,
         )
     }
 }

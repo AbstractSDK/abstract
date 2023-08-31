@@ -14,6 +14,7 @@
 use crate::Abstract;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
+use abstract_core::objects::module::ModuleInfo;
 use abstract_core::ABSTRACT_EVENT_TYPE;
 use cw_orch::deploy::Deploy;
 
@@ -67,6 +68,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
+    }
+
+    pub fn install_modules<TInitMsg: Serialize>(
+        &self,
+        modules: Vec<(ModuleInfo, Option<&TInitMsg>)>,
+        funds: Option<&[Coin]>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager.install_modules(modules, funds)
     }
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.

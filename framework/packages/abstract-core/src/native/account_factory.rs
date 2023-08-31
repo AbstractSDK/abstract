@@ -8,7 +8,7 @@
 //! Call [`ExecuteMsg::CreateAccount`] on this contract along with a [`crate::objects::gov_type`] and name you'd like to display on your Account.
 //!
 pub mod state {
-    use cosmwasm_std::{Addr, Binary};
+    use cosmwasm_std::{Addr, Binary, Coin};
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
@@ -37,6 +37,7 @@ pub mod state {
 
         pub additional_config: AdditionalContextConfig,
         pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+        pub funds_for_install: Vec<Coin>,
     }
 
     /// Account Factory additional config context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
