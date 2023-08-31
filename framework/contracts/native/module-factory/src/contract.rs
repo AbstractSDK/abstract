@@ -1,11 +1,18 @@
 use std::collections::VecDeque;
 
 use crate::{commands, error::ModuleFactoryError, state::*};
-use abstract_core::objects::module_version::assert_contract_upgrade;
+use abstract_core::objects::{
+    module::{ModuleInfo, Monetization},
+    module_version::assert_contract_upgrade,
+};
 use abstract_macros::abstract_response;
-use abstract_sdk::core::{module_factory::*, MODULE_FACTORY};
+use abstract_sdk::{
+    core::{module_factory::*, MODULE_FACTORY},
+    feature_objects::VersionControlContract,
+    ModuleRegistryInterface,
+};
 use cosmwasm_std::{
-    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
+    to_binary, Binary, Coins, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdResult,
 };
 use cw2::set_contract_version;
 use semver::Version;
@@ -92,6 +99,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => to_binary(&query_config(deps)?),
         QueryMsg::Context {} => to_binary(&query_context(deps)?),
+        QueryMsg::SimulateInstallModules { modules } => {
+            to_binary(&query_simulate_install_modules(deps, modules)?)
+        }
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
     }
 }
@@ -103,6 +113,29 @@ pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
         ans_host_address: state.ans_host_address,
     };
 
+    Ok(resp)
+}
+
+pub fn query_simulate_install_modules(
+    deps: Deps,
+    modules: Vec<ModuleInfo>,
+) -> StdResult<SimulateInstallModulesResponse> {
+    let config = CONFIG.load(deps.storage)?;
+    let binding = VersionControlContract::new(config.version_control_address);
+    let version_registry = binding.module_registry(deps);
+
+    let module_responses = version_registry
+        .query_all_module_config(modules)
+        .map_err(|e| cosmwasm_std::StdError::generic_err(e.to_string()))?;
+    let mut coins = Coins::default();
+    for module in module_responses {
+        if let Monetization::InstallFee(fee) = module.config.monetization {
+            coins.add(fee.fee())?;
+        }
+    }
+    let resp = SimulateInstallModulesResponse {
+        required_funds: coins.into_vec(),
+    };
     Ok(resp)
 }
 

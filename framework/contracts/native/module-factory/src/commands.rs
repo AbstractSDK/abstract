@@ -32,30 +32,41 @@ pub fn execute_create_modules(
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+    let block_height = env.block.height;
+
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
 
+    let version_registry = binding.module_registry(deps.as_ref());
     let account_registry = binding.account_registry(deps.as_ref());
+
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
-    let block_height = env.block.height;
+
+    // get module info and module config for further use
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) = modules.into_iter().unzip();
+    let modules_responses = version_registry.query_all_module_config(infos)?;
+
     // fees
     let mut fee_msgs = vec![];
     let mut sum_of_monetization = Coins::default();
 
-    let mut attributes: Vec<Attribute> = vec![];
-    let mut sub_messages = Vec::with_capacity(modules.len());
-    let mut installed_modules = VecDeque::with_capacity(modules.len());
-    let mut module_ids = Vec::with_capacity(modules.len());
+    // install messages
+    let mut sub_messages = Vec::with_capacity(modules_responses.len());
+    // list of modules to register after instantiation
+    let mut installed_modules = VecDeque::with_capacity(modules_responses.len());
 
-    for (module_info, owner_init_msg) in modules {
+    // Attributes logging
+    let mut attributes: Vec<Attribute> = vec![];
+    let mut module_ids = Vec::with_capacity(modules_responses.len());
+
+    for (owner_init_msg, module_response) in
+        init_msgs.into_iter().zip(modules_responses.into_iter())
+    {
         let version_registry = binding.module_registry(deps.as_ref());
-        let new_module = version_registry.query_module(module_info.clone())?;
-        let new_module_monetization = version_registry
-            .query_all_module_config(module_info)?
-            .config
-            .monetization;
+        let new_module = module_response.module;
+        let new_module_monetization = module_response.config.monetization;
         module_ids.push(new_module.info.id_with_version());
 
         // TODO: check if this can be generalized for some contracts

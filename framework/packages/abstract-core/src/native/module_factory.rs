@@ -38,7 +38,7 @@ use crate::{
     version_control::AccountBase,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary};
+use cosmwasm_std::{Addr, Binary, Coin};
 
 #[cosmwasm_schema::cw_serde]
 pub struct InstantiateMsg {
@@ -92,6 +92,10 @@ pub enum QueryMsg {
     /// Returns [`ContextResponse`]
     #[returns(ContextResponse)]
     Context {},
+    /// Simulate install module cost
+    /// Returns [`SimulateInstallModulesResponse`]
+    #[returns(SimulateInstallModulesResponse)]
+    SimulateInstallModules { modules: Vec<ModuleInfo> },
 }
 
 /// Module factory config response
@@ -105,6 +109,11 @@ pub struct ConfigResponse {
 pub struct ContextResponse {
     pub account_base: Option<AccountBase>,
     pub modules: Vec<Module>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SimulateInstallModulesResponse {
+    pub required_funds: Vec<Coin>,
 }
 
 /// We currently take no arguments for migrations

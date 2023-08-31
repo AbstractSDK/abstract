@@ -713,7 +713,8 @@ fn query_module(
         },
         config: version_control
             .module_registry(deps)
-            .query_all_module_config(module_info)?
+            .query_all_module_config(vec![module_info])?
+            .swap_remove(0)
             .config,
     })
 }
