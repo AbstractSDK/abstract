@@ -39,7 +39,7 @@ fn query_challenge(
 
 fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
     let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
-    Ok(FriendsResponse { friends })
+    Ok(FriendsResponse(friends))
 }
 
 fn query_check_in(
@@ -53,5 +53,5 @@ fn query_check_in(
 
 fn query_votes(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<VotesResponse> {
     let votes = VOTES.may_load(deps.storage, challenge_id)?;
-    Ok(VotesResponse { votes })
+    Ok(VotesResponse(votes))
 }

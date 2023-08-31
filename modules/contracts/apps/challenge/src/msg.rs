@@ -95,16 +95,12 @@ pub struct ChallengeResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct FriendsResponse {
-    pub friends: Option<Vec<Friend<Addr>>>,
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct CheckInResponse {
     pub check_in: Option<CheckIn>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct VotesResponse {
-    pub votes: Option<Vec<Vote<Addr>>>,
-}
+pub struct FriendsResponse(pub Option<Vec<Friend<Addr>>>);
+
+#[cosmwasm_schema::cw_serde]
+pub struct VotesResponse(pub Option<Vec<Vote<Addr>>>);

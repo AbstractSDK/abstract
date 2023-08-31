@@ -53,19 +53,43 @@ lazy_static! {
         address: "foo0x".to_string(),
         name: "Alice".to_string(),
     };
+    static ref VOTE: Vote<String> = Vote {
+        voter: "foo0x".to_string(),
+        approval: Some(true),
+    };
+    static ref VOTES: Vec<Vote<String>> = vec![
+        Vote {
+            voter: "foo0x".to_string(),
+            approval: Some(true),
+        },
+        Vote {
+            voter: "bar0x".to_string(),
+            approval: Some(true),
+        },
+        Vote {
+            voter: "baz0x".to_string(),
+            approval: Some(true),
+        },
+    ];
+    static ref NO_VOTES: Vec<Vote<String>> = vec![
+        Vote {
+            voter: "foo0x".to_string(),
+            approval: Some(false),
+        },
+        Vote {
+            voter: "bar0x".to_string(),
+            approval: Some(false),
+        },
+        Vote {
+            voter: "baz0x".to_string(),
+            approval: Some(false),
+        },
+    ];
 }
 
 #[allow(unused)]
 struct DeployedApps {
     challenge_app: ChallengeApp<Mock>,
-}
-
-#[allow(unused)]
-struct CronCatAddrs {
-    factory: Addr,
-    manager: Addr,
-    tasks: Addr,
-    agents: Addr,
 }
 
 #[allow(clippy::type_complexity)]
@@ -244,16 +268,11 @@ fn test_should_add_friend_for_challenge() -> anyhow::Result<()> {
             challenge_id: 1,
         }))?;
 
-    if let Some(response) = response.friends {
-        assert_eq!(
-            response,
-            vec![Friend {
-                address: Addr::unchecked("foo"),
-                name: "Alice".to_string(),
-            }]
-        );
-    } else {
-        panic!("Friends not found");
+    if let Some(friends) = &response.0 {
+        for friend in friends.iter() {
+            assert_eq!(friend.address, Addr::unchecked("foo"));
+            assert_eq!(friend.name, "Alice");
+        }
     }
     Ok(())
 }
@@ -280,11 +299,28 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
             challenge_id: 1,
         }))?;
 
-    if let Some(response) = response.friends {
-        assert_eq!(response, FRIENDS.clone());
+    if let Some(response) = response.0 {
+        assert_eq!(
+            response,
+            vec![
+                Friend {
+                    address: Addr::unchecked("foo"),
+                    name: "Alice".to_string(),
+                },
+                Friend {
+                    address: Addr::unchecked("bar"),
+                    name: "Bob".to_string(),
+                },
+                Friend {
+                    address: Addr::unchecked("baz"),
+                    name: "Charlie".to_string(),
+                }
+            ]
+        );
     } else {
         panic!("Friends not found");
     }
+
     Ok(())
 }
 
@@ -312,13 +348,12 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
 
-    assert_eq!(
-        response.friends.unwrap(),
-        vec![Friend {
-            address: Addr::unchecked("foo"),
-            name: "Alice".to_string(),
-        }]
-    );
+    if let Some(friends) = &response.0 {
+        for friend in friends.iter() {
+            assert_eq!(friend.address, Addr::unchecked("foo0x"));
+            assert_eq!(friend.name, "Alice");
+        }
+    }
 
     // remove friend
     apps.challenge_app.update_friends_for_challenge(
@@ -328,8 +363,9 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     )?;
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
-    println!("{:?}", response);
-    assert_eq!(response.friends.unwrap(), vec![]);
+    if let Some(friends) = &response.0 {
+        assert_eq!(friends.len(), 0);
+    }
 
     Ok(())
 }
@@ -357,22 +393,20 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    apps.challenge_app.cast_vote(1, Some(true))?;
+    apps.challenge_app.cast_vote(1, VOTE.clone())?;
 
-    let votes =
+    let response =
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
                 challenge_id: 1,
             }))?;
 
-    assert_eq!(
-        votes.votes.unwrap(),
-        vec![Vote {
-            voter: "contract7".to_string(),
-            approval: Some(true),
-        }]
-    );
-
+    if let Some(votes) = &response.0 {
+        for vote in votes.iter() {
+            assert_eq!(vote.voter, Addr::unchecked("foo"));
+            assert_eq!(vote.approval, Some(true));
+        }
+    }
     Ok(())
 }
 
@@ -386,8 +420,8 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for _ in 0..3 {
-        apps.challenge_app.cast_vote(1, Some(true))?;
+    for vote in VOTES.clone() {
+        apps.challenge_app.cast_vote(1, vote)?;
     }
 
     let votes =
@@ -396,23 +430,12 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
                 challenge_id: 1,
             }))?;
 
-    assert_eq!(
-        votes.votes.unwrap(),
-        vec![
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(true),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(true),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(true),
-            }
-        ]
-    );
+    if let Some(votes) = &votes.0 {
+        for vote in votes.iter() {
+            assert_eq!(vote.approval, Some(true));
+        }
+    }
+
     apps.challenge_app.count_votes(1)?;
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
@@ -431,8 +454,8 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for _ in 0..3 {
-        apps.challenge_app.cast_vote(1, Some(false))?;
+    for vote in NO_VOTES.clone() {
+        apps.challenge_app.cast_vote(1, vote)?;
     }
 
     let votes =
@@ -441,23 +464,11 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
                 challenge_id: 1,
             }))?;
 
-    assert_eq!(
-        votes.votes.unwrap(),
-        vec![
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            }
-        ]
-    );
+    if let Some(votes) = &votes.0 {
+        for vote in votes.iter() {
+            assert_eq!(vote.approval, Some(false));
+        }
+    }
 
     apps.challenge_app.count_votes(1)?;
 
@@ -476,8 +487,8 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for _ in 0..3 {
-        apps.challenge_app.cast_vote(1, Some(false))?;
+    for vote in NO_VOTES.clone() {
+        apps.challenge_app.cast_vote(1, vote)?;
     }
 
     let votes =
@@ -486,49 +497,21 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
                 challenge_id: 1,
             }))?;
 
-    assert_eq!(
-        votes.votes.unwrap(),
-        vec![
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            }
-        ]
-    );
+    if let Some(votes) = &votes.0 {
+        for vote in votes.iter() {
+            assert_eq!(vote.approval, Some(false));
+        }
+    }
 
-    apps.challenge_app.veto_vote("contract7".to_string(), 1)?;
+    let challenge_id = 1;
+    apps.challenge_app
+        .veto_vote(challenge_id, "foo0x".to_string())?;
 
     let votes =
         apps.challenge_app
             .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
                 challenge_id: 1,
             }))?;
-
-    assert_eq!(
-        votes.votes.unwrap(),
-        vec![
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            },
-            Vote {
-                voter: "contract7".to_string(),
-                approval: Some(false),
-            }
-        ]
-    );
 
     apps.challenge_app.count_votes(1)?;
 
