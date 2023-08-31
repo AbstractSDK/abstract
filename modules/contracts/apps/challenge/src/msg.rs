@@ -4,7 +4,7 @@ use crate::{
 };
 use abstract_core::objects::AssetEntry;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Addr, Uint128};
 use croncat_app::croncat_integration_utils::CronCatInterval;
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
@@ -54,7 +54,7 @@ pub enum ChallengeExecuteMsg {
     },
     UpdateFriendsForChallenge {
         challenge_id: u64,
-        friends: Vec<Friend>,
+        friends: Vec<Friend<String>>,
         op_kind: UpdateFriendsOpKind,
     },
     DailyCheckIn {
@@ -63,7 +63,7 @@ pub enum ChallengeExecuteMsg {
     },
     CastVote {
         challenge_id: u64,
-        vote: Option<bool>,
+        vote: Vote<String>,
     },
     CountVotes {
         challenge_id: u64,
@@ -96,7 +96,7 @@ pub struct ChallengeResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct FriendsResponse {
-    pub friends: Option<Vec<Friend>>,
+    pub friends: Option<Vec<Friend<Addr>>>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -106,5 +106,5 @@ pub struct CheckInResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct VotesResponse {
-    pub votes: Option<Vec<Vote>>,
+    pub votes: Option<Vec<Vote<Addr>>>,
 }

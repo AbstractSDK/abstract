@@ -35,22 +35,22 @@ lazy_static! {
         },
         description: "Test Challenge".to_string(),
     };
-    static ref FRIENDS: Vec<Friend> = vec![
+    static ref FRIENDS: Vec<Friend<String>> = vec![
         Friend {
-            address: Addr::unchecked("foo"),
+            address: "foo0x".to_string(),
             name: "Alice".to_string(),
         },
         Friend {
-            address: Addr::unchecked("bar"),
+            address: "bar0x".to_string(),
             name: "Bob".to_string(),
         },
         Friend {
-            address: Addr::unchecked("baz"),
+            address: "baz0x".to_string(),
             name: "Charlie".to_string(),
         },
     ];
-    static ref FRIEND: Friend = Friend {
-        address: Addr::unchecked("foo"),
+    static ref FRIEND: Friend<String> = Friend {
+        address: "foo0x".to_string(),
         name: "Alice".to_string(),
     };
 }
@@ -369,7 +369,7 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
         votes.votes.unwrap(),
         vec![Vote {
             voter: "contract7".to_string(),
-            vote: Some(true),
+            approval: Some(true),
         }]
     );
 
@@ -401,15 +401,15 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         vec![
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(true),
+                approval: Some(true),
             },
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(true),
+                approval: Some(true),
             },
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(true),
+                approval: Some(true),
             }
         ]
     );
@@ -446,15 +446,15 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         vec![
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(false),
+                approval: Some(false),
             },
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(false),
+                approval: Some(false),
             },
             Vote {
                 voter: "contract7".to_string(),
-                vote: Some(false),
+                approval: Some(false),
             }
         ]
     );
@@ -463,5 +463,76 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(49999901));
+    Ok(())
+}
+
+#[test]
+fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    apps.challenge_app.update_friends_for_challenge(
+        1,
+        FRIENDS.clone(),
+        UpdateFriendsOpKind::Add,
+    )?;
+
+    for _ in 0..3 {
+        apps.challenge_app.cast_vote(1, Some(false))?;
+    }
+
+    let votes =
+        apps.challenge_app
+            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+                challenge_id: 1,
+            }))?;
+
+    assert_eq!(
+        votes.votes.unwrap(),
+        vec![
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            }
+        ]
+    );
+
+    apps.challenge_app.veto_vote("contract7".to_string(), 1)?;
+
+    let votes =
+        apps.challenge_app
+            .query::<VotesResponse>(&QueryMsg::from(ChallengeQueryMsg::Votes {
+                challenge_id: 1,
+            }))?;
+
+    assert_eq!(
+        votes.votes.unwrap(),
+        vec![
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            },
+            Vote {
+                voter: "contract7".to_string(),
+                approval: Some(false),
+            }
+        ]
+    );
+
+    apps.challenge_app.count_votes(1)?;
+
+    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    assert_eq!(balance, Uint128::new(50_000_000));
     Ok(())
 }

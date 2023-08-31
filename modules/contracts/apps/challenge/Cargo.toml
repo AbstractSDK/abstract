@@ -32,6 +32,7 @@ schema = ["abstract-app/schema"]
 [dependencies]
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
+cw-address-like = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }

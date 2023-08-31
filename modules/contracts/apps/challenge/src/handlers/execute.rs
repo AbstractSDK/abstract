@@ -1,7 +1,7 @@
 use crate::error::AppError;
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError, Uint128};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Uint128};
 
 use crate::contract::{AppResult, ChallengeApp};
 use abstract_sdk::prelude::*;
@@ -141,7 +141,7 @@ fn update_friends_for_challenge(
     info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: u64,
-    friends: Vec<Friend>,
+    friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
     match op_kind {
@@ -159,7 +159,7 @@ fn add_friends_for_challenge(
     info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: u64,
-    friends: Vec<Friend>,
+    friends: Vec<Friend<String>>,
 ) -> AppResult {
     // Ensure the caller is an admin
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -176,6 +176,14 @@ fn add_friends_for_challenge(
         }
     }
 
+    // validate the String addresses and convert them to Addr
+    // before saving
+    let friends: Vec<Friend<Addr>> = friends
+        .iter()
+        .cloned()
+        .map(|friend| friend.check(deps.as_ref()).unwrap())
+        .collect();
+
     existing_friends.extend(friends);
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
     Ok(Response::new().add_attribute("action", "add_friends"))
@@ -186,7 +194,7 @@ pub fn remove_friends_from_challenge(
     info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: u64,
-    friend_addresses: Vec<Friend>,
+    friend_addresses: Vec<Friend<String>>,
 ) -> AppResult {
     // Ensure the caller is an admin
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -249,11 +257,13 @@ fn daily_check_in(
 fn cast_vote(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     _app: &ChallengeApp,
-    vote: Option<bool>,
+    vote: Vote<String>,
     challenge_id: u64,
 ) -> AppResult {
+    let vote = vote.check(deps.as_ref())?;
+
     let now = env.block.time.seconds();
 
     // If Admin checked in today, friends can't vote
@@ -264,14 +274,7 @@ fn cast_vote(
         return Err(AppError::AlreadyCheckedIn {});
     }
 
-    // If the vote is None, default to true (meaning we assume Admin fulfilled his challenge)
-    let final_vote = vote.unwrap_or(true);
-
-    // Construct the vote
-    let vote_entry = Vote {
-        voter: info.sender.to_string(),
-        vote: Some(final_vote),
-    };
+    let vote = vote.optimisitc();
 
     // Load existing votes for the current block height or initialize an empty list if none exist
     let mut votes_for_block = VOTES
@@ -279,14 +282,12 @@ fn cast_vote(
         .unwrap_or_else(|_| Vec::new());
 
     // check if final_vote.voter already exists in votes_for_block
-    if votes_for_block.iter().any(|v| v.voter == vote_entry.voter) {
+    if votes_for_block.iter().any(|v| v.voter == vote.voter) {
         return Err(AppError::AlreadyVoted {});
     }
 
-    // Append the new vote
-    votes_for_block.push(vote_entry);
-
-    // Save the updated votes
+    // Append the new vote and save them to storage
+    votes_for_block.push(vote);
     VOTES.save(deps.storage, challenge_id.to_owned(), &votes_for_block)?;
 
     Ok(Response::new().add_attribute("action", "cast_vote"))
@@ -303,7 +304,10 @@ fn count_votes(
         .load(deps.storage, challenge_id.clone())
         .unwrap_or_else(|_| Vec::new());
 
-    let any_false_vote = votes_for_challenge.iter().any(|v| v.vote == Some(false));
+    let any_false_vote = votes_for_challenge
+        .iter()
+        .any(|v| v.approval == Some(false));
+
     if any_false_vote {
         return charge_penalty(deps, info, app, challenge_id);
     }
@@ -336,8 +340,9 @@ fn veto_vote(
         )))
     })?;
 
-    //remove the disputed from the votes Vec
     let mut vetoed_votes = votes.clone();
+    //
+    //remove the disputed from the votes Vec
     vetoed_votes.retain(|v| v.voter != disputed.voter);
 
     VOTES.remove(deps.storage, challenge_id.clone());
@@ -345,7 +350,7 @@ fn veto_vote(
 
     let mut disputed = disputed.clone();
     // set the vote the opposite to what it currently is
-    disputed.vote = Some(!disputed.vote.unwrap());
+    disputed.approval = Some(!disputed.approval.unwrap());
 
     Ok(Response::new().add_attribute("action", "count_votes"))
 }
