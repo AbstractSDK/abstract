@@ -265,7 +265,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config, objects::AccountId};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 
@@ -332,7 +332,7 @@ mod test {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", AccountId::local(5)),
                 &AccountData {
                     last_update_time: Timestamp::from_nanos(5u64),
                     remote_addr: None,
@@ -342,7 +342,7 @@ mod test {
 
             LATEST_QUERIES.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", AccountId::local(5)),
                 &LatestQueryResponse {
                     last_update_time: Timestamp::from_nanos(5u64),
                     response: StdAck::Result(to_binary(&Empty {})?),

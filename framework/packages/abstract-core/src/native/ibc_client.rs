@@ -216,7 +216,7 @@ impl From<AccountData> for AccountResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use abstract_testing::prelude::*;
+    use crate::objects::account::TEST_ACCOUNT_ID;
     use cosmwasm_std::to_binary;
     use speculoos::prelude::*;
 

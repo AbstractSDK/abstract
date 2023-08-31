@@ -1,6 +1,6 @@
 mod common;
 
-use abstract_core::manager::{AccountId, SubAccountIdsResponse};
+use abstract_core::manager::SubAccountIdsResponse;
 use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 
 use abstract_interface::*;
@@ -225,7 +225,7 @@ fn sub_account_move_ownership() -> AResult {
         }
     );
 
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     sub_account.manager.set_owner(GovernanceDetails::Monarchy {
         monarch: new_owner.to_string(),
     })?;
@@ -250,7 +250,7 @@ fn sub_account_move_ownership() -> AResult {
         &abstract_core::manager::ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership),
         None,
     )?;
-    let account = AbstractAccount::new(&deployment, Some(1));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(1)));
 
     // After claim it's updated
     let sub_accounts = account.manager.sub_account_ids(None, None)?;
@@ -279,7 +279,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
     )?;
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;
     let sub_proxy_addr = sub_account.proxy.address()?;
 
@@ -291,7 +291,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
     new_account.manager.set_owner(new_governance.clone())?;
     let new_account_manager = new_account.manager.address()?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let mock_module = Addr::unchecked("mock_module");
     sub_account
         .proxy
@@ -314,7 +314,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
     assert_eq!(sub_ids.sub_accounts, vec![3]);
 
     // owner of new_account updated
-    let new_account = AbstractAccount::new(&deployment, Some(3));
+    let new_account = AbstractAccount::new(&deployment, Some(AccountId::local(3)));
     let info = new_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
 
@@ -336,7 +336,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         None,
         None,
     )?;
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;
     let sub_proxy_addr = sub_account.proxy.address()?;
 
@@ -354,7 +354,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     let sub_ids = new_account.manager.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, vec![4]);
 
-    let new_account_sub_account = AbstractAccount::new(&deployment, Some(4));
+    let new_account_sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(4)));
     let new_governance = GovernanceDetails::SubAccount {
         manager: sub_manager_addr.to_string(),
         proxy: sub_proxy_addr.to_string(),
@@ -364,7 +364,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
         .set_owner(new_governance.clone())?;
     let new_account_sub_account_manager = new_account_sub_account.manager.address()?;
 
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let mock_module = Addr::unchecked("mock_module");
     sub_account
         .proxy
@@ -385,12 +385,12 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     // sub-accounts state updated
     let sub_ids = sub_account.manager.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, vec![4]);
-    let new_account = AbstractAccount::new(&deployment, Some(3));
+    let new_account = AbstractAccount::new(&deployment, Some(AccountId::local(3)));
     // removed from the previous owner as well
     let sub_ids = new_account.manager.sub_account_ids(None, None)?;
     assert_eq!(sub_ids.sub_accounts, Vec::<u32>::new());
 
-    let new_account_sub_account = AbstractAccount::new(&deployment, Some(4));
+    let new_account_sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(4)));
     let info = new_account_sub_account.manager.info()?.info;
     assert_eq!(new_governance, info.governance_details.into());
     Ok(())
@@ -412,7 +412,7 @@ fn account_move_ownership_to_falsy_sub_account() -> AResult {
         None,
         None,
     )?;
-    let sub_account = AbstractAccount::new(&deployment, Some(2));
+    let sub_account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
     let sub_manager_addr = sub_account.manager.address()?;
 
     let new_account = create_default_account(&deployment.account_factory)?;

@@ -152,8 +152,9 @@ pub struct AccountInfo {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
-    use abstract_testing::prelude::*;
+    use crate::objects::account::TEST_ACCOUNT_ID;
     use speculoos::prelude::*;
 
     #[test]
