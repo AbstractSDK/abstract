@@ -1,4 +1,5 @@
-use abstract_core::manager::state::{Config, SUSPENSION_STATUS};
+use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
+use abstract_core::manager::SubAccountIdsResponse;
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -74,6 +75,22 @@ pub fn handle_module_info_query(
     to_binary(&ModuleInfosResponse {
         module_infos: resp_vec,
     })
+}
+
+pub fn handle_sub_accounts_query(
+    deps: Deps,
+    last_account_id: Option<u32>,
+    limit: Option<u8>,
+) -> StdResult<Binary> {
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let start_bound = last_account_id.map(Bound::exclusive);
+
+    let res = SUB_ACCOUNTS
+        .keys(deps.storage, start_bound, None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<u32>>>()?;
+
+    to_binary(&SubAccountIdsResponse { sub_accounts: res })
 }
 
 /// RawQuery the version of an enabled module

@@ -1,5 +1,6 @@
 mod common;
 
+use abstract_core::objects::module_version::ModuleDataResponse;
 use abstract_cw_staking::contract::CONTRACT_VERSION;
 use abstract_cw_staking::interface::CwStakingAdapter;
 use abstract_cw_staking::msg::StakingQueryMsgFns;
@@ -11,6 +12,8 @@ use cw20_base::msg::QueryMsgFns;
 
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cw_orch::deploy::Deploy;
+
+use abstract_core::adapter::BaseQueryMsgFns;
 
 use abstract_staking_adapter_traits::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
@@ -85,6 +88,16 @@ fn staking_inited() -> anyhow::Result<()> {
         tokens: vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())],
     });
 
+    let module_data = staking.module_data()?;
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: CW_STAKING.to_owned(),
+            version: CONTRACT_VERSION.to_owned(),
+            dependencies: vec![],
+            metadata: None
+        }
+    );
     Ok(())
 }
 
