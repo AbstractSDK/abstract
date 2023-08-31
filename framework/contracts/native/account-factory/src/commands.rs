@@ -70,7 +70,7 @@ pub fn execute_create_account(
     )?;
     let funds_for_install = simulate_resp.required_funds;
 
-    // Remove all funds used to install the module to pass them to the proxy contract
+    // Remove all funds used to install the module to pass rest to the proxy contract
     let mut funds = Coins::try_from(info.funds.clone()).unwrap();
     for coin in funds_for_install.clone() {
         funds.sub(coin).map_err(|_| {
