@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use abstract_core::objects::{
-    account::AccountTraceFilter, dependency::DependencyResponse,
+    dependency::DependencyResponse,
     module_version::ModuleDataResponse, AccountId, AssetEntry, PoolAddress, PoolReference,
     UncheckedContractEntry, UniquePoolId,
 };
@@ -107,7 +107,7 @@ fn setup() -> anyhow::Result<(
             monarch: ADMIN.to_string(),
         })?;
     abstr_deployment.version_control.claim_namespace(
-        AccountId::new(1, AccountTrace::Local)?,
+        AccountId::local(1),
         "croncat".to_string(),
     )?;
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;

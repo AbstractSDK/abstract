@@ -99,7 +99,7 @@ fn handle_ibc_request(
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     let action = abstract_sdk::core::ibc_host::HostAction::App {
         msg: to_binary(&action)?,
@@ -113,7 +113,7 @@ fn handle_ibc_request(
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback, ACTION_RETRIES)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), action, callback, ACTION_RETRIES)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))
