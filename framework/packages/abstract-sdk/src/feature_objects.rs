@@ -15,7 +15,7 @@ use cosmwasm_std::{Addr, Deps};
 
 /// Store the Version Control contract.
 /// Implements [`AbstractRegistryAccess`]
-#[derive(Clone)]
+#[cosmwasm_schema::cw_serde]
 pub struct VersionControlContract {
     /// Address of the version control contract
     pub address: Addr,
@@ -29,8 +29,8 @@ impl VersionControlContract {
 }
 
 impl AbstractRegistryAccess for VersionControlContract {
-    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-        Ok(self.address.clone())
+    fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+        Ok(self.clone())
     }
 }
 
@@ -112,7 +112,7 @@ mod tests {
 
             assert_that!(vc.abstract_registry(deps.as_ref()))
                 .is_ok()
-                .is_equal_to(address);
+                .is_equal_to(vc);
         }
     }
 

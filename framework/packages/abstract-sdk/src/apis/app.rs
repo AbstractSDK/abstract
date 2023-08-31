@@ -149,7 +149,7 @@ mod tests {
 
             assert_that!(res)
                 .is_ok()
-                .is_equal_to::<CosmosMsg>(CosmosMsg::Wasm(WasmMsg::Execute {
+                .is_equal_to(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: TEST_MODULE_ADDRESS.into(),
                     msg: to_binary(&expected_msg).unwrap(),
                     funds: vec![],
@@ -171,6 +171,7 @@ mod tests {
                         FAKE_MODULE_ID,
                         app::BaseExecuteMsg::UpdateConfig {
                             ans_host_address: None,
+                            version_control_address: None,
                         },
                     )
                 },
@@ -190,12 +191,14 @@ mod tests {
                 TEST_MODULE_ID,
                 app::BaseExecuteMsg::UpdateConfig {
                     ans_host_address: Some("new_ans_addr".to_string()),
+                    version_control_address: Some("new_vc_addr".to_string()),
                 },
             );
 
             let expected_msg: app::ExecuteMsg<Empty, Empty> =
                 app::ExecuteMsg::Base(app::BaseExecuteMsg::UpdateConfig {
                     ans_host_address: Some("new_ans_addr".to_string()),
+                    version_control_address: Some("new_vc_addr".to_string()),
                 });
 
             assert_that!(res)

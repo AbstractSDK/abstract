@@ -38,6 +38,7 @@ fn install_module_version(
             module: MockInitMsg,
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
+                version_control_address: abstr.version_control.addr_str()?,
             },
         },
         None,
@@ -525,6 +526,7 @@ fn create_account_with_installed_module() -> AResult {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
                             },
                         })?),
                     ),
@@ -609,6 +611,7 @@ fn create_sub_account_with_installed_module() -> AResult {
                     module: MockInitMsg,
                     base: BaseInstantiateMsg {
                         ans_host_address: deployment.ans_host.addr_str()?,
+                        version_control_address: deployment.ans_host.addr_str()?,
                     },
                 })?),
             ),

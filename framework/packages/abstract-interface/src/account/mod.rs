@@ -159,7 +159,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let init_msg = abstract_core::app::InstantiateMsg {
             module: custom_init_msg,
             base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
+                ans_host_address: abstr.ans_host.addr_str()?,
+                version_control_address: abstr.version_control.addr_str()?,
             },
         };
         self.install_module_parse_addr(app, &init_msg, funds)
