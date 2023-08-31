@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - Install modules on account or Sub-account creation
+- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis
+- Manager governance now changes only after new "owner" claimed ownership
 
 ## [0.17.2] - 2023-07-27
 

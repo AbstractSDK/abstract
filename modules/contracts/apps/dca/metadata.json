@@ -1,9 +1,9 @@
 {
   "name": "DCA",
-  "description": "Create DCA for your abstract account ",
-  "website": "",
+  "description": "Create DCA strategies for any token using any dex",
+  "website": "https://abstract.money/",
   "docs": "",
-  "type": "api",
-  "icon": "GiTrade",
-  "enabled": true
+  "type": "app",
+  "icon": "RiCoinsLine",
+  "enabled": false
 }

@@ -1,15 +1,18 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
-use abstract_core::manager::state::{ACCOUNT_FACTORY, MODULE_QUEUE};
+use abstract_core::manager::state::{
+    ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
+};
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, QueryMsg};
+use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
+use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
@@ -40,7 +43,7 @@ use cosmwasm_std::{
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
-use cw_ownable::Ownership;
+use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
 
@@ -212,10 +215,10 @@ pub fn exec_on_module(
 
 #[allow(clippy::too_many_arguments)]
 /// Creates a sub-account for this account,
-pub fn create_subaccount(
+pub fn create_sub_account(
     deps: DepsMut,
-    env: Env,
     msg_info: MessageInfo,
+    env: Env,
     name: String,
     description: Option<String>,
     link: Option<String>,
@@ -227,9 +230,10 @@ pub fn create_subaccount(
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-        /// this contract (the manager) will be the account owner
+        /// proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
-            manager: env.contract.address.to_string(),
+            manager: env.contract.address.into_string(),
+            proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
         },
         name,
         description,
@@ -256,6 +260,64 @@ pub fn create_subaccount(
         .add_message(account_creation_message);
 
     Ok(response)
+}
+
+pub fn handle_sub_account_action(
+    deps: DepsMut,
+    info: MessageInfo,
+    action: UpdateSubAccountAction,
+) -> ManagerResult {
+    match action {
+        UpdateSubAccountAction::UnregisterSubAccount { id } => {
+            unregister_sub_account(deps, info, id)
+        }
+        UpdateSubAccountAction::RegisterSubAccount { id } => register_sub_account(deps, info, id),
+        _ => unimplemented!(),
+    }
+}
+
+// Unregister sub-account from the state
+fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.remove(deps.storage, id);
+
+        Ok(ManagerResponse::new(
+            "unregister_sub_account",
+            vec![("sub_account_removed", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRemovalFailed {})
+    }
+}
+
+// Register sub-account to the state
+fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.save(deps.storage, id, &Empty {})?;
+
+        Ok(ManagerResponse::new(
+            "register_sub_account",
+            vec![("sub_account_added", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRegisterFailed {})
+    }
 }
 
 /// Checked load of a module address
@@ -306,36 +368,84 @@ pub fn set_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
+    assert_admin_right(deps.as_ref(), &info.sender)?;
+    // In case it's a top level owner we need to pass current owner into update_ownership method
+    let owner = cw_ownable::get_ownership(deps.storage)?
+        .owner
+        .ok_or(cw_ownable::OwnershipError::NoOwner)?;
     // verify the provided governance details
-    let verified_gov = new_owner.verify(deps.api)?;
+    let config = CONFIG.load(deps.storage)?;
+    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov.owner_address();
 
-    // Update the account information
-    let mut acc_info = INFO.load(deps.storage)?;
-
     // Check that there are changes
+    let acc_info = INFO.load(deps.storage)?;
     if acc_info.governance_details == verified_gov {
         return Err(ManagerError::NoUpdates {});
     }
 
-    acc_info.governance_details = verified_gov.clone();
-    INFO.save(deps.storage, &acc_info)?;
+    let mut response = ManagerResponse::new(
+        "update_owner",
+        vec![("governance_type", verified_gov.to_string())],
+    );
 
+    PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
     let ownership = cw_ownable::update_ownership(
         deps,
         &env.block,
-        &info.sender,
+        &owner,
         cw_ownable::Action::TransferOwnership {
             new_owner: new_owner_addr.into_string(),
             expiry: None,
         },
     )?;
+    response = response.add_attributes(ownership.into_attributes());
+    Ok(response)
+}
 
-    let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
-    attrs.extend(ownership.into_attributes());
+/// Update governance of this account after claim
+pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+    let mut acc_info = INFO.load(storage)?;
+    let mut account_id = None;
+    // Get pending governance and clear it
+    let pending_governance = PENDING_GOVERNANCE
+        .may_load(storage)?
+        .ok_or(OwnershipError::TransferNotFound)?;
+    PENDING_GOVERNANCE.remove(storage);
 
-    Ok(ManagerResponse::new("update_owner", attrs))
+    // Clear state for previous manager if it was sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+        let id = ACCOUNT_ID.load(storage)?;
+        // For optimizing the gas we save it, in case new owner is sub-account as well
+        account_id = Some(id);
+        let unregister_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount { id }),
+            vec![],
+        )?;
+        msgs.push(unregister_message.into());
+    }
+
+    // Update state for new manager if owner will be the sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+        let id = if let Some(id) = account_id {
+            id
+        } else {
+            ACCOUNT_ID.load(storage)?
+        };
+        let register_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount { id }),
+            vec![],
+        )?;
+        msgs.push(register_message.into());
+    }
+    // Update governance of this account
+    acc_info.governance_details = pending_governance;
+    INFO.save(storage, &acc_info)?;
+    Ok(msgs)
 }
 
 /// Migrate modules through address updates or contract migrations
@@ -839,59 +949,85 @@ pub fn update_internal_config(
             })
             .collect::<ManagerResult<Vec<CosmosMsg>>>();
 
+        let mut response =
+            ManagerResponse::action("manager_after_init").add_messages(install_msgs?);
+
+        let account_info = INFO.load(deps.storage)?;
+        if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
+            response = response.add_message(wasm_execute(
+                manager,
+                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                    id: ACCOUNT_ID.load(deps.storage)?,
+                }),
+                vec![],
+            )?);
+        }
+
         // clear the queue
         MODULE_QUEUE.remove(deps.storage);
         // Remove account factory from storage
         ACCOUNT_FACTORY.set(deps, None)?;
 
-        Ok(ManagerResponse::action("manager_after_init").add_messages(install_msgs?))
+        Ok(response)
     } else {
         assert_admin_right(deps.as_ref(), &info.sender)?;
         update_module_addresses(deps, add, remove)
     }
 }
 
-fn query_ownership(deps: Deps, maybe_manager: Addr) -> ManagerResult<String> {
-    let Ownership::<String> { owner, .. } = deps
-        .querier
-        .query_wasm_smart(maybe_manager.clone(), &QueryMsg::Ownership {})
-        .map_err(|_| ManagerError::NoContractOwner(maybe_manager.to_string()))?;
-
-    owner.ok_or(ManagerError::NoContractOwner(maybe_manager.to_string()))
-}
-
+/// Function that guards all the admin rights.
+/// This function should return `Ok` when called by:
+/// - The owner of the contract (i.e. account).
+/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
 fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
     let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
 
-    if ownership_test.is_ok() {
-        return Ok(());
+    // If the sender is the owner, the admin test is passed
+    let mut ownership_error: ManagerError = match ownership_test {
+        Ok(()) => return Ok(()),
+        Err(err) => err.into(),
+    };
+
+    // In case it fails we get the account info and check if the current(this) account is a sub-account.
+    let mut current: AccountInfo = INFO.load(deps.storage)?;
+    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    for _ in 0..MAX_ADMIN_RECURSION {
+        match current.governance_details {
+            // As long as the accounts are sub-accounts, we check the owner of the parent account
+            GovernanceDetails::SubAccount { manager, .. } => {
+                current = INFO
+                    .query(&deps.querier, manager)
+                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
+
+                // Change error type if it was sub-account
+                ownership_error = ManagerError::SubAccountAdminVerification;
+            }
+            _ => break,
+        }
     }
 
-    let account_info = INFO.load(deps.storage)?;
-    match account_info.governance_details {
-        // If the account has SubAccount governance, the owner of the manager also has admin rights over this account
-        GovernanceDetails::SubAccount { manager } => {
-            // We try to query the ownership of the manager monarch account if the first query failed
-            let mut current = manager;
-            let mut i = 0;
-            while i < MAX_ADMIN_RECURSION {
-                let owner = query_ownership(deps, current)
-                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
-                if *sender == owner {
-                    // If the owner of the current contract is the sender, the admin test is passed
-                    return Ok(());
-                } else {
-                    // If not, we try again with the queried owner
-                    current = deps.api.addr_validate(&owner)?
-                }
-                i += 1;
+    match current.governance_details {
+        GovernanceDetails::Monarchy { monarch: owner }
+        | GovernanceDetails::External {
+            governance_address: owner,
+            ..
+        } => {
+            // If the owner of the top-level account is the sender, the admin test is passed.
+            // This gives the top-level owner the ability to manage all sub-accounts.
+            if *sender == owner {
+                Ok(())
+            } else {
+                Err(ownership_error)
             }
+        }
+        // MAX_ADMIN_RECURSION levels deep still sub account
+        GovernanceDetails::SubAccount { .. } => {
             Err(ManagerError::Std(StdError::generic_err(format!(
-                "Admin recursion error, too much recursion, maximum allowed admin recursion : {}",
+                "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
                 MAX_ADMIN_RECURSION
             ))))
         }
-        _ => Ok(ownership_test?),
+        _ => Err(ownership_error),
     }
 }
 
@@ -1029,10 +1165,19 @@ mod tests {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: GovernanceDetails::Monarchy { monarch: new_gov },
+                owner: GovernanceDetails::Monarchy {
+                    monarch: new_gov.clone(),
+                },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
+
+            let actual_info = INFO.load(deps.as_ref().storage)?;
+            assert_that!(&actual_info.governance_details.owner_address().to_string())
+                .is_equal_to("owner".to_string());
+
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            execute_as(deps.as_mut(), &new_gov, accept_msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
             assert_that!(&actual_info.governance_details.owner_address().to_string())
@@ -1866,6 +2011,13 @@ mod tests {
                     owner: None,
                     pending_expiry: None,
                     pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+            // mock pending governance
+            Item::new("pgov").save(
+                deps.as_mut().storage,
+                &GovernanceDetails::Monarchy {
+                    monarch: pending_owner.to_owned(),
                 },
             )?;
 

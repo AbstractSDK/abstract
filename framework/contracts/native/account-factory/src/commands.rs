@@ -38,7 +38,7 @@ pub fn execute_create_account(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    governance: GovernanceDetails<Addr>,
+    governance: GovernanceDetails<String>,
     name: String,
     description: Option<String>,
     link: Option<String>,
@@ -48,6 +48,7 @@ pub fn execute_create_account(
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
+    let governance = governance.verify(deps.as_ref(), config.version_control_contract.clone())?;
     // Check if the caller is the owner when instantiating the abstract account
     if config.next_account_id == ABSTRACT_ACCOUNT_ID {
         cw_ownable::assert_owner(deps.storage, &info.sender)?;
@@ -193,6 +194,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
 ) -> AccountFactoryResult {
     let mut config = CONFIG.load(deps.storage)?;
     let context = CONTEXT.load(deps.storage)?;
+    let account_id = config.next_account_id;
     CONTEXT.remove(deps.storage);
 
     let res: MsgInstantiateContractResponse =
@@ -230,7 +232,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
         contract_addr: config.version_control_contract.to_string(),
         funds: vec![],
         msg: to_binary(&VCExecuteMsg::AddAccount {
-            account_id: config.next_account_id,
+            account_id,
             account_base,
         })?,
     });
@@ -267,7 +269,7 @@ pub fn after_proxy_add_to_manager_and_set_admin(
                 contract_addr: config.version_control_contract.to_string(),
                 funds: vec![],
                 msg: to_binary(&VCExecuteMsg::ClaimNamespace {
-                    account_id: config.next_account_id,
+                    account_id,
                     namespace: n,
                 })?,
             }))

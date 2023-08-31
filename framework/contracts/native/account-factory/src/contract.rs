@@ -66,21 +66,18 @@ pub fn execute(
             namespace,
             base_asset,
             install_modules,
-        } => {
-            let gov_details = governance.verify(deps.api)?;
-            commands::execute_create_account(
-                deps,
-                env,
-                info,
-                gov_details,
-                name,
-                description,
-                link,
-                namespace,
-                base_asset,
-                install_modules,
-            )
-        }
+        } => commands::execute_create_account(
+            deps,
+            env,
+            info,
+            governance,
+            name,
+            description,
+            link,
+            namespace,
+            base_asset,
+            install_modules,
+        ),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)
         }
