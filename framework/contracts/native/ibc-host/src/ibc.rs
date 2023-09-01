@@ -2,7 +2,7 @@ use crate::{
     contract::HostResult,
     endpoints::reply::INIT_CALLBACK_ID,
 };
-use abstract_core::{account_factory, objects::AccountId, ibc_host::state::{CLIENT_PROXY, REGISTRATION_CACHE, CONFIG}};
+use abstract_core::{account_factory, objects::AccountId, ibc_host::state::{REGISTRATION_CACHE, CONFIG}};
 
 use cosmwasm_std::{
     wasm_execute, DepsMut, Env, Response, SubMsg,
@@ -15,7 +15,6 @@ pub fn receive_register(
     deps: DepsMut,
     env: Env,
     account_id: AccountId,
-    account_proxy_address: String,
     name: String,
     description: Option<String>,
     link: Option<String>,
@@ -48,8 +47,6 @@ pub fn receive_register(
     // wrap with a submsg
     let factory_msg = SubMsg::reply_on_success(factory_msg, INIT_CALLBACK_ID);
 
-    // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, &account_id, &account_proxy_address)?;
     // store the account info for the reply handler
     REGISTRATION_CACHE.save(deps.storage, &account_id.clone())?;
 

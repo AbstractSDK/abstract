@@ -4,8 +4,7 @@ use cw_orch::{
 };
 
 pub use abstract_core::ibc_host::{
-    ExecuteMsg, ExecuteMsgFns as IbcClientExecFns, InstantiateMsg, MigrateMsg, QueryMsg,
-    QueryMsgFns as IbcClientQueryFns,
+    ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg,
 };
 use cw_orch::{
     prelude::ArtifactsDir,

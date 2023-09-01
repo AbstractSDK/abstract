@@ -8,7 +8,7 @@ use abstract_core::{
         IbcClientCallback,
     },
     ibc_host, manager,
-    objects::{chain_name::ChainName, AccountId},
+    objects::{chain_name::ChainName, AccountId}, version_control::AccountBase,
 };
 use abstract_sdk::{
     core::{
@@ -118,6 +118,7 @@ fn send_remote_host_action(
     deps: Deps,
     env: Env,
     account_id: AccountId,
+    account: AccountBase,
     host_chain: ChainName,
     action: HostAction,
     callback_request: Option<CallbackRequest>,
@@ -131,7 +132,7 @@ fn send_remote_host_action(
         &polytone_note::msg::ExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 remote_ibc_host,
-                &ibc_host::ExecuteMsg::Execute { account_id, action },
+                &ibc_host::ExecuteMsg::Execute { proxy_address: account.proxy.to_string(), account_id, action },
                 vec![],
             )?
             .into()],
@@ -177,24 +178,11 @@ pub fn execute_send_packet(
         deps.as_ref(),
         env,
         account_id,
+        account_base,
         host_chain,
         action,
         callback_request,
     )?;
-
-    // Old packet
-    // let packet = PacketMsg {
-    //     host_chain,
-    //     retries,
-    //     account_id,
-    //     callback_info,
-    //     action,
-    // };
-    // let msg = IbcMsg::SendPacket {
-    //     channel_id: channel,
-    //     data: to_binary(&packet)?,
-    //     timeout: env.block.time.plus_seconds(PACKET_LIFETIME).into(),
-    // };
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
@@ -219,16 +207,16 @@ pub fn execute_register_account(
 
     let account_info: manager::InfoResponse = deps
         .querier
-        .query_wasm_smart(account_base.manager, &manager::QueryMsg::Info {})?;
+        .query_wasm_smart(account_base.manager.clone(), &manager::QueryMsg::Info {})?;
     let account_info = account_info.info;
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
         env,
         account_id,
+        account_base,
         host_chain,
         HostAction::Internal(InternalAction::Register {
-            account_proxy_address: account_base.proxy.into_string(),
             description: account_info.description,
             link: account_info.link,
             name: account_info.name,
@@ -261,7 +249,7 @@ pub fn execute_send_funds(
     let remote_addr = ACCOUNTS.load(deps.storage, (&account_id, &host_chain))?;
 
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: host_chain.into(),
+        connected_chain: host_chain,
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;

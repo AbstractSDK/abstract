@@ -5,24 +5,50 @@ use crate::{
     ibc::receive_register,
 };
 use abstract_core::{
-    objects::AccountId,
-    ibc_host::state::{CLIENT_PROXY, REVERSE_CHAIN_PROXYS}
+    objects::{AccountId, chain_name::ChainName},
+    ibc_host::{state::{REVERSE_CHAIN_PROXYS, TEMP_ACTION_AFTER_CREATION, ActionAfterCreationCache}, ExecuteMsg}
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, StdError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, StdError, wasm_execute, SubMsg, Response};
+
+use super::reply::INIT_BEFORE_ACTION_REPLY_ID;
 
 /// Takes ibc request, matches and executes
-/// This fn is the only way to get an Host instance.
 pub fn handle_host_action(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    mut account_id: AccountId,
+    proxy_address: String,
+    account_id: AccountId,
     host_action: HostAction,
 ) -> HostResult {
     // We verify the caller is indeed registered for the calling chain
     let client_chain = REVERSE_CHAIN_PROXYS.load(deps.storage, &info.sender)?;
 
+    // We execute the action 
+    _handle_host_action(
+        deps,
+        env,
+        client_chain,
+        proxy_address,
+        account_id,
+        host_action
+    )
+}
+
+// Internal function non permissioned
+// We added this step to be able to execute actions from inside the ibc host
+pub(crate) fn _handle_host_action(
+    deps: DepsMut,
+    env: Env,
+    client_chain: ChainName,
+    proxy_address: String,
+    mut account_id: AccountId,
+    host_action: HostAction,
+) -> HostResult{
+
+    // Save the received account id 
+    let remote_account_id = account_id.clone();
     // push the client chain to the account trace
     account_id.trace_mut().push_chain(client_chain.clone());
 
@@ -32,32 +58,54 @@ pub fn handle_host_action(
             description,
             link,
             name,
-            account_proxy_address,
         }) => receive_register(
             deps,
             env,
             account_id,
-            account_proxy_address,
             name,
             description,
             link,
         ),
 
         action => {
-            let account = account_commands::get_account(deps.as_ref(), &account_id)?;
-            match action {
-                HostAction::Dispatch { manager_msg } => {
-                    receive_dispatch(deps, account, manager_msg)
+
+            // If this account already exists, we can propagate the action
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id){
+                match action {
+                    HostAction::Dispatch { manager_msg } => {
+                        receive_dispatch(deps, account, manager_msg)
+                    }
+                    HostAction::SendAllBack {} => {
+                        receive_send_all_back(deps, env, account, proxy_address, client_chain)
+                    }
+                    HostAction::Internal(InternalAction::Register { .. }) => {
+                        Err(HostError::Std(StdError::generic_err("Unreachable")))
+                    }
+                    HostAction::App { msg: _ } => todo!(),
                 }
-                HostAction::SendAllBack {} => {
-                    // address of the proxy on the client chain
-                    let client_proxy_address = CLIENT_PROXY.load(deps.storage, &account_id)?;
-                    receive_send_all_back(deps, env, account, client_proxy_address, client_chain)
-                }
-                HostAction::Internal(InternalAction::Register { .. }) => {
-                    Err(HostError::Std(StdError::generic_err("Unreachable")))
-                }
-                HostAction::App { msg: _ } => todo!(),
+            }else{
+                // If no account is created already, we create one and execute the action on reply
+                // The account metadata are not set with this call
+                // One will have to change them at a later point if they decide to
+                let create_account_message = wasm_execute(env.contract.address, &ExecuteMsg::InternalRegisterAccount 
+                    { 
+                        client_chain: client_chain.clone(),
+                        account_id,
+
+                    } , vec![])?;
+
+                // We save the action they wanted to dispatch
+                TEMP_ACTION_AFTER_CREATION.save(deps.storage, &ActionAfterCreationCache{
+                    action,
+                    client_proxy_address: proxy_address,
+                    account_id: remote_account_id,
+                    chain_name: client_chain,
+                })?;
+
+                // We add a submessage after account creation to dispatch the action
+                let sub_msg = SubMsg::reply_on_success(create_account_message, INIT_BEFORE_ACTION_REPLY_ID);
+
+                Ok(Response::new().add_submessage(sub_msg))
             }
         }
     }

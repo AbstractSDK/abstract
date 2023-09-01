@@ -11,7 +11,7 @@ use abstract_core::{
 };
 use abstract_macros::abstract_response;
 use cosmwasm_std::{
-    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdError, StdResult,
+    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
 };
 use cw_semver::Version;
 

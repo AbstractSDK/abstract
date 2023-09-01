@@ -1,10 +1,10 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    HostError,
+    HostError, ibc::receive_register,
 };
 use abstract_core::{objects::chain_name::ChainName, proxy::state::ADMIN, ibc_host::state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS}};
 use abstract_sdk::core::ibc_host::ExecuteMsg;
-use cosmwasm_std::{DepsMut, Env, MessageInfo};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, ensure_eq};
 
 use super::packet::handle_host_action;
 
@@ -40,8 +40,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             // TODO:
             todo!()
         }
-        ExecuteMsg::Execute { account_id, action } => {
-            handle_host_action(deps, env, info, account_id, action)
+        ExecuteMsg::Execute { proxy_address, account_id, action } => {
+            handle_host_action(deps, env, info, proxy_address, account_id, action)
+        },
+        ExecuteMsg::InternalRegisterAccount { account_id, client_chain } => {
+            ensure_eq!(env.contract.address, info.sender, HostError::Unauthorized);
+
+            let name = format!("Remote Abstract Account for {}/{}", client_chain.as_str(), account_id);
+            receive_register(deps, env, account_id, name, None, None)
         }
     }
 }

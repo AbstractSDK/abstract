@@ -23,14 +23,14 @@ pub mod state {
 
     /// Store channel information for account creation reply
     pub const REGISTRATION_CACHE: Item<AccountId> = Item::new("rc");
-    /// account_id -> client_proxy_addr
-    pub const CLIENT_PROXY: Map<&AccountId, String> = Map::new("cp");
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXYS: Map<&ChainName, Addr> = Map::new("ccl");
     pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("reverse-ccl");
     /// Configuration of the IBC host
     pub const CONFIG: Item<'static, Config> = Item::new("cfg");
 
+    // Temporary structure to hold actions to be executed after account creation
+    pub const TEMP_ACTION_AFTER_CREATION: Item<'static, ActionAfterCreationCache> = Item::new("act");
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]
@@ -41,6 +41,14 @@ pub mod state {
         pub account_factory: Addr,
         /// Address of the local version control, for retrieving account information
         pub version_control: Addr,
+    }
+
+    #[cosmwasm_schema::cw_serde]
+    pub struct ActionAfterCreationCache{
+        pub client_proxy_address: String,
+        pub account_id: AccountId,
+        pub action: HostAction,
+        pub chain_name: ChainName,
     }
 
 }
@@ -61,9 +69,8 @@ pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
 pub enum InternalAction {
-    /// Registers a new account on the remote chain
+    /// Registers a new account from a remote chain
     Register {
-        account_proxy_address: String,
         name: String,
         description: Option<String>,
         link: Option<String>,
@@ -79,7 +86,7 @@ pub enum HostAction {
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    SendAllBack {}, // This could be a manager message directly ?
+    SendAllBack {},
     /// Can't be called through the packet endpoint directly
     Internal(InternalAction),
 }
@@ -100,6 +107,11 @@ pub enum ExecuteMsg {
     RegisterChainProxy { chain: ChainName, proxy: String },
     /// Remove the Polytone proxy for a specific chain.
     RemoveChainProxy { chain: ChainName },
+    /// Create an account internally (used for account creation before account action)
+    InternalRegisterAccount{
+        client_chain: ChainName,
+        account_id: AccountId,
+    },
     /// Allow for fund recovery through the Admin
     RecoverAccount {
         closed_channel: String,
@@ -107,8 +119,12 @@ pub enum ExecuteMsg {
         msgs: Vec<CosmosMsg>,
     },
     /// Allows for remote execution from the Polytone implementation
+    #[cfg_attr(feature = "interface", fn_name("ibc_execute"))]
     Execute {
         account_id: AccountId,
+        /// The address of the calling account id. This is used purely for the send-all-back method.
+        /// We include it in all messages one-the-less to simpify the users life 
+        proxy_address: String,
         action: HostAction,
     },
 }

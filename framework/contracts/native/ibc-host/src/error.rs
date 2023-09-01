@@ -48,6 +48,9 @@ pub enum HostError {
 
     #[error("Chain or proxy address already registered.")]
     ProxyAddressExists,
+
+    #[error("Unauthorized action")]
+    Unauthorized,
 }
 
 impl From<semver::Error> for HostError {
