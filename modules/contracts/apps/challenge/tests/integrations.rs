@@ -6,7 +6,10 @@ use abstract_challenge_app::{
         ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, CheckInResponse, FriendsResponse,
         InstantiateMsg, VoteResponse,
     },
-    state::{ChallengeEntry, ChallengeEntryUpdate, Friend, Penalty, UpdateFriendsOpKind, Vote},
+    state::{
+        ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, Friend, Penalty,
+        UpdateFriendsOpKind, Vote,
+    },
     *,
 };
 use abstract_core::{
@@ -26,6 +29,8 @@ use lazy_static::lazy_static;
 // consts for testing
 const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
+const END_BLOCK: u64 = 100_000_000;
+const CHALLENGE_ID: u64 = 1;
 lazy_static! {
     static ref CHALLENGE: ChallengeEntry = ChallengeEntry::new(
         "test".to_string(),
@@ -33,7 +38,7 @@ lazy_static! {
             asset: OfferAsset::new("denom", Uint128::new(100)),
         },
         "Test Challenge".to_string(),
-        10
+        END_BLOCK,
     );
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
     static ref BOB_ADDRESS: String = "bob0x".to_string();
@@ -171,7 +176,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
 }
 
 #[test]
-fn successful_install() -> anyhow::Result<()> {
+fn test_should_successful_install() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
     let query_res = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
@@ -425,7 +430,7 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 
     assert_eq!(vote.vote.unwrap().approval, Some(true));
 
-    apps.challenge_app.count_votes(1)?;
+    apps.challenge_app.tally_votes(1)?;
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
@@ -436,15 +441,23 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
+    let response = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: CHALLENGE_ID,
+        }))?;
+
+    let mut challenge = CHALLENGE.clone();
+    challenge.status = ChallengeStatus::Active;
+    assert_eq!(response.challenge.unwrap(), challenge);
+
     apps.challenge_app.update_friends_for_challenge(
-        1,
+        CHALLENGE_ID,
         FRIENDS.clone(),
         UpdateFriendsOpKind::Add,
     )?;
 
-    for vote in ONE_NO_VOTE.clone() {
-        apps.challenge_app.cast_vote(1, vote)?;
-    }
+    run_challenge_vote_sequence(&mock, &apps, ONE_NO_VOTE.clone())?;
 
     let response =
         apps.challenge_app
@@ -470,7 +483,11 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
             }))?;
     assert_eq!(response.vote.unwrap().approval, Some(true));
 
-    apps.challenge_app.count_votes(1)?;
+    apps.challenge_app.tally_votes(CHALLENGE_ID)?;
+
+    // This would be done via a croncat job
+    // by querying the challenge, if challenge.status == ChallengeStatus::OverAndFailed
+    apps.challenge_app.charge_penalty(CHALLENGE_ID)?;
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(49999901));
@@ -487,9 +504,7 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    for vote in ONE_NO_VOTE.clone() {
-        apps.challenge_app.cast_vote(1, vote)?;
-    }
+    run_challenge_vote_sequence(&mock, &apps, ONE_NO_VOTE.clone())?;
 
     let response =
         apps.challenge_app
@@ -497,7 +512,6 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
                 challenge_id: 1,
                 voter_addr: ALICE_ADDRESS.clone(),
             }))?;
-
     // Only Alice voted false the rest voted true
     assert_eq!(response.vote.unwrap().approval, Some(false));
 
@@ -507,14 +521,14 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
                 challenge_id: 1,
                 voter_addr: BOB_ADDRESS.clone(),
             }))?;
-
     assert_eq!(response.vote.unwrap().approval, Some(true));
 
-    let challenge_id = 1;
     apps.challenge_app
-        .veto_vote(challenge_id, ALICE_NO_VOTE.clone())?;
+        .veto_vote(CHALLENGE_ID, ALICE_NO_VOTE.clone())?;
 
-    apps.challenge_app.count_votes(1)?;
+    apps.challenge_app.tally_votes(1)?;
+    apps.challenge_app.charge_penalty(CHALLENGE_ID)?;
+
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // The false vote was vetoed by the admin, so no penalty should be charged,
     // so balance will be 50_000_000
@@ -557,5 +571,43 @@ fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
     // 10 challenges exist, but we start after 5 and limit to 8,
     // so we should get 3 challenges
     assert_eq!(response.0.len(), 3);
+    Ok(())
+}
+
+fn run_challenge_vote_sequence(
+    mock: &Mock,
+    apps: &DeployedApps,
+    votes: Vec<Vote<String>>,
+) -> anyhow::Result<()> {
+    for _ in 0..3 {
+        mock.wait_blocks(10)?;
+        apps.challenge_app.daily_check_in(1, None)?;
+    }
+
+    //update the blockheight
+    mock.app.borrow_mut().update_block(|b| {
+        b.height = END_BLOCK + 1;
+    });
+
+    // On this check_in, the blockeight is passed the challenge.end_block
+    // so the challenge.status should be set to ChallengeStatus::OverAndPending
+    apps.challenge_app.daily_check_in(1, None)?;
+
+    let response = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: 1,
+        }))?;
+
+    // The challenge status should be set to ChallengeStatus::OverAndPending
+    // because the challenge.end_block has passed
+    assert_eq!(
+        response.challenge.clone().unwrap().status,
+        ChallengeStatus::OverAndPending
+    );
+
+    for vote in votes.clone() {
+        apps.challenge_app.cast_vote(1, vote)?;
+    }
     Ok(())
 }

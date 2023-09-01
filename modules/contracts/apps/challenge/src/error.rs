@@ -41,6 +41,6 @@ pub enum AppError {
     #[error("Voter not found")]
     VoterNotFound {},
 
-    #[error("The challenge is status is not correct for this action")]
+    #[error("The challenge status is not correct for this action")]
     WrongChallengeStatus {},
 }

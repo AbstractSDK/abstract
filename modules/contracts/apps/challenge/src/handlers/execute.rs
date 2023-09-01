@@ -9,8 +9,8 @@ use abstract_sdk::prelude::*;
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
     ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, Friend, Penalty,
-    UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, NEXT_ID,
-    VOTES,
+    UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, CHALLENGE_VOTES,
+    DAILY_CHECK_INS, NEXT_ID, VOTES,
 };
 
 pub fn execute_handler(
@@ -43,11 +43,13 @@ pub fn execute_handler(
         ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
             cast_vote(deps, env, info, &app, vote, challenge_id)
         }
-        ChallengeExecuteMsg::CountVotes { challenge_id } => {
-            count_votes(deps, info, env, &app, challenge_id)
-        }
+
+        ChallengeExecuteMsg::TallyVotes { challenge_id } => tally_votes(deps, env, challenge_id),
         ChallengeExecuteMsg::VetoVote { vote, challenge_id } => {
             veto_vote(deps, info, env, challenge_id, vote)
+        }
+        ChallengeExecuteMsg::ChargePenalty { challenge_id } => {
+            charge_penalty(deps, info, &app, challenge_id)
         }
     }
 }
@@ -55,7 +57,7 @@ pub fn execute_handler(
 /// Create new challenge
 fn create_challenge(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     app: ChallengeApp,
     mut challenge: ChallengeEntry,
@@ -71,8 +73,13 @@ fn create_challenge(
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     challenge.status = ChallengeStatus::Active;
-
     CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+
+    // Create the initial check_in entry
+    DAILY_CHECK_INS.save(deps.storage, challenge_id.clone(), &CheckIn::initial(&env))?;
+
+    // Create the initial challenge_votes entry
+    CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &Vec::new())?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -250,14 +257,19 @@ fn daily_check_in(
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::OverAndPending;
                 CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
-                return Err(AppError::Std(StdError::generic_err(
-                    "Challenge has ended, ChallengeStatus is now OverAndPending",
-                )));
+                return Ok(Response::new()
+                    .add_attribute("action", "check_in")
+                    .add_attribute(
+                        "message",
+                        "Challenge has ended. You can no longer register a daily check in. 
+                         ChallengeStatus has been set to OverAndPending.",
+                    ));
             }
             _ => {
-                return Err(AppError::Std(StdError::generic_err(
-                    "Challenge has ended. You can no longer register a daily check in.",
-                )));
+                return Err(AppError::Std(StdError::generic_err(format!(
+                    "Challenge has ended. Challenge is {:?} current block height is {}",
+                    challenge, env.block.height
+                ))));
             }
         }
     }
@@ -322,28 +334,20 @@ fn daily_check_in(
         }
     } else {
         return Err(AppError::Std(StdError::generic_err(
-            "Something went wrong with the check in.",
+            "Check in not found for this challenge",
         )));
     }
 }
 
 fn cast_vote(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     _info: MessageInfo,
     _app: &ChallengeApp,
     vote: Vote<String>,
     challenge_id: u64,
 ) -> AppResult {
     let vote = vote.check(deps.as_ref())?;
-    let now = env.block.time.seconds();
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    match challenge.status {
-        ChallengeStatus::Active => {}
-        ChallengeStatus::OverAndPending => {}
-        _ => {}
-    }
-
     let vote = vote.optimisitc();
     // check that the vote.voter has note has not voted
     if VOTES
@@ -360,62 +364,41 @@ fn cast_vote(
             (challenge_id.to_owned(), vote.voter.to_owned()),
             &vote,
         )?;
+        let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id.clone())?;
+        challenge_votes.push(vote);
+        CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &challenge_votes)?;
     }
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
-fn count_votes(
-    deps: DepsMut,
-    info: MessageInfo,
-    _env: Env,
-    app: &ChallengeApp,
-    challenge_id: u64,
-) -> AppResult {
-    let votes = VOTES.may_load(
-        deps.storage,
-        (challenge_id.to_owned(), info.sender.to_owned()),
-    )?;
+fn tally_votes(deps: DepsMut, _env: Env, challenge_id: u64) -> AppResult {
+    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    if challenge.status != ChallengeStatus::OverAndPending {
+        return Err(AppError::WrongChallengeStatus {});
+    }
+
+    let votes = CHALLENGE_VOTES.load(deps.storage, challenge_id)?;
 
     let any_false_vote = votes.iter().any(|v| v.approval == Some(false));
     if any_false_vote {
-        return charge_penalty(deps, info, app, challenge_id);
-    }
-
-    Ok(Response::new().add_attribute("action", "count_votes"))
-}
-
-fn veto_vote(
-    deps: DepsMut,
-    info: MessageInfo,
-    _env: Env,
-    challenge_id: u64,
-    vote: Vote<String>,
-) -> AppResult {
-    if info.sender.to_string() != ADMIN.load(deps.storage)? {
-        return Err(AppError::Std(StdError::generic_err(
-            "Only the admin can veto a vote",
-        )));
-    }
-
-    let vote = vote.check(deps.as_ref())?;
-    let mut fetched_vote = VOTES.may_load(
-        deps.storage,
-        (challenge_id.to_owned(), vote.voter.to_owned()),
-    )?;
-
-    // we set the vote the opposite to what it currently is
-    if let Some(v) = &mut fetched_vote {
-        v.approval = Some(!v.approval.unwrap());
-        VOTES.remove(deps.storage, (challenge_id.clone(), vote.voter.to_owned()));
-        VOTES.save(
-            deps.storage,
-            (challenge_id.clone(), vote.voter.to_owned()),
-            v,
-        )?;
-
-        return Ok(Response::new().add_attribute("action", "count_votes"));
+        challenge.status = ChallengeStatus::OverAndFailed;
+        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+        return Ok(Response::new()
+            .add_attribute("action", "tally_vote")
+            .add_attribute(
+                "message",
+                "At least one vote was negative. ChallengeStatus has been set to OverAndFailed.",
+            ));
     } else {
-        Err(AppError::VoterNotFound {})
+        challenge.status = ChallengeStatus::OverAndCompleted;
+        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+
+        return Ok(Response::new()
+            .add_attribute("action", "tally_vote")
+            .add_attribute(
+                "message",
+                "All votes were positive. ChallengeStatus has been set to OverAndCompleted.",
+            ));
     }
 }
 
@@ -426,6 +409,11 @@ fn charge_penalty(
     challenge_id: u64,
 ) -> AppResult {
     deps.api.addr_validate(info.sender.as_ref())?;
+
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    if challenge.status != ChallengeStatus::OverAndFailed {
+        return Err(AppError::WrongChallengeStatus {});
+    }
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id.clone())?;
 
@@ -471,5 +459,38 @@ fn charge_penalty(
             //let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
             Ok(Response::new().add_attribute("action", "charge_daily_penalty"))
         }
+    }
+}
+fn veto_vote(
+    deps: DepsMut,
+    info: MessageInfo,
+    _env: Env,
+    challenge_id: u64,
+    vote: Vote<String>,
+) -> AppResult {
+    if info.sender.to_string() != ADMIN.load(deps.storage)? {
+        return Err(AppError::Std(StdError::generic_err(
+            "Only the admin can veto a vote",
+        )));
+    }
+
+    let vote = vote.check(deps.as_ref())?;
+    let fetched_vote = VOTES.may_load(
+        deps.storage,
+        (challenge_id.to_owned(), vote.voter.to_owned()),
+    )?;
+
+    // we set the vote the opposite to what it currently is
+    if let Some(mut to_veto) = fetched_vote {
+        to_veto.approval = Some(!to_veto.approval.unwrap());
+        VOTES.save(
+            deps.storage,
+            (challenge_id.clone(), vote.voter.to_owned()),
+            &to_veto,
+        )?;
+
+        return Ok(Response::new().add_attribute("action", "veto vote"));
+    } else {
+        Err(AppError::VoterNotFound {})
     }
 }

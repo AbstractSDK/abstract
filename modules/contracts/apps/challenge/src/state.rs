@@ -1,5 +1,5 @@
 use abstract_dex_adapter::msg::OfferAsset;
-use cosmwasm_std::{Addr, Deps, StdResult};
+use cosmwasm_std::{Addr, Deps, Env, StdResult};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -50,6 +50,7 @@ pub enum ChallengeStatus {
     OverAndCompleted,
     /// The challenge is over, the votes have been conted and the admin has failed,
     /// their collateral is owed to the friends.
+    /// This valued can be used to trigger an automated Croncat job to pay out the collateral.
     OverAndFailed,
 
     /// The final status of the challenge can be one of two variants:
@@ -156,11 +157,27 @@ pub struct CheckIn {
     pub metadata: Option<String>,
 }
 
+impl CheckIn {
+    pub fn initial(env: &Env) -> Self {
+        CheckIn {
+            last_checked_in: env.block.height,
+            next_check_in_by: env.block.height + 100_000,
+            metadata: None,
+        }
+    }
+}
+
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const ADMIN: Item<Addr> = Item::new("admin");
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
+
 /// Key is a tuple of (challenge_id, voter_address).
+/// By using a composite key, it ensures only one user can vote per challenge.
 pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
+
+/// For looking up all the votes by id. This is used to tally the votes.
+pub const CHALLENGE_VOTES: Map<u64, Vec<Vote<Addr>>> = Map::new("challenge_votes");
+
 // use a snapshot map?
 pub const DAILY_CHECK_INS: Map<u64, CheckIn> = Map::new("daily_checkins");

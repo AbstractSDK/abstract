@@ -41,11 +41,14 @@ pub enum ChallengeExecuteMsg {
         /// otherwise the voter would Vote with approval set to Some(false).
         vote: Vote<String>,
     },
-    CountVotes {
+    TallyVotes {
         challenge_id: u64,
     },
     VetoVote {
         vote: Vote<String>,
+        challenge_id: u64,
+    },
+    ChargePenalty {
         challenge_id: u64,
     },
 }
@@ -81,12 +84,12 @@ pub struct CheckInResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub struct VoteResponse {
+    pub vote: Option<Vote<Addr>>,
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct ChallengesResponse(pub Vec<ChallengeEntry>);
 
 #[cosmwasm_schema::cw_serde]
 pub struct FriendsResponse(pub Vec<Friend<Addr>>);
-
-#[cosmwasm_schema::cw_serde]
-pub struct VoteResponse {
-    pub vote: Option<Vote<Addr>>,
-}
