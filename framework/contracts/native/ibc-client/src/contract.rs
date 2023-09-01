@@ -113,33 +113,6 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> IbcClientResult {
     Ok(IbcClientResponse::action("migrate"))
 }
 
-/// Sudo endpoint used for receiving ibc callbacks (from osmosis-ibc-hooks)
-/// This is a test to verify that the ibc hooks are available on most chains
-#[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn sudo(deps: DepsMut, _env: Env, msg: SudoMsg) -> IbcClientResult {
-    // Once we receive a sudo message, we store the ack in storage
-
-    match msg {
-        SudoMsg::IBCLifecycleComplete(IBCLifecycleComplete::IBCAck {
-            channel: _,
-            sequence: _,
-            ack,
-            success,
-        }) => {
-            if success {
-                let mut acks = ACKS.load(deps.storage).unwrap_or(vec![]);
-                acks.push(ack);
-                ACKS.save(deps.storage, &acks)?;
-            } else {
-                return Err(IbcClientError::Std(StdError::generic_err("Ack failed")));
-            }
-        }
-        _ => return Err(IbcClientError::Std(StdError::generic_err("Wrong variant"))),
-    }
-
-    Ok(IbcClientResponse::action("sudo-callback"))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

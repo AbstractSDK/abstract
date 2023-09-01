@@ -25,15 +25,11 @@ cw-utils = { workspace = true }
 cw-controllers = { workspace = true }
 cw-storage-plus = { workspace = true }
 cw2 = { workspace = true }
-cw20 = { workspace = true }
-cw-asset = { workspace = true }
+cw-ownable = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-core = { workspace = true }
 semver = { workspace = true }
-cw-semver = { workspace = true }
 abstract-macros = { workspace = true }
-cw-ownable = { workspace = true }
-cw-storage-macro = "1.0"

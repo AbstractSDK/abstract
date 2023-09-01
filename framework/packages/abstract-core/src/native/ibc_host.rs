@@ -14,6 +14,36 @@ use crate::{
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg};
 
+pub mod state {
+    use cw_storage_plus::{Item, Map};
+
+    use crate::objects::ans_host::AnsHost;
+
+    use super::*;
+
+    /// Store channel information for account creation reply
+    pub const REGISTRATION_CACHE: Item<AccountId> = Item::new("rc");
+    /// account_id -> client_proxy_addr
+    pub const CLIENT_PROXY: Map<&AccountId, String> = Map::new("cp");
+    /// Maps a chain name to the proxy it uses to interact on this local chain
+    pub const CHAIN_PROXYS: Map<&ChainName, Addr> = Map::new("ccl");
+    pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("reverse-ccl");
+    /// Configuration of the IBC host
+    pub const CONFIG: Item<'static, Config> = Item::new("cfg");
+
+
+    /// The BaseState contains the main addresses needed for sending and verifying messages
+    #[cosmwasm_schema::cw_serde]
+    pub struct Config {
+        /// AnsHost contract struct (address)
+        pub ans_host: AnsHost,
+        /// Address of the account factory, used to create remote accounts
+        pub account_factory: Addr,
+        /// Address of the local version control, for retrieving account information
+        pub version_control: Addr,
+    }
+
+}
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
 #[cosmwasm_schema::cw_serde]

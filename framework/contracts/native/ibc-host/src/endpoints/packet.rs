@@ -3,9 +3,11 @@ use crate::{
     contract::HostResult,
     error::HostError,
     ibc::receive_register,
-    state::{CLIENT_PROXY, REVERSE_CHAIN_PROXYS},
 };
-use abstract_core::objects::AccountId;
+use abstract_core::{
+    objects::AccountId,
+    ibc_host::state::{CLIENT_PROXY, REVERSE_CHAIN_PROXYS}
+};
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, StdError};
 

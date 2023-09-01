@@ -1,7 +1,6 @@
 use crate::{
     contract::{HostResponse, HostResult},
     endpoints::reply::RESPONSE_REPLY_ID,
-    state::{CONFIG, RESULTS},
     HostError,
 };
 use abstract_core::{
@@ -9,7 +8,7 @@ use abstract_core::{
     objects::{chain_name::ChainName, AccountId},
     proxy,
     version_control::AccountBase,
-    PROXY,
+    PROXY, ibc_host::state::CONFIG,
 };
 use abstract_sdk::{
     core::{
@@ -81,8 +80,6 @@ pub fn receive_send_all_back(
         client_proxy_address,
         client_chain,
     )?;
-    // reset the data field
-    RESULTS.save(deps.storage, &vec![])?;
 
     Ok(HostResponse::action("receive_dispatch").add_message(wasm_msg))
 }

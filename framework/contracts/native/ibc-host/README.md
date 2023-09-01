@@ -14,6 +14,6 @@ Proxy a set of execute messages to the Account's proxy on the host chain.
 
 ## IBC
 
-Channel creation is permissionless but must be done between the host and an approved client address. Channels that are created between this host and the client will be mapped to a chain-name. This chain-name is used to identify the chain when performing cross-chain actions.
+In order to connect this host contract to the client contract on a remote chain, one need to use an IBC protocol that can relay packets between chains. In our case, we use Polytone by DA0-DA0, which provides great flexibility and built in security (by not mixing up chains), as well as common channels with all other protocols that build cross chain apps. This allows for easier maintainability and collaboration. 
 
-In case of changes to the network's chain-id the chain name will remain identical. This enables easy migration by clearing the 
+This host contract need to whitelist Polytone's execution proxy for each chain it communicates with. IBC Channels are therefore identified with the chain name, which allows for easy migration, even when the chain id changes !

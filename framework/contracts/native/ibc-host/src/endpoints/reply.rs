@@ -1,9 +1,9 @@
 use crate::{
     account_commands::{self},
     contract::{HostResponse, HostResult},
-    state::REGISTRATION_CACHE,
     HostError,
 };
+use abstract_core::ibc_host::state::REGISTRATION_CACHE;
 use abstract_sdk::core::abstract_ica::{RegisterResponse, StdAck};
 use cosmwasm_std::{DepsMut, Env, Reply, Response};
 

@@ -1,50 +1,12 @@
 use crate::{
     contract::HostResult,
     endpoints::reply::INIT_CALLBACK_ID,
-    state::{CLIENT_PROXY, CONFIG, REGISTRATION_CACHE},
-    HostError,
 };
-use abstract_core::{account_factory, objects::AccountId};
-use abstract_sdk::core::abstract_ica::{IbcQueryResponse, StdAck};
+use abstract_core::{account_factory, objects::AccountId, ibc_host::state::{CLIENT_PROXY, REGISTRATION_CACHE, CONFIG}};
+
 use cosmwasm_std::{
-    to_vec, wasm_execute, Binary, ContractResult, Deps, DepsMut, Empty, Env, IbcReceiveResponse,
-    QuerierWrapper, QueryRequest, Response, StdError, SubMsg, SystemResult,
+    wasm_execute, DepsMut, Env, Response, SubMsg,
 };
-
-fn unparsed_query(
-    querier: QuerierWrapper<'_, Empty>,
-    request: &QueryRequest<Empty>,
-) -> Result<Binary, HostError> {
-    let raw = to_vec(request)?;
-    match querier.raw_query(&raw) {
-        SystemResult::Err(system_err) => {
-            Err(StdError::generic_err(format!("Querier system error: {system_err}")).into())
-        }
-        SystemResult::Ok(ContractResult::Err(contract_err)) => {
-            Err(StdError::generic_err(format!("Querier contract error: {contract_err}")).into())
-        }
-        SystemResult::Ok(ContractResult::Ok(value)) => Ok(value),
-    }
-}
-
-// processes IBC query
-pub fn receive_query(
-    deps: Deps,
-    msgs: Vec<QueryRequest<Empty>>,
-) -> Result<IbcReceiveResponse, HostError> {
-    let mut results = vec![];
-
-    for query in msgs {
-        let res = unparsed_query(deps.querier, &query)?;
-        results.push(res);
-    }
-    let response = IbcQueryResponse { results };
-
-    let acknowledgement = StdAck::success(response);
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_attribute("action", "receive_ibc_query"))
-}
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account

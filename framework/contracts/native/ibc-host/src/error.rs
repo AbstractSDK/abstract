@@ -50,8 +50,8 @@ pub enum HostError {
     ProxyAddressExists,
 }
 
-impl From<cw_semver::Error> for HostError {
-    fn from(err: cw_semver::Error) -> Self {
+impl From<semver::Error> for HostError {
+    fn from(err: semver::Error) -> Self {
         Self::SemVer(err.to_string())
     }
 }

@@ -1,8 +1,9 @@
-use crate::{
-    contract::{HostResponse, HostResult, CONTRACT_VERSION},
-    state::{Config, CONFIG},
+use crate::contract::{HostResponse, HostResult, CONTRACT_VERSION};
+use abstract_core::{
+    IBC_HOST,
+    ibc_host::
+    state::{Config, CONFIG}
 };
-use abstract_core::IBC_HOST;
 use abstract_sdk::{core::ibc_host::InstantiateMsg, feature_objects::AnsHost};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 use cw2::set_contract_version;

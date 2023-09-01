@@ -1,11 +1,10 @@
 use abstract_core::{
-    ibc_host::{ConfigResponse, RegisteredChainResponse, RegisteredChainsResponse},
+    ibc_host::{ConfigResponse, RegisteredChainResponse, RegisteredChainsResponse, state::{CHAIN_PROXYS, CONFIG}},
     objects::chain_name::ChainName,
 };
 use abstract_sdk::core::ibc_host::QueryMsg;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 
-use crate::state::{CHAIN_PROXYS, CONFIG};
 
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> StdResult<Binary> {
     match query {
@@ -23,6 +22,8 @@ fn dapp_config(deps: Deps) -> StdResult<ConfigResponse> {
     })
 }
 
+
+// Potentiel TODO : should we use pagination here ?
 fn registered_chains(deps: Deps) -> StdResult<RegisteredChainsResponse> {
     let chains = CHAIN_PROXYS
         .range(deps.storage, None, None, Order::Ascending)

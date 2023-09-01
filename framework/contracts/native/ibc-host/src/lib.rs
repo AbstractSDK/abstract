@@ -7,7 +7,6 @@ pub mod error;
 
 pub mod contract;
 pub mod ibc;
-pub mod state;
 
 #[cfg(test)]
 pub mod test;

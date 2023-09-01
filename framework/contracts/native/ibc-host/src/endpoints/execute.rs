@@ -1,9 +1,8 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS},
     HostError,
 };
-use abstract_core::{objects::chain_name::ChainName, proxy::state::ADMIN};
+use abstract_core::{objects::chain_name::ChainName, proxy::state::ADMIN, ibc_host::state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS}};
 use abstract_sdk::core::ibc_host::ExecuteMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
@@ -81,7 +80,7 @@ fn update_config(
 fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
-    chain_id: ChainName,
+    chain: ChainName,
     proxy: String,
 ) -> HostResult {
     cw_ownable::is_owner(deps.storage, &info.sender)?;
@@ -89,22 +88,22 @@ fn register_chain_proxy(
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
     let proxy = deps.api.addr_validate(&proxy)?;
     // Can't register if it already exists
-    if CHAIN_PROXYS.has(deps.storage, &chain_id) || REVERSE_CHAIN_PROXYS.has(deps.storage, &proxy) {
+    if CHAIN_PROXYS.has(deps.storage, &chain) || REVERSE_CHAIN_PROXYS.has(deps.storage, &proxy) {
         return Err(HostError::ProxyAddressExists);
     }
 
-    CHAIN_PROXYS.save(deps.storage, &chain_id, &proxy)?;
-    REVERSE_CHAIN_PROXYS.save(deps.storage, &proxy, &chain_id)?;
+    CHAIN_PROXYS.save(deps.storage, &chain, &proxy)?;
+    REVERSE_CHAIN_PROXYS.save(deps.storage, &proxy, &chain)?;
     Ok(HostResponse::action("register_chain_client"))
 }
 
-fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain_id: ChainName) -> HostResult {
+fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: ChainName) -> HostResult {
     cw_ownable::is_owner(deps.storage, &info.sender)?;
 
-    if let Some(proxy) = CHAIN_PROXYS.may_load(deps.storage, &chain_id)? {
+    if let Some(proxy) = CHAIN_PROXYS.may_load(deps.storage, &chain)? {
         REVERSE_CHAIN_PROXYS.remove(deps.storage, &proxy);
     }
 
-    CHAIN_PROXYS.remove(deps.storage, &chain_id);
+    CHAIN_PROXYS.remove(deps.storage, &chain);
     Ok(HostResponse::action("register_chain_client"))
 }
