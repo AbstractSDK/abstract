@@ -123,7 +123,7 @@ mod test {
             .version_control
             .get_account(remote_account.clone())?;
         // This shouldn't fail as we have just created an account using those characteristics
-        log::info!("Distant account config {:?} ", remote_account_config);
+        log::info!("Remote account config {:?} ", remote_account_config);
 
         let remote_manager = Manager::new("remote_account_manager", juno.clone());
         remote_manager.set_address(&remote_account_config.manager);

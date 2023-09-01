@@ -97,7 +97,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
         QueryMsg::Account { chain, account_id } => {
             to_binary(&queries::account(deps, chain, account_id)?)
         }
-        QueryMsg::ListAccounts {} => to_binary(&queries::list_accounts(deps)?),
+        QueryMsg::ListAccounts { start, limit } => {
+            to_binary(&queries::list_accounts(deps, start, limit)?)
+        }
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
         QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
     }

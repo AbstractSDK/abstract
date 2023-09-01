@@ -6,24 +6,27 @@ use abstract_core::{
     },
     objects::{chain_name::ChainName, AccountId},
 };
-use cosmwasm_std::{Deps, Env, Order, StdResult};
+use cosmwasm_std::{Deps, Env, Order, StdError, StdResult};
+use cw_storage_plus::Bound;
 
-// TODO: paging
-pub fn list_accounts(deps: Deps) -> StdResult<ListAccountsResponse> {
-    let accounts: StdResult<
-        Vec<(
-            AccountId,
-            abstract_core::objects::chain_name::ChainName,
-            String,
-        )>,
-    > = ACCOUNTS
-        .range(deps.storage, None, None, Order::Ascending)
-        .map(|r| r.map(|((a, c), s)| (a, c, s)))
-        .collect();
+pub fn list_accounts(
+    deps: Deps,
+    start: Option<(AccountId, ChainName)>,
+    limit: Option<u32>,
+) -> StdResult<ListAccountsResponse> {
+    let accounts: Vec<(
+        AccountId,
+        abstract_core::objects::chain_name::ChainName,
+        String,
+    )> = cw_paginate::paginate_map(
+        &ACCOUNTS,
+        deps.storage,
+        start.as_ref().map(|s| Bound::exclusive((&s.0, &s.1))),
+        limit,
+        |(a, c), s| Ok::<_, StdError>((a, c, s)),
+    )?;
 
-    Ok(ListAccountsResponse {
-        accounts: accounts?,
-    })
+    Ok(ListAccountsResponse { accounts })
 }
 
 pub fn list_remote_hosts(deps: Deps) -> StdResult<ListRemoteHostsResponse> {

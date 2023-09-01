@@ -128,7 +128,10 @@ pub enum QueryMsg {
     Host { chain_name: ChainName },
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
-    ListAccounts {},
+    ListAccounts {
+        start: Option<(AccountId, ChainName)>,
+        limit: Option<u32>,
+    },
     // Get channel info for one chain
     #[returns(AccountResponse)]
     Account {
