@@ -11,7 +11,6 @@ use cw_orch::deploy::Deploy;
 
 use cw_orch::prelude::*;
 
-
 #[test]
 fn account_creation() -> anyhow::Result<()> {
     let sender = Addr::unchecked("sender");
@@ -39,11 +38,11 @@ fn account_creation() -> anyhow::Result<()> {
         .host
         .ibc_execute(
             AccountId::local(account_sequence),
-            HostAction::Internal(InternalAction::Register{
+            HostAction::Internal(InternalAction::Register {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
-                link: Some("https://abstract.money".to_string())
-            }), 
+                link: Some("https://abstract.money".to_string()),
+            }),
             "proxy_address".to_string(),
         )
         .unwrap();
@@ -59,7 +58,6 @@ fn account_creation() -> anyhow::Result<()> {
 
     Ok(())
 }
-
 
 #[test]
 fn account_action() -> anyhow::Result<()> {
@@ -88,11 +86,11 @@ fn account_action() -> anyhow::Result<()> {
         .host
         .ibc_execute(
             AccountId::local(account_sequence),
-            HostAction::Internal(InternalAction::Register{
+            HostAction::Internal(InternalAction::Register {
                 name: "Abstract remote account 1".to_string(),
                 description: Some("account description".to_string()),
-                link: Some("https://abstract.money".to_string())
-            }), 
+                link: Some("https://abstract.money".to_string()),
+            }),
             "proxy_address".to_string(),
         )
         .unwrap();

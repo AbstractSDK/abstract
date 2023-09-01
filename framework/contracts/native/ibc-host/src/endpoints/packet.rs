@@ -1,5 +1,5 @@
 use crate::{
-    account_commands::{self, receive_dispatch, receive_send_all_back, receive_register},
+    account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
     error::HostError,
 };

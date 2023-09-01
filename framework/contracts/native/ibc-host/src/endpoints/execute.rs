@@ -1,6 +1,7 @@
 use crate::{
+    account_commands::receive_register,
     contract::{HostResponse, HostResult},
-    HostError, account_commands::receive_register,
+    HostError,
 };
 use abstract_core::{
     ibc_host::state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS},

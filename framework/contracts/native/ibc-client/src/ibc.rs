@@ -11,7 +11,6 @@ use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
 
 use polytone::callbacks::{Callback, CallbackMessage};
 
-
 /// This is not using IBC endpoints per se but corresponds to a Polytone IBC callback
 pub fn receive_action_callback(
     deps: DepsMut,
