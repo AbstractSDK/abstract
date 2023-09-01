@@ -26,6 +26,9 @@ pub enum AppError {
     #[error("{0}")]
     DappError(#[from] AbstractAppError),
 
+    #[error("Resource not found")]
+    NotFound {},
+
     #[error("Already checked in")]
     AlreadyCheckedIn {},
 
@@ -37,4 +40,7 @@ pub enum AppError {
 
     #[error("Voter not found")]
     VoterNotFound {},
+
+    #[error("The challenge is status is not correct for this action")]
+    WrongChallengeStatus {},
 }

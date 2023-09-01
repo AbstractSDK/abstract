@@ -13,13 +13,73 @@ pub struct ChallengeEntry {
     pub name: String,
     pub collateral: Penalty,
     pub description: String,
+    pub end_block: u64,
+    pub status: ChallengeStatus,
+    pub admin_strikes: [bool; 3],
 }
 
+impl ChallengeEntry {
+    /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
+    pub fn new(name: String, collateral: Penalty, description: String, end_block: u64) -> Self {
+        ChallengeEntry {
+            name,
+            collateral,
+            description,
+            end_block,
+            status: ChallengeStatus::default(),
+            admin_strikes: [false; 3],
+        }
+    }
+}
+
+/// The status of a challenge. This can be used to trigger an automated Croncat job
+/// based on the value of the status
+#[cosmwasm_schema::cw_serde]
+pub enum ChallengeStatus {
+    /// The challenge has not been initialized yet. This is the default state.
+    Uninitialized,
+    /// The challenge is active and can be voted on.
+    Active,
+    /// The challenge was cancelled and no collateral was paid out.
+    Cancelled,
+    /// The challenge is over, the votes have not yet been counted. count_votes needs to be called
+    /// to determine the outcome.
+    OverAndPending,
+    /// The challenge is over, the admin has completed the challenge, the votes have been counted.
+    /// The admin completed the challenge, so the collateral has remained with the owner.
+    OverAndCompleted,
+    /// The challenge is over, the votes have been conted and the admin has failed,
+    /// their collateral is owed to the friends.
+    OverAndFailed,
+
+    /// The final status of the challenge can be one of two variants:
+    /// - FriendsWin: The friends won the challenge and were paid the collateral, the admin failed.
+    /// - AdminWins: The admin won the challenge and kept their collateral, the friends failed.
+    Completed(CompletedStatus),
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum CompletedStatus {
+    /// The friends won the challenge and were paid the collateral, the admin failed.
+    FriendsWin,
+    /// The admin won the challenge and kept their collateral, the friends failed.
+    AdminWins,
+}
+
+impl Default for ChallengeStatus {
+    fn default() -> Self {
+        ChallengeStatus::Uninitialized
+    }
+}
+
+/// Only this struct and these fields are allowed to be updated.
+/// The status cannot be externally updated, it is updated by the contract.
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntryUpdate {
     pub name: Option<String>,
     pub collateral: Option<Penalty>,
     pub description: Option<String>,
+    pub end_block: Option<u64>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -84,9 +144,14 @@ impl Vote<Addr> {
     }
 }
 
+/// The check in struct is used to track the admin's check ins.
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
-    pub last_checked_in: u64, // blockheight
+    /// The blockheight of the last check in.
+    pub last_checked_in: u64,
+    /// The blockheight of the next check in.
+    /// In the case of a missed check in, this will always be pushed forward
+    /// internally by the contract.
     pub next_check_in_by: u64,
     pub metadata: Option<String>,
 }

@@ -8,8 +8,9 @@ use abstract_sdk::prelude::*;
 
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, Penalty, UpdateFriendsOpKind, Vote,
-    ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, NEXT_ID, VOTES,
+    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, Friend, Penalty,
+    UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, NEXT_ID,
+    VOTES,
 };
 
 pub fn execute_handler(
@@ -28,7 +29,7 @@ pub fn execute_handler(
             challenge,
         } => update_challenge(deps, env, info, app, challenge_id, challenge),
         ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
-            cancel_challenge(deps, info, app, challenge_id)
+            cancel_challenge(deps, info, &app, challenge_id)
         }
         ChallengeExecuteMsg::UpdateFriendsForChallenge {
             challenge_id,
@@ -57,13 +58,20 @@ fn create_challenge(
     _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    challenge: ChallengeEntry,
+    mut challenge: ChallengeEntry,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    // Generate the challenge id
+    //check that the challenge status is ChallengeStatus::Uninitialized
+    if challenge.status != ChallengeStatus::Uninitialized {
+        return Err(AppError::WrongChallengeStatus {});
+    }
+
+    // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
+    challenge.status = ChallengeStatus::Active;
+
     CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
     Ok(app.tag_response(
@@ -85,18 +93,17 @@ fn update_challenge(
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
         .may_load(deps.storage, challenge_id.clone())
-        .map_err(|_| {
-            AppError::Std(StdError::generic_err(format!(
-                "Error loading challenge with id {}",
-                challenge_id
-            )))
-        })?
+        .map_err(|_| AppError::NotFound {})?
         .ok_or_else(|| {
             AppError::Std(StdError::generic_err(format!(
                 "Challenge with id {} not found",
                 challenge_id
             )))
         })?;
+
+    if loaded_challenge.status != ChallengeStatus::Active {
+        return Err(AppError::WrongChallengeStatus {});
+    }
 
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
@@ -106,6 +113,9 @@ fn update_challenge(
     }
     if let Some(description) = new_challenge.description {
         loaded_challenge.description = description;
+    }
+    if let Some(end_block) = new_challenge.end_block {
+        loaded_challenge.end_block = end_block;
     }
 
     // Save the updated challenge
@@ -120,14 +130,16 @@ fn update_challenge(
 fn cancel_challenge(
     deps: DepsMut,
     info: MessageInfo,
-    app: ChallengeApp,
+    app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    if challenge.status != ChallengeStatus::Active {
+        return Err(AppError::WrongChallengeStatus {});
+    }
 
-    CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     CHALLENGE_LIST.remove(deps.storage, challenge_id.clone());
-
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
         "cancel_challenge",
@@ -142,6 +154,12 @@ fn update_friends_for_challenge(
     friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    if challenge.status != ChallengeStatus::Active {
+        return Err(AppError::WrongChallengeStatus {});
+    }
+
     match op_kind {
         UpdateFriendsOpKind::Add => {
             add_friends_for_challenge(deps, info, app, challenge_id, friends)
@@ -225,27 +243,88 @@ fn daily_check_in(
     metadata: Option<String>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
 
-    let now = env.block.time.seconds();
-    // Check if Admin has already checked in today
-    if DAILY_CHECK_INS
-        .load(deps.storage, now.clone())
-        .map_or(false, |check_in| check_in.last_checked_in == now.clone())
-    {
-        return Err(AppError::AlreadyCheckedIn {});
+    if env.block.height > challenge.end_block {
+        match challenge.status {
+            ChallengeStatus::Active => {
+                challenge.status = ChallengeStatus::OverAndPending;
+                CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+                return Err(AppError::Std(StdError::generic_err(
+                    "Challenge has ended, ChallengeStatus is now OverAndPending",
+                )));
+            }
+            _ => {
+                return Err(AppError::Std(StdError::generic_err(
+                    "Challenge has ended. You can no longer register a daily check in.",
+                )));
+            }
+        }
     }
 
-    // this could be configurable, for now
-    // we set the next check in to be 100 blocks from now
-    let next_check_in_block = env.block.height + 100;
-    let check_in = CheckIn {
-        last_checked_in: now,
-        next_check_in_by: next_check_in_block,
-        metadata,
-    };
+    let check_in = DAILY_CHECK_INS.may_load(deps.storage, challenge_id.clone())?;
 
-    DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
-    Ok(Response::new().add_attribute("action", "check_in"))
+    if let Some(check_in) = check_in {
+        match env.block.height {
+            block if block == check_in.last_checked_in => {
+                return Err(AppError::AlreadyCheckedIn {});
+            }
+
+            // The admin has missed the deadline for checking in, they are given a strike.
+            // The contract manually sets the next check in time.
+            block if block >= check_in.next_check_in_by => {
+                for strike in challenge.admin_strikes.iter_mut() {
+                    if !*strike {
+                        *strike = true;
+                        break;
+                    }
+                }
+                CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+
+                // If the admin has 3 strikes, the challenge is cancelled.
+                if challenge.admin_strikes.iter().all(|strike| *strike) {
+                    return cancel_challenge(deps, info, app, challenge_id);
+                }
+
+                let last = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+                let check_in = CheckIn {
+                    last_checked_in: last.last_checked_in,
+                    next_check_in_by: env.block.height + 777,
+                    metadata,
+                };
+                DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
+                return Ok(Response::new()
+                    .add_attribute("action", "check_in")
+                    .add_attribute(
+                        "message",
+                        "You missed the deadline for checking in. You have been given a strike.",
+                    ));
+            }
+            // The admin is checking in before the next check in time, so we can proceeed.
+            block if block < check_in.next_check_in_by => {
+                // this could be configurable, for now
+                // we set the next check in to be 777 blocks from now
+                let next_check_in_block = env.block.height + 777;
+                let check_in = CheckIn {
+                    last_checked_in: env.block.height,
+                    next_check_in_by: next_check_in_block,
+                    metadata,
+                };
+
+                DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
+                return Ok(Response::new().add_attribute("action", "check_in"));
+            }
+            _ => {
+                return Err(AppError::Std(StdError::generic_err(
+                    "Something went wrong with the check in.",
+                )));
+            }
+        }
+    } else {
+        return Err(AppError::Std(StdError::generic_err(
+            "Something went wrong with the check in.",
+        )));
+    }
 }
 
 fn cast_vote(
@@ -257,19 +336,15 @@ fn cast_vote(
     challenge_id: u64,
 ) -> AppResult {
     let vote = vote.check(deps.as_ref())?;
-
     let now = env.block.time.seconds();
-
-    // If Admin checked in today, friends can't vote
-    if DAILY_CHECK_INS
-        .load(deps.storage, now.clone())
-        .map_or(false, |check_in| check_in.last_checked_in == now)
-    {
-        return Err(AppError::AlreadyCheckedIn {});
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    match challenge.status {
+        ChallengeStatus::Active => {}
+        ChallengeStatus::OverAndPending => {}
+        _ => {}
     }
 
     let vote = vote.optimisitc();
-
     // check that the vote.voter has note has not voted
     if VOTES
         .may_load(

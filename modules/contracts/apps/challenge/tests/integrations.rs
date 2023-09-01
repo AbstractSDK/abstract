@@ -14,7 +14,6 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        AssetEntry,
     },
 };
 use abstract_dex_adapter::msg::OfferAsset;
@@ -28,13 +27,14 @@ use lazy_static::lazy_static;
 const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
 lazy_static! {
-    static ref CHALLENGE: ChallengeEntry = ChallengeEntry {
-        name: "test".to_string(),
-        collateral: Penalty::FixedAmount {
+    static ref CHALLENGE: ChallengeEntry = ChallengeEntry::new(
+        "test".to_string(),
+        Penalty::FixedAmount {
             asset: OfferAsset::new("denom", Uint128::new(100)),
         },
-        description: "Test Challenge".to_string(),
-    };
+        "Test Challenge".to_string(),
+        10
+    );
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
     static ref BOB_ADDRESS: String = "bob0x".to_string();
     static ref CHARLIE_ADDRESS: String = "charlie0x".to_string();
@@ -202,8 +202,8 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 fn test_should_update_challenge() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    let query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
 
+    let query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
     apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
     let to_update = ChallengeEntryUpdate {
@@ -212,10 +212,10 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
             asset: OfferAsset::new("denom", Uint128::new(100)),
         }),
         description: Some("Updated Test Challenge".to_string()),
+        end_block: None,
     };
 
     apps.challenge_app.update_challenge(to_update.clone(), 1)?;
-
     let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
     assert_eq!(
