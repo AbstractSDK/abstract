@@ -1,3 +1,4 @@
+
 #![allow(non_snake_case)]
 use cosmos_sdk_proto::traits::TypeUrl;
 

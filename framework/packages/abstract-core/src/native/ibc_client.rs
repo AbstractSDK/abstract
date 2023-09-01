@@ -1,31 +1,27 @@
 use crate::{
-    abstract_ica::StdAck,
     ibc_host::HostAction,
-    objects::{account::AccountId, chain_name::ChainName},
+    objects::{account::AccountId, chain_name::ChainName}, ibc::CallbackInfo,
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Coin, Timestamp};
+use cosmwasm_std::Coin;
 use polytone::callbacks::CallbackMessage;
 
 pub use polytone::callbacks::CallbackRequest;
 
 pub mod state {
 
-    use super::LatestQueryResponse;
-    use crate::{
-        objects::{
+    use crate::objects::{
             account::AccountId, ans_host::AnsHost, chain_name::ChainName,
             common_namespace::ADMIN_NAMESPACE,
-        },
-        ANS_HOST as ANS_HOST_KEY,
-    };
+        };
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub version_control_address: Addr,
+        pub version_control: Addr,
+        pub ans_host: AnsHost
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
@@ -35,16 +31,14 @@ pub mod state {
     pub const POLYTONE_NOTE: Map<&ChainName, Addr> = Map::new("polytone_note");
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("reverse-polytone_note");
     // Saves the remote ibc host addresses
-    // This is used for executing message on the host
     pub const REMOTE_HOST: Map<&ChainName, String> = Map::new("abstract-ibc-hosts");
+    // Saves the remote polytone proxy addreses corresponding to that contract
+    // This is used for executing message on the host
     pub const REMOTE_PROXY: Map<&ChainName, String> = Map::new("abstract-ibc-client-proxy");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
     pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accounts");
-    /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
-    pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
 
     // For callbacks tests
     pub const ACKS: Item<Vec<String>> = Item::new("temp-callback-storage");
@@ -98,7 +92,7 @@ pub enum ExecuteMsg {
         // execute the custom host function
         action: HostAction,
         // optional callback info
-        callback_request: Option<CallbackRequest>,
+        callback_info: Option<CallbackInfo>,
     },
     RemoveHost {
         host_chain: ChainName,
@@ -112,6 +106,7 @@ pub enum ExecuteMsg {
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
+    ExecuteAction { receiver: String, callback_id: String },
     CreateAccount { account_id: AccountId },
     WhoAmI {},
 }
@@ -149,6 +144,7 @@ pub enum QueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub admin: String,
+    pub ans_host: String,
     pub version_control_address: String,
     pub chain: String,
 }
@@ -174,13 +170,6 @@ pub struct HostResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct AccountResponse {
     pub remote_proxy_addr: String,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct LatestQueryResponse {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    pub response: StdAck,
 }
 
 #[cosmwasm_schema::cw_serde]

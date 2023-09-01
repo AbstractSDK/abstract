@@ -1,6 +1,7 @@
-use abstract_ica::IbcResponseMsg;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Empty;
+
+use crate::ibc::IbcResponseMsg;
 
 // ANCHOR: exec
 /// Wrapper around all possible messages that can be sent to the module.
@@ -11,6 +12,9 @@ pub enum ExecuteMsg<BaseMsg, CustomExecMsg, ReceiveMsg = Empty> {
     /// An app request defined by a base consumer.
     Module(CustomExecMsg),
     /// IbcReceive to process IBC callbacks
+    /// In order to trust this, they should verify this comes from the a note contract.
+    /// This needs to be verified inside apps
+    /// TODO, do we need to name this variant IbcCallBack or Callback (Polytone calls it callback)
     IbcCallback(IbcResponseMsg),
     /// Receive endpoint for CW20 / external service integrations
     Receive(ReceiveMsg),

@@ -66,7 +66,6 @@ abstract-sdk = { version = "0.18.0" }
 abstract-testing = { version = "0.18.0" }
 abstract-core = { version = "0.18.0" }
 abstract-macros = { version = "0.18.0" }
-abstract-ica = { version = "0.18.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 abstract-adapter-utils = { version = "0.18.0" }
@@ -97,7 +96,6 @@ abstract-sdk = { path = "../framework/packages/abstract-sdk" }
 abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
-abstract-ica = { path = "../framework/packages/abstract-ica" }
 abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }

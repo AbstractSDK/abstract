@@ -38,15 +38,12 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-    };
-    CONFIG.save(deps.storage, &cfg)?;
-    ANS_HOST.save(
-        deps.storage,
-        &AnsHost {
+        version_control: deps.api.addr_validate(&msg.version_control_address)?,
+        ans_host: AnsHost {
             address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
-    )?;
+    };
+    CONFIG.save(deps.storage, &cfg)?;
 
     ADMIN.set(deps, Some(info.sender))?;
     Ok(IbcClientResponse::action("instantiate"))
@@ -69,8 +66,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
         ExecuteMsg::RemoteAction {
             host_chain,
             action,
-            callback_request,
-        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_request),
+            callback_info,
+        } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_info),
         ExecuteMsg::RegisterChainHost { chain, note, host } => {
             commands::execute_allow_chain_host(deps, env, info, chain, host, note)
         }
@@ -143,7 +140,8 @@ mod tests {
 
         // config
         let expected_config = Config {
-            version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+            version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST))
         };
 
         let config_resp = config(deps.as_ref(), mock_env()).unwrap();
@@ -157,9 +155,6 @@ mod tests {
         assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
         assert_that!(cw2_info.contract).is_equal_to(IBC_CLIENT.to_string());
 
-        // ans host
-        let actual_ans_host = ANS_HOST.load(deps.as_ref().storage).unwrap();
-        assert_that!(actual_ans_host.address.as_str()).is_equal_to(TEST_ANS_HOST);
     }
 
     mod migrate {

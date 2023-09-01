@@ -1,4 +1,4 @@
-#![allow(non_snake_case)]
+![allow(non_snake_case)]
 
 use cosmos_sdk_proto::{ibc::applications::transfer::v1::MsgTransfer, traits::TypeUrl};
 /// MsgTransfer defines a msg to transfer fungible tokens (i.e Coins) between

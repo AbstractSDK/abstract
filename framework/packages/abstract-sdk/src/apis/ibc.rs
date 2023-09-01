@@ -11,7 +11,7 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion},
     },
     proxy::ExecuteMsg,
-    IBC_CLIENT,
+    IBC_CLIENT, ibc::CallbackInfo,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use polytone::callbacks::CallbackRequest;
@@ -170,7 +170,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
         &self,
         host_chain: ChainName,
         action: HostAction,
-        callback: Option<CallbackRequest>,
+        callback: Option<CallbackInfo>,
     ) -> AbstractSdkResult<CosmosMsg> {
         Ok(wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
@@ -178,7 +178,7 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
                 msgs: vec![IbcClientMsg::RemoteAction {
                     host_chain,
                     action,
-                    callback_request: callback,
+                    callback_info: callback,
                 }],
             },
             vec![],
@@ -241,7 +241,7 @@ mod test {
                             is_suspended: None,
                         },
                     },
-                    callback_request: None,
+                    callback_info: None,
                 }],
             })
             .unwrap(),
@@ -257,9 +257,9 @@ mod test {
         let stub = MockModule::new();
         let client = stub.ibc_client(deps.as_ref());
 
-        let expected_callback = CallbackRequest {
+        let expected_callback = CallbackInfo {
             receiver: "callback_receiver".to_string(),
-            msg: Binary::from(b"callback_id"),
+            id: "callback_id".to_string(),
         };
 
         let actual = client.host_action(
@@ -284,7 +284,7 @@ mod test {
                             is_suspended: None,
                         },
                     },
-                    callback_request: Some(expected_callback),
+                    callback_info: Some(expected_callback),
                 }],
             })
             .unwrap(),

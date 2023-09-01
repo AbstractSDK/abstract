@@ -9,11 +9,11 @@ use abstract_core::{
     },
     ibc_host, manager,
     objects::{chain_name::ChainName, AccountId},
-    version_control::AccountBase,
+    version_control::AccountBase, ibc::CallbackInfo,
 };
 use abstract_sdk::{
     core::{
-        ibc_client::state::{ACCOUNTS, ADMIN, ANS_HOST, CONFIG},
+        ibc_client::state::{ACCOUNTS, ADMIN, CONFIG},
         ibc_host::{HostAction, InternalAction},
         objects::{ans_host::AnsHost, ChannelEntry},
         ICS20,
@@ -41,15 +41,12 @@ pub fn execute_update_config(
     let mut cfg = CONFIG.load(deps.storage)?;
 
     if let Some(ans_host) = new_ans_host {
-        ANS_HOST.save(
-            deps.storage,
-            &AnsHost {
-                address: deps.api.addr_validate(&ans_host)?,
-            },
-        )?;
+        cfg.ans_host = AnsHost {
+            address: deps.api.addr_validate(&ans_host)?,
+        };
     }
     if let Some(version_control) = new_version_control {
-        cfg.version_control_address = deps.api.addr_validate(&version_control)?;
+        cfg.version_control = deps.api.addr_validate(&version_control)?;
         // New version control address implies new accounts.
         clear_accounts(deps.storage);
     }
@@ -161,10 +158,10 @@ pub fn execute_send_packet(
     info: MessageInfo,
     host_chain: ChainName,
     action: HostAction,
-    callback_request: Option<CallbackRequest>,
+    callback_info: Option<CallbackInfo>,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(cfg.version_control_address);
+    let version_control = VersionControlContract::new(cfg.version_control);
 
     // Verify that the sender is a proxy contract
     let account_base = version_control
@@ -178,6 +175,16 @@ pub fn execute_send_packet(
     if let HostAction::Internal(_) = action {
         return Err(IbcClientError::ForbiddenInternalCall {});
     }
+
+    let callback_request = callback_info.map(|c| CallbackRequest{
+        receiver: env.contract.address.to_string(),
+        msg: to_binary(&IbcClientCallback::ExecuteAction{
+            receiver: c.receiver,
+            callback_id: c.id
+        }).unwrap()
+    });
+
+
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
@@ -199,7 +206,7 @@ pub fn execute_register_account(
     host_chain: ChainName,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(cfg.version_control_address);
+    let version_control = VersionControlContract::new(cfg.version_control);
 
     // Verify that the sender is a proxy contract
     let account_base = version_control
@@ -240,9 +247,9 @@ pub fn execute_send_funds(
     funds: Vec<Coin>,
 ) -> IbcClientResult {
     let cfg = CONFIG.load(deps.storage)?;
-    let mem = ANS_HOST.load(deps.storage)?;
+    let mem = cfg.ans_host;
     // Verify that the sender is a proxy contract
-    let version_control = VersionControlContract::new(cfg.version_control_address);
+    let version_control = VersionControlContract::new(cfg.version_control);
 
     let account_base = version_control
         .account_registry(deps.as_ref())
@@ -386,7 +393,8 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
             let cfg = Config {
-                version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
+                version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+                ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
             };
             CONFIG.save(deps.as_mut().storage, &cfg)?;
 
@@ -400,8 +408,8 @@ mod test {
             let res = execute_as_admin(deps.as_mut(), msg)?;
             assert_that!(res.messages).is_empty();
 
-            let actual = ANS_HOST.load(deps.as_ref().storage)?;
-            assert_that!(actual.address).is_equal_to(Addr::unchecked(new_ans_host));
+            let actual = CONFIG.load(deps.as_ref().storage)?;
+            assert_that!(actual.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
 
             Ok(())
         }
@@ -422,7 +430,7 @@ mod test {
             assert_that!(res.messages).is_empty();
 
             let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control_address)
+            assert_that!(cfg.version_control)
                 .is_equal_to(Addr::unchecked(new_version_control));
 
             Ok(())

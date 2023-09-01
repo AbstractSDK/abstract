@@ -1,10 +1,10 @@
 use super::handler::Handler;
 use crate::{AbstractSdkError, AbstractSdkResult};
-use abstract_core::abstract_ica::StdAck;
 use core::objects::dependency::StaticDependency;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;
+use polytone::callbacks::Callback;
 
 pub type ModuleId = &'static str;
 /// Version of the contract in str format.
@@ -41,7 +41,7 @@ type CallbackId = String;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> =
-    fn(DepsMut, Env, MessageInfo, Module, CallbackId, StdAck) -> Result<Response, Error>;
+    fn(DepsMut, Env, MessageInfo, Module, CallbackId, Callback) -> Result<Response, Error>;
 // ANCHOR_END: ibc
 
 // ANCHOR: mig

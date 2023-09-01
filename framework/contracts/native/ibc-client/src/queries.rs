@@ -29,6 +29,7 @@ pub fn list_accounts(
     Ok(ListAccountsResponse { accounts })
 }
 
+// No need for pagination here, not a lot of chains
 pub fn list_remote_hosts(deps: Deps) -> StdResult<ListRemoteHostsResponse> {
     let hosts = REMOTE_HOST
         .range(deps.storage, None, None, Order::Ascending)
@@ -36,6 +37,7 @@ pub fn list_remote_hosts(deps: Deps) -> StdResult<ListRemoteHostsResponse> {
     Ok(ListRemoteHostsResponse { hosts })
 }
 
+// No need for pagination here, not a lot of chains
 pub fn list_remote_proxys(deps: Deps) -> StdResult<ListRemoteProxysResponse> {
     let proxys = REMOTE_PROXY
         .range(deps.storage, None, None, Order::Ascending)
@@ -46,17 +48,19 @@ pub fn list_remote_proxys(deps: Deps) -> StdResult<ListRemoteProxysResponse> {
 pub fn config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {
     let chain = ChainName::new(&env);
     let Config {
-        version_control_address,
+        version_control,
+        ans_host
     } = CONFIG.load(deps.storage)?;
     let admin = ADMIN.get(deps)?.unwrap();
     Ok(ConfigResponse {
         admin: admin.into(),
         chain: chain.into_string(),
-        version_control_address: version_control_address.into_string(),
+        ans_host: ans_host.address.to_string(),
+        version_control_address: version_control.into_string(),
     })
 }
 
-/// Returns the remote-host and polytone proxy addresses
+/// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
 pub fn host(deps: Deps, host_chain: ChainName) -> StdResult<HostResponse> {
     let remote_host = REMOTE_HOST.may_load(deps.storage, &host_chain)?;
     let remote_polytone_proxy = REMOTE_PROXY.may_load(deps.storage, &host_chain)?;
