@@ -11,13 +11,15 @@ use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
 
 use polytone::callbacks::{Callback, CallbackMessage};
 
+
+/// This is not using IBC endpoints per se but corresponds to a Polytone IBC callback
 pub fn receive_action_callback(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     callback: CallbackMessage,
 ) -> IbcClientResult {
-    // First we verify the callback is well formed and sent by the right contract
+    // 1. First we verify the callback is well formed and sent by the right contract
 
     // only a note contract can call this endpoint
     let host_chain = REVERSE_POLYTONE_NOTE.load(deps.storage, &info.sender)?;
@@ -27,9 +29,8 @@ pub fn receive_action_callback(
         return Err(IbcClientError::Unauthorized {});
     }
 
-    // From here on, we can trust the message that we are receiving
+    // 2. From here on, we can trust the message that we are receiving
 
-    // Now we see what the callback was sent for
     let callback_msg: IbcClientCallback = from_binary(&callback.initiator_msg)?;
 
     match callback_msg {

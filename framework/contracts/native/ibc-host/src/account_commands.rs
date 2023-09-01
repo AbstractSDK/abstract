@@ -1,19 +1,19 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    endpoints::reply::RESPONSE_REPLY_ID,
+    endpoints::reply::{RESPONSE_REPLY_ID, INIT_CALLBACK_ID},
     HostError,
 };
 use abstract_core::{
-    ibc_host::state::CONFIG,
+    ibc_host::state::{CONFIG, REGISTRATION_CACHE},
     manager,
     objects::{chain_name::ChainName, AccountId},
     proxy,
     version_control::AccountBase,
-    PROXY,
+    PROXY, account_factory,
 };
 use abstract_sdk::{
     core::{
-        abstract_ica::{BalancesResponse, SendAllBackResponse, StdAck},
+        abstract_ica::{SendAllBackResponse, StdAck},
         objects::ChannelEntry,
         ICS20,
     },
@@ -21,28 +21,59 @@ use abstract_sdk::{
     AbstractSdkError, AccountVerification, Resolve,
 };
 use cosmwasm_std::{
-    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, IbcReceiveResponse, Response,
+    to_binary, wasm_execute, CosmosMsg, Deps, DepsMut, Env, IbcMsg, Response,
     SubMsg,
 };
 
 // one hour
 const PACKET_LIFETIME: u64 = 60 * 60;
 
-pub fn receive_balances(
+/// Creates and registers proxy for remote Account
+#[allow(clippy::too_many_arguments)]
+pub fn receive_register(
     deps: DepsMut,
-    account: AccountBase,
-) -> Result<IbcReceiveResponse, HostError> {
-    let balances = deps.querier.query_all_balances(&account.proxy)?;
-    let response = BalancesResponse {
-        account: account.proxy.into(),
-        balances,
-    };
-    let acknowledgement = StdAck::success(response);
-    // and we are golden
-    Ok(IbcReceiveResponse::new()
-        .set_ack(acknowledgement)
-        .add_attribute("action", "receive_balances"))
+    env: Env,
+    account_id: AccountId,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+) -> HostResult {
+    let cfg = CONFIG.load(deps.storage)?;
+
+    // verify that the origin last chain is the chain related to this channel, and that it is not `Local`
+    account_id.trace().verify_remote()?;
+
+    // create the message to instantiate the remote account
+    let factory_msg = wasm_execute(
+        cfg.account_factory,
+        &account_factory::ExecuteMsg::CreateAccount {
+            governance: abstract_core::objects::gov_type::GovernanceDetails::External {
+                governance_address: env.contract.address.into_string(),
+                governance_type: "abstract-ibc".into(), // at least 4 characters
+            },
+            name,
+            description,
+            link,
+            // provide the origin chain id
+            account_id: Some(account_id.clone()),
+
+            base_asset: None,
+            install_modules: vec![],
+            namespace: None,
+        },
+        vec![],
+    )?;
+    // wrap with a submsg
+    let factory_msg = SubMsg::reply_on_success(factory_msg, INIT_CALLBACK_ID);
+
+    // store the account info for the reply handler
+    REGISTRATION_CACHE.save(deps.storage, &account_id.clone())?;
+
+    Ok(Response::new()
+        .add_submessage(factory_msg)
+        .add_attribute("action", "register"))
 }
+
 
 /// Execute manager message on local manager.
 pub fn receive_dispatch(

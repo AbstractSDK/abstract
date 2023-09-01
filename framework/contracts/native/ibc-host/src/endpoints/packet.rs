@@ -1,8 +1,7 @@
 use crate::{
-    account_commands::{self, receive_dispatch, receive_send_all_back},
+    account_commands::{self, receive_dispatch, receive_send_all_back, receive_register},
     contract::HostResult,
     error::HostError,
-    ibc::receive_register,
 };
 use abstract_core::{
     ibc_host::{
