@@ -25,6 +25,8 @@ pub const KUJIRA: &[&str] = &["kaiyo", "harpoon"];
 pub const NEUTRON: &[&str] = &["pion", "neutron"];
 pub const ARCHWAY: &[&str] = &["constantine", "archway"];
 pub const LOCAL_CHAIN: &[&str] = &["cosmos-testnet"];
+pub const SEI: &[&str] = &["atlantic", "pacific", "sei"];
+pub const INJECTIVE: &[&str] = &["atlantic", "injective"];
 /// Useful when deploying version control
 #[allow(unused)]
 pub static NATIVE_CONTRACTS: &[&str] = &[

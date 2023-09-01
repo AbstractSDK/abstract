@@ -33,13 +33,15 @@ juno = [
 ]
 terra = ["dep:terraswap", "abstract-astroport-adapter/full_integration"]
 neutron = ["abstract-astroport-adapter/full_integration"]
+sei = ["abstract-astroport-adapter/full_integration"]
+injective = ["abstract-astroport-adapter/full_integration"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 kujira = ["dep:kujira"]
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira", "neutron"]
+features = ["juno", "terra", "osmosis", "kujira", "neutron", "sei", "injective"]
 
 [dependencies]
 cosmwasm-std = { workspace = true }
