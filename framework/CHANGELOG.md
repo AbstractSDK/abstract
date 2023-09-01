@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
 - Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
+- Modified the account id structure. This is a requirement for Abstract IBC
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis
