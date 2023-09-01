@@ -1,6 +1,8 @@
 use std::collections::HashSet;
+use cosmos_sdk_proto::cosmos::auth::v1beta1::{QueryAccountRequest, QueryAccountResponse};
+use cosmos_sdk_proto::prost::Message;
 
-use cosmwasm_std::{Addr, Coin, DepsMut, Env, MessageInfo, Response, Timestamp};
+use cosmwasm_std::{Addr, Binary, Coin, coins, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response, Timestamp, Uint128};
 use cw_asset::AssetInfoBase;
 
 use abstract_core::objects::AnsAsset;
@@ -33,6 +35,7 @@ pub fn execute_handler(
             recipient,
             expiration,
             bypass_pass_check,
+            create_if_missing,
         } => activate_gas_pass(
             deps,
             env,
@@ -42,6 +45,7 @@ pub fn execute_handler(
             recipient,
             expiration,
             bypass_pass_check,
+            create_if_missing
         ),
         GasStationExecuteMsg::DeactivateGasPass { holder } => {
             deactivate_gas_pass(deps, env, info, app, holder)
@@ -103,33 +107,47 @@ fn activate_gas_pass(
     _env: Env,
     _info: MessageInfo,
     app: GasStationApp,
-    grade: GradeName,
+    grade_name: GradeName,
     recipient: String,
     expiration: Option<Timestamp>,
     bypass_pass_check: bool,
+    create_if_missing: bool,
 ) -> GasStationResult {
     let recipient = deps.api.addr_validate(&recipient)?;
 
-    let pump = GRADES.load(deps.storage, grade.clone())?;
+    let grade = GRADES.load(deps.storage, grade_name.clone())?;
+    let mut account_actions = vec![];
+
+    // query the account and if it errors, send the minimum amount of tokens to it.
+    if query_account(&deps, &recipient).is_err() {
+        if create_if_missing {
+            let denom = grade.fuel_mix.clone().first().map(|x| x.denom.clone()).unwrap();
+            // transfer the minimum of the grade fuel mix to the recipient
+
+            account_actions.push(app.bank(deps.as_ref()).transfer(coins(1, denom), &recipient)?);
+        }
+    }
 
     // check if recipient already has token?? or actually just re-up grant
     let allowance_msg = app.fee_granter(deps.as_ref(), None).grant_basic_allowance(
         &recipient,
-        pump.fuel_mix,
+        grade.fuel_mix,
         expiration,
     )?;
+    account_actions.push(allowance_msg.into());
 
-    let allowance_msg = app
+    let account_msg = app
         .executor(deps.as_ref())
-        .execute(vec![allowance_msg.into()])?;
+        .execute(account_actions)?;
 
     GAS_PASSES.update(deps.storage, &recipient, |x| -> GasStationResult<GasPass> {
         let pass = GasPass {
-            grade: grade.clone(),
+            grade: grade_name.clone(),
             expiration,
         };
         match x {
             Some(_) => {
+                /// Allow the user to overwrite their gas pass if they want to.
                 if bypass_pass_check {
                     Ok(pass)
                 } else {
@@ -142,7 +160,7 @@ fn activate_gas_pass(
 
     GRADE_TO_USERS.update(
         deps.storage,
-        &grade,
+        &grade_name,
         |x| -> GasStationResult<HashSet<Addr>> {
             let mut set = x.unwrap_or_else(|| HashSet::new());
             set.insert(recipient.clone());
@@ -151,10 +169,23 @@ fn activate_gas_pass(
     )?;
 
     Ok(app.custom_tag_response(
-        Response::new().add_message(allowance_msg),
+        Response::new().add_message(account_msg),
         "activate_gas_pass",
-        vec![("recipient", recipient.as_str()), ("grade", grade.as_str())],
+        vec![("recipient", recipient.as_str()), ("grade", grade_name.as_str())],
     ))
+}
+
+fn query_account(deps: &DepsMut, recipient: &Addr) -> Result<QueryAccountResponse, GasStationError> {
+    let base_account_query_request = QueryAccountRequest {
+        address: recipient.to_string(),
+    };
+    let base_account_query: QueryRequest<Empty> = QueryRequest::Stargate {
+        // auth Base AccountQueryAccountResponse
+        path: "/cosmos.auth.v1beta1.Query/Account".to_string(),
+        data: Binary(base_account_query_request.encode_to_vec())
+    };
+    let response: QueryAccountResponse = deps.querier.query(&base_account_query)?;
+    Ok(response)
 }
 
 fn deactivate_gas_pass(

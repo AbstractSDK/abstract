@@ -31,16 +31,23 @@ pub enum GasStationExecuteMsg {
     },
     /// Activate a gas pass for a specific recipient.
     ActivateGasPass {
-        grade: GradeName,  // The grade of the gas.
-        recipient: String, // The address to which the gas pass should be issued.
+        /// The grade of the gas (e.g., "premium_100000").
+        grade: GradeName,
+        /// The address to which the gas pass should be issued.
+        recipient: String,
         // TODO: make this expiration
         expiration: Option<Timestamp>,
+        /// Bypass the check asserting that the user does not have a gas pass.
         #[serde(default)]
         bypass_pass_check: bool,
+        /// Create the account if it does not exist.
+        #[serde(default)]
+        create_if_missing: bool,
     },
     /// Revoke a gas pass from a specific recipient.
     DeactivateGasPass {
-        holder: String, // The address to which the gas pass should be issued.
+        /// The address to which the gas pass should be issued.
+        holder: String,
     },
 }
 

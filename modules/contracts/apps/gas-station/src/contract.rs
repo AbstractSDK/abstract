@@ -25,14 +25,14 @@ pub type GasStationApp = AppContract<
     Empty,
 >;
 
-const DCA_APP: GasStationApp = GasStationApp::new(GAS_STATION_APP_ID, VERSION, None)
+const GAS_STATION_APP: GasStationApp = GasStationApp::new(GAS_STATION_APP_ID, VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(DCA_APP, GasStationApp);
+abstract_app::export_endpoints!(GAS_STATION_APP, GasStationApp);
 
 #[cfg(feature = "interface")]
-abstract_app::cw_orch_interface!(DCA_APP, GasStationApp, GasStationApp);
+abstract_app::cw_orch_interface!(GAS_STATION_APP, GasStationApp, GasStationApp);
