@@ -1,8 +1,7 @@
 use crate::contract::{HostResponse, HostResult, CONTRACT_VERSION};
 use abstract_core::{
+    ibc_host::state::{Config, CONFIG},
     IBC_HOST,
-    ibc_host::
-    state::{Config, CONFIG}
 };
 use abstract_sdk::{core::ibc_host::InstantiateMsg, feature_objects::AnsHost};
 use cosmwasm_std::{DepsMut, Env, MessageInfo};

@@ -1,12 +1,11 @@
-use crate::{
-    contract::HostResult,
-    endpoints::reply::INIT_CALLBACK_ID,
+use crate::{contract::HostResult, endpoints::reply::INIT_CALLBACK_ID};
+use abstract_core::{
+    account_factory,
+    ibc_host::state::{CONFIG, REGISTRATION_CACHE},
+    objects::AccountId,
 };
-use abstract_core::{account_factory, objects::AccountId, ibc_host::state::{REGISTRATION_CACHE, CONFIG}};
 
-use cosmwasm_std::{
-    wasm_execute, DepsMut, Env, Response, SubMsg,
-};
+use cosmwasm_std::{wasm_execute, DepsMut, Env, Response, SubMsg};
 
 // processes PacketMsg::Register variant
 /// Creates and registers proxy for remote Account

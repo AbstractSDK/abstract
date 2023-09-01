@@ -8,7 +8,8 @@ use abstract_core::{
         IbcClientCallback,
     },
     ibc_host, manager,
-    objects::{chain_name::ChainName, AccountId}, version_control::AccountBase,
+    objects::{chain_name::ChainName, AccountId},
+    version_control::AccountBase,
 };
 use abstract_sdk::{
     core::{
@@ -132,7 +133,11 @@ fn send_remote_host_action(
         &polytone_note::msg::ExecuteMsg::Execute {
             msgs: vec![wasm_execute(
                 remote_ibc_host,
-                &ibc_host::ExecuteMsg::Execute { proxy_address: account.proxy.to_string(), account_id, action },
+                &ibc_host::ExecuteMsg::Execute {
+                    proxy_address: account.proxy.to_string(),
+                    account_id,
+                    action,
+                },
                 vec![],
             )?
             .into()],

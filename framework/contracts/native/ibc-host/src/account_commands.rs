@@ -4,11 +4,12 @@ use crate::{
     HostError,
 };
 use abstract_core::{
+    ibc_host::state::CONFIG,
     manager,
     objects::{chain_name::ChainName, AccountId},
     proxy,
     version_control::AccountBase,
-    PROXY, ibc_host::state::CONFIG,
+    PROXY,
 };
 use abstract_sdk::{
     core::{

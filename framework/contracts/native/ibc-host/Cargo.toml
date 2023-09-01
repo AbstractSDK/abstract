@@ -38,5 +38,5 @@ cw-orch = { workspace = true, optional = true }
 [dev-dependencies]
 abstract-interface = { workspace = true }
 cw-orch = { workspace = true }
-abstract-core = { workspace = true, features=["interface"] }
+abstract-core = { workspace = true, features = ["interface"] }
 anyhow.workspace = true

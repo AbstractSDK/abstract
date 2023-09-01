@@ -5,11 +5,14 @@ use crate::{
     ibc::receive_register,
 };
 use abstract_core::{
-    objects::{AccountId, chain_name::ChainName},
-    ibc_host::{state::{REVERSE_CHAIN_PROXYS, TEMP_ACTION_AFTER_CREATION, ActionAfterCreationCache}, ExecuteMsg}
+    ibc_host::{
+        state::{ActionAfterCreationCache, REVERSE_CHAIN_PROXYS, TEMP_ACTION_AFTER_CREATION},
+        ExecuteMsg,
+    },
+    objects::{chain_name::ChainName, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
-use cosmwasm_std::{DepsMut, Env, MessageInfo, StdError, wasm_execute, SubMsg, Response};
+use cosmwasm_std::{wasm_execute, DepsMut, Env, MessageInfo, Response, StdError, SubMsg};
 
 use super::reply::INIT_BEFORE_ACTION_REPLY_ID;
 
@@ -25,14 +28,14 @@ pub fn handle_host_action(
     // We verify the caller is indeed registered for the calling chain
     let client_chain = REVERSE_CHAIN_PROXYS.load(deps.storage, &info.sender)?;
 
-    // We execute the action 
+    // We execute the action
     _handle_host_action(
         deps,
         env,
         client_chain,
         proxy_address,
         account_id,
-        host_action
+        host_action,
     )
 }
 
@@ -45,9 +48,8 @@ pub(crate) fn _handle_host_action(
     proxy_address: String,
     mut account_id: AccountId,
     host_action: HostAction,
-) -> HostResult{
-
-    // Save the received account id 
+) -> HostResult {
+    // Save the received account id
     let remote_account_id = account_id.clone();
     // push the client chain to the account trace
     account_id.trace_mut().push_chain(client_chain.clone());
@@ -58,19 +60,11 @@ pub(crate) fn _handle_host_action(
             description,
             link,
             name,
-        }) => receive_register(
-            deps,
-            env,
-            account_id,
-            name,
-            description,
-            link,
-        ),
+        }) => receive_register(deps, env, account_id, name, description, link),
 
         action => {
-
             // If this account already exists, we can propagate the action
-            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id){
+            if let Ok(account) = account_commands::get_account(deps.as_ref(), &account_id) {
                 match action {
                     HostAction::Dispatch { manager_msg } => {
                         receive_dispatch(deps, account, manager_msg)
@@ -83,27 +77,33 @@ pub(crate) fn _handle_host_action(
                     }
                     HostAction::App { msg: _ } => todo!(),
                 }
-            }else{
+            } else {
                 // If no account is created already, we create one and execute the action on reply
                 // The account metadata are not set with this call
                 // One will have to change them at a later point if they decide to
-                let create_account_message = wasm_execute(env.contract.address, &ExecuteMsg::InternalRegisterAccount 
-                    { 
+                let create_account_message = wasm_execute(
+                    env.contract.address,
+                    &ExecuteMsg::InternalRegisterAccount {
                         client_chain: client_chain.clone(),
                         account_id,
-
-                    } , vec![])?;
+                    },
+                    vec![],
+                )?;
 
                 // We save the action they wanted to dispatch
-                TEMP_ACTION_AFTER_CREATION.save(deps.storage, &ActionAfterCreationCache{
-                    action,
-                    client_proxy_address: proxy_address,
-                    account_id: remote_account_id,
-                    chain_name: client_chain,
-                })?;
+                TEMP_ACTION_AFTER_CREATION.save(
+                    deps.storage,
+                    &ActionAfterCreationCache {
+                        action,
+                        client_proxy_address: proxy_address,
+                        account_id: remote_account_id,
+                        chain_name: client_chain,
+                    },
+                )?;
 
                 // We add a submessage after account creation to dispatch the action
-                let sub_msg = SubMsg::reply_on_success(create_account_message, INIT_BEFORE_ACTION_REPLY_ID);
+                let sub_msg =
+                    SubMsg::reply_on_success(create_account_message, INIT_BEFORE_ACTION_REPLY_ID);
 
                 Ok(Response::new().add_submessage(sub_msg))
             }

@@ -30,7 +30,8 @@ pub mod state {
     pub const CONFIG: Item<'static, Config> = Item::new("cfg");
 
     // Temporary structure to hold actions to be executed after account creation
-    pub const TEMP_ACTION_AFTER_CREATION: Item<'static, ActionAfterCreationCache> = Item::new("act");
+    pub const TEMP_ACTION_AFTER_CREATION: Item<'static, ActionAfterCreationCache> =
+        Item::new("act");
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]
@@ -44,13 +45,12 @@ pub mod state {
     }
 
     #[cosmwasm_schema::cw_serde]
-    pub struct ActionAfterCreationCache{
+    pub struct ActionAfterCreationCache {
         pub client_proxy_address: String,
         pub account_id: AccountId,
         pub action: HostAction,
         pub chain_name: ChainName,
     }
-
 }
 /// Used by Abstract to instantiate the contract
 /// The contract is then registered on the version control contract using [`crate::version_control::ExecuteMsg::ProposeModules`].
@@ -108,7 +108,7 @@ pub enum ExecuteMsg {
     /// Remove the Polytone proxy for a specific chain.
     RemoveChainProxy { chain: ChainName },
     /// Create an account internally (used for account creation before account action)
-    InternalRegisterAccount{
+    InternalRegisterAccount {
         client_chain: ChainName,
         account_id: AccountId,
     },
@@ -123,7 +123,7 @@ pub enum ExecuteMsg {
     Execute {
         account_id: AccountId,
         /// The address of the calling account id. This is used purely for the send-all-back method.
-        /// We include it in all messages one-the-less to simpify the users life 
+        /// We include it in all messages one-the-less to simpify the users life
         proxy_address: String,
         action: HostAction,
     },
