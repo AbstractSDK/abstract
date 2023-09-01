@@ -109,7 +109,7 @@ pub mod mock {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),
-                        module: None,
+                        modules: vec![],
                     };
                     Ok(to_binary(&resp).unwrap())
                 }

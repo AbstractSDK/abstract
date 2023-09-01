@@ -17,11 +17,11 @@
 pub mod state {
     use std::collections::HashSet;
 
+    use crate::module_factory::ModuleInstallConfig;
     pub use crate::objects::account_id::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    use crate::objects::module::ModuleInfo;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
-    use cosmwasm_std::{Addr, Api, Binary};
+    use cosmwasm_std::{Addr, Deps};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
     use cw_ownable::Ownership;
@@ -48,8 +48,12 @@ pub mod state {
 
     impl AccountInfo<String> {
         /// Check an account's info, verifying the gov details.
-        pub fn verify(self, api: &dyn Api) -> Result<AccountInfo<Addr>, crate::AbstractError> {
-            let governance_details = self.governance_details.verify(api)?;
+        pub fn verify(
+            self,
+            deps: Deps,
+            version_control_addr: Addr,
+        ) -> Result<AccountInfo<Addr>, crate::AbstractError> {
+            let governance_details = self.governance_details.verify(deps, version_control_addr)?;
             Ok(AccountInfo {
                 name: self.name,
                 governance_details,
@@ -88,11 +92,16 @@ pub mod state {
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// Stores a queue of modules to install on the account after creation.
-    pub const MODULE_QUEUE: Item<Vec<(ModuleInfo, Option<Binary>)>> = Item::new("mqueue");
+    pub const MODULE_QUEUE: Item<Vec<ModuleInstallConfig>> = Item::new("mqueue");
+    /// List of sub-accounts
+    pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
+    /// Pending new governance
+    pub const PENDING_GOVERNANCE: Item<GovernanceDetails<Addr>> = Item::new("pgov");
 }
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
+use crate::module_factory::ModuleInstallConfig;
 use crate::objects::AssetEntry;
 use crate::objects::{
     account_id::AccountId,
@@ -118,7 +127,7 @@ pub struct InstantiateMsg {
     pub description: Option<String>,
     pub link: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
-    pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -137,6 +146,19 @@ pub enum InternalConfigAction {
     },
 }
 
+#[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
+pub enum UpdateSubAccountAction {
+    /// Unregister sub-account
+    /// It will unregister sub-account from the state
+    /// Could be called only by the sub-account itself
+    UnregisterSubAccount { id: u32 },
+    /// Register sub-account
+    /// It will register new sub-account into the state
+    /// Could be called by the sub-account manager
+    /// Note: since it happens after the claim by this manager state won't have spam accounts
+    RegisterSubAccount { id: u32 },
+}
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -149,11 +171,9 @@ pub enum ExecuteMsg {
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
     #[cfg_attr(feature = "interface", payable)]
-    InstallModule {
-        // Module information.
-        module: ModuleInfo,
-        // Instantiate message used to instantiate the contract.
-        init_msg: Option<Binary>,
+    InstallModules {
+        // Module information and Instantiate message to instantiate the contract
+        modules: Vec<ModuleInstallConfig>,
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
@@ -178,7 +198,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
-        install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
     /// Update info
     UpdateInfo {
@@ -187,12 +207,14 @@ pub enum ExecuteMsg {
         link: Option<String>,
     },
     /// Sets a new Owner
-    /// New owner will have to claim ownership, in case force is not true
+    /// New owner will have to claim ownership
     SetOwner { owner: GovernanceDetails<String> },
     /// Update account statuses
     UpdateStatus { is_suspended: Option<bool> },
     /// Update settings for the Account, including IBC enabled, etc.
     UpdateSettings { ibc_enabled: Option<bool> },
+    /// Actions called by internal or external sub-accounts
+    UpdateSubAccount(UpdateSubAccountAction),
     /// Callback endpoint
     Callback(CallbackMsg),
 }
@@ -226,6 +248,11 @@ pub enum QueryMsg {
     /// Returns [`InfoResponse`]
     #[returns(InfoResponse)]
     Info {},
+    #[returns(SubAccountIdsResponse)]
+    SubAccountIds {
+        start_after: Option<u32>,
+        limit: Option<u8>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -261,4 +288,9 @@ pub struct ManagerModuleInfo {
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleInfosResponse {
     pub module_infos: Vec<ManagerModuleInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SubAccountIdsResponse {
+    pub sub_accounts: Vec<u32>,
 }
