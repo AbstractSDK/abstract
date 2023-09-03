@@ -18,6 +18,8 @@ jobs:
     docker:
       - image: cimg/rust:1.55
     steps:
+      - setup_remote_docker:
+          version: 20.10.14
       - checkout
       - run:
           name: Build WASM artifacts
