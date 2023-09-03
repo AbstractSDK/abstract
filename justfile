@@ -44,6 +44,10 @@ nightly-build:
 wasm-all:
   ./scripts/wasm-all.sh
 
+# Wasms all the workspaces that can be wasm'd
+wasm-all-ci:
+  ./scripts/wasm-all-ci.sh
+
 schema-modules:
   #!/usr/bin/env bash
   set -e;

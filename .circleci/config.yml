@@ -26,7 +26,7 @@ jobs:
           command: |
             curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
             export PATH="$PATH:$HOME/bin"
-            just wasm-all
+            just wasm-all-ci
       - run:
           name: Commit and push artifacts
           command: |
