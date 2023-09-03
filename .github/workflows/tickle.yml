@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Tickle CircleCI
+        env:
+          CIRCLE_BRANCH: "add/circle-ci"
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            curl -X POST \
+            -H "Circle-Token: ${CCI_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -d "{\"branch\":\"${CIRCLE_BRANCH}\"}" \
+            https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          fi

@@ -1,0 +1,35 @@
+version: 2.1
+parameters:
+  GHA_Event:
+    type: string
+    default: ""
+  GHA_Actor:
+    type: string
+    default: ""
+  GHA_Action:
+    type: string
+    default: ""
+  GHA_Meta:
+    type: string
+    default: ""
+
+jobs:
+  build:
+    docker:
+      - image: cimg/rust:1.55
+    steps:
+      - checkout
+      - run:
+          name: Build WASM artifacts
+          command: |
+            curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
+            export PATH="$PATH:$HOME/bin"
+            just wasm-all
+      - run:
+          name: Commit and push artifacts
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            git add .
+            git commit -m 'Update WASM artifacts [skip ci]'
+            git push origin $CIRCLE_BRANCH
