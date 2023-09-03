@@ -25,7 +25,7 @@ rm -rf ./artifacts/*.wasm
 docker create -v /code --name with_code alpine /bin/true
 # copy a config file into this volume
 docker cp Cargo.toml with_code:/code
-# docker cp Cargo.lock with_code:/code
+docker cp Cargo.lock with_code:/code
 
 # copy code into this volume
 docker cp ./contracts with_code:/code
