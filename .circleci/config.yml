@@ -17,7 +17,8 @@ workflows:
     jobs:
       - build
   coverage:
-    when: << pipeline.parameters.GHA_Event == "modules_coverage" >>
+    when: 
+      equal: [ "modules_coverage", << pipeline.parameters.GHA_Event >>]
     jobs: 
       - coverage
 
