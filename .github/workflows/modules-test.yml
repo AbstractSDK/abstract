@@ -46,11 +46,24 @@ jobs:
     steps:
       - name: modules_coverage
         id: abstract-mono
-        uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
-        with:
-          GHA_Meta: "modules_coverage"
         env:
+          CIRCLE_BRANCH: ${{ github.head_ref }}
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          GHA_Meta: "modules_coverage"
+        run: |
+          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            curl -X POST \
+            -H "Circle-Token: ${CIRCLE_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -d '{
+              "branch": "${CIRCLE_BRANCH}",
+              "parameters": {
+                "GHA_Meta": "${GHA_Meta}"
+              }
+            }'\
+            https://circleci.com/api/v2/project/gh/<repo_owner>/<repo_name>/pipeline
+          fi
   # coverage:
   #   runs-on: ubuntu-latest
   #   name: ubuntu / stable / coverage
