@@ -62,7 +62,7 @@ jobs:
       #     }'\
       #     https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
       - name: tickle coverage
-        id: "abstrac-mono"
+        id: "abstract-mono"
         uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
         with:
           GHA_Meta: "modules_coverage"
