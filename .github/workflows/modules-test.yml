@@ -15,32 +15,32 @@ env:
   RUSTC_WRAPPER: "sccache"
 
 jobs:
-  required:
-    runs-on: ubuntu-latest
-    name: ubuntu / ${{ matrix.toolchain }}
-    strategy:
-      matrix:
-        toolchain: [stable, beta]
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install ${{ matrix.toolchain }}
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.toolchain }}
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        working-directory: ./modules
-        run: cargo generate-lockfile
-      # https://twitter.com/jonhoo/status/1571290371124260865
-      - name: cargo test --locked
-        working-directory: ./modules
-        run: cargo test --locked --all-features --all-targets
+  # required:
+  #   runs-on: ubuntu-latest
+  #   name: ubuntu / ${{ matrix.toolchain }}
+  #   strategy:
+  #     matrix:
+  #       toolchain: [stable, beta]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: true
+  #     - name: Setup sccache
+  #       uses: mozilla-actions/sccache-action@v0.0.3
+  #       with:
+  #         version: "v0.4.2"
+  #     - name: Install ${{ matrix.toolchain }}
+  #       uses: dtolnay/rust-toolchain@master
+  #       with:
+  #         toolchain: ${{ matrix.toolchain }}
+  #     - name: cargo generate-lockfile
+  #       if: hashFiles('Cargo.lock') == ''
+  #       working-directory: ./modules
+  #       run: cargo generate-lockfile
+  #     # https://twitter.com/jonhoo/status/1571290371124260865
+  #     - name: cargo test --locked
+  #       working-directory: ./modules
+  #       run: cargo test --locked --all-features --all-targets
   coverage:
     runs-on: ubuntu-latest
     steps:
@@ -59,8 +59,7 @@ jobs:
             "parameters": {
               "GHA_Meta": "modules_coverage"
             }
-          }'\
-          https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
   # coverage:
   #   runs-on: ubuntu-latest
