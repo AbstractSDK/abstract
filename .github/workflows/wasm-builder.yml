@@ -25,5 +25,4 @@ jobs:
           "parameters": {
             "GHA_Meta": "build_wasms"
           }
-          }'\
-          https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline

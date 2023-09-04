@@ -74,8 +74,8 @@ jobs:
           "branch": "${CIRCLE_BRANCH}",
           "parameters": {
             "GHA_Meta": "modules_coverage"
-          }}'\
-          https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
   # coverage:
   #   runs-on: ubuntu-latest
