@@ -46,7 +46,7 @@ fn execute_on_proxy_through_manager() -> AResult {
             })],
         })?,
         PROXY.to_string(),
-        &vec![forwarded_coin.clone()],
+        &[forwarded_coin.clone()],
     )?;
 
     let proxy_balance = chain
