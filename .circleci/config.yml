@@ -17,6 +17,8 @@ parameters:
 workflows:
   version: 2
   build:
+    when:
+      equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
   coverage:
