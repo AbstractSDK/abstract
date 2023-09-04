@@ -9,7 +9,10 @@ parameters:
     default: false
   run_framework_coverage:
     type: boolean
-    default: false    
+    default: false
+  GHA_Meta:
+    type: string
+    default: ""
 
 workflows:
   version: 2
