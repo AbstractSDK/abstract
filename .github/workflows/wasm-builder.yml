@@ -15,7 +15,6 @@ jobs:
     steps:
       - name: Tickle CircleCI
         env:
-          CIRCLE_BRANCH: "add/circle-ci"
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
           # if [ "${{ github.event.pull_request.merged }}" = "false" ]; then
@@ -24,7 +23,7 @@ jobs:
             -H 'Content-Type: application/json' \
             -H 'Accept: application/json' \
             -d '{
-            "branch": "${CIRCLE_BRANCH}",
+            "branch": "add/circle-ci",
             "parameters": {
               "GHA_Meta": "build_wasms"
             }
