@@ -4,12 +4,15 @@ orbs:
   codecov: codecov/codecov@3.2.2
 
 parameters:
-  run_modules_coverage:
-    type: boolean
-    default: false
-  run_framework_coverage:
-    type: boolean
-    default: false
+  GHA_Event:
+    type: string
+    default: ""
+  GHA_Actor:
+    type: string
+    default: ""
+  GHA_Action:
+    type: string
+    default: ""
   GHA_Meta:
     type: string
     default: ""
