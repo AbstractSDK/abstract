@@ -13,26 +13,28 @@ fi
 
 starting_dir=$(pwd)
 
-# # see https://github.com/CosmWasm/cw-plus/blob/main/.circleci/config.yml
-# echo "Wasming framework"
-# cd ./framework
+# see https://github.com/CosmWasm/cw-plus/blob/main/.circleci/config.yml
+echo "Wasming framework"
+cd ./framework
 
-# # Delete the current artifacts folder.
-# rm -rf ./artifacts
+# Delete the current artifacts folder.
+rm -rf ./artifacts
 
-# # create a dummy container which will hold a volume with config
-# docker create -v /code --name with_code alpine /bin/true
-# # copy a config file into this volume
-# docker cp Cargo.toml with_code:/code
-# docker cp Cargo.lock with_code:/code
-# # copy code into this volume
-# docker cp ./contracts with_code:/code
-# docker cp ./packages with_code:/code
-# docker cp ./scripts with_code:/code
-# docker run --volumes-from with_code ${abstract_image}:0.14.0
-# docker cp with_code:/code/artifacts ./artifacts
+# create a dummy container which will hold a volume with config
+docker create -v /code --name with_code alpine /bin/true
+# copy a config file into this volume
+docker cp Cargo.toml with_code:/code
+docker cp Cargo.lock with_code:/code
+# copy code into this volume
+docker cp ./contracts with_code:/code
+docker cp ./packages with_code:/code
+docker cp ./scripts with_code:/code
+# Run the build
+docker run --volumes-from with_code ${abstract_image}:0.14.0
+# Copy the artifacts back out
+docker cp with_code:/code/artifacts ./artifacts
 
-# cd $starting_dir
+cd $starting_dir
 
 echo "Wasming modules"
 
@@ -40,14 +42,14 @@ docker rm -v modules_with_code
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 
-ls integrations
+# copy directories to container.
 docker cp ./integrations modules_with_code:/
-docker run --rm -it --volumes-from modules_with_code alpine ls /integrations
-
 docker cp ./framework modules_with_code:/
 
-# Delete the current artifacts folder.
+# go into the directory we want to compile
 cd ./modules
+
+# Delete the current artifacts folder.
 rm -rf ./artifacts
 # copy a config file into this volume
 docker cp Cargo.toml modules_with_code:/code
@@ -56,7 +58,9 @@ docker cp Cargo.lock modules_with_code:/code
 docker cp ./contracts modules_with_code:/code
 docker cp ./packages modules_with_code:/code
 
+# Run the build
 docker run --volumes-from modules_with_code ${abstract_image}:0.14.0
+# Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts ./artifacts
 
 cd $starting_dir
