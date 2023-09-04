@@ -1,9 +1,11 @@
 use crate::{
     contract::ChallengeApp,
-    state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
+    state::{
+        ChallengeEntry, ChallengeEntryUpdate, CheckIn, EndKind, Friend, UpdateFriendsOpKind, Vote,
+    },
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Timestamp};
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
@@ -13,7 +15,7 @@ abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMs
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum ChallengeExecuteMsg {
     CreateChallenge {
-        challenge: ChallengeEntry,
+        challenge: ChallengeEntry<EndKind>,
     },
     UpdateChallenge {
         challenge_id: u64,
@@ -75,7 +77,7 @@ pub enum ChallengeQueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeResponse {
-    pub challenge: Option<ChallengeEntry>,
+    pub challenge: Option<ChallengeEntry<Timestamp>>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -89,7 +91,7 @@ pub struct VoteResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ChallengesResponse(pub Vec<ChallengeEntry>);
+pub struct ChallengesResponse(pub Vec<ChallengeEntry<Timestamp>>);
 
 #[cosmwasm_schema::cw_serde]
 pub struct FriendsResponse(pub Vec<Friend<Addr>>);

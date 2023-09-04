@@ -1,5 +1,6 @@
 use abstract_dex_adapter::msg::OfferAsset;
-use cosmwasm_std::{Addr, Deps, Env, StdResult};
+use chrono::Duration;
+use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -9,27 +10,52 @@ pub struct Config {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ChallengeEntry {
+pub struct ChallengeEntry<T> {
     pub name: String,
     pub collateral: Penalty,
     pub description: String,
-    pub end_block: u64,
+    pub end: T,
     pub status: ChallengeStatus,
     pub admin_strikes: [bool; 3],
 }
 
-impl ChallengeEntry {
+impl ChallengeEntry<EndKind> {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(name: String, collateral: Penalty, description: String, end_block: u64) -> Self {
+    pub fn new(name: String, collateral: Penalty, description: String, end: EndKind) -> Self {
         ChallengeEntry {
             name,
             collateral,
             description,
-            end_block,
+            end,
             status: ChallengeStatus::default(),
             admin_strikes: [false; 3],
         }
     }
+
+    pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry<Timestamp>> {
+        let end = match self.end {
+            EndKind::Week => Duration::weeks(1).to_std().unwrap(),
+            EndKind::Month => Duration::days(30).to_std().unwrap(),
+            EndKind::Quarter => Duration::days(90).to_std().unwrap(),
+        };
+        let end_from_now = Timestamp::from_seconds(env.block.time.seconds() + end.as_secs());
+
+        Ok(ChallengeEntry {
+            name: self.name.clone(),
+            collateral: self.collateral.clone(),
+            description: self.description.clone(),
+            end: end_from_now,
+            status: self.status.clone(),
+            admin_strikes: self.admin_strikes.clone(),
+        })
+    }
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum EndKind {
+    Week,
+    Month,
+    Quarter,
 }
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job
@@ -67,7 +93,7 @@ pub struct ChallengeEntryUpdate {
     pub name: Option<String>,
     pub collateral: Option<Penalty>,
     pub description: Option<String>,
-    pub end_block: Option<u64>,
+    pub end: Option<Timestamp>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -156,7 +182,7 @@ impl CheckIn {
 
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const ADMIN: Item<Addr> = Item::new("admin");
-pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
+pub const CHALLENGE_LIST: Map<u64, ChallengeEntry<Timestamp>> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
 /// Key is a tuple of (challenge_id, voter_address).

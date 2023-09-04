@@ -7,7 +7,7 @@ use abstract_challenge_app::{
         InstantiateMsg, VoteResponse,
     },
     state::{
-        ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, Friend, Penalty,
+        ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, EndKind, Friend, Penalty,
         UpdateFriendsOpKind, Vote,
     },
     *,
@@ -21,7 +21,7 @@ use abstract_core::{
 };
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
-use cosmwasm_std::{coin, Uint128};
+use cosmwasm_std::{coin, Timestamp, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use lazy_static::lazy_static;
@@ -29,10 +29,10 @@ use lazy_static::lazy_static;
 // consts for testing
 const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
-const END_BLOCK: u64 = 100_000_000;
+const END_BLOCK: EndKind = EndKind::Week;
 const CHALLENGE_ID: u64 = 1;
 lazy_static! {
-    static ref CHALLENGE: ChallengeEntry = ChallengeEntry::new(
+    static ref CHALLENGE: ChallengeEntry<EndKind> = ChallengeEntry::new(
         "test".to_string(),
         Penalty::FixedAmount {
             asset: OfferAsset::new("denom", Uint128::new(100)),
@@ -145,6 +145,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
         GovernanceDetails::Monarchy {
             monarch: ADMIN.to_string(),
         },
+        None,
     )?;
 
     let _ = account.install_module(
@@ -201,7 +202,16 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 
     let mut challenge = CHALLENGE.clone();
     challenge.status = ChallengeStatus::Active;
-    assert_eq!(created.challenge.unwrap(), challenge);
+    assert_eq!(created.challenge.as_ref().unwrap().name, challenge.name);
+    assert_eq!(
+        created.challenge.as_ref().unwrap().collateral,
+        challenge.collateral
+    );
+    assert_eq!(
+        created.challenge.as_ref().unwrap().description,
+        challenge.description
+    );
+    assert_eq!(created.challenge.as_ref().unwrap().status, challenge.status);
     Ok(())
 }
 
@@ -219,7 +229,7 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
             asset: OfferAsset::new("denom", Uint128::new(100)),
         }),
         description: Some("Updated Test Challenge".to_string()),
-        end_block: None,
+        end: None,
     };
 
     apps.challenge_app.update_challenge(to_update.clone(), 1)?;
@@ -342,7 +352,16 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     let mut challenge = CHALLENGE.clone();
     challenge.status = ChallengeStatus::Active;
-    assert_eq!(created.challenge.unwrap(), challenge);
+    assert_eq!(created.challenge.as_ref().unwrap().name, challenge.name);
+    assert_eq!(
+        created.challenge.as_ref().unwrap().collateral,
+        challenge.collateral
+    );
+    assert_eq!(
+        created.challenge.as_ref().unwrap().description,
+        challenge.description
+    );
+    assert_eq!(created.challenge.as_ref().unwrap().status, challenge.status);
 
     // add friend
     apps.challenge_app.update_friends_for_challenge(
@@ -432,7 +451,19 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
 
     let mut challenge = CHALLENGE.clone();
     challenge.status = ChallengeStatus::Active;
-    assert_eq!(response.challenge.unwrap(), challenge);
+    assert_eq!(response.challenge.as_ref().unwrap().name, challenge.name);
+    assert_eq!(
+        response.challenge.as_ref().unwrap().collateral,
+        challenge.collateral
+    );
+    assert_eq!(
+        response.challenge.as_ref().unwrap().description,
+        challenge.description
+    );
+    assert_eq!(
+        response.challenge.as_ref().unwrap().status,
+        challenge.status
+    );
 
     apps.challenge_app.update_friends_for_challenge(
         CHALLENGE_ID,
@@ -587,10 +618,17 @@ fn run_challenge_vote_sequence(
         apps.challenge_app.daily_check_in(1, None)?;
     }
 
-    //update the blockheight
-    mock.app.borrow_mut().update_block(|b| {
-        b.height = END_BLOCK + 1;
-    });
+    let response = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: 1,
+        }))?;
+
+    let mut end_block: Timestamp = response.challenge.clone().unwrap().end;
+    end_block = Timestamp::from_seconds(end_block.seconds() + 100);
+
+    //update the blockeight to be 100 seconds after the challenge.end_block
+    mock.wait_seconds(end_block.seconds())?;
 
     // On this check_in, the blockeight is passed the challenge.end_block
     // so the challenge.status should be set to ChallengeStatus::OverAndPending

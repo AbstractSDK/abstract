@@ -38,11 +38,13 @@ cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 schemars = { workspace = true }
 cw-asset = { workspace = true }
+cw-utils = { workspace = true }
 
 abstract-core = { workspace = true }
 abstract-app = { workspace = true }
 abstract-sdk = { workspace = true }
 
+chrono = { workspace = true, default-features = false }
 
 # Dependencies for interface
 abstract-interface = { workspace = true, optional = true }

@@ -6,7 +6,7 @@ use crate::msg::{
 use crate::state::{
     ChallengeEntry, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, VOTES,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Timestamp};
 use cw_storage_plus::Bound;
 
 pub fn query_handler(
@@ -46,7 +46,7 @@ fn query_challenge(
 }
 
 fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesResponse> {
-    let challenges: StdResult<Vec<ChallengeEntry>> = CHALLENGE_LIST
+    let challenges: StdResult<Vec<ChallengeEntry<Timestamp>>> = CHALLENGE_LIST
         .range(
             deps.storage,
             Some(Bound::exclusive(start)),
@@ -54,7 +54,7 @@ fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesR
             Order::Ascending,
         )
         .map(|result| result.map(|(_, entry)| entry)) // strip the keys
-        .collect::<StdResult<Vec<ChallengeEntry>>>();
+        .collect::<StdResult<Vec<ChallengeEntry<Timestamp>>>>();
     Ok(ChallengesResponse(challenges.unwrap_or_default()))
 }
 

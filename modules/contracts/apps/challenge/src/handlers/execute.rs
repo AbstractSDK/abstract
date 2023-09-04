@@ -1,14 +1,14 @@
 use crate::error::AppError;
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Uint128};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Timestamp, Uint128};
 
 use crate::contract::{AppResult, ChallengeApp};
 use abstract_sdk::prelude::*;
 
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, Friend, Penalty,
+    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, EndKind, Friend, Penalty,
     UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST, CHALLENGE_VOTES,
     DAILY_CHECK_INS, NEXT_ID, VOTES,
 };
@@ -60,7 +60,7 @@ fn create_challenge(
     env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    mut challenge: ChallengeEntry,
+    mut challenge: ChallengeEntry<EndKind>,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -69,6 +69,8 @@ fn create_challenge(
     if challenge.status != ChallengeStatus::Uninitialized {
         return Err(AppError::WrongChallengeStatus {});
     }
+
+    let mut challenge = challenge.set_end_timestamp(&env)?;
 
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
@@ -98,7 +100,7 @@ fn update_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     // will return an error if the challenge doesn't exist
-    let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
+    let mut loaded_challenge: ChallengeEntry<Timestamp> = CHALLENGE_LIST
         .may_load(deps.storage, challenge_id.clone())
         .map_err(|_| AppError::NotFound {})?
         .ok_or_else(|| {
@@ -121,8 +123,8 @@ fn update_challenge(
     if let Some(description) = new_challenge.description {
         loaded_challenge.description = description;
     }
-    if let Some(end_block) = new_challenge.end_block {
-        loaded_challenge.end_block = end_block;
+    if let Some(end) = new_challenge.end {
+        loaded_challenge.end = end;
     }
 
     // Save the updated challenge
@@ -251,8 +253,9 @@ fn daily_check_in(
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    let now = Timestamp::from(env.block.time);
 
-    if env.block.height > challenge.end_block {
+    if now > challenge.end {
         match challenge.status {
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::OverAndPending;
