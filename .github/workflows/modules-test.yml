@@ -71,12 +71,12 @@ jobs:
           -H "Circle-Token: ${CCI_TOKEN}" \
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
-          -d '{
-          "branch": $CIRCLE_BRANCH,
-          "parameters": {
-            "GHA_Meta": "modules_coverage"
-          }
-          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+          -d "{
+            \"branch\": \"${CIRCLE_BRANCH}\",
+            \"parameters\": {
+              \"GHA_Meta\": \"modules_coverage\"
+            }
+          }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
   # coverage:
   #   runs-on: ubuntu-latest
