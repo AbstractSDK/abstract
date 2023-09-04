@@ -211,7 +211,7 @@ pub fn exec_on_module(
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
-            funds: vec![],
+            funds: msg_info.funds,
         }),
     );
 
