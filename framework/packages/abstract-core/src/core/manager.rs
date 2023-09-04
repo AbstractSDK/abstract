@@ -17,11 +17,11 @@
 pub mod state {
     use std::collections::HashSet;
 
+    use crate::module_factory::ModuleInstallConfig;
     pub use crate::objects::account_id::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
-    use crate::objects::module::ModuleInfo;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
-    use cosmwasm_std::{Addr, Binary, Deps};
+    use cosmwasm_std::{Addr, Deps};
     use cw_address_like::AddressLike;
     use cw_controllers::Admin;
     use cw_ownable::Ownership;
@@ -92,7 +92,7 @@ pub mod state {
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
     /// Stores a queue of modules to install on the account after creation.
-    pub const MODULE_QUEUE: Item<Vec<(ModuleInfo, Option<Binary>)>> = Item::new("mqueue");
+    pub const MODULE_QUEUE: Item<Vec<ModuleInstallConfig>> = Item::new("mqueue");
     /// List of sub-accounts
     pub const SUB_ACCOUNTS: Map<u32, cosmwasm_std::Empty> = Map::new("sub_accs");
     /// Pending new governance
@@ -101,6 +101,7 @@ pub mod state {
 
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
+use crate::module_factory::ModuleInstallConfig;
 use crate::objects::AssetEntry;
 use crate::objects::{
     account_id::AccountId,
@@ -126,7 +127,7 @@ pub struct InstantiateMsg {
     pub description: Option<String>,
     pub link: Option<String>,
     // Optionally modules can be provided. They will be installed after account registration.
-    pub install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    pub install_modules: Vec<ModuleInstallConfig>,
 }
 
 /// Callback message to set the dependencies after module upgrades.
@@ -170,11 +171,9 @@ pub enum ExecuteMsg {
     UpdateInternalConfig(Binary),
     /// Install module using module factory, callable by Owner
     #[cfg_attr(feature = "interface", payable)]
-    InstallModule {
-        // Module information.
-        module: ModuleInfo,
-        // Instantiate message used to instantiate the contract.
-        init_msg: Option<Binary>,
+    InstallModules {
+        // Module information and Instantiate message to instantiate the contract
+        modules: Vec<ModuleInstallConfig>,
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
@@ -199,7 +198,7 @@ pub enum ExecuteMsg {
         // optionally specify a namespace for the sub-account
         namespace: Option<String>,
         // Provide list of module to install after sub-account creation
-        install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+        install_modules: Vec<ModuleInstallConfig>,
     },
     /// Update info
     UpdateInfo {

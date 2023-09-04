@@ -1,8 +1,10 @@
+use abstract_core::module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse};
 use abstract_core::objects::price_source::UncheckedPriceSource;
 use abstract_core::objects::{AssetEntry, ABSTRACT_ACCOUNT_ID};
+use abstract_core::AbstractError;
 use abstract_core::{manager::ExecuteMsg, objects::module::assert_module_data_validity};
 use cosmwasm_std::{
-    to_binary, wasm_execute, Addr, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
+    to_binary, wasm_execute, Addr, Coins, CosmosMsg, DepsMut, Empty, Env, MessageInfo,
     QuerierWrapper, ReplyOn, StdError, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
@@ -44,7 +46,7 @@ pub fn execute_create_account(
     link: Option<String>,
     namespace: Option<String>,
     base_asset: Option<AssetEntry>,
-    install_modules: Vec<(ModuleInfo, Option<Binary>)>,
+    install_modules: Vec<ModuleInstallConfig>,
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
@@ -57,6 +59,24 @@ pub fn execute_create_account(
     // Query version_control for code_id of Manager contract
     let module: Module = query_module(&deps.querier, &config.version_control_contract, PROXY)?;
 
+    let simulate_resp: SimulateInstallModulesResponse = deps.querier.query_wasm_smart(
+        config.module_factory_address,
+        &abstract_core::module_factory::QueryMsg::SimulateInstallModules {
+            modules: install_modules.iter().map(|m| m.module.clone()).collect(),
+        },
+    )?;
+    let funds_for_install = simulate_resp.total_required_funds;
+
+    // Remove all funds used to install the module to pass rest to the proxy contract
+    let mut funds_to_proxy = Coins::try_from(info.funds.clone()).unwrap();
+    for coin in funds_for_install.clone() {
+        funds_to_proxy.sub(coin).map_err(|_| {
+            AbstractError::Fee(format!(
+                "Invalid fee payment sent. Expected {:?}, sent {:?}",
+                funds_for_install, info.funds
+            ))
+        })?;
+    }
     // save module for after-init check
     CONTEXT.save(
         deps.storage,
@@ -74,10 +94,11 @@ pub fn execute_create_account(
                 owner: governance.into(),
             },
             install_modules,
+            funds_for_install,
         },
     )?;
 
-    if let ModuleReference::AccountBase(manager_code_id) = module.reference {
+    if let ModuleReference::AccountBase(proxy_code_id) = module.reference {
         Ok(AccountFactoryResponse::new(
             "create_account",
             vec![("account_id", &config.next_account_id.to_string())],
@@ -87,8 +108,8 @@ pub fn execute_create_account(
             id: CREATE_ACCOUNT_PROXY_MSG_ID,
             gas_limit: None,
             msg: WasmMsg::Instantiate {
-                code_id: manager_code_id,
-                funds: vec![],
+                code_id: proxy_code_id,
+                funds: funds_to_proxy.into_vec(),
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
                 label: format!("Abstract Account: {}", config.next_account_id),
@@ -309,7 +330,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
             })
             .unwrap(),
         ),
-        vec![],
+        // Attaching funds for installing modules
+        context.funds_for_install,
     )?;
 
     // The execution order here is important.
