@@ -6,7 +6,7 @@ on:
   #     types: [closed]
   #   branches:
   #     - "releases/**"
-  # push:
+  push:
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
           CIRCLE_BRANCH: "main"
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+          if [ "${{ github.event.pull_request.merged }}" = "false" ]; then
             curl -X POST \
             -H "Circle-Token: ${CCI_TOKEN}" \
             -H 'Content-Type: application/json' \
