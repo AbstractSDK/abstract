@@ -49,7 +49,6 @@ jobs:
         env:
           CIRCLE_BRANCH: ${{ github.head_ref }}
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-          GHA_Meta: "modules_coverage"
         run: |
 
           curl -X POST \
@@ -59,7 +58,7 @@ jobs:
           -d '{
             "branch": "${CIRCLE_BRANCH}",
             "parameters": {
-              "GHA_Meta": "${GHA_Meta}"
+              "GHA_Meta": "modules_coverage"
             }
           }'\
           https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
