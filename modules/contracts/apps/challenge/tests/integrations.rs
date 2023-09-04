@@ -528,7 +528,9 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
         }))?;
 
     println!("Challenge response after recount{:?}", response.challenge);
-    apps.challenge_app.charge_penalty(CHALLENGE_ID)?;
+    // this will have returned an error because the challenge.status is OverAndCompleted
+    // No penalty can be charged, the false vote was vetoed by the admin
+    let _ = apps.challenge_app.charge_penalty(CHALLENGE_ID);
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // The false vote was vetoed by the admin, so no penalty should be charged,

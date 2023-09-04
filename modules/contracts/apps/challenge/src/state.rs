@@ -52,19 +52,6 @@ pub enum ChallengeStatus {
     /// their collateral is owed to the friends.
     /// This valued can be used to trigger an automated Croncat job to pay out the collateral.
     OverAndFailed,
-
-    /// The final status of the challenge can be one of two variants:
-    /// - FriendsWin: The friends won the challenge and were paid the collateral, the admin failed.
-    /// - AdminWins: The admin won the challenge and kept their collateral, the friends failed.
-    Completed(CompletedStatus),
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum CompletedStatus {
-    /// The friends won the challenge and were paid the collateral, the admin failed.
-    FriendsWin,
-    /// The admin won the challenge and kept their collateral, the friends failed.
-    AdminWins,
 }
 
 impl Default for ChallengeStatus {

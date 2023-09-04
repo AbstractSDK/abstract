@@ -431,6 +431,7 @@ fn charge_penalty(
 
             // Calculate each friend's share
             let amount_per_friend = asset.amount.u128() / num_friends;
+            let reaminder = asset.amount.u128() % num_friends;
             let asset_per_friend = OfferAsset {
                 name: asset.name,
                 amount: Uint128::from(amount_per_friend),
@@ -447,7 +448,8 @@ fn charge_penalty(
             Ok(Response::new()
                 .add_messages(transfer_msgs)
                 .add_attribute("total_amount", asset.amount.to_string())
-                .add_attribute("action", "charge_fixed_amount_penalty"))
+                .add_attribute("action", "charge_fixed_amount_penalty")
+                .add_attribute("remainder is", reaminder.to_string()))
         }
         Penalty::Daily {
             asset: _,
@@ -461,6 +463,7 @@ fn charge_penalty(
         }
     }
 }
+
 fn veto_vote(
     deps: DepsMut,
     info: MessageInfo,
