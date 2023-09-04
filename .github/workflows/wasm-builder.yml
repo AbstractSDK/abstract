@@ -18,7 +18,7 @@ jobs:
           CIRCLE_BRANCH: "main"
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          if [ "${{ github.event.pull_request.merged }}" = "false" ]; then
+          # if [ "${{ github.event.pull_request.merged }}" = "false" ]; then
             curl -X POST \
             -H "Circle-Token: ${CCI_TOKEN}" \
             -H 'Content-Type: application/json' \
@@ -30,4 +30,4 @@ jobs:
             }
           }'\
             https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
-          fi
+          # fi
