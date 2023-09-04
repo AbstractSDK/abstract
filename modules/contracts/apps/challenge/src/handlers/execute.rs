@@ -78,7 +78,11 @@ fn create_challenge(
     CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
     // Create the initial check_in entry
-    DAILY_CHECK_INS.save(deps.storage, challenge_id.clone(), &CheckIn::initial(&env))?;
+    DAILY_CHECK_INS.save(
+        deps.storage,
+        challenge_id.clone(),
+        &CheckIn::default_from(&env),
+    )?;
 
     // Create the initial challenge_votes entry
     CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &Vec::new())?;
@@ -280,14 +284,16 @@ fn daily_check_in(
     let check_in = DAILY_CHECK_INS.may_load(deps.storage, challenge_id.clone())?;
 
     if let Some(check_in) = check_in {
-        match env.block.height {
-            block if block == check_in.last_checked_in => {
+        let now = Timestamp::from(env.block.time);
+        let next_check_in_by = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
+        match now {
+            now if now == check_in.last_checked_in => {
                 return Err(AppError::AlreadyCheckedIn {});
             }
 
             // The admin has missed the deadline for checking in, they are given a strike.
             // The contract manually sets the next check in time.
-            block if block >= check_in.next_check_in_by => {
+            now if now >= check_in.next_check_in_by => {
                 for strike in challenge.admin_strikes.iter_mut() {
                     if !*strike {
                         *strike = true;
@@ -302,10 +308,12 @@ fn daily_check_in(
                 }
 
                 let last = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+
                 let check_in = CheckIn {
                     last_checked_in: last.last_checked_in,
-                    next_check_in_by: env.block.height + 777,
+                    next_check_in_by,
                     metadata,
+                    vote_status: last.vote_status,
                 };
                 DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
                 return Ok(Response::new()
@@ -316,14 +324,12 @@ fn daily_check_in(
                     ));
             }
             // The admin is checking in before the next check in time, so we can proceeed.
-            block if block < check_in.next_check_in_by => {
-                // this could be configurable, for now
-                // we set the next check in to be 777 blocks from now
-                let next_check_in_block = env.block.height + 777;
+            now if now < check_in.next_check_in_by => {
                 let check_in = CheckIn {
-                    last_checked_in: env.block.height,
-                    next_check_in_by: next_check_in_block,
+                    last_checked_in: now,
+                    next_check_in_by,
                     metadata,
+                    vote_status: false,
                 };
 
                 DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;

@@ -19,6 +19,13 @@ pub struct ChallengeEntry<T> {
     pub admin_strikes: [bool; 3],
 }
 
+#[cosmwasm_schema::cw_serde]
+pub enum EndKind {
+    Week,
+    Month,
+    Quarter,
+}
+
 impl ChallengeEntry<EndKind> {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
     pub fn new(name: String, collateral: Penalty, description: String, end: EndKind) -> Self {
@@ -32,30 +39,22 @@ impl ChallengeEntry<EndKind> {
         }
     }
 
+    /// Converts the EndKind to a cosmwasm::timestamp using the corrent block time.
     pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry<Timestamp>> {
         let end = match self.end {
             EndKind::Week => Duration::weeks(1).to_std().unwrap(),
             EndKind::Month => Duration::days(30).to_std().unwrap(),
             EndKind::Quarter => Duration::days(90).to_std().unwrap(),
         };
-        let end_from_now = Timestamp::from_seconds(env.block.time.seconds() + end.as_secs());
-
         Ok(ChallengeEntry {
             name: self.name.clone(),
             collateral: self.collateral.clone(),
             description: self.description.clone(),
-            end: end_from_now,
+            end: Timestamp::from_seconds(env.block.time.seconds() + end.as_secs()),
             status: self.status.clone(),
             admin_strikes: self.admin_strikes.clone(),
         })
     }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum EndKind {
-    Week,
-    Month,
-    Quarter,
 }
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job
@@ -162,20 +161,24 @@ impl Vote<Addr> {
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
     /// The blockheight of the last check in.
-    pub last_checked_in: u64,
+    pub last_checked_in: Timestamp,
     /// The blockheight of the next check in.
     /// In the case of a missed check in, this will always be pushed forward
     /// internally by the contract.
-    pub next_check_in_by: u64,
+    pub next_check_in_by: Timestamp,
+    /// Optional metadata for the check in. For example, a link to a tweet.
     pub metadata: Option<String>,
+    pub vote_status: bool,
 }
 
 impl CheckIn {
-    pub fn initial(env: &Env) -> Self {
+    pub fn default_from(env: &Env) -> Self {
         CheckIn {
-            last_checked_in: env.block.height,
-            next_check_in_by: env.block.height + 100_000,
+            last_checked_in: Timestamp::from_seconds(env.block.time.seconds()),
+            // set the next check in to be 24 hours from now
+            next_check_in_by: Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24),
             metadata: None,
+            vote_status: false,
         }
     }
 }
