@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Tickle CircleCI
         env:
-          CIRCLE_BRANCH: "add/circle-ci"
+          CIRCLE_BRANCH: "main"
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
           GHA_Meta: "build_wasms"
         run: |
