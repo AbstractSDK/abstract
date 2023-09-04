@@ -41,7 +41,7 @@ cd ./modules
 rm -rf ./artifacts
 
 # create a dummy container which will hold a volume with config
-docker create -v /code --name modules_with_code alpine /bin/true
+docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 # copy a config file into this volume
 docker cp Cargo.toml modules_with_code:/code
 docker cp Cargo.lock modules_with_code:/code
