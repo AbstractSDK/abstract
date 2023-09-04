@@ -20,6 +20,11 @@ cd ./framework
 # Delete the current artifacts folder.
 rm -rf ./artifacts
 
+# Create lock file if it does not exist
+if [ ! -f Cargo.lock ]; then
+  cargo generate-lockfile
+fi
+
 # create a dummy container which will hold a volume with config
 docker create -v /code --name with_code alpine /bin/true
 # copy a config file into this volume
@@ -48,6 +53,11 @@ docker cp ./framework modules_with_code:/
 
 # go into the directory we want to compile
 cd ./modules
+
+# Create lock file if it does not exist
+if [ ! -f Cargo.lock ]; then
+  cargo generate-lockfile
+fi
 
 # Delete the current artifacts folder.
 rm -rf ./artifacts
