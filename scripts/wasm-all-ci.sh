@@ -33,4 +33,4 @@ docker cp ./packages with_code:/code
 docker cp ./scripts with_code:/code
 
 docker run --volumes-from with_code ${abstract_image}:0.14.0
-docker cp with_code:/code/artifacts ./artifacts
+docker cp with_code:/code/artifacts/* ./artifacts
