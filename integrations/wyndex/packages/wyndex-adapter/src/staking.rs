@@ -1,6 +1,6 @@
 use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
-use abstract_sdk::{core::objects::LpToken, feature_objects::VersionControlContract};
+use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::{Addr, Env};
 
@@ -35,10 +35,10 @@ impl Identify for WynDex {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
     abstract_sdk::{
         core::objects::{AnsEntryConvertor, AssetEntry},
-        feature_objects::AnsHost,
+        feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkError, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
