@@ -1,4 +1,4 @@
-name: CI
+name: CircleCI Wasm Builder
 
 on:
   workflow_dispatch:
