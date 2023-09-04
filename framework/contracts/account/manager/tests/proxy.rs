@@ -1,7 +1,10 @@
 mod common;
 use abstract_adapter::mock::MockExecMsg;
 use abstract_core::adapter::AdapterRequestMsg;
-use abstract_core::objects::module::{ModuleInfo, ModuleVersion};
+use abstract_core::manager::ModuleVersionsResponse;
+use abstract_core::module_factory::ModuleInstallConfig;
+use abstract_core::objects::fee::FixedFee;
+use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
@@ -11,7 +14,8 @@ use abstract_testing::prelude::{TEST_ACCOUNT_ID, TEST_MODULE_ID};
 use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
-use cosmwasm_std::{wasm_execute, Addr, Coin, CosmosMsg};
+use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
+use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use module_factory::error::ModuleFactoryError;
@@ -269,5 +273,112 @@ fn install_standalone_versions_not_met() -> AResult {
         panic!("wrong error type")
     };
 
+    Ok(())
+}
+
+#[test]
+fn install_multiple_modules() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    chain.add_balance(&sender, vec![coin(44, "token")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+    let account = AbstractAccount::new(&deployment, Some(0));
+
+    let standalone1_contract = Box::new(ContractWrapper::new(
+        mock_modules::standalone_cw2::mock_execute,
+        mock_modules::standalone_cw2::mock_instantiate,
+        mock_modules::standalone_cw2::mock_query,
+    ));
+    let standalone1_id = chain.app.borrow_mut().store_code(standalone1_contract);
+
+    let standalone2_contract = Box::new(ContractWrapper::new(
+        mock_modules::standalone_no_cw2::mock_execute,
+        mock_modules::standalone_no_cw2::mock_instantiate,
+        mock_modules::standalone_no_cw2::mock_query,
+    ));
+    let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
+
+    // install first standalone
+    deployment.version_control.propose_modules(vec![
+        (
+            ModuleInfo {
+                namespace: Namespace::new("abstract")?,
+                name: "standalone1".to_owned(),
+                version: ModuleVersion::Version(mock_modules::V1.to_owned()),
+            },
+            ModuleReference::Standalone(standalone1_id),
+        ),
+        (
+            ModuleInfo {
+                namespace: Namespace::new("abstract")?,
+                name: "standalone2".to_owned(),
+                version: ModuleVersion::Version(mock_modules::V1.to_owned()),
+            },
+            ModuleReference::Standalone(standalone2_id),
+        ),
+    ])?;
+
+    // add monetization on module1
+    deployment.version_control.set_module_monetization(
+        "standalone2".to_owned(),
+        Monetization::InstallFee(FixedFee::new(&coin(42, "token"))),
+        Namespace::new("abstract").unwrap(),
+    )?;
+
+    // Don't allow to attach too much funds
+    let err = account
+        .install_modules(
+            vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("abstract:standalone1")?,
+                    Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("abstract:standalone2")?,
+                    Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+                ),
+            ],
+            Some(&[coin(44, "token")]),
+        )
+        .unwrap_err();
+    assert!(err.root().to_string().contains(&format!(
+        "Expected {:?}, sent {:?}",
+        vec![coin(42, "token")],
+        vec![coin(44, "token")]
+    )));
+
+    // successful install
+    account.install_modules_auto(vec![
+        ModuleInstallConfig::new(
+            ModuleInfo::from_id_latest("abstract:standalone1")?,
+            Some(to_binary(&mock_modules::standalone_cw2::MockMsg).unwrap()),
+        ),
+        ModuleInstallConfig::new(
+            ModuleInfo::from_id_latest("abstract:standalone2")?,
+            Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
+        ),
+    ])?;
+
+    // Make sure all installed
+    let account_module_versions = account.manager.module_versions(vec![
+        String::from("abstract:standalone1"),
+        // Querying no_cw2 fails
+        // String::from("abstract:standalone2"),
+    ])?;
+    assert_eq!(
+        account_module_versions,
+        ModuleVersionsResponse {
+            versions: vec![
+                ContractVersion {
+                    contract: String::from(mock_modules::standalone_cw2::MOCK_STANDALONE_ID),
+                    version: String::from(mock_modules::V1)
+                },
+                // ContractVersion {
+                //     contract: String::from("abstract:standalone2"),
+                //     version: String::from(mock_modules::V1)
+                // },
+            ]
+        }
+    );
     Ok(())
 }

@@ -4,9 +4,12 @@
 //!
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
-use crate::base::{
-    ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
-    MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
+use crate::{
+    base::{
+        ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
+        MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
+    },
+    objects::module_version::ModuleDataResponse,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
@@ -75,6 +78,9 @@ pub enum BaseQueryMsg {
     /// Returns the admin.
     #[returns(AdminResponse)]
     BaseAdmin {},
+    /// Returns module data
+    #[returns(ModuleDataResponse)]
+    ModuleData {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
