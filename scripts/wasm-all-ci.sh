@@ -35,15 +35,19 @@ starting_dir=$(pwd)
 # cd $starting_dir
 
 echo "Wasming modules"
-cd ./modules
-
-# Delete the current artifacts folder.
-rm -rf ./artifacts
 
 docker rm -v modules_with_code
-
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
+
+ls integrations
+docker cp ./integrations modules_with_code:/integrations
+docker run --rm -it --volumes-from modules_with_code alpine ls /integrations
+docker cp ./framework modules_with_code:/framework
+
+# Delete the current artifacts folder.
+cd ./modules
+rm -rf ./artifacts
 # copy a config file into this volume
 docker cp Cargo.toml modules_with_code:/code
 docker cp Cargo.lock modules_with_code:/code
@@ -51,12 +55,6 @@ docker cp Cargo.lock modules_with_code:/code
 docker cp ./contracts modules_with_code:/code
 docker cp ./packages modules_with_code:/code
 
-ls $(dirname "$(pwd)")/integrations
-
-docker cp "$(dirname "$(pwd)")/integrations" modules_with_code:/integrations
-
-docker run --rm -it --volumes-from modules_with_code alpine ls /integrations
-docker cp "$(dirname "$(pwd)")/framework" modules_with_code:/framework
 docker run --volumes-from modules_with_code ${abstract_image}:0.14.0
 docker cp modules_with_code:/code/artifacts ./artifacts
 
