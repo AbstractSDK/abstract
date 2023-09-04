@@ -51,19 +51,19 @@ jobs:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
           GHA_Meta: "modules_coverage"
         run: |
-          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
-            curl -X POST \
-            -H "Circle-Token: ${CIRCLE_TOKEN}" \
-            -H 'Content-Type: application/json' \
-            -H 'Accept: application/json' \
-            -d '{
-              "branch": "${CIRCLE_BRANCH}",
-              "parameters": {
-                "GHA_Meta": "${GHA_Meta}"
-              }
-            }'\
-            https://circleci.com/api/v2/project/gh/<repo_owner>/<repo_name>/pipeline
-          fi
+
+          curl -X POST \
+          -H "Circle-Token: ${CIRCLE_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+            "branch": "${CIRCLE_BRANCH}",
+            "parameters": {
+              "GHA_Meta": "${GHA_Meta}"
+            }
+          }'\
+          https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+
   # coverage:
   #   runs-on: ubuntu-latest
   #   name: ubuntu / stable / coverage
