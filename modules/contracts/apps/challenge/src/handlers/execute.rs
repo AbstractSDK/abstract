@@ -483,11 +483,20 @@ fn veto_vote(
     // we set the vote the opposite to what it currently is
     if let Some(mut to_veto) = fetched_vote {
         to_veto.approval = Some(!to_veto.approval.unwrap());
+        // Update state
         VOTES.save(
             deps.storage,
             (challenge_id.clone(), vote.voter.to_owned()),
             &to_veto,
         )?;
+        CHALLENGE_VOTES.remove(deps.storage, challenge_id.clone());
+        CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &vec![to_veto])?;
+
+        // Update the challenge status otherwise charge_penalty could be called
+        // before the vetoed vote is tallied. tally_vote must be called again.
+        let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+        challenge.status = ChallengeStatus::OverAndPending;
+        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
         return Ok(Response::new().add_attribute("action", "veto vote"));
     } else {

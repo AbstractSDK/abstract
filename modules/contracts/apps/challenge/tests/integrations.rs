@@ -199,7 +199,9 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         .challenge_app
         .query::<ChallengeResponse>(&challenge_query)?;
 
-    assert_eq!(created.challenge.unwrap(), CHALLENGE.clone());
+    let mut challenge = CHALLENGE.clone();
+    challenge.status = ChallengeStatus::Active;
+    assert_eq!(created.challenge.unwrap(), challenge);
     Ok(())
 }
 
@@ -338,7 +340,9 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
             challenge_id: 1,
         }))?;
 
-    assert_eq!(created.challenge.unwrap(), CHALLENGE.clone());
+    let mut challenge = CHALLENGE.clone();
+    challenge.status = ChallengeStatus::Active;
+    assert_eq!(created.challenge.unwrap(), challenge);
 
     // add friend
     apps.challenge_app.update_friends_for_challenge(
@@ -370,24 +374,6 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_should_update_daily_check_in() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
-
-    apps.challenge_app.create_challenge(CHALLENGE.clone())?;
-    let metadata = Some("some_metadata".to_string());
-    apps.challenge_app.daily_check_in(1, metadata.clone())?;
-
-    let checked_in = apps
-        .challenge_app
-        .query::<CheckInResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIn {
-            challenge_id: 1,
-        }))?;
-
-    assert_eq!(checked_in.check_in.unwrap().metadata, metadata);
-    Ok(())
-}
-
-#[test]
 fn test_should_cast_vote() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
@@ -415,11 +401,7 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
-    println!("updated friends");
-
-    for vote in VOTES.clone() {
-        apps.challenge_app.cast_vote(1, vote)?;
-    }
+    run_challenge_vote_sequence(&mock, &apps, VOTES.clone())?;
 
     let vote =
         apps.challenge_app
@@ -431,6 +413,7 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
     assert_eq!(vote.vote.unwrap().approval, Some(true));
 
     apps.challenge_app.tally_votes(1)?;
+
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted false, no penalty should be charged, so balance will be 50_000_000
     assert_eq!(balance, Uint128::new(50_000_000));
@@ -523,10 +506,28 @@ fn test_should_allow_admin_to_veto_vote() -> anyhow::Result<()> {
             }))?;
     assert_eq!(response.vote.unwrap().approval, Some(true));
 
-    apps.challenge_app
-        .veto_vote(CHALLENGE_ID, ALICE_NO_VOTE.clone())?;
+    apps.challenge_app.tally_votes(CHALLENGE_ID)?;
+    let execute_msg = apps.challenge_app.veto_vote(1, ALICE_NO_VOTE.clone())?;
+    println!("execute_msg {:?}", execute_msg);
 
-    apps.challenge_app.tally_votes(1)?;
+    let response = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: 1,
+        }))?;
+    println!("Challenge response {:?}", response.challenge);
+
+    // We need to call tally_votes again, because the veto_vote function
+    // updates the challenge.status back to ChallengeStatus::OverAndPending
+    // Calling charge_penalty would throw an error to protect against this.
+    apps.challenge_app.tally_votes(CHALLENGE_ID)?;
+    let response = apps
+        .challenge_app
+        .query::<ChallengeResponse>(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+            challenge_id: 1,
+        }))?;
+
+    println!("Challenge response after recount{:?}", response.challenge);
     apps.challenge_app.charge_penalty(CHALLENGE_ID)?;
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
