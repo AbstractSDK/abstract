@@ -1,6 +1,6 @@
 use abstract_dex_adapter::msg::OfferAsset;
 use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp};
+use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -10,25 +10,31 @@ pub struct Config {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct ChallengeEntry<T> {
+pub struct ChallengeEntry {
     pub name: String,
     pub collateral: Penalty,
     pub description: String,
-    pub end: T,
+    pub end: EndType,
     pub status: ChallengeStatus,
     pub admin_strikes: [bool; 3],
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum EndKind {
+pub enum EndType {
+    Duration(DurationChoice),
+    ExactTime(Timestamp),
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum DurationChoice {
     Week,
     Month,
     Quarter,
 }
 
-impl ChallengeEntry<EndKind> {
+impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(name: String, collateral: Penalty, description: String, end: EndKind) -> Self {
+    pub fn new(name: String, collateral: Penalty, description: String, end: EndType) -> Self {
         ChallengeEntry {
             name,
             collateral,
@@ -38,22 +44,31 @@ impl ChallengeEntry<EndKind> {
             admin_strikes: [false; 3],
         }
     }
-
-    /// Converts the EndKind to a cosmwasm::timestamp using the corrent block time.
-    pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry<Timestamp>> {
+    /// Converts the EndType to a cosmwasm::timestamp using the corrent block time.
+    pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry> {
         let end = match self.end {
-            EndKind::Week => Duration::weeks(1).to_std().unwrap(),
-            EndKind::Month => Duration::days(30).to_std().unwrap(),
-            EndKind::Quarter => Duration::days(90).to_std().unwrap(),
+            EndType::Duration(DurationChoice::Week) => Duration::weeks(1).to_std().unwrap(),
+            EndType::Duration(DurationChoice::Quarter) => Duration::days(30).to_std().unwrap(),
+            EndType::Duration(DurationChoice::Month) => Duration::days(90).to_std().unwrap(),
+            _ => return Ok(self.clone()),
         };
         Ok(ChallengeEntry {
             name: self.name.clone(),
             collateral: self.collateral.clone(),
             description: self.description.clone(),
-            end: Timestamp::from_seconds(env.block.time.seconds() + end.as_secs()),
+            end: EndType::ExactTime(Timestamp::from_seconds(
+                env.block.time.seconds() + end.as_secs(),
+            )),
             status: self.status.clone(),
             admin_strikes: self.admin_strikes.clone(),
         })
+    }
+    /// Returns the timestamp of the end of the challenge or an error if the end is not an ExactTime.
+    pub fn get_end_timestamp(&self) -> StdResult<Timestamp> {
+        match self.end {
+            EndType::ExactTime(time) => Ok(time),
+            _ => Err(StdError::generic_err("EndType is not ExactTime")),
+        }
     }
 }
 
@@ -168,7 +183,29 @@ pub struct CheckIn {
     pub next_check_in_by: Timestamp,
     /// Optional metadata for the check in. For example, a link to a tweet.
     pub metadata: Option<String>,
-    pub vote_status: bool,
+    /// The vote status of the CheckIn.
+    pub status: CheckInStatus,
+    /// The final result of the votes for this check in.
+    pub tally_result: Option<bool>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum CheckInStatus {
+    /// The admin has not yet checked in, therefore no voting or tallying
+    /// has occured for this check in.
+    NotCheckedIn,
+    /// The admin has checked in, but all friends have not yet all voted.
+    /// Some friends may have voted, but not all.
+    CheckedInNotYetVoted,
+    /// The admin mised their check in and got a strike.
+    MissedCheckIn,
+    /// The admin vetoed a vote for this checkin, the votes must be recounted.
+    Recount,
+    /// The admin has checked in and all friends have voted.
+    /// But the check in has not yet been tallied.
+    VotedNotYetTallied,
+    /// The check in has been voted and tallied.
+    VotedAndTallied,
 }
 
 impl CheckIn {
@@ -178,14 +215,15 @@ impl CheckIn {
             // set the next check in to be 24 hours from now
             next_check_in_by: Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24),
             metadata: None,
-            vote_status: false,
+            status: CheckInStatus::NotCheckedIn,
+            tally_result: None,
         }
     }
 }
 
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const ADMIN: Item<Addr> = Item::new("admin");
-pub const CHALLENGE_LIST: Map<u64, ChallengeEntry<Timestamp>> = Map::new("challenge_list");
+pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
 /// Key is a tuple of (challenge_id, voter_address).

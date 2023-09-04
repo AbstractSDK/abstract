@@ -3,12 +3,12 @@ use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
-        ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, CheckInResponse, FriendsResponse,
-        InstantiateMsg, VoteResponse,
+        ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, FriendsResponse, InstantiateMsg,
+        VoteResponse,
     },
     state::{
-        ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, EndKind, Friend, Penalty,
-        UpdateFriendsOpKind, Vote,
+        ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, DurationChoice, EndType, Friend,
+        Penalty, UpdateFriendsOpKind, Vote,
     },
     *,
 };
@@ -29,16 +29,16 @@ use lazy_static::lazy_static;
 // consts for testing
 const ADMIN: &str = "admin";
 const DENOM: &str = "TOKEN";
-const END_BLOCK: EndKind = EndKind::Week;
 const CHALLENGE_ID: u64 = 1;
+
 lazy_static! {
-    static ref CHALLENGE: ChallengeEntry<EndKind> = ChallengeEntry::new(
+    static ref CHALLENGE: ChallengeEntry = ChallengeEntry::new(
         "test".to_string(),
         Penalty::FixedAmount {
             asset: OfferAsset::new("denom", Uint128::new(100)),
         },
         "Test Challenge".to_string(),
-        END_BLOCK,
+        EndType::Duration(DurationChoice::Week),
     );
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
     static ref BOB_ADDRESS: String = "bob0x".to_string();
@@ -624,7 +624,7 @@ fn run_challenge_vote_sequence(
             challenge_id: 1,
         }))?;
 
-    let mut end_block: Timestamp = response.challenge.clone().unwrap().end;
+    let mut end_block = response.challenge.unwrap().get_end_timestamp()?;
     end_block = Timestamp::from_seconds(end_block.seconds() + 100);
 
     //update the blockeight to be 100 seconds after the challenge.end_block

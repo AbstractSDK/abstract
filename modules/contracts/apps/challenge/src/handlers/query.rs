@@ -46,7 +46,7 @@ fn query_challenge(
 }
 
 fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesResponse> {
-    let challenges: StdResult<Vec<ChallengeEntry<Timestamp>>> = CHALLENGE_LIST
+    let challenges: StdResult<Vec<ChallengeEntry>> = CHALLENGE_LIST
         .range(
             deps.storage,
             Some(Bound::exclusive(start)),
@@ -54,7 +54,7 @@ fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesR
             Order::Ascending,
         )
         .map(|result| result.map(|(_, entry)| entry)) // strip the keys
-        .collect::<StdResult<Vec<ChallengeEntry<Timestamp>>>>();
+        .collect::<StdResult<Vec<ChallengeEntry>>>();
     Ok(ChallengesResponse(challenges.unwrap_or_default()))
 }
 

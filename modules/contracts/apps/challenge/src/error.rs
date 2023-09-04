@@ -43,4 +43,7 @@ pub enum AppError {
 
     #[error("The challenge status is not correct for this action")]
     WrongChallengeStatus {},
+
+    #[error("The check in status is not correct for this action")]
+    WrongCheckInStatus {},
 }
