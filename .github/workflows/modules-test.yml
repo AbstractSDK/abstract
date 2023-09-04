@@ -64,10 +64,19 @@ jobs:
       - name: tickle coverage
         id: "abstract"
         uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
-        with:
-          GHA_Meta: "modules_coverage"
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          run: |
+            curl -X POST \
+            -H "Circle-Token: ${CCI_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -d '{
+            "branch": "${CIRCLE_BRANCH}",
+            "parameters": {
+              "GHA_Meta": "modules_coverage"
+            }}'\
+            https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
   # coverage:
   #   runs-on: ubuntu-latest
