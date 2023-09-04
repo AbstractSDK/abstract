@@ -16,8 +16,8 @@ starting_dir=$(pwd)
 echo "Wasming framework"
 cd ./framework
 
-# Delete all the current wasms first
-rm -rf ./artifacts/*.wasm
+# Delete the current artifacts folder.
+rm -rf ./artifacts
 
 # see https://github.com/CosmWasm/cw-plus/blob/main/.circleci/config.yml
 
@@ -33,4 +33,6 @@ docker cp ./packages with_code:/code
 docker cp ./scripts with_code:/code
 
 docker run --volumes-from with_code ${abstract_image}:0.14.0
-docker cp with_code:/code/artifacts/* ./artifacts
+docker cp with_code:/code/artifacts ./artifacts
+
+cd $starting_dir
