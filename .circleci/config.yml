@@ -24,14 +24,12 @@ jobs:
       - run:
           name: Build WASM artifacts
           command: |
-            curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/bin
-            export PATH="$PATH:$HOME/bin"
-            just wasm-all-ci
+            ./scripts/wasm-all-ci.sh
       - run:
           name: Commit and push artifacts
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
             git add .
-            git commit -m 'Update WASM artifacts [skip ci]'
+            git commit -m 'Update WASM artifacts for $GHA_Event [skip ci]'
             git push origin $CIRCLE_BRANCH
