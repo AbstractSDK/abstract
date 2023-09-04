@@ -4,10 +4,10 @@ permissions:
 on:
   push:
     branches: [main]
-    paths: 
+    paths:
       - modules/**
   pull_request:
-    paths: 
+    paths:
       - modules/**
 
 env:
@@ -43,45 +43,55 @@ jobs:
         run: cargo test --locked --all-features --all-targets
   coverage:
     runs-on: ubuntu-latest
-    name: ubuntu / stable / coverage
     steps:
-      - uses: actions/checkout@v3
+      - name: modules_coverage
+        id: abstract-mono
+        uses: CircleCI-Public/trigger-circleci-pipeline-action@v1.0.5
         with:
-          submodules: true
-      - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.3
-        with:
-          version: "v0.4.2"
-      - name: Install stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: llvm-tools-preview
-      - name: cargo install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      # print disk usage
-      - name: Check disk space in $GITHUB_WORKSPACE
-        run: du -s -h $GITHUB_WORKSPACE || true
-      - name: Check disk space in $GITHUB_WORKSPACE/*
-        run: du -s -h $GITHUB_WORKSPACE/* || true
-      - name: Check disk space on /
-        run: du -s -h / || true
-      #
-      - name: cargo generate-lockfile
-        if: hashFiles('Cargo.lock') == ''
-        working-directory: ./modules
-        run: cargo generate-lockfile
-      - name: cargo llvm-cov
-        working-directory: ./modules
-        run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          fail_ci_if_error: true
-      - name: Check disk space in $GITHUB_WORKSPACE
-        run: du -s -h $GITHUB_WORKSPACE || true
-      - name: Check disk space in $GITHUB_WORKSPACE/*
-        run: du -s -h $GITHUB_WORKSPACE/* || true
-      - name: Check disk space on /
-        run: du -s -h / || true
-      - name: List all files after to run
-        run: find / || true
+          GHA_Meta: "modules_coverage"
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+  # coverage:
+  #   runs-on: ubuntu-latest
+  #   name: ubuntu / stable / coverage
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         submodules: true
+  #     - name: Setup sccache
+  #       uses: mozilla-actions/sccache-action@v0.0.3
+  #       with:
+  #         version: "v0.4.2"
+  #     - name: Install stable
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         components: llvm-tools-preview
+  #     - name: cargo install cargo-llvm-cov
+  #       uses: taiki-e/install-action@cargo-llvm-cov
+  #     # print disk usage
+  #     - name: Check disk space in $GITHUB_WORKSPACE
+  #       run: du -s -h $GITHUB_WORKSPACE || true
+  #     - name: Check disk space in $GITHUB_WORKSPACE/*
+  #       run: du -s -h $GITHUB_WORKSPACE/* || true
+  #     - name: Check disk space on /
+  #       run: du -s -h / || true
+  #     #
+  #     - name: cargo generate-lockfile
+  #       if: hashFiles('Cargo.lock') == ''
+  #       working-directory: ./modules
+  #       run: cargo generate-lockfile
+  #     - name: cargo llvm-cov
+  #       working-directory: ./modules
+  #       run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
+  #     - name: Upload to codecov.io
+  #       uses: codecov/codecov-action@v3
+  #       with:
+  #         fail_ci_if_error: true
+  #     - name: Check disk space in $GITHUB_WORKSPACE
+  #       run: du -s -h $GITHUB_WORKSPACE || true
+  #     - name: Check disk space in $GITHUB_WORKSPACE/*
+  #       run: du -s -h $GITHUB_WORKSPACE/* || true
+  #     - name: Check disk space on /
+  #       run: du -s -h / || true
+  #     - name: List all files after to run
+  #       run: find / || true
