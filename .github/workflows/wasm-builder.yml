@@ -6,7 +6,7 @@ on:
   #     types: [closed]
   #   branches:
   #     - "releases/**"
-  push:
+  # push:
 
 jobs:
   build:
