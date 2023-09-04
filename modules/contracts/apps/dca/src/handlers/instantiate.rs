@@ -1,5 +1,5 @@
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdkError;
+use abstract_sdk::{AbstractSdkError, ModuleRegistryInterface};
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetInfoBase;
 

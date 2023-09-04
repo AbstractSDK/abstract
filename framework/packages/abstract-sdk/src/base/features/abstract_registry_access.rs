@@ -1,4 +1,5 @@
-use crate::{feature_objects::VersionControlContract, AbstractSdkResult};
+use crate::AbstractSdkResult;
+use abstract_core::objects::version_control::VersionControlContract;
 use cosmwasm_std::Deps;
 
 /// Trait that enables access to a registry, like a version control contract.

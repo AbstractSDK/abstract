@@ -8,9 +8,11 @@ use crate::{
 use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
-        objects::{module::ModuleInfo, module_reference::ModuleReference},
+        objects::{
+            module::ModuleInfo, module_reference::ModuleReference,
+            version_control::VersionControlContract,
+        },
     },
-    feature_objects::VersionControlContract,
     *,
 };
 use cosmwasm_std::{

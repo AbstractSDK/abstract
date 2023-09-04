@@ -12,6 +12,7 @@ use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
+use abstract_core::objects::version_control::VersionControlContract;
 use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
@@ -35,7 +36,6 @@ use abstract_sdk::{
         IBC_CLIENT, MANAGER, PROXY,
     },
     cw_helpers::wasm_smart_query,
-    feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{

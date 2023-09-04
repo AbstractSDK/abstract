@@ -115,9 +115,9 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 
 #[cfg(test)]
 mod test {
-    use crate::feature_objects::VersionControlContract;
 
     use super::*;
+    use abstract_core::objects::version_control::VersionControlContract;
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
