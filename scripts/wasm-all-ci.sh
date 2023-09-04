@@ -41,10 +41,10 @@ docker rm -v modules_with_code
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 
 ls integrations
-docker cp ./integrations modules_with_code:/integrations
-docker run --rm -it --volumes-from modules_with_code alpine ls /integrations/integrations
+docker cp ./integrations modules_with_code:/
+docker run --rm -it --volumes-from modules_with_code alpine ls /integrations
 
-docker cp ./framework/* modules_with_code:/framework
+docker cp ./framework modules_with_code:/
 
 # Delete the current artifacts folder.
 cd ./modules
