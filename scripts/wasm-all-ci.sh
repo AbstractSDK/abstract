@@ -48,7 +48,7 @@ docker cp Cargo.lock modules_with_code:/code
 # copy code into this volume
 docker cp ./contracts modules_with_code:/code
 docker cp ./packages modules_with_code:/code
-docker cp $(dirname "$(pwd)")/integrations" modules_with_code:/integrations
+docker cp "$(dirname "$(pwd)")/integrations" modules_with_code:/integrations
 docker cp "$(dirname "$(pwd)")/framework" modules_with_code:/framework
 docker run --volumes-from modules_with_code ${abstract_image}:0.14.0
 docker cp modules_with_code:/code/artifacts ./artifacts
