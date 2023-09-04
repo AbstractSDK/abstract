@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Tickle CircleCI
         env:
-          CIRCLE_BRANCH: "main"
+          CIRCLE_BRANCH: "add/circle-ci"
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
           # if [ "${{ github.event.pull_request.merged }}" = "false" ]; then
