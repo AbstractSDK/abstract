@@ -1,7 +1,7 @@
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{CwStakingError, Identify};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
-use abstract_sdk::feature_objects::AnsHost;
+use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
 use cw_utils::Duration;
@@ -38,7 +38,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         env: Env,
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        abstract_registry: Addr,
+        abstract_registry: &VersionControlContract,
         staking_asset: AssetEntry,
     ) -> AbstractSdkResult<()>;
 

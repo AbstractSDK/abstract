@@ -1,11 +1,12 @@
 use crate::AVAILABLE_CHAINS;
 use crate::OSMOSIS;
+use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub abstract_registry: Option<Addr>,
+    pub abstract_registry: Option<VersionControlContract>,
     pub local_proxy_addr: Option<Addr>,
     pub pool_id: Option<u64>,
     pub lp_token: Option<String>,
@@ -32,6 +33,7 @@ pub mod fns {
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
+    use abstract_core::objects::version_control::VersionControlContract;
     use abstract_core::objects::{AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
@@ -101,7 +103,7 @@ pub mod fns {
         fn abstract_registry(
             &self,
             _: cosmwasm_std::Deps<'_>,
-        ) -> std::result::Result<cosmwasm_std::Addr, abstract_sdk::AbstractSdkError> {
+        ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
             self.abstract_registry
                 .clone()
                 .ok_or(AbstractSdkError::generic_err(
@@ -119,10 +121,10 @@ pub mod fns {
             _env: Env,
             info: Option<MessageInfo>,
             ans_host: &AnsHost,
-            abstract_registry: Addr,
+            abstract_registry: &VersionControlContract,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            self.abstract_registry = Some(abstract_registry);
+            self.abstract_registry = Some(abstract_registry.clone());
             let account_registry = self.account_registry(deps);
 
             let base = info
