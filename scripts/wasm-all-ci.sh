@@ -40,6 +40,8 @@ cd ./modules
 # Delete the current artifacts folder.
 rm -rf ./artifacts
 
+docker rm -v modules_with_code
+
 # create a dummy container which will hold a volume with config
 docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 # copy a config file into this volume
