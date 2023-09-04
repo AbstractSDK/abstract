@@ -15,52 +15,35 @@ env:
   RUSTC_WRAPPER: "sccache"
 
 jobs:
-  # required:
-  #   runs-on: ubuntu-latest
-  #   name: ubuntu / ${{ matrix.toolchain }}
-  #   strategy:
-  #     matrix:
-  #       toolchain: [stable, beta]
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: true
-  #     - name: Setup sccache
-  #       uses: mozilla-actions/sccache-action@v0.0.3
-  #       with:
-  #         version: "v0.4.2"
-  #     - name: Install ${{ matrix.toolchain }}
-  #       uses: dtolnay/rust-toolchain@master
-  #       with:
-  #         toolchain: ${{ matrix.toolchain }}
-  #     - name: cargo generate-lockfile
-  #       if: hashFiles('Cargo.lock') == ''
-  #       working-directory: ./modules
-  #       run: cargo generate-lockfile
-  #     # https://twitter.com/jonhoo/status/1571290371124260865
-  #     - name: cargo test --locked
-  #       working-directory: ./modules
-  #       run: cargo test --locked --all-features --all-targets
+  required:
+    runs-on: ubuntu-latest
+    name: ubuntu / ${{ matrix.toolchain }}
+    strategy:
+      matrix:
+        toolchain: [stable, beta]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
+      - name: Install ${{ matrix.toolchain }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+      - name: cargo generate-lockfile
+        if: hashFiles('Cargo.lock') == ''
+        working-directory: ./modules
+        run: cargo generate-lockfile
+      # https://twitter.com/jonhoo/status/1571290371124260865
+      - name: cargo test --locked
+        working-directory: ./modules
+        run: cargo test --locked --all-features --all-targets
   coverage:
     runs-on: ubuntu-latest
     steps:
-      # - name: modules_coverage
-      #   id: abstract-mono
-      #   env:
-      #     CIRCLE_BRANCH: ${{ github.head_ref }}
-      #     CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-      #   run: |
-      #     curl -X POST \
-      #     -H "Circle-Token: ${CCI_TOKEN}" \
-      #     -H 'Content-Type: application/json' \
-      #     -H 'Accept: application/json' \
-      #     -d '{
-      #       "branch": "${CIRCLE_BRANCH}",
-      #       "parameters": {
-      #         "GHA_Meta": "modules_coverage"
-      #       }
-      #     }'\
-      #     https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
       - name: tickle coverage
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
@@ -77,48 +60,3 @@ jobs:
               \"GHA_Meta\": \"modules_coverage\"
             }
           }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
-
-  # coverage:
-  #   runs-on: ubuntu-latest
-  #   name: ubuntu / stable / coverage
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         submodules: true
-  #     - name: Setup sccache
-  #       uses: mozilla-actions/sccache-action@v0.0.3
-  #       with:
-  #         version: "v0.4.2"
-  #     - name: Install stable
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         components: llvm-tools-preview
-  #     - name: cargo install cargo-llvm-cov
-  #       uses: taiki-e/install-action@cargo-llvm-cov
-  #     # print disk usage
-  #     - name: Check disk space in $GITHUB_WORKSPACE
-  #       run: du -s -h $GITHUB_WORKSPACE || true
-  #     - name: Check disk space in $GITHUB_WORKSPACE/*
-  #       run: du -s -h $GITHUB_WORKSPACE/* || true
-  #     - name: Check disk space on /
-  #       run: du -s -h / || true
-  #     #
-  #     - name: cargo generate-lockfile
-  #       if: hashFiles('Cargo.lock') == ''
-  #       working-directory: ./modules
-  #       run: cargo generate-lockfile
-  #     - name: cargo llvm-cov
-  #       working-directory: ./modules
-  #       run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
-  #     - name: Upload to codecov.io
-  #       uses: codecov/codecov-action@v3
-  #       with:
-  #         fail_ci_if_error: true
-  #     - name: Check disk space in $GITHUB_WORKSPACE
-  #       run: du -s -h $GITHUB_WORKSPACE || true
-  #     - name: Check disk space in $GITHUB_WORKSPACE/*
-  #       run: du -s -h $GITHUB_WORKSPACE/* || true
-  #     - name: Check disk space on /
-  #       run: du -s -h / || true
-  #     - name: List all files after to run
-  #       run: find / || true

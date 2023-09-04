@@ -64,5 +64,3 @@ deploy-to-all-chains:
 publish-schemas:
   SCHEMA_OUT_DIR=$(cd ../../schemas && echo "$PWD") \
     cargo ws exec --no-bail bash -lc 'cargo schema && { jq -r .contract_version schema/module-schema.json > _version.txt; outdir="$SCHEMA_OUT_DIR/abstract/${PWD##*/}/$(cat _version.txt)"; mkdir -p "$outdir"; rm -rf "schema/raw"; cp -a "schema/." "$outdir"; rm _version.txt; }'
-
-# test test test
