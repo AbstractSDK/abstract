@@ -208,8 +208,6 @@ pub enum CheckInStatus {
     CheckedInNotYetVoted,
     /// The admin mised their check in and got a strike.
     MissedCheckIn,
-    /// The admin vetoed a vote for this checkin, the votes must be recounted.
-    Recount,
     /// The admin has checked in and all friends have voted.
     /// But the check in has not yet been tallied.
     VotedNotYetTallied,

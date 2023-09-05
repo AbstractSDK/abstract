@@ -27,7 +27,7 @@ pub fn execute_handler(
         ChallengeExecuteMsg::UpdateChallenge {
             challenge_id,
             challenge,
-        } => update_challenge(deps, env, info, app, challenge_id, challenge),
+        } => update_challenge(deps, info, app, challenge_id, challenge),
         ChallengeExecuteMsg::CancelChallenge { challenge_id } => {
             cancel_challenge(deps, info, &app, challenge_id)
         }
@@ -88,7 +88,6 @@ fn create_challenge(
 
 fn update_challenge(
     deps: DepsMut,
-    _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
     challenge_id: u64,
