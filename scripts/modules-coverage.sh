@@ -17,7 +17,7 @@ if [ ! -f Cargo.lock ]; then
 fi
 
 # Install go for test-tube
-wget -q -O - https://git.io/vQhTU | bash
+wget -q -O - https://git.io/vQhTU
 go version
 
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
