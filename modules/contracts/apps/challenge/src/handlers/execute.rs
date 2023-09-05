@@ -9,7 +9,7 @@ use abstract_sdk::prelude::*;
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
     ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, CheckInStatus, DurationChoice,
-    EndType, Friend, Penalty, UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST,
+    EndType, Friend, UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST,
     CHALLENGE_VOTES, DAILY_CHECK_INS, NEXT_ID, VOTES,
 };
 
@@ -43,15 +43,8 @@ pub fn execute_handler(
         ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
             cast_vote(deps, env, info, &app, vote, challenge_id)
         }
-
-        ChallengeExecuteMsg::TallyVotes { challenge_id } => {
-            tally_votes_for_check_in(deps, env, challenge_id)
-        }
         ChallengeExecuteMsg::VetoVote { vote, challenge_id } => {
             veto_vote(deps, info, env, challenge_id, vote)
-        }
-        ChallengeExecuteMsg::ChargePenalty { challenge_id } => {
-            charge_penalty(deps, info, &app, challenge_id)
         }
     }
 }
@@ -73,6 +66,7 @@ fn create_challenge(
     }
 
     let mut challenge = challenge.set_end_timestamp(&env)?;
+    challenge.set_total_check_ins(&env)?;
 
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
@@ -263,19 +257,17 @@ fn daily_check_in(
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let now = Timestamp::from(env.block.time);
 
-    // If the challenge has ended, we set the status to OverAndPending and return before checking
-    // in.
+    // If the challenge has ended, we set the status to Over and return
     if now > challenge.get_end_timestamp()? {
         match challenge.status {
             ChallengeStatus::Active => {
-                challenge.status = ChallengeStatus::OverAndPending;
+                challenge.status = ChallengeStatus::Over;
                 CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
                 return Ok(Response::new()
                     .add_attribute("action", "check_in")
                     .add_attribute(
                         "message",
-                        "Challenge has ended. You can no longer register a daily check in. 
-                         ChallengeStatus has been set to OverAndPending.",
+                        "Challenge has ended. You can no longer register a daily check in.",
                     ));
             }
             _ => {
@@ -356,8 +348,8 @@ fn daily_check_in(
 fn cast_vote(
     deps: DepsMut,
     env: Env,
-    _info: MessageInfo,
-    _app: &ChallengeApp,
+    info: MessageInfo,
+    app: &ChallengeApp,
     vote: Vote<String>,
     challenge_id: u64,
 ) -> AppResult {
@@ -401,26 +393,26 @@ fn cast_vote(
         .len()
         == CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?.len()
     {
-        tally_votes_for_check_in(deps, env, challenge_id)?;
+        tally_votes_for_check_in(deps, env, app, challenge_id)?;
     }
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
-fn tally_votes_for_check_in(deps: DepsMut, _env: Env, challenge_id: u64) -> AppResult {
-    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    // if challenge.status != ChallengeStatus::OverAndPending {
-    //     return Err(AppError::WrongChallengeStatus {});
-    // }
-
-    let check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
-    let check_in = check_ins.last().unwrap();
-
+fn tally_votes_for_check_in(
+    deps: DepsMut,
+    _env: Env,
+    app: &ChallengeApp,
+    challenge_id: u64,
+) -> AppResult {
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let check_in = check_ins.last_mut().unwrap();
     if check_in.status != CheckInStatus::VotedNotYetTallied
         || check_in.status != CheckInStatus::Recount
     {
         return Err(AppError::WrongCheckInStatus {});
     }
 
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let votes = CHALLENGE_VOTES.load(deps.storage, challenge_id)?;
 
     // check for any false votes on check_ins that match the vote timestamps
@@ -432,25 +424,15 @@ fn tally_votes_for_check_in(deps: DepsMut, _env: Env, challenge_id: u64) -> AppR
         })
         .any(|v| v.approval == Some(false));
 
-    //@TODO only update ChallengeStatus if the challenge is OverAndPending
-    // update check_in status
-    // update check_in tally_result
-    //
-    // Then charge penalty and there check if the check_in tally_result is Some(false)
-    // if yes divide the collateral among how many days there are between now
-    // and challenge.end and split that amount between friends.
+    check_in.status = CheckInStatus::VotedAndTallied;
 
     if any_false_vote {
-        challenge.status = ChallengeStatus::OverAndFailed;
-        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
-        return Ok(Response::new()
-            .add_attribute("action", "tally_vote")
-            .add_attribute(
-                "message",
-                "At least one vote was negative. ChallengeStatus has been set to OverAndFailed.",
-            ));
+        check_in.tally_result = Some(false);
+        DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
+        return charge_penalty(deps, &app, challenge_id);
     } else {
-        challenge.status = ChallengeStatus::OverAndCompleted;
+        check_in.tally_result = Some(true);
+        DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
         CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
         return Ok(Response::new()
@@ -462,66 +444,43 @@ fn tally_votes_for_check_in(deps: DepsMut, _env: Env, challenge_id: u64) -> AppR
     }
 }
 
-fn charge_penalty(
-    deps: DepsMut,
-    info: MessageInfo,
-    app: &ChallengeApp,
-    challenge_id: u64,
-) -> AppResult {
-    deps.api.addr_validate(info.sender.as_ref())?;
-
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    if challenge.status != ChallengeStatus::OverAndFailed {
-        return Err(AppError::WrongChallengeStatus {});
-    }
+fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id.clone())?;
+
+    let num_friends = friends.len() as u128;
+    if num_friends == 0 {
+        return Err(AppError::Std(StdError::generic_err(
+            "No friends found for the challenge.",
+        )));
+    }
+
+    let penalty_per_check_in =
+        challenge.collateral.amount.u128() / challenge.total_check_ins.unwrap();
+    let amount_per_friend = penalty_per_check_in / num_friends;
+    let reaminder = challenge.collateral.amount.u128() % num_friends;
+
+    let asset_per_friend = OfferAsset {
+        name: challenge.collateral.name,
+        amount: Uint128::from(amount_per_friend),
+    };
 
     let bank = app.bank(deps.as_ref());
     let executor = app.executor(deps.as_ref());
 
-    match challenge.collateral {
-        Penalty::FixedAmount { asset } => {
-            let num_friends = friends.len() as u128;
-            if num_friends == 0 {
-                return Err(AppError::Std(StdError::generic_err(
-                    "No friends found for the challenge.",
-                )));
-            }
+    // Create a transfer action for each friend
+    let transfer_actions: Result<Vec<_>, _> = friends
+        .into_iter()
+        .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
+        .collect();
 
-            // Calculate each friend's share
-            let amount_per_friend = asset.amount.u128() / num_friends;
-            let reaminder = asset.amount.u128() % num_friends;
-            let asset_per_friend = OfferAsset {
-                name: asset.name,
-                amount: Uint128::from(amount_per_friend),
-            };
+    let transfer_msgs = executor.execute(transfer_actions?);
 
-            // Create a transfer action for each friend
-            let transfer_actions: Result<Vec<_>, _> = friends
-                .into_iter()
-                .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
-                .collect();
-
-            let transfer_msgs = executor.execute(transfer_actions?);
-
-            Ok(Response::new()
-                .add_messages(transfer_msgs)
-                .add_attribute("total_amount", asset.amount.to_string())
-                .add_attribute("action", "charge_fixed_amount_penalty")
-                .add_attribute("remainder is", reaminder.to_string()))
-        }
-        Penalty::Daily {
-            asset: _,
-            split_between_friends: _,
-        } => {
-            // Not sure what the exact implementation should be here.
-            // Is it that for this variant we want to only charge_penalty at the end of the
-            // challenge? If so how do we determine when the challenge has come to an end?
-            //let _transfer_action = bank.transfer(vec![asset], &admin_address)?;
-            Ok(Response::new().add_attribute("action", "charge_daily_penalty"))
-        }
-    }
+    Ok(Response::new()
+        .add_messages(transfer_msgs)
+        .add_attribute("total_amount", challenge.collateral.amount.to_string())
+        .add_attribute("action", "charge_fixed_amount_penalty")
+        .add_attribute("remainder is", reaminder.to_string()))
 }
 
 fn veto_vote(
@@ -555,11 +514,10 @@ fn veto_vote(
         CHALLENGE_VOTES.remove(deps.storage, challenge_id.clone());
         CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &vec![to_veto])?;
 
-        // Update the challenge status otherwise charge_penalty could be called
-        // before the vetoed vote is tallied. tally_vote must be called again.
-        let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-        challenge.status = ChallengeStatus::OverAndPending;
-        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+        let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+        let check_in = check_ins.last_mut().unwrap();
+        check_in.status = CheckInStatus::Recount;
+        DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
 
         return Ok(Response::new().add_attribute("action", "veto vote"));
     } else {

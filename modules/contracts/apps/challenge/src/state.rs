@@ -1,6 +1,6 @@
 use abstract_dex_adapter::msg::OfferAsset;
 use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
+use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp, Uint128};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -12,9 +12,10 @@ pub struct Config {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntry {
     pub name: String,
-    pub collateral: Penalty,
+    pub collateral: OfferAsset,
     pub description: String,
     pub end: EndType,
+    pub total_check_ins: Option<u128>,
     pub status: ChallengeStatus,
     pub admin_strikes: [bool; 3],
 }
@@ -34,12 +35,13 @@ pub enum DurationChoice {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(name: String, collateral: Penalty, description: String, end: EndType) -> Self {
+    pub fn new(name: String, collateral: OfferAsset, description: String, end: EndType) -> Self {
         ChallengeEntry {
             name,
             collateral,
             description,
             end,
+            total_check_ins: None,
             status: ChallengeStatus::default(),
             admin_strikes: [false; 3],
         }
@@ -59,6 +61,7 @@ impl ChallengeEntry {
             end: EndType::ExactTime(Timestamp::from_seconds(
                 env.block.time.seconds() + end.as_secs(),
             )),
+            total_check_ins: self.total_check_ins.clone(),
             status: self.status.clone(),
             admin_strikes: self.admin_strikes.clone(),
         })
@@ -69,6 +72,24 @@ impl ChallengeEntry {
             EndType::ExactTime(time) => Ok(time),
             _ => Err(StdError::generic_err("EndType is not ExactTime")),
         }
+    }
+    /// Sets the total number of check-ins based on the end time.
+    pub fn set_total_check_ins(&mut self, env: &Env) -> StdResult<()> {
+        let now = env.block.time;
+
+        // Ensure that end time is in exact time format
+        let end_time = match self.get_end_timestamp() {
+            Ok(time) => time,
+            Err(e) => return Err(e),
+        };
+
+        // Calculate the duration in seconds
+        let duration_secs = end_time.seconds() - now.seconds();
+        let check_in_duration_secs = 86400; // 24 hours in seconds
+                                            // Calculate the total number of check-ins
+        self.total_check_ins = Some(duration_secs as u128 / check_in_duration_secs as u128);
+
+        Ok(())
     }
 }
 
@@ -82,16 +103,8 @@ pub enum ChallengeStatus {
     Active,
     /// The challenge was cancelled and no collateral was paid out.
     Cancelled,
-    /// The challenge is over, the votes have not yet been counted. count_votes needs to be called
-    /// to determine the outcome.
-    OverAndPending,
-    /// The challenge is over, the admin has completed the challenge, the votes have been counted.
-    /// The admin completed the challenge, so the collateral has remained with the owner.
-    OverAndCompleted,
-    /// The challenge is over, the votes have been conted and the admin has failed,
-    /// their collateral is owed to the friends.
-    /// This valued can be used to trigger an automated Croncat job to pay out the collateral.
-    OverAndFailed,
+    /// The challenge has pased the end time.
+    Over,
 }
 
 impl Default for ChallengeStatus {
@@ -105,7 +118,7 @@ impl Default for ChallengeStatus {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntryUpdate {
     pub name: Option<String>,
-    pub collateral: Option<Penalty>,
+    pub collateral: Option<OfferAsset>,
     pub description: Option<String>,
     pub end: Option<Timestamp>,
 }
@@ -114,17 +127,6 @@ pub struct ChallengeEntryUpdate {
 pub enum UpdateFriendsOpKind {
     Add,
     Remove,
-}
-
-#[cosmwasm_schema::cw_serde]
-pub enum Penalty {
-    FixedAmount {
-        asset: OfferAsset,
-    },
-    Daily {
-        asset: OfferAsset,
-        split_between_friends: bool,
-    },
 }
 
 #[cosmwasm_schema::cw_serde]

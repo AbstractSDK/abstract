@@ -43,14 +43,8 @@ pub enum ChallengeExecuteMsg {
         /// otherwise the voter would Vote with approval set to Some(false).
         vote: Vote<String>,
     },
-    TallyVotes {
-        challenge_id: u64,
-    },
     VetoVote {
         vote: Vote<String>,
-        challenge_id: u64,
-    },
-    ChargePenalty {
         challenge_id: u64,
     },
 }
