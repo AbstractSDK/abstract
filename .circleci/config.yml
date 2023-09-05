@@ -61,6 +61,7 @@ jobs:
     # https://circleci.com/developer/images?imageType=machine
     docker:
       - image: cimg/rust:1.72.0
+    resource_class: xlarge
     steps:
       # - setup_remote_docker:
       #     version: 20.10.14

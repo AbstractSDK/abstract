@@ -34,7 +34,7 @@ source ~/.bash_profile
 # Check the installed version
 go version
 
-cargo llvm-cov --locked --all-features --lcov --output-path lcov.info -j 1
+cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
 
 # print the result
 ls -la .
