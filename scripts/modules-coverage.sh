@@ -16,14 +16,24 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
-# Install go for test-tube
-wget -q --output-document install_go.sh - https://git.io/vQhTU
-ls -a
-chmod +x install_go.sh
-touch $HOME/.bashrc
-bash install_go.sh
-source $HOME/.bashrc
+# Set Go version
+GO_VERSION="1.18"
 
+# Download Go
+wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz -O /tmp/go${GO_VERSION}.linux-amd64.tar.gz
+
+# Extract Go archive
+sudo tar -C /usr/local -xzf /tmp/go${GO_VERSION}.linux-amd64.tar.gz
+
+# Set environment variables
+echo "export GOROOT=/usr/local/go" >> ~/.bashrc
+echo "export GOPATH=$HOME/go" >> ~/.bashrc
+echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bashrc
+
+# Load the environment variables
+source ~/.bashrc
+
+# Check the installed version
 go version
 
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
