@@ -350,11 +350,10 @@ fn cast_vote(
 ) -> AppResult {
     let mut vote = vote.check(deps.as_ref())?.optimistic();
 
-    // We can unwrap because there will always be atleast one element in the vector
     let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    // We can unwrap because there will always be atleast one element in the vector
     let check_in = check_ins.last_mut().unwrap();
 
-    // bug here on the last case
     if check_in.status != CheckInStatus::CheckedInNotYetVoted
         && check_in.status != CheckInStatus::VotedNotYetTallied
     {
