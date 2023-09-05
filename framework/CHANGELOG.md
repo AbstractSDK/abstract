@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Partially fixed cw-staking for Osmosis
 - Manager governance now changes only after new "owner" claimed ownership
+- `ExecOnModule` calls now forward any provided funds to the module that is called.
 
 ## [0.17.2] - 2023-07-27
 

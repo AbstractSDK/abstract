@@ -81,6 +81,7 @@ fn exec_through_manager() -> AResult {
             })],
         })?,
         PROXY.to_string(),
+        &[],
     )?;
 
     let proxy_balance = chain
@@ -165,6 +166,7 @@ fn with_response_data() -> AResult {
             .into(),
         })?,
         PROXY.to_string(),
+        &[],
     )?;
 
     let response_data_attr_present = resp.event_attr_value("wasm-abstract", "response_data")?;
