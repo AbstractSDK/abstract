@@ -9,7 +9,7 @@
 cd ./modules
 
 # Install cargo-llvm-cov for coverage generation
-cargo install cargo-llvm-cov
+# cargo install cargo-llvm-cov
 
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then
