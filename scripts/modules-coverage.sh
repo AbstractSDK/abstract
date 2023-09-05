@@ -30,6 +30,8 @@ echo "export GOROOT=/usr/local/go" >> ~/.bashrc
 echo "export GOPATH=$HOME/go" >> ~/.bashrc
 echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bashrc
 
+cat ~/.bashrc
+
 # Load the environment variables
 source ~/.bashrc
 
