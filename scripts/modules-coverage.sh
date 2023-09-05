@@ -1,9 +1,9 @@
 # create a dummy container which will hold a volume with config
-docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
+# docker create -v /code -v /integrations -v /framework --name modules_with_code alpine /bin/true
 
-# copy directories to container.
-docker cp ./integrations modules_with_code:/
-docker cp ./framework modules_with_code:/
+# # copy directories to container.
+# docker cp ./integrations modules_with_code:/
+# docker cp ./framework modules_with_code:/
 
 # go into the directory we want to compile
 cd ./modules
@@ -18,4 +18,5 @@ fi
 
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
 
-# Copy the coverage report back out
+# print the result
+ls -la .

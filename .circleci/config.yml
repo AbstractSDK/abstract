@@ -62,8 +62,8 @@ jobs:
     docker:
       - image: cimg/rust:1.72.0
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
+      # - setup_remote_docker:
+      #     version: 20.10.14
       - checkout
       - run:
           name: Run tests with coverage for modules
