@@ -21,7 +21,7 @@ wget -q --output-document install_go.sh - https://git.io/vQhTU
 ls -a
 chmod +x install_go.sh
 
-bash install_go.sh
+source install_go.sh
 
 go version
 
