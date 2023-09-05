@@ -36,5 +36,5 @@ go version
 
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
 
-# print the result
+# print the result.
 ls -la .
