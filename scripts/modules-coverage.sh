@@ -17,7 +17,8 @@ if [ ! -f Cargo.lock ]; then
 fi
 
 # Install go for test-tube
-wget -q -O - https://git.io/vQhTU > install_go.sh
+wget -q --output-document install_go.sh - https://git.io/vQhTU
+ls -a
 chmod +x install_go.sh
 install_go.sh
 
