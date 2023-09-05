@@ -16,6 +16,11 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
+# Install go for test-tube
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+go version
+
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
 
 # print the result
