@@ -19,12 +19,12 @@ parameters:
 
 workflows:
   version: 2
-  build:
+  build-and-commit:
     when:
       equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
-  coverage:
+  modules-coverage:
     when: 
       equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs: 
@@ -36,8 +36,10 @@ workflows:
 
 jobs:
   build:
-    docker:
-      - image: cimg/rust:1.55
+    machine:
+      image: ubuntu-2004:202201-02
+    # docker:
+    #   - image: cimg/rust:1.72.0
     steps:
       - setup_remote_docker:
           version: 20.10.14
@@ -57,19 +59,16 @@ jobs:
 
   coverage:
     # https://circleci.com/developer/images?imageType=machine
-    machine:
-      image: ubuntu-2004:202201-02
+    docker:
+      - image: cimg/rust:1.72.0
     steps:
       - checkout
       - run:
           name: Run tests with coverage for modules
           command: |
-            cd ./modules
-            mkdir -p cov
-            docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin \
-              sh -c "cargo tarpaulin --skip-clean --frozen --out Xml --output-dir cov"
+            ./scripts/modules-coverage.sh
       - codecov/upload:
-          file: cov/cobertura.xml
+          file: ./modules/lcov.info
 
   pass: 
     docker:
