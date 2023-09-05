@@ -66,7 +66,7 @@ pub enum ChallengeQueryMsg {
     Challenges { start_after: u64, limit: u32 },
     #[returns(FriendsResponse)]
     Friends { challenge_id: u64 },
-    #[returns(CheckInResponse)]
+    #[returns(CheckInsResponse)]
     CheckIn { challenge_id: u64 },
     #[returns(VoteResponse)]
     Vote {
@@ -81,9 +81,7 @@ pub struct ChallengeResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct CheckInResponse {
-    pub check_in: Option<CheckIn>,
-}
+pub struct CheckInsResponse(pub Vec<CheckIn>);
 
 #[cosmwasm_schema::cw_serde]
 pub struct VoteResponse {

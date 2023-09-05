@@ -1,6 +1,6 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
-    ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, CheckInResponse, FriendsResponse,
+    ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, CheckInsResponse, FriendsResponse,
     VoteResponse,
 };
 use crate::state::{
@@ -67,9 +67,9 @@ fn query_check_in(
     deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
-) -> AppResult<CheckInResponse> {
-    let check_in = DAILY_CHECK_INS.may_load(deps.storage, challenge_id)?;
-    Ok(CheckInResponse { check_in })
+) -> AppResult<CheckInsResponse> {
+    let check_ins = DAILY_CHECK_INS.may_load(deps.storage, challenge_id)?;
+    Ok(CheckInsResponse(check_ins.unwrap_or_default()))
 }
 
 fn query_vote(
@@ -81,6 +81,7 @@ fn query_vote(
     let v = Vote {
         voter: voter_addr,
         approval: None,
+        for_check_in: None,
     };
     let v = v.check(deps)?;
     let vote = VOTES.may_load(deps.storage, (challenge_id, v.voter))?;

@@ -44,7 +44,9 @@ pub fn execute_handler(
             cast_vote(deps, env, info, &app, vote, challenge_id)
         }
 
-        ChallengeExecuteMsg::TallyVotes { challenge_id } => tally_votes(deps, env, challenge_id),
+        ChallengeExecuteMsg::TallyVotes { challenge_id } => {
+            tally_votes_for_check_in(deps, env, challenge_id)
+        }
         ChallengeExecuteMsg::VetoVote { vote, challenge_id } => {
             veto_vote(deps, info, env, challenge_id, vote)
         }
@@ -81,7 +83,7 @@ fn create_challenge(
     DAILY_CHECK_INS.save(
         deps.storage,
         challenge_id.clone(),
-        &CheckIn::default_from(&env),
+        &vec![CheckIn::default_from(&env)],
     )?;
 
     // Create the initial challenge_votes entry
@@ -285,74 +287,69 @@ fn daily_check_in(
         }
     }
 
-    let check_in = DAILY_CHECK_INS.may_load(deps.storage, challenge_id.clone())?;
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let check_in = check_ins.last().unwrap();
+    let now = Timestamp::from(env.block.time);
+    let next_check_in_by = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
 
-    if let Some(check_in) = check_in {
-        let now = Timestamp::from(env.block.time);
-        let next_check_in_by = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
-
-        match now {
-            now if now == check_in.last_checked_in => {
-                return Err(AppError::AlreadyCheckedIn {});
-            }
-
-            // The admin has missed the deadline for checking in, they are given a strike.
-            // The contract manually sets the next check in time.
-            now if now >= check_in.next_check_in_by => {
-                for strike in challenge.admin_strikes.iter_mut() {
-                    if !*strike {
-                        *strike = true;
-                        break;
-                    }
-                }
-                CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
-
-                // If the admin has 3 strikes, the challenge is cancelled.
-                if challenge.admin_strikes.iter().all(|strike| *strike) {
-                    return cancel_challenge(deps, info, app, challenge_id);
-                }
-
-                let last = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
-                let check_in = CheckIn {
-                    last_checked_in: last.last_checked_in,
-                    next_check_in_by,
-                    metadata,
-                    status: CheckInStatus::MissedCheckIn,
-                    tally_result: None,
-                };
-                DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
-
-                return Ok(Response::new()
-                    .add_attribute("action", "check_in")
-                    .add_attribute(
-                        "message",
-                        "You missed the deadline for checking in. You have been given a strike.",
-                    ));
-            }
-
-            // The admin is checking in on time, so we can proceeed.
-            now if now < check_in.next_check_in_by => {
-                let check_in = CheckIn {
-                    last_checked_in: now,
-                    next_check_in_by,
-                    metadata,
-                    status: CheckInStatus::CheckedInNotYetVoted,
-                    tally_result: None,
-                };
-
-                DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_in)?;
-                return Ok(Response::new().add_attribute("action", "check_in"));
-            }
-            _ => {
-                return Err(AppError::Std(StdError::generic_err(
-                    "Something went wrong with the check in.",
-                )));
-            }
+    match now {
+        now if now == check_in.last_checked_in => {
+            return Err(AppError::AlreadyCheckedIn {});
         }
-    } else {
-        return Err(AppError::Std(StdError::generic_err(
-            "Check in not found for this challenge",
-        )));
+
+        // The admin has missed the deadline for checking in, they are given a strike.
+        // The contract manually sets the next check in time.
+        now if now >= check_in.next_check_in_by => {
+            for strike in challenge.admin_strikes.iter_mut() {
+                if !*strike {
+                    *strike = true;
+                    break;
+                }
+            }
+            CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+
+            // If the admin has 3 strikes, the challenge is cancelled.
+            if challenge.admin_strikes.iter().all(|strike| *strike) {
+                return cancel_challenge(deps, info, app, challenge_id);
+            }
+
+            let check_in = CheckIn {
+                last_checked_in: check_in.last_checked_in,
+                next_check_in_by,
+                metadata,
+                status: CheckInStatus::MissedCheckIn,
+                tally_result: None,
+            };
+            check_ins.push(check_in);
+            DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
+
+            return Ok(Response::new()
+                .add_attribute("action", "check_in")
+                .add_attribute(
+                    "message",
+                    "You missed the deadline for checking in. You have been given a strike.",
+                ));
+        }
+
+        // The admin is checking in on time, so we can proceeed.
+        now if now < check_in.next_check_in_by => {
+            let check_in = CheckIn {
+                last_checked_in: now,
+                next_check_in_by,
+                metadata,
+                status: CheckInStatus::CheckedInNotYetVoted,
+                tally_result: None,
+            };
+
+            check_ins.push(check_in);
+            DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
+            return Ok(Response::new().add_attribute("action", "check_in"));
+        }
+        _ => {
+            return Err(AppError::Std(StdError::generic_err(
+                "Something went wrong with the check in.",
+            )));
+        }
     }
 }
 
@@ -364,11 +361,13 @@ fn cast_vote(
     vote: Vote<String>,
     challenge_id: u64,
 ) -> AppResult {
-    let vote = vote.check(deps.as_ref())?;
-    let vote = vote.optimisitc();
+    let mut vote = vote.check(deps.as_ref())?.optimisitc();
 
-    let mut last_check_in = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
-    if last_check_in.status != CheckInStatus::CheckedInNotYetVoted {
+    // We can unwrap because there will always be atleast one element in the vector
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let check_in = check_ins.last_mut().unwrap();
+
+    if check_in.status != CheckInStatus::CheckedInNotYetVoted {
         return Err(AppError::WrongCheckInStatus {});
     }
 
@@ -389,11 +388,12 @@ fn cast_vote(
         &vote,
     )?;
     let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id.clone())?;
+    vote.for_check_in = Some(check_in.last_checked_in);
     challenge_votes.push(vote);
     CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &challenge_votes)?;
 
-    last_check_in.status = CheckInStatus::VotedNotYetTallied;
-    DAILY_CHECK_INS.save(deps.storage, challenge_id, &last_check_in)?;
+    check_in.status = CheckInStatus::VotedNotYetTallied;
+    DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
 
     // If all friends have voted, we tally the votes.
     if CHALLENGE_VOTES
@@ -401,30 +401,45 @@ fn cast_vote(
         .len()
         == CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?.len()
     {
-        tally_votes(deps, env, challenge_id)?;
+        tally_votes_for_check_in(deps, env, challenge_id)?;
     }
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
-fn tally_votes(deps: DepsMut, _env: Env, challenge_id: u64) -> AppResult {
+fn tally_votes_for_check_in(deps: DepsMut, _env: Env, challenge_id: u64) -> AppResult {
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
     // if challenge.status != ChallengeStatus::OverAndPending {
     //     return Err(AppError::WrongChallengeStatus {});
     // }
 
-    let last_check_in = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
-    if last_check_in.status != CheckInStatus::VotedNotYetTallied
-        || last_check_in.status != CheckInStatus::Recount
+    let check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let check_in = check_ins.last().unwrap();
+
+    if check_in.status != CheckInStatus::VotedNotYetTallied
+        || check_in.status != CheckInStatus::Recount
     {
         return Err(AppError::WrongCheckInStatus {});
     }
 
     let votes = CHALLENGE_VOTES.load(deps.storage, challenge_id)?;
 
-    let any_false_vote = votes.iter().any(|v| v.approval == Some(false));
+    // check for any false votes on check_ins that match the vote timestamps
+    let any_false_vote = votes
+        .iter()
+        .filter(|&vote| {
+            vote.for_check_in
+                .map_or(false, |timestamp| timestamp == check_in.last_checked_in)
+        })
+        .any(|v| v.approval == Some(false));
+
     //@TODO only update ChallengeStatus if the challenge is OverAndPending
     // update check_in status
     // update check_in tally_result
+    //
+    // Then charge penalty and there check if the check_in tally_result is Some(false)
+    // if yes divide the collateral among how many days there are between now
+    // and challenge.end and split that amount between friends.
+
     if any_false_vote {
         challenge.status = ChallengeStatus::OverAndFailed;
         CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;

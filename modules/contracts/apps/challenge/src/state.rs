@@ -48,8 +48,8 @@ impl ChallengeEntry {
     pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry> {
         let end = match self.end {
             EndType::Duration(DurationChoice::Week) => Duration::weeks(1).to_std().unwrap(),
-            EndType::Duration(DurationChoice::Quarter) => Duration::days(30).to_std().unwrap(),
-            EndType::Duration(DurationChoice::Month) => Duration::days(90).to_std().unwrap(),
+            EndType::Duration(DurationChoice::Month) => Duration::days(30).to_std().unwrap(),
+            EndType::Duration(DurationChoice::Quarter) => Duration::days(90).to_std().unwrap(),
             _ => return Ok(self.clone()),
         };
         Ok(ChallengeEntry {
@@ -146,8 +146,12 @@ impl Friend<String> {
 
 #[cosmwasm_schema::cw_serde]
 pub struct Vote<T: AddressLike> {
+    /// The address of the voter
     pub voter: T,
+    /// The vote result
     pub approval: Option<bool>,
+    /// Correlates to the last_checked_in field of the CheckIn struct.
+    pub for_check_in: Option<Timestamp>,
 }
 
 impl Vote<String> {
@@ -157,6 +161,7 @@ impl Vote<String> {
         Ok(Vote {
             voter: deps.api.addr_validate(&self.voter)?,
             approval: self.approval,
+            for_check_in: None,
         })
     }
 }
@@ -168,11 +173,13 @@ impl Vote<Addr> {
         Vote {
             voter: self.voter,
             approval: Some(self.approval.unwrap_or(true)),
+            for_check_in: None,
         }
     }
 }
 
 /// The check in struct is used to track the admin's check ins.
+/// The admin must check in every 24 hours, otherwise they get a strike.
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
     /// The blockheight of the last check in.
@@ -233,5 +240,5 @@ pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
 /// For looking up all the votes by id. This is used to tally the votes.
 pub const CHALLENGE_VOTES: Map<u64, Vec<Vote<Addr>>> = Map::new("challenge_votes");
 
-// use a snapshot map?
-pub const DAILY_CHECK_INS: Map<u64, CheckIn> = Map::new("daily_checkins");
+/// For looking up all the check ins by challenge_id.
+pub const DAILY_CHECK_INS: Map<u64, Vec<CheckIn>> = Map::new("daily_checkins");

@@ -67,34 +67,41 @@ lazy_static! {
     static ref VOTE: Vote<String> = Vote {
         voter: ALICE_ADDRESS.clone(),
         approval: Some(true),
+        for_check_in: None,
     };
     static ref VOTES: Vec<Vote<String>> = vec![
         Vote {
             voter: ALICE_ADDRESS.clone(),
             approval: Some(true),
+            for_check_in: None,
         },
         Vote {
             voter: BOB_ADDRESS.clone(),
             approval: Some(true),
+            for_check_in: None,
         },
         Vote {
             voter: CHARLIE_ADDRESS.clone(),
             approval: Some(true),
+            for_check_in: None,
         },
     ];
     static ref ALICE_NO_VOTE: Vote<String> = Vote {
         voter: ALICE_ADDRESS.clone(),
         approval: Some(false),
+        for_check_in: None,
     };
     static ref ONE_NO_VOTE: Vec<Vote<String>> = vec![
         ALICE_NO_VOTE.clone(),
         Vote {
             voter: BOB_ADDRESS.clone(),
             approval: Some(true),
+            for_check_in: None,
         },
         Vote {
             voter: CHARLIE_ADDRESS.clone(),
             approval: Some(true),
+            for_check_in: None,
         },
     ];
 }
