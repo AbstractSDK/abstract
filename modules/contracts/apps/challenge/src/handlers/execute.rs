@@ -8,9 +8,9 @@ use abstract_sdk::prelude::*;
 
 use crate::msg::ChallengeExecuteMsg;
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, CheckInStatus, DurationChoice,
-    EndType, Friend, UpdateFriendsOpKind, Vote, ADMIN, CHALLENGE_FRIENDS, CHALLENGE_LIST,
-    CHALLENGE_VOTES, DAILY_CHECK_INS, NEXT_ID, VOTES,
+    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, CheckInStatus, EndType, Friend,
+    UpdateFriendsOpKind, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, CHALLENGE_VOTES, DAILY_CHECK_INS,
+    NEXT_ID, VOTES,
 };
 
 pub fn execute_handler(
@@ -41,10 +41,7 @@ pub fn execute_handler(
             metadata,
         } => daily_check_in(deps, env, info, &app, challenge_id, metadata),
         ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
-            cast_vote(deps, env, info, &app, vote, challenge_id)
-        }
-        ChallengeExecuteMsg::VetoVote { vote, challenge_id } => {
-            veto_vote(deps, info, env, challenge_id, vote)
+            cast_vote(deps, env, &app, vote, challenge_id)
         }
     }
 }
@@ -124,7 +121,7 @@ fn update_challenge(
         loaded_challenge.description = description;
     }
     if let Some(end) = new_challenge.end {
-        loaded_challenge.end = EndType::Duration(DurationChoice::Week);
+        loaded_challenge.end = EndType::ExactTime(end);
     }
 
     // Save the updated challenge
@@ -293,7 +290,7 @@ fn daily_check_in(
         // The contract manually sets the next check in time.
         now if now >= check_in.next_check_in_by => {
             for strike in challenge.admin_strikes.iter_mut() {
-                if !*strike {
+                if !*strike == false {
                     *strike = true;
                     break;
                 }
@@ -348,19 +345,24 @@ fn daily_check_in(
 fn cast_vote(
     deps: DepsMut,
     env: Env,
-    info: MessageInfo,
     app: &ChallengeApp,
     vote: Vote<String>,
     challenge_id: u64,
 ) -> AppResult {
-    let mut vote = vote.check(deps.as_ref())?.optimisitc();
+    let mut vote = vote.check(deps.as_ref())?.optimistic();
 
     // We can unwrap because there will always be atleast one element in the vector
     let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
     let check_in = check_ins.last_mut().unwrap();
 
-    if check_in.status != CheckInStatus::CheckedInNotYetVoted {
-        return Err(AppError::WrongCheckInStatus {});
+    // bug here on the last case
+    if check_in.status != CheckInStatus::CheckedInNotYetVoted
+        && check_in.status != CheckInStatus::VotedNotYetTallied
+    {
+        return Err(AppError::Std(StdError::generic_err(format!(
+            "Wrong check in status {:?} for casting vote",
+            check_in.status
+        ))));
     }
 
     // Check if the voter has already voted
@@ -379,6 +381,7 @@ fn cast_vote(
         (challenge_id.to_owned(), vote.voter.to_owned()),
         &vote,
     )?;
+
     let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id.clone())?;
     vote.for_check_in = Some(check_in.last_checked_in);
     challenge_votes.push(vote);
@@ -393,8 +396,9 @@ fn cast_vote(
         .len()
         == CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?.len()
     {
-        tally_votes_for_check_in(deps, env, app, challenge_id)?;
+        return tally_votes_for_check_in(deps, env, app, challenge_id);
     }
+
     Ok(Response::new().add_attribute("action", "cast_vote"))
 }
 
@@ -406,9 +410,7 @@ fn tally_votes_for_check_in(
 ) -> AppResult {
     let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
     let check_in = check_ins.last_mut().unwrap();
-    if check_in.status != CheckInStatus::VotedNotYetTallied
-        || check_in.status != CheckInStatus::Recount
-    {
+    if check_in.status != CheckInStatus::VotedNotYetTallied {
         return Err(AppError::WrongCheckInStatus {});
     }
 
@@ -455,9 +457,9 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
         )));
     }
 
-    let penalty_per_check_in =
-        challenge.collateral.amount.u128() / challenge.total_check_ins.unwrap();
-    let amount_per_friend = penalty_per_check_in / num_friends;
+    let amount_per_friend =
+        (challenge.collateral.amount.u128() / challenge.total_check_ins.unwrap()) / num_friends;
+
     let reaminder = challenge.collateral.amount.u128() % num_friends;
 
     let asset_per_friend = OfferAsset {
@@ -479,48 +481,6 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
     Ok(Response::new()
         .add_messages(transfer_msgs)
         .add_attribute("total_amount", challenge.collateral.amount.to_string())
-        .add_attribute("action", "charge_fixed_amount_penalty")
-        .add_attribute("remainder is", reaminder.to_string()))
-}
-
-fn veto_vote(
-    deps: DepsMut,
-    info: MessageInfo,
-    _env: Env,
-    challenge_id: u64,
-    vote: Vote<String>,
-) -> AppResult {
-    if info.sender.to_string() != ADMIN.load(deps.storage)? {
-        return Err(AppError::Std(StdError::generic_err(
-            "Only the admin can veto a vote",
-        )));
-    }
-
-    let vote = vote.check(deps.as_ref())?;
-    let fetched_vote = VOTES.may_load(
-        deps.storage,
-        (challenge_id.to_owned(), vote.voter.to_owned()),
-    )?;
-
-    // we set the vote the opposite to what it currently is
-    if let Some(mut to_veto) = fetched_vote {
-        to_veto.approval = Some(!to_veto.approval.unwrap());
-        // Update state
-        VOTES.save(
-            deps.storage,
-            (challenge_id.clone(), vote.voter.to_owned()),
-            &to_veto,
-        )?;
-        CHALLENGE_VOTES.remove(deps.storage, challenge_id.clone());
-        CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &vec![to_veto])?;
-
-        let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
-        let check_in = check_ins.last_mut().unwrap();
-        check_in.status = CheckInStatus::Recount;
-        DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
-
-        return Ok(Response::new().add_attribute("action", "veto vote"));
-    } else {
-        Err(AppError::VoterNotFound {})
-    }
+        .add_attribute("action", "charged penalty")
+        .add_attribute("the remainder was", reaminder.to_string()))
 }

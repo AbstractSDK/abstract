@@ -1,8 +1,6 @@
 use crate::{
     contract::ChallengeApp,
-    state::{
-        ChallengeEntry, ChallengeEntryUpdate, CheckIn, EndType, Friend, UpdateFriendsOpKind, Vote,
-    },
+    state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
@@ -43,10 +41,6 @@ pub enum ChallengeExecuteMsg {
         /// otherwise the voter would Vote with approval set to Some(false).
         vote: Vote<String>,
     },
-    VetoVote {
-        vote: Vote<String>,
-        challenge_id: u64,
-    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -61,7 +55,7 @@ pub enum ChallengeQueryMsg {
     #[returns(FriendsResponse)]
     Friends { challenge_id: u64 },
     #[returns(CheckInsResponse)]
-    CheckIn { challenge_id: u64 },
+    CheckIns { challenge_id: u64 },
     #[returns(VoteResponse)]
     Vote {
         challenge_id: u64,

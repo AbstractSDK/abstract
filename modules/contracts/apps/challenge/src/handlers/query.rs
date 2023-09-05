@@ -6,7 +6,7 @@ use crate::msg::{
 use crate::state::{
     ChallengeEntry, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, DAILY_CHECK_INS, VOTES,
 };
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult, Timestamp};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 
 pub fn query_handler(
@@ -25,7 +25,7 @@ pub fn query_handler(
         ChallengeQueryMsg::Friends { challenge_id } => {
             to_binary(&query_friends(deps, app, challenge_id)?)
         }
-        ChallengeQueryMsg::CheckIn { challenge_id } => {
+        ChallengeQueryMsg::CheckIns { challenge_id } => {
             to_binary(&query_check_in(deps, app, challenge_id)?)
         }
         ChallengeQueryMsg::Vote {

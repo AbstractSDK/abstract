@@ -1,6 +1,6 @@
 use abstract_dex_adapter::msg::OfferAsset;
 use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp, Uint128};
+use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -171,7 +171,7 @@ impl Vote<String> {
 impl Vote<Addr> {
     /// If the vote approval field is None, we assume the voter approves,
     /// and return a vote with the approval field set to Some(true).
-    pub fn optimisitc(self) -> Vote<Addr> {
+    pub fn optimistic(self) -> Vote<Addr> {
         Vote {
             voter: self.voter,
             approval: Some(self.approval.unwrap_or(true)),
@@ -231,7 +231,6 @@ impl CheckIn {
 }
 
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
-pub const ADMIN: Item<Addr> = Item::new("admin");
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
