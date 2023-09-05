@@ -58,7 +58,7 @@ pub enum ChallengeQueryMsg {
     CheckIns { challenge_id: u64 },
     #[returns(VoteResponse)]
     Vote {
-        challenge_id: u64,
+        last_check_in: u64,
         voter_addr: String,
     },
 }

@@ -425,10 +425,16 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
     apps.challenge_app
         .cast_vote(CHALLENGE_ID, ALICE_VOTE.clone())?;
 
+    let response = apps
+        .challenge_app
+        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
+            challenge_id: CHALLENGE_ID,
+        }))?;
+
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                challenge_id: 1,
+                last_check_in: response.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
             }))?;
 
@@ -448,10 +454,16 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 
     run_challenge_vote_sequence(&mock, &apps, VOTES.clone())?;
 
+    let response = apps
+        .challenge_app
+        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
+            challenge_id: CHALLENGE_ID,
+        }))?;
+
     let vote =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                challenge_id: 1,
+                last_check_in: response.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
             }))?;
 
@@ -496,11 +508,16 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     )?;
 
     run_challenge_vote_sequence(&mock, &apps, ONE_NO_VOTE.clone())?;
+    let check_ins_res = apps
+        .challenge_app
+        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
+            challenge_id: CHALLENGE_ID,
+        }))?;
 
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                challenge_id: 1,
+                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
             }))?;
     assert_eq!(response.vote.unwrap().approval, Some(false));
@@ -508,7 +525,7 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                challenge_id: 1,
+                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: BOB_ADDRESS.clone(),
             }))?;
     assert_eq!(response.vote.unwrap().approval, Some(true));
@@ -516,7 +533,7 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                challenge_id: 1,
+                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: CHARLIE_ADDRESS.clone(),
             }))?;
     assert_eq!(response.vote.unwrap().approval, Some(true));

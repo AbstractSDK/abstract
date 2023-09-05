@@ -29,9 +29,14 @@ pub fn query_handler(
             to_binary(&query_check_in(deps, app, challenge_id)?)
         }
         ChallengeQueryMsg::Vote {
-            challenge_id,
+            last_check_in,
             voter_addr,
-        } => to_binary(&query_vote(deps, app, voter_addr, challenge_id)?),
+        } => to_binary(&query_vote_for_check_in(
+            deps,
+            app,
+            voter_addr,
+            last_check_in,
+        )?),
     }
     .map_err(Into::into)
 }
@@ -72,11 +77,11 @@ fn query_check_in(
     Ok(CheckInsResponse(check_ins.unwrap_or_default()))
 }
 
-fn query_vote(
+fn query_vote_for_check_in(
     deps: Deps,
     _app: &ChallengeApp,
     voter_addr: String,
-    challenge_id: u64,
+    last_check_in: u64,
 ) -> AppResult<VoteResponse> {
     let v = Vote {
         voter: voter_addr,
@@ -84,6 +89,6 @@ fn query_vote(
         for_check_in: None,
     };
     let v = v.check(deps)?;
-    let vote = VOTES.may_load(deps.storage, (challenge_id, v.voter))?;
+    let vote = VOTES.may_load(deps.storage, (last_check_in, v.voter))?;
     Ok(VoteResponse { vote })
 }

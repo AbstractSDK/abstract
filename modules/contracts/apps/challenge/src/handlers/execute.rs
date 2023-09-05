@@ -375,7 +375,7 @@ fn cast_vote(
 
     VOTES.save(
         deps.storage,
-        (challenge_id.to_owned(), vote.voter.to_owned()),
+        (check_in.last.nanos(), vote.voter.to_owned()),
         &vote,
     )?;
 

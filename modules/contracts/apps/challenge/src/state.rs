@@ -235,7 +235,7 @@ pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
 /// Key is a tuple of (check_in.last_checked_in, voter_address).
-/// By using a composite key, it ensures only one user can vote per challenge.
+/// By using a composite key, it ensures only one user can vote per check_in.
 pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
 
 /// For looking up all the votes by id. This is used to tally the votes.
