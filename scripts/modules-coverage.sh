@@ -17,8 +17,7 @@ if [ ! -f Cargo.lock ]; then
 fi
 
 # Install go for test-tube
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
+wget -q -O - https://git.io/vQhTU | bash
 go version
 
 cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
