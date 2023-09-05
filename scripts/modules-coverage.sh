@@ -28,15 +28,13 @@ echo "export GOROOT=/usr/local/go" >> ~/.bash_profile
 echo "export GOPATH=$HOME/go" >> ~/.bash_profile
 echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bash_profile
 
-cat ~/.bash_profile
-
 # Load the environment variables
 source ~/.bash_profile
 
 # Check the installed version
 go version
 
-cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
+cargo llvm-cov --locked --all-features --lcov --output-path lcov.info -j 1
 
 # print the result
 ls -la .
