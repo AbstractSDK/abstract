@@ -185,11 +185,11 @@ impl Vote<Addr> {
 #[cosmwasm_schema::cw_serde]
 pub struct CheckIn {
     /// The blockheight of the last check in.
-    pub last_checked_in: Timestamp,
+    pub last: Timestamp,
     /// The blockheight of the next check in.
     /// In the case of a missed check in, this will always be pushed forward
     /// internally by the contract.
-    pub next_check_in_by: Timestamp,
+    pub next: Timestamp,
     /// Optional metadata for the check in. For example, a link to a tweet.
     pub metadata: Option<String>,
     /// The vote status of the CheckIn.
@@ -220,9 +220,9 @@ pub enum CheckInStatus {
 impl CheckIn {
     pub fn default_from(env: &Env) -> Self {
         CheckIn {
-            last_checked_in: Timestamp::from_seconds(env.block.time.seconds()),
+            last: Timestamp::from_seconds(env.block.time.seconds()),
             // set the next check in to be 24 hours from now
-            next_check_in_by: Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24),
+            next: Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24),
             metadata: None,
             status: CheckInStatus::NotCheckedIn,
             tally_result: None,
@@ -234,7 +234,7 @@ pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
-/// Key is a tuple of (challenge_id, voter_address).
+/// Key is a tuple of (check_in.last_checked_in, voter_address).
 /// By using a composite key, it ensures only one user can vote per challenge.
 pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
 

@@ -279,16 +279,16 @@ fn daily_check_in(
     let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
     let check_in = check_ins.last().unwrap();
     let now = Timestamp::from(env.block.time);
-    let next_check_in_by = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
+    let next = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
 
     match now {
-        now if now == check_in.last_checked_in => {
+        now if now == check_in.last => {
             return Err(AppError::AlreadyCheckedIn {});
         }
 
         // The admin has missed the deadline for checking in, they are given a strike.
         // The contract manually sets the next check in time.
-        now if now >= check_in.next_check_in_by => {
+        now if now >= check_in.next => {
             for strike in challenge.admin_strikes.iter_mut() {
                 if !*strike == false {
                     *strike = true;
@@ -303,8 +303,8 @@ fn daily_check_in(
             }
 
             let check_in = CheckIn {
-                last_checked_in: check_in.last_checked_in,
-                next_check_in_by,
+                last: check_in.last,
+                next,
                 metadata,
                 status: CheckInStatus::MissedCheckIn,
                 tally_result: None,
@@ -321,10 +321,10 @@ fn daily_check_in(
         }
 
         // The admin is checking in on time, so we can proceeed.
-        now if now < check_in.next_check_in_by => {
+        now if now < check_in.next => {
             let check_in = CheckIn {
-                last_checked_in: now,
-                next_check_in_by,
+                last: now,
+                next,
                 metadata,
                 status: CheckInStatus::CheckedInNotYetVoted,
                 tally_result: None,
@@ -367,10 +367,7 @@ fn cast_vote(
 
     // Check if the voter has already voted
     if VOTES
-        .may_load(
-            deps.storage,
-            (challenge_id.to_owned(), vote.voter.to_owned()),
-        )
+        .may_load(deps.storage, (check_in.last.nanos(), vote.voter.to_owned()))
         .map_or(false, |votes| votes.iter().any(|v| v.voter == vote.voter))
     {
         return Err(AppError::AlreadyVoted {});
@@ -383,7 +380,7 @@ fn cast_vote(
     )?;
 
     let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id.clone())?;
-    vote.for_check_in = Some(check_in.last_checked_in);
+    vote.for_check_in = Some(check_in.last);
     challenge_votes.push(vote);
     CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &challenge_votes)?;
 
@@ -422,7 +419,7 @@ fn tally_votes_for_check_in(
         .iter()
         .filter(|&vote| {
             vote.for_check_in
-                .map_or(false, |timestamp| timestamp == check_in.last_checked_in)
+                .map_or(false, |timestamp| timestamp == check_in.last)
         })
         .any(|v| v.approval == Some(false));
 
