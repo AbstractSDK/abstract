@@ -26,14 +26,14 @@ wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz -O /tmp/go${GO_
 sudo tar -C /usr/local -xzf /tmp/go${GO_VERSION}.linux-amd64.tar.gz
 
 # Set environment variables
-echo "export GOROOT=/usr/local/go" >> ~/.bashrc
-echo "export GOPATH=$HOME/go" >> ~/.bashrc
-echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bashrc
+echo "export GOROOT=/usr/local/go" >> ~/.bash_profile
+echo "export GOPATH=$HOME/go" >> ~/.bash_profile
+echo "export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin" >> ~/.bash_profile
 
-cat ~/.bashrc
+cat ~/.bash_profile
 
 # Load the environment variables
-source ~/.bashrc
+source ~/.bash_profile
 
 # Check the installed version
 go version
