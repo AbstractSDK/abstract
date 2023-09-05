@@ -12,7 +12,7 @@ if [ ! -f Cargo.lock ]; then
   cargo generate-lockfile
 fi
 
-sudo apt-get update && sudo apt-get install build-essential -y
+sudo apt-get update && sudo apt-get install libclang-dev -y
 
 # Set Go version
 GO_VERSION="1.18"
