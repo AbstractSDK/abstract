@@ -194,8 +194,7 @@ fn add_friends_for_challenge(
     // validate the String addresses and convert them to Addr
     // before saving
     let friends: Vec<Friend<Addr>> = friends
-        .iter()
-        .cloned()
+        .into_iter()
         .map(|friend| friend.check(deps.as_ref()).unwrap())
         .collect();
 
