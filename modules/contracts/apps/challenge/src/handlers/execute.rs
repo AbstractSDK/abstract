@@ -487,7 +487,7 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
         .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
         .collect();
 
-    executor.execute(transfer_actions?)?;
+    let transfer_msg = executor.execute(transfer_actions?);
 
     Ok(app
         .tag_response(
@@ -497,5 +497,6 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
             ),
             "charge_penalty",
         )
+        .add_messages(transfer_msg)
         .add_attribute("remainder was", reaminder.to_string()))
 }
