@@ -6,11 +6,11 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Timestam
 use crate::contract::{AppResult, ChallengeApp};
 use abstract_sdk::prelude::*;
 
-use crate::msg::ChallengeExecuteMsg;
+use crate::msg::{ChallengeExecuteMsg, ChallengeRequest};
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, CheckInStatus, EndType, Friend,
+    ChallengeEntry, ChallengeEntryUpdate, ChallengeStatus, CheckIn, CheckInStatus, Friend,
     UpdateFriendsOpKind, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, CHALLENGE_VOTES, DAILY_CHECK_INS,
-    NEXT_ID, VOTES,
+    DAY, NEXT_ID, VOTES,
 };
 
 pub fn execute_handler(
@@ -21,8 +21,8 @@ pub fn execute_handler(
     msg: ChallengeExecuteMsg,
 ) -> AppResult {
     match msg {
-        ChallengeExecuteMsg::CreateChallenge { challenge } => {
-            create_challenge(deps, env, info, app, challenge)
+        ChallengeExecuteMsg::CreateChallenge { challenge_req } => {
+            create_challenge(deps, env, info, app, challenge_req)
         }
         ChallengeExecuteMsg::UpdateChallenge {
             challenge_id,
@@ -52,18 +52,17 @@ fn create_challenge(
     env: Env,
     info: MessageInfo,
     app: ChallengeApp,
-    mut challenge: ChallengeEntry,
+    challenge_req: ChallengeRequest,
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+
+    let mut challenge = ChallengeEntry::new(challenge_req);
 
     //check that the challenge status is ChallengeStatus::Uninitialized
     if challenge.status != ChallengeStatus::Uninitialized {
         return Err(AppError::WrongChallengeStatus {});
     }
-
-    let mut challenge = challenge.set_end_timestamp(&env)?;
-    challenge.set_total_check_ins(&env)?;
 
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
@@ -114,7 +113,7 @@ fn update_challenge(
         loaded_challenge.description = description;
     }
     if let Some(end) = new_challenge.end {
-        loaded_challenge.end = EndType::ExactTime(end);
+        loaded_challenge.end = end;
     }
 
     // Save the updated challenge
@@ -253,7 +252,7 @@ fn daily_check_in(
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
 
     // If the challenge has ended, we set the status to Over and return
-    if env.block.time > challenge.get_end_timestamp()? {
+    if env.block.time > challenge.end {
         match challenge.status {
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::Over;
@@ -277,7 +276,7 @@ fn daily_check_in(
 
     let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id)?;
     let check_in = check_ins.last().unwrap();
-    let next = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
+    let next = Timestamp::from_seconds(env.block.time.seconds() + DAY);
 
     match env.block.time {
         now if now == check_in.last => Err(AppError::AlreadyCheckedIn {}),
@@ -285,16 +284,11 @@ fn daily_check_in(
         // The admin has missed the deadline for checking in, they are given a strike.
         // The contract manually sets the next check in time.
         now if now >= check_in.next => {
-            for strike in challenge.admin_strikes.iter_mut() {
-                if !(*strike) {
-                    *strike = true;
-                    break;
-                }
-            }
+            challenge.admin_strikes.num_strikes += 1;
             CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
-            // If the admin has 3 strikes, the challenge is cancelled.
-            if challenge.admin_strikes.iter().all(|strike| *strike) {
+            // If the admin's strikes reach the limit, cancel the challenge
+            if challenge.admin_strikes.num_strikes >= challenge.admin_strikes.limit {
                 return cancel_challenge(deps, info, app, challenge_id);
             }
 
@@ -365,7 +359,10 @@ fn cast_vote(
 
     // Check if the voter has already voted
     if VOTES
-        .may_load(deps.storage, (check_in.last.nanos(), vote.voter.to_owned()))
+        .may_load(
+            deps.storage,
+            (challenge_id, check_in.last.nanos(), vote.voter.to_owned()),
+        )
         .map_or(false, |votes| votes.iter().any(|v| v.voter == vote.voter))
     {
         return Err(AppError::AlreadyVoted {});
@@ -373,7 +370,7 @@ fn cast_vote(
 
     VOTES.save(
         deps.storage,
-        (check_in.last.nanos(), vote.voter.to_owned()),
+        (challenge_id, check_in.last.nanos(), vote.voter.to_owned()),
         &vote,
     )?;
 
@@ -456,7 +453,7 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
     }
 
     let amount_per_friend =
-        (challenge.collateral.amount.u128() / challenge.total_check_ins.unwrap()) / num_friends;
+        (challenge.collateral.amount.u128() / challenge.total_check_ins) / num_friends;
 
     let reaminder = challenge.collateral.amount.u128() % num_friends;
 

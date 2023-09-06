@@ -31,11 +31,13 @@ pub fn query_handler(
         ChallengeQueryMsg::Vote {
             last_check_in,
             voter_addr,
+            challenge_id,
         } => to_binary(&query_vote_for_check_in(
             deps,
             app,
             voter_addr,
             last_check_in,
+            challenge_id,
         )?),
     }
     .map_err(Into::into)
@@ -82,6 +84,7 @@ fn query_vote_for_check_in(
     _app: &ChallengeApp,
     voter_addr: String,
     last_check_in: u64,
+    challenge_id: u64,
 ) -> AppResult<VoteResponse> {
     let v = Vote {
         voter: voter_addr,
@@ -89,6 +92,6 @@ fn query_vote_for_check_in(
         for_check_in: None,
     };
     let v = v.check(deps)?;
-    let vote = VOTES.may_load(deps.storage, (last_check_in, v.voter))?;
+    let vote = VOTES.may_load(deps.storage, (challenge_id, last_check_in, v.voter))?;
     Ok(VoteResponse { vote })
 }

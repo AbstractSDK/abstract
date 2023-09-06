@@ -1,8 +1,12 @@
 use abstract_dex_adapter::msg::OfferAsset;
 use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
+use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
+
+use crate::msg::{ChallengeRequest, DurationChoice};
+
+pub const DAY: u64 = 86400;
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -14,82 +18,65 @@ pub struct ChallengeEntry {
     pub name: String,
     pub collateral: OfferAsset,
     pub description: String,
-    pub end: EndType,
-    pub total_check_ins: Option<u128>,
+    pub end: Timestamp,
+    pub total_check_ins: u128,
     pub status: ChallengeStatus,
-    pub admin_strikes: [bool; 3],
+    pub admin_strikes: StrikeConfig,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum EndType {
-    Duration(DurationChoice),
-    ExactTime(Timestamp),
+pub struct StrikeConfig {
+    /// The number of striked the admin has incurred.
+    pub num_strikes: u8,
+    /// When num_strikes reached the limit, the challenge will be cancelled.
+    pub limit: u8,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub enum DurationChoice {
-    Week,
-    Month,
-    Quarter,
+impl Default for StrikeConfig {
+    fn default() -> Self {
+        StrikeConfig {
+            num_strikes: 0,
+            limit: 3,
+        }
+    }
 }
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(name: String, collateral: OfferAsset, description: String, end: EndType) -> Self {
+    pub fn new(request: ChallengeRequest) -> Self {
         ChallengeEntry {
-            name,
-            collateral,
-            description,
-            end,
-            total_check_ins: None,
+            name: request.name,
+            collateral: request.collateral,
+            description: request.description,
+            end: Self::to_timestamp(request.end),
+            total_check_ins: 0,
             status: ChallengeStatus::default(),
-            admin_strikes: [false; 3],
+            admin_strikes: StrikeConfig::default(),
         }
     }
-    /// Converts the EndType to a cosmwasm::timestamp using the corrent block time.
-    pub fn set_end_timestamp(&mut self, env: &Env) -> StdResult<ChallengeEntry> {
-        let end = match self.end {
-            EndType::Duration(DurationChoice::Week) => Duration::weeks(1).to_std().unwrap(),
-            EndType::Duration(DurationChoice::Month) => Duration::days(30).to_std().unwrap(),
-            EndType::Duration(DurationChoice::Quarter) => Duration::days(90).to_std().unwrap(),
-            _ => return Ok(self.clone()),
-        };
-        Ok(ChallengeEntry {
-            name: self.name.clone(),
-            collateral: self.collateral.clone(),
-            description: self.description.clone(),
-            end: EndType::ExactTime(Timestamp::from_seconds(
-                env.block.time.seconds() + end.as_secs(),
-            )),
-            total_check_ins: self.total_check_ins,
-            status: self.status.clone(),
-            admin_strikes: self.admin_strikes,
-        })
-    }
-    /// Returns the timestamp of the end of the challenge or an error if the end is not an ExactTime.
-    pub fn get_end_timestamp(&self) -> StdResult<Timestamp> {
-        match self.end {
-            EndType::ExactTime(time) => Ok(time),
-            _ => Err(StdError::generic_err("EndType is not ExactTime")),
-        }
-    }
+
     /// Sets the total number of check-ins based on the end time.
     pub fn set_total_check_ins(&mut self, env: &Env) -> StdResult<()> {
         let now = env.block.time;
 
-        // Ensure that end time is in exact time format
-        let end_time = match self.get_end_timestamp() {
-            Ok(time) => time,
-            Err(e) => return Err(e),
-        };
-
-        // Calculate the duration in seconds
-        let duration_secs = end_time.seconds() - now.seconds();
-        let check_in_duration_secs = 86400; // 24 hours in seconds
-                                            // Calculate the total number of check-ins
-        self.total_check_ins = Some(duration_secs as u128 / check_in_duration_secs as u128);
-
+        let duration_secs = self.end.seconds() - now.seconds();
+        // Calculate the total number of check-ins
+        self.total_check_ins = duration_secs as u128 / DAY as u128;
         Ok(())
+    }
+
+    pub fn to_timestamp(end: DurationChoice) -> Timestamp {
+        match end {
+            DurationChoice::Week => {
+                Timestamp::from_seconds(Duration::weeks(1).to_std().unwrap().as_secs())
+            }
+            DurationChoice::Month => {
+                Timestamp::from_seconds(Duration::days(30).to_std().unwrap().as_secs())
+            }
+            DurationChoice::Quarter => {
+                Timestamp::from_seconds(Duration::days(90).to_std().unwrap().as_secs())
+            }
+        }
     }
 }
 
@@ -228,9 +215,9 @@ pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
 
-/// Key is a tuple of (check_in.last_checked_in, voter_address).
+/// Key is a tuple of (challenge_id, check_in.last_checked_in, voter_address).
 /// By using a composite key, it ensures only one user can vote per check_in.
-pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
+pub const VOTES: Map<(u64, u64, Addr), Vote<Addr>> = Map::new("votes");
 
 /// For looking up all the votes by challenge_id. This is used to tally the votes.
 pub const CHALLENGE_VOTES: Map<u64, Vec<Vote<Addr>>> = Map::new("challenge_votes");

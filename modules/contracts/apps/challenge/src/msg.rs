@@ -2,6 +2,7 @@ use crate::{
     contract::ChallengeApp,
     state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
 };
+use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
@@ -13,7 +14,7 @@ abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMs
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum ChallengeExecuteMsg {
     CreateChallenge {
-        challenge: ChallengeEntry,
+        challenge_req: ChallengeRequest,
     },
     UpdateChallenge {
         challenge_id: u64,
@@ -60,6 +61,7 @@ pub enum ChallengeQueryMsg {
     Vote {
         last_check_in: u64,
         voter_addr: String,
+        challenge_id: u64,
     },
 }
 
@@ -69,7 +71,25 @@ pub struct ChallengeResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub struct ChallengeRequest {
+    pub name: String,
+    pub collateral: OfferAsset,
+    pub description: String,
+    pub end: DurationChoice,
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct CheckInsResponse(pub Vec<CheckIn>);
+
+#[cosmwasm_schema::cw_serde]
+pub struct EndTypeRequest(pub DurationChoice);
+
+#[cosmwasm_schema::cw_serde]
+pub enum DurationChoice {
+    Week,
+    Month,
+    Quarter,
+}
 
 #[cosmwasm_schema::cw_serde]
 pub struct VoteResponse {
