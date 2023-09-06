@@ -165,6 +165,7 @@ pub enum UpdateSubAccountAction {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 pub enum ExecuteMsg {
     /// Forward execution message to module
+    #[cfg_attr(feature = "interface", payable)]
     ExecOnModule { module_id: String, exec_msg: Binary },
     /// Update Abstract-specific configuration of the module.
     /// Only callable by the account factory or owner.
