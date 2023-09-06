@@ -145,7 +145,7 @@ fn cancel_challenge(
     }
 
     challenge.status = ChallengeStatus::Cancelled;
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+    CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -293,7 +293,7 @@ fn daily_check_in(
         // The contract manually sets the next check in time.
         now if now >= check_in.next => {
             for strike in challenge.admin_strikes.iter_mut() {
-                if *strike == false {
+                if !(*strike) {
                     *strike = true;
                     break;
                 }
@@ -411,7 +411,7 @@ fn tally_votes_for_check_in(
     app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id)?;
     let check_in = check_ins.last_mut().unwrap();
     if check_in.status != CheckInStatus::VotedNotYetTallied {
         return Err(AppError::WrongCheckInStatus {});
