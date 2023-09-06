@@ -1,0 +1,28 @@
+name: CircleCI Wasm Builder
+
+# Job that updates the wasms of the mono-repo after a PR is merged to main.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: (github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch') && github.base_ref == 'main'
+    steps:
+      - name: Tickle CircleCI
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "main",
+          "parameters": {
+            "GHA_Meta": "build_wasms"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
