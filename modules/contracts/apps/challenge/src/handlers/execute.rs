@@ -207,7 +207,11 @@ fn add_friends_for_challenge(
 
     existing_friends.extend(friends);
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
-    Ok(Response::new().add_attribute("action", "add_friends"))
+
+    Ok(app.tag_response(
+        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
+        "add_friends",
+    ))
 }
 
 pub fn remove_friends_from_challenge(
@@ -238,7 +242,10 @@ pub fn remove_friends_from_challenge(
             .any(|friend| f.address == friend.address)
     });
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
-    Ok(Response::new().add_attribute("action", "remove_friends"))
+    Ok(app.tag_response(
+        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
+        "remove_friends",
+    ))
 }
 
 fn daily_check_in(
@@ -259,12 +266,13 @@ fn daily_check_in(
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::Over;
                 CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
-                return Ok(Response::new()
-                    .add_attribute("action", "check_in")
-                    .add_attribute(
+                return Ok(app.tag_response(
+                    Response::new().add_attribute(
                         "message",
                         "Challenge has ended. You can no longer register a daily check in.",
-                    ));
+                    ),
+                    "daily check in",
+                ));
             }
             _ => {
                 return Err(AppError::Std(StdError::generic_err(format!(
@@ -311,12 +319,13 @@ fn daily_check_in(
             check_ins.push(check_in);
             DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
 
-            return Ok(Response::new()
-                .add_attribute("action", "check_in")
-                .add_attribute(
+            return Ok(app.tag_response(
+                Response::new().add_attribute(
                     "message",
-                    "You missed the deadline for checking in. You have been given a strike.",
-                ));
+                    "You missed the daily check in, you have been given a strike",
+                ),
+                "daily check in",
+            ));
         }
 
         // The admin is checking in on time, so we can proceeed.
@@ -331,7 +340,10 @@ fn daily_check_in(
 
             check_ins.push(check_in);
             DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
-            return Ok(Response::new().add_attribute("action", "check_in"));
+            return Ok(app.tag_response(
+                Response::new().add_attribute("action", "check_in"),
+                "daily check in",
+            ));
         }
         _ => {
             return Err(AppError::Std(StdError::generic_err(
@@ -394,7 +406,10 @@ fn cast_vote(
         return tally_votes_for_check_in(deps, env, app, challenge_id);
     }
 
-    Ok(Response::new().add_attribute("action", "cast_vote"))
+    Ok(app.tag_response(
+        Response::new().add_attribute("action", "cast_vote"),
+        "cast_vote",
+    ))
 }
 
 fn tally_votes_for_check_in(
@@ -432,12 +447,13 @@ fn tally_votes_for_check_in(
         DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
         CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
 
-        return Ok(Response::new()
-            .add_attribute("action", "tally_vote")
-            .add_attribute(
+        return Ok(app.tag_response(
+            Response::new().add_attribute(
                 "message",
                 "All votes were positive. ChallengeStatus has been set to OverAndCompleted.",
-            ));
+            ),
+            "tally_votes_for_check_in",
+        ));
     }
 }
 
@@ -471,11 +487,15 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
         .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
         .collect();
 
-    let transfer_msgs = executor.execute(transfer_actions?);
+    executor.execute(transfer_actions?)?;
 
-    Ok(Response::new()
-        .add_messages(transfer_msgs)
-        .add_attribute("total_amount", challenge.collateral.amount.to_string())
-        .add_attribute("action", "charged penalty")
-        .add_attribute("the remainder was", reaminder.to_string()))
+    Ok(app
+        .tag_response(
+            Response::new().add_attribute(
+                "message",
+                "All votes were negative. ChallengeStatus has been set to OverAndCompleted.",
+            ),
+            "charge_penalty",
+        )
+        .add_attribute("remainder was", reaminder.to_string()))
 }
