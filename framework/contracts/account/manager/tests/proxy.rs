@@ -282,7 +282,7 @@ fn install_standalone_versions_not_met() -> AResult {
 fn install_multiple_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    chain.add_balance(&sender, vec![coin(44, "token")])?;
+    chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = AbstractAccount::new(&deployment, Some(0));
 
@@ -322,8 +322,15 @@ fn install_multiple_modules() -> AResult {
 
     // add monetization on module1
     deployment.version_control.set_module_monetization(
+        "standalone1".to_owned(),
+        Monetization::InstallFee(FixedFee::new(&coin(42, "token1"))),
+        Namespace::new("abstract").unwrap(),
+    )?;
+
+    // add init funds on module2
+    deployment.version_control.set_module_instantiation_funds(
+        vec![coin(42, "token1"), coin(500, "token2")],
         "standalone2".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(42, "token"))),
         Namespace::new("abstract").unwrap(),
     )?;
 
@@ -340,13 +347,13 @@ fn install_multiple_modules() -> AResult {
                     Some(to_binary(&mock_modules::standalone_no_cw2::MockMsg).unwrap()),
                 ),
             ],
-            Some(&[coin(44, "token")]),
+            Some(&[coin(86, "token1"), coin(500, "token2")]),
         )
         .unwrap_err();
     assert!(err.root().to_string().contains(&format!(
         "Expected {:?}, sent {:?}",
-        vec![coin(42, "token")],
-        vec![coin(44, "token")]
+        vec![coin(84, "token1"), coin(500, "token2")],
+        vec![coin(86, "token1"), coin(500, "token2")]
     )));
 
     // successful install
@@ -382,5 +389,19 @@ fn install_multiple_modules() -> AResult {
             ]
         }
     );
+
+    let account_module_addresses = account.manager.module_addresses(vec![
+        String::from("abstract:standalone1"),
+        String::from("abstract:standalone2"),
+    ])?;
+    let (standalone_addr1, standalone_addr2) = match &account_module_addresses.modules[..] {
+        [(_app1, addr1), (_app2, addr2)] => (addr1.clone(), addr2.clone()),
+        _ => panic!("bad result from module_addresses"),
+    };
+    let s1_balance = chain.query_all_balances(&standalone_addr1)?;
+    let s2_balance = chain.query_all_balances(&standalone_addr2)?;
+
+    assert!(s1_balance.is_empty());
+    assert_eq!(s2_balance, vec![coin(42, "token1"), coin(500, "token2")]);
     Ok(())
 }

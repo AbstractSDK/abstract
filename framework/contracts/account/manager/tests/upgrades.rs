@@ -709,11 +709,12 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         simulate_response,
         SimulateInstallModulesResponse {
             total_required_funds: vec![coin(10, "coin1"), coin(5, "coin2")],
-            required_funds: vec![
+            monetization_funds: vec![
                 (adapter_1::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
                 (adapter_2::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
                 (app_1::MOCK_APP_ID.to_string(), coin(5, "coin2"))
-            ]
+            ],
+            init_funds: vec![],
         }
     );
 
@@ -893,6 +894,126 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
         vec![coin(9, "coin1"), coin(10, "coin2")]
     )));
 
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module_and_init_funds() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    // Adding coins to fill monetization
+    chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+    // Add monetization
+    deployment.version_control.set_module_instantiation_funds(
+        vec![coin(3, "coin1")],
+        "mock-adapter1".to_owned(),
+        Namespace::new("tester").unwrap(),
+    )?;
+    deployment.version_control.set_module_instantiation_funds(
+        vec![coin(3, "coin1")],
+        "mock-adapter2".to_owned(),
+        Namespace::new("tester").unwrap(),
+    )?;
+    deployment.version_control.set_module_instantiation_funds(
+        vec![coin(3, "coin1"), coin(5, "coin2")],
+        "mock-app1".to_owned(),
+        Namespace::new("tester").unwrap(),
+    )?;
+
+    // Check how much we need
+    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
+        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+    ])?;
+    assert_eq!(
+        simulate_response,
+        SimulateInstallModulesResponse {
+            total_required_funds: vec![coin(9, "coin1"), coin(5, "coin2")],
+            monetization_funds: vec![],
+            init_funds: vec![
+                (
+                    adapter_1::MOCK_ADAPTER_ID.to_string(),
+                    vec![coin(3, "coin1")]
+                ),
+                (
+                    adapter_2::MOCK_ADAPTER_ID.to_string(),
+                    vec![coin(3, "coin1")]
+                ),
+                (
+                    app_1::MOCK_APP_ID.to_string(),
+                    vec![coin(3, "coin1"), coin(5, "coin2")]
+                )
+            ],
+        }
+    );
+
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: None,
+                link: None,
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                            },
+                        })?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+        )
+        .unwrap();
+    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
+    // Make sure all installed
     Ok(())
 }
 
