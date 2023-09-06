@@ -68,17 +68,17 @@ fn create_challenge(
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     challenge.status = ChallengeStatus::Active;
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+    CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     // Create the initial check_in entry
     DAILY_CHECK_INS.save(
         deps.storage,
-        challenge_id.clone(),
+        challenge_id,
         &vec![CheckIn::default_from(&env)],
     )?;
 
     // Create the initial challenge_votes entry
-    CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &Vec::new())?;
+    CHALLENGE_VOTES.save(deps.storage, challenge_id, &Vec::new())?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -97,7 +97,7 @@ fn update_challenge(
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
-        .may_load(deps.storage, challenge_id.clone())
+        .may_load(deps.storage, challenge_id)
         .map_err(|_| AppError::NotFound {})?
         .ok_or_else(|| {
             AppError::Std(StdError::generic_err(format!(
@@ -124,7 +124,7 @@ fn update_challenge(
     }
 
     // Save the updated challenge
-    CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &loaded_challenge)?;
+    CHALLENGE_LIST.save(deps.storage, challenge_id, &loaded_challenge)?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -139,7 +139,7 @@ fn cancel_challenge(
     challenge_id: u64,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     if challenge.status != ChallengeStatus::Active {
         return Err(AppError::WrongChallengeStatus {});
     }
@@ -162,7 +162,7 @@ fn update_friends_for_challenge(
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     if challenge.status != ChallengeStatus::Active {
         return Err(AppError::WrongChallengeStatus {});
     }
@@ -188,7 +188,7 @@ fn add_friends_for_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut existing_friends = CHALLENGE_FRIENDS
-        .may_load(deps.storage, challenge_id.clone())?
+        .may_load(deps.storage, challenge_id)?
         .unwrap_or_default();
 
     for friend in &friends {
@@ -225,7 +225,7 @@ pub fn remove_friends_from_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut existing_friends = CHALLENGE_FRIENDS
-        .may_load(deps.storage, challenge_id.clone())?
+        .may_load(deps.storage, challenge_id)?
         .unwrap_or_default();
 
     for friend in &friend_addresses {
@@ -257,15 +257,14 @@ fn daily_check_in(
     metadata: Option<String>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    let now = Timestamp::from(env.block.time);
+    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
 
     // If the challenge has ended, we set the status to Over and return
-    if now > challenge.get_end_timestamp()? {
+    if env.block.time > challenge.get_end_timestamp()? {
         match challenge.status {
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::Over;
-                CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+                CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
                 return Ok(app.tag_response(
                     Response::new().add_attribute(
                         "message",
@@ -283,26 +282,23 @@ fn daily_check_in(
         }
     }
 
-    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id)?;
     let check_in = check_ins.last().unwrap();
-    let now = Timestamp::from(env.block.time);
     let next = Timestamp::from_seconds(env.block.time.seconds() + 60 * 60 * 24);
 
-    match now {
-        now if now == check_in.last => {
-            return Err(AppError::AlreadyCheckedIn {});
-        }
+    match env.block.time {
+        now if now == check_in.last => Err(AppError::AlreadyCheckedIn {}),
 
         // The admin has missed the deadline for checking in, they are given a strike.
         // The contract manually sets the next check in time.
         now if now >= check_in.next => {
             for strike in challenge.admin_strikes.iter_mut() {
-                if !*strike == false {
+                if *strike == false {
                     *strike = true;
                     break;
                 }
             }
-            CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+            CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
             // If the admin has 3 strikes, the challenge is cancelled.
             if challenge.admin_strikes.iter().all(|strike| *strike) {
@@ -319,13 +315,13 @@ fn daily_check_in(
             check_ins.push(check_in);
             DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
 
-            return Ok(app.tag_response(
+            Ok(app.tag_response(
                 Response::new().add_attribute(
                     "message",
                     "You missed the daily check in, you have been given a strike",
                 ),
                 "daily check in",
-            ));
+            ))
         }
 
         // The admin is checking in on time, so we can proceeed.
@@ -340,16 +336,15 @@ fn daily_check_in(
 
             check_ins.push(check_in);
             DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
-            return Ok(app.tag_response(
+
+            Ok(app.tag_response(
                 Response::new().add_attribute("action", "check_in"),
                 "daily check in",
-            ));
+            ))
         }
-        _ => {
-            return Err(AppError::Std(StdError::generic_err(
-                "Something went wrong with the check in.",
-            )));
-        }
+        _ => Err(AppError::Std(StdError::generic_err(
+            "Something went wrong with the check in.",
+        ))),
     }
 }
 
@@ -362,7 +357,7 @@ fn cast_vote(
 ) -> AppResult {
     let mut vote = vote.check(deps.as_ref())?.optimistic();
 
-    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id.clone())?;
+    let mut check_ins = DAILY_CHECK_INS.load(deps.storage, challenge_id)?;
     // We can unwrap because there will always be atleast one element in the vector
     let check_in = check_ins.last_mut().unwrap();
 
@@ -389,18 +384,16 @@ fn cast_vote(
         &vote,
     )?;
 
-    let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id.clone())?;
+    let mut challenge_votes = CHALLENGE_VOTES.load(deps.storage, challenge_id)?;
     vote.for_check_in = Some(check_in.last);
     challenge_votes.push(vote);
-    CHALLENGE_VOTES.save(deps.storage, challenge_id.clone(), &challenge_votes)?;
+    CHALLENGE_VOTES.save(deps.storage, challenge_id, &challenge_votes)?;
 
     check_in.status = CheckInStatus::VotedNotYetTallied;
     DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
 
     // If all friends have voted, we tally the votes.
-    if CHALLENGE_VOTES
-        .load(deps.storage, challenge_id.clone())?
-        .len()
+    if CHALLENGE_VOTES.load(deps.storage, challenge_id)?.len()
         == CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?.len()
     {
         return tally_votes_for_check_in(deps, env, app, challenge_id);
@@ -424,7 +417,7 @@ fn tally_votes_for_check_in(
         return Err(AppError::WrongCheckInStatus {});
     }
 
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     let votes = CHALLENGE_VOTES.load(deps.storage, challenge_id)?;
 
     // check for any false votes on check_ins that match the vote timestamps
@@ -441,25 +434,26 @@ fn tally_votes_for_check_in(
     if any_false_vote {
         check_in.tally_result = Some(false);
         DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
-        return charge_penalty(deps, &app, challenge_id);
+
+        charge_penalty(deps, app, challenge_id)
     } else {
         check_in.tally_result = Some(true);
         DAILY_CHECK_INS.save(deps.storage, challenge_id, &check_ins)?;
-        CHALLENGE_LIST.save(deps.storage, challenge_id.clone(), &challenge)?;
+        CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
-        return Ok(app.tag_response(
+        Ok(app.tag_response(
             Response::new().add_attribute(
                 "message",
                 "All votes were positive. ChallengeStatus has been set to OverAndCompleted.",
             ),
             "tally_votes_for_check_in",
-        ));
+        ))
     }
 }
 
 fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppResult {
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id.clone())?;
-    let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id.clone())?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
 
     let num_friends = friends.len() as u128;
     if num_friends == 0 {

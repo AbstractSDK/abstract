@@ -61,9 +61,9 @@ impl ChallengeEntry {
             end: EndType::ExactTime(Timestamp::from_seconds(
                 env.block.time.seconds() + end.as_secs(),
             )),
-            total_check_ins: self.total_check_ins.clone(),
+            total_check_ins: self.total_check_ins,
             status: self.status.clone(),
-            admin_strikes: self.admin_strikes.clone(),
+            admin_strikes: self.admin_strikes,
         })
     }
     /// Returns the timestamp of the end of the challenge or an error if the end is not an ExactTime.
@@ -95,9 +95,11 @@ impl ChallengeEntry {
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job
 /// based on the value of the status
+#[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub enum ChallengeStatus {
     /// The challenge has not been initialized yet. This is the default state.
+    #[default]
     Uninitialized,
     /// The challenge is active and can be voted on.
     Active,
@@ -105,12 +107,6 @@ pub enum ChallengeStatus {
     Cancelled,
     /// The challenge has pased the end time.
     Over,
-}
-
-impl Default for ChallengeStatus {
-    fn default() -> Self {
-        ChallengeStatus::Uninitialized
-    }
 }
 
 /// Only this struct and these fields are allowed to be updated.
