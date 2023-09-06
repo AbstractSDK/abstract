@@ -45,6 +45,9 @@ pub mod state {
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
     pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
+    // Modules instantiation funds
+    pub const MODULE_INIT_FUNDS: Map<(&Namespace, &str), Vec<cosmwasm_std::Coin>> =
+        Map::new("mod_i_f");
     // Modules Metadata
     pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
@@ -84,7 +87,7 @@ use state::MODULE_MONETIZATION;
 
 use cw_storage_plus::{Index, IndexList, IndexedMap, MultiIndex};
 
-use self::state::MODULE_METADATA;
+use self::state::{MODULE_INIT_FUNDS, MODULE_METADATA};
 
 /// Contains the minimal Abstract Account contract addresses.
 #[cosmwasm_schema::cw_serde]
@@ -125,6 +128,14 @@ pub enum ExecuteMsg {
         module_name: String,
         namespace: Namespace,
         monetization: Monetization,
+    },
+    /// Sets the instantiate funds configuration for a module.
+    /// The version doesn't matter here, but we keep it for compatibility purposes
+    /// Only callable by namespace admin
+    SetModuleInstantiationFunds {
+        module_name: String,
+        namespace: Namespace,
+        instantiation_funds: Vec<Coin>,
     },
     /// Sets the metadata configuration for a module.
     /// Only callable by namespace admin
@@ -237,13 +248,19 @@ pub struct ModuleResponse {
 pub struct ModuleConfiguration {
     pub monetization: Monetization,
     pub metadata: ModuleMetadata,
+    pub instantiation_funds: Vec<Coin>,
 }
 
 impl ModuleConfiguration {
-    pub fn new(monetization: Monetization, metadata: ModuleMetadata) -> Self {
+    pub fn new(
+        monetization: Monetization,
+        metadata: ModuleMetadata,
+        instantiation_funds: Vec<Coin>,
+    ) -> Self {
         Self {
             monetization,
             metadata,
+            instantiation_funds,
         }
     }
 
@@ -288,12 +305,15 @@ impl ModuleConfiguration {
         let monetization = MODULE_MONETIZATION
             .load(storage, (&module.namespace, &module.name))
             .unwrap_or(Monetization::None);
-
+        let instantiation_funds = MODULE_INIT_FUNDS
+            .load(storage, (&module.namespace, &module.name))
+            .unwrap_or_default();
         let metadata = ModuleConfiguration::metadata_from_storage(storage, module);
 
         Self {
             monetization,
             metadata,
+            instantiation_funds,
         }
     }
 }

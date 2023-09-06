@@ -89,6 +89,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
             namespace,
             monetization,
         } => set_module_monetization(deps, info, module_name, namespace, monetization),
+        ExecuteMsg::SetModuleInstantiationFunds {
+            module_name,
+            namespace,
+            instantiation_funds,
+        } => set_instantiation_funds(deps, info, module_name, namespace, instantiation_funds),
         ExecuteMsg::SetModuleMetadata { module, metadata } => {
             set_module_metadata(deps, info, module, metadata)
         }
