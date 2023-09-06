@@ -1051,6 +1051,7 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                             module: MockInitMsg,
                             base: BaseInstantiateMsg {
                                 ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
                             },
                         })?),
                     ),
