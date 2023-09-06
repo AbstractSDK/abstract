@@ -1,11 +1,16 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use abstract_core::objects::dependency::DependencyResponse;
+use abstract_core::objects::module_version::ModuleDataResponse;
 use abstract_core::objects::{
     AssetEntry, PoolAddress, PoolReference, UncheckedContractEntry, UniquePoolId,
 };
 use abstract_core::AbstractError;
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_core::{
+    app::{BaseInstantiateMsg, BaseQueryMsgFns},
+    objects::gov_type::GovernanceDetails,
+};
 use abstract_dca_app::msg::{DCAResponse, Frequency};
 use abstract_dca_app::state::DCAEntry;
 use abstract_dca_app::{
@@ -17,6 +22,7 @@ use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
 use abstract_dex_adapter::EXCHANGE;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use croncat_app::contract::CRONCAT_MODULE_VERSION;
 use croncat_app::{contract::CRONCAT_ID, AppQueryMsgFns, CroncatApp, CRON_CAT_FACTORY};
 use croncat_integration_testing::test_helpers::set_up_croncat_contracts;
 use croncat_integration_testing::DENOM;
@@ -106,7 +112,7 @@ fn setup() -> anyhow::Result<(
     cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
 
     // Register factory entry
-    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?;
+    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
     abstr_deployment.ans_host.execute(
         &abstract_core::ans_host::ExecuteMsg::UpdateContractAddresses {
             to_add: vec![(factory_entry, cron_cat_addrs.factory.to_string())],
@@ -132,6 +138,7 @@ fn setup() -> anyhow::Result<(
         &croncat_app::msg::InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: croncat_app::msg::AppInstantiateMsg {},
         },
@@ -149,6 +156,7 @@ fn setup() -> anyhow::Result<(
         &InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: AppInstantiateMsg {
                 native_asset: AssetEntry::new("denom"),
@@ -211,6 +219,29 @@ fn successful_install() -> anyhow::Result<()> {
             dca_creation_amount: Uint128::new(5_000_000),
             refill_threshold: Uint128::new(1_000_000),
             max_spread: Decimal::percent(30),
+        }
+    );
+
+    let module_data = apps.dca_app.module_data()?;
+    assert_eq!(
+        module_data,
+        ModuleDataResponse {
+            module_id: DCA_APP_ID.to_owned(),
+            version: DCA_APP_VERSION.to_owned(),
+            dependencies: vec![
+                DependencyResponse {
+                    id: CRONCAT_ID.to_owned(),
+                    version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
+                },
+                DependencyResponse {
+                    id: EXCHANGE.to_owned(),
+                    version_req: vec![format!(
+                        "^{}",
+                        abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()
+                    )]
+                }
+            ],
+            metadata: None
         }
     );
     Ok(())

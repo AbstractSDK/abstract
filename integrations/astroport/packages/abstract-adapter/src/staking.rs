@@ -41,7 +41,7 @@ impl Identify for Astroport {
 use ::{
     abstract_sdk::{
         core::objects::{AnsEntryConvertor, AssetEntry},
-        feature_objects::AnsHost,
+        feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
@@ -68,15 +68,15 @@ impl CwStakingCommand for Astroport {
         _env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _abstract_registry: Addr,
+        _version_control_contract: &VersionControlContract,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =
             self.staking_contract_address(deps, ans_host, &lp_token)?;
 
         let AssetInfo::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-                return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
-            };
+            return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
+        };
         self.lp_token_address = token_addr;
         self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         Ok(())

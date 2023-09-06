@@ -17,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-testing = ["dep:cw-orch", "dep:ibc-chain-registry"]
+testing = ["dep:cw-orch"]
 cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
 
 # Keep as is until TendermintStake updates.
@@ -38,7 +38,6 @@ abstract-adapter = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true, optional = true, features = ["daemon"] }
 abstract-interface = { workspace = true, optional = true }
-ibc-chain-registry = { version = "0.24.1", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }

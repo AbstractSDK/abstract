@@ -4,9 +4,12 @@
 //!
 //! ## Description
 //! An app is a contract that is allowed to perform actions on a [proxy](crate::proxy) contract while also being migratable.
-use crate::base::{
-    ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
-    MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
+use crate::{
+    base::{
+        ExecuteMsg as EndpointExecMsg, InstantiateMsg as EndpointInstantiateMsg,
+        MigrateMsg as EndpointMigrateMsg, QueryMsg as EndpointQueryMsg,
+    },
+    objects::module_version::ModuleDataResponse,
 };
 
 pub type ExecuteMsg<ModuleMsg = Empty, ReceiveMsg = Empty> =
@@ -48,6 +51,7 @@ impl AppQueryMsg for Empty {}
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
+    pub version_control_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -55,7 +59,10 @@ pub struct BaseInstantiateMsg {
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg<T>))]
 pub enum BaseExecuteMsg {
     /// Updates the base config
-    UpdateConfig { ans_host_address: Option<String> },
+    UpdateConfig {
+        ans_host_address: Option<String>,
+        version_control_address: Option<String>,
+    },
 }
 
 impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {
@@ -75,6 +82,9 @@ pub enum BaseQueryMsg {
     /// Returns the admin.
     #[returns(AdminResponse)]
     BaseAdmin {},
+    /// Returns module data
+    #[returns(ModuleDataResponse)]
+    ModuleData {},
 }
 
 impl<T> From<BaseQueryMsg> for QueryMsg<T> {
