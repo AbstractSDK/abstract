@@ -54,6 +54,25 @@ impl From<&StaticDependency> for Dependency {
     }
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct DependencyResponse {
+    pub id: String,
+    pub version_req: Vec<String>,
+}
+
+impl From<Dependency> for DependencyResponse {
+    fn from(dep: Dependency) -> Self {
+        Self {
+            id: dep.id,
+            version_req: dep
+                .version_req
+                .into_iter()
+                .map(|comp| comp.to_string())
+                .collect(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

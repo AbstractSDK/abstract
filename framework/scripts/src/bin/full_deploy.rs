@@ -1,5 +1,3 @@
-use std::fs::remove_file;
-
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
@@ -19,8 +17,6 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
-    // remove the state file
-    remove_file("./daemon_state.json").unwrap_or_default();
 
     let networks = rt.block_on(assert_wallet_balance(&networks));
 

@@ -2,7 +2,10 @@ use crate::{
     state::{AppContract, ContractError},
     Handler, QueryEndpoint,
 };
-use abstract_core::app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg};
+use abstract_core::{
+    app::{AppConfigResponse, AppQueryMsg, BaseQueryMsg, QueryMsg},
+    objects::module_version::{ModuleDataResponse, MODULE},
+};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdResult};
 use cw_controllers::AdminResponse;
 
@@ -59,6 +62,7 @@ impl<
         match query {
             BaseQueryMsg::BaseConfig {} => to_binary(&self.dapp_config(deps)?),
             BaseQueryMsg::BaseAdmin {} => to_binary(&self.admin(deps)?),
+            BaseQueryMsg::ModuleData {} => to_binary(&self.module_data(deps)?),
         }
     }
 
@@ -74,6 +78,20 @@ impl<
 
     fn admin(&self, deps: Deps) -> StdResult<AdminResponse> {
         self.admin.query_admin(deps)
+    }
+
+    fn module_data(&self, deps: Deps) -> StdResult<ModuleDataResponse> {
+        let module_data = MODULE.load(deps.storage)?;
+        Ok(ModuleDataResponse {
+            module_id: module_data.module,
+            version: module_data.version,
+            dependencies: module_data
+                .dependencies
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            metadata: module_data.metadata,
+        })
     }
 }
 

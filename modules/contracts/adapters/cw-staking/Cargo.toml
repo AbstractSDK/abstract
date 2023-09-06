@@ -39,12 +39,17 @@ interface = [
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 terra = ["abstract-astroport-adapter/full_integration"]
+neutron = ["abstract-astroport-adapter/full_integration"]
 kujira = ["dep:kujira"]
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+# Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed! 
+# TODO: Remove
+cw-orch = ["dep:cw-orch"]                    # Remove after optimizer toolchain bumps to 1.71.0
+osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira"]
+features = ["juno", "terra", "osmosis", "kujira", "neutron"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
@@ -94,6 +99,7 @@ clap = { workspace = true }
 cw-staking = { path = ".", features = [
   "interface",
   "juno",
+  "osmosis",
 ], package = "abstract-cw-staking" }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
 abstract-testing = { workspace = true }

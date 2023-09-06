@@ -101,7 +101,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         Some(
             PathBuf::from(crate_path)
-                .join("daemon_state.json")
+                .join("state.json")
                 .display()
                 .to_string(),
         )

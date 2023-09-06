@@ -17,7 +17,7 @@ fn decimal_overflow() {
         time_elapsed,
     );
 
-    println!("{}", price_average.to_string());
+    println!("{}", price_average);
 
     let res: Uint128 = price_average.mul(Uint256::from(amount)).try_into().unwrap();
     println!("{}", res);
