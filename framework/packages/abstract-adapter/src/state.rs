@@ -6,7 +6,7 @@ use abstract_sdk::{
         QueryHandlerFn, ReceiveHandlerFn, ReplyHandlerFn, SudoHandlerFn,
     },
     core::version_control::AccountBase,
-    feature_objects::AnsHost,
+    feature_objects::{AnsHost, VersionControlContract},
     namespaces::BASE_STATE,
     AbstractSdkError,
 };
@@ -33,7 +33,7 @@ impl<T> ContractError for T where
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ApiState {
     /// Used to verify requests
-    pub version_control: Addr,
+    pub version_control: VersionControlContract,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
 }

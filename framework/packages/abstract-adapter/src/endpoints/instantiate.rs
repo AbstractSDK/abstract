@@ -2,7 +2,7 @@ use crate::state::{AdapterContract, ApiState, ContractError};
 use abstract_core::{adapter::InstantiateMsg, objects::module_version::set_module_data};
 use abstract_sdk::{
     base::{Handler, InstantiateEndpoint},
-    feature_objects::AnsHost,
+    feature_objects::{AnsHost, VersionControlContract},
 };
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
@@ -32,9 +32,13 @@ impl<
             address: deps.api.addr_validate(&msg.base.ans_host_address)?,
         };
 
+        let version_control = VersionControlContract {
+            address: deps.api.addr_validate(&msg.base.version_control_address)?,
+        };
+
         // Base state
         let state = ApiState {
-            version_control: deps.api.addr_validate(&msg.base.version_control_address)?,
+            version_control,
             ans_host,
         };
         let (name, version, metadata) = self.info();
@@ -55,7 +59,10 @@ mod tests {
         adapter::{BaseInstantiateMsg, InstantiateMsg},
         objects::module_version::{ModuleData, MODULE},
     };
-    use abstract_sdk::{base::InstantiateEndpoint, feature_objects::AnsHost};
+    use abstract_sdk::{
+        base::InstantiateEndpoint,
+        feature_objects::{AnsHost, VersionControlContract},
+    };
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         Addr, StdError,
@@ -108,7 +115,9 @@ mod tests {
 
         let state = api.base_state.load(&deps.storage)?;
         assert_that!(state).is_equal_to(ApiState {
-            version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+            version_control: VersionControlContract {
+                address: Addr::unchecked(TEST_VERSION_CONTROL),
+            },
             ans_host: AnsHost {
                 address: Addr::unchecked(TEST_ANS_HOST),
             },
