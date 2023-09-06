@@ -1,7 +1,10 @@
-use abstract_core::objects::{
-    fee::FixedFee,
-    module::{self, Module, ModuleMetadata, Monetization},
-    validation::validate_link,
+use abstract_core::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+    },
+    version_control::UpdateModule,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
@@ -173,16 +176,8 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
     MODULE_METADATA.remove(deps.storage, &module);
-
-    // If this module has no more versions, we also remove the monetization
-    if REGISTERED_MODULES
-        .prefix((module.namespace.clone(), module.name.clone()))
-        .range(deps.storage, None, None, Order::Ascending)
-        .next()
-        .is_none()
-    {
-        MODULE_MONETIZATION.remove(deps.storage, (&module.namespace, &module.name));
-    }
+    MODULE_MONETIZATION.remove(deps.storage, &module);
+    MODULE_INIT_FUNDS.remove(deps.storage, &module);
 
     Ok(VcResponse::new(
         "remove_module",
@@ -210,13 +205,13 @@ pub fn yank_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -> 
     ))
 }
 
-/// Set a module monetization allowing the namespace owner to charge for module installation/usage or else.
-pub fn set_module_monetization(
+/// Updates module configuration
+pub fn update_module_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     module_name: String,
     namespace: Namespace,
-    monetization: Monetization,
+    update_module: UpdateModule,
 ) -> VCResult {
     // validate the caller is the owner of the namespace
 
@@ -228,106 +223,62 @@ pub fn set_module_monetization(
         validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
     }
 
-    // We verify the module exists before updating the monetization
-    REGISTERED_MODULES
-        .prefix((namespace.clone(), module_name.clone()))
-        .range(deps.storage, None, None, Order::Ascending)
-        .next()
-        .ok_or_else(|| {
-            VCError::ModuleNotFound(ModuleInfo {
+    let (module, metadata, monetization, init_funds) = match update_module {
+        UpdateModule::Default { metadata } => (
+            ModuleInfo {
                 namespace: namespace.clone(),
                 name: module_name.clone(),
                 version: ModuleVersion::Latest,
-            })
-        })??;
-
-    MODULE_MONETIZATION.save(deps.storage, (&namespace, &module_name), &monetization)?;
-
-    Ok(VcResponse::new(
-        "set_monetization",
-        vec![
-            ("namespace", &namespace.to_string()),
-            ("module_name", &module_name),
-        ],
-    ))
-}
-
-/// Set a module init funds allowing the namespace owner to create module with some funds after instantiation
-pub fn set_instantiation_funds(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    module_name: String,
-    namespace: Namespace,
-    instantiation_funds: Vec<Coin>,
-) -> VCResult {
-    // validate the caller is the owner of the namespace
-
-    if namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
-        // Only Admin can update abstract contracts
-        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
-    } else {
-        // Only owner can add modules
-        validate_account_owner(deps.as_ref(), &namespace, &msg_info.sender)?;
-    }
-
-    // We verify the module exists before updating the init funds
-    REGISTERED_MODULES
-        .prefix((namespace.clone(), module_name.clone()))
-        .range(deps.storage, None, None, Order::Ascending)
-        .next()
-        .ok_or_else(|| {
-            VCError::ModuleNotFound(ModuleInfo {
+            },
+            Some(metadata),
+            None,
+            None,
+        ),
+        UpdateModule::Versioned {
+            version,
+            metadata,
+            monetization,
+            instantiation_funds,
+        } => (
+            ModuleInfo {
                 namespace: namespace.clone(),
                 name: module_name.clone(),
-                version: ModuleVersion::Latest,
-            })
-        })??;
+                version: ModuleVersion::Version(version),
+            },
+            metadata,
+            monetization,
+            instantiation_funds,
+        ),
+        _ => todo!(),
+    };
 
-    MODULE_INIT_FUNDS.save(
-        deps.storage,
-        (&namespace, &module_name),
-        &instantiation_funds,
-    )?;
-
-    Ok(VcResponse::new(
-        "set_instantiation_funds",
-        vec![
-            ("namespace", &namespace.to_string()),
-            ("module_name", &module_name),
-        ],
-    ))
-}
-
-/// Set a module metadata.
-pub fn set_module_metadata(
-    deps: DepsMut,
-    msg_info: MessageInfo,
-    module: ModuleInfo,
-    metadata: ModuleMetadata,
-) -> VCResult {
-    // validate the caller is the owner of the namespace
-
-    if module.namespace == Namespace::unchecked(ABSTRACT_NAMESPACE) {
-        // Only Admin can update abstract contracts
-        cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
-    } else {
-        // Only owner can add modules
-        validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
-    }
-
-    // We verify the module exists before updating the monetization
+    // We verify the module exists before updating the config
     if !REGISTERED_MODULES.has(deps.storage, &module) {
         return Err(VCError::ModuleNotFound(module));
     }
 
-    // We verify the metadata is a URL
-    validate_link(&Some(metadata.clone()))?;
+    // Update metadata
+    if let Some(metadata) = metadata {
+        validate_link(Some(&metadata))?;
+        MODULE_METADATA.save(deps.storage, &module, &metadata)?;
+    }
 
-    MODULE_METADATA.save(deps.storage, &module, &metadata)?;
+    // Update monetization
+    if let Some(monetization) = monetization {
+        MODULE_MONETIZATION.save(deps.storage, &module, &monetization)?;
+    }
+
+    // Update init funds
+    if let Some(init_funds) = init_funds {
+        MODULE_INIT_FUNDS.save(deps.storage, &module, &init_funds)?;
+    }
 
     Ok(VcResponse::new(
-        "set_metadata",
-        vec![("module", &module.to_string()), ("metadata", &metadata)],
+        "update_module_config",
+        vec![
+            ("namespace", &namespace.to_string()),
+            ("module_name", &module_name),
+        ],
     ))
 }
 
@@ -1270,6 +1221,7 @@ mod test {
 
     mod propose_modules {
         use abstract_core::objects::fee::FixedFee;
+        use abstract_core::objects::module::Monetization;
         use abstract_core::objects::module_reference::ModuleReference;
         use abstract_core::AbstractError;
         use abstract_testing::prelude::TEST_MODULE_ID;
@@ -1844,10 +1796,15 @@ mod test {
 
             let monetization = Monetization::InstallFee(FixedFee::new(&coin(45, "ujuno")));
             let metadata = "".to_string();
-            let monetization_module_msg = ExecuteMsg::SetModuleMonetization {
+            let monetization_module_msg = ExecuteMsg::UpdateModuleConfiguration {
                 module_name: new_module.name.clone(),
                 namespace: new_module.namespace.clone(),
-                monetization: monetization.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: None,
+                    monetization: Some(monetization.clone()),
+                    instantiation_funds: None,
+                },
             };
             execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
 
@@ -1888,10 +1845,15 @@ mod test {
 
             let instantiation_funds = vec![coin(42, "ujuno"), coin(123, "ujunox")];
             let metadata = "".to_string();
-            let monetization_module_msg = ExecuteMsg::SetModuleInstantiationFunds {
+            let monetization_module_msg = ExecuteMsg::UpdateModuleConfiguration {
                 module_name: new_module.name.clone(),
                 namespace: new_module.namespace.clone(),
-                instantiation_funds: instantiation_funds.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: None,
+                    monetization: None,
+                    instantiation_funds: Some(instantiation_funds.clone()),
+                },
             };
             execute_as(deps.as_mut(), TEST_ADMIN, monetization_module_msg)?;
 
@@ -1936,9 +1898,15 @@ mod test {
 
             let monetization = Monetization::None;
             let metadata = "ipfs://YRUI243876FJHKHV3IY".to_string();
-            let metadata_module_msg = ExecuteMsg::SetModuleMetadata {
-                module: new_module.clone(),
-                metadata: metadata.clone(),
+            let metadata_module_msg = ExecuteMsg::UpdateModuleConfiguration {
+                module_name: new_module.name.clone(),
+                namespace: new_module.namespace.clone(),
+                update_module: UpdateModule::Versioned {
+                    version: TEST_VERSION.to_owned(),
+                    metadata: Some(metadata.clone()),
+                    monetization: None,
+                    instantiation_funds: None,
+                },
             };
             execute_as(deps.as_mut(), TEST_ADMIN, metadata_module_msg)?;
 

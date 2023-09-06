@@ -27,7 +27,6 @@ pub mod state {
         common_namespace::ADMIN_NAMESPACE,
         module::{ModuleInfo, ModuleMetadata, Monetization},
         module_reference::ModuleReference,
-        namespace::Namespace,
     };
 
     use super::{AccountBase, Config};
@@ -44,10 +43,9 @@ pub mod state {
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Fee
-    pub const MODULE_MONETIZATION: Map<(&Namespace, &str), Monetization> = Map::new("mod_m");
+    pub const MODULE_MONETIZATION: Map<&ModuleInfo, Monetization> = Map::new("mod_m");
     // Modules instantiation funds
-    pub const MODULE_INIT_FUNDS: Map<(&Namespace, &str), Vec<cosmwasm_std::Coin>> =
-        Map::new("mod_i_f");
+    pub const MODULE_INIT_FUNDS: Map<&ModuleInfo, Vec<cosmwasm_std::Coin>> = Map::new("mod_i_f");
     // Modules Metadata
     pub const MODULE_METADATA: Map<&ModuleInfo, ModuleMetadata> = Map::new("mod_meta");
 
@@ -121,28 +119,13 @@ pub enum ExecuteMsg {
     /// Namespaces need to be claimed by the Account before proposing modules
     /// Once proposed, the modules need to be approved by the Admin via [`ExecuteMsg::ApproveOrRejectModules`]
     ProposeModules { modules: Vec<ModuleMapEntry> },
-    /// Sets the monetization configuration for a module.
-    /// The version doesn't matter here, but we keep it for compatibility purposes
-    /// Only callable by namespace admin
-    SetModuleMonetization {
-        module_name: String,
-        namespace: Namespace,
-        monetization: Monetization,
-    },
-    /// Sets the instantiate funds configuration for a module.
-    /// The version doesn't matter here, but we keep it for compatibility purposes
-    /// Only callable by namespace admin
-    SetModuleInstantiationFunds {
-        module_name: String,
-        namespace: Namespace,
-        instantiation_funds: Vec<Coin>,
-    },
     /// Sets the metadata configuration for a module.
     /// Only callable by namespace admin
     /// Using Version::Latest in the [`module`] variable sets the default metadata for the module
-    SetModuleMetadata {
-        module: ModuleInfo,
-        metadata: ModuleMetadata,
+    UpdateModuleConfiguration {
+        module_name: String,
+        namespace: Namespace,
+        update_module: UpdateModule,
     },
     /// Approve or reject modules
     /// This takes the modules in the pending_modules map and
@@ -174,6 +157,24 @@ pub enum ExecuteMsg {
     },
     /// Sets a new Factory
     SetFactory { new_factory: String },
+}
+
+#[non_exhaustive]
+#[cosmwasm_schema::cw_serde]
+pub enum UpdateModule {
+    /// Updates the default metadata for the module
+    Default { metadata: ModuleMetadata },
+    /// Update configuration for specified version
+    Versioned {
+        /// Module version
+        version: String,
+        /// Update the metadata for this version
+        metadata: Option<ModuleMetadata>,
+        /// Update the monetization for this version
+        monetization: Option<Monetization>,
+        /// Update the init_funds for this version
+        instantiation_funds: Option<Vec<Coin>>,
+    },
 }
 
 /// A ModuleFilter that mirrors the [`ModuleInfo`] struct.
@@ -303,11 +304,9 @@ impl ModuleConfiguration {
 
     pub fn from_storage(storage: &dyn Storage, module: &ModuleInfo) -> Self {
         let monetization = MODULE_MONETIZATION
-            .load(storage, (&module.namespace, &module.name))
+            .load(storage, module)
             .unwrap_or(Monetization::None);
-        let instantiation_funds = MODULE_INIT_FUNDS
-            .load(storage, (&module.namespace, &module.name))
-            .unwrap_or_default();
+        let instantiation_funds = MODULE_INIT_FUNDS.load(storage, module).unwrap_or_default();
         let metadata = ModuleConfiguration::metadata_from_storage(storage, module);
 
         Self {

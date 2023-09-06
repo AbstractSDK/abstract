@@ -84,19 +84,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         }
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
-        ExecuteMsg::SetModuleMonetization {
+        ExecuteMsg::UpdateModuleConfiguration {
             module_name,
             namespace,
-            monetization,
-        } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::SetModuleInstantiationFunds {
-            module_name,
-            namespace,
-            instantiation_funds,
-        } => set_instantiation_funds(deps, info, module_name, namespace, instantiation_funds),
-        ExecuteMsg::SetModuleMetadata { module, metadata } => {
-            set_module_metadata(deps, info, module, metadata)
-        }
+            update_module,
+        } => update_module_config(deps, info, module_name, namespace, update_module),
         ExecuteMsg::ClaimNamespace {
             namespace,
             account_id,

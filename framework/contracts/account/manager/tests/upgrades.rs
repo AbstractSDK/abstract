@@ -11,6 +11,7 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion, Monetization},
         namespace::Namespace,
     },
+    version_control::UpdateModule,
     AbstractError,
 };
 use abstract_interface::{
@@ -683,22 +684,36 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
     )?;
     deploy_modules(&chain);
     // Add monetization
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-adapter1".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin1"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
     )?;
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-adapter2".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin1"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
     )?;
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-app1".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin2"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin2")))),
+            instantiation_funds: None,
+        },
     )?;
-
     // Check how much we need
     let simulate_response = deployment.module_factory.simulate_install_modules(vec![
         ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
@@ -818,20 +833,35 @@ fn create_account_with_installed_module_and_monetization_should_fail() -> AResul
     )?;
     deploy_modules(&chain);
     // Add monetization
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-adapter1".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin1"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
     )?;
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-adapter2".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin1"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
     )?;
-    deployment.version_control.set_module_monetization(
+    deployment.version_control.update_module_configuration(
         "mock-app1".to_owned(),
-        Monetization::InstallFee(FixedFee::new(&coin(5, "coin2"))),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin2")))),
+            instantiation_funds: None,
+        },
     )?;
 
     // Check how much we need
@@ -922,21 +952,38 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
         None,
     )?;
     deploy_modules(&chain);
-    // Add monetization
-    deployment.version_control.set_module_instantiation_funds(
-        vec![coin(3, "coin1")],
+
+    // Add init_funds
+
+    deployment.version_control.update_module_configuration(
         "mock-adapter1".to_owned(),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(3, "coin1")]),
+        },
     )?;
-    deployment.version_control.set_module_instantiation_funds(
-        vec![coin(3, "coin1")],
+    deployment.version_control.update_module_configuration(
         "mock-adapter2".to_owned(),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(3, "coin1")]),
+        },
     )?;
-    deployment.version_control.set_module_instantiation_funds(
-        vec![coin(3, "coin1"), coin(5, "coin2")],
+    deployment.version_control.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
+        },
     )?;
 
     // Check how much we need
