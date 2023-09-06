@@ -68,7 +68,7 @@ impl CwStakingCommand for Astroport {
         _env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _abstract_registry: &VersionControlContract,
+        _version_control_contract: &VersionControlContract,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =

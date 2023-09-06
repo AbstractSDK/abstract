@@ -6,7 +6,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Default)]
 pub struct Osmosis {
-    pub abstract_registry: Option<VersionControlContract>,
+    pub version_control_contract: Option<VersionControlContract>,
     pub local_proxy_addr: Option<Addr>,
     pub pool_id: Option<u64>,
     pub lp_token: Option<String>,
@@ -103,7 +103,7 @@ pub mod fns {
             &self,
             _: cosmwasm_std::Deps<'_>,
         ) -> std::result::Result<VersionControlContract, abstract_sdk::AbstractSdkError> {
-            self.abstract_registry
+            self.version_control_contract
                 .clone()
                 .ok_or(AbstractSdkError::generic_err(
                     "version_control address is not set",
@@ -120,10 +120,10 @@ pub mod fns {
             _env: Env,
             info: Option<MessageInfo>,
             ans_host: &AnsHost,
-            abstract_registry: &VersionControlContract,
+            version_control_contract: &VersionControlContract,
             staking_asset: AssetEntry,
         ) -> abstract_sdk::AbstractSdkResult<()> {
-            self.abstract_registry = Some(abstract_registry.clone());
+            self.version_control_contract = Some(version_control_contract.clone());
             let account_registry = self.account_registry(deps);
 
             let base = info

@@ -15,7 +15,7 @@ pub fn query_handler(
 ) -> StakingResult<Binary> {
     let name_service = app.name_service(deps);
     let ans_host = name_service.host();
-    let abstract_registry = app.abstract_registry(deps)?;
+    let version_control_contract = app.abstract_registry(deps)?;
 
     match msg {
         StakingQueryMsg::Info {
@@ -35,7 +35,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &abstract_registry,
+                    &version_control_contract,
                     staking_token,
                 )?;
                 Ok(to_binary(&provider.query_info(&deps.querier)?)?)
@@ -60,7 +60,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &abstract_registry,
+                    &version_control_contract,
                     staking_token,
                 )?;
                 Ok(to_binary(&provider.query_staked(
@@ -88,7 +88,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &abstract_registry,
+                    &version_control_contract,
                     staking_token,
                 )?;
                 Ok(to_binary(&provider.query_unbonding(
@@ -114,7 +114,7 @@ pub fn query_handler(
                     env,
                     None,
                     ans_host,
-                    &abstract_registry,
+                    &version_control_contract,
                     staking_token,
                 )?;
                 Ok(to_binary(&provider.query_rewards(&deps.querier)?)?)
