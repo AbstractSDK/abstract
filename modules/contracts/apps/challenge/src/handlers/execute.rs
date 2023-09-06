@@ -97,14 +97,8 @@ fn update_challenge(
 
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
-        .may_load(deps.storage, challenge_id)
-        .map_err(|_| AppError::NotFound {})?
-        .ok_or_else(|| {
-            AppError::Std(StdError::generic_err(format!(
-                "Challenge with id {} not found",
-                challenge_id
-            )))
-        })?;
+        .may_load(deps.storage, challenge_id)?
+        .ok_or(AppError::NotFound {})?;
 
     if loaded_challenge.status != ChallengeStatus::Active {
         return Err(AppError::WrongChallengeStatus {});
