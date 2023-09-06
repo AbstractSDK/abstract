@@ -41,7 +41,7 @@ impl Identify for Astroport {
 use ::{
     abstract_sdk::{
         core::objects::{AnsEntryConvertor, AssetEntry},
-        feature_objects::AnsHost,
+        feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
@@ -68,7 +68,7 @@ impl CwStakingCommand for Astroport {
         _env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _abstract_registry: Addr,
+        _version_control_contract: &VersionControlContract,
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.generator_contract_address =

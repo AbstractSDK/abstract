@@ -11,9 +11,11 @@ use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
         module_factory::ModuleInstallConfig,
-        objects::{module::ModuleInfo, module_reference::ModuleReference},
+        objects::{
+            module::ModuleInfo, module_reference::ModuleReference,
+            version_control::VersionControlContract,
+        },
     },
-    feature_objects::VersionControlContract,
     *,
 };
 use cosmwasm_std::{

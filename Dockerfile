@@ -41,4 +41,4 @@ RUN chmod +x modules-coverage.sh
 # RUN if [ ! -f Cargo.lock ]; then cargo generate-lockfile; fi
 
 # Run coverage job
-CMD ["bash", "scripts/modules-coverage.sh"]
+CMD ["bash", "scripts/modules-coverage-local.sh"]
