@@ -1,10 +1,11 @@
 use crate::{
     commands::*,
     error::ManagerError,
-    queries,
+    queries::{self, handle_sub_accounts_query},
     queries::{handle_account_info_query, handle_config_query, handle_module_info_query},
     versioning,
 };
+use abstract_core::manager::state::MODULE_QUEUE;
 use abstract_sdk::core::{
     manager::{
         state::{AccountInfo, Config, ACCOUNT_FACTORY, CONFIG, INFO, SUSPENSION_STATUS},
@@ -42,13 +43,15 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> ManagerResult {
     set_contract_version(deps.storage, MANAGER, CONTRACT_VERSION)?;
+    let module_factory_address = deps.api.addr_validate(&msg.module_factory_address)?;
+    let version_control_address = deps.api.addr_validate(&msg.version_control_address)?;
 
     ACCOUNT_ID.save(deps.storage, &msg.account_id)?;
     CONFIG.save(
         deps.storage,
         &Config {
-            version_control_address: deps.api.addr_validate(&msg.version_control_address)?,
-            module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
+            version_control_address: version_control_address.clone(),
+            module_factory_address: module_factory_address.clone(),
         },
     )?;
 
@@ -57,12 +60,12 @@ pub fn instantiate(
     validate_link(&msg.link)?;
     validate_name(&msg.name)?;
 
-    let governance_details = msg.owner.verify(deps.api)?;
+    let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
     let owner = governance_details.owner_address();
 
     let account_info = AccountInfo {
         name: msg.name,
-        governance_details,
+        governance_details: governance_details.clone(),
         chain_id: env.block.chain_id,
         description: msg.description,
         link: msg.link,
@@ -71,17 +74,23 @@ pub fn instantiate(
     INFO.save(deps.storage, &account_info)?;
     MIGRATE_CONTEXT.save(deps.storage, &vec![])?;
 
+    // Save queue for modules to be installed
+    MODULE_QUEUE.save(deps.storage, &msg.install_modules)?;
+
     // Set owner
     cw_ownable::initialize_owner(deps.storage, deps.api, Some(owner.as_str()))?;
     SUSPENSION_STATUS.save(deps.storage, &false)?;
     ACCOUNT_FACTORY.set(deps, Some(info.sender))?;
-    Ok(ManagerResponse::new(
+
+    let response = ManagerResponse::new(
         "instantiate",
         vec![
             ("account_id", msg.account_id.to_string()),
             ("owner", owner.to_string()),
         ],
-    ))
+    );
+
+    Ok(response)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -103,9 +112,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
 
-                ExecuteMsg::InstallModule { module, init_msg } => {
-                    install_module(deps, info, env, module, init_msg)
-                }
+                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)
                 }
@@ -117,6 +124,24 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                     module_id,
                     exec_msg,
                 } => exec_on_module(deps, info, module_id, exec_msg),
+                ExecuteMsg::CreateSubAccount {
+                    name,
+                    description,
+                    link,
+                    base_asset,
+                    namespace,
+                    install_modules,
+                } => create_sub_account(
+                    deps,
+                    info,
+                    env,
+                    name,
+                    description,
+                    link,
+                    base_asset,
+                    namespace,
+                    install_modules,
+                ),
                 ExecuteMsg::Upgrade { modules } => upgrade_modules(deps, env, info, modules),
                 ExecuteMsg::UpdateInfo {
                     name,
@@ -136,22 +161,28 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
 
                     Ok(response)
                 }
+                ExecuteMsg::UpdateSubAccount(action) => {
+                    handle_sub_account_action(deps, info, action)
+                }
                 ExecuteMsg::Callback(CallbackMsg {}) => handle_callback(deps, env, info),
-                ExecuteMsg::UpdateOwnership(action) => match action {
-                    // Disallow the user from using the TransferOwnership action
-                    cw_ownable::Action::TransferOwnership { .. } => {
-                        Err(ManagerError::MustUseSetOwner {})
-                    }
-                    _ => {
-                        abstract_sdk::execute_update_ownership!(
-                            ManagerResponse,
-                            deps,
-                            env,
-                            info,
-                            action
-                        )
-                    }
-                },
+                ExecuteMsg::UpdateOwnership(action) => {
+                    let msgs = match action {
+                        // Disallow the user from using the TransferOwnership action
+                        cw_ownable::Action::TransferOwnership { .. } => {
+                            return Err(ManagerError::MustUseSetOwner {});
+                        }
+                        cw_ownable::Action::AcceptOwnership => update_governance(deps.storage)?,
+                        _ => vec![],
+                    };
+                    let result: ManagerResult = abstract_sdk::execute_update_ownership!(
+                        ManagerResponse,
+                        deps,
+                        env,
+                        info,
+                        action
+                    );
+                    Ok(result?.add_messages(msgs))
+                }
                 _ => panic!(),
             }
         }
@@ -169,6 +200,9 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Info {} => handle_account_info_query(deps),
         QueryMsg::Config {} => handle_config_query(deps),
         QueryMsg::Ownership {} => abstract_sdk::query_ownership!(deps),
+        QueryMsg::SubAccountIds { start_after, limit } => {
+            handle_sub_accounts_query(deps, start_after, limit)
+        }
     }
 }
 

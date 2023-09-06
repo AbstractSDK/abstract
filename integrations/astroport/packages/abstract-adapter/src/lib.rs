@@ -7,6 +7,8 @@ lazy_static::lazy_static! {
         let mut v = Vec::new();
         v.extend_from_slice(abstract_sdk::core::registry::NEUTRON);
         v.extend_from_slice(abstract_sdk::core::registry::TERRA);
+        v.extend_from_slice(abstract_sdk::core::registry::SEI);
+        v.extend_from_slice(abstract_sdk::core::registry::INJECTIVE);
         v
     };
 }

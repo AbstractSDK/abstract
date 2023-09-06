@@ -9,7 +9,8 @@ use abstract_core::{
         namespace::Namespace,
     },
     version_control::{
-        state::REGISTERED_MODULES, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
+        state::REGISTERED_MODULES, ModuleConfiguration, ModuleResponse, ModulesResponse,
+        NamespaceResponse, QueryMsg,
     },
 };
 use cosmwasm_std::Deps;
@@ -63,7 +64,7 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
         &self,
         module_info: &ModuleInfo,
     ) -> AbstractSdkResult<ModuleReference> {
-        let registry_addr = self.base.abstract_registry(self.deps)?;
+        let registry_addr = self.base.abstract_registry(self.deps)?.address;
         REGISTERED_MODULES
             .query(&self.deps.querier, registry_addr.clone(), module_info)?
             .ok_or_else(|| AbstractSdkError::ModuleNotFound {
@@ -74,28 +75,37 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
 
     /// Smart query for a module
     pub fn query_module(&self, module_info: ModuleInfo) -> AbstractSdkResult<Module> {
-        Ok(self.query_all_module_config(module_info)?.module)
+        Ok(self
+            .query_modules_configs(vec![module_info])?
+            .swap_remove(0)
+            .module)
     }
 
-    /// Smart query for a module and its configuration
-    pub fn query_all_module_config(
+    /// Smart query for a module config
+    pub fn query_config(&self, module_info: ModuleInfo) -> AbstractSdkResult<ModuleConfiguration> {
+        Ok(self
+            .query_modules_configs(vec![module_info])?
+            .swap_remove(0)
+            .config)
+    }
+
+    /// Smart query for a modules and its configurations
+    pub fn query_modules_configs(
         &self,
-        module_info: ModuleInfo,
-    ) -> AbstractSdkResult<ModuleResponse> {
-        let registry_addr = self.base.abstract_registry(self.deps)?;
-        let ModulesResponse { mut modules } = self.deps.querier.query(&wasm_smart_query(
+        infos: Vec<ModuleInfo>,
+    ) -> AbstractSdkResult<Vec<ModuleResponse>> {
+        let registry_addr = self.base.abstract_registry(self.deps)?.address;
+        let ModulesResponse { modules } = self.deps.querier.query(&wasm_smart_query(
             registry_addr.into_string(),
-            &QueryMsg::Modules {
-                infos: vec![module_info],
-            },
+            &QueryMsg::Modules { infos },
         )?)?;
-        Ok(modules.swap_remove(0))
+        Ok(modules)
     }
 
     /// Queries the account that owns the namespace
     /// Is also returns the base modules of that account (AccountBase)
     pub fn query_namespace(&self, namespace: Namespace) -> AbstractSdkResult<NamespaceResponse> {
-        let registry_addr = self.base.abstract_registry(self.deps)?;
+        let registry_addr = self.base.abstract_registry(self.deps)?.address;
         let namespace_response: NamespaceResponse = self.deps.querier.query(&wasm_smart_query(
             registry_addr.into_string(),
             &QueryMsg::Namespace { namespace },

@@ -1,15 +1,24 @@
 use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
 use crate::{validation, versioning};
+use abstract_core::manager::state::{
+    ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
+};
+
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::state::ACCOUNT_FACTORY;
-use abstract_core::manager::InternalConfigAction;
+use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::AssetEntry;
+
+use abstract_core::objects::version_control::VersionControlContract;
+use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
 use abstract_sdk::cw_helpers::AbstractAttributes;
+
 use abstract_sdk::{
     core::{
         manager::state::DEPENDENTS,
@@ -28,16 +37,18 @@ use abstract_sdk::{
         IBC_CLIENT, MANAGER, PROXY,
     },
     cw_helpers::wasm_smart_query,
-    feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
-    ensure, from_binary, to_binary, wasm_execute, Addr, Binary, CosmosMsg, Deps, DepsMut, Empty,
-    Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
+    ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
+    DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
 use cw2::{get_contract_version, ContractVersion};
+use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
+
+pub const MAX_ADMIN_RECURSION: usize = 2;
 
 #[abstract_response(MANAGER)]
 pub struct ManagerResponse;
@@ -76,36 +87,55 @@ pub fn update_module_addresses(
     Ok(ManagerResponse::action("update_module_addresses"))
 }
 
-// Attempts to install a new module through the Module Factory Contract
-pub fn install_module(
+/// Attempts to install a new module through the Module Factory Contract
+pub fn install_modules(
     deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    module: ModuleInfo,
-    init_msg: Option<Binary>,
+    modules: Vec<ModuleInstallConfig>,
 ) -> ManagerResult {
     // only owner can call this method
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
-
-    // Check if module is already enabled.
-    if ACCOUNT_MODULES
-        .may_load(deps.storage, &module.id())?
-        .is_some()
-    {
-        return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
-    }
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let config = CONFIG.load(deps.storage)?;
 
-    let response =
-        ManagerResponse::new("install_module", vec![("module", module.id_with_version())])
-            .add_message(wasm_execute(
-                config.module_factory_address,
-                &ModuleFactoryMsg::InstallModule { module, init_msg },
-                msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
-            )?);
+    let (install_msg, install_attribute) = install_modules_internal(
+        deps.storage,
+        modules,
+        config.module_factory_address,
+        msg_info.funds, // We forward all the funds to the module_factory address for them to use in the install
+    )?;
+    let response = ManagerResponse::new("install_modules", std::iter::once(install_attribute))
+        .add_message(install_msg);
 
     Ok(response)
+}
+
+/// Generate message and attribute for installing module
+pub(crate) fn install_modules_internal(
+    storage: &dyn Storage,
+    modules: Vec<ModuleInstallConfig>,
+    module_factory_address: Addr,
+    funds: Vec<Coin>,
+) -> ManagerResult<(CosmosMsg, Attribute)> {
+    let mut installed_modules = Vec::with_capacity(modules.len());
+    for ModuleInstallConfig { module, .. } in &modules {
+        // Check if module is already enabled.
+        if ACCOUNT_MODULES.may_load(storage, &module.id())?.is_some() {
+            return Err(ManagerError::ModuleAlreadyInstalled(module.id()));
+        }
+        installed_modules.push(module.id_with_version());
+    }
+
+    let msg = wasm_execute(
+        module_factory_address,
+        &ModuleFactoryMsg::InstallModules { modules },
+        funds,
+    )?;
+    Ok((
+        msg.into(),
+        Attribute::new("installed_modules", format!("{installed_modules:?}")),
+    ))
 }
 
 // Sets the Treasury address on the module if applicable and adds it to the state
@@ -173,7 +203,7 @@ pub fn exec_on_module(
     exec_msg: Binary,
 ) -> ManagerResult {
     // only owner can forward messages to modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let module_addr = load_module_addr(deps.storage, &module_id)?;
 
@@ -181,11 +211,118 @@ pub fn exec_on_module(
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
-            funds: vec![],
+            funds: msg_info.funds,
         }),
     );
 
     Ok(response)
+}
+
+#[allow(clippy::too_many_arguments)]
+/// Creates a sub-account for this account,
+pub fn create_sub_account(
+    deps: DepsMut,
+    msg_info: MessageInfo,
+    env: Env,
+    name: String,
+    description: Option<String>,
+    link: Option<String>,
+    base_asset: Option<AssetEntry>,
+    namespace: Option<String>,
+    install_modules: Vec<ModuleInstallConfig>,
+) -> ManagerResult {
+    // only owner can create a subaccount
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
+
+    let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
+        /// proxy of this manager will be the account owner
+        governance: GovernanceDetails::SubAccount {
+            manager: env.contract.address.into_string(),
+            proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
+        },
+        name,
+        description,
+        link,
+        base_asset,
+        namespace,
+        install_modules,
+    };
+
+    let account_factory_addr = query_module(
+        deps.as_ref(),
+        ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
+        None,
+    )?
+    .module
+    .reference
+    .unwrap_native()?;
+
+    // Call factory and attach all funds that were provided.
+    let account_creation_message =
+        wasm_execute(account_factory_addr, create_account_msg, msg_info.funds)?;
+
+    let response = ManagerResponse::new::<_, Attribute>("create_sub_account", vec![])
+        .add_message(account_creation_message);
+
+    Ok(response)
+}
+
+pub fn handle_sub_account_action(
+    deps: DepsMut,
+    info: MessageInfo,
+    action: UpdateSubAccountAction,
+) -> ManagerResult {
+    match action {
+        UpdateSubAccountAction::UnregisterSubAccount { id } => {
+            unregister_sub_account(deps, info, id)
+        }
+        UpdateSubAccountAction::RegisterSubAccount { id } => register_sub_account(deps, info, id),
+        _ => unimplemented!(),
+    }
+}
+
+// Unregister sub-account from the state
+fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.remove(deps.storage, id);
+
+        Ok(ManagerResponse::new(
+            "unregister_sub_account",
+            vec![("sub_account_removed", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRemovalFailed {})
+    }
+}
+
+// Register sub-account to the state
+fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerResult {
+    let config = CONFIG.load(deps.storage)?;
+
+    let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
+        &deps.querier,
+        config.version_control_address,
+        id,
+    )?;
+
+    if account.is_some_and(|a| a.manager == info.sender) {
+        SUB_ACCOUNTS.save(deps.storage, id, &Empty {})?;
+
+        Ok(ManagerResponse::new(
+            "register_sub_account",
+            vec![("sub_account_added", id.to_string())],
+        ))
+    } else {
+        Err(ManagerError::SubAccountRegisterFailed {})
+    }
 }
 
 /// Checked load of a module address
@@ -198,7 +335,7 @@ fn load_module_addr(storage: &dyn Storage, module_id: &String) -> Result<Addr, M
 /// Uninstall the module with the ID [`module_id`]
 pub fn uninstall_module(deps: DepsMut, msg_info: MessageInfo, module_id: String) -> ManagerResult {
     // only owner can uninstall modules
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     validation::validate_not_proxy(&module_id)?;
 
@@ -236,36 +373,84 @@ pub fn set_owner(
     info: MessageInfo,
     new_owner: GovernanceDetails<String>,
 ) -> ManagerResult {
+    assert_admin_right(deps.as_ref(), &info.sender)?;
+    // In case it's a top level owner we need to pass current owner into update_ownership method
+    let owner = cw_ownable::get_ownership(deps.storage)?
+        .owner
+        .ok_or(cw_ownable::OwnershipError::NoOwner)?;
     // verify the provided governance details
-    let verified_gov = new_owner.verify(deps.api)?;
+    let config = CONFIG.load(deps.storage)?;
+    let verified_gov = new_owner.verify(deps.as_ref(), config.version_control_address)?;
     let new_owner_addr = verified_gov.owner_address();
 
-    // Update the account information
-    let mut acc_info = INFO.load(deps.storage)?;
-
     // Check that there are changes
+    let acc_info = INFO.load(deps.storage)?;
     if acc_info.governance_details == verified_gov {
         return Err(ManagerError::NoUpdates {});
     }
 
-    acc_info.governance_details = verified_gov.clone();
-    INFO.save(deps.storage, &acc_info)?;
+    let mut response = ManagerResponse::new(
+        "update_owner",
+        vec![("governance_type", verified_gov.to_string())],
+    );
 
+    PENDING_GOVERNANCE.save(deps.storage, &verified_gov)?;
     // Update the Owner of the Account
     let ownership = cw_ownable::update_ownership(
         deps,
         &env.block,
-        &info.sender,
+        &owner,
         cw_ownable::Action::TransferOwnership {
             new_owner: new_owner_addr.into_string(),
             expiry: None,
         },
     )?;
+    response = response.add_attributes(ownership.into_attributes());
+    Ok(response)
+}
 
-    let mut attrs = vec![("governance_type", verified_gov.to_string()).into()];
-    attrs.extend(ownership.into_attributes());
+/// Update governance of this account after claim
+pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<CosmosMsg>> {
+    let mut msgs = vec![];
+    let mut acc_info = INFO.load(storage)?;
+    let mut account_id = None;
+    // Get pending governance and clear it
+    let pending_governance = PENDING_GOVERNANCE
+        .may_load(storage)?
+        .ok_or(OwnershipError::TransferNotFound)?;
+    PENDING_GOVERNANCE.remove(storage);
 
-    Ok(ManagerResponse::new("update_owner", attrs))
+    // Clear state for previous manager if it was sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
+        let id = ACCOUNT_ID.load(storage)?;
+        // For optimizing the gas we save it, in case new owner is sub-account as well
+        account_id = Some(id);
+        let unregister_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount { id }),
+            vec![],
+        )?;
+        msgs.push(unregister_message.into());
+    }
+
+    // Update state for new manager if owner will be the sub-account
+    if let GovernanceDetails::SubAccount { manager, .. } = &pending_governance {
+        let id = if let Some(id) = account_id {
+            id
+        } else {
+            ACCOUNT_ID.load(storage)?
+        };
+        let register_message = wasm_execute(
+            manager,
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount { id }),
+            vec![],
+        )?;
+        msgs.push(register_message.into());
+    }
+    // Update governance of this account
+    acc_info.governance_details = pending_governance;
+    INFO.save(storage, &acc_info)?;
+    Ok(msgs)
 }
 
 /// Migrate modules through address updates or contract migrations
@@ -278,7 +463,7 @@ pub fn upgrade_modules(
     info: MessageInfo,
     modules: Vec<(ModuleInfo, Option<Binary>)>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     ensure!(!modules.is_empty(), ManagerError::NoUpdates {});
 
     let mut upgrade_msgs = vec![];
@@ -515,7 +700,7 @@ pub fn update_info(
     description: Option<String>,
     link: Option<String>,
 ) -> ManagerResult {
-    cw_ownable::assert_owner(deps.storage, &info.sender)?;
+    assert_admin_right(deps.as_ref(), &info.sender)?;
     let mut info: AccountInfo = INFO.load(deps.storage)?;
     if let Some(name) = name {
         validate_name(&name)?;
@@ -537,7 +722,7 @@ pub fn update_suspension_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update suspension status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     SUSPENSION_STATUS.save(deps.storage, &is_suspended)?;
 
@@ -551,7 +736,7 @@ pub fn update_ibc_status(
     response: Response,
 ) -> ManagerResult {
     // only owner can update IBC status
-    cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
+    assert_admin_right(deps.as_ref(), &msg_info.sender)?;
     let proxy = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
 
     let maybe_client = ACCOUNT_MODULES.may_load(deps.storage, IBC_CLIENT)?;
@@ -639,8 +824,7 @@ fn query_module(
         },
         config: version_control
             .module_registry(deps)
-            .query_all_module_config(module_info)?
-            .config,
+            .query_config(module_info)?,
     })
 }
 
@@ -717,21 +901,128 @@ pub fn update_account_status(
     Ok(response)
 }
 
-pub fn update_internal_config(deps: DepsMut, info: MessageInfo, config: Binary) -> ManagerResult {
+/// Allows the owner to manually update the internal configuration of the account.
+/// This can be used to unblock the account and its modules in case of a bug/lock on the account.
+///
+/// This method is also called once by the Account Factory after the account is created and triggers any queued module installations.
+pub fn update_internal_config(
+    mut deps: DepsMut,
+    info: MessageInfo,
+    config: Binary,
+) -> ManagerResult {
+    // deserialize the config action
     let action: InternalConfigAction =
         from_binary(&config).map_err(|error| ManagerError::InvalidConfigAction { error })?;
-    match action {
-        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => {
-            // only Account Factory/Owner can add custom modules.
-            // required to add Proxy after init by Account Factory.
-            ACCOUNT_FACTORY
-                .assert_admin(deps.as_ref(), &info.sender)
-                .or_else(|_| cw_ownable::assert_owner(deps.storage, &info.sender))?;
-            update_module_addresses(deps, to_add, to_remove)
+
+    let (add, remove) = match action {
+        InternalConfigAction::UpdateModuleAddresses { to_add, to_remove } => (to_add, to_remove),
+        _ => {
+            return Err(ManagerError::InvalidConfigAction {
+                error: StdError::generic_err("Unknown config action"),
+            })
         }
-        _ => Err(ManagerError::InvalidConfigAction {
-            error: StdError::generic_err("Unknown config action"),
-        }),
+    };
+
+    // if the caller is the module factory, and the account is not already instantiated, then instantiate the account and register the modules.
+    if ACCOUNT_FACTORY
+        .is_admin(deps.as_ref(), &info.sender)
+        .is_ok_and(|a| a)
+        && !ACCOUNT_MODULES.has(deps.storage, PROXY)
+    {
+        // Add the proxy.
+        update_module_addresses(deps.branch(), add, remove)?;
+        // Perform module installation.
+        let queued_modules = MODULE_QUEUE.load(deps.storage)?;
+
+        let config = CONFIG.load(deps.storage)?;
+
+        let (install_msg, install_attributes) = install_modules_internal(
+            deps.storage,
+            queued_modules,
+            config.module_factory_address,
+            info.funds,
+        )?;
+
+        let mut response =
+            ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
+                .add_message(install_msg);
+
+        let account_info = INFO.load(deps.storage)?;
+        if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
+            response = response.add_message(wasm_execute(
+                manager,
+                &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                    id: ACCOUNT_ID.load(deps.storage)?,
+                }),
+                vec![],
+            )?);
+        }
+
+        // clear the queue
+        MODULE_QUEUE.remove(deps.storage);
+        // Remove account factory from storage
+        ACCOUNT_FACTORY.set(deps, None)?;
+
+        Ok(response)
+    } else {
+        assert_admin_right(deps.as_ref(), &info.sender)?;
+        update_module_addresses(deps, add, remove)
+    }
+}
+
+/// Function that guards all the admin rights.
+/// This function should return `Ok` when called by:
+/// - The owner of the contract (i.e. account).
+/// - The top-level owner of the account that owns this account. I.e. the first account for which the `GovernanceDetails` is not `SubAccount`.
+fn assert_admin_right(deps: Deps, sender: &Addr) -> ManagerResult<()> {
+    let ownership_test = cw_ownable::assert_owner(deps.storage, sender);
+
+    // If the sender is the owner, the admin test is passed
+    let mut ownership_error: ManagerError = match ownership_test {
+        Ok(()) => return Ok(()),
+        Err(err) => err.into(),
+    };
+
+    // In case it fails we get the account info and check if the current(this) account is a sub-account.
+    let mut current: AccountInfo = INFO.load(deps.storage)?;
+    // Get sub-accounts until we get non-sub-account governance or reach recursion limit
+    for _ in 0..MAX_ADMIN_RECURSION {
+        match current.governance_details {
+            // As long as the accounts are sub-accounts, we check the owner of the parent account
+            GovernanceDetails::SubAccount { manager, .. } => {
+                current = INFO
+                    .query(&deps.querier, manager)
+                    .map_err(|_| ManagerError::SubAccountAdminVerification)?;
+
+                // Change error type if it was sub-account
+                ownership_error = ManagerError::SubAccountAdminVerification;
+            }
+            _ => break,
+        }
+    }
+
+    match current.governance_details {
+        GovernanceDetails::Monarchy { monarch: owner }
+        | GovernanceDetails::External {
+            governance_address: owner,
+            ..
+        } => {
+            // If the owner of the top-level account is the sender, the admin test is passed.
+            // This gives the top-level owner the ability to manage all sub-accounts.
+            if *sender == owner {
+                Ok(())
+            } else {
+                Err(ownership_error)
+            }
+        }
+        // MAX_ADMIN_RECURSION levels deep still sub account
+        GovernanceDetails::SubAccount { .. } => {
+            Err(ManagerError::Std(StdError::generic_err(format!(
+                "Admin recursion error, too much recursion, maximum allowed sub-account admin recursion : {}",
+                MAX_ADMIN_RECURSION
+            ))))
+        }
+        _ => Err(ownership_error),
     }
 }
 
@@ -788,7 +1079,7 @@ mod tests {
         let _info = mock_info("not_owner", &[]);
 
         let res = execute_as(deps.as_mut(), "not_owner", msg);
-        assert_that(&res)
+        assert_that!(&res)
             .is_err()
             .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
@@ -849,14 +1140,14 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), set_owner_msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
             execute_as(deps.as_mut(), new_owner, accept_msg)?;
 
             let actual_owner = cw_ownable::get_ownership(&deps.storage)?.owner.unwrap();
 
-            assert_that(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
+            assert_that!(&actual_owner).is_equal_to(Addr::unchecked(new_owner));
 
             Ok(())
         }
@@ -869,13 +1160,22 @@ mod tests {
             let new_gov = "new_gov".to_string();
 
             let msg = ExecuteMsg::SetOwner {
-                owner: GovernanceDetails::Monarchy { monarch: new_gov },
+                owner: GovernanceDetails::Monarchy {
+                    monarch: new_gov.clone(),
+                },
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
 
             let actual_info = INFO.load(deps.as_ref().storage)?;
-            assert_that(&actual_info.governance_details.owner_address().to_string())
+            assert_that!(&actual_info.governance_details.owner_address().to_string())
+                .is_equal_to("owner".to_string());
+
+            let accept_msg = ExecuteMsg::UpdateOwnership(cw_ownable::Action::AcceptOwnership);
+            execute_as(deps.as_mut(), &new_gov, accept_msg)?;
+
+            let actual_info = INFO.load(deps.as_ref().storage)?;
+            assert_that!(&actual_info.governance_details.owner_address().to_string())
                 .is_equal_to("new_gov".to_string());
 
             Ok(())
@@ -897,17 +1197,17 @@ mod tests {
             ];
 
             let res = update_module_addresses(deps.as_mut(), Some(to_add.clone()), Some(vec![]));
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
             speculoos::prelude::VecAssertions::has_length(
-                &mut assert_that(&actual_modules),
+                &mut assert_that!(&actual_modules),
                 to_add.len(),
             );
             for (module_id, addr) in to_add {
                 speculoos::iter::ContainingIntoIterAssertions::contains(
-                    &mut assert_that(&actual_modules),
+                    &mut assert_that!(&actual_modules),
                     &(module_id, Addr::unchecked(addr)),
                 );
             }
@@ -923,7 +1223,7 @@ mod tests {
             let to_add: Vec<(String, String)> = vec![("".to_string(), "module1_addr".to_string())];
 
             let res = update_module_addresses(deps.as_mut(), Some(to_add), Some(vec![]));
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::InvalidModuleName {});
 
@@ -945,11 +1245,11 @@ mod tests {
             let to_remove: Vec<String> = vec!["test:module".to_string()];
 
             let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let actual_modules = load_account_modules(&deps.storage)?;
 
-            speculoos::prelude::VecAssertions::is_empty(&mut assert_that(&actual_modules));
+            speculoos::prelude::VecAssertions::is_empty(&mut assert_that!(&actual_modules));
 
             Ok(())
         }
@@ -962,7 +1262,7 @@ mod tests {
             let to_remove: Vec<String> = vec![PROXY.to_string()];
 
             let res = update_module_addresses(deps.as_mut(), Some(vec![]), Some(to_remove));
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CannotRemoveProxy {});
 
@@ -973,21 +1273,36 @@ mod tests {
         fn only_account_factory_or_owner() -> ManagerTestResult {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
-
-            let action = InternalConfigAction::UpdateModuleAddresses {
-                to_add: None,
+            // mock add the proxy
+            let action_add = InternalConfigAction::UpdateModuleAddresses {
+                to_add: Some(vec![(PROXY.to_string(), "module_addr".to_string())]),
                 to_remove: None,
             };
-            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action).unwrap());
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action_add).unwrap());
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
+            // add some other thing
+            let action_add = InternalConfigAction::UpdateModuleAddresses {
+                to_add: Some(vec![(
+                    "module:other".to_string(),
+                    "module_addr".to_string(),
+                )]),
+                to_remove: None,
+            };
+            let msg = ExecuteMsg::UpdateInternalConfig(to_binary(&action_add).unwrap());
+
+            // the factory can not call this
+            let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg.clone());
+            assert_that!(&res).is_err();
+
+            // only the owner can
             let res = execute_as_owner(deps.as_mut(), msg.clone());
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let res = execute_as(deps.as_mut(), "not_account_factory", msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
 
@@ -1003,13 +1318,15 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             let res = execute_as(deps.as_mut(), "not_owner", msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner));
 
@@ -1021,9 +1338,11 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             // manual installation
@@ -1034,7 +1353,7 @@ mod tests {
             )?;
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_err().matches(|e| {
+            assert_that!(&res).is_err().matches(|e| {
                 let _module_id = String::from("test:module");
                 matches!(e, ManagerError::ModuleAlreadyInstalled(_module_id))
             });
@@ -1047,13 +1366,15 @@ mod tests {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            let msg = ExecuteMsg::InstallModule {
-                module: ModuleInfo::from_id_latest("test:module")?,
-                init_msg: None,
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![ModuleInstallConfig::new(
+                    ModuleInfo::from_id_latest("test:module")?,
+                    None,
+                )],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             Ok(())
         }
@@ -1066,13 +1387,15 @@ mod tests {
             let new_module = ModuleInfo::from_id_latest("test:module")?;
             let expected_init = Some(to_binary(&"some init msg")?);
 
-            let msg = ExecuteMsg::InstallModule {
-                module: new_module.clone(),
-                init_msg: expected_init.clone(),
+            let msg = ExecuteMsg::InstallModules {
+                modules: vec![ModuleInstallConfig::new(
+                    new_module.clone(),
+                    expected_init.clone(),
+                )],
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
 
@@ -1080,16 +1403,15 @@ mod tests {
 
             let expected_msg: CosmosMsg = wasm_execute(
                 TEST_MODULE_FACTORY,
-                &ModuleFactoryMsg::InstallModule {
-                    module: new_module,
-                    init_msg: expected_init,
+                &ModuleFactoryMsg::InstallModules {
+                    modules: vec![ModuleInstallConfig::new(new_module, expected_init)],
                 },
                 vec![],
             )?
             .into();
-            assert_that(&msgs).has_length(1);
+            assert_that!(&msgs).has_length(1);
 
-            assert_that(&msg.msg).is_equal_to(&expected_msg);
+            assert_that!(&msg.msg).is_equal_to(&expected_msg);
 
             Ok(())
         }
@@ -1124,7 +1446,7 @@ mod tests {
             DEPENDENTS.save(&mut deps.storage, test_module, &dependents)?;
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleHasDependents(Vec::from_iter(
                     dependents,
@@ -1143,7 +1465,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CannotRemoveProxy {});
 
@@ -1177,7 +1499,7 @@ mod tests {
             };
 
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::CallerNotModuleFactory {});
 
@@ -1210,7 +1532,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleNotFound(missing_module));
 
@@ -1277,13 +1599,13 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that(&info.name).is_equal_to(name.to_string());
-            assert_that(&info.description.unwrap()).is_equal_to(description.to_string());
-            assert_that(&info.link.unwrap()).is_equal_to(link.to_string());
+            assert_that!(&info.name).is_equal_to(name.to_string());
+            assert_that!(&info.description.unwrap()).is_equal_to(description.to_string());
+            assert_that!(&info.link.unwrap()).is_equal_to(link.to_string());
 
             Ok(())
         }
@@ -1314,13 +1636,13 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let info = INFO.load(deps.as_ref().storage)?;
 
-            assert_that(&info.name).is_equal_to(&prev_name);
-            assert_that(&info.description).is_none();
-            assert_that(&info.link).is_none();
+            assert_that!(&info.name).is_equal_to(&prev_name);
+            assert_that!(&info.description).is_none();
+            assert_that!(&info.link).is_none();
 
             Ok(())
         }
@@ -1337,7 +1659,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_err().matches(|e| {
+            assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
                     ManagerError::Validation(ValidationError::TitleInvalidShort(_))
@@ -1351,7 +1673,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_err().matches(|e| {
+            assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
                     ManagerError::Validation(ValidationError::TitleInvalidLong(_))
@@ -1373,7 +1695,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_err().matches(|e| {
+            assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
                     ManagerError::Validation(ValidationError::LinkInvalidShort(_))
@@ -1387,7 +1709,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_err().matches(|e| {
+            assert_that!(&res).is_err().matches(|e| {
                 matches!(
                     e,
                     ManagerError::Validation(ValidationError::LinkInvalidLong(_))
@@ -1432,7 +1754,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::ModuleNotFound(IBC_CLIENT.to_string()));
 
@@ -1451,7 +1773,7 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::ModuleAlreadyInstalled(_)));
 
@@ -1470,10 +1792,10 @@ mod tests {
             };
 
             let res = execute_as_owner(deps.as_mut(), msg);
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
 
             let msgs = res.unwrap().messages;
-            assert_that(&msgs).has_length(1);
+            assert_that!(&msgs).has_length(1);
 
             let msg = &msgs[0];
 
@@ -1485,7 +1807,7 @@ mod tests {
                 vec![],
             )?
             .into();
-            assert_that(&msg.msg).is_equal_to(&expected_msg);
+            assert_that!(&msg.msg).is_equal_to(&expected_msg);
 
             Ok(())
         }
@@ -1513,7 +1835,7 @@ mod tests {
                 msg,
             );
 
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .matches(|err| matches!(err, ManagerError::Std(StdError::GenericErr { .. })));
 
@@ -1548,7 +1870,7 @@ mod tests {
             let res = execute_as_owner(deps.as_mut(), msg);
             assert_that!(res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_is_suspended).is_true();
+            assert_that!(&actual_is_suspended).is_true();
 
             let update_info_msg = ExecuteMsg::UpdateInfo {
                 name: Some("asonetuh".to_string()),
@@ -1558,7 +1880,7 @@ mod tests {
 
             let res = execute_as_owner(deps.as_mut(), update_info_msg);
 
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::AccountSuspended {});
 
@@ -1576,9 +1898,9 @@ mod tests {
 
             let res = execute_as_owner(deps.as_mut(), msg);
 
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
             let actual_is_suspended = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_is_suspended).is_true();
+            assert_that!(&actual_is_suspended).is_true();
             Ok(())
         }
 
@@ -1593,9 +1915,9 @@ mod tests {
 
             let res = execute_as_owner(deps.as_mut(), msg);
 
-            assert_that(&res).is_ok();
+            assert_that!(&res).is_ok();
             let actual_status = SUSPENSION_STATUS.load(&deps.storage).unwrap();
-            assert_that(&actual_status).is_false();
+            assert_that!(&actual_status).is_false();
             Ok(())
         }
     }
@@ -1621,15 +1943,15 @@ mod tests {
             let bad_sender = "not_account_factory";
             let res = execute_as(deps.as_mut(), bad_sender, msg.clone());
 
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .is_equal_to(ManagerError::Ownership(OwnershipError::NotOwner {}));
 
             let owner_res = execute_as_owner(deps.as_mut(), msg.clone());
-            assert_that(&owner_res).is_ok();
+            assert_that!(&owner_res).is_ok();
 
             let factory_res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
-            assert_that(&factory_res).is_ok();
+            assert_that!(&factory_res).is_ok();
 
             Ok(())
         }
@@ -1643,7 +1965,7 @@ mod tests {
 
             let res = execute_as(deps.as_mut(), TEST_ACCOUNT_FACTORY, msg);
 
-            assert_that(&res)
+            assert_that!(&res)
                 .is_err()
                 .matches(|e| matches!(e, ManagerError::InvalidConfigAction { .. }));
 
@@ -1691,6 +2013,13 @@ mod tests {
                     owner: None,
                     pending_expiry: None,
                     pending_owner: Some(Addr::unchecked(pending_owner)),
+                },
+            )?;
+            // mock pending governance
+            Item::new("pgov").save(
+                deps.as_mut().storage,
+                &GovernanceDetails::Monarchy {
+                    monarch: pending_owner.to_owned(),
                 },
             )?;
 

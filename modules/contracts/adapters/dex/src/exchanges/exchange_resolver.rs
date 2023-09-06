@@ -41,7 +41,12 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         }),
         #[cfg(feature = "terra")]
         crate::exchanges::terraswap::TERRASWAP => Ok(&crate::exchanges::terraswap::Terraswap {}),
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(any(
+            feature = "terra",
+            feature = "neutron",
+            feature = "sei",
+            feature = "injective"
+        ))]
         abstract_astroport_adapter::ASTROPORT => Ok(&abstract_astroport_adapter::dex::Astroport {}),
         #[cfg(feature = "kujira")]
         crate::exchanges::kujira::KUJIRA => Ok(&crate::exchanges::kujira::Kujira {}),

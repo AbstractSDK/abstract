@@ -102,7 +102,7 @@ mod test {
         ExecuteEndpoint, InstantiateEndpoint, MigrateEndpoint, QueryEndpoint, ReplyEndpoint,
         SudoEndpoint,
     };
-    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST};
+    use abstract_testing::prelude::{TEST_ADMIN, TEST_ANS_HOST, TEST_VERSION_CONTROL};
     use cosmwasm_std::{
         testing::{mock_dependencies, mock_env, mock_info},
         SubMsgResult,
@@ -121,6 +121,7 @@ mod test {
         let init_msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
             },
             module: MockInitMsg,
         };

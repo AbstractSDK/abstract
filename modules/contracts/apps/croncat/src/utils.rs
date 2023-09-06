@@ -1,4 +1,3 @@
-use abstract_core::objects::UncheckedContractEntry;
 use abstract_sdk::{feature_objects::AnsHost, prelude::*, AbstractSdkResult};
 use cosmwasm_std::{coin, Addr, Api, Coin, Deps, QuerierWrapper};
 use croncat_sdk_manager::msg::ManagerQueryMsg;
@@ -68,7 +67,7 @@ pub(crate) fn factory_addr(
     querier: &QuerierWrapper,
     ans_host: &AnsHost,
 ) -> Result<Addr, crate::error::AppError> {
-    let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY.to_owned())?.into();
+    let factory_entry = CRON_CAT_FACTORY.parse()?;
     let factory_addr = ans_host.query_contract(querier, &factory_entry)?;
     Ok(factory_addr)
 }
