@@ -4,13 +4,14 @@ name: CircleCI Wasm Builder
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [closed]
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: (github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch') && github.base_ref == 'main'
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
       - name: Tickle CircleCI
         env:
