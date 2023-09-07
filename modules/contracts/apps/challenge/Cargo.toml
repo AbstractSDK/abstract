@@ -20,6 +20,10 @@ exclude = ["contract.wasm", "hash.txt"]
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
 [features]
 default = ["export"]
 export = []
