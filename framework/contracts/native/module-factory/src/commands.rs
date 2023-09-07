@@ -73,15 +73,6 @@ pub fn execute_create_modules(
         let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
 
-        // TODO: check if this can be generalized for some contracts
-        // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-        // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
-        // let init_msg = ModuleInitMsg {
-        //     fixed_init: fixed_binary,
-        //     owner_init: owner_init_msg,
-        // }
-        // .format()?;
-
         // We validate the fee if it was required by the version control to install this module
         match new_module_monetization {
             module::Monetization::InstallFee(f) => {
