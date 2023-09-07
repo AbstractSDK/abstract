@@ -5,14 +5,6 @@ members = [
   "packages/bundles/wyndex",
 ]
 
-# Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
-#
-# Critically this prevents dev-dependencies from enabling features even when not building a target that
-# uses dev-dependencies, e.g. the library crate. This in turn ensures that we can catch invalid feature
-# flag combinations that would otherwise only surface in dependent crates
-#
-# Reference - https://doc.rust-lang.org/nightly/cargo/reference/features.html#feature-resolver-version-2
-# See - https://github.com/apache/arrow-rs/pull/1822/files
 resolver = "2"
 
 [workspace.package]
@@ -41,35 +33,35 @@ cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0
 ] }
 cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1" }
 
-cw-asset = { version = "3.0" }
-cw-ownable = { version = "0.5" }
+cw-asset        = { version = "3.0" }
+cw-ownable      = { version = "0.5" }
 cw-address-like = { version = "1.0" }
 
-schemars = "0.8"
-serde = { version = "1.0", default-features = false, features = ["derive"] }
+schemars  = "0.8"
+serde     = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
-protobuf = { version = "2", features = ["with-bytes"] }
+protobuf  = { version = "2", features = ["with-bytes"] }
 
-clap = { version = "4.0.32", features = ["derive"] }
-semver = "1.0"
+clap      = { version = "4.0.32", features = ["derive"] }
+semver    = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.15.0" }
-tokio = { version = "1.4", features = ["full"] }
+cw-orch   = { version = "0.15.0" }
+tokio     = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
 abstract-interface = { version = "0.18.0" }
-abstract-adapter = { version = "0.18.0" }
-abstract-app = { version = "0.18.0" }
-abstract-sdk = { version = "0.18.0" }
-abstract-testing = { version = "0.18.0" }
-abstract-core = { version = "0.18.0" }
-abstract-macros = { version = "0.18.0" }
-abstract-ica = { version = "0.18.0" }
+abstract-adapter   = { version = "0.18.0" }
+abstract-app       = { version = "0.18.0" }
+abstract-sdk       = { version = "0.18.0" }
+abstract-testing   = { version = "0.18.0" }
+abstract-core      = { version = "0.18.0" }
+abstract-macros    = { version = "0.18.0" }
+abstract-ica       = { version = "0.18.0" }
 
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-adapter-utils = { version = "0.18.0" }
-abstract-dex-adapter-traits = { version = "0.18.0" }
+abstract-dex-adapter            = { path = "./contracts/adapters/dex" }
+abstract-adapter-utils          = { version = "0.18.0" }
+abstract-dex-adapter-traits     = { version = "0.18.0" }
 abstract-staking-adapter-traits = { version = "0.18.0" }
 
 # Juno dexes #
@@ -82,37 +74,37 @@ abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstra
 # Kujira #
 abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
 
-croncat-app = { path = "./contracts/apps/croncat" }
+croncat-app   = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
-rstest = "0.17.0"
-speculoos = "0.11.0"
-anyhow = "1"
+rstest        = "0.17.0"
+speculoos     = "0.11.0"
+anyhow        = "1"
 
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-abstract-adapter = { path = "../framework/packages/abstract-adapter" }
-abstract-app = { path = "../framework/packages/abstract-app" }
-abstract-interface = { path = "../framework/packages/abstract-interface" }
-abstract-sdk = { path = "../framework/packages/abstract-sdk" }
-abstract-testing = { path = "../framework/packages/abstract-testing" }
-abstract-core = { path = "../framework/packages/abstract-core" }
-abstract-macros = { path = "../framework/packages/abstract-macros" }
-abstract-ica = { path = "../framework/packages/abstract-ica" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
+abstract-adapter                = { path = "../framework/packages/abstract-adapter" }
+abstract-app                    = { path = "../framework/packages/abstract-app" }
+abstract-interface              = { path = "../framework/packages/abstract-interface" }
+abstract-sdk                    = { path = "../framework/packages/abstract-sdk" }
+abstract-testing                = { path = "../framework/packages/abstract-testing" }
+abstract-core                   = { path = "../framework/packages/abstract-core" }
+abstract-macros                 = { path = "../framework/packages/abstract-macros" }
+abstract-ica                    = { path = "../framework/packages/abstract-ica" }
+abstract-adapter-utils          = { path = "../framework/packages/utils" }
+abstract-dex-adapter-traits     = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
-rpath = false
-lto = true
-overflow-checks = true
-opt-level = 3
-debug = false
+rpath            = false
+lto              = true
+overflow-checks  = true
+opt-level        = 3
+debug            = false
 debug-assertions = false
-codegen-units = 1
-panic = 'abort'
-incremental = false
+codegen-units    = 1
+panic            = 'abort'
+incremental      = false
