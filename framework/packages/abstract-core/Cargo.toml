@@ -25,7 +25,7 @@ serde = { workspace = true }
 cw-semver = { workspace = true, features = ["serde"] }
 semver = { workspace = true, features = ["serde"] }
 cw-asset = { workspace = true }
-cw-address-like = "1.0.4"
+cw-address-like = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 abstract-ica = { workspace = true }
