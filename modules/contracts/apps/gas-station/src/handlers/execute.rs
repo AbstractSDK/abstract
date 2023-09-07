@@ -1,9 +1,10 @@
 use std::collections::HashSet;
-use cosmos_sdk_proto::cosmos::auth::v1beta1::{QueryAccountRequest, QueryAccountResponse};
+use cosmos_sdk_proto::cosmos::auth::v1beta1::{QueryAccountRequest};
 use cosmos_sdk_proto::prost::Message;
 
 use cosmwasm_std::{Addr, Binary, Coin, coins, DepsMut, Empty, Env, MessageInfo, QueryRequest, Response, Timestamp, Uint128};
 use cw_asset::AssetInfoBase;
+use osmosis_std::types::cosmos::auth::v1beta1::QueryAccountResponse;
 
 use abstract_core::objects::AnsAsset;
 use abstract_sdk::{features::AbstractNameService, AbstractResponse, Execution, GrantInterface, Resolve, TransferInterface};
@@ -147,8 +148,9 @@ fn activate_gas_pass(
         };
         match x {
             Some(_) => {
-                /// Allow the user to overwrite their gas pass if they want to.
+                // Allow the user to overwrite their gas pass if they want to.
                 if bypass_pass_check {
+                    // todo - if the pass is the same, we need to revoke the old one
                     Ok(pass)
                 } else {
                     Err(GasStationError::GasPassAlreadyExists(recipient.to_string()))

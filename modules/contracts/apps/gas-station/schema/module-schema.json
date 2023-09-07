@@ -61,6 +61,10 @@
                 "default": false,
                 "type": "boolean"
               },
+              "create_if_missing": {
+                "default": false,
+                "type": "boolean"
+              },
               "expiration": {
                 "anyOf": [
                   {
