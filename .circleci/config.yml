@@ -52,7 +52,8 @@ jobs:
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
-            git add .
+            git add framework/artifacts --force
+            git add modules/artifacts --force
             git commit -m 'Update WASM artifacts [skip ci]'
             git push origin $CIRCLE_BRANCH
 

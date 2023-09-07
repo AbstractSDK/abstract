@@ -69,7 +69,7 @@ pub fn handle_modules_query(deps: Deps, modules: Vec<ModuleInfo>) -> StdResult<M
                         info: module.clone(),
                         reference: mod_ref,
                     },
-                    config: ModuleConfiguration::from_storage(deps.storage, &module),
+                    config: ModuleConfiguration::from_storage(deps.storage, &module)?,
                 });
                 Ok(())
             }
@@ -141,7 +141,7 @@ pub fn handle_module_list_query(
                     info: module_info.clone(),
                     reference: mod_ref,
                 },
-                config: ModuleConfiguration::from_storage(deps.storage, &module_info),
+                config: ModuleConfiguration::from_storage(deps.storage, &module_info)?,
             })
         })
         .collect::<Result<Vec<_>, StdError>>()?;

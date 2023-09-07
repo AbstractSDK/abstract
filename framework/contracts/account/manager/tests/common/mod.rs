@@ -58,13 +58,16 @@ pub(crate) fn add_mock_adapter_install_fee(
     monetization: Monetization,
     version: Option<String>,
 ) -> anyhow::Result<()> {
-    let version: Version = version
-        .unwrap_or_else(|| CONTRACT_VERSION.to_string())
-        .parse()?;
-    deployment.version_control.set_module_monetization(
+    let version = version.unwrap_or(CONTRACT_VERSION.to_string());
+    deployment.version_control.update_module_configuration(
         TEST_MODULE_NAME.to_string(),
-        monetization,
         Namespace::new(TEST_NAMESPACE).unwrap(),
+        abstract_core::version_control::UpdateModule::Versioned {
+            version,
+            metadata: None,
+            monetization: Some(monetization),
+            instantiation_funds: None,
+        },
     )?;
     Ok(())
 }

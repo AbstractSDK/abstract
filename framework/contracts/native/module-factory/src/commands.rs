@@ -19,7 +19,7 @@ use abstract_sdk::{
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, Attribute, BankMsg, Binary, Coins, CosmosMsg, DepsMut, Empty, Env,
+    wasm_execute, Addr, Attribute, BankMsg, Binary, Coin, Coins, CosmosMsg, DepsMut, Empty, Env,
     MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
@@ -70,16 +70,8 @@ pub fn execute_create_modules(
     {
         let new_module = module_response.module;
         let new_module_monetization = module_response.config.monetization;
+        let new_module_init_funds = module_response.config.instantiation_funds;
         module_ids.push(new_module.info.id_with_version());
-
-        // TODO: check if this can be generalized for some contracts
-        // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-        // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
-        // let init_msg = ModuleInitMsg {
-        //     fixed_init: fixed_binary,
-        //     owner_init: owner_init_msg,
-        // }
-        // .format()?;
 
         // We validate the fee if it was required by the version control to install this module
         match new_module_monetization {
@@ -99,6 +91,10 @@ pub fn execute_create_modules(
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
 
+        for init_coin in new_module_init_funds.clone() {
+            sum_of_monetization.add(init_coin)?;
+        }
+
         match &new_module.reference {
             ModuleReference::App(code_id) => {
                 let init_msg = instantiate_contract(
@@ -107,6 +103,7 @@ pub fn execute_create_modules(
                     owner_init_msg.unwrap(),
                     Some(account_base.manager.clone()),
                     CREATE_APP_RESPONSE_ID,
+                    new_module_init_funds,
                     &new_module.info,
                 )?;
                 installed_modules.push_back(new_module.clone());
@@ -121,7 +118,7 @@ pub fn execute_create_modules(
                         module_addr: addr.to_string(),
                         module: new_module,
                     },
-                    vec![],
+                    new_module_init_funds,
                 )?
                 .into();
                 attributes.push(("new_module", new_module_addr).into());
@@ -135,6 +132,7 @@ pub fn execute_create_modules(
                     owner_init_msg.unwrap(),
                     Some(account_base.manager.clone()),
                     CREATE_STANDALONE_RESPONSE_ID,
+                    new_module_init_funds,
                     &new_module.info,
                 )?;
                 installed_modules.push_back(new_module.clone());
@@ -175,6 +173,7 @@ fn instantiate_contract(
     init_msg: Binary,
     admin: Option<Addr>,
     reply_id: u64,
+    funds: Vec<Coin>,
     module_info: &ModuleInfo,
 ) -> ModuleFactoryResult<SubMsg> {
     Ok(SubMsg {
@@ -182,7 +181,7 @@ fn instantiate_contract(
         gas_limit: None,
         msg: WasmMsg::Instantiate {
             code_id,
-            funds: vec![],
+            funds,
             admin: admin.map(Into::into),
             label: format!("Module: {module_info}, Height {block_height}"),
             msg: init_msg,
@@ -363,7 +362,7 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_core::objects::module::ModuleVersion;
-        use cosmwasm_std::{testing::mock_info, to_binary};
+        use cosmwasm_std::{coin, testing::mock_info, to_binary};
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
@@ -385,12 +384,13 @@ mod test {
                 expected_module_init_msg.clone(),
                 None,
                 expected_reply_id,
+                vec![coin(5, "ucosm")],
                 &expected_module_info,
             );
 
             let expected_init_msg = WasmMsg::Instantiate {
                 code_id: expected_code_id,
-                funds: vec![],
+                funds: vec![coin(5, "ucosm")],
                 admin: None,
                 label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,

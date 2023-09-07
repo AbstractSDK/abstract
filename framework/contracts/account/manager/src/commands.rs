@@ -706,9 +706,9 @@ pub fn update_info(
         validate_name(&name)?;
         info.name = name;
     }
-    validate_description(&description)?;
+    validate_description(description.as_deref())?;
     info.description = description;
-    validate_link(&link)?;
+    validate_link(link.as_deref())?;
     info.link = link;
     INFO.save(deps.storage, &info)?;
 

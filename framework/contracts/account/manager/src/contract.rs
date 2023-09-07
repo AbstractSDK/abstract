@@ -56,8 +56,8 @@ pub fn instantiate(
     )?;
 
     // Verify info
-    validate_description(&msg.description)?;
-    validate_link(&msg.link)?;
+    validate_description(msg.description.as_deref())?;
+    validate_link(msg.link.as_deref())?;
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
