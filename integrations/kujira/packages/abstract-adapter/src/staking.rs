@@ -2,19 +2,14 @@ use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
 
-pub const KUJIRA: &str = "kujira";
-#[cfg(feature = "local")]
-pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::LOCAL_CHAIN;
-#[cfg(not(feature = "local"))]
-pub const AVAILABLE_CHAINS: &[&str] = abstract_sdk::core::registry::KUJIRA;
+use crate::{AVAILABLE_CHAINS, KUJIRA};
 
 // TODO: use optional values here?
 #[derive(Clone, Debug)]
-#[cfg_attr(not(feature = "kujira"), allow(unused))]
 pub struct Kujira {
-    lp_token: LpToken,
-    lp_token_denom: String,
-    staking_contract_address: Addr,
+    pub lp_token: LpToken,
+    pub lp_token_denom: String,
+    pub staking_contract_address: Addr,
 }
 
 impl Default for Kujira {
@@ -36,24 +31,24 @@ impl Identify for Kujira {
     }
 }
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
         core::objects::{AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
-        AbstractSdkResult,
+        AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
     abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
     cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
-    cw_asset::AssetInfo,
+    cw_asset::{AssetInfo, AssetInfoBase},
     cw_utils::Duration,
     kujira::bow::staking as BowStaking,
 };
 
-#[cfg(feature = "kujira")]
+#[cfg(feature = "full_integration")]
 impl CwStakingCommand for Kujira {
     fn fetch_data(
         &mut self,
@@ -65,6 +60,11 @@ impl CwStakingCommand for Kujira {
         lp_token: AssetEntry,
     ) -> AbstractSdkResult<()> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
+
+        let AssetInfoBase::Native(denom) = lp_token.resolve(&deps.querier, ans_host)? else {
+            return Err(StdError::generic_err("expected denom as LP token for staking.").into());
+        };
+        self.lp_token_denom = denom;
 
         self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         Ok(())
