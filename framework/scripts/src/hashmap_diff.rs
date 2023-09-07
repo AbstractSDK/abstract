@@ -69,7 +69,7 @@ where
 #[cfg(test)]
 mod test {
 
-    use ibc_chain_registry::chain::ChainData;
+    use cw_orch::daemon::ChainRegistryData as ChainData;
 
     use cw_orch::daemon::ChainInfo;
     use cw_orch::prelude::networks::JUNO_1;

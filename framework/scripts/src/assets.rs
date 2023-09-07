@@ -71,7 +71,7 @@ pub fn update(
 #[cfg(test)]
 mod test {
 
-    use ibc_chain_registry::chain::ChainData;
+    use cw_orch::daemon::ChainRegistryData as ChainData;
     use std::env::set_var;
     use tokio::runtime::Runtime;
 
