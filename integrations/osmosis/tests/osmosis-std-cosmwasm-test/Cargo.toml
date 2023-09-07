@@ -55,4 +55,4 @@ thiserror = { version = "1.0.31" }
 cw-multi-test = "0.13.2"
 prost = "0.11.0"
 serde_json = "1.0.85"
-osmosis-test-tube = "15.1.0"
+osmosis-test-tube = "19.0.0"
