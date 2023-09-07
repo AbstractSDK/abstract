@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Install modules on account or Sub-account creation
 - Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change
-- Query on module factory to see how much funds needs to be attached for installing modules 
+- Query on module factory to see how much funds needs to be attached for installing modules
+- Version control on instantiation to the Apps alongside with registry traits
+- Instantiation funds added to module configuration, allowing modules to perform external setup calls
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Partially fixed cw-staking for Osmosis
 - Manager governance now changes only after new "owner" claimed ownership
 - Fixed and separated cw-staking and dex adapters for kujira
+- `ExecOnModule` calls now forward any provided funds to the module that is called.
 
 ## [0.17.2] - 2023-07-27
 

@@ -35,10 +35,10 @@ impl Identify for WynDex {
 }
 
 #[cfg(feature = "full_integration")]
-use ::{
+use {
     abstract_sdk::{
         core::objects::{AnsEntryConvertor, AssetEntry},
-        feature_objects::AnsHost,
+        feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkError, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
@@ -69,7 +69,7 @@ impl CwStakingCommand for WynDex {
         env: Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
-        _abstract_registry: Addr,
+        _version_control_contract: &VersionControlContract,
         lp_token: AssetEntry,
     ) -> std::result::Result<(), AbstractSdkError> {
         self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;

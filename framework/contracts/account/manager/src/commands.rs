@@ -13,6 +13,7 @@ use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
 
+use abstract_core::objects::version_control::VersionControlContract;
 use abstract_core::proxy::state::ACCOUNT_ID;
 use abstract_core::version_control::ModuleResponse;
 use abstract_macros::abstract_response;
@@ -36,7 +37,6 @@ use abstract_sdk::{
         IBC_CLIENT, MANAGER, PROXY,
     },
     cw_helpers::wasm_smart_query,
-    feature_objects::VersionControlContract,
     ModuleRegistryInterface,
 };
 use cosmwasm_std::{
@@ -211,7 +211,7 @@ pub fn exec_on_module(
         CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: module_addr.into(),
             msg: exec_msg,
-            funds: vec![],
+            funds: msg_info.funds,
         }),
     );
 
@@ -706,9 +706,9 @@ pub fn update_info(
         validate_name(&name)?;
         info.name = name;
     }
-    validate_description(&description)?;
+    validate_description(description.as_deref())?;
     info.description = description;
-    validate_link(&link)?;
+    validate_link(link.as_deref())?;
     info.link = link;
     INFO.save(deps.storage, &info)?;
 
