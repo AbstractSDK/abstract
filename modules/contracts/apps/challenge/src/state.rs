@@ -119,9 +119,7 @@ pub enum ChallengeStatus {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntryUpdate {
     pub name: Option<String>,
-    pub collateral: Option<OfferAsset>,
     pub description: Option<String>,
-    pub end: Option<Timestamp>,
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -237,9 +237,7 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
 
     let to_update = ChallengeEntryUpdate {
         name: Some("update-test".to_string()),
-        collateral: Some(OfferAsset::new("denom", Uint128::new(100))),
         description: Some("Updated Test Challenge".to_string()),
-        end: None,
     };
 
     apps.challenge_app.update_challenge(to_update.clone(), 1)?;
@@ -248,10 +246,6 @@ fn test_should_update_challenge() -> anyhow::Result<()> {
     assert_eq!(
         res.challenge.as_ref().unwrap().name,
         to_update.name.unwrap()
-    );
-    assert_eq!(
-        res.challenge.as_ref().unwrap().collateral,
-        to_update.collateral.unwrap()
     );
     assert_eq!(
         res.challenge.as_ref().unwrap().description,

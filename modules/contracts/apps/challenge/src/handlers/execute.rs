@@ -107,14 +107,9 @@ fn update_challenge(
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
     }
-    if let Some(collateral) = new_challenge.collateral {
-        loaded_challenge.collateral = collateral;
-    }
+
     if let Some(description) = new_challenge.description {
         loaded_challenge.description = description;
-    }
-    if let Some(end) = new_challenge.end {
-        loaded_challenge.end = end;
     }
 
     // Save the updated challenge
@@ -193,18 +188,26 @@ fn add_friends_for_challenge(
 
     // validate the String addresses and convert them to Addr
     // before saving
-    let friends: Vec<Friend<Addr>> = friends
+    let friends: Result<Vec<Friend<Addr>>, _> = friends
         .into_iter()
-        .map(|friend| friend.check(deps.as_ref()).unwrap())
+        .map(|friend| friend.check(deps.as_ref()))
         .collect();
 
-    existing_friends.extend(friends);
-    CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
+    match friends {
+        Ok(friends) => {
+            existing_friends.extend(friends);
+            CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &existing_friends)?;
 
-    Ok(app.tag_response(
-        Response::new().add_attribute("challenge_id", challenge_id.to_string()),
-        "add_friends",
-    ))
+            Ok(app.tag_response(
+                Response::new().add_attribute("challenge_id", challenge_id.to_string()),
+                "add_friends",
+            ))
+        }
+        Err(err) => Err(AppError::Std(StdError::generic_err(format!(
+            "Error adding friends: {:?}",
+            err
+        )))),
+    }
 }
 
 pub fn remove_friends_from_challenge(
@@ -268,7 +271,7 @@ fn daily_check_in(
             }
             _ => {
                 return Err(AppError::Std(StdError::generic_err(format!(
-                    "Challenge has ended. Challenge end_timestamp is {:?} current timestamp is {}",
+                    "Challenge has ended. Challenge end_timestamp is {:?} current timestamp is {:?}",
                     challenge.end.seconds(),
                     env.block.time.seconds()
                 ))));
