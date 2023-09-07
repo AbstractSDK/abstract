@@ -120,7 +120,7 @@ pub struct SimulateInstallModulesResponse {
     /// Funds transferred to the module creator
     pub monetization_funds: Vec<(String, Coin)>,
     /// Funds transferred to the module contract at instantiation
-    pub init_funds: Vec<(String, Vec<Coin>)>,
+    pub initialization_funds: Vec<(String, Vec<Coin>)>,
 }
 
 /// We currently take no arguments for migrations

@@ -140,7 +140,7 @@ pub fn query_simulate_install_modules(
     let resp = SimulateInstallModulesResponse {
         total_required_funds: coins.into_vec(),
         monetization_funds: install_funds,
-        init_funds,
+        initialization_funds: init_funds,
     };
     Ok(resp)
 }
