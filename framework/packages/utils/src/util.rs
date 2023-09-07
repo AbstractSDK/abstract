@@ -28,5 +28,7 @@ pub fn coins_in_assets(assets: &[Asset]) -> Vec<Coin> {
             coins.push(Coin::new(asset.amount.u128(), denom.clone()));
         }
     }
+    // https://github.com/cosmos/cosmos-sdk/blob/d5b40fc427f530b5ab078c61531d521b85505a1e/types/coin.go#L259-L261
+    coins.sort_unstable_by(|a, b| a.denom.cmp(&b.denom));
     coins
 }

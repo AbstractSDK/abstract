@@ -79,6 +79,10 @@ abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapt
 abstract-osmosis-adapter = { path = "../integrations/osmosis/packages/abstract-adapter", default-features = false }
 # Terra #
 abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
+
+# Kujira #
+abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
+
 croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 

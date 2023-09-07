@@ -20,3 +20,4 @@ contracts/**/schema
 release
 
 docs/book
+state.json

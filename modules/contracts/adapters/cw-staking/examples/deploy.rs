@@ -22,7 +22,11 @@ fn deploy_cw_staking(
     prev_version: Option<String>,
     code_id: Option<u64>,
 ) -> anyhow::Result<()> {
-    let chain = DaemonBuilder::default().chain(network).build()?;
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(network)
+        .build()?;
 
     let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
     version_control.set_address(&Addr::unchecked(
