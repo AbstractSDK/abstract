@@ -301,7 +301,7 @@ fn install_multiple_modules() -> AResult {
     ));
     let standalone2_id = chain.app.borrow_mut().store_code(standalone2_contract);
 
-    // install first standalone
+    // install both standalone
     deployment.version_control.propose_modules(vec![
         (
             ModuleInfo {

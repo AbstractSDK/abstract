@@ -449,6 +449,13 @@ pub enum Monetization {
     None,
     InstallFee(FixedFee),
 }
+
+impl Default for Monetization {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 /// Module Metadata String
 pub type ModuleMetadata = String;
 

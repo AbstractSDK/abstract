@@ -9,6 +9,7 @@ use abstract_core::{
         fee::FixedFee,
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion, Monetization},
+        module_reference::ModuleReference,
         namespace::Namespace,
     },
     version_control::UpdateModule,
@@ -958,28 +959,23 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
     )?;
     deploy_modules(&chain);
 
-    // Add init_funds
+    let standalone_contract = Box::new(ContractWrapper::new(
+        standalone_no_cw2::mock_execute,
+        standalone_no_cw2::mock_instantiate,
+        standalone_no_cw2::mock_query,
+    ));
+    let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
 
-    deployment.version_control.update_module_configuration(
-        "mock-adapter1".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: None,
-            instantiation_funds: Some(vec![coin(3, "coin1")]),
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: ModuleVersion::Version(V1.to_owned()),
         },
-    )?;
-    deployment.version_control.update_module_configuration(
-        "mock-adapter2".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: None,
-            instantiation_funds: Some(vec![coin(3, "coin1")]),
-        },
-    )?;
+        ModuleReference::Standalone(standalone_id),
+    )])?;
+
+    // Add init_funds
     deployment.version_control.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
@@ -990,12 +986,27 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
         },
     )?;
+    deployment.version_control.update_module_configuration(
+        "standalone".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(6, "coin1")]),
+        },
+    )?;
 
     // Check how much we need
     let simulate_response = deployment.module_factory.simulate_install_modules(vec![
         ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
         ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
         ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: V1.into(),
+        },
     ])?;
     assert_eq!(
         simulate_response,
@@ -1004,17 +1015,10 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
             monetization_funds: vec![],
             initialization_funds: vec![
                 (
-                    adapter_1::MOCK_ADAPTER_ID.to_string(),
-                    vec![coin(3, "coin1")]
-                ),
-                (
-                    adapter_2::MOCK_ADAPTER_ID.to_string(),
-                    vec![coin(3, "coin1")]
-                ),
-                (
                     app_1::MOCK_APP_ID.to_string(),
                     vec![coin(3, "coin1"), coin(5, "coin2")]
-                )
+                ),
+                ("tester:standalone".to_string(), vec![coin(6, "coin1")])
             ],
         }
     );
@@ -1054,6 +1058,14 @@ fn create_account_with_installed_module_and_init_funds() -> AResult {
                                 version_control_address: deployment.version_control.addr_str()?,
                             },
                         })?),
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo {
+                            namespace: Namespace::new("tester")?,
+                            name: "standalone".to_owned(),
+                            version: V1.into(),
+                        },
+                        Some(to_binary(&MockInitMsg)?),
                     ),
                 ],
             },
@@ -1096,28 +1108,23 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
     )?;
     deploy_modules(&chain);
 
-    // Add init_funds
+    let standalone_contract = Box::new(ContractWrapper::new(
+        standalone_cw2::mock_execute,
+        standalone_cw2::mock_instantiate,
+        standalone_cw2::mock_query,
+    ));
+    let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
 
-    deployment.version_control.update_module_configuration(
-        "mock-adapter1".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(3, "coin1")))),
-            instantiation_funds: Some(vec![coin(3, "coin1")]),
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: ModuleVersion::Version(V1.to_owned()),
         },
-    )?;
-    deployment.version_control.update_module_configuration(
-        "mock-adapter2".to_owned(),
-        Namespace::new("tester").unwrap(),
-        UpdateModule::Versioned {
-            version: V1.to_owned(),
-            metadata: None,
-            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
-            instantiation_funds: Some(vec![coin(3, "coin1")]),
-        },
-    )?;
+        ModuleReference::Standalone(standalone_id),
+    )])?;
+
+    // Add init_funds
     deployment.version_control.update_module_configuration(
         "mock-app1".to_owned(),
         Namespace::new("tester").unwrap(),
@@ -1128,35 +1135,42 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
             instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
         },
     )?;
+    deployment.version_control.update_module_configuration(
+        "standalone".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(8, "coin1")))),
+            instantiation_funds: Some(vec![coin(6, "coin1")]),
+        },
+    )?;
 
     // Check how much we need
     let simulate_response = deployment.module_factory.simulate_install_modules(vec![
         ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
         ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
         ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: V1.into(),
+        },
     ])?;
     assert_eq!(
         simulate_response,
         SimulateInstallModulesResponse {
             total_required_funds: vec![coin(17, "coin1"), coin(15, "coin2")],
             monetization_funds: vec![
-                (adapter_1::MOCK_ADAPTER_ID.to_string(), coin(3, "coin1")),
-                (adapter_2::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
-                (app_1::MOCK_APP_ID.to_string(), coin(10, "coin2"),)
+                (app_1::MOCK_APP_ID.to_string(), coin(10, "coin2")),
+                ("tester:standalone".to_string(), coin(8, "coin1"))
             ],
             initialization_funds: vec![
                 (
-                    adapter_1::MOCK_ADAPTER_ID.to_string(),
-                    vec![coin(3, "coin1")]
-                ),
-                (
-                    adapter_2::MOCK_ADAPTER_ID.to_string(),
-                    vec![coin(3, "coin1")]
-                ),
-                (
                     app_1::MOCK_APP_ID.to_string(),
                     vec![coin(3, "coin1"), coin(5, "coin2")]
-                )
+                ),
+                ("tester:standalone".to_string(), vec![coin(6, "coin1")]),
             ],
         }
     );
@@ -1196,6 +1210,14 @@ fn create_account_with_installed_module_monetization_and_init_funds() -> AResult
                                 version_control_address: deployment.version_control.addr_str()?,
                             },
                         })?),
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo {
+                            namespace: Namespace::new("tester")?,
+                            name: "standalone".to_owned(),
+                            version: V1.into(),
+                        },
+                        Some(to_binary(&MockInitMsg)?),
                     ),
                 ],
             },
