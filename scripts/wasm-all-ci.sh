@@ -38,6 +38,7 @@ docker cp ./scripts with_code:/code
 docker run --volumes-from with_code ${abstract_image}:0.14.0
 # Copy the artifacts back out
 docker cp with_code:/code/artifacts ./artifacts
+ls artifacts
 
 cd $starting_dir
 
@@ -72,5 +73,5 @@ docker cp ./packages modules_with_code:/code
 docker run --volumes-from modules_with_code ${abstract_image}:0.14.0
 # Copy the artifacts back out
 docker cp modules_with_code:/code/artifacts ./artifacts
-
+ls artifacts
 cd $starting_dir

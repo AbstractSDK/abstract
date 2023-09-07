@@ -6,13 +6,6 @@ docs-install:
   cargo install mdbook-mermaid
   cargo install mdbook-admonish
 
-# Serve docs locally, pass --open to open in browser
-docs-serve *FLAGS:
-  (cd docs && mdbook serve {{FLAGS}}) 
-
-docs-build:
-  (cd docs && mdbook build)
-
 # Pull a specific repo from its main remote
 pull repo:
     git subtree pull --prefix={{repo}} {{repo}} main
