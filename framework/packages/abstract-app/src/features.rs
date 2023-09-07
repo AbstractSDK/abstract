@@ -1,7 +1,7 @@
 use crate::{state::ContractError, AppContract};
 use abstract_sdk::{
-    feature_objects::AnsHost,
-    features::{AbstractNameService, AccountIdentification},
+    feature_objects::{AnsHost, VersionControlContract},
+    features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
 use cosmwasm_std::{Addr, Deps};
@@ -57,11 +57,44 @@ impl<
     }
 }
 
+impl<
+        Error: ContractError,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    > AbstractRegistryAccess
+    for AppContract<
+        Error,
+        CustomInitMsg,
+        CustomExecMsg,
+        CustomQueryMsg,
+        CustomMigrateMsg,
+        ReceiveMsg,
+        SudoMsg,
+    >
+{
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+        Ok(self.base_state.load(deps.storage)?.version_control)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use abstract_sdk::features::ModuleIdentification;
-    use abstract_testing::prelude::{TEST_ANS_HOST, TEST_MODULE_ID, TEST_PROXY};
+    use abstract_core::version_control::AccountBase;
+    use abstract_sdk::{
+        features::ModuleIdentification, AccountVerification, ModuleRegistryInterface,
+    };
+    use abstract_testing::{
+        mock_querier,
+        prelude::{
+            TEST_ACCOUNT_ID, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_ID, TEST_PROXY,
+            TEST_VERSION_CONTROL,
+        },
+    };
     use speculoos::prelude::*;
 
     use crate::mock::*;
@@ -73,6 +106,43 @@ mod test {
         let ans_host = MOCK_APP.ans_host(deps.as_ref())?;
 
         assert_that!(ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+        Ok(())
+    }
+
+    #[test]
+    fn test_abstract_registry() -> AppTestResult {
+        let deps = mock_init();
+
+        let abstract_registry = MOCK_APP.abstract_registry(deps.as_ref())?;
+
+        assert_that!(abstract_registry.address).is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
+        Ok(())
+    }
+
+    #[test]
+    fn test_traits_generated() -> AppTestResult {
+        let mut deps = mock_init();
+        deps.querier = mock_querier();
+        let test_account_base = AccountBase {
+            manager: Addr::unchecked(TEST_MANAGER),
+            proxy: Addr::unchecked(TEST_PROXY),
+        };
+        // Account identification
+        let base = MOCK_APP.account_base(deps.as_ref())?;
+        assert_eq!(base, test_account_base.clone());
+
+        // AbstractNameService
+        let host = MOCK_APP.name_service(deps.as_ref()).host().clone();
+        assert_eq!(host, AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
+
+        // AccountRegistry
+        let account_registry = MOCK_APP.account_registry(deps.as_ref());
+        let base = account_registry.account_base(TEST_ACCOUNT_ID)?;
+        assert_eq!(base, test_account_base);
+
+        // TODO: Make some of the module_registry queries raw as well?
+        let _module_registry = MOCK_APP.module_registry(deps.as_ref());
+        // _module_registry.query_namespace(Namespace::new(TEST_NAMESPACE)?)?;
 
         Ok(())
     }

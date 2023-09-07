@@ -89,6 +89,8 @@ pub enum DurationChoice {
     Week,
     Month,
     Quarter,
+    Year,
+    OneHundredYears,
 }
 
 #[cosmwasm_schema::cw_serde]

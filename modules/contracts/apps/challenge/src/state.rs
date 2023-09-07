@@ -1,6 +1,6 @@
 use abstract_dex_adapter::msg::OfferAsset;
 use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp};
+use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 
@@ -59,10 +59,22 @@ impl ChallengeEntry {
     pub fn set_total_check_ins(&mut self, env: &Env) -> StdResult<()> {
         let now = env.block.time;
 
-        let duration_secs = self.end.seconds() - now.seconds();
-        // Calculate the total number of check-ins
-        self.total_check_ins = duration_secs as u128 / DAY as u128;
-        Ok(())
+        match self.end.seconds().checked_sub(now.seconds()) {
+            Some(duration_secs) => {
+                // Calculate the total number of check-ins
+                self.total_check_ins = duration_secs as u128 / DAY as u128;
+                Ok(())
+            }
+            None => {
+                // If the end time is in the past, set the total check ins to 0.
+                self.total_check_ins = 0;
+                // If the end time is in the past or there's an overflow in calculation, return an error.
+                Err(StdError::generic_err(format!(
+                    "Cannot compute. challenge.end time is in the past: {}, now is: {}",
+                    self.end, now
+                )))
+            }
+        }
     }
 
     pub fn to_timestamp(end: DurationChoice) -> Timestamp {
@@ -75,6 +87,12 @@ impl ChallengeEntry {
             }
             DurationChoice::Quarter => {
                 Timestamp::from_seconds(Duration::days(90).to_std().unwrap().as_secs())
+            }
+            DurationChoice::Year => {
+                Timestamp::from_seconds(Duration::days(365).to_std().unwrap().as_secs())
+            }
+            DurationChoice::OneHundredYears => {
+                Timestamp::from_seconds(Duration::days(365 * 100).to_std().unwrap().as_secs())
             }
         }
     }

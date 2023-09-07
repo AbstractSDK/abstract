@@ -58,6 +58,7 @@ fn create_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut challenge = ChallengeEntry::new(challenge_req);
+    challenge.set_total_check_ins(&env)?;
 
     //check that the challenge status is ChallengeStatus::Uninitialized
     if challenge.status != ChallengeStatus::Uninitialized {
@@ -267,8 +268,9 @@ fn daily_check_in(
             }
             _ => {
                 return Err(AppError::Std(StdError::generic_err(format!(
-                    "Challenge has ended. Challenge is {:?} current block height is {}",
-                    challenge, env.block.height
+                    "Challenge has ended. Challenge end_timestamp is {:?} current timestamp is {}",
+                    challenge.end.seconds(),
+                    env.block.time.seconds()
                 ))));
             }
         }
@@ -452,14 +454,23 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
         )));
     }
 
-    let amount_per_friend =
-        (challenge.collateral.amount.u128() / challenge.total_check_ins) / num_friends;
+    let compute_amount_per_friend = || -> Result<u128, AppError> {
+        if challenge.total_check_ins == 0 || num_friends == 0 {
+            return Err(AppError::Std(StdError::generic_err(format!(
+                "Cannot compute amount per friend. total_check_ins: {}, num_friends: {}",
+                challenge.total_check_ins, num_friends
+            ))));
+        }
+        let amount_per_friend =
+            (challenge.collateral.amount.u128() / challenge.total_check_ins) / num_friends;
+        Ok(amount_per_friend)
+    };
 
     let reaminder = challenge.collateral.amount.u128() % num_friends;
 
     let asset_per_friend = OfferAsset {
         name: challenge.collateral.name,
-        amount: Uint128::from(amount_per_friend),
+        amount: Uint128::from(compute_amount_per_friend()?),
     };
 
     let bank = app.bank(deps.as_ref());

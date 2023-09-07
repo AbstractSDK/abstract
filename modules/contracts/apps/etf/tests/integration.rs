@@ -84,6 +84,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
             },
             base: abstract_core::app::BaseInstantiateMsg {
                 ans_host_address: abstract_.ans_host.addr_str()?,
+                version_control_address: abstract_.version_control.addr_str()?,
             },
         },
         None,

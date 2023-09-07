@@ -1,4 +1,3 @@
-// Use prelude to get all the necessary imports
 use crate::msg::QueryMsg;
 use abstract_challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
@@ -34,9 +33,9 @@ const CHALLENGE_ID: u64 = 1;
 lazy_static! {
     static ref CHALLENGE_REQ: ChallengeRequest = ChallengeRequest {
         name: "test".to_string(),
-        collateral: OfferAsset::new("denom", Uint128::new(100)),
+        collateral: OfferAsset::new("denom", Uint128::new(100_000_000_000)),
         description: "Test Challenge".to_string(),
-        end: DurationChoice::Week,
+        end: DurationChoice::OneHundredYears,
     };
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
     static ref BOB_ADDRESS: String = "bob0x".to_string();
@@ -162,6 +161,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
         &InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: Empty {},
         },
@@ -182,6 +182,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     )?;
 
     let deployed = DeployedApps { challenge_app };
+    mock.wait_blocks(1000)?;
     Ok((mock, account, abstr_deployment, deployed))
 }
 
@@ -512,6 +513,7 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
         UpdateFriendsOpKind::Add,
     )?;
 
+    println!("Running challenge vote sequence");
     run_challenge_vote_sequence(&mock, &apps, ONE_NO_VOTE.clone())?;
     let check_ins_res = apps
         .challenge_app
@@ -547,7 +549,7 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     assert_eq!(response.vote.unwrap().approval, Some(true));
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
-    assert_eq!(balance, Uint128::new(49999988));
+    assert_eq!(balance, Uint128::new(44537609));
     Ok(())
 }
 
@@ -595,7 +597,7 @@ fn run_challenge_vote_sequence(
     votes: Vec<Vote<String>>,
 ) -> anyhow::Result<()> {
     for _ in 0..3 {
-        mock.wait_seconds(DAY - 1000)?;
+        mock.wait_seconds(DAY - 100)?; // this ensure we don't miss the check in
         apps.challenge_app.daily_check_in(1, None)?;
     }
 
