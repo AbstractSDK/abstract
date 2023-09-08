@@ -8,32 +8,13 @@ use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
     prelude::{
-        networks::{parse_network, ChainInfo, NetworkInfo},
+        networks::{parse_network, ChainInfo},
         *,
     },
 };
 use tokio::runtime::Runtime;
-use crate::networks::ChainKind;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub const SEI_NETWORK: NetworkInfo = NetworkInfo {
-    id: "sei",
-    pub_address_prefix: "sei",
-    coin_type: 118u32,
-};
-
-pub const PACIFIC_1: ChainInfo = ChainInfo {
-    kind: ChainKind::Mainnet,
-    chain_id: "pacific-1",
-    gas_denom: "usei",
-    gas_price: 0.1,
-    grpc_urls: &["http://sei-grpc.polkachu.com:11990"],
-    network_info: SEI_NETWORK,
-    lcd_url: None,
-    fcd_url: None,
-};
-
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
@@ -76,8 +57,10 @@ fn main() {
 
     let args = Arguments::parse();
 
+    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
 
-    if let Err(ref err) = full_deploy(vec![PACIFIC_1]) {
+
+    if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
         err.chain()
             .skip(1)
