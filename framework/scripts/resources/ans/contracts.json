@@ -319,5 +319,339 @@
         "juno1rnftahwja0xf3xrng33h9hyqs5s270rga92a999ynd8a4wj5c0nsgvevgg"
       ]
     ]
+  },
+  "sei": {
+    "pacific-1": [
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/arb-wormhole>usdc,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>usdt,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/axelar>usdc,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,op-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/axelar>usdc,terra2>astro"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,terra2>astro"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/axelar>usdc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>weth,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,terra2>astro"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,matic-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/osmosis>osmo,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,sol-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sei>seinu"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/matic-wormhole>usdc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sdoge,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>musk,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sei>turtle"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>say,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sei>spepe"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,eth-wormhole>weth"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/axelar>usdc,sei>sey"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sol-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/op-wormhole>usdc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>usdt,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/arb-wormhole>usdc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>wbtc,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sei>seilor"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/osmosis>osmo,sol-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,osmosis>osmo"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/matic-wormhole>usdc,sei>seinu"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,eth-wormhole>wbtc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>oin,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>usdc,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/arb-wormhole>weth,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>float,sei>sink"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>weth,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,sei>seinu"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/arb-wormhole>usdc,axelar>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>sei,sei>sey"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>usdc,matic-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/cosmoshub>atom,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/cosmoshub>atom,eth-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/sei>seinu,sol-wormhole>usdc"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/bsc-wormhole>usdt,sei>seilor"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/eth-wormhole>usdc,eth-wormhole>usdt"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ],
+      [
+        {
+          "protocol": "astroport",
+          "contract": "staking/astroport/arb-wormhole>weth,sei>sei"
+        },
+        "sei13hwj6afyxgue26f966hd5jkcvvjeruv7f9cdtd5d9mrtyrnn73ysp04nt4"
+      ]
+    ]
   }
+
 }

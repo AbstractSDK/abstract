@@ -1325,5 +1325,620 @@
         }
       ]
     ]
+  },
+  "sei": {
+    "pacific-1": [
+      [
+        {
+          "contract": "sei1g5s84juvcjamggl6t36pejc4489zgkx4tg42j9m6pfruskv8ajcqml2xsq"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sei",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1a94tfxh0lgnsx20wsfv2ur737g2yejx8tt4e6uf6k5cc5jg77f0q0ekwar"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "arb-wormhole>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1z04thpm8refvjve8j55uynwujueqf32vzvh7k7sf7p6whlmujxuqt94u74"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "eth-wormhole>usdc",
+            "bsc-wormhole>usdt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1prqsm5y7tumchkugx5wcz4y0fya7cta5ch9h366em806frq4jtnqlrazgt"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "axelar>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1myu6k4vxrht2g36ecdjrlav0xwlymlqts5wpwtzp53x9m87duasqux9hgz"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "op-wormhole>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei15jumtkmss2d8hvg7ywk9law2c5t0u57jtv8hu4a0dce8e5whfwaqg7q3er"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1zp6ucuft3fptzfysd06cd37we7setrt364ea753dkwepr4ulfwwqdeqvyw"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei132k995g5smm2qf543l3w5az0y7m0aduamw3e0kgmqqt4qj4zph9su00fmu"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>usdc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei16vp6mfeezfzd4j4wlr4je5ax4dfcyv6mgwl0hwygp0qt64pu2mqsuezm9p"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "eth-wormhole>weth",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1rslpx99upnmrqjpysn6663kksuaer4dn5tr9la73km3z6fln0z6qpt9s6h"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "terra2>astro",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1mmn28xt7l2d905gllhw4d2mr3j2kzstqscjypp460rwm8xqqvu6q0ey37s"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "matic-wormhole>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1fgmuswqv3wpxqnpj0ya045zg52udk93qcdm64v3jc74pkcq9z7xsg034ay"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "osmosis>osmo",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1qzfur4expluacnscycseqpulxvar39snljjdzveaedamj0zfdk2qr2l5ce"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "sol-wormhole>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1jeqmlhstuumxa8hhu357nwq7wc7sg2em00vpejz6zlgj0st7vucshflugw"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sei",
+            "sei>seinu"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1de0llwr6j2rytlteczn9pzqjjtmt2nf6f6qd7r8nlwd79srwvs8q48uz9z"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "matic-wormhole>usdc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1nl0ugs5vsy06f9qya2n777wva8lahunu9tpj8scf9fx8pr5xd9tsr89tww"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sdoge",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1ea3s0kacfle84pf7ncw7k7ldl8t56qnvgxnk274cghmja9xmvypqg5elst"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>musk",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1q6c2yxkggm40u34vtkg76fs7ljqhf5f7an5uqwzqzrt28nfl6jvsueev8j"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>turtle",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1lvvmj606l9vjqxtk53zahwlfv29pm7ke8fglsfu70sy66xnl3hlqe3eufd"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>say",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1et0jm5d5704uvdzkn3l9e2q260xsdd2kneumws2a7detcsa293ts3qd8tr"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sei",
+            "sei>spepe"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1dv6y7jkkksw4evvrm7x4d2dpm9334rp5xrfar7jh8p38f82y3xus25psnj"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "eth-wormhole>weth",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1yytwmnxnudhctd605yq6pmsmth6g9jey4nxryz3f34xdhr2cc8zswanalk"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sey",
+            "axelar>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1jc4gk0ua02kvrpggat77r25226h6hg5rrfwlywu7zclkdscjwlhqep7nwm"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sol-wormhole>usdc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei18qy5wh827vmkh2swfqqt4m6j8h7hzlsv36xktugzmdmumfqxgjasq7e3h3"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "op-wormhole>usdc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1f08dl9tkntsjmxx2txccthvx9n0mdcyqajvg4yyuuyh76sgef5dsfpsnhe"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "bsc-wormhole>usdt",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei18vgt8vpmgkh8vzx9n79lxjukr6mpk009typshm65c6rl5hct8d5qrmcpfn"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "arb-wormhole>usdc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1xfxjrxhgjqtvfcmfemu89lxftf0fq4hxz7vcg9shgczta26nt4lqlmjm9n"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "eth-wormhole>wbtc",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1zyx0scaguvc23yjfu0dnt9ma2l5u8dr6x3pcqpmh4evtqvv7dmkq9xjpv7"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>seilor",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1qa749d6e3mvjvpekxmea8xamajhl5dz4vthdchatr0s8dhm8z39qpcht0h"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sol-wormhole>usdc",
+            "osmosis>osmo"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1eve0pps8rgzp6xa75t97ezku8v5r2cun5xaz48ker3qejz3zahlq7ljle5"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "osmosis>osmo",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1fure4v7xvar7vqqk5mqrcp2qkxmkap28asdqejz4kw4z39mrfk5sgauxnv"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "matic-wormhole>usdc",
+            "sei>seinu"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1xx6ppf36f9amaq0rmz5q2du3ae053aevt7lyv3gqudphamqstwxq028cer"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "eth-wormhole>wbtc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1catn96fu93gg7zt5jngk0h0n0m33l8ufppwpf8lmhjamx9s9knws9ujfvj"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>oin",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1lkpzdvvyuz40nckjmpu38xykamfjx5afc7x22n8zf8rgr7pd2ysqdk8hca"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "bsc-wormhole>usdc",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1tyjzngs505dpx5exu6zfv6z5v2gellj5waew0r0fyv07e3tkx36sffcag2"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "arb-wormhole>weth",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1sqtzqp5hetvmjp9g2htv64dv2tfe6lec5v29zywqltnsy2z4asrs8wapqs"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>float",
+            "sei>sink"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1wz2um8232nljc32zx6dr3kzx5lvl2urq0766zctt0397q70kfw3qhy3ea4"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "bsc-wormhole>weth",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1e7kcd62rqsc9zu5a8xyecr367e88zvuysnfnm3yhvjkmtdxwelcscs88ny"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "eth-wormhole>usdc",
+            "sei>seinu"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1p6mgf33c79u72gr27xa660vynkq3g2flfn48jy6quq3vy4wzag4qh264w2"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "axelar>usdc",
+            "arb-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1ehrlfpqnq35c7wknhrg2pupx44xcvac0un602wk68jgvx093uxwsyjtsey"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sei>sei",
+            "sei>sey"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1skvzums72hmygk7re26ys68p4nc45y4dach4hymgzgwsdpyfmpcsdn4an6"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "bsc-wormhole>usdc",
+            "matic-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei13qvlefrjthwmdfgrwmj7lkdjm2qkks3va2pp5xzujpk9m55k2j6s7jql0w"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "sei>sei"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei17xlh367wzse4gm6955m68me83ry5n6pgwrc6m759fknv00ax35fsrn8c36"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "cosmoshub>atom",
+            "eth-wormhole>usdc"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1qfpl7gnhhxapqflpy2qpyw6ndkarku9lyz2wa2psptgkdxensgfstpthkz"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "sol-wormhole>usdc",
+            "sei>seinu"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei104g8qxzp0ztxuwc3tgww7vawsx547ukt55hzp799dpjpt5yztzasxvm3yz"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "bsc-wormhole>usdt",
+            "sei>seilor"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei190h8mzyllpcqy9l2g02sey2p74dwu8lnj3a5mxpq2qmjyynpwa3s5kq6zh"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "Stable",
+          "assets": [
+            "eth-wormhole>usdc",
+            "eth-wormhole>usdt"
+          ]
+        }
+      ],
+      [
+        {
+          "contract": "sei1gzsjdjhgaav84lgc4u8wn7yel7yaq6mng6rqzz8xw00ldupm32kqm2ezye"
+        },
+        {
+          "dex": "astroport",
+          "pool_type": "ConstantProduct",
+          "assets": [
+            "arb-wormhole>weth",
+            "sei>sei"
+          ]
+        }
+      ]
+    ]
   }
 }

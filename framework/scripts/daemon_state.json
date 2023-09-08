@@ -94,5 +94,25 @@
         "abstract:version-control": "osmo1gpt8vl9l007sexyk4l3amu6heaykhas5nn7ln2l82956ugjmzdvsacnhym"
       }
     }
+  },
+  "sei": {
+    "pacific-1": {
+      "code_ids": {
+        "abstract:account-factory": 322,
+        "abstract:ans-host": 320,
+        "abstract:manager": 324,
+        "abstract:module-factory": 323,
+        "abstract:proxy": 325,
+        "abstract:version-control": 321
+      },
+      "default": {
+        "abstract:account-factory": "sei18eq8zsh7qd2gm4kmu4em46sxq2ejj7t63kyl0vsuky0ykjynl2wss86alx",
+        "abstract:ans-host": "sei14k6slntadx04uyvq99unx808l6w8sa6u2e7qrjfn3jrd92wkl8msqpgawn",
+        "abstract:manager": "sei1gnyw8tl5vnp75h7hdanqa90ul4egmggfa8pn6sgdqj5c7ksdl20qu90p5a",
+        "abstract:module-factory": "sei1sannf52wkadu4gvrv8eq9z9g6t856fjqr073gwps9fnktqudmsfsp2rrlr",
+        "abstract:proxy": "sei1eha250ffjuej5dt7m07xgwqmlyl9hfawqck27mmxa9udu67snf9qmr9uc9",
+        "abstract:version-control": "sei1ealwypah3393lneahpwlqjavtcx5d20ntquxvy42ejze205lpxwqwyxt25"
+      }
+    }
   }
 }

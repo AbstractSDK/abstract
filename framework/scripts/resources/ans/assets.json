@@ -1338,5 +1338,459 @@
         }
       ]
     ]
+  },
+  "sei": {
+    "pacific-1": [
+      [
+        "eth-wormhole>usdt",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/HktfLoADCk9mnjv7XJiN4YXK9ayE6xinLzt8wzcsR2rY"
+        }
+      ],
+      [
+        "eth-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/Hq4tuDzhRBnxw3tFA5n6M52NVMVcC19XggbyDiJKCD6H"
+        }
+      ],
+      [
+        "bsc-wormhole>usdt",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/871jbn9unTavWsAe83f2Ma9GJWSv6BKsyWYLiQ6z3Pva"
+        }
+      ],
+      [
+        "bsc-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/3Ri4N719RQfQaudHiB9CMCYACtK3aieoz1q1Ph24VdAb"
+        }
+      ],
+      [
+        "bsc-wormhole>weth",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/9tTHn18vLnfyBvrQaia6N15zwrfRCAebZDshoPZ39ahN"
+        }
+      ],
+      [
+        "arb-wormhole>weth",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/9hJDBDaxqQQhF5HhaPUykeLncBa38XQ5uoNxN3tPQu5r"
+        }
+      ],
+      [
+        "op-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/3VKKYtbQ9iq8f9CaZfgR6Cr3TUj6ypXPAn6kco6wjcAu"
+        }
+      ],
+      [
+        "arb-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/7edDfnf4mku8So3t4Do215GNHwASEwCWrdhM5GqD51xZ"
+        }
+      ],
+      [
+        "matic-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/DUVFMY2neJdL8aE4d3stcpttDDm5aoyfGyVvm29iA9Yp"
+        }
+      ],
+      [
+        "sol-wormhole>usdc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/9fELvUhFo6yWL34ZaLgPbCPzdk9MD1tAzMycgH45qShH"
+        }
+      ],
+      [
+        "eth-wormhole>weth",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/4tLQqCLaoKKfNFuPjA9o39YbKUwhR1F8N29Tz3hEbfP2"
+        }
+      ],
+      [
+        "eth-wormhole>wbtc",
+        {
+          "native": "factory/sei189adguawugk3e55zn63z8r9ll29xrjwca636ra7v7gxuzn98sxyqwzt47l/7omXa4gryZ5NiBmLep7JsTtTtANCVKXwT9vbN91aS1br"
+        }
+      ],
+      [
+        "terra2>astro",
+        {
+          "native": "ibc/0EC78B75D318EA0AAB6160A12AEE8F3C7FEA3CFEAD001A3B103E11914709F4CE"
+        }
+      ],
+      [
+        "sei>sei",
+        {
+          "native": "usei"
+        }
+      ],
+      [
+        "axelar>usdc",
+        {
+          "native": "ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349"
+        }
+      ],
+      [
+        "osmosis>osmo",
+        {
+          "native": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518"
+        }
+      ],
+      [
+        "sei>seinu",
+        {
+          "cw20": "sei1ajwmaynzjuekhs2tyv7qvvsu8dnw5d5ug0suzvt3353rz0t5ltwsflty4r"
+        }
+      ],
+      [
+        "sei>sdoge",
+        {
+          "cw20": "sei1hujt4dydg2lt0yaw8qp6gs3e78fv0tsehp6temwfq28m356v6kmqt9lctc"
+        }
+      ],
+      [
+        "sei>musk",
+        {
+          "cw20": "sei1ys77cs0qsqzx4dvtds0e077qc0sg4k7tg32lcmqemek8g0tpr57s5ckxd7"
+        }
+      ],
+      [
+        "sei>turtle",
+        {
+          "cw20": "sei16aa3whueaddmms3qw0apz7ylddg0vwtw2zugafmccdtrxrwyx0kqwxntat"
+        }
+      ],
+      [
+        "sei>say",
+        {
+          "cw20": "sei1606hlfm6sxee9ha7myshcyelhqydjfaca6w37wljphkjpt53fzrqlw9y68"
+        }
+      ],
+      [
+        "sei>spepe",
+        {
+          "cw20": "sei1nnrhfhegm072tlwwme4a0y50q80tnkjjqv2zh0pkrwrj45pqthpsrjmeqd"
+        }
+      ],
+      [
+        "sei>sey",
+        {
+          "cw20": "sei1y6t2swnwjewa07hxeuv3pvxd9x9vc8chtwtfz8awpyex0tuurp9qkdzq66"
+        }
+      ],
+      [
+        "sei>seilor",
+        {
+          "cw20": "sei123gd6c6je3nmtjuvesuwhxphtuxgtuu6gu5ck3h5zcn6qqzzmgaqe85df2"
+        }
+      ],
+      [
+        "sei>oin",
+        {
+          "cw20": "sei1smdzpfsy48kmkzmm4m9hsg4850czdvfncxyxp6d4h3j7qv3m4v0slzx8yy"
+        }
+      ],
+      [
+        "sei>float",
+        {
+          "cw20": "sei132zrqrk2de8zmu64sy8j7g2hgsc9xse3jfc88py8ufpkla0pu9gsexgu09"
+        }
+      ],
+      [
+        "sei>sink",
+        {
+          "cw20": "sei108mlhpvgxgl8556lwvf3cxfcw647wch4ear25kxjmp642cn3cdys92splz"
+        }
+      ],
+      [
+        "cosmoshub>atom",
+        {
+          "native": "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,sei>sei",
+        {
+          "cw20": "sei1yj07xdntlactdx77sz4khgh56gq2cxxvrmdmzeza0gefcxd4nmgsecxxnv"
+        }
+      ],
+      [
+        "astroport/arb-wormhole>usdc,eth-wormhole>usdc",
+        {
+          "cw20": "sei1nz4ku8ewwttm7gm82d0ydsgaq06tsgwf69dxvak8swf2mzs5zk9qqndaur"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>usdt,eth-wormhole>usdc",
+        {
+          "cw20": "sei1ukh0hd4pneg8fd0mhvqtqczxj4gn3uz7jcagcwcdrxs660pan8aq5espqf"
+        }
+      ],
+      [
+        "astroport/axelar>usdc,eth-wormhole>usdc",
+        {
+          "cw20": "sei1ulh0klfgzzwgl642vrk4xwa3v04mtf7mgq70584842cl7cea7sxsamgmy9"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,op-wormhole>usdc",
+        {
+          "cw20": "sei1r56pkdf29vmcnk53r207xwwfsy4hcngvgj4wm9eezrv96up7mvmste2ach"
+        }
+      ],
+      [
+        "astroport/axelar>usdc,terra2>astro",
+        {
+          "cw20": "sei1ls6ae7aqj9jjpjk575t67mve3xr5d8txkskxrp6393e0rahqrw2sh9y20x"
+        }
+      ],
+      [
+        "astroport/sei>sei,terra2>astro",
+        {
+          "cw20": "sei1kuglu9hazls93h4pwcehk6gwrvv9uznfja6afjdanyud8fwkzlrqefl2qs"
+        }
+      ],
+      [
+        "astroport/axelar>usdc,sei>sei",
+        {
+          "cw20": "sei14gm98jxefrcz0tl6rpzeyuu3vjlj900me5j35h7p4pazhjepcfksvxvc65"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>weth,sei>sei",
+        {
+          "cw20": "sei1f9en0nhza42tggvujxyfyhhztmcdpsr8qr6lxd090d5vv0dtht3sdmmxtl"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,terra2>astro",
+        {
+          "cw20": "sei1cxlup9et0gj66l5y6lcnvs7juq5cg05y5vnwzzv374duzlaugh9qzzktfg"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,matic-wormhole>usdc",
+        {
+          "cw20": "sei1paa5dm2glgmets9yxafa4w68w5hymthh0as8em80684ntmd930jq0e950p"
+        }
+      ],
+      [
+        "astroport/osmosis>osmo,sei>sei",
+        {
+          "cw20": "sei1ryun6k6gpp5wh3hkdmct3c5l5kjqc4r46908szaesmqgwvke3f7qa9z379"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,sol-wormhole>usdc",
+        {
+          "cw20": "sei1uecw0ha4taym2q09daw9y0zzf3jpguxvfd2z2m07l289geg2tk7shr8hsh"
+        }
+      ],
+      [
+        "astroport/sei>sei,sei>seinu",
+        {
+          "cw20": "sei1ecg7vttnv4jt3rcuwuvxd0snjjmpngrtxnkw3g6kry3044pnrunqmhl2sy"
+        }
+      ],
+      [
+        "astroport/matic-wormhole>usdc,sei>sei",
+        {
+          "cw20": "sei1zcct5r3j5lqxp77mwa3s3fuuv08lnn4qkl2ynlder4jc2xt65xusl76yp2"
+        }
+      ],
+      [
+        "astroport/sei>sdoge,sei>sei",
+        {
+          "cw20": "sei1wu8f34zr6p4m7pxnd24hg2stf0trphxkne02d8fp70hgyezg2qcsv57vhe"
+        }
+      ],
+      [
+        "astroport/sei>musk,sei>sei",
+        {
+          "cw20": "sei17q8t987rvkj3usugrmz8gryfspcuz2jmqgy4qjhf9cr9d23ga52s4d4qdv"
+        }
+      ],
+      [
+        "astroport/sei>sei,sei>turtle",
+        {
+          "cw20": "sei1nuxu3y6hpm7txftyq6z0a35ddckecj9ptqk5w8r44lnlr3mgg4eq6w7u3h"
+        }
+      ],
+      [
+        "astroport/sei>say,sei>sei",
+        {
+          "cw20": "sei1x76us00svwqg3jc7e3tgewlwd9rr966dkrm55vcce0u47udelngq86e0ss"
+        }
+      ],
+      [
+        "astroport/sei>sei,sei>spepe",
+        {
+          "cw20": "sei133k7jpn37t3nx7mtuz5q3rqesplqe24nqac4hc0nkrmnjxwjnmaqwtgpve"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,eth-wormhole>weth",
+        {
+          "cw20": "sei1faw9thtkntmlacmhdjrrp5774wnc3ns7e4j2exvcevg39m7hlv6s3s05ej"
+        }
+      ],
+      [
+        "astroport/axelar>usdc,sei>sey",
+        {
+          "cw20": "sei16nqvy5epmjpyhluhqvwapuw92dheevc9lw4pkyx5dtf00jj7fxlqlrmey5"
+        }
+      ],
+      [
+        "astroport/sei>sei,sol-wormhole>usdc",
+        {
+          "cw20": "sei1x5fxrxlma86lmy0wf67gxl8x98f05eaz8pwqc56xkmtkacrw0j6sqd0sms"
+        }
+      ],
+      [
+        "astroport/op-wormhole>usdc,sei>sei",
+        {
+          "cw20": "sei1dh2t9j0kgzxcm7ry53rwzt00qkjd6exfjunpx2wxyatc88klqrxsujmedd"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>usdt,sei>sei",
+        {
+          "cw20": "sei1qxy60cnpqzgt2cel3cdmk9xjwuhjam7a2zmzfdzcs72pn55rkt5qdgruma"
+        }
+      ],
+      [
+        "astroport/arb-wormhole>usdc,sei>sei",
+        {
+          "cw20": "sei1pv5kyq33sw9hf2m62s0xweu3sevv4z2m8g3d9f60n4c3et5ztr6suk4mpl"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>wbtc,sei>sei",
+        {
+          "cw20": "sei1nxpe6xcr3fysckgd39utza2j7updcjystkz5d45yre04xcu2m85sjpugme"
+        }
+      ],
+      [
+        "astroport/sei>sei,sei>seilor",
+        {
+          "cw20": "sei1uy07v2t8v39jw326g8lnl6fdwrqk0j2lq95sunt5z25gkrvnu4lqv4yyjk"
+        }
+      ],
+      [
+        "astroport/osmosis>osmo,sol-wormhole>usdc",
+        {
+          "cw20": "sei13yk08attt08qd4akmvaf2l6f3t3enyd6z3mjzaa2rdjww5cy4ntqtcjyky"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,osmosis>osmo",
+        {
+          "cw20": "sei15u9s0j7trjaatv8c5uenguhaw8nz06a8jxfne9m9g6kws8q0vfqqezgtv5"
+        }
+      ],
+      [
+        "astroport/matic-wormhole>usdc,sei>seinu",
+        {
+          "cw20": "sei153svagc4vtpjege2t7p8tvu36s8a5davfdv0wylvjx4ed5cwzxrs3nn50m"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,eth-wormhole>wbtc",
+        {
+          "cw20": "sei1enn6h2nex76xd7a83mzjdmr98kq9g0wkl8ny2yh9xkyt0h56whes3yr7qx"
+        }
+      ],
+      [
+        "astroport/sei>oin,sei>sei",
+        {
+          "cw20": "sei1geresmljm474l5flm2hlgsyxs24sh0qn5xjw26ydh9s9qwzh6t2shp7eke"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>usdc,eth-wormhole>usdc",
+        {
+          "cw20": "sei1yrr44384ua49s9etytyxjpr84wrn97cye6e8k6eak6vpn6h663fsexdhas"
+        }
+      ],
+      [
+        "astroport/arb-wormhole>weth,eth-wormhole>usdc",
+        {
+          "cw20": "sei1f90r645nx483tv3dzktd6x0xm82svppula0y6uulhhlcpflhzx4s2q38ta"
+        }
+      ],
+      [
+        "astroport/sei>float,sei>sink",
+        {
+          "cw20": "sei1v69rjp9nwdulj60dhx22yv7zr5fgf36cxsch6sykcfcmet5un32qc0s67r"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>weth,eth-wormhole>usdc",
+        {
+          "cw20": "sei1zqxumcjlmntd9yf34h5xsn6hd95af7p78d9wj7t7n8d0xauwmf3semylee"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,sei>seinu",
+        {
+          "cw20": "sei1framvm7qu7pshl60hl56tpzwu7vj0nr5j67sphk3hrk2hmr47laq75gsmq"
+        }
+      ],
+      [
+        "astroport/arb-wormhole>usdc,axelar>usdc",
+        {
+          "cw20": "sei13ughe92jth5u4gykh8695xslzwst4jpwlktw06sdhgdpnxlkcggq4ygem4"
+        }
+      ],
+      [
+        "astroport/sei>sei,sei>sey",
+        {
+          "cw20": "sei1aety7v4s3rtylxpppj6hd9a233mzhpqjcs4kwuzahlqhxhss374q9nxaj9"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>usdc,matic-wormhole>usdc",
+        {
+          "cw20": "sei18q7cla9ty528ehffqu9frvyc0djcr4plcpfnnfuumyyc03z7fnksg83yyu"
+        }
+      ],
+      [
+        "astroport/cosmoshub>atom,sei>sei",
+        {
+          "cw20": "sei1vrgxg85tglkdfz04wjenysmzl3nr43gxdqex6hj8wqwnp8ppnfgsnyak3x"
+        }
+      ],
+      [
+        "astroport/cosmoshub>atom,eth-wormhole>usdc",
+        {
+          "cw20": "sei1fxehy7nhapdspnj989uuekda8sxv57xvq6wwj6kjtk670gzdf5fszgm4n7"
+        }
+      ],
+      [
+        "astroport/sei>seinu,sol-wormhole>usdc",
+        {
+          "cw20": "sei1tykf5tgc0v3wyj5cezwep69y0926kkv8zyp7jagldtrrgv97lels4g08k3"
+        }
+      ],
+      [
+        "astroport/bsc-wormhole>usdt,sei>seilor",
+        {
+          "cw20": "sei16fexvs7nks2a2dtjk8lpjdemqh2ztf3hakevdm3xv8jfgmlns7vqdzyy05"
+        }
+      ],
+      [
+        "astroport/eth-wormhole>usdc,eth-wormhole>usdt",
+        {
+          "cw20": "sei1j74xmx2nlq2ddzwvw7zgmvdptusxs0px0hk6qg46fsd8a2lnr39s4dv42l"
+        }
+      ],
+      [
+        "astroport/arb-wormhole>weth,sei>sei",
+        {
+          "cw20": "sei1x4xs095ku22vruc563trcasqak828ajva8j76f78g60h0xqa06gqdynalk"
+        }
+      ]
+    ]
   }
 }
