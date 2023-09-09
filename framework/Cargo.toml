@@ -83,6 +83,9 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
+[patch.crates-io]
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false
