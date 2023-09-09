@@ -50,7 +50,7 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
-chrono = { version = "0.4.23", default-features = false }
+chrono = { version = "0.4.30", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
