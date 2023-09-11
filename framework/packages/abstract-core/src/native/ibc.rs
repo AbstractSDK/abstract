@@ -1,7 +1,6 @@
-use cosmwasm_std::{StdResult, Binary, to_binary, CosmosMsg, wasm_execute};
+use cosmwasm_std::{to_binary, wasm_execute, Binary, CosmosMsg, StdResult};
 use polytone::callbacks::Callback;
 use schemars::JsonSchema;
-
 
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 #[cosmwasm_schema::cw_serde]

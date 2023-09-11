@@ -1,6 +1,7 @@
 use crate::{
+    ibc::CallbackInfo,
     ibc_host::HostAction,
-    objects::{account::AccountId, chain_name::ChainName}, ibc::CallbackInfo,
+    objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Coin;
@@ -11,9 +12,9 @@ pub use polytone::callbacks::CallbackRequest;
 pub mod state {
 
     use crate::objects::{
-            account::AccountId, ans_host::AnsHost, chain_name::ChainName,
-            common_namespace::ADMIN_NAMESPACE,
-        };
+        account::AccountId, ans_host::AnsHost, chain_name::ChainName,
+        common_namespace::ADMIN_NAMESPACE,
+    };
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
@@ -21,7 +22,7 @@ pub mod state {
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
         pub version_control: Addr,
-        pub ans_host: AnsHost
+        pub ans_host: AnsHost,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
@@ -106,8 +107,13 @@ pub enum ExecuteMsg {
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    ExecuteAction { receiver: String, callback_id: String },
-    CreateAccount { account_id: AccountId },
+    ExecuteAction {
+        receiver: String,
+        callback_id: String,
+    },
+    CreateAccount {
+        account_id: AccountId,
+    },
     WhoAmI {},
 }
 

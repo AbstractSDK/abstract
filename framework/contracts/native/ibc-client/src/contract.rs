@@ -141,7 +141,7 @@ mod tests {
         // config
         let expected_config = Config {
             version_control: Addr::unchecked(TEST_VERSION_CONTROL),
-            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST))
+            ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 
         let config_resp = config(deps.as_ref(), mock_env()).unwrap();
@@ -154,7 +154,6 @@ mod tests {
         let cw2_info = CONTRACT.load(&deps.storage).unwrap();
         assert_that!(cw2_info.version).is_equal_to(CONTRACT_VERSION.to_string());
         assert_that!(cw2_info.contract).is_equal_to(IBC_CLIENT.to_string());
-
     }
 
     mod migrate {

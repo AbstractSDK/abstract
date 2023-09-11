@@ -4,6 +4,7 @@
 
 use crate::{features::AccountIdentification, AbstractSdkResult, ModuleInterface};
 use abstract_core::{
+    ibc::CallbackInfo,
     ibc_client::ExecuteMsg as IbcClientMsg,
     ibc_host::HostAction,
     objects::{
@@ -11,7 +12,7 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion},
     },
     proxy::ExecuteMsg,
-    IBC_CLIENT, ibc::CallbackInfo,
+    IBC_CLIENT,
 };
 use cosmwasm_std::{to_binary, wasm_execute, Addr, Coin, CosmosMsg, Deps};
 use polytone::callbacks::CallbackRequest;

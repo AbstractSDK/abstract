@@ -2,10 +2,13 @@ use crate::{
     contract::{IbcClientResponse, IbcClientResult},
     error::IbcClientError,
 };
-use abstract_core::{ibc_client::{
-    state::{REMOTE_PROXY, REVERSE_POLYTONE_NOTE},
-    IbcClientCallback,
-}, ibc::IbcResponseMsg};
+use abstract_core::{
+    ibc::IbcResponseMsg,
+    ibc_client::{
+        state::{REMOTE_PROXY, REVERSE_POLYTONE_NOTE},
+        IbcClientCallback,
+    },
+};
 use abstract_sdk::core::ibc_client::state::ACCOUNTS;
 use cosmwasm_std::{from_binary, DepsMut, Env, MessageInfo};
 
@@ -33,7 +36,6 @@ pub fn receive_action_callback(
     let callback_msg: IbcClientCallback = from_binary(&callback.initiator_msg)?;
 
     let msg = match callback_msg {
-
         IbcClientCallback::WhoAmI {} => {
             // This response is used to store the Counterparty proxy address (this is used to whitelist the address on the host side)
             if let Callback::Execute(Ok(response)) = &callback.result {
@@ -72,18 +74,19 @@ pub fn receive_action_callback(
             }
             None
         }
-        IbcClientCallback::ExecuteAction { receiver, callback_id } => {
+        IbcClientCallback::ExecuteAction {
+            receiver,
+            callback_id,
+        } => {
             // Here we transfer the callback back to the module that requested it
             // We need to get the address of the remote proxy from the account creation response
-            
-            let callback = IbcResponseMsg{
+
+            let callback = IbcResponseMsg {
                 id: callback_id,
-                result: callback.result
+                result: callback.result,
             };
             Some(callback.into_cosmos_account_msg(receiver))
         }
     };
-    Ok(IbcClientResponse::action("acknowledge_register")
-        .add_messages(msgs)
-    )
+    Ok(IbcClientResponse::action("acknowledge_register").add_messages(msgs))
 }

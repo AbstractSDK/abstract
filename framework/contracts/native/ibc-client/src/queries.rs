@@ -49,7 +49,7 @@ pub fn config(deps: Deps, env: Env) -> StdResult<ConfigResponse> {
     let chain = ChainName::new(&env);
     let Config {
         version_control,
-        ans_host
+        ans_host,
     } = CONFIG.load(deps.storage)?;
     let admin = ADMIN.get(deps)?.unwrap();
     Ok(ConfigResponse {

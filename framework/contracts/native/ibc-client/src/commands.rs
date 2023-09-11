@@ -3,13 +3,14 @@ use crate::{
     error::IbcClientError,
 };
 use abstract_core::{
+    ibc::CallbackInfo,
     ibc_client::{
         state::{POLYTONE_NOTE, REMOTE_HOST, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     ibc_host, manager,
     objects::{chain_name::ChainName, AccountId},
-    version_control::AccountBase, ibc::CallbackInfo,
+    version_control::AccountBase,
 };
 use abstract_sdk::{
     core::{
@@ -176,15 +177,14 @@ pub fn execute_send_packet(
         return Err(IbcClientError::ForbiddenInternalCall {});
     }
 
-    let callback_request = callback_info.map(|c| CallbackRequest{
+    let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::ExecuteAction{
+        msg: to_binary(&IbcClientCallback::ExecuteAction {
             receiver: c.receiver,
-            callback_id: c.id
-        }).unwrap()
+            callback_id: c.id,
+        })
+        .unwrap(),
     });
-
-
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
@@ -430,8 +430,7 @@ mod test {
             assert_that!(res.messages).is_empty();
 
             let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control)
-                .is_equal_to(Addr::unchecked(new_version_control));
+            assert_that!(cfg.version_control).is_equal_to(Addr::unchecked(new_version_control));
 
             Ok(())
         }
