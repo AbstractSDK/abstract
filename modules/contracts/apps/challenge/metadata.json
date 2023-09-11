@@ -1,0 +1,9 @@
+{
+  "name": "Challenge",
+  "description": "Create personal challenges and invite your friends to hold yourself accountable",
+  "website": "https://abstract.money/",
+  "docs": "",
+  "type": "app",
+  "icon": "RiCoinsLine",
+  "enabled": false
+}
