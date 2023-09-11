@@ -36,10 +36,10 @@ fn instantiate() -> AResult {
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
         address: account.proxy.address()?,
         id: PROXY.to_string(),
-        version: cw2::ContractVersion {
+        version: Some(cw2::ContractVersion {
             contract: PROXY.into(),
             version: CONTRACT_VERSION.into(),
-        },
+        }),
     });
 
     // assert manager config
@@ -383,21 +383,18 @@ fn install_multiple_modules() -> AResult {
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
         String::from("abstract:standalone1"),
-        // Querying no_cw2 fails
-        // String::from("abstract:standalone2"),
+        String::from("abstract:standalone2"),
     ])?;
     assert_eq!(
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
+                Some(ContractVersion {
                     contract: String::from(mock_modules::standalone_cw2::MOCK_STANDALONE_ID),
                     version: String::from(mock_modules::V1)
-                },
-                // ContractVersion {
-                //     contract: String::from("abstract:standalone2"),
-                //     version: String::from(mock_modules::V1)
-                // },
+                }),
+                // Second doesn't have cw2
+                None,
             ]
         }
     );

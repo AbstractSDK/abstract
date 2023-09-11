@@ -258,7 +258,8 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleVersionsResponse {
-    pub versions: Vec<ContractVersion>,
+    // Modules may or may not have cw2
+    pub versions: Vec<Option<ContractVersion>>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -282,7 +283,7 @@ pub struct InfoResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub id: String,
-    pub version: ContractVersion,
+    pub version: Option<ContractVersion>,
     pub address: Addr,
 }
 

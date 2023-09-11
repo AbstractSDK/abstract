@@ -525,8 +525,8 @@ pub fn set_migrate_msgs_and_context(
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
-    let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
+    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone());
+    let requested_module = query_module(deps.as_ref(), module_info.clone(), old_module_cw2)?;
 
     let migrate_msgs = match requested_module.module.reference {
         // upgrading an adapter is done by moving the authorized addresses to the new contract address and updating the permissions on the proxy.
@@ -794,18 +794,17 @@ fn query_module(
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            let old_contract = old_contract_cw2.unwrap();
+            if let Some(old_contract) = old_contract_cw2 {
+                let new_version = new_version.parse::<Version>().unwrap();
+                let old_version = old_contract.version.parse::<Version>().unwrap();
 
-            let new_version = new_version.parse::<Version>().unwrap();
-            let old_version = old_contract.version.parse::<Version>().unwrap();
-
-            if new_version < old_version {
-                return Err(ManagerError::OlderVersion(
-                    new_version.to_string(),
-                    old_version.to_string(),
-                ));
+                if new_version < old_version {
+                    return Err(ManagerError::OlderVersion(
+                        new_version.to_string(),
+                        old_version.to_string(),
+                    ));
+                }
             }
-
             Module {
                 info: module_info.clone(),
                 reference: version_registry.query_module_reference_raw(&module_info)?,

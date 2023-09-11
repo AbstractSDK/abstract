@@ -64,7 +64,7 @@ pub fn handle_module_info_query(
     let ids_and_addr = res?;
     let mut resp_vec: Vec<ManagerModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
-        let version = query_module_cw2(&deps, address.clone())?;
+        let version = query_module_cw2(&deps, address.clone());
         resp_vec.push(ManagerModuleInfo {
             id,
             version,
@@ -94,12 +94,12 @@ pub fn handle_sub_accounts_query(
 }
 
 /// RawQuery the version of an enabled module
-pub fn query_module_cw2(deps: &Deps, module_addr: Addr) -> StdResult<ContractVersion> {
+pub fn query_module_cw2(deps: &Deps, module_addr: Addr) -> Option<ContractVersion> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: module_addr.into(),
         key: CONTRACT.as_slice().into(),
     });
-    deps.querier.query::<ContractVersion>(&req)
+    deps.querier.query::<ContractVersion>(&req).ok()
 }
 
 /// RawQuery the module versions of the modules part of the Account
@@ -108,12 +108,12 @@ pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
     module_names: &[String],
-) -> StdResult<BTreeMap<String, ContractVersion>> {
+) -> StdResult<BTreeMap<String, Option<ContractVersion>>> {
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
-    let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
+    let mut module_versions: BTreeMap<String, Option<ContractVersion>> = BTreeMap::new();
     for (name, address) in addresses.into_iter() {
-        let result = query_module_cw2(&deps, address)?;
+        let result = query_module_cw2(&deps, address);
         module_versions.insert(name, result);
     }
     Ok(module_versions)

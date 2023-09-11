@@ -556,18 +556,18 @@ fn create_account_with_installed_module() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
+                Some(ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                }
+                })
             ]
         }
     );
@@ -644,18 +644,18 @@ fn create_sub_account_with_installed_module() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
+                Some(ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                }
+                })
             ]
         }
     );
@@ -794,18 +794,18 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
+                Some(ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                },
-                ContractVersion {
+                }),
+                Some(ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                }
+                })
             ]
         }
     );
