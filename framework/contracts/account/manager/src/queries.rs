@@ -1,5 +1,7 @@
-use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
-use abstract_core::manager::SubAccountIdsResponse;
+use abstract_core::manager::state::{
+    Config, ACCOUNT_MODULE_VERSIONS, SUB_ACCOUNTS, SUSPENSION_STATUS,
+};
+use abstract_core::manager::{AbstractContractVersion, SubAccountIdsResponse};
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -64,7 +66,7 @@ pub fn handle_module_info_query(
     let ids_and_addr = res?;
     let mut resp_vec: Vec<ManagerModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
-        let version = query_module_cw2(&deps, address.clone());
+        let version = query_module_version(&deps, address.clone(), &id)?;
         resp_vec.push(ManagerModuleInfo {
             id,
             version,
@@ -94,12 +96,25 @@ pub fn handle_sub_accounts_query(
 }
 
 /// RawQuery the version of an enabled module
-pub fn query_module_cw2(deps: &Deps, module_addr: Addr) -> Option<ContractVersion> {
+pub fn query_module_version(
+    deps: &Deps,
+    module_addr: Addr,
+    module_id: &str,
+) -> StdResult<AbstractContractVersion> {
     let req = QueryRequest::Wasm(WasmQuery::Raw {
         contract_addr: module_addr.into(),
         key: CONTRACT.as_slice().into(),
     });
-    deps.querier.query::<ContractVersion>(&req).ok()
+    match deps.querier.query::<ContractVersion>(&req) {
+        Ok(v) => Ok(v.into()),
+        Err(e) => {
+            if let Some(version) = ACCOUNT_MODULE_VERSIONS.may_load(deps.storage, module_id)? {
+                Ok(version.into())
+            } else {
+                Err(e)
+            }
+        }
+    }
 }
 
 /// RawQuery the module versions of the modules part of the Account
@@ -108,12 +123,12 @@ pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
     module_names: &[String],
-) -> StdResult<BTreeMap<String, Option<ContractVersion>>> {
+) -> StdResult<BTreeMap<String, AbstractContractVersion>> {
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
-    let mut module_versions: BTreeMap<String, Option<ContractVersion>> = BTreeMap::new();
+    let mut module_versions: BTreeMap<String, AbstractContractVersion> = BTreeMap::new();
     for (name, address) in addresses.into_iter() {
-        let result = query_module_cw2(&deps, address);
+        let result = query_module_version(&deps, address, &name)?;
         module_versions.insert(name, result);
     }
     Ok(module_versions)

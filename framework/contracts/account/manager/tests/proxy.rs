@@ -36,10 +36,11 @@ fn instantiate() -> AResult {
     assert_that(&modules[0]).is_equal_to(&ManagerModuleInfo {
         address: account.proxy.address()?,
         id: PROXY.to_string(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: PROXY.into(),
             version: CONTRACT_VERSION.into(),
-        }),
+        }
+        .into(),
     });
 
     // assert manager config
@@ -389,12 +390,13 @@ fn install_multiple_modules() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                Some(ContractVersion {
+                ContractVersion {
                     contract: String::from(mock_modules::standalone_cw2::MOCK_STANDALONE_ID),
                     version: String::from(mock_modules::V1)
-                }),
+                }
+                .into(),
                 // Second doesn't have cw2
-                None,
+                ModuleVersion::Version(String::from(mock_modules::V1)).into(),
             ]
         }
     );

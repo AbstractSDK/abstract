@@ -1,14 +1,16 @@
-use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
+use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_version};
 use crate::{validation, versioning};
 use abstract_core::manager::state::{
-    ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
+    ACCOUNT_FACTORY, ACCOUNT_MODULE_VERSIONS, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
 };
 
 use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
+use abstract_core::manager::{
+    AbstractContractVersion, InternalConfigAction, UpdateSubAccountAction,
+};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
@@ -43,7 +45,7 @@ use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
-use cw2::{get_contract_version, ContractVersion};
+use cw2::get_contract_version;
 use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
@@ -113,7 +115,7 @@ pub fn install_modules(
 
 /// Generate message and attribute for installing module
 pub(crate) fn install_modules_internal(
-    storage: &dyn Storage,
+    storage: &mut dyn Storage,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     funds: Vec<Coin>,
@@ -160,6 +162,8 @@ pub fn register_module(
         None,
     )?;
 
+    // Save version
+    ACCOUNT_MODULE_VERSIONS.save(deps.storage, &module.info.id(), &module.info.version)?;
     match module {
         Module {
             reference: ModuleReference::App(_),
@@ -251,7 +255,7 @@ pub fn create_sub_account(
     let account_factory_addr = query_module(
         deps.as_ref(),
         ModuleInfo::from_id_latest(abstract_core::ACCOUNT_FACTORY)?,
-        None,
+        AbstractContractVersion::Abstract(ModuleVersion::Latest),
     )?
     .module
     .reference
@@ -525,7 +529,8 @@ pub fn set_migrate_msgs_and_context(
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone());
+    let old_module_cw2 =
+        query_module_version(&deps.as_ref(), old_module_addr.clone(), &module_info.id())?;
     let requested_module = query_module(deps.as_ref(), module_info.clone(), old_module_cw2)?;
 
     let migrate_msgs = match requested_module.module.reference {
@@ -762,8 +767,11 @@ pub fn update_ibc_status(
 
 fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerError> {
     // retrieve the latest version
-    let ibc_client_module =
-        query_module(deps.as_ref(), ModuleInfo::from_id_latest(IBC_CLIENT)?, None)?;
+    let ibc_client_module = query_module(
+        deps.as_ref(),
+        ModuleInfo::from_id_latest(IBC_CLIENT)?,
+        AbstractContractVersion::Abstract(ModuleVersion::Latest),
+    )?;
 
     let ibc_client_addr = ibc_client_module.module.reference.unwrap_native()?;
 
@@ -785,7 +793,7 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract_cw2: Option<ContractVersion>,
+    old_contract_version: AbstractContractVersion,
 ) -> Result<ModuleResponse, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
@@ -794,16 +802,20 @@ fn query_module(
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            if let Some(old_contract) = old_contract_cw2 {
-                let new_version = new_version.parse::<Version>().unwrap();
-                let old_version = old_contract.version.parse::<Version>().unwrap();
-
-                if new_version < old_version {
-                    return Err(ManagerError::OlderVersion(
-                        new_version.to_string(),
-                        old_version.to_string(),
-                    ));
+            let new_version = new_version.parse::<Version>().unwrap();
+            let old_version = match old_contract_version {
+                AbstractContractVersion::Cw2(old_contract) => {
+                    old_contract.version.parse::<Version>().unwrap()
                 }
+                AbstractContractVersion::Abstract(old_contract) => {
+                    old_contract.to_string().parse::<Version>().unwrap()
+                }
+            };
+            if new_version < old_version {
+                return Err(ManagerError::OlderVersion(
+                    new_version.to_string(),
+                    old_version.to_string(),
+                ));
             }
             Module {
                 info: module_info.clone(),
@@ -834,7 +846,7 @@ fn self_upgrade_msg(
     migrate_msg: Binary,
 ) -> ManagerResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
+    let module = query_module(deps.as_ref(), module_info.clone(), contract.into())?;
     if let ModuleReference::AccountBase(manager_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: self_addr.to_string(),

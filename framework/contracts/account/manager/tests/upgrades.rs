@@ -556,18 +556,21 @@ fn create_account_with_installed_module() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                Some(ContractVersion {
+                ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                })
+                }
+                .into()
             ]
         }
     );
@@ -644,18 +647,21 @@ fn create_sub_account_with_installed_module() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                Some(ContractVersion {
+                ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                })
+                }
+                .into()
             ]
         }
     );
@@ -794,18 +800,21 @@ fn create_account_with_installed_module_and_monetization() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                Some(ContractVersion {
+                ContractVersion {
                     contract: String::from(adapter_1::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(adapter_2::MOCK_ADAPTER_ID),
                     version: String::from(V1)
-                }),
-                Some(ContractVersion {
+                }
+                .into(),
+                ContractVersion {
                     contract: String::from(app_1::MOCK_APP_ID),
                     version: String::from(V1)
-                })
+                }
+                .into()
             ]
         }
     );

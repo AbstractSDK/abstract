@@ -20,6 +20,7 @@ pub mod state {
     use crate::module_factory::ModuleInstallConfig;
     pub use crate::objects::account_id::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
+    use crate::objects::module::ModuleVersion;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Deps};
     use cw_address_like::AddressLike;
@@ -88,6 +89,8 @@ pub mod state {
     pub const OWNER: Item<Ownership<Addr>> = Item::new(OWNERSHIP_STORAGE_KEY);
     /// Enabled Abstract modules
     pub const ACCOUNT_MODULES: Map<ModuleId, Addr> = Map::new("modules");
+    /// Enabled versions of modules
+    pub const ACCOUNT_MODULE_VERSIONS: Map<ModuleId, ModuleVersion> = Map::new("mod_vers");
     /// Stores the dependency relationship between modules
     /// map module -> modules that depend on module.
     pub const DEPENDENTS: Map<ModuleId, HashSet<String>> = Map::new("dependents");
@@ -102,6 +105,7 @@ pub mod state {
 use self::state::AccountInfo;
 use crate::manager::state::SuspensionStatus;
 use crate::module_factory::ModuleInstallConfig;
+use crate::objects::module::ModuleVersion;
 use crate::objects::AssetEntry;
 use crate::objects::{
     account_id::AccountId,
@@ -258,8 +262,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleVersionsResponse {
-    // Modules may or may not have cw2
-    pub versions: Vec<Option<ContractVersion>>,
+    pub versions: Vec<AbstractContractVersion>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -283,8 +286,27 @@ pub struct InfoResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub id: String,
-    pub version: Option<ContractVersion>,
+    pub version: AbstractContractVersion,
     pub address: Addr,
+}
+
+#[cosmwasm_schema::cw_serde]
+/// For standalone modules we save Abstract version, to backup no-cw2 contracts
+pub enum AbstractContractVersion {
+    Abstract(ModuleVersion),
+    Cw2(ContractVersion),
+}
+
+impl From<ContractVersion> for AbstractContractVersion {
+    fn from(value: ContractVersion) -> Self {
+        AbstractContractVersion::Cw2(value)
+    }
+}
+
+impl From<ModuleVersion> for AbstractContractVersion {
+    fn from(value: ModuleVersion) -> Self {
+        AbstractContractVersion::Abstract(value)
+    }
 }
 
 #[cosmwasm_schema::cw_serde]

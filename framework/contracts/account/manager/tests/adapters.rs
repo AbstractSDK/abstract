@@ -31,10 +31,11 @@ fn installing_one_adapter_should_succeed() -> AResult {
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }),
+        }
+        .into(),
     });
 
     // Configuration is correct
@@ -157,10 +158,11 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }),
+        }
+        .into(),
     });
 
     // install again
@@ -190,10 +192,11 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: staking_adapter.address()?,
         id: TEST_MODULE_ID.to_string(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }),
+        }
+        .into(),
     });
 
     // uninstall
@@ -232,10 +235,11 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
     assert_that(&modules[1]).is_equal_to(&ManagerModuleInfo {
         address: adapter1.address()?,
         id: adapter1.id(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: adapter1.id(),
             version: V1.into(),
-        }),
+        }
+        .into(),
     });
 
     // uninstall tendermint staking
@@ -264,12 +268,13 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         // the address stored for BootMockAdapter was updated when we instantiated the new version, so this is the new address
         address: adapter2.address()?,
         id: adapter2.id(),
-        version: Some(cw2::ContractVersion {
+        version: cw2::ContractVersion {
             contract: adapter2.id(),
             // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
             // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
             version: V2.to_string(),
-        }),
+        }
+        .into(),
     });
     // assert that the new staking adapter has a different address
     assert_ne!(old_adapter_addr, adapter2.address()?);
