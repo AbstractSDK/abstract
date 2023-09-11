@@ -555,7 +555,7 @@ mod tests {
         fn exists() {
             let test_channel_entry = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: ChainName::from("abstract"),
+                connected_chain: ChainName::from_str("abstract").unwrap(),
             };
 
             let expected_value = "channel-id".to_string();
@@ -576,7 +576,7 @@ mod tests {
         fn does_not_exist() {
             let not_exist_channel = ChannelEntry {
                 protocol: "protocol".to_string(),
-                connected_chain: ChainName::from("chain"),
+                connected_chain: ChainName::from_str("chain").unwrap(),
             };
 
             test_dne(&not_exist_channel);

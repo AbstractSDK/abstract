@@ -119,7 +119,7 @@ mod test {
 
     fn mock_key() -> ChannelEntry {
         ChannelEntry {
-            connected_chain: ChainName::from("osmosis"),
+            connected_chain: ChainName::from_str("osmosis").unwrap(),
             protocol: "ics20".to_string(),
         }
     }
@@ -127,15 +127,15 @@ mod test {
     fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
         (
             ChannelEntry {
-                connected_chain: ChainName::from("osmosis"),
+                connected_chain: ChainName::from_str("osmosis").unwrap(),
                 protocol: "ics20".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from("osmosis"),
+                connected_chain: ChainName::from_str("osmosis").unwrap(),
                 protocol: "ics".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from("cosmos"),
+                connected_chain: ChainName::from_str("cosmos").unwrap(),
                 protocol: "abstract".to_string(),
             },
         )

@@ -410,7 +410,10 @@ mod test {
             .map(|input| {
                 (
                     ChannelEntry {
-                        connected_chain: ChainName::from(input.0.to_string().to_ascii_lowercase()),
+                        connected_chain: ChainName::from_string(
+                            input.0.to_string().to_ascii_lowercase(),
+                        )
+                        .unwrap(),
                         protocol: input.1.to_string().to_ascii_lowercase(),
                     },
                     input.2.to_string(),
@@ -424,7 +427,8 @@ mod test {
         let channel_entry: Vec<ChannelEntry> = input
             .into_iter()
             .map(|input| ChannelEntry {
-                connected_chain: ChainName::from(input.0.to_string().to_ascii_lowercase()),
+                connected_chain: ChainName::from_string(input.0.to_string().to_ascii_lowercase())
+                    .unwrap(),
                 protocol: input.1.to_string().to_ascii_lowercase(),
             })
             .collect();
@@ -834,7 +838,7 @@ mod test {
         // Filter for entries after `Foo` - Alphabetically
         let msg = QueryMsg::ChannelList {
             start_after: Some(ChannelEntry {
-                connected_chain: ChainName::from("foo"),
+                connected_chain: ChainName::from_str("foo").unwrap(),
                 protocol: "foo1".to_string(),
             }),
             limit: Some(42_u8),

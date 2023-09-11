@@ -149,7 +149,7 @@ mod test {
         fn mock_key() -> AccountId {
             AccountId {
                 seq: 1,
-                trace: AccountTrace::Remote(vec![ChainName::from("bitcoin")]),
+                trace: AccountTrace::Remote(vec![ChainName::from_str("bitcoin").unwrap()]),
             }
         }
 
@@ -162,15 +162,15 @@ mod test {
                 AccountId {
                     seq: 1,
                     trace: AccountTrace::Remote(vec![
-                        ChainName::from("ethereum"),
-                        ChainName::from("bitcoin"),
+                        ChainName::from_str("ethereum").unwrap(),
+                        ChainName::from_str("bitcoin").unwrap(),
                     ]),
                 },
                 AccountId {
                     seq: 2,
                     trace: AccountTrace::Remote(vec![
-                        ChainName::from("ethereum"),
-                        ChainName::from("bitcoin"),
+                        ChainName::from_str("ethereum").unwrap(),
+                        ChainName::from_str("bitcoin").unwrap(),
                     ]),
                 },
             )
@@ -240,8 +240,8 @@ mod test {
 
             let items = map
                 .prefix(AccountTrace::Remote(vec![
-                    ChainName::from("ethereum"),
-                    ChainName::from("bitcoin"),
+                    ChainName::from_str("ethereum").unwrap(),
+                    ChainName::from_str("bitcoin").unwrap(),
                 ]))
                 .range(deps.as_ref().storage, None, None, Order::Ascending)
                 .map(|item| item.unwrap())

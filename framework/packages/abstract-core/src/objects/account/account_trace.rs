@@ -135,11 +135,16 @@ impl AccountTrace {
     /// **No verification is done here**
     ///
     /// **only use this for deserialization**
-    pub (crate) fn from_string(trace: String) -> Self {
+    pub(crate) fn from_string(trace: String) -> Self {
         let acc = if trace == LOCAL {
             Self::Local
         } else {
-            Self::Remote(trace.split(CHAIN_DELIMITER).map(|s| ChainName::_from_str(s)).collect())
+            Self::Remote(
+                trace
+                    .split(CHAIN_DELIMITER)
+                    .map(|s| ChainName::_from_str(s))
+                    .collect(),
+            )
         };
         acc
     }
@@ -148,11 +153,16 @@ impl AccountTrace {
     ///
     /// **only use this for deserialization**
     #[allow(unused)]
-    pub (crate) fn from_str(trace: &str) -> Result<Self, AbstractError> {
+    pub(crate) fn from_str(trace: &str) -> Result<Self, AbstractError> {
         let acc = if trace == LOCAL {
             Self::Local
         } else {
-            Self::Remote(trace.split(CHAIN_DELIMITER).map(|s| ChainName::_from_str(s)).collect())
+            Self::Remote(
+                trace
+                    .split(CHAIN_DELIMITER)
+                    .map(|s| ChainName::_from_str(s))
+                    .collect(),
+            )
         };
         acc.verify()?;
         Ok(acc)
@@ -188,6 +198,8 @@ mod test {
     use cw_storage_plus::Map;
 
     mod format {
+        use crate::objects::chain_name::MAX_CHAIN_NAME_LENGTH;
+
         use super::*;
 
         #[test]
@@ -201,18 +213,18 @@ mod test {
             let trace = AccountTrace::from_str("bitcoin").unwrap();
             assert_eq!(
                 trace,
-                AccountTrace::Remote(vec![ChainName::from("bitcoin")])
+                AccountTrace::Remote(vec![ChainName::from_str("bitcoin").unwrap()])
             );
         }
 
         #[test]
         fn remote_multi_works() {
-            let trace = AccountTrace::from("bitcoin>ethereum".to_string());
+            let trace = AccountTrace::from_str("bitcoin>ethereum").unwrap();
             assert_eq!(
                 trace,
                 AccountTrace::Remote(vec![
-                    ChainName::from("bitcoin"),
-                    ChainName::from("ethereum")
+                    ChainName::from_str("bitcoin").unwrap(),
+                    ChainName::from_str("ethereum").unwrap()
                 ])
             );
         }
@@ -223,9 +235,9 @@ mod test {
             assert_eq!(
                 trace,
                 AccountTrace::Remote(vec![
-                    ChainName::from("bitcoin"),
-                    ChainName::from("ethereum"),
-                    ChainName::from("cosmos")
+                    ChainName::from_str("bitcoin").unwrap(),
+                    ChainName::from_str("ethereum").unwrap(),
+                    ChainName::from_str("cosmos").unwrap(),
                 ])
             );
         }
@@ -261,7 +273,7 @@ mod test {
         use super::*;
 
         fn mock_key() -> AccountTrace {
-            AccountTrace::Remote(vec![ChainName::from("bitcoin")])
+            AccountTrace::Remote(vec![ChainName::from_str("bitcoin").unwrap()])
         }
 
         #[test]
