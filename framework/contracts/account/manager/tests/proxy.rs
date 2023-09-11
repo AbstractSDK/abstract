@@ -8,6 +8,7 @@ use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
 use abstract_core::objects::AccountId;
+use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
 use abstract_core::version_control::UpdateModule;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
@@ -286,7 +287,7 @@ fn install_multiple_modules() -> AResult {
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(ABSTRACT_ACCOUNT_ID));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
