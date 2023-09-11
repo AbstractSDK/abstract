@@ -80,9 +80,10 @@ impl<
         message: BaseExecuteMsg,
     ) -> AppResult {
         match message {
-            BaseExecuteMsg::UpdateConfig { ans_host_address } => {
-                self.update_config(deps, info, ans_host_address)
-            }
+            BaseExecuteMsg::UpdateConfig {
+                ans_host_address,
+                version_control_address,
+            } => self.update_config(deps, info, ans_host_address, version_control_address),
         }
     }
 
@@ -91,6 +92,7 @@ impl<
         deps: DepsMut,
         info: MessageInfo,
         ans_host_address: Option<String>,
+        version_control_address: Option<String>,
     ) -> AppResult {
         // self._update_config(deps, info, ans_host_address)?;
         // Only the admin should be able to call this
@@ -100,6 +102,11 @@ impl<
 
         if let Some(ans_host_address) = ans_host_address {
             state.ans_host.address = deps.api.addr_validate(ans_host_address.as_str())?;
+        }
+
+        if let Some(version_control_address) = version_control_address {
+            state.version_control.address =
+                deps.api.addr_validate(version_control_address.as_str())?;
         }
 
         self.base_state.save(deps.storage, &state)?;
@@ -132,6 +139,7 @@ mod test {
         let mut deps = mock_init();
         let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
             ans_host_address: None,
+            version_control_address: None,
         });
 
         let res = execute_as(deps.as_mut(), "not_admin", msg);
@@ -146,24 +154,27 @@ mod test {
 
     mod base {
         use super::*;
-        use abstract_testing::prelude::TEST_ANS_HOST;
+        use abstract_testing::prelude::{TEST_ANS_HOST, TEST_VERSION_CONTROL};
 
         #[test]
         fn only_manager() -> AppTestResult {
             let msg = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
+                version_control_address: None,
             });
 
             test_only_manager(msg)
         }
 
         #[test]
-        fn update_config_should_update_ans_host() -> AppTestResult {
+        fn update_config_should_update_config() -> AppTestResult {
             let mut deps = mock_init();
 
             let new_ans_host = "new_ans_host";
+            let new_version_control = "new_version_control";
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: Some(new_ans_host.to_string()),
+                version_control_address: Some(new_version_control.to_string()),
             });
 
             let res = execute_as_manager(deps.as_mut(), update_ans);
@@ -176,6 +187,8 @@ mod test {
             let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(new_ans_host));
+            assert_that!(state.version_control.address)
+                .is_equal_to(Addr::unchecked(new_version_control));
 
             Ok(())
         }
@@ -186,6 +199,7 @@ mod test {
 
             let update_ans = AppExecuteMsg::Base(BaseExecuteMsg::UpdateConfig {
                 ans_host_address: None,
+                version_control_address: None,
             });
 
             let res = execute_as_manager(deps.as_mut(), update_ans);
@@ -198,6 +212,8 @@ mod test {
             let state = MOCK_APP.base_state.load(deps.as_ref().storage)?;
 
             assert_that!(state.ans_host.address).is_equal_to(Addr::unchecked(TEST_ANS_HOST));
+            assert_that!(state.version_control.address)
+                .is_equal_to(Addr::unchecked(TEST_VERSION_CONTROL));
 
             Ok(())
         }

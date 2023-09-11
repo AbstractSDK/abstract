@@ -137,6 +137,7 @@ fn setup() -> anyhow::Result<(
         &croncat_app::msg::InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: croncat_app::msg::AppInstantiateMsg {},
         },
@@ -154,6 +155,7 @@ fn setup() -> anyhow::Result<(
         &InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: AppInstantiateMsg {
                 native_asset: AssetEntry::new("denom"),

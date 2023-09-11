@@ -14,6 +14,7 @@
 use crate::Abstract;
 use crate::AdapterDeployer;
 use crate::AppDeployer;
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::ABSTRACT_EVENT_TYPE;
 use cw_orch::deploy::Deploy;
 
@@ -67,6 +68,21 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         funds: Option<&[Coin]>,
     ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
         self.manager.install_module(module_id, init_msg, funds)
+    }
+
+    pub fn install_modules(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+        funds: Option<&[Coin]>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager.install_modules(modules, funds)
+    }
+
+    pub fn install_modules_auto(
+        &self,
+        modules: Vec<ModuleInstallConfig>,
+    ) -> Result<Chain::Response, crate::AbstractInterfaceError> {
+        self.manager.install_modules_auto(modules)
     }
 
     /// Assert that the Account has the expected modules with the provided **expected_module_addrs** installed.
@@ -158,7 +174,8 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         let init_msg = abstract_core::app::InstantiateMsg {
             module: custom_init_msg,
             base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstr.ans_host.address()?.into(),
+                ans_host_address: abstr.ans_host.addr_str()?,
+                version_control_address: abstr.version_control.addr_str()?,
             },
         };
         self.install_module_parse_addr(app, &init_msg, funds)

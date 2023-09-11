@@ -22,7 +22,9 @@ pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStak
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        crate::providers::kujira::KUJIRA => Ok(Box::<crate::providers::kujira::Kujira>::default()),
+        abstract_kujira_adapter::KUJIRA => {
+            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        }
         _ => Err(CwStakingError::UnknownDex(value.to_string())),
     }
 }
@@ -45,7 +47,9 @@ pub(crate) fn resolve_local_provider(
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
         #[cfg(feature = "kujira")]
-        crate::providers::kujira::KUJIRA => Ok(Box::<crate::providers::kujira::Kujira>::default()),
+        abstract_kujira_adapter::KUJIRA => {
+            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        }
         _ => Err(CwStakingError::ForeignDex(name.to_owned())),
     }
 }

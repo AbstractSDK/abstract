@@ -273,6 +273,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         &InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstr_deployment.ans_host.addr_str()?,
+                version_control_address: abstr_deployment.version_control.addr_str()?,
             },
             module: AppInstantiateMsg {},
         },

@@ -11,10 +11,9 @@ use abstract_sdk::{
             CallbackInfo,
         },
         ibc_host::{HostAction, InternalAction, PacketMsg},
-        objects::{ans_host::AnsHost, ChannelEntry},
+        objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
         ICS20,
     },
-    feature_objects::VersionControlContract,
     features::AccountIdentification,
     AccountVerification, Execution, Resolve,
 };

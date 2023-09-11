@@ -6,7 +6,7 @@ use abstract_core::objects::dependency::StaticDependency;
 use abstract_core::AbstractError;
 use abstract_sdk::{
     base::SudoHandlerFn,
-    feature_objects::AnsHost,
+    feature_objects::{AnsHost, VersionControlContract},
     namespaces::{ADMIN_NAMESPACE, BASE_STATE},
     AbstractSdkError,
 };
@@ -41,6 +41,8 @@ pub struct AppState {
     pub proxy_address: Addr,
     /// AnsHost contract struct (address)
     pub ans_host: AnsHost,
+    /// Used to verify requests
+    pub version_control: VersionControlContract,
 }
 
 /// The state variables for our AppContract.

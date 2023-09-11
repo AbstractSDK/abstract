@@ -4,6 +4,7 @@
 pub(crate) mod ans_asset;
 pub mod ans_host;
 pub mod common_namespace;
+pub mod version_control;
 
 mod entry;
 pub mod oracle;

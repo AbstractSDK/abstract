@@ -19,7 +19,7 @@ fn is_valid_url(link: &str) -> bool {
     link.starts_with("http://") || link.starts_with("https://") || link.starts_with("ipfs://")
 }
 
-pub fn validate_link(link: &Option<String>) -> Result<(), ValidationError> {
+pub fn validate_link(link: Option<&str>) -> Result<(), ValidationError> {
     if let Some(link) = link {
         if link.len() < MIN_LINK_LENGTH {
             Err(ValidationError::LinkInvalidShort(MIN_LINK_LENGTH))
@@ -49,7 +49,7 @@ pub fn validate_name(title: &str) -> Result<(), ValidationError> {
     }
 }
 
-pub fn validate_description(maybe_description: &Option<String>) -> Result<(), ValidationError> {
+pub fn validate_description(maybe_description: Option<&str>) -> Result<(), ValidationError> {
     if let Some(description) = maybe_description {
         if description.len() < MIN_DESC_LENGTH {
             return Err(ValidationError::DescriptionInvalidShort(MIN_DESC_LENGTH));
@@ -78,7 +78,7 @@ mod tests {
             case("https://example.net:8080")
         )]
         fn valid(input: &str) {
-            assert_that!(validate_link(&Some(input.to_string()))).is_ok();
+            assert_that!(validate_link(Some(input))).is_ok();
         }
 
         #[rstest(
@@ -90,7 +90,7 @@ mod tests {
             case("https:/example.com")
         )]
         fn invalid(input: &str) {
-            assert_that!(validate_link(&Some(input.to_string()))).is_err();
+            assert_that!(validate_link(Some(input))).is_err();
         }
     }
 
@@ -132,7 +132,7 @@ mod tests {
         case("説明"),
         )]
         fn valid_descriptions(input: &str) {
-            assert_that!(validate_description(&Some(input.to_string()))).is_ok();
+            assert_that!(validate_description(Some(input))).is_ok();
         }
 
         #[rstest(input,
@@ -141,7 +141,7 @@ mod tests {
         case("description<>'\""),
         )]
         fn invalid_descriptions(input: &str) {
-            assert_that!(validate_description(&Some(input.to_string()))).is_err();
+            assert_that!(validate_description(Some(input))).is_err();
         }
     }
 }

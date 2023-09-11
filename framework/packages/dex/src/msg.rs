@@ -56,6 +56,7 @@ pub enum DexAction {
         offer_asset: OfferAsset,
         // support complex pool types
         /// Assets that are paired with the offered asset
+        /// Should exclude the offer asset
         paired_assets: Vec<AssetEntry>,
     },
     /// Withdraw liquidity from a pool

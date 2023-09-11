@@ -56,8 +56,8 @@ pub fn instantiate(
     )?;
 
     // Verify info
-    validate_description(&msg.description)?;
-    validate_link(&msg.link)?;
+    validate_description(msg.description.as_deref())?;
+    validate_link(msg.link.as_deref())?;
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
@@ -112,9 +112,7 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 }
                 ExecuteMsg::SetOwner { owner } => set_owner(deps, env, info, owner),
 
-                ExecuteMsg::InstallModule { module, init_msg } => {
-                    install_module(deps, info, env, module, init_msg)
-                }
+                ExecuteMsg::InstallModules { modules } => install_modules(deps, info, env, modules),
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)
                 }
