@@ -29,6 +29,7 @@ use cosmwasm_std::{
 };
 use polytone::callbacks::CallbackRequest;
 
+/// Packet lifetime in seconds
 pub const PACKET_LIFETIME: u64 = 60 * 60;
 
 pub fn execute_update_config(
@@ -68,10 +69,12 @@ pub fn execute_allow_chain_host(
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    // We need to make sure we are not over-writing anything
-    // TODO
-
     let note = deps.api.addr_validate(&note)?;
+    // Can't allow if it already exists
+    if POLYTONE_NOTE.has(deps.storage, &chain) || REVERSE_POLYTONE_NOTE.has(deps.storage, &note) || REMOTE_HOST.has(deps.storage, &chain) {
+        return Err(HostError::ProxyAddressExists);
+    }
+
     POLYTONE_NOTE.save(deps.storage, &chain, &note)?;
     REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &chain)?;
     REMOTE_HOST.save(deps.storage, &chain, &host)?;
@@ -140,12 +143,7 @@ fn send_remote_host_action(
             )?
             .into()],
             callback: callback_request,
-            timeout_seconds: env
-                .block
-                .time
-                .plus_seconds(PACKET_LIFETIME)
-                .seconds()
-                .into(),
+            timeout_seconds: PACKET_LIFETIME.into(),
         },
         vec![],
     )?;

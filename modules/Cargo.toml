@@ -100,8 +100,6 @@ abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship" }
-
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

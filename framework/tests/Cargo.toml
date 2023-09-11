@@ -22,9 +22,9 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
 
-cw-orch = { workspace = true, features = ["daemon", "interchain", "starship"] }
-cw-orch-starship = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship" }
-proto = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "feature/starship" }
+cw-orch = { workspace = true, features = ["daemon"] }
+cw-orch-starship = { git = "https://github.com/AbstractSDK/cw-orch-interchain" }
+cw-orch-proto = { git = "https://github.com/AbstractSDK/cw-orch-interchain" }
 abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true, features = ["daemon"] }
