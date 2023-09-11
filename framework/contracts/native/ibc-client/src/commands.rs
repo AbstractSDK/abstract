@@ -3,6 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
@@ -185,7 +186,7 @@ pub fn execute_send_funds(
     };
 
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: host_chain.into(),
+        connected_chain: ChainName::from_string(host_chain)?,
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;

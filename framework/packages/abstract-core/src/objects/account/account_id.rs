@@ -100,7 +100,7 @@ impl KeyDeserialize for &AccountId {
 
         Ok(AccountId {
             seq: AccountSequence::from_vec(u)?,
-            trace: AccountTrace::from(String::from_vec(tu)?),
+            trace: AccountTrace::from_string(String::from_vec(tu)?),
         })
     }
 }
@@ -116,7 +116,7 @@ impl KeyDeserialize for AccountId {
 
         Ok(AccountId {
             seq: AccountSequence::from_vec(u)?,
-            trace: AccountTrace::from(String::from_vec(tu)?),
+            trace: AccountTrace::from_string(String::from_vec(tu)?),
         })
     }
 }

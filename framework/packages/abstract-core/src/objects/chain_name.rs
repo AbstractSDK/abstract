@@ -2,7 +2,10 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Env, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::AbstractResult;
+use crate::{AbstractResult, AbstractError};
+
+const MAX_CHAIN_NAME_LENGTH: usize = 20;
+const MIN_CHAIN_NAME_LENGTH: usize = 3;
 
 #[cw_serde]
 #[derive(Eq, PartialOrd, Ord)]
@@ -22,12 +25,35 @@ impl ChainName {
         Self(parts[1].to_string())
     }
 
-    /// check the formatting of the chain name
-    pub fn check(&self) -> AbstractResult<()> {
-        if self.0.contains('-') || !self.0.as_str().is_ascii() {
+    pub fn from_string(value: String) -> AbstractResult<Self> {
+        let chain_name = Self(value);
+        chain_name.verify()?;
+        Ok(chain_name)
+    }
+
+    pub fn from_str(value: &str) -> AbstractResult<Self> {
+        let chain_name = Self(value.to_string());
+        chain_name.verify()?;
+        Ok(chain_name)
+    }
+
+    /// verify the formatting of the chain name
+    pub fn verify(&self) -> AbstractResult<()> {
+        // check length
+        if self.0.is_empty()
+            || self.0.len() < MIN_CHAIN_NAME_LENGTH
+            || self.0.len() > MAX_CHAIN_NAME_LENGTH
+        {
+            return Err(AbstractError::FormattingError {
+                object: "chain-seq".into(),
+                expected: format!("between {MIN_CHAIN_NAME_LENGTH} and {MAX_CHAIN_NAME_LENGTH}"),
+                actual: self.0.len().to_string(),
+            });
+        // check character set
+        } else if !self.0.chars().all(|c| c.is_ascii_lowercase() || c == '-') {
             return Err(crate::AbstractError::FormattingError {
                 object: "chain_name".into(),
-                expected: "chain_name-351".into(),
+                expected: "chain-name-351".into(),
                 actual: self.0.clone(),
             });
         }
@@ -46,18 +72,14 @@ impl ChainName {
     pub fn into_string(self) -> String {
         self.0
     }
-}
 
-impl From<&str> for ChainName {
-    /// unchecked conversion!
-    fn from(value: &str) -> Self {
+    /// Only use this if you are sure that the string is valid (e.g. from storage)
+    pub (crate) fn _from_str(value: &str) -> Self {
         Self(value.to_string())
     }
-}
 
-impl From<String> for ChainName {
-    /// unchecked conversion!
-    fn from(value: String) -> Self {
+    /// Only use this if you are sure that the string is valid (e.g. from storage)
+    pub (crate) fn _from_string(value: String) -> Self {
         Self(value)
     }
 }
@@ -111,20 +133,29 @@ mod test {
 
     #[test]
     fn test_from_string() {
-        let namespace = ChainName::from("test".to_string());
+        let namespace = ChainName::from_string("test-124".to_string());
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_from_str() {
-        let namespace = ChainName::from("test");
+        let namespace = ChainName::from_str("test-123");
         assert_that!(namespace.as_str()).is_equal_to("test");
     }
 
     #[test]
     fn test_to_string() {
-        let namespace = ChainName::from("test");
+        let namespace = ChainName::from_str("test");
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
+    }
+
+    #[test]
+    fn test_from_str_long() {
+        let namespace = ChainName::from_str(
+            "test-a-b-c-d-e-f-g-h-i-j-k-l-m-n-o-p-q-r-s-t-u-v-w-x-y-z-1234567890",
+        );
+        assert_that!(namespace.as_str())
+            .is_equal_to("test-a-b-c-d-e-f-g-h-i-j-k-l-m-n-o-p-q-r-s-t-u-v-w-x-y-z");
     }
 
     #[test]

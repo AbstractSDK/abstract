@@ -4,6 +4,7 @@ use crate::{
     state::{ContractError, RESULTS},
     Host, HostError,
 };
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::{
     core::{
         abstract_ica::{BalancesResponse, DispatchResponse, SendAllBackResponse, StdAck},
@@ -102,7 +103,7 @@ impl<
     ) -> Result<CosmosMsg, HostError> {
         let ans = self.name_service(deps);
         let ics20_channel_entry = ChannelEntry {
-            connected_chain: client_chain.into(),
+            connected_chain: ChainName::from_string(client_chain)?,
             protocol: ICS20.to_string(),
         };
         // get the ics20 channel to send funds back to client
