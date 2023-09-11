@@ -12,13 +12,14 @@ pub mod state {
     use cw_storage_plus::Item;
     use serde::{Deserialize, Serialize};
 
-    use crate::objects::{
-        account::{AccountId, AccountSequence},
-        gov_type::GovernanceDetails,
-        module::Module,
-        module::ModuleInfo,
-        module_factory::ModuleInstallConfig,
-        AssetEntry,
+    use crate::{
+        native::module_factory::ModuleInstallConfig,
+        objects::{
+            account::{AccountId, AccountSequence},
+            gov_type::GovernanceDetails,
+            module::Module,
+            AssetEntry,
+        },
     };
 
     /// Account Factory configuration
@@ -61,12 +62,13 @@ pub mod state {
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
-use crate::objects::{
-    account::{AccountSequence, AccountTrace},
-    gov_type::GovernanceDetails,
-    module::ModuleInfo,
-    module_factory::ModuleInstallConfig,
-    AssetEntry,
+use crate::{
+    native::module_factory::ModuleInstallConfig,
+    objects::{
+        account::{AccountSequence, AccountTrace},
+        gov_type::GovernanceDetails,
+        AssetEntry,
+    },
 };
 
 /// Msg used on instantiation

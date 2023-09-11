@@ -16,7 +16,7 @@
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
     use crate::module_factory::ModuleInstallConfig;
-    pub use crate::objects::account_id::ACCOUNT_ID;
+    pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Deps};

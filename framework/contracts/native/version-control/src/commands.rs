@@ -1,9 +1,11 @@
-use abstract_core::objects::{
-    fee::FixedFee,
-    module::{self, Module},
-    validation::validate_link,
+use abstract_core::{
+    objects::{
+        fee::FixedFee,
+        module::{self, Module},
+        validation::validate_link,
+        ABSTRACT_ACCOUNT_ID,
+    },
     version_control::{ModuleDefaultConfiguration, UpdateModule},
-    ABSTRACT_ACCOUNT_ID,
 };
 use cosmwasm_std::{
     ensure, Addr, Attribute, BankMsg, Coin, CosmosMsg, Deps, DepsMut, MessageInfo, Order,
