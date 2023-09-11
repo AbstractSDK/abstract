@@ -40,23 +40,25 @@ pub struct StakingExecuteMsg {
 /// All provide an asset [AnsAsset] information
 pub enum StakingAction {
     /// Stakes/bonds a given token
-    Stake {
-        asset: AnsAsset,
-        unbonding_period: Option<Duration>,
-    },
+    Stake { stake: Vec<StakeRequest> },
 
     /// Unstake/unbond a given token
-    Unstake {
-        asset: AnsAsset,
-        unbonding_period: Option<Duration>,
-    },
+    Unstake { unstake: Vec<StakeRequest> },
 
     /// Claim rewards for a given token
-    ClaimRewards { asset: AssetEntry },
+    ClaimRewards { assets: Vec<AssetEntry> },
 
     /// Claim matured unbonding tokens
-    Claim { asset: AssetEntry },
+    Claim { assets: Vec<AssetEntry> },
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakeRequest {
+    pub asset: AnsAsset,
+    pub unbonding_period: Option<Duration>,
+}
+
+pub type UnstakeRequest = StakeRequest;
 
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
@@ -66,26 +68,31 @@ pub enum StakingQueryMsg {
     #[returns(StakingInfoResponse)]
     Info {
         provider: ProviderName,
-        staking_token: AssetEntry,
+        staking_tokens: Vec<AssetEntry>,
     },
     #[returns(StakeResponse)]
     Staked {
         provider: ProviderName,
-        staking_token: AssetEntry,
         staker_address: String,
-        unbonding_period: Option<Duration>,
+        stakes: Vec<StakedQuery>,
     },
     #[returns(UnbondingResponse)]
     Unbonding {
         provider: ProviderName,
-        staking_token: AssetEntry,
         staker_address: String,
+        staking_tokens: Vec<AssetEntry>,
     },
     #[returns(RewardTokensResponse)]
     RewardTokens {
         provider: ProviderName,
-        staking_token: AssetEntry,
+        staking_tokens: Vec<AssetEntry>,
     },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakedQuery {
+    pub staking_token: AssetEntry,
+    pub unbonding_period: Option<Duration>,
 }
 
 /// Possible staking targets to support staking on cosmwasm contract or cosmos Lockup module
@@ -132,6 +139,11 @@ impl From<Addr> for StakingTarget {
 
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfoResponse {
+    pub infos: Vec<StakingInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakingInfo {
     pub staking_target: StakingTarget,
     pub staking_token: AssetInfo,
     pub unbonding_periods: Option<Vec<Duration>>,
@@ -140,7 +152,7 @@ pub struct StakingInfoResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct StakeResponse {
-    pub amount: Uint128,
+    pub amounts: Vec<Uint128>,
 }
 
 #[cosmwasm_schema::cw_serde]

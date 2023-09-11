@@ -25,7 +25,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
-        let staking_asset = staking_asset_from_action(&action);
+        let staking_asset = staking_assets_from_action(&action);
 
         provider.fetch_data(
             deps.as_ref(),
@@ -37,14 +37,8 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         )?;
 
         let msgs = match action {
-            StakingAction::Stake {
-                asset: staking_token,
-                unbonding_period,
-            } => provider.stake(deps.as_ref(), staking_token.amount, unbonding_period)?,
-            StakingAction::Unstake {
-                asset: staking_token,
-                unbonding_period,
-            } => provider.unstake(deps.as_ref(), staking_token.amount, unbonding_period)?,
+            StakingAction::Stake { stake } => provider.stake(deps.as_ref(), stake)?,
+            StakingAction::Unstake { unstake } => provider.unstake(deps.as_ref(), unstake)?,
             StakingAction::ClaimRewards { asset: _ } => provider.claim_rewards(deps.as_ref())?,
             StakingAction::Claim { asset: _ } => provider.claim(deps.as_ref())?,
         };
@@ -57,21 +51,17 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 }
 
 #[inline(always)]
-fn staking_asset_from_action(action: &StakingAction) -> AssetEntry {
+fn staking_assets_from_action(action: &StakingAction) -> impl Iterator<Item = AssetEntry> {
     match action {
-        StakingAction::Stake {
-            asset: staking_token,
-            ..
-        } => staking_token.name.clone(),
-        StakingAction::Unstake {
-            asset: staking_token,
-            ..
-        } => staking_token.name.clone(),
+        StakingAction::Stake { stake } => stake.iter().map(|req| req.asset.name.clone()).into(),
+        StakingAction::Unstake { unstake } => {
+            unstake.iter().map(|req| req.asset.name.clone()).into()
+        }
         StakingAction::ClaimRewards {
-            asset: staking_token,
-        } => staking_token.clone(),
+            assets: staking_token,
+        } => staking_token.into(),
         StakingAction::Claim {
-            asset: staking_token,
-        } => staking_token.clone(),
+            assets: staking_token,
+        } => staking_token.into(),
     }
 }

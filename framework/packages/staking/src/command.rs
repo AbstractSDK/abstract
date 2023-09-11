@@ -1,9 +1,11 @@
-use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
+use crate::msg::{
+    RewardTokensResponse, StakeRequest, StakeResponse, StakingInfoResponse, UnbondingResponse, UnstakeRequest, StakedQuery,
+};
 use crate::{CwStakingError, Identify};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
 use cw_utils::Duration;
 use std::error::Error;
 
@@ -39,24 +41,14 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         version_control_contract: &VersionControlContract,
-        staking_asset: AssetEntry,
+        staking_assets: impl IntoIterator<Item = AssetEntry>,
     ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
-    fn stake(
-        &self,
-        deps: Deps,
-        amount: Uint128,
-        unbonding_period: Option<Duration>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    fn stake(&self, deps: Deps, stake_request: Vec<StakeRequest>) -> Result<Vec<CosmosMsg>, E>;
 
     /// Stake the provided asset into the staking contract
-    fn unstake(
-        &self,
-        deps: Deps,
-        amount: Uint128,
-        unbonding_period: Option<Duration>,
-    ) -> Result<Vec<CosmosMsg>, E>;
+    fn unstake(&self, deps: Deps, unstake_request: Vec<UnstakeRequest>) -> Result<Vec<CosmosMsg>, E>;
 
     /// Claim rewards on the staking contract
     fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, E>;
@@ -74,7 +66,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        unbonding_period: Option<Duration>,
+        stakes: Vec<StakedQuery>,
     ) -> Result<StakeResponse, E>;
 
     /// Query information on unbonding positions for a given staker.
