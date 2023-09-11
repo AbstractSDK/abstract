@@ -115,7 +115,7 @@ pub fn install_modules(
 
 /// Generate message and attribute for installing module
 pub(crate) fn install_modules_internal(
-    storage: &mut dyn Storage,
+    storage: &dyn Storage,
     modules: Vec<ModuleInstallConfig>,
     module_factory_address: Addr,
     funds: Vec<Coin>,
