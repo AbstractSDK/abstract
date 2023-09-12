@@ -1,6 +1,7 @@
 name: CircleCI Wasm Builder
 
 # Job that updates the wasms of the mono-repo after a PR is merged to main.
+# Or if it is triggerd manually.
 
 on:
   workflow_dispatch:

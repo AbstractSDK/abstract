@@ -5,14 +5,6 @@ members = [
   "packages/bundles/wyndex",
 ]
 
-# Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
-#
-# Critically this prevents dev-dependencies from enabling features even when not building a target that
-# uses dev-dependencies, e.g. the library crate. This in turn ensures that we can catch invalid feature
-# flag combinations that would otherwise only surface in dependent crates
-#
-# Reference - https://doc.rust-lang.org/nightly/cargo/reference/features.html#feature-resolver-version-2
-# See - https://github.com/apache/arrow-rs/pull/1822/files
 resolver = "2"
 
 [workspace.package]
@@ -50,6 +42,7 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
+chrono = { version = "0.4.23", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
