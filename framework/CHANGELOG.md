@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address
 - Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
 - Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases 
+- Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
 
 ### Fixed
 - Partially fixed cw-staking for Osmosis
