@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query on module factory to see how much funds needs to be attached for installing modules
 - Version control on instantiation to the Apps alongside with registry traits
 - Instantiation funds added to module configuration, allowing modules to perform external setup calls
-- Ability to query version of no cw-2 modules
 
 ### Changed
 - Updated fetch_data arguments of CwStakingCommand
@@ -26,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Manager governance now changes only after new "owner" claimed ownership
 - Fixed and separated cw-staking and dex adapters for kujira
 - `ExecOnModule` calls now forward any provided funds to the module that is called.
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
 
 ## [0.17.2] - 2023-07-27
 
