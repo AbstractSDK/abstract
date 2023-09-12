@@ -1,1 +1,1 @@
-c2ea249ee0244d88defe24e09de2ba63f829614cb8866e7d74c9daa2ede7f4d2  app.wasm
+4e4b097907a9eb0a31d4757f73ba741ca4452e1b9f632a4500cc1dfbeba01f4d  app-aarch64.wasm
