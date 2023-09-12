@@ -7,6 +7,7 @@ use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
+use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
 use abstract_core::version_control::UpdateModule;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
@@ -46,7 +47,7 @@ fn instantiate() -> AResult {
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: TEST_ACCOUNT_ID.into(),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
     Ok(())
@@ -181,7 +182,7 @@ fn install_standalone_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -236,7 +237,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -285,7 +286,7 @@ fn install_multiple_modules() -> AResult {
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(ABSTRACT_ACCOUNT_ID));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,

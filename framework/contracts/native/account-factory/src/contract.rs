@@ -1,4 +1,4 @@
-use crate::{commands, error::AccountFactoryError, state::*};
+use crate::{commands, error::AccountFactoryError, queries, state::*};
 use abstract_core::objects::module_version::assert_contract_upgrade;
 use abstract_macros::abstract_response;
 use abstract_sdk::core::{account_factory::*, ACCOUNT_FACTORY};
@@ -27,7 +27,6 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
-        next_account_id: 0u32,
     };
 
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -52,7 +51,6 @@ pub fn execute(
             module_factory_address,
         } => commands::execute_update_config(
             deps,
-            env,
             info,
             ans_host_contract,
             version_control_contract,
@@ -103,22 +101,9 @@ pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> AccountFactoryResult {
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&query_config(deps)?),
+        QueryMsg::Config {} => to_binary(&queries::query_config(deps)?),
         QueryMsg::Ownership {} => query_ownership!(deps),
     }
-}
-
-pub fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let state: Config = CONFIG.load(deps.storage)?;
-
-    let resp = ConfigResponse {
-        version_control_contract: state.version_control_contract,
-        ans_host_contract: state.ans_host_contract,
-        module_factory_address: state.module_factory_address,
-        next_account_id: state.next_account_id,
-    };
-
-    Ok(resp)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -204,7 +189,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                next_account_id: 0,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -230,7 +214,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
-                next_account_id: 0,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -256,7 +239,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                next_account_id: 0,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -284,7 +266,6 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(new_module_factory),
-                next_account_id: 0,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);

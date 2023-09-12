@@ -165,9 +165,13 @@ pub fn receive_register<
     let msg = SubMsg::reply_on_success(msg, INIT_CALLBACK_ID);
 
     // store the proxy address of the Account on the client chain.
-    CLIENT_PROXY.save(deps.storage, (&channel, account_id), &account_proxy_address)?;
+    CLIENT_PROXY.save(
+        deps.storage,
+        (&channel, account_id.clone()),
+        &account_proxy_address,
+    )?;
     // store the account info for the reply handler
-    PENDING.save(deps.storage, &(channel, account_id))?;
+    PENDING.save(deps.storage, &(channel, account_id.clone()))?;
 
     // We rely on Reply handler to change this to Success!
     let acknowledgement = StdAck::fail(format!("Failed to create proxy for Account {account_id} "));

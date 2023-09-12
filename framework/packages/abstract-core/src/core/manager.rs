@@ -15,10 +15,8 @@
 //! ## Migration
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` with `abstract::manager` as module.
 pub mod state {
-    use std::collections::HashSet;
-
     use crate::module_factory::ModuleInstallConfig;
-    pub use crate::objects::account_id::ACCOUNT_ID;
+    pub use crate::objects::account::ACCOUNT_ID;
     use crate::objects::common_namespace::OWNERSHIP_STORAGE_KEY;
     use crate::objects::{gov_type::GovernanceDetails, module::ModuleId};
     use cosmwasm_std::{Addr, Deps};
@@ -26,6 +24,7 @@ pub mod state {
     use cw_controllers::Admin;
     use cw_ownable::Ownership;
     use cw_storage_plus::{Item, Map};
+    use std::collections::HashSet;
 
     pub type SuspensionStatus = bool;
 
@@ -104,12 +103,12 @@ use crate::manager::state::SuspensionStatus;
 use crate::module_factory::ModuleInstallConfig;
 use crate::objects::AssetEntry;
 use crate::objects::{
-    account_id::AccountId,
+    account::AccountId,
     gov_type::GovernanceDetails,
     module::{Module, ModuleInfo},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Binary, Uint64};
+use cosmwasm_std::{Addr, Binary};
 use cw2::ContractVersion;
 
 /// Manager Migrate Msg
@@ -268,7 +267,7 @@ pub struct ModuleAddressesResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
-    pub account_id: Uint64,
+    pub account_id: AccountId,
     pub is_suspended: SuspensionStatus,
     pub version_control_address: Addr,
     pub module_factory_address: Addr,
