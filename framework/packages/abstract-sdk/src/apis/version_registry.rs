@@ -9,8 +9,8 @@ use abstract_core::{
         namespace::Namespace,
     },
     version_control::{
-        state::REGISTERED_MODULES, ModuleConfiguration, ModuleResponse, ModulesResponse,
-        NamespaceResponse, QueryMsg,
+        state::{REGISTERED_MODULES, STANDALONE_INFOS},
+        ModuleConfiguration, ModuleResponse, ModulesResponse, NamespaceResponse, QueryMsg,
     },
 };
 use cosmwasm_std::Deps;
@@ -111,5 +111,13 @@ impl<'a, T: ModuleRegistryInterface> ModuleRegistry<'a, T> {
             &QueryMsg::Namespace { namespace },
         )?)?;
         Ok(namespace_response)
+    }
+
+    /// Queries the module info of the standalone code id
+    pub fn query_standalone_info(&self, code_id: u64) -> AbstractSdkResult<Option<ModuleInfo>> {
+        let registry_addr = self.base.abstract_registry(self.deps)?.address;
+
+        let info = STANDALONE_INFOS.query(&self.deps.querier, registry_addr, code_id)?;
+        Ok(info)
     }
 }

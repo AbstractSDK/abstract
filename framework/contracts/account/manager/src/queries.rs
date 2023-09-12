@@ -1,12 +1,12 @@
-use abstract_core::manager::state::{
-    Config, ACCOUNT_MODULE_VERSIONS, SUB_ACCOUNTS, SUSPENSION_STATUS,
-};
+use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::{AbstractContractVersion, SubAccountIdsResponse};
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
     ModuleVersionsResponse,
 };
+use abstract_sdk::feature_objects::VersionControlContract;
+use abstract_sdk::ModuleRegistryInterface;
 use cosmwasm_std::{
     to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, Uint64, WasmQuery,
 };
@@ -64,9 +64,13 @@ pub fn handle_module_info_query(
         .collect();
 
     let ids_and_addr = res?;
+
+    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(config.version_control_address);
+
     let mut resp_vec: Vec<ManagerModuleInfo> = vec![];
     for (id, address) in ids_and_addr.into_iter() {
-        let version = query_module_version(&deps, address.clone(), &id)?;
+        let version = query_module_version(deps, address.clone(), &version_control)?;
         resp_vec.push(ManagerModuleInfo {
             id,
             version,
@@ -97,23 +101,32 @@ pub fn handle_sub_accounts_query(
 
 /// RawQuery the version of an enabled module
 pub fn query_module_version(
-    deps: &Deps,
+    deps: Deps,
     module_addr: Addr,
-    module_id: &str,
+    version_control: &VersionControlContract,
 ) -> StdResult<AbstractContractVersion> {
-    let req = QueryRequest::Wasm(WasmQuery::Raw {
-        contract_addr: module_addr.into(),
-        key: CONTRACT.as_slice().into(),
-    });
-    match deps.querier.query::<ContractVersion>(&req) {
-        Ok(v) => Ok(v.into()),
-        Err(e) => {
-            if let Some(version) = ACCOUNT_MODULE_VERSIONS.may_load(deps.storage, module_id)? {
-                Ok(version.into())
-            } else {
-                Err(e)
-            }
-        }
+    let module_registry = version_control.module_registry(deps);
+
+    // Currently manager doesn't save ModuleReference,
+    // so we need to check for standalone first
+    let code_id = deps
+        .querier
+        .query_wasm_contract_info(module_addr.to_string())?
+        .code_id;
+    let module_info = module_registry
+        .query_standalone_info(code_id)
+        .map_err(|e| StdError::generic_err(e.to_string()))?;
+
+    if let Some(standalone_info) = module_info {
+        Ok(standalone_info.into())
+    } else {
+        let req = QueryRequest::Wasm(WasmQuery::Raw {
+            contract_addr: module_addr.into(),
+            key: CONTRACT.as_slice().into(),
+        });
+
+        let response = deps.querier.query::<ContractVersion>(&req)?.into();
+        Ok(response)
     }
 }
 
@@ -127,8 +140,11 @@ pub fn query_module_versions(
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
     let mut module_versions: BTreeMap<String, AbstractContractVersion> = BTreeMap::new();
+
+    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(config.version_control_address);
     for (name, address) in addresses.into_iter() {
-        let result = query_module_version(&deps, address, &name)?;
+        let result = query_module_version(deps, address, &version_control)?;
         module_versions.insert(name, result);
     }
     Ok(module_versions)

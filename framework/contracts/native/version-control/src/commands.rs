@@ -81,11 +81,19 @@ pub fn propose_modules(
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
 
-        // verify contract admin is None if module is Adapter
-        if let ModuleReference::Adapter(ref addr) = mod_ref {
-            if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
-                return Err(VCError::AdminMustBeNone);
+        match mod_ref {
+            // verify contract admin is None if module is Adapter
+            ModuleReference::Adapter(ref addr) => {
+                if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
+                    return Err(VCError::AdminMustBeNone);
+                }
             }
+            // Save module info of standalone contracts,
+            // helps querying version for no cw-2 contracts
+            ModuleReference::Standalone(id) => {
+                STANDALONE_INFOS.save(deps.storage, id, &module)?;
+            }
+            _ => {}
         }
 
         if config.allow_direct_module_registration_and_updates {
