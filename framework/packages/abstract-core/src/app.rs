@@ -51,6 +51,7 @@ impl AppQueryMsg for Empty {}
 #[cosmwasm_schema::cw_serde]
 pub struct BaseInstantiateMsg {
     pub ans_host_address: String,
+    pub version_control_address: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -58,7 +59,10 @@ pub struct BaseInstantiateMsg {
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg<T>))]
 pub enum BaseExecuteMsg {
     /// Updates the base config
-    UpdateConfig { ans_host_address: Option<String> },
+    UpdateConfig {
+        ans_host_address: Option<String>,
+        version_control_address: Option<String>,
+    },
 }
 
 impl<T> From<BaseExecuteMsg> for ExecuteMsg<T> {

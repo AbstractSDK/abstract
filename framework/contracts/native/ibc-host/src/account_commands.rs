@@ -1,11 +1,11 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    endpoints::reply::{INIT_CALLBACK_ID, RESPONSE_REPLY_ID},
+    endpoints::reply::RESPONSE_REPLY_ID,
     HostError,
 };
 use abstract_core::{
     account_factory,
-    ibc_host::state::{CONFIG, REGISTRATION_CACHE},
+    ibc_host::state::CONFIG,
     manager,
     objects::{chain_name::ChainName, AccountId},
     proxy,
@@ -13,11 +13,7 @@ use abstract_core::{
     PROXY,
 };
 use abstract_sdk::{
-    core::{
-        abstract_ica::{SendAllBackResponse, StdAck},
-        objects::ChannelEntry,
-        ICS20,
-    },
+    core::{objects::ChannelEntry, ICS20},
     feature_objects::VersionControlContract,
     AbstractSdkError, AccountVerification, Resolve,
 };
@@ -63,14 +59,9 @@ pub fn receive_register(
         },
         vec![],
     )?;
-    // wrap with a submsg
-    let factory_msg = SubMsg::reply_on_success(factory_msg, INIT_CALLBACK_ID);
-
-    // store the account info for the reply handler
-    REGISTRATION_CACHE.save(deps.storage, &account_id.clone())?;
 
     Ok(Response::new()
-        .add_submessage(factory_msg)
+        .add_message(factory_msg)
         .add_attribute("action", "register"))
 }
 
@@ -100,10 +91,6 @@ pub fn receive_send_all_back(
     client_proxy_address: String,
     client_chain: ChainName,
 ) -> HostResult {
-    // let them know we're fine
-    let response = SendAllBackResponse {};
-    let _acknowledgement = StdAck::success(response);
-
     let wasm_msg = send_all_back(
         deps.as_ref(),
         env,

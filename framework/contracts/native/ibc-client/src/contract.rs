@@ -10,9 +10,7 @@ use abstract_core::{
     IBC_CLIENT,
 };
 use abstract_macros::abstract_response;
-use cosmwasm_std::{
-    to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response, StdResult,
-};
+use cosmwasm_std::{to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -87,9 +85,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryResponse> {
     match msg {
-        QueryMsg::Config {} => to_binary(&queries::config(deps, env)?),
+        QueryMsg::Config {} => to_binary(&queries::config(deps)?),
         QueryMsg::Host { chain_name } => to_binary(&queries::host(deps, chain_name)?),
         QueryMsg::Account { chain, account_id } => {
             to_binary(&queries::account(deps, chain, account_id)?)
@@ -100,6 +98,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<QueryResponse> {
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
         QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
     }
+    .map_err(Into::into)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
@@ -144,7 +143,7 @@ mod tests {
             ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 
-        let config_resp = config(deps.as_ref(), mock_env()).unwrap();
+        let config_resp = config(deps.as_ref()).unwrap();
         assert_that!(config_resp.admin.as_str()).is_equal_to(TEST_CREATOR);
 
         let actual_config = CONFIG.load(deps.as_ref().storage).unwrap();

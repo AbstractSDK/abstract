@@ -2,7 +2,10 @@ use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Env, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 
-use crate::AbstractResult;
+use crate::{AbstractError, AbstractResult};
+
+pub const MAX_CHAIN_NAME_LENGTH: usize = 20;
+pub const MIN_CHAIN_NAME_LENGTH: usize = 3;
 
 #[cw_serde]
 #[derive(Eq, PartialOrd, Ord)]
@@ -22,12 +25,35 @@ impl ChainName {
         Self(parts[1].to_string())
     }
 
-    /// check the formatting of the chain name
-    pub fn check(&self) -> AbstractResult<()> {
-        if self.0.contains('-') || !self.0.as_str().is_ascii() {
+    pub fn from_string(value: String) -> AbstractResult<Self> {
+        let chain_name = Self(value);
+        chain_name.verify()?;
+        Ok(chain_name)
+    }
+
+    pub fn from_str(value: &str) -> AbstractResult<Self> {
+        let chain_name = Self(value.to_string());
+        chain_name.verify()?;
+        Ok(chain_name)
+    }
+
+    /// verify the formatting of the chain name
+    pub fn verify(&self) -> AbstractResult<()> {
+        // check length
+        if self.0.is_empty()
+            || self.0.len() < MIN_CHAIN_NAME_LENGTH
+            || self.0.len() > MAX_CHAIN_NAME_LENGTH
+        {
+            return Err(AbstractError::FormattingError {
+                object: "chain-seq".into(),
+                expected: format!("between {MIN_CHAIN_NAME_LENGTH} and {MAX_CHAIN_NAME_LENGTH}"),
+                actual: self.0.len().to_string(),
+            });
+        // check character set
+        } else if !self.0.chars().all(|c| c.is_ascii_lowercase() || c == '-') {
             return Err(crate::AbstractError::FormattingError {
                 object: "chain_name".into(),
-                expected: "chain_name-351".into(),
+                expected: "chain-name".into(),
                 actual: self.0.clone(),
             });
         }
@@ -46,18 +72,14 @@ impl ChainName {
     pub fn into_string(self) -> String {
         self.0
     }
-}
 
-impl From<&str> for ChainName {
-    /// unchecked conversion!
-    fn from(value: &str) -> Self {
+    /// Only use this if you are sure that the string is valid (e.g. from storage)
+    pub(crate) fn _from_str(value: &str) -> Self {
         Self(value.to_string())
     }
-}
 
-impl From<String> for ChainName {
-    /// unchecked conversion!
-    fn from(value: String) -> Self {
+    /// Only use this if you are sure that the string is valid (e.g. from storage)
+    pub(crate) fn _from_string(value: String) -> Self {
         Self(value)
     }
 }
@@ -111,30 +133,63 @@ mod test {
 
     #[test]
     fn test_from_string() {
-        let namespace = ChainName::from("test".to_string());
-        assert_that!(namespace.as_str()).is_equal_to("test");
+        let namespace = ChainName::from_string("test-me".to_string()).unwrap();
+        assert_that!(namespace.as_str()).is_equal_to("test-me");
     }
 
     #[test]
     fn test_from_str() {
-        let namespace = ChainName::from("test");
-        assert_that!(namespace.as_str()).is_equal_to("test");
+        let namespace = ChainName::from_str("test-too").unwrap();
+        assert_that!(namespace.as_str()).is_equal_to("test-too");
     }
 
     #[test]
     fn test_to_string() {
-        let namespace = ChainName::from("test");
+        let namespace = ChainName::from_str("test").unwrap();
         assert_that!(namespace.to_string()).is_equal_to("test".to_string());
     }
 
     #[test]
+    fn test_from_str_long() {
+        let namespace = ChainName::from_str("test-a-b-c-d-e-f").unwrap();
+        assert_that!(namespace.as_str()).is_equal_to("test-a-b-c-d-e-f");
+    }
+
+    #[test]
     fn string_key_works() {
-        let k = &ChainName::from("test");
+        let k = &ChainName::from_str("test-abc").unwrap();
         let path = k.key();
         assert_eq!(1, path.len());
-        assert_eq!(b"test", path[0].as_ref());
+        assert_eq!(b"test-abc", path[0].as_ref());
 
         let joined = k.joined_key();
-        assert_eq!(joined, b"test")
+        assert_eq!(joined, b"test-abc")
+    }
+
+    // Failures
+
+    #[test]
+    fn local_empty_fails() {
+        ChainName::from_str("").unwrap_err();
+    }
+
+    #[test]
+    fn local_too_short_fails() {
+        ChainName::from_str("a").unwrap_err();
+    }
+
+    #[test]
+    fn local_too_long_fails() {
+        ChainName::from_str(&"a".repeat(MAX_CHAIN_NAME_LENGTH + 1)).unwrap_err();
+    }
+
+    #[test]
+    fn local_uppercase_fails() {
+        ChainName::from_str("AAAAA").unwrap_err();
+    }
+
+    #[test]
+    fn local_non_alphanumeric_fails() {
+        ChainName::from_str("a_aoeuoau").unwrap_err();
     }
 }

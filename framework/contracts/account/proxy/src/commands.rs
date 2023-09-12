@@ -386,7 +386,7 @@ mod test {
     }
 
     mod execute_ibc {
-        use abstract_core::{manager, proxy::state::State};
+        use abstract_core::{manager, objects::chain_name::ChainName, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
         use cosmwasm_std::{to_binary, SubMsg};
 
@@ -408,7 +408,7 @@ mod test {
 
             let msg = ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
-                    host_chain: "juno".into(),
+                    host_chain: ChainName::from_str("juno").unwrap(),
                 }],
             };
 
@@ -433,7 +433,7 @@ mod test {
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
-                        host_chain: "juno".into(),
+                        host_chain: ChainName::from_str("juno").unwrap(),
                     })
                     .unwrap(),
                     funds: vec![],

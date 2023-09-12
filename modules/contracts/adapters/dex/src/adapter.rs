@@ -212,7 +212,7 @@ pub trait DexAdapter: AbstractNameService + Execution {
         let pair_address = exchange.pair_address(
             deps,
             ans.host(),
-            (paired_assets.swap_remove(0), paired_assets.swap_remove(1)),
+            (paired_assets.swap_remove(0), offer_asset.name.clone()),
         )?;
         let offer_asset = ans.query(&offer_asset)?;
         exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)

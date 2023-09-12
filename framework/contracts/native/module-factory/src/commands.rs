@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use abstract_core::objects::module;
 
 use crate::contract::ModuleFactoryResponse;
@@ -8,118 +10,161 @@ use crate::{
 use abstract_sdk::{
     core::{
         manager::ExecuteMsg as ManagerMsg,
-        objects::{module::ModuleInfo, module_reference::ModuleReference},
+        module_factory::ModuleInstallConfig,
+        objects::{
+            module::ModuleInfo, module_reference::ModuleReference,
+            version_control::VersionControlContract,
+        },
     },
-    feature_objects::VersionControlContract,
     *,
 };
 use cosmwasm_std::{
-    wasm_execute, Addr, BankMsg, Binary, CosmosMsg, DepsMut, Empty, Env, MessageInfo, ReplyOn,
-    StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
+    wasm_execute, Addr, Attribute, BankMsg, Binary, Coin, Coins, CosmosMsg, DepsMut, Empty, Env,
+    MessageInfo, ReplyOn, StdError, StdResult, SubMsg, SubMsgResult, WasmMsg,
 };
 use protobuf::Message;
 
 pub const CREATE_APP_RESPONSE_ID: u64 = 1u64;
 pub const CREATE_STANDALONE_RESPONSE_ID: u64 = 4u64;
 
-/// Function that starts the creation of the Module
-pub fn execute_create_module(
+/// Function that starts the creation of the Modules
+pub fn execute_create_modules(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    module_info: ModuleInfo,
-    owner_init_msg: Option<Binary>,
+    modules: Vec<ModuleInstallConfig>,
 ) -> ModuleFactoryResult {
     let config = CONFIG.load(deps.storage)?;
+    let block_height = env.block.height;
+
     // Verify sender is active Account manager
     // Construct feature object to access registry functions
     let binding = VersionControlContract::new(config.version_control_address);
 
     let version_registry = binding.module_registry(deps.as_ref());
     let account_registry = binding.account_registry(deps.as_ref());
+
     // assert that sender is manager
     let account_base = account_registry.assert_manager(&info.sender)?;
 
-    let new_module = version_registry.query_module(module_info.clone())?;
-    let new_module_monetization = version_registry
-        .query_all_module_config(module_info)?
-        .config
-        .monetization;
+    // get module info and module config for further use
+    let (infos, init_msgs): (Vec<ModuleInfo>, Vec<Option<Binary>>) =
+        modules.into_iter().map(|m| (m.module, m.init_msg)).unzip();
+    let modules_responses = version_registry.query_modules_configs(infos)?;
 
-    // TODO: check if this can be generalized for some contracts
-    // aka have default values for each kind of module that only get overwritten if a specific init_msg is saved.
-    // let fixed_binary = MODULE_INIT_BINARIES.may_load(deps.storage, new_module.info.clone())?;
-    // let init_msg = ModuleInitMsg {
-    //     fixed_init: fixed_binary,
-    //     owner_init: owner_init_msg,
-    // }
-    // .format()?;
-
-    // We validate the fee if it was required by the version control to install this module
+    // fees
     let mut fee_msgs = vec![];
-    match new_module_monetization {
-        module::Monetization::InstallFee(f) => {
-            let fee = f.assert_payment(&info)?;
-            // We transfer that fee to the namespace owner if there is
-            let namespace_account =
-                version_registry.query_namespace(new_module.info.namespace.clone())?;
-            fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                to_address: namespace_account.account_base.proxy.to_string(),
-                amount: vec![fee],
-            }));
-        }
-        abstract_core::objects::module::Monetization::None => {}
-        // The monetization must be known to the factory for a module to be installed
-        _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
-    };
+    let mut sum_of_monetization = Coins::default();
 
-    // Set context for after init
+    // install messages
+    let mut sub_messages = Vec::with_capacity(modules_responses.len());
+    // list of modules to register after instantiation
+    let mut installed_modules = VecDeque::with_capacity(modules_responses.len());
+
+    // Attributes logging
+    let mut attributes: Vec<Attribute> = vec![];
+    let mut module_ids = Vec::with_capacity(modules_responses.len());
+
+    for (owner_init_msg, module_response) in
+        init_msgs.into_iter().zip(modules_responses.into_iter())
+    {
+        let new_module = module_response.module;
+        let new_module_monetization = module_response.config.monetization;
+        let new_module_init_funds = module_response.config.instantiation_funds;
+        module_ids.push(new_module.info.id_with_version());
+
+        // We validate the fee if it was required by the version control to install this module
+        match new_module_monetization {
+            module::Monetization::InstallFee(f) => {
+                let fee = f.fee();
+                sum_of_monetization.add(fee.clone())?;
+                // We transfer that fee to the namespace owner if there is
+                let namespace_account =
+                    version_registry.query_namespace(new_module.info.namespace.clone())?;
+                fee_msgs.push(CosmosMsg::Bank(BankMsg::Send {
+                    to_address: namespace_account.account_base.proxy.to_string(),
+                    amount: vec![fee],
+                }));
+            }
+            abstract_core::objects::module::Monetization::None => {}
+            // The monetization must be known to the factory for a module to be installed
+            _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
+        };
+
+        for init_coin in new_module_init_funds.clone() {
+            sum_of_monetization.add(init_coin)?;
+        }
+
+        match &new_module.reference {
+            ModuleReference::App(code_id) => {
+                let init_msg = instantiate_contract(
+                    block_height,
+                    *code_id,
+                    owner_init_msg.unwrap(),
+                    Some(account_base.manager.clone()),
+                    CREATE_APP_RESPONSE_ID,
+                    new_module_init_funds,
+                    &new_module.info,
+                )?;
+                installed_modules.push_back(new_module.clone());
+                sub_messages.push(init_msg);
+            }
+            // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
+            ModuleReference::Adapter(addr) => {
+                let new_module_addr = addr.to_string();
+                let register_msg: CosmosMsg<Empty> = wasm_execute(
+                    account_base.manager.to_string(),
+                    &ManagerMsg::RegisterModule {
+                        module_addr: addr.to_string(),
+                        module: new_module,
+                    },
+                    new_module_init_funds,
+                )?
+                .into();
+                attributes.push(("new_module", new_module_addr).into());
+                // SubMsg::new() is the same as `.add_message()`
+                sub_messages.push(SubMsg::new(register_msg));
+            }
+            ModuleReference::Standalone(code_id) => {
+                let init_msg = instantiate_contract(
+                    block_height,
+                    *code_id,
+                    owner_init_msg.unwrap(),
+                    Some(account_base.manager.clone()),
+                    CREATE_STANDALONE_RESPONSE_ID,
+                    new_module_init_funds,
+                    &new_module.info,
+                )?;
+                installed_modules.push_back(new_module.clone());
+                sub_messages.push(init_msg);
+            }
+            _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
+        };
+    }
+
+    let sum_of_monetization = sum_of_monetization.into_vec();
+    if sum_of_monetization != info.funds {
+        return Err(core::AbstractError::Fee(format!(
+            "Invalid fee payment sent. Expected {:?}, sent {:?}",
+            sum_of_monetization, info.funds
+        ))
+        .into());
+    }
+
     CONTEXT.save(
         deps.storage,
         &Context {
             account_base: Some(account_base.clone()),
-            module: Some(new_module.clone()),
+            modules: installed_modules,
         },
     )?;
-    let block_height = env.block.height;
-    let resp = match &new_module.reference {
-        ModuleReference::App(code_id) => instantiate_contract(
-            block_height,
-            *code_id,
-            owner_init_msg.unwrap(),
-            Some(account_base.manager),
-            CREATE_APP_RESPONSE_ID,
-            new_module.info,
-        ),
-        ModuleReference::Adapter(addr) => {
-            let module_id = new_module.info.id_with_version();
-            let new_module_addr = addr.to_string();
-            let register_msg: CosmosMsg<Empty> = wasm_execute(
-                account_base.manager.into_string(),
-                &ManagerMsg::RegisterModule {
-                    module_addr: addr.to_string(),
-                    module: new_module,
-                },
-                vec![],
-            )?
-            .into();
-            Ok(ModuleFactoryResponse::new(
-                "execute_create_module",
-                vec![("module", module_id), ("new_module", new_module_addr)],
-            )
-            .add_message(register_msg))
-        }
-        ModuleReference::Standalone(code_id) => instantiate_contract(
-            block_height,
-            *code_id,
-            owner_init_msg.unwrap(),
-            Some(account_base.manager),
-            CREATE_STANDALONE_RESPONSE_ID,
-            new_module.info,
-        ),
-        _ => Err(ModuleFactoryError::ModuleNotInstallable {}),
-    }?;
-    Ok(resp.add_messages(fee_msgs))
+
+    Ok(
+        ModuleFactoryResponse::new("execute_create_modules", attributes)
+            .add_submessages(sub_messages)
+            .add_messages(fee_msgs)
+            .add_attribute("module_ids", format!("{module_ids:?}")),
+    )
 }
 
 fn instantiate_contract(
@@ -128,31 +173,27 @@ fn instantiate_contract(
     init_msg: Binary,
     admin: Option<Addr>,
     reply_id: u64,
-    module_info: ModuleInfo,
-) -> ModuleFactoryResult {
-    let response = ModuleFactoryResponse::new(
-        "execute_create_module",
-        vec![("module", module_info.id_with_version())],
-    );
-    Ok(response.add_submessage(SubMsg {
+    funds: Vec<Coin>,
+    module_info: &ModuleInfo,
+) -> ModuleFactoryResult<SubMsg> {
+    Ok(SubMsg {
         id: reply_id,
         gas_limit: None,
         msg: WasmMsg::Instantiate {
             code_id,
-            funds: vec![],
+            funds,
             admin: admin.map(Into::into),
             label: format!("Module: {module_info}, Height {block_height}"),
             msg: init_msg,
         }
         .into(),
         reply_on: ReplyOn::Success,
-    }))
+    })
 }
 
 pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
-    let context: Context = CONTEXT.load(deps.storage)?;
-    let module = context.module.unwrap();
-
+    let mut context: Context = CONTEXT.load(deps.storage)?;
+    let module = context.modules.pop_front().unwrap();
     // Get address of the new contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
@@ -163,7 +204,7 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
     module::assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
 
     let register_msg: CosmosMsg<Empty> = wasm_execute(
-        context.account_base.unwrap().manager.into_string(),
+        context.account_base.clone().unwrap().manager.into_string(),
         &ManagerMsg::RegisterModule {
             module_addr: module_address.to_string(),
             module,
@@ -172,7 +213,7 @@ pub fn register_contract(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryRe
     )?
     .into();
 
-    clear_context(deps)?;
+    update_context(deps, &context)?;
 
     Ok(
         ModuleFactoryResponse::new("register_contract", vec![("new_module", module_address)])
@@ -231,15 +272,14 @@ pub fn update_factory_binaries(
     Ok(ModuleFactoryResponse::action("update_factory_binaries"))
 }
 
-fn clear_context(deps: DepsMut) -> Result<(), StdError> {
-    // Set context for after init
-    CONTEXT.save(
-        deps.storage,
-        &Context {
-            account_base: None,
-            module: None,
-        },
-    )
+fn update_context(deps: DepsMut, context: &Context) -> Result<(), StdError> {
+    // Update context for after init
+    if context.modules.is_empty() {
+        CONTEXT.remove(deps.storage);
+        Ok(())
+    } else {
+        CONTEXT.save(deps.storage, context)
+    }
 }
 
 #[cfg(test)]
@@ -322,7 +362,7 @@ mod test {
     mod instantiate_contract {
         use super::*;
         use abstract_core::objects::module::ModuleVersion;
-        use cosmwasm_std::{testing::mock_info, to_binary};
+        use cosmwasm_std::{coin, testing::mock_info, to_binary};
 
         #[test]
         fn should_create_submsg_with_instantiate_msg() -> ModuleFactoryTestResult {
@@ -344,12 +384,13 @@ mod test {
                 expected_module_init_msg.clone(),
                 None,
                 expected_reply_id,
-                expected_module_info.clone(),
+                vec![coin(5, "ucosm")],
+                &expected_module_info,
             );
 
             let expected_init_msg = WasmMsg::Instantiate {
                 code_id: expected_code_id,
-                funds: vec![],
+                funds: vec![coin(5, "ucosm")],
                 admin: None,
                 label: format!("Module: {expected_module_info}, Height {some_block_height}"),
                 msg: expected_module_init_msg,
@@ -357,10 +398,7 @@ mod test {
 
             assert_that!(actual).is_ok();
 
-            let actual_response = actual.unwrap();
-
-            assert_that!(actual_response.messages).has_length(1);
-            let actual_submsg = actual_response.messages[0].clone();
+            let actual_submsg = actual.unwrap();
 
             assert_that!(actual_submsg.id).is_equal_to(expected_reply_id);
             assert_that!(actual_submsg.gas_limit).is_equal_to(None);

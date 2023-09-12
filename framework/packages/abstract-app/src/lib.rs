@@ -51,7 +51,7 @@ pub mod mock {
     use abstract_sdk::{base::InstantiateEndpoint, AbstractSdkError};
     use abstract_testing::prelude::{
         MockDeps, MockQuerierBuilder, TEST_ANS_HOST, TEST_MANAGER, TEST_MODULE_FACTORY,
-        TEST_MODULE_ID, TEST_PROXY, TEST_VERSION,
+        TEST_MODULE_ID, TEST_PROXY, TEST_VERSION, TEST_VERSION_CONTROL,
     };
     use thiserror::Error;
 
@@ -109,7 +109,7 @@ pub mod mock {
                             manager: Addr::unchecked(TEST_MANAGER),
                             proxy: Addr::unchecked(TEST_PROXY),
                         }),
-                        module: None,
+                        modules: vec![],
                     };
                     Ok(to_binary(&resp).unwrap())
                 }
@@ -129,6 +129,7 @@ pub mod mock {
         let msg = app::InstantiateMsg {
             base: app::BaseInstantiateMsg {
                 ans_host_address: TEST_ANS_HOST.to_string(),
+                version_control_address: TEST_VERSION_CONTROL.to_string(),
             },
             module: MockInitMsg {},
         };

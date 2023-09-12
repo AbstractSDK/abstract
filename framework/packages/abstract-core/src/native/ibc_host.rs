@@ -21,17 +21,14 @@ pub mod state {
 
     use super::*;
 
-    /// Store channel information for account creation reply
-    pub const REGISTRATION_CACHE: Item<AccountId> = Item::new("rc");
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXYS: Map<&ChainName, Addr> = Map::new("ccl");
     pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("reverse-ccl");
     /// Configuration of the IBC host
-    pub const CONFIG: Item<'static, Config> = Item::new("cfg");
+    pub const CONFIG: Item<Config> = Item::new("cfg");
 
     // Temporary structure to hold actions to be executed after account creation
-    pub const TEMP_ACTION_AFTER_CREATION: Item<'static, ActionAfterCreationCache> =
-        Item::new("act");
+    pub const TEMP_ACTION_AFTER_CREATION: Item<ActionAfterCreationCache> = Item::new("act");
 
     /// The BaseState contains the main addresses needed for sending and verifying messages
     #[cosmwasm_schema::cw_serde]
@@ -104,12 +101,12 @@ pub enum ExecuteMsg {
     },
     /// Register the Polytone proxy for a specific chain.
     /// proxy should be a local address (will be validated)
-    RegisterChainProxy { chain: ChainName, proxy: String },
+    RegisterChainProxy { chain: String, proxy: String },
     /// Remove the Polytone proxy for a specific chain.
-    RemoveChainProxy { chain: ChainName },
+    RemoveChainProxy { chain: String },
     /// Create an account internally (used for account creation before account action)
     InternalRegisterAccount {
-        client_chain: ChainName,
+        client_chain: String,
         account_id: AccountId,
     },
     /// Allow for fund recovery through the Admin

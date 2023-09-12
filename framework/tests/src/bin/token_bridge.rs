@@ -7,35 +7,33 @@
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use abstract_interface_integration_tests::{ibc::TEST_STARSHIP_CONFIG, JUNO, STARGAZE};
+use abstract_interface_integration_tests::{JUNO, STARGAZE};
 
+use anyhow::Result as AnyResult;
 use cosmwasm_std::coin;
-use cw_orch::{
-    prelude::{
-        queriers::{Bank, Ibc},
-        InterchainEnv, TxHandler,
-    },
-    starship::Starship,
+use cw_orch::prelude::{
+    queriers::{Bank, Ibc},
+    TxHandler,
 };
-use ibc_relayer_types::core::ics24_host::identifier::PortId;
-use proto::tokenfactory::{
+use cw_orch_interchain::channel_creator::ChannelCreator;
+use cw_orch_interchain_core::InterchainEnv;
+use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
+use cw_orch_starship::Starship;
+use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
-pub fn main() {
+pub fn token_bridge() -> AnyResult<()> {
     env_logger::init();
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let config_path = format!("{}{}", env!("CARGO_MANIFEST_DIR"), TEST_STARSHIP_CONFIG);
+    let interchain = Starship::new(rt.handle().to_owned(), None)?.interchain_env();
 
-    let starship = Starship::new(rt.handle().to_owned(), &config_path, None).unwrap();
-    let interchain: InterchainEnv = starship.interchain_env();
-
-    let juno = interchain.daemon(JUNO).unwrap();
-    let osmosis = interchain.daemon(STARGAZE).unwrap();
+    let juno = interchain.chain(JUNO).unwrap();
+    let stargaze = interchain.chain(STARGAZE).unwrap();
 
     let sender = juno.sender().to_string();
-    let receiver = osmosis.sender().to_string();
+    let receiver = stargaze.sender().to_string();
 
     let test_amount: u128 = 100_000;
     let token_subdenom = format!(
@@ -47,22 +45,14 @@ pub fn main() {
     );
 
     // Create Denom
-    rt.block_on(create_denom(&juno, token_subdenom.as_str()))
-        .unwrap();
+    create_denom(&juno, token_subdenom.as_str())?;
 
     // Mint Denom
-    rt.block_on(mint(
-        &juno,
-        sender.as_str(),
-        token_subdenom.as_str(),
-        test_amount,
-    ))
-    .unwrap();
+    mint(&juno, sender.as_str(), token_subdenom.as_str(), test_amount)?;
 
     // Create a channel between the 2 chains for the transfer ports
-    let interchain_channel = rt
-        .block_on(create_transfer_channel(JUNO, STARGAZE, &starship))
-        .unwrap();
+    let interchain_channel =
+        rt.block_on(create_transfer_channel(JUNO, STARGAZE, None, &interchain))?;
 
     // Transfer to the address on the remote chain
     transfer_tokens(
@@ -70,6 +60,7 @@ pub fn main() {
         &juno,
         receiver.as_str(),
         &coin(test_amount, get_denom(&juno, token_subdenom.as_str())),
+        &interchain,
         &interchain_channel,
         None,
         None,
@@ -81,34 +72,35 @@ pub fn main() {
         "{}/{}/{}",
         PortId::transfer(),
         interchain_channel
-            .get_chain(STARGAZE.to_string())
+            .get_chain(&STARGAZE.to_string())
             .unwrap()
             .channel
             .unwrap(),
         get_denom(&juno, token_subdenom.as_str())
     );
     let hash = rt
-        .block_on(osmosis.query_client::<Ibc>().denom_hash(trace))
+        .block_on(stargaze.query_client::<Ibc>().denom_hash(trace))
         .unwrap();
     let denom = format!("ibc/{}", hash);
 
     // Get balance on the remote chain
     let balance = rt
         .block_on(
-            osmosis
+            stargaze
                 .query_client::<Bank>()
-                .balance(osmosis.sender().to_string(), denom.clone()),
+                .balance(stargaze.sender().to_string(), Some(denom.clone())),
         )
         .unwrap();
 
-    assert_eq!(balance.amount, test_amount.to_string());
+    assert_eq!(balance[0].amount, test_amount.to_string());
 
     // Send all back
     transfer_tokens(
         &rt,
-        &osmosis,
+        &stargaze,
         sender.as_str(),
         &coin(test_amount, denom.clone()),
+        &interchain,
         &interchain_channel,
         None,
         None,
@@ -117,11 +109,17 @@ pub fn main() {
 
     let balance = rt
         .block_on(
-            osmosis
+            stargaze
                 .query_client::<Bank>()
-                .balance(osmosis.sender().to_string(), denom.clone()),
+                .balance(stargaze.sender().to_string(), Some(denom.clone())),
         )
         .unwrap();
 
-    assert_eq!(balance.amount, "0");
+    assert_eq!(balance[0].amount, "0");
+
+    Ok(())
+}
+
+pub fn main() {
+    token_bridge().unwrap()
 }

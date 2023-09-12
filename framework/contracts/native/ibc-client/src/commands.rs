@@ -16,10 +16,9 @@ use abstract_sdk::{
     core::{
         ibc_client::state::{ACCOUNTS, ADMIN, CONFIG},
         ibc_host::{HostAction, InternalAction},
-        objects::{ans_host::AnsHost, ChannelEntry},
+        objects::{ans_host::AnsHost, version_control::VersionControlContract, ChannelEntry},
         ICS20,
     },
-    feature_objects::VersionControlContract,
     features::AccountIdentification,
     AccountVerification, Resolve,
 };
@@ -62,22 +61,26 @@ pub fn execute_allow_chain_host(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    chain: ChainName,
+    host_chain: String,
     host: String,
     note: String,
 ) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let note = deps.api.addr_validate(&note)?;
     // Can't allow if it already exists
-    if POLYTONE_NOTE.has(deps.storage, &chain) || REVERSE_POLYTONE_NOTE.has(deps.storage, &note) || REMOTE_HOST.has(deps.storage, &chain) {
-        return Err(HostError::ProxyAddressExists);
+    if POLYTONE_NOTE.has(deps.storage, &host_chain)
+        || REVERSE_POLYTONE_NOTE.has(deps.storage, &note)
+        || REMOTE_HOST.has(deps.storage, &host_chain)
+    {
+        return Err(IbcClientError::HostAddressExists);
     }
 
-    POLYTONE_NOTE.save(deps.storage, &chain, &note)?;
-    REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &chain)?;
-    REMOTE_HOST.save(deps.storage, &chain, &host)?;
+    POLYTONE_NOTE.save(deps.storage, &host_chain, &note)?;
+    REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &host_chain)?;
+    REMOTE_HOST.save(deps.storage, &host_chain, &host)?;
 
     // When allowing a new chain host, we need to also get the proxy address of that host.
     // We do so by calling an empty message on the polytone note. This will come back in form of a execute by callback
@@ -102,8 +105,9 @@ pub fn execute_allow_chain_host(
 pub fn execute_remove_host(
     deps: DepsMut,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: String,
 ) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -118,7 +122,7 @@ pub fn execute_remove_host(
 
 fn send_remote_host_action(
     deps: Deps,
-    env: Env,
+    _env: Env,
     account_id: AccountId,
     account: AccountBase,
     host_chain: ChainName,
@@ -155,10 +159,12 @@ pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: String,
     action: HostAction,
     callback_info: Option<CallbackInfo>,
 ) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
+
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(cfg.version_control);
 
@@ -201,8 +207,9 @@ pub fn execute_register_account(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: String,
 ) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(cfg.version_control);
 
@@ -241,9 +248,10 @@ pub fn execute_send_funds(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
-    host_chain: ChainName,
+    host_chain: String,
     funds: Vec<Coin>,
 ) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
     let mem = cfg.ans_host;
     // Verify that the sender is a proxy contract
@@ -440,7 +448,7 @@ mod test {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                (&TEST_ACCOUNT_ID, &ChainName::from("channel")),
+                (&TEST_ACCOUNT_ID, &ChainName::from_str("channel")?),
                 &"Some-remote-account".to_string(),
             )?;
 
@@ -466,7 +474,7 @@ mod test {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: ChainName::from("host_chain"),
+                host_chain: "host_chain".into(),
             })
         }
 
@@ -477,7 +485,7 @@ mod test {
 
             REMOTE_HOST.save(
                 deps.as_mut().storage,
-                &ChainName::from(TEST_CHAIN),
+                &ChainName::from_str(TEST_CHAIN)?,
                 &"test_remote_host".into(),
             )?;
 

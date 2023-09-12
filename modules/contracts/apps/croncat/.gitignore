@@ -6,4 +6,4 @@ artifacts/*
 
 .vscode
 .idea
-daemon_state.json
+state.json

@@ -100,10 +100,11 @@ fn update_config(
 fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
-    chain: ChainName,
+    chain: String,
     proxy: String,
 ) -> HostResult {
     cw_ownable::is_owner(deps.storage, &info.sender)?;
+    let chain = ChainName::from_str(&chain)?;
 
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
     let proxy = deps.api.addr_validate(&proxy)?;
@@ -117,8 +118,9 @@ fn register_chain_proxy(
     Ok(HostResponse::action("register_chain_client"))
 }
 
-fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: ChainName) -> HostResult {
+fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostResult {
     cw_ownable::is_owner(deps.storage, &info.sender)?;
+    let chain = ChainName::from_str(&chain)?;
 
     if let Some(proxy) = CHAIN_PROXYS.may_load(deps.storage, &chain)? {
         REVERSE_CHAIN_PROXYS.remove(deps.storage, &proxy);

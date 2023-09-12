@@ -93,13 +93,13 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
     pub fn account_base(&self, account_id: &AccountId) -> AbstractSdkResult<AccountBase> {
         let maybe_account = ACCOUNT_ADDRESSES.query(
             &self.deps.querier,
-            self.base.abstract_registry(self.deps)?,
+            self.base.abstract_registry(self.deps)?.address,
             account_id,
         )?;
         match maybe_account {
             None => Err(AbstractSdkError::UnknownAccountId {
                 account_id: account_id.clone(),
-                version_control_addr: self.base.abstract_registry(self.deps)?,
+                version_control_addr: self.base.abstract_registry(self.deps)?.address,
             }),
             Some(account_base) => Ok(account_base),
         }
@@ -116,8 +116,10 @@ impl<'a, T: AccountVerification> AccountRegistry<'a, T> {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
     use abstract_core::objects::account::AccountTrace;
+    use abstract_core::objects::version_control::VersionControlContract;
     use abstract_testing::*;
     use cosmwasm_std::testing::*;
 
@@ -127,8 +129,10 @@ mod test {
     struct MockBinding;
 
     impl AbstractRegistryAccess for MockBinding {
-        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<Addr> {
-            Ok(Addr::unchecked(TEST_VERSION_CONTROL))
+        fn abstract_registry(&self, _deps: Deps) -> AbstractSdkResult<VersionControlContract> {
+            Ok(VersionControlContract {
+                address: Addr::unchecked(TEST_VERSION_CONTROL),
+            })
         }
     }
 

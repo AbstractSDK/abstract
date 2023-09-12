@@ -7,29 +7,25 @@ use abstract_core::{
 use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Empty;
-use cw_orch::{
-    deploy::Deploy,
-    prelude::{Daemon, InterchainEnv, TxHandler},
-};
+use cw_orch::deploy::Deploy;
+use cw_orch_interchain_core::{channel::IbcQueryHandler, InterchainEnv};
 use tokio::runtime::Runtime;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
 pub const TEST_ACCOUNT_LINK: &str = "https://google.com";
 
-pub const TEST_STARSHIP_CONFIG: &str = "/starship/starship.yaml";
-
 pub fn set_env() {
     std::env::set_var("STATE_FILE", "daemon_state.json"); // Set in code for tests
     std::env::set_var("ARTIFACTS_DIR", "../artifacts"); // Set in code for tests
 }
 
-pub fn create_test_remote_account(
+pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     rt: &Runtime,
-    origin: &Daemon,
+    origin: &Chain,
     origin_name: &str,
     destination: &str,
-    interchain: &InterchainEnv,
+    interchain: &IBC,
 ) -> AnyResult<AccountId> {
     let origin_abstract = Abstract::load_from(origin.clone())?;
 
@@ -49,6 +45,7 @@ pub fn create_test_remote_account(
         abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
             monarch: origin.sender().to_string(),
         },
+        None,
     )?;
 
     // We need to register the ibc client as a module of the manager (account specific)
@@ -62,14 +59,14 @@ pub fn create_test_remote_account(
         .account
         .register_remote_account(destination)?;
 
-    rt.block_on(interchain.await_ibc_execution(origin_name.to_owned(), register_tx.txhash))?;
+    rt.block_on(interchain.wait_ibc(&origin_name.to_owned(), register_tx))?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
     let account_config = origin_abstract.account.manager.config()?;
 
     Ok(AccountId::new(
         account_config.account_id.seq(),
-        AccountTrace::Remote(vec![ChainName::from(origin_name)]),
+        AccountTrace::Remote(vec![ChainName::from_str(origin_name)?]),
     )?)
 }
 

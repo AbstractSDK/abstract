@@ -1,6 +1,6 @@
 use crate::{state::ContractError, AdapterContract};
 use abstract_sdk::{
-    feature_objects::AnsHost,
+    feature_objects::{AnsHost, VersionControlContract},
     features::{AbstractNameService, AbstractRegistryAccess, AccountIdentification},
     AbstractSdkResult,
 };
@@ -53,7 +53,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
     AbstractRegistryAccess
     for AdapterContract<Error, CustomInitMsg, CustomExecMsg, CustomQueryMsg, ReceiveMsg, SudoMsg>
 {
-    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<Addr> {
+    fn abstract_registry(&self, deps: Deps) -> AbstractSdkResult<VersionControlContract> {
         Ok(self.state(deps.storage)?.version_control)
     }
 }
@@ -98,7 +98,9 @@ mod tests {
         let ans = adapter.ans_host(deps.as_ref())?;
         assert_that!(ans).is_equal_to(AnsHost::new(Addr::unchecked(TEST_ANS_HOST)));
         let regist = adapter.abstract_registry(deps.as_ref())?;
-        assert_that!(regist.as_str()).is_equal_to(TEST_VERSION_CONTROL);
+        assert_that!(regist).is_equal_to(VersionControlContract::new(Addr::unchecked(
+            TEST_VERSION_CONTROL,
+        )));
 
         adapter.target()?;
 

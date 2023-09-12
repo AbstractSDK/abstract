@@ -83,7 +83,7 @@ pub(crate) fn _handle_host_action(
                 let create_account_message = wasm_execute(
                     env.contract.address,
                     &ExecuteMsg::InternalRegisterAccount {
-                        client_chain: client_chain.clone(),
+                        client_chain: client_chain.to_string(),
                         account_id,
                     },
                     vec![],

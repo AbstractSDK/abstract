@@ -1,5 +1,5 @@
 use abstract_core::AbstractError;
-use abstract_sdk::{core::abstract_ica::SimpleIcaError, AbstractSdkError};
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use polytone::callbacks::CallbackMessage;
@@ -15,9 +15,6 @@ pub enum IbcClientError {
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),
-
-    #[error("{0}")]
-    SimpleIca(#[from] SimpleIcaError),
 
     #[error("{0}")]
     Admin(#[from] AdminError),
@@ -42,4 +39,7 @@ pub enum IbcClientError {
 
     #[error("IBC Execution Failed, {0:?}")]
     IbcFailed(CallbackMessage),
+
+    #[error("Chain or host address already registered.")]
+    HostAddressExists,
 }

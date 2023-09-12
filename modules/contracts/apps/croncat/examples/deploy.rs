@@ -58,6 +58,7 @@ fn main() -> anyhow::Result<()> {
         &croncat_app::msg::InstantiateMsg {
             base: BaseInstantiateMsg {
                 ans_host_address: abstract_deployment.ans_host.addr_str()?,
+                version_control_address: abstract_deployment.version_control.addr_str()?,
             },
             module: AppInstantiateMsg {},
         },

@@ -75,9 +75,13 @@ abstract-staking-adapter-traits = { version = "0.18.0" }
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
 # Osmosis #
-abstract-osmosis-adapter = { path = "../integrations/osmosis/packages/abstract-adapter", default-features = false }
+abstract-osmosis-adapter = { path = "../integrations/osmosis-adapter", default-features = false }
 # Terra #
 abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstract-adapter", default-features = false }
+
+# Kujira #
+abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
+
 croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 
@@ -86,7 +90,6 @@ cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
-
 # this ensures local compatability when compiling locally
 [patch.crates-io]
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
@@ -100,6 +103,8 @@ abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
+# Remove when new release is made. 
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

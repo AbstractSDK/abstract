@@ -65,7 +65,7 @@ pub enum ExecuteMsg {
     // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
     // This allows for monitoring which chain are connected to the contract remotely
     RegisterChainHost {
-        chain: ChainName,
+        chain: String,
         note: String,
         host: String,
     },
@@ -78,25 +78,25 @@ pub enum ExecuteMsg {
     /// Will attempt to forward the specified funds to the corresponding
     /// address on the remote chain.
     SendFunds {
-        host_chain: ChainName,
+        host_chain: String,
         funds: Vec<Coin>,
     },
     /// Register an Account on a remote chain over IBC
     /// This action creates a proxy for them on the remote chain.
     Register {
-        host_chain: ChainName,
+        host_chain: String,
     },
     RemoteAction {
         // host chain to be executed on
         // Example: "osmosis"
-        host_chain: ChainName,
+        host_chain: String,
         // execute the custom host function
         action: HostAction,
         // optional callback info
         callback_info: Option<CallbackInfo>,
     },
     RemoveHost {
-        host_chain: ChainName,
+        host_chain: String,
     },
 
     /// Callback from the Polytone implementation
@@ -126,11 +126,11 @@ pub enum QueryMsg {
     Config {},
     // Returns config
     #[returns(HostResponse)]
-    Host { chain_name: ChainName },
+    Host { chain_name: String },
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
     ListAccounts {
-        start: Option<(AccountId, ChainName)>,
+        start: Option<(AccountId, String)>,
         limit: Option<u32>,
     },
     // Get channel info for one chain
@@ -152,7 +152,6 @@ pub struct ConfigResponse {
     pub admin: String,
     pub ans_host: String,
     pub version_control_address: String,
-    pub chain: String,
 }
 
 #[cosmwasm_schema::cw_serde]

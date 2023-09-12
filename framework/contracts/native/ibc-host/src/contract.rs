@@ -2,8 +2,8 @@ use crate::{
     endpoints::{
         self,
         reply::{
-            reply_execute_action, reply_forward_response_data, reply_init_callback,
-            INIT_BEFORE_ACTION_REPLY_ID, INIT_CALLBACK_ID, RESPONSE_REPLY_ID,
+            reply_execute_action, reply_forward_response_data, INIT_BEFORE_ACTION_REPLY_ID,
+            RESPONSE_REPLY_ID,
         },
     },
     error::HostError,
@@ -13,7 +13,6 @@ use abstract_macros::abstract_response;
 use abstract_sdk::core::ibc_host::{InstantiateMsg, QueryMsg};
 use cosmwasm_std::{
     Binary, Deps, DepsMut, Env, IbcReceiveResponse, MessageInfo, Reply, Response, StdError,
-    StdResult,
 };
 
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,7 +21,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct HostResponse;
 
 pub type HostResult<T = Response> = Result<T, HostError>;
-pub type IbcHostResult = Result<IbcReceiveResponse, HostError>;
+pub type IbcHostResult = HostResult<IbcReceiveResponse>;
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn instantiate(deps: DepsMut, env: Env, info: MessageInfo, msg: InstantiateMsg) -> HostResult {
@@ -36,16 +35,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> HostResult<Binary> {
     // will only process base requests as there is no exec handler set.
     endpoints::query(deps, env, msg)
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
 pub fn reply(deps: DepsMut, env: Env, reply_msg: Reply) -> HostResult {
-    if reply_msg.id == INIT_CALLBACK_ID {
-        reply_init_callback(deps, env, reply_msg)
-    } else if reply_msg.id == INIT_BEFORE_ACTION_REPLY_ID {
+    if reply_msg.id == INIT_BEFORE_ACTION_REPLY_ID {
         reply_execute_action(deps, env, reply_msg)
     } else if reply_msg.id == RESPONSE_REPLY_ID {
         reply_forward_response_data(reply_msg)

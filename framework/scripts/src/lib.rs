@@ -36,21 +36,21 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
         let fee = (GAS_TO_DEPLOY as f64 * fee_token.fixed_min_gas_price) as u128;
         let bank = chain.query_client::<queriers::Bank>();
         let balance = bank
-            .balance(chain.sender(), fee_token.denom.clone())
+            .balance(chain.sender(), Some(fee_token.denom.clone()))
             .await
             .unwrap()
             .clone();
 
         log::debug!(
             "Checking balance {} on chain {}, address {}. Expecting {}{}",
-            balance.amount,
+            balance[0].amount,
             chain_info.chain_id,
             chain.sender(),
             fee,
             fee_token.denom.as_str()
         );
-        if fee > balance.amount.parse().unwrap() {
-            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance.amount, fee_token.denom);
+        if fee > balance[0].amount.parse().unwrap() {
+            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance[0].amount, fee_token.denom);
         }
         // check if we have enough funds
     }

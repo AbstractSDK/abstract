@@ -18,8 +18,6 @@ mod deployers;
 mod deployment;
 mod error;
 
-pub mod proto;
-
 pub use error::AbstractInterfaceError;
 
 pub use crate::deployers::*;

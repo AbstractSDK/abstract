@@ -59,13 +59,17 @@ abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 # Croncat dependencies
-croncat-sdk-factory = "1.0.3"
-croncat-sdk-tasks = "1.0.3"
-croncat-sdk-manager = "1.0.3"
-croncat-integration-utils = "1.1.0"
+croncat-sdk-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-integration-utils = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 # TODO: avoid using contract dep
-croncat-factory = { version = "1.0.3", features = ["library"] }
-croncat-manager = { version = "1.0.3", features = ["library"] }
+croncat-factory = { version = "1.0.4", features = [
+  "library",
+], git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-manager = { version = "1.0.4", features = [
+  "library",
+], git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 
 [dev-dependencies]
 croncat-app = { path = ".", features = ["interface"] }
@@ -80,13 +84,13 @@ cw-orch = { workspace = true, features = ["daemon"] }
 cw-multi-test = "0.16.4"
 
 # Croncat intefraces
-croncat-sdk-agents = "1.0.3"
+croncat-sdk-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 # Croncat contracts
-croncat-factory = "1.0.3"
-croncat-tasks = "1.0.3"
-croncat-manager = "1.0.3"
-croncat-agents = "1.0.3"
-croncat-integration-testing = "1.1.0"
+croncat-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 
 # Testing cw20
 cw20-base = "0.16.0"

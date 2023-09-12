@@ -22,8 +22,7 @@ impl UncheckedChannelEntry {
         }
     }
     pub fn check(self) -> AbstractResult<ChannelEntry> {
-        let chain_name: ChainName = self.connected_chain.into();
-        chain_name.check()?;
+        let chain_name: ChainName = ChainName::from_string(self.connected_chain)?;
         Ok(ChannelEntry {
             connected_chain: chain_name,
             protocol: self.protocol.to_ascii_lowercase(),
@@ -92,7 +91,7 @@ impl KeyDeserialize for &ChannelEntry {
         let u = tu.split_off(t_len);
 
         Ok(ChannelEntry {
-            connected_chain: ChainName::from(String::from_vec(tu)?),
+            connected_chain: ChainName::_from_string(String::from_vec(tu)?),
             protocol: String::from_vec(u)?,
         })
     }
@@ -120,7 +119,7 @@ mod test {
 
     fn mock_key() -> ChannelEntry {
         ChannelEntry {
-            connected_chain: ChainName::from("osmosis"),
+            connected_chain: ChainName::from_str("osmosis").unwrap(),
             protocol: "ics20".to_string(),
         }
     }
@@ -128,15 +127,15 @@ mod test {
     fn mock_keys() -> (ChannelEntry, ChannelEntry, ChannelEntry) {
         (
             ChannelEntry {
-                connected_chain: ChainName::from("osmosis"),
+                connected_chain: ChainName::from_str("osmosis").unwrap(),
                 protocol: "ics20".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from("osmosis"),
+                connected_chain: ChainName::from_str("osmosis").unwrap(),
                 protocol: "ics".to_string(),
             },
             ChannelEntry {
-                connected_chain: ChainName::from("cosmos"),
+                connected_chain: ChainName::from_str("cosmos").unwrap(),
                 protocol: "abstract".to_string(),
             },
         )

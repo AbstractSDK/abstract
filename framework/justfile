@@ -62,3 +62,10 @@ publish-schemas version:
 deploy-to-all-chains:
   just download-wasms
   just run-script full_deploy uni-6 pisco-1 juno-1 phoenix-1
+
+# Serve docs locally, pass --open to open in browser
+docs-serve *FLAGS:
+  (cd docs && mdbook serve {{FLAGS}}) 
+
+docs-build:
+  (cd docs && mdbook build)

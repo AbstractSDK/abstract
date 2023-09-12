@@ -1,5 +1,5 @@
 use abstract_core::AbstractError;
-use abstract_sdk::{core::abstract_ica::SimpleIcaError, AbstractSdkError};
+use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_controllers::AdminError;
 use cw_utils::ParseReplyError;
@@ -24,9 +24,6 @@ pub enum HostError {
 
     #[error("{0}")]
     ParseReply(#[from] ParseReplyError),
-
-    #[error("{0}")]
-    SimpleIca(#[from] SimpleIcaError),
 
     #[error("Semver parsing error: {0}")]
     SemVer(String),

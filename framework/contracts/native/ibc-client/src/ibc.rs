@@ -87,6 +87,7 @@ pub fn receive_action_callback(
             };
             Some(callback.into_cosmos_account_msg(receiver))
         }
-    };
-    Ok(IbcClientResponse::action("acknowledge_register").add_messages(msgs))
+    }
+    .transpose()?;
+    Ok(IbcClientResponse::action("acknowledge_register").add_messages(msg))
 }

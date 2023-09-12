@@ -3,7 +3,7 @@ use abstract_core::objects::chain_name::ChainName;
 use abstract_core::IBC_CLIENT;
 
 use abstract_interface::{Abstract, IbcClient};
-use abstract_interface_integration_tests::ibc::{set_env, TEST_STARSHIP_CONFIG};
+use abstract_interface_integration_tests::ibc::set_env;
 use abstract_interface_integration_tests::{JUNO, STARGAZE};
 use anyhow::Result as AnyResult;
 
@@ -11,8 +11,10 @@ use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
 use clap::Parser;
-use cw_orch::starship::Starship;
-use cw_orch_polytone::Polytone;
+use cw_orch_interchain::channel_creator::ChannelCreator;
+use cw_orch_interchain_core::InterchainEnv;
+use cw_orch_polytone::{Polytone, PolytoneConnection};
+use cw_orch_starship::Starship;
 
 #[derive(Parser, Debug)]
 struct Cli {
@@ -51,13 +53,10 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     // Chains setup
     let rt: tokio::runtime::Runtime = tokio::runtime::Runtime::new().unwrap();
 
-    let config_path = format!("{}{}", env!("CARGO_MANIFEST_DIR"), TEST_STARSHIP_CONFIG);
+    let interchain = Starship::new(rt.handle().to_owned(), None)?.interchain_env();
 
-    let starship = Starship::new(rt.handle().clone(), &config_path, None)?;
-    let interchain: InterchainEnv = starship.interchain_env();
-
-    let stargaze = interchain.daemon(STARGAZE)?;
-    let juno = interchain.daemon(JUNO)?;
+    let juno = interchain.chain(JUNO).unwrap();
+    let stargaze = interchain.chain(STARGAZE).unwrap();
 
     // Deploying abstract and the IBC abstract logic
     let stargaze_abstr = deploy_abstr(&stargaze)?;
@@ -68,11 +67,14 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     let juno_polytone = deploy_polytone(&juno)?;
 
     // Creating a connection between 2 polytone deployments
-    let polytone_account =
-        cw_orch_polytone::deploy(&rt, &starship, &stargaze_polytone, &juno_polytone)?;
+    let polytone_account = rt.block_on(PolytoneConnection::connect(
+        &interchain,
+        &stargaze_polytone,
+        &juno_polytone,
+    ))?;
 
     // Create the connection between client and host
-    stargaze_abstr.ibc_connection_with(&rt, &juno_abstr, &polytone_account)?;
+    stargaze_abstr.ibc_connection_with(&rt, &interchain, &juno_abstr, &polytone_account)?;
 
     // Some tests to make sure the connection has been established between the 2 contracts
     // We query the channels for each host to see if the client has been connected
@@ -81,7 +83,7 @@ fn ibc_abstract_setup() -> AnyResult<()> {
     let stargaze_channels: abstract_core::ibc_client::ListRemoteHostsResponse =
         stargaze_client.list_remote_hosts()?;
 
-    assert_eq!(stargaze_channels.hosts[0].0, ChainName::from("juno"));
+    assert_eq!(stargaze_channels.hosts[0].0, ChainName::from_str("juno")?);
 
     // We test creating a remote account ?
 
