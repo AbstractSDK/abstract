@@ -376,7 +376,7 @@ fn account_install_adapter() -> AResult {
 
     deployment
         .version_control
-        .claim_namespace(1, "tester".to_owned())?;
+        .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain);
     adapter.deploy(V1.parse().unwrap(), MockInitMsg)?;

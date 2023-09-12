@@ -54,7 +54,7 @@ pub fn ibc_channel_connect(
     let packet = PacketMsg {
         action: HostAction::Internal(InternalAction::WhoAmI),
         client_chain: cfg.chain,
-        account_id: 0,
+        account_id: AccountId::local(0),
         callback_info: None,
         retries: 0,
     };

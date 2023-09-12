@@ -137,7 +137,7 @@ mod test {
 
         // AccountRegistry
         let account_registry = MOCK_APP.account_registry(deps.as_ref());
-        let base = account_registry.account_base(TEST_ACCOUNT_ID)?;
+        let base = account_registry.account_base(&TEST_ACCOUNT_ID)?;
         assert_eq!(base, test_account_base);
 
         // TODO: Make some of the module_registry queries raw as well?
