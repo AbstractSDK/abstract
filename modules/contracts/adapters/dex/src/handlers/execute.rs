@@ -4,11 +4,11 @@ use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
 use crate::msg::{DexAction, DexExecuteMsg, DexName};
 use crate::state::SWAP_FEE;
+use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_dex_adapter_traits::DexError;
 
-use abstract_core::ibc_client::CallbackRequest;
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_dex_adapter_traits::msg::IBC_DEX_PROVIDER_ID;
@@ -91,28 +91,30 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = ChainName::from_string(dex_name).unwrap();
+    let host_chain = ChainName::from_ibc_entry(dex_name)?; // TODO, this is faulty
 
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
     let coins = resolve_assets_to_transfer(deps.as_ref(), action, ans.host())?;
     // construct the ics20 call(s)
-    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.clone(), coins)?;
+    let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
     let action = abstract_sdk::core::ibc_host::HostAction::App {
         msg: to_binary(&action)?,
     };
+
+    // If the calling entity is a contract, we provide a callback on successful swap
     let maybe_contract_info = deps.querier.query_wasm_contract_info(info.sender.clone());
     let callback = if maybe_contract_info.is_err() {
         None
     } else {
-        Some(CallbackRequest {
-            msg: IBC_DEX_PROVIDER_ID.as_bytes().into(),
+        Some(CallbackInfo {
+            id: IBC_DEX_PROVIDER_ID.into(),
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain, action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), action, callback)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

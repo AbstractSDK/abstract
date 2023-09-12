@@ -408,7 +408,7 @@ mod test {
 
             let msg = ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
-                    host_chain: ChainName::from_str("juno").unwrap(),
+                    host_chain: "juno".into(),
                 }],
             };
 
@@ -433,7 +433,7 @@ mod test {
                 cosmwasm_std::WasmMsg::Execute {
                     contract_addr: "ibc_client_addr".into(),
                     msg: to_binary(&abstract_core::ibc_client::ExecuteMsg::Register {
-                        host_chain: ChainName::from_str("juno").unwrap(),
+                        host_chain: "juno".into(),
                     })
                     .unwrap(),
                     funds: vec![],

@@ -46,8 +46,7 @@ chrono = { version = "0.4.23", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.15.0" }
-
+cw-orch = { version = "0.16.0" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -96,8 +95,9 @@ abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
-# Remove when new release is made. 
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
+## For interchain needs
+cw-multi-test = { git = "ssh://git@github.com/AbstractSDK/cw-multi-test", branch = "update/add-ibc-support" }
+
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

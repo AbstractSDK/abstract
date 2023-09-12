@@ -7,8 +7,6 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Coin;
 use polytone::callbacks::CallbackMessage;
 
-pub use polytone::callbacks::CallbackRequest;
-
 pub mod state {
 
     use crate::objects::{
