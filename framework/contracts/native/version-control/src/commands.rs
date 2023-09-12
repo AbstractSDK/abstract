@@ -370,7 +370,7 @@ pub fn claim_namespace(
         let admin_account = ACCOUNT_ADDRESSES.load(deps.storage, &ABSTRACT_ACCOUNT_ID)?;
         fee_messages.push(CosmosMsg::Bank(BankMsg::Send {
             to_address: admin_account.proxy.to_string(),
-            amount: msg_info.funds, //
+            amount: msg_info.funds,
         }));
     }
 

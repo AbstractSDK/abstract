@@ -54,9 +54,9 @@ pub mod state {
         pub owner: GovernanceDetails<String>,
     }
 
-    pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
-    pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
-    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("\u{0}{6}acc_seq");
+    pub const CONFIG: Item<Config> = Item::new("cfg");
+    pub const CONTEXT: Item<Context> = Item::new("contxt");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
 }
 
 use cosmwasm_schema::QueryResponses;
@@ -151,7 +151,3 @@ pub struct SequenceResponse {
 /// Account Factory migrate messages
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
-
-/// UNUSED - stub for future use
-#[cosmwasm_schema::cw_serde]
-pub struct AccountTraceFilter {}

@@ -11,11 +11,13 @@ use super::{account_trace::AccountTrace, AccountSequence};
 /// On each chain this is unique.
 #[cosmwasm_schema::cw_serde]
 pub struct AccountId {
-    /// Chain seq of the chain that triggered the account creation
+    /// Sequence of the chain that triggered the IBC account creation
     /// `AccountTrace::Local` if the account was created locally
+    /// Example: Account created on Juno which has an abstract interchain account on Osmosis,
+    /// which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec!["juno", "osmosis"])`
     trace: AccountTrace,
-    /// Unique identifier for the account
-    /// Account factory sequence number for the trace chain
+    /// Unique identifier for the accounts create on a local chain.
+    /// Is reused when creating an interchain account.
     seq: AccountSequence,
 }
 
