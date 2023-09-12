@@ -25,7 +25,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     for network in networks {
         let urls = network.grpc_urls.to_vec();
         for url in urls {
-            rt.block_on(ping_grpc(&url))?;
+            rt.block_on(ping_grpc(url))?;
         }
 
         let chain = DaemonBuilder::default()
