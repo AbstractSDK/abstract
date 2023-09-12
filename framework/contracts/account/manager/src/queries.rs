@@ -8,7 +8,9 @@ use abstract_sdk::core::manager::{
 };
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::ModuleRegistryInterface;
-use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult, Uint64};
+use cosmwasm_std::{
+    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, WasmQuery,
+};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
 use std::collections::BTreeMap;
@@ -34,7 +36,7 @@ pub fn handle_account_info_query(deps: Deps) -> StdResult<Binary> {
 }
 
 pub fn handle_config_query(deps: Deps) -> StdResult<Binary> {
-    let account_id = Uint64::from(ACCOUNT_ID.load(deps.storage)?);
+    let account_id = ACCOUNT_ID.load(deps.storage)?;
     let Config {
         version_control_address,
         module_factory_address,

@@ -380,7 +380,7 @@ pub fn mock_querier() -> MockQuerier {
         .with_contract_map_entry(
             TEST_VERSION_CONTROL,
             ACCOUNT_ADDRESSES,
-            (TEST_ACCOUNT_ID, test_account_base()),
+            (&TEST_ACCOUNT_ID, test_account_base()),
         )
         .with_contract_item(
             TEST_PROXY,
@@ -428,7 +428,7 @@ mod tests {
             let actual = ACCOUNT_ADDRESSES.query(
                 &wrap_querier(&deps.querier),
                 Addr::unchecked(TEST_VERSION_CONTROL),
-                TEST_ACCOUNT_ID,
+                &TEST_ACCOUNT_ID,
             );
 
             let expected = AccountBase {

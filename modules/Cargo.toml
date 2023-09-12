@@ -30,8 +30,8 @@ cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
-] }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1" }
+], tag = "v0.17.0" }
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v0.17.0" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -42,10 +42,11 @@ serde = { version = "1.0", default-features = false, features = ["derive"] }
 thiserror = { version = "1.0" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
+chrono = { version = "0.4.23", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.15.0" }
+cw-orch = { version = "0.16.1" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -96,8 +97,6 @@ abstract-adapter-utils = { path = "../framework/packages/utils" }
 abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
 
-# Remove when new release is made. 
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
 # Backup release profile, will result in warnings during optimization
 [profile.release]
 rpath = false

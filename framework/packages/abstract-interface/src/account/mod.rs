@@ -138,8 +138,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Gets the account ID of the account in the local store.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
-        let account_id: u64 = self.manager.config()?.account_id.into();
-        Ok(account_id.try_into().unwrap())
+        Ok(self.manager.config()?.account_id)
     }
 
     /// Installs an adapter from an adapter object

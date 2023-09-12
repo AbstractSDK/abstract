@@ -448,6 +448,11 @@ impl Deploy<Mock> for WynDex {
             Box::new(&mut self.raw_eur_lp),
         ]
     }
+
+    // This is only a mock deploy
+    fn deployed_state_file_path(&self) -> Option<String> {
+        None
+    }
 }
 impl WynDex {
     /// registers the WynDex contracts and assets on Abstract
