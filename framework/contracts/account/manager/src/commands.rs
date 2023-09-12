@@ -8,7 +8,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
+use abstract_core::manager::{InternalConfigAction, RegisterModule, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
@@ -139,12 +139,11 @@ pub(crate) fn install_modules_internal(
 }
 
 // Sets the Treasury address on the module if applicable and adds it to the state
-pub fn register_module(
+pub fn register_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    module: Module,
-    module_address: String,
+    modules: Vec<RegisterModule>,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
@@ -154,44 +153,49 @@ pub fn register_module(
         return Err(ManagerError::CallerNotModuleFactory {});
     }
 
-    let mut response = update_module_addresses(
-        deps.branch(),
-        Some(vec![(module.info.id(), module_address.clone())]),
-        None,
-    )?;
+    let to_add = modules
+        .iter()
+        .map(|reg| (reg.module.info.id(), reg.module_address.clone()))
+        .collect();
 
-    match module {
-        Module {
-            reference: ModuleReference::App(_),
-            info,
-            ..
-        } => {
-            let id = info.id();
-            // assert version requirements
-            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_to_proxy(
-                proxy_addr.into_string(),
-                module_address,
-            )?)
-        }
-        Module {
-            reference: ModuleReference::Adapter(_),
-            info,
-            ..
-        } => {
-            let id = info.id();
-            // assert version requirements
-            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_to_proxy(
-                proxy_addr.into_string(),
-                module_address,
-            )?)
-        }
-        _ => (),
-    };
-
+    let mut response = update_module_addresses(deps.branch(), Some(to_add), None)?;
+    let mut add_modules = vec![];
+    for RegisterModule {
+        module,
+        module_address,
+    } in modules
+    {
+        match module {
+            Module {
+                reference: ModuleReference::App(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+                add_modules.push(module_address);
+            }
+            Module {
+                reference: ModuleReference::Adapter(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+                add_modules.push(module_address);
+            }
+            _ => (),
+        };
+    }
+    // add modules to proxy if any
+    if !add_modules.is_empty() {
+        response =
+            response.add_message(add_modules_to_proxy(proxy_addr.into_string(), add_modules)?)
+    }
     Ok(response)
 }
 
@@ -684,9 +688,9 @@ pub fn replace_adapter(
         old_adapter_addr.into_string(),
     )?);
     // Add new adapter to proxy
-    msgs.push(add_module_to_proxy(
+    msgs.push(add_modules_to_proxy(
         proxy_addr.into_string(),
-        new_adapter_addr.into_string(),
+        vec![new_adapter_addr.into_string()],
     )?);
 
     Ok(msgs)
@@ -769,9 +773,9 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(add_module_to_proxy(
+    Ok(add_modules_to_proxy(
         proxy.into_string(),
-        ibc_client_addr.to_string(),
+        vec![ibc_client_addr.to_string()],
     )?)
 }
 
@@ -848,14 +852,14 @@ fn self_upgrade_msg(
     }
 }
 
-fn add_module_to_proxy(
+fn add_modules_to_proxy(
     proxy_address: String,
-    module_address: String,
+    module_addresses: Vec<String>,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(wasm_execute(
         proxy_address,
-        &ProxyMsg::AddModule {
-            module: module_address,
+        &ProxyMsg::AddModules {
+            modules: module_addresses,
         },
         vec![],
     )?
@@ -934,18 +938,24 @@ pub fn update_internal_config(
         // Perform module installation.
         let queued_modules = MODULE_QUEUE.load(deps.storage)?;
 
-        let config = CONFIG.load(deps.storage)?;
+        // No need to send message to install module if there is none
+        let mut response = if queued_modules.is_empty() {
+            ManagerResponse::new(
+                "manager_after_init",
+                std::iter::once(Attribute::new("installed_modules", "[]")),
+            )
+        } else {
+            let config = CONFIG.load(deps.storage)?;
 
-        let (install_msg, install_attributes) = install_modules_internal(
-            deps.storage,
-            queued_modules,
-            config.module_factory_address,
-            info.funds,
-        )?;
-
-        let mut response =
+            let (install_msg, install_attributes) = install_modules_internal(
+                deps.storage,
+                queued_modules,
+                config.module_factory_address,
+                info.funds,
+            )?;
             ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
-                .add_message(install_msg);
+                .add_message(install_msg)
+        };
 
         let account_info = INFO.load(deps.storage)?;
         if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
@@ -1490,12 +1500,14 @@ mod tests {
 
             let _info = mock_info("not_module_factory", &[]);
 
-            let msg = ExecuteMsg::RegisterModule {
-                module_addr: "module_addr".to_string(),
-                module: Module {
-                    info: ModuleInfo::from_id_latest("test:module")?,
-                    reference: ModuleReference::App(1),
-                },
+            let msg = ExecuteMsg::RegisterModules {
+                modules: vec![RegisterModule {
+                    module_address: "module_addr".to_string(),
+                    module: Module {
+                        info: ModuleInfo::from_id_latest("test:module")?,
+                        reference: ModuleReference::App(1),
+                    },
+                }],
             };
 
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);

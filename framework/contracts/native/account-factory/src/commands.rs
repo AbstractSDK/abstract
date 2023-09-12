@@ -262,8 +262,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::AddModule {
-            module: manager_address.to_string(),
+        msg: to_binary(&ProxyExecMsg::AddModules {
+            modules: vec![manager_address.to_string()],
         })?,
     });
 

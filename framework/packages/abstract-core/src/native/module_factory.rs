@@ -8,6 +8,7 @@ pub mod state {
     use std::collections::VecDeque;
 
     use crate::{
+        manager::RegisterModule,
         objects::module::{Module, ModuleInfo},
         version_control::AccountBase,
     };
@@ -24,8 +25,9 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
-        pub account_base: Option<AccountBase>,
+        pub account_base: AccountBase,
         pub modules: VecDeque<Module>,
+        pub modules_to_register: Vec<RegisterModule>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -34,6 +36,7 @@ pub mod state {
 }
 
 use crate::{
+    manager::RegisterModule,
     objects::module::{Module, ModuleInfo},
     version_control::AccountBase,
 };
@@ -110,8 +113,9 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
-    pub account_base: Option<AccountBase>,
+    pub account_base: AccountBase,
     pub modules: Vec<Module>,
+    pub modules_to_register: Vec<RegisterModule>,
 }
 
 #[cosmwasm_schema::cw_serde]

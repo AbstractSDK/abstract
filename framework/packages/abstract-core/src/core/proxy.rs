@@ -59,7 +59,7 @@ pub enum ExecuteMsg {
     /// Execute IBC action on Client
     IbcAction { msgs: Vec<IbcClientMsg> },
     /// Adds the provided address to whitelisted dapps
-    AddModule { module: String },
+    AddModules { modules: Vec<String> },
     /// Removes the provided address from the whitelisted dapps
     RemoveModule { module: String },
     /// Updates the VAULT_ASSETS map

@@ -187,8 +187,8 @@ mod test {
         mock_init(deps.as_mut());
         execute_as_admin(
             &mut deps,
-            ExecuteMsg::AddModule {
-                module: "test_module".to_string(),
+            ExecuteMsg::AddModules {
+                modules: vec!["test_module".to_string()],
             },
         )
         .unwrap();
