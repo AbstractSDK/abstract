@@ -196,6 +196,7 @@ mod test {
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
+    use std::str::FromStr;
 
     mod format {
         use crate::objects::chain_name::MAX_CHAIN_NAME_LENGTH;

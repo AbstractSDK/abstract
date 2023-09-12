@@ -113,6 +113,8 @@ fn parse_length(value: &[u8]) -> StdResult<usize> {
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
     use super::*;
     use cosmwasm_std::{testing::mock_dependencies, Addr, Order};
     use cw_storage_plus::Map;
