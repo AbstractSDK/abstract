@@ -550,6 +550,7 @@ mod tests {
 
         use super::*;
         use core::ans_host::state::CHANNELS;
+        use std::str::FromStr;
 
         #[test]
         fn exists() {

@@ -144,6 +144,8 @@ mod test {
     use cw_storage_plus::Map;
 
     mod key {
+        use std::str::FromStr;
+
         use crate::objects::chain_name::ChainName;
 
         use super::*;

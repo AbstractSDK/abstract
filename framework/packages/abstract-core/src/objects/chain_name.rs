@@ -1,6 +1,7 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{ensure_eq, Env, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
+use std::str::FromStr;
 
 use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
 
@@ -27,12 +28,6 @@ impl ChainName {
 
     pub fn from_string(value: String) -> AbstractResult<Self> {
         let chain_name = Self(value);
-        chain_name.verify()?;
-        Ok(chain_name)
-    }
-    #[allow(clippy::should_implement_trait)]
-    pub fn from_str(value: &str) -> AbstractResult<Self> {
-        let chain_name = Self(value.to_string());
         chain_name.verify()?;
         Ok(chain_name)
     }
@@ -101,6 +96,15 @@ impl ChainName {
 impl ToString for ChainName {
     fn to_string(&self) -> String {
         self.0.clone()
+    }
+}
+
+impl FromStr for ChainName {
+    type Err = AbstractError;
+    fn from_str(value: &str) -> AbstractResult<Self> {
+        let chain_name = Self(value.to_string());
+        chain_name.verify()?;
+        Ok(chain_name)
     }
 }
 
