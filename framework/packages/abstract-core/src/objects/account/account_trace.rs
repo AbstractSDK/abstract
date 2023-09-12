@@ -142,7 +142,7 @@ impl AccountTrace {
             Self::Remote(
                 trace
                     .split(CHAIN_DELIMITER)
-                    .map(|s| ChainName::_from_str(s))
+                    .map(ChainName::_from_str)
                     .collect(),
             )
         };
@@ -160,7 +160,7 @@ impl AccountTrace {
             Self::Remote(
                 trace
                     .split(CHAIN_DELIMITER)
-                    .map(|s| ChainName::_from_str(s))
+                    .map(ChainName::_from_str)
                     .collect(),
             )
         };

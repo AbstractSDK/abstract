@@ -30,7 +30,7 @@ impl ChainName {
         chain_name.verify()?;
         Ok(chain_name)
     }
-
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(value: &str) -> AbstractResult<Self> {
         let chain_name = Self(value.to_string());
         chain_name.verify()?;
