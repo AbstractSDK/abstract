@@ -8,9 +8,7 @@ use abstract_sdk::core::manager::{
 };
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::ModuleRegistryInterface;
-use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, WasmQuery,
-};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult};
 use cw2::ContractVersion;
 use cw_storage_plus::Bound;
 use std::collections::BTreeMap;
