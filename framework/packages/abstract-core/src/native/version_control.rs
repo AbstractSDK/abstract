@@ -38,7 +38,7 @@ pub mod state {
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
     // We can iterate over the map giving just the prefix to get all the versions
     pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
-    // Reverse map for module info of stand alone
+    // Reverse map for module info of standalone modules
     pub const STANDALONE_INFOS: Map<u64, ModuleInfo> = Map::new("stli");
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");

@@ -89,7 +89,7 @@ pub fn propose_modules(
                 }
             }
             // Save module info of standalone contracts,
-            // helps querying version for no cw-2 contracts
+            // helps querying version for cw-2-less or mis-formatted contracts
             ModuleReference::Standalone(id) => {
                 STANDALONE_INFOS.save(deps.storage, id, &module)?;
             }
