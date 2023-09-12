@@ -20,13 +20,6 @@
   - [Version Control](./5_platform/version_control.md)
   - [Account Factory](./5_platform/account_factory.md)
 
-- [Execution Flows]()
-	- [Account Actions]()
-		- [Install Module](./6_flows/manager/install_module.md)
-		- [Execute on Module](./6_flows/manager/exec_on_module.md)
-		- [Update Settings](./6_flows/manager/update_settings.md)
-		- [Set Owner]()
-		- [Upgrade Modules](./6_flows/manager/upgrade_modules.md)
 - [Interchain Abstract Accounts]()
 
 # Build With Abstract

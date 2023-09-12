@@ -15,16 +15,16 @@ and the **Proxy** contract.
 
 ```mermaid
 flowchart LR
-  subgraph Abstr[Abstract Account]
-    direction TB
-    Manager --> Proxy
-  end
+    subgraph Abstr[Abstract Account]
+        direction TB
+        Manager --> Proxy
+    end
 
-  Owner -.-> Manager
+    Owner -.-> Manager
 
-  style Owner fill: #161b25
-  style Manager fill: #161b25
-  style Proxy fill: #161b25
+    style Owner fill: #161b25
+    style Manager fill: #161b25
+    style Proxy fill: #161b25
 ```
 
 The *owner* of the account, can configure the Abstract account by sending messages to the manager contract. We don't
@@ -72,7 +72,8 @@ Abstract Account, taking care of:
 
 ### Account Interactions
 
-The diagram below depicts a User interacting with its Abstract account through the **Manager**, and proxying a call to an
+The diagram below depicts a User interacting with its Abstract account through the **Manager**, and proxying a call to
+an
 external contract through the **Proxy**.
 
 ```mermaid
@@ -88,3 +89,27 @@ sequenceDiagram
     Proxy ->> External Contract: Execute
 
 ```
+
+## Enabling IBC on your Abstract Account
+
+Enabling the IBC functionality on your Abstract Account is done via the Manager contract with the UpdateSettings
+message. By doing so the IBC client will be registered to your account, enabling your modules to execute cross-chain commands.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant M as Manager
+    participant VC as Version Control
+    participant P as Proxy
+
+    U ->> M: UpdateSettings
+    Note right of U: ibc_enabled
+    M -->>+ VC: Query IBC Client reference
+    VC -->>- M: Return IBC Client address
+    M ->> M: Register IBC Client
+    M ->> P: Add IBC client to allowlist
+
+```
+
+> For disabling IBC, see [Uninstall Module](7_module_types.md#installing-and-uninstalling-modules)
