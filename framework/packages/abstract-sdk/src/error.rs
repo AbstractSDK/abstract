@@ -75,6 +75,10 @@ pub enum AbstractSdkError {
     #[error("Module {module} not found in version registry {registry_addr}.")]
     ModuleNotFound { module: String, registry_addr: Addr },
 
+    // module not found in version registry
+    #[error("Standalone {code_id} not found in version registry {registry_addr}.")]
+    StandaloneNotFound { code_id: u64, registry_addr: Addr },
+
     // callback not called by IBC client
     #[error("IBC callback called by {caller} instead of IBC client {client_addr}.")]
     CallbackNotCalledByIbcClient {

@@ -1,5 +1,6 @@
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
 use abstract_core::manager::SubAccountIdsResponse;
+use abstract_core::objects::module::{self, ModuleInfo};
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -7,10 +8,8 @@ use abstract_sdk::core::manager::{
 };
 use abstract_sdk::feature_objects::VersionControlContract;
 use abstract_sdk::ModuleRegistryInterface;
-use cosmwasm_std::{
-    to_binary, Addr, Binary, Deps, Env, Order, QueryRequest, StdError, StdResult, Uint64, WasmQuery,
-};
-use cw2::{ContractVersion, CONTRACT};
+use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, Order, StdError, StdResult, Uint64};
+use cw2::ContractVersion;
 use cw_storage_plus::Bound;
 use std::collections::BTreeMap;
 
@@ -107,27 +106,38 @@ pub fn query_module_version(
 ) -> StdResult<ContractVersion> {
     let module_registry = version_control.module_registry(deps);
 
-    // Currently manager doesn't save ModuleReference,
-    // so we need to check for standalone first
+    if let Ok(info) = cw2::query_contract_info(&deps.querier, module_addr.to_string()) {
+        // Check if it's abstract format and return now
+        if ModuleInfo::from_id(
+            &info.contract,
+            module::ModuleVersion::Version(info.version.clone()),
+        )
+        .is_ok()
+        {
+            return Ok(info);
+        }
+    }
+    // Right now we have either
+    // - failed cw2 query 
+    // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
+    //
+    // Which means this contract is standalone Trying to get it from VC
     let code_id = deps
         .querier
         .query_wasm_contract_info(module_addr.to_string())?
         .code_id;
-    let module_info = module_registry
+    module_registry
         .query_standalone_info(code_id)
-        .map_err(|e| StdError::generic_err(e.to_string()))?;
-
-    if let Some(standalone_info) = module_info {
-        Ok(ContractVersion::try_from(standalone_info)
-            .map_err(|e| StdError::generic_err(e.to_string()))?)
-    } else {
-        let req = QueryRequest::Wasm(WasmQuery::Raw {
-            contract_addr: module_addr.into(),
-            key: CONTRACT.as_slice().into(),
-        });
-
-        deps.querier.query::<ContractVersion>(&req)
-    }
+        .and_then(|module_info| {
+            let module_info =
+                module_info.ok_or(abstract_sdk::AbstractSdkError::StandaloneNotFound {
+                    code_id,
+                    registry_addr: version_control.address.clone(),
+                })?;
+            let version = ContractVersion::try_from(module_info)?;
+            Ok(version)
+        })
+        .map_err(|e| StdError::generic_err(e.to_string()))
 }
 
 /// RawQuery the module versions of the modules part of the Account
