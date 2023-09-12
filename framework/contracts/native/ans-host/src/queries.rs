@@ -20,7 +20,6 @@ use abstract_sdk::cw_helpers::load_many;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError, StdResult, Storage};
 use cw_asset::AssetInfoUnchecked;
 use cw_storage_plus::Bound;
-use std::str::FromStr;
 
 pub(crate) const DEFAULT_LIMIT: u8 = 15;
 pub(crate) const MAX_LIMIT: u8 = 25;
@@ -301,6 +300,8 @@ fn load_pool_metadata_entry(
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
     use abstract_core::ans_host::*;
     use abstract_core::objects::chain_name::ChainName;
     use abstract_core::objects::PoolType;
