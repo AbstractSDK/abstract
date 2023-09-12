@@ -35,13 +35,6 @@ for pack in $UTILS_PACKAGES; do
   )
 done
 
-read -p "Please comment out abstract-adapter and abstract-app in manager/Cargo.toml#dev-dependencies and type 'yes' to continue: " input
-if [ "$input" != "yes" ]
-then
-  echo "The script will terminate now. Please run it again after updating the version."
-  exit 1
-fi
-
 for con in $CORE_CONTRACTS; do
   (
     cd "contracts/account/$con"
