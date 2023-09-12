@@ -258,7 +258,7 @@ pub enum QueryMsg {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ModuleVersionsResponse {
-    pub versions: Vec<AbstractContractVersion>,
+    pub versions: Vec<ContractVersion>,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -282,27 +282,8 @@ pub struct InfoResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ManagerModuleInfo {
     pub id: String,
-    pub version: AbstractContractVersion,
+    pub version: ContractVersion,
     pub address: Addr,
-}
-
-#[cosmwasm_schema::cw_serde]
-/// For standalone modules we save Abstract [`ModuleInfo`] version, to backup no-cw2 contracts
-pub enum AbstractContractVersion {
-    Abstract(ModuleInfo),
-    Cw2(ContractVersion),
-}
-
-impl From<ContractVersion> for AbstractContractVersion {
-    fn from(value: ContractVersion) -> Self {
-        AbstractContractVersion::Cw2(value)
-    }
-}
-
-impl From<ModuleInfo> for AbstractContractVersion {
-    fn from(value: ModuleInfo) -> Self {
-        AbstractContractVersion::Abstract(value)
-    }
 }
 
 #[cosmwasm_schema::cw_serde]

@@ -34,8 +34,7 @@ fn installing_one_adapter_should_succeed() -> AResult {
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }
-        .into(),
+        },
     });
 
     // Configuration is correct
@@ -161,8 +160,7 @@ fn installation_of_duplicate_adapter_should_fail() -> AResult {
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }
-        .into(),
+        },
     });
 
     // install again
@@ -195,8 +193,7 @@ fn reinstalling_adapter_should_be_allowed() -> AResult {
         version: cw2::ContractVersion {
             contract: TEST_MODULE_ID.into(),
             version: TEST_VERSION.into(),
-        }
-        .into(),
+        },
     });
 
     // uninstall
@@ -238,8 +235,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         version: cw2::ContractVersion {
             contract: adapter1.id(),
             version: V1.into(),
-        }
-        .into(),
+        },
     });
 
     // uninstall tendermint staking
@@ -273,8 +269,7 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
             // IMPORTANT: The version of the contract did not change although the version of the module in version control did.
             // Beware of this distinction. The version of the contract is the version that's imbedded into the contract's wasm on compilation.
             version: V2.to_string(),
-        }
-        .into(),
+        },
     });
     // assert that the new staking adapter has a different address
     assert_ne!(old_adapter_addr, adapter2.address()?);

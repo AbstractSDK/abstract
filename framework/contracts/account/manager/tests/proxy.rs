@@ -38,8 +38,7 @@ fn instantiate() -> AResult {
         version: cw2::ContractVersion {
             contract: PROXY.into(),
             version: CONTRACT_VERSION.into(),
-        }
-        .into(),
+        },
     });
 
     // assert manager config
@@ -389,19 +388,15 @@ fn install_multiple_modules() -> AResult {
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ModuleInfo {
-                    namespace: Namespace::new("abstract")?,
-                    name: "standalone1".to_owned(),
-                    version: ModuleVersion::Version(String::from(mock_modules::V1))
-                }
-                .into(),
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone1"),
+                    version: String::from(mock_modules::V1),
+                },
                 // Second doesn't have cw2
-                ModuleInfo {
-                    namespace: Namespace::new("abstract")?,
-                    name: "standalone2".to_owned(),
-                    version: ModuleVersion::Version(String::from(mock_modules::V1))
-                }
-                .into(),
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone2"),
+                    version: String::from(mock_modules::V1),
+                },
             ]
         }
     );

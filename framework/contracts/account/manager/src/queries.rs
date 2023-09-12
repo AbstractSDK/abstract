@@ -1,5 +1,5 @@
 use abstract_core::manager::state::{Config, SUB_ACCOUNTS, SUSPENSION_STATUS};
-use abstract_core::manager::{AbstractContractVersion, SubAccountIdsResponse};
+use abstract_core::manager::SubAccountIdsResponse;
 use abstract_sdk::core::manager::state::{AccountInfo, ACCOUNT_ID, ACCOUNT_MODULES, CONFIG, INFO};
 use abstract_sdk::core::manager::{
     ConfigResponse, InfoResponse, ManagerModuleInfo, ModuleAddressesResponse, ModuleInfosResponse,
@@ -104,7 +104,7 @@ pub fn query_module_version(
     deps: Deps,
     module_addr: Addr,
     version_control: &VersionControlContract,
-) -> StdResult<AbstractContractVersion> {
+) -> StdResult<ContractVersion> {
     let module_registry = version_control.module_registry(deps);
 
     // Currently manager doesn't save ModuleReference,
@@ -118,15 +118,15 @@ pub fn query_module_version(
         .map_err(|e| StdError::generic_err(e.to_string()))?;
 
     if let Some(standalone_info) = module_info {
-        Ok(standalone_info.into())
+        Ok(ContractVersion::try_from(standalone_info)
+            .map_err(|e| StdError::generic_err(e.to_string()))?)
     } else {
         let req = QueryRequest::Wasm(WasmQuery::Raw {
             contract_addr: module_addr.into(),
             key: CONTRACT.as_slice().into(),
         });
 
-        let response = deps.querier.query::<ContractVersion>(&req)?.into();
-        Ok(response)
+        deps.querier.query::<ContractVersion>(&req)
     }
 }
 
@@ -136,10 +136,10 @@ pub fn query_module_versions(
     deps: Deps,
     manager_addr: &Addr,
     module_names: &[String],
-) -> StdResult<BTreeMap<String, AbstractContractVersion>> {
+) -> StdResult<BTreeMap<String, ContractVersion>> {
     let addresses: BTreeMap<String, Addr> =
         query_module_addresses(deps, manager_addr, module_names)?;
-    let mut module_versions: BTreeMap<String, AbstractContractVersion> = BTreeMap::new();
+    let mut module_versions: BTreeMap<String, ContractVersion> = BTreeMap::new();
 
     let config = CONFIG.load(deps.storage)?;
     let version_control = VersionControlContract::new(config.version_control_address);

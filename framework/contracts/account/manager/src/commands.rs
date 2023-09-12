@@ -8,9 +8,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{
-    AbstractContractVersion, InternalConfigAction, UpdateSubAccountAction,
-};
+use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::AssetEntry;
@@ -45,7 +43,7 @@ use cosmwasm_std::{
     ensure, from_binary, to_binary, wasm_execute, Addr, Attribute, Binary, Coin, CosmosMsg, Deps,
     DepsMut, Empty, Env, MessageInfo, Response, StdError, StdResult, Storage, WasmMsg,
 };
-use cw2::get_contract_version;
+use cw2::{get_contract_version, ContractVersion};
 use cw_ownable::OwnershipError;
 use cw_storage_plus::Item;
 use semver::Version;
@@ -791,7 +789,7 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract_version: Option<AbstractContractVersion>,
+    old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
@@ -803,12 +801,7 @@ fn query_module(
             let old_contract = old_contract_version.unwrap();
 
             let new_version = new_version.parse::<Version>().unwrap();
-            let old_version = match old_contract {
-                AbstractContractVersion::Abstract(info) => {
-                    info.version.to_string().parse::<Version>().unwrap()
-                }
-                AbstractContractVersion::Cw2(cw2) => cw2.version.parse::<Version>().unwrap(),
-            };
+            let old_version = old_contract.version.parse::<Version>().unwrap();
 
             if new_version < old_version {
                 return Err(ManagerError::OlderVersion(
@@ -845,7 +838,7 @@ fn self_upgrade_msg(
     migrate_msg: Binary,
 ) -> ManagerResult<CosmosMsg> {
     let contract = get_contract_version(deps.storage)?;
-    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract.into()))?;
+    let module = query_module(deps.as_ref(), module_info.clone(), Some(contract))?;
     if let ModuleReference::AccountBase(manager_code_id) = module.module.reference {
         let migration_msg: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Migrate {
             contract_addr: self_addr.to_string(),
