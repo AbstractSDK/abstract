@@ -118,7 +118,7 @@ pub fn query_module_version(
         }
     }
     // Right now we have either
-    // - failed cw2 query 
+    // - failed cw2 query
     // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
     //
     // Which means this contract is standalone Trying to get it from VC
