@@ -63,7 +63,7 @@ pub fn execute(deps: DepsMut, _env: Env, info: MessageInfo, msg: ExecuteMsg) -> 
         ExecuteMsg::ModuleActionWithData { msg } => execute_module_action_response(deps, info, msg),
         ExecuteMsg::IbcAction { msgs } => execute_ibc_action(deps, info, msgs),
         ExecuteMsg::SetAdmin { admin } => set_admin(deps, info, &admin),
-        ExecuteMsg::AddModule { module } => add_module(deps, info, module),
+        ExecuteMsg::AddModules { modules } => add_modules(deps, info, modules),
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::UpdateAssets { to_add, to_remove } => {
             update_assets(deps, info, to_add, to_remove)
