@@ -157,7 +157,7 @@ fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCRe
         // Save module info of standalone contracts,
         // helps querying version for cw-2-less or mis-formatted contracts
         if let ModuleReference::Standalone(id) = mod_ref {
-            STANDALONE_INFOS.save(storage, id, &module)?;
+            STANDALONE_INFOS.save(storage, id, module)?;
         }
     }
 
