@@ -39,18 +39,19 @@ pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [
             .balance(chain.sender(), Some(fee_token.denom.clone()))
             .await
             .unwrap()
+            .clone()[0]
             .clone();
 
         log::debug!(
             "Checking balance {} on chain {}, address {}. Expecting {}{}",
-            balance[0].amount,
+            balance.amount,
             chain_info.chain_id,
             chain.sender(),
             fee,
             fee_token.denom.as_str()
         );
-        if fee > balance[0].amount.parse().unwrap() {
-            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance[0].amount, fee_token.denom);
+        if fee > balance.amount.parse().unwrap() {
+            panic!("Not enough funds on chain {} to deploy the contract. Needed: {}{} but only have: {}{}", chain_info.chain_id, fee, fee_token.denom.as_str(), balance.amount, fee_token.denom);
         }
         // check if we have enough funds
     }

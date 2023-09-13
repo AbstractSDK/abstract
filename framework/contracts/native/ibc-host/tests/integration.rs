@@ -49,7 +49,7 @@ fn account_creation() -> anyhow::Result<()> {
 
     assert!(account_creation_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_addr", abstr.account_factory.address()?)
+            .add_attribute("_contract_address", abstr.account_factory.address()?)
             .add_attribute("contract", ACCOUNT_FACTORY)
             .add_attribute("action", "create_account")
             .add_attribute("account_sequence", account_sequence.to_string())
@@ -114,7 +114,7 @@ fn account_action() -> anyhow::Result<()> {
 
     assert!(!account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_addr", abstr.account_factory.address()?)
+            .add_attribute("_contract_address", abstr.account_factory.address()?)
             .add_attribute("contract", ACCOUNT_FACTORY)
             .add_attribute("action", "create_account")
             .add_attribute("account_sequence", account_sequence.to_string())
@@ -123,7 +123,7 @@ fn account_action() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_addr", "contract9") // No simple way to get the account manager here, TODO, of for testing ?
+            .add_attribute("_contract_address", "contract9") // No simple way to get the account manager here, TODO ? For testing, we will keep that.
             .add_attribute("contract", MANAGER)
             .add_attribute("action", "update_owner")
             .add_attribute("governance_type", "monarch")
@@ -172,7 +172,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_addr", abstr.account_factory.address()?)
+            .add_attribute("_contract_address", abstr.account_factory.address()?)
             .add_attribute("contract", ACCOUNT_FACTORY)
             .add_attribute("action", "create_account")
             .add_attribute("account_sequence", account_sequence.to_string())
@@ -181,7 +181,7 @@ fn execute_action_with_account_creation() -> anyhow::Result<()> {
 
     assert!(account_action_response.has_event(
         &Event::new("wasm-abstract")
-            .add_attribute("_contract_addr", "contract9") // No simple way to get the account manager here, TODO, of for testing ?
+            .add_attribute("_contract_address", "contract9") // No simple way to get the account manager here, TODO ? For testing, we will keep that.
             .add_attribute("contract", MANAGER)
             .add_attribute("action", "update_owner")
             .add_attribute("governance_type", "monarch")

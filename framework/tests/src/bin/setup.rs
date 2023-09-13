@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use abstract_core::ibc_client::QueryMsgFns;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_core::IBC_CLIENT;

@@ -182,3 +182,42 @@ pub struct RemoteProxyResponse {
     /// address of the remote proxy
     pub proxy_address: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ibc::IbcResponseMsg;
+    use cosmwasm_std::{CosmosMsg, Empty};
+    use polytone::callbacks::Callback;
+    use speculoos::prelude::*;
+
+    // ... (other test functions)
+
+    #[test]
+    fn test_response_msg_to_callback_msg() {
+        let receiver = "receiver".to_string();
+        let callback_id = "15".to_string();
+
+        let result = Callback::FatalError("ibc execution error".to_string());
+
+        let response_msg = IbcResponseMsg {
+            id: callback_id,
+            result,
+        };
+
+        let actual: CosmosMsg<Empty> = response_msg
+            .into_cosmos_account_msg(&receiver.clone())
+            .unwrap();
+
+        assert_that!(actual).matches(|e| {
+            matches!(
+                e,
+                CosmosMsg::Wasm(cosmwasm_std::WasmMsg::Execute {
+                    contract_addr: _receiver,
+                    // we can't test the message because the fields in it are private
+                    msg: _,
+                    funds: _
+                })
+            )
+        });
+    }
+}

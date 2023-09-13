@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     contract::{IbcClientResponse, IbcClientResult},
     error::IbcClientError,
@@ -474,7 +476,7 @@ mod test {
         #[test]
         fn only_admin() -> IbcClientTestResult {
             test_only_admin(ExecuteMsg::RemoveHost {
-                host_chain: "host_chain".into(),
+                host_chain: "host-chain".into(),
             })
         }
 

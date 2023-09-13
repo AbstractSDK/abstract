@@ -386,7 +386,7 @@ mod test {
     }
 
     mod execute_ibc {
-        use abstract_core::{manager, objects::chain_name::ChainName, proxy::state::State};
+        use abstract_core::{manager, proxy::state::State};
         use abstract_testing::{prelude::TEST_MANAGER, MockQuerierBuilder};
         use cosmwasm_std::{to_binary, SubMsg};
 

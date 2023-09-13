@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     account_commands::receive_register,
     contract::{HostResponse, HostResult},
