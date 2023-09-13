@@ -128,7 +128,7 @@ pub fn execute_create_account(
                 funds: funds_to_proxy.into_vec(),
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract Account: {}", account_id),
+                label: format!("Proxy of Account: {}", account_id),
                 msg: to_binary(&ProxyInstantiateMsg {
                     account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
@@ -185,7 +185,7 @@ pub fn after_proxy_create_manager(
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(env.contract.address.into_string()),
-                label: format!("Proxy of Account: {}", context.account_id),
+                label: format!("Abstract Account: {}", context.account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: context.account_id,
                     version_control_address: config.version_control_contract.to_string(),
