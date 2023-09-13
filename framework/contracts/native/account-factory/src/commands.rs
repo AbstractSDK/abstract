@@ -119,7 +119,7 @@ pub fn execute_create_account(
                 ("trace", &account_id.trace().to_string()),
             ],
         )
-        // Create manager
+        // Create proxy
         .add_submessage(SubMsg {
             id: CREATE_ACCOUNT_PROXY_MSG_ID,
             gas_limit: None,
@@ -153,17 +153,17 @@ pub fn after_proxy_create_manager(
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    // Get address of Manager contract
+    // Get address of Proxy contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
     let proxy_address = deps.api.addr_validate(res.get_contract_address())?;
 
-    // Query version_control for code_id of proxy
+    // Query version_control for code_id of manager
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    // Update the manager address and proxy module in the context.
+    // Update the proxy address and manager module in the context.
     let context = CONTEXT.update(deps.storage, |c| {
         Result::<_, StdError>::Ok(Context {
             account_proxy_address: Some(proxy_address.clone()),
@@ -177,7 +177,7 @@ pub fn after_proxy_create_manager(
             "create_proxy",
             vec![("proxy_address", proxy_address.to_string())],
         )
-        // Instantiate proxy contract
+        // Instantiate manager contract
         .add_submessage(SubMsg {
             id: CREATE_ACCOUNT_MANAGER_MSG_ID,
             gas_limit: None,
