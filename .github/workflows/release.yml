@@ -30,3 +30,8 @@ jobs:
             "GHA_Meta": "build_wasms"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+
+      - name: Deploy
+        run: |
+          cd framework
+          just deploy uni-6
