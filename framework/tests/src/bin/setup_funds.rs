@@ -7,7 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use abstract_core::{ans_host::ExecuteMsgFns, objects::UncheckedChannelEntry, ICS20, PROXY};
 use abstract_interface::{Abstract, ProxyQueryFns};
 use abstract_interface_integration_tests::{
-    ibc::{create_test_remote_account, set_env},
+    interchain_accounts::{create_test_remote_account, set_env},
     JUNO, STARGAZE,
 };
 

@@ -85,7 +85,7 @@ mod test {
     use cw_orch_mock_ibc::MockInterchainEnv;
 
     use super::*;
-    use crate::ibc::create_test_remote_account;
+    use crate::interchain_accounts::create_test_remote_account;
     use crate::setup::ibc_abstract_setup;
 
     use crate::setup::mock_test::logger_test_init;
