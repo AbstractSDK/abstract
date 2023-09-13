@@ -121,7 +121,7 @@ pub fn query_module_version(
     // - failed cw2 query
     // - the query succeeded but the cw2 name doesn't adhere to our formatting standards
     //
-    // Which means this contract is standalone Trying to get it from VC
+    // Which means this contract is a standalone contract. Hence we need to get its information from VersionControl.
     let code_id = deps
         .querier
         .query_wasm_contract_info(module_addr.to_string())?

@@ -88,19 +88,11 @@ pub fn propose_modules(
             validate_account_owner(deps.as_ref(), &module.namespace, &msg_info.sender)?;
         }
 
-        match mod_ref {
-            // verify contract admin is None if module is Adapter
-            ModuleReference::Adapter(ref addr) => {
-                if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
-                    return Err(VCError::AdminMustBeNone);
-                }
+        // verify contract admin is None if module is Adapter
+        if let ModuleReference::Adapter(ref addr) = mod_ref {
+            if deps.querier.query_wasm_contract_info(addr)?.admin.is_some() {
+                return Err(VCError::AdminMustBeNone);
             }
-            // Save module info of standalone contracts,
-            // helps querying version for cw-2-less or mis-formatted contracts
-            ModuleReference::Standalone(id) => {
-                STANDALONE_INFOS.save(deps.storage, id, &module)?;
-            }
-            _ => {}
         }
 
         if config.allow_direct_module_registration_and_updates {
@@ -114,6 +106,11 @@ pub fn propose_modules(
                 None,
             )?;
             REGISTERED_MODULES.save(deps.storage, &module, &mod_ref)?;
+            // Save module info of standalone contracts,
+            // helps querying version for cw-2-less or mis-formatted contracts
+            if let ModuleReference::Standalone(id) = mod_ref {
+                STANDALONE_INFOS.save(deps.storage, id, &module)?;
+            }
         } else {
             PENDING_MODULES.save(deps.storage, &module, &mod_ref)?;
         }
@@ -156,6 +153,12 @@ fn approve_modules(storage: &mut dyn Storage, approves: Vec<ModuleInfo>) -> VCRe
         REGISTERED_MODULES.save(storage, module, &mod_ref)?;
         // Remove from pending
         PENDING_MODULES.remove(storage, module);
+
+        // Save module info of standalone contracts,
+        // helps querying version for cw-2-less or mis-formatted contracts
+        if let ModuleReference::Standalone(id) = mod_ref {
+            STANDALONE_INFOS.save(storage, id, &module)?;
+        }
     }
 
     let approves: Vec<_> = approves.into_iter().map(|m| m.to_string()).collect();
@@ -183,14 +186,21 @@ pub fn remove_module(deps: DepsMut, msg_info: MessageInfo, module: ModuleInfo) -
     // Only specific versions may be removed
     module.assert_version_variant()?;
 
+    let module_ref_res = REGISTERED_MODULES.load(deps.storage, &module);
+
     ensure!(
-        REGISTERED_MODULES.has(deps.storage, &module) || YANKED_MODULES.has(deps.storage, &module),
+        module_ref_res.is_ok() || YANKED_MODULES.has(deps.storage, &module),
         VCError::ModuleNotFound(module)
     );
 
     REGISTERED_MODULES.remove(deps.storage, &module);
     YANKED_MODULES.remove(deps.storage, &module);
     MODULE_CONFIG.remove(deps.storage, &module);
+
+    // Remove standalone info
+    if let Ok(ModuleReference::Standalone(id)) = module_ref_res {
+        STANDALONE_INFOS.remove(deps.storage, id);
+    }
 
     // If this module has no more versions, we also remove default configuration
     if REGISTERED_MODULES
