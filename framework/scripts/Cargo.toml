@@ -5,7 +5,6 @@ edition = { workspace = true }
 
 [lib]
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 serde = { workspace = true }

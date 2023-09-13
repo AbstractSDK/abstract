@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts.
 - Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases.
 - Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
+- Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
 
 ### Fixed
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Manager governance now changes only after new "owner" claimed ownership.
 - Fixed and separated cw-staking and dex adapters for kujira.
 - `ExecOnModule` calls now forward any provided funds to the module that is called.
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
 
 ## [0.17.2] - 2023-07-27
 

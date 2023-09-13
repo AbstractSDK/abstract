@@ -49,3 +49,4 @@ jobs:
             "GHA_Meta": "deploy_all"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+
