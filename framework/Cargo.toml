@@ -98,7 +98,12 @@ speculoos = "0.11.0"
 anyhow = "1"
 
 [patch.crates-io]
-cw-multi-test = { git = "ssh://git@github.com/AbstractSDK/cw-multi-test", branch = "update/add-ibc-support" }
+#cw-multi-test = { git = "ssh://git@github.com/AbstractSDK/cw-multi-test", branch = "update/add-ibc-support" }
+cw-multi-test = { path = "../../cw-multi-test" }
+
+[patch."ssh://git@github.com/AbstractSDK/cw-orch-interchain.git"]
+cw-orch-mock-ibc = { path = "../../cw-orch-interchain/packages/cw-orch-mock-ibc" }
+cw-orch-interchain-core = { path = "../../cw-orch-interchain/packages/interchain-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
