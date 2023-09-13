@@ -6,6 +6,8 @@ name: Release and Publish
 on:
   workflow_dispatch:
   pull_request:
+    types:
+      - opened
     branches:
       - 'release/*'
 
