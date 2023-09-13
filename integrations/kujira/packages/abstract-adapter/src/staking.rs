@@ -1,25 +1,25 @@
+use std::collections::HashMap;
+
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_adapter_traits::{
+    msg::{StakeRequest, StakedQuery, StakingInfo, StakingTarget, UnstakeRequest},
+    Identify,
+};
 use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, KUJIRA};
 
 // TODO: use optional values here?
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Kujira {
+    pub tokens: Vec<KujiraTokenContext>,
+}
+
+#[derive(Clone, Debug)]
+pub struct KujiraTokenContext {
     pub lp_token: LpToken,
     pub lp_token_denom: String,
     pub staking_contract_address: Addr,
-}
-
-impl Default for Kujira {
-    fn default() -> Self {
-        Self {
-            lp_token: Default::default(),
-            lp_token_denom: "".to_string(),
-            staking_contract_address: Addr::unchecked(""),
-        }
-    }
 }
 
 impl Identify for Kujira {
@@ -44,7 +44,6 @@ use ::{
     abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
     cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
     cw_asset::{AssetInfo, AssetInfoBase},
-    cw_utils::Duration,
     kujira::bow::staking as BowStaking,
 };
 
@@ -57,55 +56,85 @@ impl CwStakingCommand for Kujira {
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         _version_control_contract: &VersionControlContract,
-        lp_token: AssetEntry,
+        lp_tokens: impl IntoIterator<Item = AssetEntry>,
     ) -> AbstractSdkResult<()> {
-        self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
+        self.tokens = lp_tokens
+            .into_iter()
+            .map(|lp_token| {
+                let staking_contract_address =
+                    self.staking_contract_address(deps, ans_host, &lp_token)?;
 
-        let AssetInfoBase::Native(denom) = lp_token.resolve(&deps.querier, ans_host)? else {
-            return Err(StdError::generic_err("expected denom as LP token for staking.").into());
-        };
-        self.lp_token_denom = denom;
+                let AssetInfoBase::Native(denom) = lp_token.resolve(&deps.querier, ans_host)?
+                else {
+                    return Err(
+                        StdError::generic_err("expected denom as LP token for staking.").into(),
+                    );
+                };
+                let lp_token_denom = denom;
+                let lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
 
-        self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
+                Ok(KujiraTokenContext {
+                    lp_token,
+                    lp_token_denom,
+                    staking_contract_address,
+                })
+            })
+            .collect::<AbstractSdkResult<_>>()?;
+
         Ok(())
     }
 
     fn stake(
         &self,
         _deps: Deps,
-        amount: Uint128,
-        _unbonding_period: Option<Duration>,
+        stake_request: Vec<StakeRequest>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let msg = BowStaking::ExecuteMsg::Stake { addr: None };
-        Ok(vec![wasm_execute(
-            self.staking_contract_address.clone(),
-            &msg,
-            vec![Coin {
-                amount,
-                denom: self.lp_token_denom.clone(),
-            }],
-        )?
-        .into()])
+
+        let stake_msgs = stake_request
+            .into_iter()
+            .zip(self.tokens.iter())
+            .map(|(stake, token)| {
+                let msg: CosmosMsg = wasm_execute(
+                    token.staking_contract_address.clone(),
+                    &msg,
+                    vec![Coin {
+                        amount: stake.asset.amount,
+                        denom: token.lp_token_denom.clone(),
+                    }],
+                )?
+                .into();
+                Ok(msg)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+
+        Ok(stake_msgs)
     }
 
     fn unstake(
         &self,
         _deps: Deps,
-        amount: Uint128,
-        _unbonding_period: Option<Duration>,
+        unstake_request: Vec<UnstakeRequest>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = BowStaking::ExecuteMsg::Withdraw {
-            amount: Coin {
-                denom: self.lp_token_denom.clone(),
-                amount,
-            },
-        };
-        Ok(vec![wasm_execute(
-            self.staking_contract_address.clone(),
-            &msg,
-            vec![],
-        )?
-        .into()])
+        let unstake_msgs = unstake_request
+            .into_iter()
+            .zip(self.tokens.iter())
+            .map(|(unstake, token)| {
+                let msg: CosmosMsg = wasm_execute(
+                    token.staking_contract_address.clone(),
+                    &BowStaking::ExecuteMsg::Withdraw {
+                        amount: Coin {
+                            denom: token.lp_token_denom.clone(),
+                            amount: unstake.asset.amount,
+                        },
+                    },
+                    vec![],
+                )?
+                .into();
+                Ok(msg)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+        Ok(unstake_msgs)
     }
 
     fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
@@ -113,53 +142,74 @@ impl CwStakingCommand for Kujira {
     }
 
     fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = BowStaking::ExecuteMsg::Claim {
-            denom: self.lp_token_denom.clone().into(),
-        };
-        Ok(vec![wasm_execute(
-            self.staking_contract_address.clone(),
-            &msg,
-            vec![],
-        )?
-        .into()])
+        let claim_msgs = self
+            .tokens
+            .iter()
+            .map(|t| {
+                let msg: CosmosMsg = wasm_execute(
+                    t.staking_contract_address.clone(),
+                    &BowStaking::ExecuteMsg::Claim {
+                        denom: t.lp_token_denom.clone().into(),
+                    },
+                    vec![],
+                )?
+                .into();
+                Ok(msg)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+
+        Ok(claim_msgs)
     }
 
     fn query_info(&self, _querier: &QuerierWrapper) -> Result<StakingInfoResponse, CwStakingError> {
-        let lp_token = AssetInfo::Native(self.lp_token_denom.clone());
+        let infos = self
+            .tokens
+            .iter()
+            .map(|t| {
+                let lp_token = AssetInfo::Native(t.lp_token_denom.clone());
+                StakingInfo {
+                    staking_target: t.staking_contract_address.clone().into(),
+                    staking_token: lp_token,
+                    unbonding_periods: None,
+                    max_claims: None,
+                }
+            })
+            .collect();
 
-        Ok(StakingInfoResponse {
-            staking_target: self.staking_contract_address.clone().into(),
-            staking_token: lp_token,
-            unbonding_periods: None,
-            max_claims: None,
-        })
+        Ok(StakingInfoResponse { infos })
     }
 
     fn query_staked(
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        _unbonding_period: Option<Duration>,
+        _stakes: Vec<StakedQuery>,
     ) -> Result<StakeResponse, CwStakingError> {
-        let stake_response: BowStaking::StakeResponse = querier
-            .query_wasm_smart(
-                self.staking_contract_address.clone(),
-                &BowStaking::QueryMsg::Stake {
-                    denom: self.lp_token_denom.clone().into(),
-                    addr: staker.clone(),
-                },
-            )
-            .map_err(|e| {
-                StdError::generic_err(format!(
-                    "Failed to query staked balance on {} for {}. Error: {:?}",
-                    self.name(),
-                    staker,
-                    e
-                ))
-            })?;
-        Ok(StakeResponse {
-            amount: stake_response.amount,
-        })
+        let amounts: Vec<Uint128> = self
+            .tokens
+            .iter()
+            .map(|t| {
+                let stake_response: BowStaking::StakeResponse = querier
+                    .query_wasm_smart(
+                        t.staking_contract_address.clone(),
+                        &BowStaking::QueryMsg::Stake {
+                            denom: t.lp_token_denom.clone().into(),
+                            addr: staker.clone(),
+                        },
+                    )
+                    .map_err(|e| {
+                        StdError::generic_err(format!(
+                            "Failed to query staked balance on {} for {}. Error: {:?}",
+                            self.name(),
+                            staker,
+                            e
+                        ))
+                    })?;
+                Ok(stake_response.amount)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+
+        Ok(StakeResponse { amounts })
     }
 
     fn query_unbonding(
@@ -174,34 +224,46 @@ impl CwStakingCommand for Kujira {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
-        let reward_info: BowStaking::IncentivesResponse = querier
-            .query_wasm_smart(
-                self.staking_contract_address.clone(),
-                &BowStaking::QueryMsg::Incentives {
-                    denom: self.lp_token_denom.clone().into(),
-                    start_after: None,
-                    limit: None,
-                },
-            )
-            .map_err(|e| {
-                StdError::generic_err(format!(
-                    "Failed to query reward info on {} for lp token {}. Error: {:?}",
-                    self.name(),
-                    self.lp_token,
-                    e
-                ))
-            })?;
+        let tokens = self.tokens.iter().try_fold(
+            HashMap::<&Addr, Vec<AssetInfo>>::new(),
+            |mut acc, t| -> Result<_, CwStakingError> {
+                let reward_info: BowStaking::IncentivesResponse = querier
+                    .query_wasm_smart(
+                        t.staking_contract_address.clone(),
+                        &BowStaking::QueryMsg::Incentives {
+                            denom: t.lp_token_denom.clone().into(),
+                            start_after: None,
+                            limit: None,
+                        },
+                    )
+                    .map_err(|e| {
+                        StdError::generic_err(format!(
+                            "Failed to query reward info on {} for lp token {}. Error: {:?}",
+                            self.name(),
+                            t.lp_token,
+                            e
+                        ))
+                    })?;
+                let reward_tokens = reward_info
+                    .incentives
+                    .into_iter()
+                    .map(|asset| {
+                        let token = AssetInfo::Native(asset.denom.to_string());
+                        Result::<_, CwStakingError>::Ok(token)
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
 
-        let reward_tokens = reward_info
-            .incentives
+                let entry = acc.entry(&t.staking_contract_address).or_default();
+                entry.extend(reward_tokens);
+                Ok(acc)
+            },
+        )?;
+
+        // Convert to response
+        let tokens = tokens
             .into_iter()
-            .map(|asset| {
-                let token = AssetInfo::Native(asset.denom.to_string());
-                Result::<_, CwStakingError>::Ok(token)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(RewardTokensResponse {
-            tokens: reward_tokens,
-        })
+            .map(|(addr, assets)| (StakingTarget::from(addr.to_owned()), assets))
+            .collect();
+        Ok(RewardTokensResponse { tokens })
     }
 }

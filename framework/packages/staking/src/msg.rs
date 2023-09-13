@@ -157,7 +157,7 @@ pub struct StakeResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct RewardTokensResponse {
-    pub tokens: Vec<AssetInfo>,
+    pub tokens: Vec<(StakingTarget, Vec<AssetInfo>)>,
 }
 
 #[cosmwasm_schema::cw_serde]

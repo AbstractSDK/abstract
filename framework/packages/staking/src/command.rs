@@ -1,12 +1,12 @@
 use crate::msg::{
-    RewardTokensResponse, StakeRequest, StakeResponse, StakingInfoResponse, UnbondingResponse, UnstakeRequest, StakedQuery,
+    RewardTokensResponse, StakeRequest, StakeResponse, StakedQuery, StakingInfoResponse,
+    UnbondingResponse, UnstakeRequest,
 };
 use crate::{CwStakingError, Identify};
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
 use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
-use cw_utils::Duration;
 use std::error::Error;
 
 /// Trait that defines the staking commands for providers
@@ -48,7 +48,11 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     fn stake(&self, deps: Deps, stake_request: Vec<StakeRequest>) -> Result<Vec<CosmosMsg>, E>;
 
     /// Stake the provided asset into the staking contract
-    fn unstake(&self, deps: Deps, unstake_request: Vec<UnstakeRequest>) -> Result<Vec<CosmosMsg>, E>;
+    fn unstake(
+        &self,
+        deps: Deps,
+        unstake_request: Vec<UnstakeRequest>,
+    ) -> Result<Vec<CosmosMsg>, E>;
 
     /// Claim rewards on the staking contract
     fn claim_rewards(&self, deps: Deps) -> Result<Vec<CosmosMsg>, E>;

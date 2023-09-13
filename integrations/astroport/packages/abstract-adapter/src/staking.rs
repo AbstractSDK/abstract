@@ -79,9 +79,8 @@ impl CwStakingCommand for Astroport {
         _version_control_contract: &VersionControlContract,
         lp_tokens: impl IntoIterator<Item = AssetEntry>,
     ) -> AbstractSdkResult<()> {
-        let lp_tokens = lp_tokens.into_iter();
-
         self.tokens = lp_tokens
+            .into_iter()
             .map(|lp_token| {
                 let generator_contract_address =
                     self.staking_contract_address(deps, ans_host, &lp_token)?;
@@ -267,43 +266,47 @@ impl CwStakingCommand for Astroport {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
-        let tokens =
-            self.tokens
-                .iter()
-                .try_fold(vec![], |mut acc, t| -> Result<_, CwStakingError> {
-                    let reward_info: RewardInfoResponse = querier
-                        .query_wasm_smart(
-                            t.generator_contract_address.clone(),
-                            &GeneratorQueryMsg::RewardInfo {
-                                lp_token: t.lp_token_address.to_string(),
-                            },
-                        )
-                        .map_err(|e| {
-                            StdError::generic_err(format!(
-                                "Failed to query reward info on {} for lp token {}. Error: {:?}",
-                                self.name(),
-                                t.lp_token,
-                                e
-                            ))
-                        })?;
+        let tokens = self.tokens.iter().try_fold(
+            HashMap::<&Addr, Vec<AssetInfo>>::new(),
+            |mut acc, t| -> Result<_, CwStakingError> {
+                let reward_info: RewardInfoResponse = querier
+                    .query_wasm_smart(
+                        t.generator_contract_address.clone(),
+                        &GeneratorQueryMsg::RewardInfo {
+                            lp_token: t.lp_token_address.to_string(),
+                        },
+                    )
+                    .map_err(|e| {
+                        StdError::generic_err(format!(
+                            "Failed to query reward info on {} for lp token {}. Error: {:?}",
+                            self.name(),
+                            t.lp_token,
+                            e
+                        ))
+                    })?;
 
-                    let token = match reward_info.base_reward_token {
-                        astroport::asset::AssetInfo::Token { contract_addr } => {
-                            AssetInfo::cw20(contract_addr)
-                        }
-                        astroport::asset::AssetInfo::NativeToken { denom } => {
-                            AssetInfo::native(denom)
-                        }
-                    };
-
-                    acc.push(token);
-
-                    if let Some(reward_token) = reward_info.proxy_reward_token {
-                        acc.push(AssetInfo::cw20(reward_token));
+                let token = match reward_info.base_reward_token {
+                    astroport::asset::AssetInfo::Token { contract_addr } => {
+                        AssetInfo::cw20(contract_addr)
                     }
-                    Ok(acc)
-                })?;
+                    astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::native(denom),
+                };
 
+                let entry = acc.entry(&t.generator_contract_address).or_default();
+                entry.push(token);
+
+                if let Some(reward_token) = reward_info.proxy_reward_token {
+                    entry.push(AssetInfo::cw20(reward_token));
+                }
+                Ok(acc)
+            },
+        )?;
+
+        // Convert to response
+        let tokens = tokens
+            .into_iter()
+            .map(|(addr, assets)| (StakingTarget::from(addr.to_owned()), assets))
+            .collect();
         Ok(RewardTokensResponse { tokens })
     }
 }
