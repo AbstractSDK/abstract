@@ -63,13 +63,13 @@ jobs:
             git add modules/artifacts --force
             git commit -m 'Update WASM artifacts [skip ci]'
             git push origin $CIRCLE_BRANCH
-    deploy:
-      docker:
+  deploy:
+    docker:
       - image: cimg/rust:1.72.0
-      resource_class: large
-      steps:
-        - checkout
-        - run: 
+    resource_class: large
+    steps:
+      - checkout
+      - run: 
           name: Deploy
           command: |
             cd framework
