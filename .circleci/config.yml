@@ -24,14 +24,17 @@ workflows:
       equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
+
+  deploy:
+    when:
+      equal: [ "deploy_all", << pipeline.parameters.GHA_Meta >> ]
+    jobs:
       - deploy:
           requires: 
             - build
           filters:
             branches:
               only: /release\//
-          when: 
-            equal: ["deploy_all", << pipeline.parameters.GHA_Meta >>]
 
   modules-coverage:
     when: 
