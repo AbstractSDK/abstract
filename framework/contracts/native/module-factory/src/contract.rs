@@ -75,11 +75,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
         Reply {
             id: commands::CREATE_APP_RESPONSE_ID,
             result,
-        } => commands::register_contract(deps, result),
+        } => commands::handle_reply(deps, result),
         Reply {
             id: commands::CREATE_STANDALONE_RESPONSE_ID,
             result,
-        } => commands::register_contract(deps, result),
+        } => commands::handle_reply(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
     }
 }
@@ -149,10 +149,12 @@ pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let Context {
         account_base,
         modules,
+        modules_to_register,
     }: Context = CONTEXT.load(deps.storage)?;
     let resp = ContextResponse {
         account_base,
         modules: modules.into(),
+        modules_to_register,
     };
 
     Ok(resp)
