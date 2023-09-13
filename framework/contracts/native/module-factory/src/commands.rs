@@ -10,7 +10,7 @@ use crate::{
 };
 use abstract_sdk::{
     core::{
-        manager::{ExecuteMsg as ManagerMsg, RegisterModule},
+        manager::{ExecuteMsg as ManagerMsg, RegisterModuleData},
         module_factory::ModuleInstallConfig,
         objects::{
             module::ModuleInfo, module_reference::ModuleReference,
@@ -59,13 +59,13 @@ pub fn execute_create_modules(
     let mut sum_of_monetization = Coins::default();
 
     // install messages
-    let mut sub_messages = Vec::with_capacity(modules_responses.len());
+    let mut module_instantiate_sub_messages = Vec::with_capacity(modules_responses.len());
     // list of modules to register after instantiation
     let mut modules_to_install = VecDeque::with_capacity(modules_responses.len());
 
     // Attributes logging
     let mut module_ids: Vec<String> = Vec::with_capacity(modules_responses.len());
-    let mut modules_to_register: Vec<RegisterModule> = vec![];
+    let mut modules_to_register: Vec<RegisterModuleData> = vec![];
 
     for (owner_init_msg, module_response) in
         init_msgs.into_iter().zip(modules_responses.into_iter())
@@ -109,12 +109,12 @@ pub fn execute_create_modules(
                     &new_module.info,
                 )?;
                 modules_to_install.push_back(new_module.clone());
-                sub_messages.push(init_msg);
+                module_instantiate_sub_messages.push(init_msg);
             }
             // Adapter is not installed but registered instead, so we don't push to the `installed_modules`
             ModuleReference::Adapter(addr) => {
                 let new_module_addr = addr.to_string();
-                modules_to_register.push(RegisterModule {
+                modules_to_register.push(RegisterModuleData {
                     module_address: new_module_addr,
                     module: new_module,
                 });
@@ -130,7 +130,7 @@ pub fn execute_create_modules(
                     &new_module.info,
                 )?;
                 modules_to_install.push_back(new_module.clone());
-                sub_messages.push(init_msg);
+                module_instantiate_sub_messages.push(init_msg);
             }
             _ => return Err(ModuleFactoryError::ModuleNotInstallable {}),
         };
@@ -146,7 +146,7 @@ pub fn execute_create_modules(
     }
 
     // No submessages, registering modules here
-    if sub_messages.is_empty() {
+    if module_instantiate_sub_messages.is_empty() {
         register_modules(modules_to_register, account_base)
     } else {
         CONTEXT.save(
@@ -162,7 +162,7 @@ pub fn execute_create_modules(
             "execute_create_modules",
             iter::once(("module_ids", format!("{module_ids:?}"))),
         )
-        .add_submessages(sub_messages)
+        .add_submessages(module_instantiate_sub_messages)
         .add_messages(fee_msgs))
     }
 }
@@ -193,6 +193,8 @@ fn instantiate_contract(
 
 pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult {
     let mut context: Context = CONTEXT.load(deps.storage)?;
+    // Pop the first module that is assumed to be responsible for the reply.
+    // **This assumption is only valid if all the submessages are module instantiations.**
     let module = context.modules.pop_front().unwrap();
     // Get address of the new contract
     let res: MsgInstantiateContractResponse =
@@ -203,7 +205,7 @@ pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult 
     // assert the data after instantiation.
     module::assert_module_data_validity(&deps.querier, &module, Some(module_address.clone()))?;
 
-    context.modules_to_register.push(RegisterModule {
+    context.modules_to_register.push(RegisterModuleData {
         module_address: module_address.to_string(),
         module,
     });
@@ -221,7 +223,7 @@ pub fn handle_reply(deps: DepsMut, result: SubMsgResult) -> ModuleFactoryResult 
 }
 
 pub fn register_modules(
-    modules_to_register: Vec<RegisterModule>,
+    modules_to_register: Vec<RegisterModuleData>,
     account_base: AccountBase,
 ) -> ModuleFactoryResult {
     let module_addrs = modules_to_register

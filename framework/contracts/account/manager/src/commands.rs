@@ -8,7 +8,7 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, RegisterModule, UpdateSubAccountAction};
+use abstract_core::manager::{InternalConfigAction, RegisterModuleData, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_core::objects::{AccountId, AssetEntry};
@@ -138,12 +138,12 @@ pub(crate) fn install_modules_internal(
     ))
 }
 
-// Sets the Treasury address on the module if applicable and adds it to the state
+/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
 pub fn register_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    modules: Vec<RegisterModule>,
+    modules: Vec<RegisterModuleData>,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
@@ -160,7 +160,7 @@ pub fn register_modules(
 
     let mut response = update_module_addresses(deps.branch(), Some(to_add), None)?;
     let mut add_modules = vec![];
-    for RegisterModule {
+    for RegisterModuleData {
         module,
         module_address,
     } in modules
@@ -1505,7 +1505,7 @@ mod tests {
             let _info = mock_info("not_module_factory", &[]);
 
             let msg = ExecuteMsg::RegisterModules {
-                modules: vec![RegisterModule {
+                modules: vec![RegisterModuleData {
                     module_address: "module_addr".to_string(),
                     module: Module {
                         info: ModuleInfo::from_id_latest("test:module")?,

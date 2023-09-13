@@ -160,7 +160,7 @@ pub enum UpdateSubAccountAction {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct RegisterModule {
+pub struct RegisterModuleData {
     pub module_address: String,
     pub module: Module,
 }
@@ -184,7 +184,7 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModules { modules: Vec<RegisterModule> },
+    RegisterModules { modules: Vec<RegisterModuleData> },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version
