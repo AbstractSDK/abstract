@@ -1,28 +1,23 @@
 use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_adapter_traits::{
+    msg::{StakeRequest, StakingInfo, UnstakeRequest},
+    Identify,
+};
 use cosmwasm_std::{Addr, Env};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct WynDex {
-    lp_token: LpToken,
-    lp_token_address: Addr,
-    staking_contract_address: Addr,
-    ans_host: Addr,
-    env: Option<Env>,
+    pub tokens: Vec<WynDexTokenContext>,
+    pub ans_host: Option<Addr>,
 }
 
-impl Default for WynDex {
-    fn default() -> Self {
-        Self {
-            lp_token: Default::default(),
-            lp_token_address: Addr::unchecked(""),
-            staking_contract_address: Addr::unchecked(""),
-            ans_host: Addr::unchecked(""),
-            env: None,
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WynDexTokenContext {
+    pub lp_token: LpToken,
+    pub lp_token_address: Addr,
+    pub staking_contract_address: Addr,
 }
 
 impl Identify for WynDex {
@@ -70,16 +65,30 @@ impl CwStakingCommand for WynDex {
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         _version_control_contract: &VersionControlContract,
-        lp_token: AssetEntry,
+        lp_tokens: impl IntoIterator<Item = AssetEntry>,
     ) -> std::result::Result<(), AbstractSdkError> {
-        self.staking_contract_address = self.staking_contract_address(deps, ans_host, &lp_token)?;
+        self.tokens = lp_tokens
+            .into_iter()
+            .map(|lp_token| {
+                let staking_contract_address =
+                    self.staking_contract_address(deps, ans_host, &lp_token)?;
+                let AssetInfoBase::Cw20(lp_token_address) =
+                    lp_token.resolve(&deps.querier, ans_host)?
+                else {
+                    return Err(
+                        StdError::generic_err("expected CW20 as LP token for staking.").into(),
+                    );
+                };
 
-        let AssetInfoBase::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
-            return Err(StdError::generic_err("expected CW20 as LP token for staking.").into());
-        };
-        self.lp_token_address = token_addr;
+                let lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
+                Ok(WynDexTokenContext {
+                    lp_token,
+                    lp_token_address,
+                    staking_contract_address,
+                })
+            })
+            .collect::<AbstractSdkResult<_>>()?;
 
-        self.lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
         self.env = Some(env);
         Ok(())
     }
@@ -87,7 +96,7 @@ impl CwStakingCommand for WynDex {
     fn stake(
         &self,
         _deps: Deps,
-        amount: Uint128,
+        stake_request: Vec<StakeRequest>,
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
@@ -95,75 +104,112 @@ impl CwStakingCommand for WynDex {
             unbonding_period,
             delegate_as: None,
         })?;
-        Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.lp_token_address.to_string(),
-            msg: to_binary(&Cw20ExecuteMsg::Send {
-                contract: self.staking_contract_address.to_string(),
-                amount,
-                msg,
-            })?,
-            funds: vec![],
-        })])
+        let stake_msgs = stake_request
+            .into_iter()
+            .zip(self.tokens.iter())
+            .map(|(stake, token)| {
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: token.lp_token_address.to_string(),
+                    msg: to_binary(&Cw20ExecuteMsg::Send {
+                        contract: token.staking_contract_address.to_string(),
+                        amount: stake.asset.amount,
+                        msg: msg.clone(),
+                    })?,
+                    funds: vec![],
+                })
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+
+        Ok(vec![stake_msgs])
     }
 
     fn unstake(
         &self,
         _deps: Deps,
-        amount: Uint128,
+        unstake_request: Vec<UnstakeRequest>,
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
-        let msg = StakeCw20ExecuteMsg::Unbond {
-            tokens: amount,
-            unbonding_period,
-        };
-        Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.staking_contract_address.to_string(),
-            msg: to_binary(&msg)?,
-            funds: vec![],
-        })])
+        let unstake_msgs = unstake_request
+            .into_iter()
+            .zip(self.tokens.iter())
+            .map(|(unstake, token)| {
+                Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: self.staking_contract_address.to_string(),
+                    msg: to_binary(&StakeCw20ExecuteMsg::Unbond {
+                        tokens: unstake.amount,
+                        unbonding_period,
+                    })?,
+                    funds: vec![],
+                }))
+            })
+            .collect::<Result<_, CwStakingError>>()?;
+
+        Ok(unstake_msgs)
     }
 
     fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = StakeCw20ExecuteMsg::Claim {};
+        let msg = to_binary(&StakeCw20ExecuteMsg::Claim {})?;
 
-        Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.staking_contract_address.to_string(),
-            msg: to_binary(&msg)?,
-            funds: vec![],
-        })])
+        let claim_msgs = self
+            .tokens
+            .iter()
+            .map(|t| {
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: t.staking_contract_address.to_string(),
+                    msg: msg.clone(),
+                    funds: vec![],
+                })
+            })
+            .collect();
+        Ok(claim_msgs)
     }
 
     fn claim_rewards(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
-        let msg = StakeCw20ExecuteMsg::WithdrawRewards {
+        let msg = to_binary(&StakeCw20ExecuteMsg::WithdrawRewards {
             owner: None,
             receiver: None,
-        };
-        Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: self.staking_contract_address.to_string(),
-            msg: to_binary(&msg)?,
-            funds: vec![],
-        })])
+        })?;
+
+        let claim_msgs = self
+            .tokens
+            .iter()
+            .map(|t| {
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: t.staking_contract_address.to_string(),
+                    msg: msg.clone(),
+                    funds: vec![],
+                })
+            })
+            .collect();
+        Ok(claim_msgs)
     }
 
     fn query_info(&self, querier: &QuerierWrapper) -> StakingResult<StakingInfoResponse> {
-        let bonding_info_resp: BondingInfoResponse = querier.query_wasm_smart(
-            self.staking_contract_address.clone(),
-            &wyndex_stake::msg::QueryMsg::BondingInfo {},
-        )?;
+        let infos = self
+            .tokens
+            .iter()
+            .map(|t| {
+                let bonding_info_resp: BondingInfoResponse = querier.query_wasm_smart(
+                    t.staking_contract_address.clone(),
+                    &wyndex_stake::msg::QueryMsg::BondingInfo {},
+                )?;
+                Ok(StakingInfo {
+                    staking_target: t.staking_contract_address.clone().into(),
+                    staking_token: AssetInfo::Cw20(t.lp_token_address.clone()),
+                    unbonding_periods: Some(
+                        bonding_info_resp
+                            .bonding
+                            .into_iter()
+                            .map(|bond_period| Duration::Time(bond_period.unbonding_period))
+                            .collect(),
+                    ),
+                    max_claims: None,
+                })
+            })
+            .collect();
 
-        Ok(StakingInfoResponse {
-            staking_target: self.staking_contract_address.clone().into(),
-            staking_token: AssetInfo::Cw20(self.lp_token_address.clone()),
-            unbonding_periods: Some(
-                bonding_info_resp
-                    .bonding
-                    .into_iter()
-                    .map(|bond_period| Duration::Time(bond_period.unbonding_period))
-                    .collect(),
-            ),
-            max_claims: None,
-        })
+        Ok(StakingInfoResponse { infos })
     }
 
     fn query_staked(
@@ -193,7 +239,7 @@ impl CwStakingCommand for WynDex {
         } else {
             Uint128::zero()
         };
-        Ok(StakeResponse { amount })
+        Ok(StakeResponse { amounts })
     }
 
     fn query_unbonding(

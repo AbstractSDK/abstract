@@ -7,6 +7,7 @@ use abstract_sdk::core::objects::LpToken;
 use abstract_staking_adapter_traits::msg::StakeRequest;
 use abstract_staking_adapter_traits::msg::StakedQuery;
 use abstract_staking_adapter_traits::msg::StakingInfo;
+use abstract_staking_adapter_traits::msg::StakingTarget;
 use abstract_staking_adapter_traits::msg::UnstakeRequest;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
