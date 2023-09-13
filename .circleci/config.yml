@@ -30,6 +30,8 @@ workflows:
           filters:
             branches:
               only: /release\//
+          when: 
+            equal: ["deploy_all", << pipeline.parameters.GHA_Meta >>]
 
   modules-coverage:
     when: 
