@@ -40,10 +40,16 @@ pub struct StakingExecuteMsg {
 /// All provide an asset [AnsAsset] information
 pub enum StakingAction {
     /// Stakes/bonds a given token
-    Stake { stake: Vec<StakeRequest> },
+    Stake {
+        stake: Vec<StakeRequest>,
+        unbonding_period: Option<Duration>,
+    },
 
     /// Unstake/unbond a given token
-    Unstake { unstake: Vec<StakeRequest> },
+    Unstake {
+        unstake: Vec<StakeRequest>,
+        unbonding_period: Option<Duration>,
+    },
 
     /// Claim rewards for a given token
     ClaimRewards { assets: Vec<AssetEntry> },
@@ -55,7 +61,6 @@ pub enum StakingAction {
 #[cosmwasm_schema::cw_serde]
 pub struct StakeRequest {
     pub asset: AnsAsset,
-    pub unbonding_period: Option<Duration>,
 }
 
 pub type UnstakeRequest = StakeRequest;
@@ -74,6 +79,7 @@ pub enum StakingQueryMsg {
     Staked {
         provider: ProviderName,
         staker_address: String,
+        unbonding_period: Option<Duration>,
         stakes: Vec<StakedQuery>,
     },
     #[returns(UnbondingResponse)]
@@ -92,7 +98,6 @@ pub enum StakingQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct StakedQuery {
     pub staking_token: AssetEntry,
-    pub unbonding_period: Option<Duration>,
 }
 
 /// Possible staking targets to support staking on cosmwasm contract or cosmos Lockup module

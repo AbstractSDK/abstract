@@ -88,6 +88,7 @@ impl CwStakingCommand for Kujira {
         &self,
         _deps: Deps,
         stake_request: Vec<StakeRequest>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let msg = BowStaking::ExecuteMsg::Stake { addr: None };
 
@@ -115,6 +116,7 @@ impl CwStakingCommand for Kujira {
         &self,
         _deps: Deps,
         unstake_request: Vec<UnstakeRequest>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unstake_msgs = unstake_request
             .into_iter()
@@ -184,6 +186,7 @@ impl CwStakingCommand for Kujira {
         querier: &QuerierWrapper,
         staker: Addr,
         _stakes: Vec<StakedQuery>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, CwStakingError> {
         let amounts: Vec<Uint128> = self
             .tokens

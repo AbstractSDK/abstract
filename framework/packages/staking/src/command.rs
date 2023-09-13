@@ -45,13 +45,19 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
-    fn stake(&self, deps: Deps, stake_request: Vec<StakeRequest>) -> Result<Vec<CosmosMsg>, E>;
+    fn stake(
+        &self,
+        deps: Deps,
+        stake_request: Vec<StakeRequest>,
+        unbonding_period: Option<cw_utils::Duration>,
+    ) -> Result<Vec<CosmosMsg>, E>;
 
     /// Stake the provided asset into the staking contract
     fn unstake(
         &self,
         deps: Deps,
         unstake_request: Vec<UnstakeRequest>,
+        unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
     /// Claim rewards on the staking contract
@@ -71,6 +77,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         querier: &QuerierWrapper,
         staker: Addr,
         stakes: Vec<StakedQuery>,
+        unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, E>;
 
     /// Query information on unbonding positions for a given staker.

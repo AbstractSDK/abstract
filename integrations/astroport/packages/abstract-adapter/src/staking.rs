@@ -105,6 +105,7 @@ impl CwStakingCommand for Astroport {
         &self,
         _deps: Deps,
         stake_request: Vec<StakeRequest>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let msg = to_binary(&Cw20HookMsg::Deposit {})?;
 
@@ -133,6 +134,7 @@ impl CwStakingCommand for Astroport {
         &self,
         _deps: Deps,
         unstake_request: Vec<UnstakeRequest>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unstake_msgs = unstake_request
             .into_iter()
@@ -223,6 +225,7 @@ impl CwStakingCommand for Astroport {
         querier: &QuerierWrapper,
         staker: Addr,
         _stakes: Vec<StakedQuery>,
+        _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, CwStakingError> {
         let amounts = self
             .tokens

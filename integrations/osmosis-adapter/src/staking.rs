@@ -30,7 +30,8 @@ pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
     use abstract_sdk::{AbstractSdkError, AccountVerification};
     use abstract_staking_adapter_traits::msg::{
-        Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+        Claim, RewardTokensResponse, StakeRequest, StakeResponse, StakedQuery, StakingInfo,
+        StakingInfoResponse, UnbondingResponse, UnstakeRequest,
     };
     use cw_utils::Expiration;
     use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
@@ -152,17 +153,24 @@ pub mod fns {
         fn stake(
             &self,
             _deps: Deps,
-            amount: Uint128,
+            stake_request: Vec<StakeRequest>,
             unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
+            let lock_coins: Vec<_> = stake_request
+                .into_iter()
+                .zip(self.tokens.iter())
+                .map(|(stake, token)| {
+                    Coin {
+                        amount: stake.asset.amount,
+                        denom: token.lp_token.clone(),
+                    }
+                    .into()
+                })
+                .collect();
             let lock_tokens_msg = MsgLockTokens {
                 owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
                 duration: to_osmo_duration(unbonding_period)?,
-                coins: vec![Coin {
-                    amount,
-                    denom: self.lp_token.clone().unwrap(),
-                }
-                .into()],
+                coins: lock_coins,
             };
 
             Ok(vec![lock_tokens_msg.into()])
@@ -171,19 +179,27 @@ pub mod fns {
         fn unstake(
             &self,
             _deps: Deps,
-            amount: Uint128,
+            unstake_request: Vec<UnstakeRequest>,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
-            let msg = MsgBeginUnlocking {
-                owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                id: self.pool_id.unwrap(),
-                coins: vec![Coin {
-                    denom: self.lp_token.clone().unwrap(),
-                    amount,
-                }
-                .into()],
-            };
-            Ok(vec![msg.into()])
+            let unstake_msgs: Vec<_> = unstake_request
+                .into_iter()
+                .zip(self.tokens.iter())
+                .map(|(unstake, tokens)| {
+                    MsgBeginUnlocking {
+                        owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
+                        id: tokens.pool_id,
+                        coins: vec![Coin {
+                            denom: tokens.lp_token.clone(),
+                            amount: unstake.asset.amount,
+                        }
+                        .into()],
+                    }
+                    .into()
+                })
+                .collect();
+
+            Ok(unstake_msgs)
         }
 
         fn claim(&self, _deps: Deps) -> Result<Vec<CosmosMsg>, CwStakingError> {
@@ -210,35 +226,44 @@ pub mod fns {
             &self,
             _querier: &cosmwasm_std::QuerierWrapper,
         ) -> Result<StakingInfoResponse, CwStakingError> {
-            let res = StakingInfoResponse {
-                staking_token: AssetInfoBase::Native(self.lp_token.clone().unwrap()),
-                staking_target: self.pool_id.clone().unwrap().into(),
-                unbonding_periods: Some(vec![]),
-                max_claims: None,
-            };
+            let infos = self
+                .tokens
+                .iter()
+                .map(|t| StakingInfo {
+                    staking_token: AssetInfoBase::Native(t.lp_token.clone()),
+                    staking_target: t.pool_id.clone().into(),
+                    unbonding_periods: Some(vec![]),
+                    max_claims: None,
+                })
+                .collect();
 
-            Ok(res)
+            Ok(StakingInfoResponse { infos })
         }
 
         fn query_staked(
             &self,
-            _querier: &QuerierWrapper,
-            _staker: Addr,
+            querier: &QuerierWrapper,
+            staker: Addr,
+            _stakes: Vec<StakedQuery>,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
-            Err(CwStakingError::NotImplemented("osmosis".to_owned()))
-            // TODO: whitelist for contracts
-            // let lockup_request = LockupQuerier::new(querier);
-            // let locked_up = lockup_request.account_locked_coins(staker.to_string())?;
+            let lockup_request = LockupQuerier::new(querier);
+            let locked_up = lockup_request.account_locked_coins(staker.to_string())?;
 
-            // let amount = locked_up
-            //     .coins
-            //     .into_iter()
-            //     .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
-            //     .map(|lock| Uint128::from_str(&lock.amount).unwrap())
-            //     .sum();
+            let amounts = self
+                .tokens
+                .iter()
+                .map(|token| {
+                    locked_up
+                        .coins
+                        .iter()
+                        .find(|&c| c.denom == token.lp_token)
+                        .map(|c| Uint128::from_str(&c.amount).unwrap())
+                        .unwrap_or_default()
+                })
+                .collect();
 
-            // Ok(StakeResponse { amount })
+            Ok(StakeResponse { amounts })
         }
 
         fn query_unbonding(
@@ -247,18 +272,28 @@ pub mod fns {
             staker: Addr,
         ) -> Result<UnbondingResponse, CwStakingError> {
             let lockup_request = LockupQuerier::new(querier);
-            let unlocking = lockup_request
+            let unlock_coins = lockup_request
                 .account_unlocking_coins(staker.to_string())?
-                .coins
-                .into_iter()
-                .filter(|coin| coin.denom == self.lp_token.clone().unwrap())
-                .map(|lock| Claim {
-                    amount: Uint128::from_str(&lock.amount).unwrap(),
-                    claimable_at: Expiration::Never {},
+                .coins;
+            let claims = self
+                .tokens
+                .iter()
+                .map(|token| {
+                    unlock_coins
+                        .iter()
+                        .find(|&c| c.denom == token.lp_token)
+                        .map(|c| Claim {
+                            amount: Uint128::from_str(&c.amount).unwrap(),
+                            claimable_at: Expiration::Never {},
+                        })
+                        .unwrap_or(Claim {
+                            amount: Uint128::new(0),
+                            claimable_at: Expiration::Never {},
+                        })
                 })
                 .collect();
 
-            Ok(UnbondingResponse { claims: unlocking })
+            Ok(UnbondingResponse { claims })
         }
 
         fn query_rewards(
