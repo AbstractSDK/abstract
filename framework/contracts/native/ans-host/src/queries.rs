@@ -300,6 +300,8 @@ fn load_pool_metadata_entry(
 
 #[cfg(test)]
 mod test {
+    use std::str::FromStr;
+
     use abstract_core::ans_host::*;
     use abstract_core::objects::chain_name::ChainName;
     use abstract_core::objects::PoolType;
