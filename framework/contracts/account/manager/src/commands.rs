@@ -1,4 +1,4 @@
-use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
+use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_version};
 use crate::{validation, versioning};
 use abstract_core::manager::state::{
     ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
@@ -532,8 +532,12 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
+    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(config.version_control_address);
+
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
+    let old_module_cw2 =
+        query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
     let migrate_msgs = match requested_module.module.reference {
@@ -793,7 +797,7 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract_cw2: Option<ContractVersion>,
+    old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
@@ -802,7 +806,7 @@ fn query_module(
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            let old_contract = old_contract_cw2.unwrap();
+            let old_contract = old_contract_version.unwrap();
 
             let new_version = new_version.parse::<Version>().unwrap();
             let old_version = old_contract.version.parse::<Version>().unwrap();
@@ -813,7 +817,6 @@ fn query_module(
                     old_version.to_string(),
                 ));
             }
-
             Module {
                 info: module_info.clone(),
                 reference: version_registry.query_module_reference_raw(&module_info)?,
