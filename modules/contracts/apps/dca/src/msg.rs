@@ -137,7 +137,7 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct DCAResponse {
-    /// DCA entry if there is some by this DCA task
+    /// DCA entry if there is any by this DCA Id
     pub dca: Option<DCAEntry>,
     /// Pools used for swapping assets by this DCA task
     pub pool_references: Vec<PoolReference>,
