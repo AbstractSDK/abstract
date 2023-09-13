@@ -123,14 +123,14 @@ pub fn update_channels(
     cw_ownable::assert_owner(deps.storage, &msg_info.sender)?;
 
     for (key, new_channel) in to_add.into_iter() {
-        let key = key.check();
+        let key = key.check()?;
         // Update function for new or existing keys
         let insert = |_| -> StdResult<String> { Ok(new_channel) };
         CHANNELS.update(deps.storage, &key, insert)?;
     }
 
     for key in to_remove {
-        let key = key.check();
+        let key = key.check()?;
         CHANNELS.remove(deps.storage, &key);
     }
 
@@ -928,7 +928,7 @@ mod test {
         fn from_checked_entry((key, value): (ChannelEntry, String)) -> UncheckedChannelMapEntry {
             (
                 UncheckedChannelEntry {
-                    connected_chain: key.clone().connected_chain,
+                    connected_chain: key.clone().connected_chain.to_string(),
                     protocol: key.protocol,
                 },
                 value,
@@ -945,7 +945,7 @@ mod test {
         }
 
         fn mock_unchecked_channel_map_entry() -> UncheckedChannelMapEntry {
-            unchecked_channel_map_entry("test_chain", "test_protocol", "test_channel_id")
+            unchecked_channel_map_entry("test-chain", "test_protocol", "test_channel_id")
         }
 
         fn mock_unchecked_channel_entries() -> (
@@ -953,21 +953,12 @@ mod test {
             UncheckedChannelMapEntry,
             UncheckedChannelMapEntry,
         ) {
-            let new_entry_1 = unchecked_channel_map_entry(
-                "test_namespace_1",
-                "test_contract_1",
-                "test_address_1",
-            );
-            let new_entry_2 = unchecked_channel_map_entry(
-                "test_namespace_2",
-                "test_contract_2",
-                "test_address_2",
-            );
-            let new_entry_3 = unchecked_channel_map_entry(
-                "test_namespace_3",
-                "test_contract_3",
-                "test_address_3",
-            );
+            let new_entry_1 =
+                unchecked_channel_map_entry("test-chain", "test_contract_1", "test_address_1");
+            let new_entry_2 =
+                unchecked_channel_map_entry("test-chain", "test_contract_2", "test_address_2");
+            let new_entry_3 =
+                unchecked_channel_map_entry("test-chain", "test_contract_3", "test_address_3");
             (new_entry_1, new_entry_2, new_entry_3)
         }
 
@@ -1068,11 +1059,8 @@ mod test {
                 (vec![new_entry_1.clone(), new_entry_2.clone()], vec![]),
             )?;
 
-            let new_entry_3 = unchecked_channel_map_entry(
-                "test_namespace_3",
-                "test_contract_3",
-                "test_address_3",
-            );
+            let new_entry_3 =
+                unchecked_channel_map_entry("test-chain", "test_contract_3", "test_address_3");
 
             // Add 3 and remove 1, leaving 2 and 3
             map_tester.test_update_with_expected(
@@ -1088,12 +1076,13 @@ mod test {
             mock_init(deps.as_mut()).unwrap();
             let mut map_tester = setup_map_tester();
 
-            let upper_entry = unchecked_channel_map_entry("UP_CHAIN", "UP_PROTOCOL", "channel_id");
+            let upper_entry =
+                unchecked_channel_map_entry("test-chain", "UP_PROTOCOL", "channel_id");
 
             map_tester.execute_update(deps.as_mut(), (vec![upper_entry], vec![]))?;
 
             let expected_entry =
-                unchecked_channel_map_entry("up_chain", "up_protocol", "channel_id");
+                unchecked_channel_map_entry("test-chain", "up_protocol", "channel_id");
             map_tester.assert_expected_entries(&deps.storage, vec![expected_entry]);
 
             Ok(())

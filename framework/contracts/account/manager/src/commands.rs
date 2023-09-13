@@ -11,7 +11,7 @@ use abstract_core::adapter::{
 use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::AssetEntry;
+use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
 use abstract_core::proxy::state::ACCOUNT_ID;
@@ -288,7 +288,7 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
-        id,
+        &AccountId::local(id),
     )?;
 
     if account.is_some_and(|a| a.manager == info.sender) {
@@ -310,7 +310,7 @@ fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerRes
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
-        id,
+        &AccountId::local(id),
     )?;
 
     if account.is_some_and(|a| a.manager == info.sender) {
@@ -424,10 +424,12 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
     if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
         let id = ACCOUNT_ID.load(storage)?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
-        account_id = Some(id);
+        account_id = Some(id.clone());
         let unregister_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount { id }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                id: id.clone().seq(),
+            }),
             vec![],
         )?;
         msgs.push(unregister_message.into());
@@ -442,7 +444,9 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         };
         let register_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount { id }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: id.seq(),
+            }),
             vec![],
         )?;
         msgs.push(register_message.into());
@@ -952,7 +956,7 @@ pub fn update_internal_config(
             response = response.add_message(wasm_execute(
                 manager,
                 &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                    id: ACCOUNT_ID.load(deps.storage)?,
+                    id: ACCOUNT_ID.load(deps.storage)?.seq(),
                 }),
                 vec![],
             )?);

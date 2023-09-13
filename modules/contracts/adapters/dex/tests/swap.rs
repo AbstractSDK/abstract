@@ -1,3 +1,5 @@
+use abstract_core::objects::ABSTRACT_ACCOUNT_ID;
+
 use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::EXCHANGE;
@@ -40,7 +42,7 @@ fn setup_mock() -> anyhow::Result<(
         CONTRACT_VERSION.parse()?,
         DexInstantiateMsg {
             swap_fee: Decimal::percent(1),
-            recipient_account: 0,
+            recipient_account: ABSTRACT_ACCOUNT_ID.seq(),
         },
     )?;
 
@@ -74,7 +76,9 @@ fn swap_native() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, Some(0)).proxy.address()?;
+    let os0_proxy = AbstractAccount::new(&abstr, Some(ABSTRACT_ACCOUNT_ID))
+        .proxy
+        .address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -97,7 +101,9 @@ fn swap_native_without_chain() -> anyhow::Result<()> {
     assert_that!(usd_balance.u128()).is_equal_to(98);
 
     // assert that OS 0 received the swap fee
-    let os0_proxy = AbstractAccount::new(&abstr, Some(0)).proxy.address()?;
+    let os0_proxy = AbstractAccount::new(&abstr, Some(ABSTRACT_ACCOUNT_ID))
+        .proxy
+        .address()?;
     let os0_eur_balance = chain.query_balance(&os0_proxy, EUR)?;
     assert_that!(os0_eur_balance.u128()).is_equal_to(1);
 
@@ -127,7 +133,9 @@ fn swap_raw() -> anyhow::Result<()> {
     assert_that!(eur_balance.u128()).is_equal_to(10098);
 
     // assert that OS 0 received the swap fee
-    let account0_proxy = AbstractAccount::new(&abstr, Some(0)).proxy.address()?;
+    let account0_proxy = AbstractAccount::new(&abstr, Some(ABSTRACT_ACCOUNT_ID))
+        .proxy
+        .address()?;
     let os0_raw_balance = wyndex.raw_token.balance(account0_proxy.to_string())?;
     assert_that!(os0_raw_balance.balance.u128()).is_equal_to(1);
 
