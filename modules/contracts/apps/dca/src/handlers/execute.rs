@@ -2,17 +2,17 @@
 
 use abstract_core::objects::{AssetEntry, DexName};
 use abstract_dex_adapter::msg::OfferAsset;
-use abstract_sdk::features::AbstractResponse;
+use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use cosmwasm_std::{
     wasm_execute, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, Uint128,
 };
-use cw_asset::{Asset, AssetList};
+use cw_asset::{Asset, AssetInfoBase, AssetList};
 
 use crate::contract::{AppResult, DCAApp};
 
-use crate::error::AppError;
+use crate::error::DCAError;
 use crate::msg::{DCAExecuteMsg, ExecuteMsg, Frequency};
-use crate::state::{Config, DCAEntry, CONFIG, DCA_LIST, NEXT_ID};
+use crate::state::{Config, DCAEntry, DCAId, CONFIG, DCA_LIST, NEXT_ID};
 use abstract_dex_adapter::api::DexInterface;
 use abstract_sdk::AbstractSdkResult;
 use croncat_app::croncat_integration_utils::{CronCatAction, CronCatTaskRequest};
@@ -22,7 +22,7 @@ use croncat_app::{CronCat, CronCatInterface};
 fn create_convert_task_internal(
     env: Env,
     dca: DCAEntry,
-    dca_id: String,
+    dca_id: DCAId,
     cron_cat: CronCat<DCAApp>,
     config: Config,
 ) -> AbstractSdkResult<CosmosMsg> {
@@ -35,9 +35,7 @@ fn create_convert_task_internal(
         actions: vec![CronCatAction {
             msg: wasm_execute(
                 env.contract.address,
-                &ExecuteMsg::from(DCAExecuteMsg::Convert {
-                    dca_id: dca_id.clone(),
-                }),
+                &ExecuteMsg::from(DCAExecuteMsg::Convert { dca_id }),
                 vec![],
             )?
             .into(),
@@ -64,7 +62,7 @@ pub fn execute_handler(
 ) -> AppResult {
     match msg {
         DCAExecuteMsg::UpdateConfig {
-            new_native_denom,
+            new_native_asset,
             new_dca_creation_amount,
             new_refill_threshold,
             new_max_spread,
@@ -72,7 +70,7 @@ pub fn execute_handler(
             deps,
             info,
             app,
-            new_native_denom,
+            new_native_asset,
             new_dca_creation_amount,
             new_refill_threshold,
             new_max_spread,
@@ -119,7 +117,7 @@ fn update_config(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: DCAApp,
-    new_native_denom: Option<String>,
+    new_native_asset: Option<AssetEntry>,
     new_dca_creation_amount: Option<Uint128>,
     new_refill_threshold: Option<Uint128>,
     new_max_spread: Option<Decimal>,
@@ -127,6 +125,18 @@ fn update_config(
     // Only the admin should be able to call this
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let old_config = CONFIG.load(deps.storage)?;
+    let new_native_denom = new_native_asset
+        .map(|asset| {
+            let asset = app
+                .ans_host(deps.as_ref())?
+                .query_asset(&deps.querier, &asset)?;
+            if let AssetInfoBase::Native(native) = asset {
+                Ok(native)
+            } else {
+                Err(DCAError::NotNativeAsset {})
+            }
+        })
+        .transpose()?;
 
     CONFIG.save(
         deps.storage,
@@ -162,8 +172,7 @@ fn create_dca(
         .simulate_swap(source_asset.clone(), target_asset.clone())?;
 
     // Generate DCA ID
-    let id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
-    let dca_id = format!("dca_{id}");
+    let dca_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id.next_id()))?;
 
     let dca_entry = DCAEntry {
         source_asset,
@@ -171,10 +180,10 @@ fn create_dca(
         frequency,
         dex: dex_name,
     };
-    DCA_LIST.save(deps.storage, dca_id.clone(), &dca_entry)?;
+    DCA_LIST.save(deps.storage, dca_id, &dca_entry)?;
 
     let cron_cat = app.cron_cat(deps.as_ref());
-    let task_msg = create_convert_task_internal(env, dca_entry, dca_id.clone(), cron_cat, config)?;
+    let task_msg = create_convert_task_internal(env, dca_entry, dca_id, cron_cat, config)?;
 
     Ok(app.tag_response(
         Response::new()
@@ -190,7 +199,7 @@ fn update_dca(
     env: Env,
     info: MessageInfo,
     app: DCAApp,
-    dca_id: String,
+    dca_id: DCAId,
     new_source_asset: Option<OfferAsset>,
     new_target_asset: Option<AssetEntry>,
     new_frequency: Option<Frequency>,
@@ -201,7 +210,7 @@ fn update_dca(
     // Only if frequency is changed we have to re-create a task
     let recreate_task = new_frequency.is_some();
 
-    let old_dca = DCA_LIST.load(deps.storage, dca_id.clone())?;
+    let old_dca = DCA_LIST.load(deps.storage, dca_id)?;
     let new_dca = DCAEntry {
         source_asset: new_source_asset.unwrap_or(old_dca.source_asset),
         target_asset: new_target_asset.unwrap_or(old_dca.target_asset),
@@ -213,12 +222,12 @@ fn update_dca(
     app.dex(deps.as_ref(), new_dca.dex.clone())
         .simulate_swap(new_dca.source_asset.clone(), new_dca.target_asset.clone())?;
 
-    DCA_LIST.save(deps.storage, dca_id.clone(), &new_dca)?;
+    DCA_LIST.save(deps.storage, dca_id, &new_dca)?;
 
     let response = if recreate_task {
         let config = CONFIG.load(deps.storage)?;
         let cron_cat = app.cron_cat(deps.as_ref());
-        let remove_task_msg = cron_cat.remove_task(dca_id.clone())?;
+        let remove_task_msg = cron_cat.remove_task(dca_id)?;
         let create_task_msg = create_convert_task_internal(env, new_dca, dca_id, cron_cat, config)?;
         Response::new().add_messages(vec![remove_task_msg, create_task_msg])
     } else {
@@ -228,10 +237,10 @@ fn update_dca(
 }
 
 /// Remove existing dca, remove task from cron_cat
-fn cancel_dca(deps: DepsMut, info: MessageInfo, app: DCAApp, dca_id: String) -> AppResult {
+fn cancel_dca(deps: DepsMut, info: MessageInfo, app: DCAApp, dca_id: DCAId) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    DCA_LIST.remove(deps.storage, dca_id.clone());
+    DCA_LIST.remove(deps.storage, dca_id);
 
     let cron_cat = app.cron_cat(deps.as_ref());
     let remove_task_msg = cron_cat.remove_task(dca_id)?;
@@ -241,21 +250,22 @@ fn cancel_dca(deps: DepsMut, info: MessageInfo, app: DCAApp, dca_id: String) -> 
 
 /// Execute swap if called my croncat manager
 /// Refill task if needed
-fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: String) -> AppResult {
-    let config = CONFIG.load(deps.storage)?;
-    let dca = DCA_LIST.load(deps.storage, dca_id.clone())?;
-
+fn convert(deps: DepsMut, env: Env, info: MessageInfo, app: DCAApp, dca_id: DCAId) -> AppResult {
     let cron_cat = app.cron_cat(deps.as_ref());
 
-    let manager_addr = cron_cat.query_manager_addr(env.contract.address.clone(), dca_id.clone())?;
+    let manager_addr = cron_cat.query_manager_addr(env.contract.address.clone(), dca_id)?;
     if manager_addr != info.sender {
-        return Err(AppError::NotManagerConvert {});
+        return Err(DCAError::NotManagerConvert {});
     }
+
+    let config = CONFIG.load(deps.storage)?;
+    let dca = DCA_LIST.load(deps.storage, dca_id)?;
+
     let mut messages = vec![];
 
     // In case task running out of balance - refill it
     let task_balance = cron_cat
-        .query_task_balance(env.contract.address, dca_id.clone())?
+        .query_task_balance(env.contract.address, dca_id)?
         .balance
         .unwrap();
     if task_balance.native_balance < config.refill_threshold {
