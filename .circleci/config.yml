@@ -24,6 +24,13 @@ workflows:
       equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
+      - deploy:
+          requires: 
+            - build
+          filters:
+            branches:
+              only: /release\//
+
   modules-coverage:
     when: 
       equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
@@ -56,6 +63,17 @@ jobs:
             git add modules/artifacts --force
             git commit -m 'Update WASM artifacts [skip ci]'
             git push origin $CIRCLE_BRANCH
+    deploy:
+      docker:
+      - image: cimg/rust:1.72.0
+      resource_class: large
+      steps:
+        - checkout
+        - run: 
+          name: Deploy
+          command: |
+            cd framework
+            just deploy uni-6
 
   coverage:
     # https://circleci.com/developer/images?imageType=machine
