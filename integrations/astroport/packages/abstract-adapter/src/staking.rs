@@ -18,12 +18,9 @@ pub struct Astroport {
 
 #[derive(Clone, Debug)]
 pub struct AstroportTokenContext {
-    #[allow(unused)]
-    lp_token: LpToken,
-    #[allow(unused)]
-    lp_token_address: Addr,
-    #[allow(unused)]
-    generator_contract_address: Addr,
+    pub lp_token: LpToken,
+    pub lp_token_address: Addr,
+    pub generator_contract_address: Addr,
 }
 
 impl Default for Astroport {

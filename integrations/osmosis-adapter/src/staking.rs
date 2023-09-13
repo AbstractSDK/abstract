@@ -8,8 +8,12 @@ use cosmwasm_std::Addr;
 pub struct Osmosis {
     pub version_control_contract: Option<VersionControlContract>,
     pub local_proxy_addr: Option<Addr>,
-    pub pool_id: Option<u64>,
-    pub lp_token: Option<String>,
+    pub tokens: Vec<OsmosisTokenContext>,
+}
+
+pub struct OsmosisTokenContext {
+    pub pool_id: u64,
+    pub lp_token: String,
 }
 
 impl Identify for Osmosis {
@@ -68,30 +72,38 @@ pub mod fns {
 
     impl Osmosis {
         /// Take the staking asset and query the pool id via the ans host
-        pub fn query_pool_id_via_ans(
+        pub fn query_pool_tokens_via_ans(
             &self,
             querier: &QuerierWrapper,
             ans_host: &AnsHost,
-            staking_asset: AssetEntry,
-        ) -> AbstractSdkResult<u64> {
-            let dex_pair =
-                AnsEntryConvertor::new(AnsEntryConvertor::new(staking_asset).lp_token()?)
-                    .dex_asset_pairing()?;
+            staking_assets: impl IntoIterator<Item = AssetEntry>,
+        ) -> AbstractSdkResult<Vec<OsmosisTokenContext>> {
+            staking_assets
+                .into_iter()
+                .map(|s_asset| {
+                    let dex_pair =
+                        AnsEntryConvertor::new(AnsEntryConvertor::new(s_asset).lp_token()?)
+                            .dex_asset_pairing()?;
 
-            let pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
-            // Currently takes the first pool found, but should be changed to take the best pool
-            let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(format!(
-                "No pool found for asset pairing {:?}",
-                dex_pair
-            )))?;
+                    let pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
+                    // Currently takes the first pool found, but should be changed to take the best pool
+                    let found: &PoolReference = pool_ref.first().ok_or(StdError::generic_err(
+                        format!("No pool found for asset pairing {:?}", dex_pair),
+                    ))?;
 
-            Ok(found.pool_address.expect_id()?)
+                    let pool_id = found.pool_address.expect_id()?;
+                    let lp_token = format!("gamm/pool/{pool_id}");
+                    Ok(OsmosisTokenContext { pool_id, lp_token })
+                })
+                .collect()
         }
+    }
 
+    impl OsmosisTokenContext {
         pub fn query_pool_data(&self, querier: &QuerierWrapper) -> StdResult<Pool> {
             let querier = PoolmanagerQuerier::new(querier);
 
-            let res = querier.pool(self.pool_id.unwrap())?;
+            let res = querier.pool(self.pool_id)?;
             let pool = Pool::try_from(res.pool.unwrap()).unwrap();
 
             Ok(pool)
@@ -121,7 +133,7 @@ pub mod fns {
             info: Option<MessageInfo>,
             ans_host: &AnsHost,
             version_control_contract: &VersionControlContract,
-            staking_asset: AssetEntry,
+            staking_assets: impl IntoIterator<Item = AssetEntry>,
         ) -> abstract_sdk::AbstractSdkResult<()> {
             self.version_control_contract = Some(version_control_contract.clone());
             let account_registry = self.account_registry(deps);
@@ -131,10 +143,8 @@ pub mod fns {
                 .transpose()?;
             self.local_proxy_addr = base.map(|b| b.proxy);
 
-            let pool_id = self.query_pool_id_via_ans(&deps.querier, ans_host, staking_asset)?;
-
-            self.pool_id = Some(pool_id);
-            self.lp_token = Some(format!("gamm/pool/{}", self.pool_id.unwrap()));
+            self.tokens =
+                self.query_pool_tokens_via_ans(&deps.querier, ans_host, staking_assets)?;
 
             Ok(())
         }
