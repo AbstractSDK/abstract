@@ -91,7 +91,7 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = ChainName::from_ibc_entry(dex_name)?; // TODO, this is faulty
+    let host_chain = ChainName::from_string(dex_name)?; // TODO, this is faulty
 
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());

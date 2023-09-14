@@ -59,7 +59,7 @@ fn handle_ibc_request(
     provider_name: ProviderName,
     action: &StakingAction,
 ) -> StakingResult {
-    let host_chain = ChainName::from_ibc_entry(provider_name.clone())?; // TODO : Especially this line is faulty
+    let host_chain = ChainName::from_string(provider_name.clone())?; // TODO : Especially this line is faulty
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
     // get the to-be-sent assets from the action
