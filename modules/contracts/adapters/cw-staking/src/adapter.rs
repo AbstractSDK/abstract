@@ -37,10 +37,16 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         )?;
 
         let msgs = match action {
-            StakingAction::Stake { stake } => provider.stake(deps.as_ref(), stake)?,
-            StakingAction::Unstake { unstake } => provider.unstake(deps.as_ref(), unstake)?,
-            StakingAction::ClaimRewards { asset: _ } => provider.claim_rewards(deps.as_ref())?,
-            StakingAction::Claim { asset: _ } => provider.claim(deps.as_ref())?,
+            StakingAction::Stake {
+                assets,
+                unbonding_period,
+            } => provider.stake(deps.as_ref(), assets, unbonding_period)?,
+            StakingAction::Unstake {
+                assets,
+                unbonding_period,
+            } => provider.unstake(deps.as_ref(), assets, unbonding_period)?,
+            StakingAction::ClaimRewards { assets: _ } => provider.claim_rewards(deps.as_ref())?,
+            StakingAction::Claim { assets: _ } => provider.claim(deps.as_ref())?,
         };
 
         self.executor(deps.as_ref())
@@ -51,17 +57,21 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 }
 
 #[inline(always)]
-fn staking_assets_from_action(action: &StakingAction) -> impl Iterator<Item = AssetEntry> {
+fn staking_assets_from_action(action: &StakingAction) -> Vec<AssetEntry> {
     match action {
-        StakingAction::Stake { stake, .. } => stake.iter().map(|req| req.asset.name.clone()).into(),
-        StakingAction::Unstake { unstake, .. } => {
-            unstake.iter().map(|req| req.asset.name.clone()).into()
-        }
+        StakingAction::Stake {
+            assets: staking_tokens,
+            ..
+        } => staking_tokens.iter().map(|req| req.name.clone()).collect(),
+        StakingAction::Unstake {
+            assets: staking_tokens,
+            ..
+        } => staking_tokens.iter().map(|req| req.name.clone()).collect(),
         StakingAction::ClaimRewards {
-            assets: staking_token,
-        } => staking_token.into(),
+            assets: staking_tokens,
+        } => staking_tokens.clone(),
         StakingAction::Claim {
             assets: staking_token,
-        } => staking_token.into(),
+        } => staking_token.clone(),
     }
 }

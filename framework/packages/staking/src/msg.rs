@@ -41,13 +41,13 @@ pub struct StakingExecuteMsg {
 pub enum StakingAction {
     /// Stakes/bonds a given token
     Stake {
-        stake: Vec<AnsAsset>,
+        assets: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     },
 
     /// Unstake/unbond a given token
     Unstake {
-        unstake: Vec<AnsAsset>,
+        assets: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     },
 

@@ -86,7 +86,7 @@ fn staking_inited() -> anyhow::Result<()> {
     });
 
     // query reward tokens
-    let reward_tokens = staking.reward_tokens(WYNDEX.into(), AssetEntry::new(EUR_USD_LP))?;
+    let reward_tokens = staking.reward_tokens(WYNDEX.into(), vec![AssetEntry::new(EUR_USD_LP)])?;
     assert_that!(reward_tokens).is_equal_to(RewardTokensResponse {
         tokens: vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())],
     });

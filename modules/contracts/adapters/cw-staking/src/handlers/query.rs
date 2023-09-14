@@ -47,7 +47,7 @@ pub fn query_handler(
             stakes,
             unbonding_period,
         } => {
-            let staking_tokens = stakes.iter().map(|s| s.staking_token.clone());
+            let staking_tokens = stakes.iter().map(|s| s.clone()).collect();
             // if provider is on an app-chain, error
             let (local_provider_name, is_over_ibc) = is_over_ibc(env.clone(), &provider)?;
             if is_over_ibc {
