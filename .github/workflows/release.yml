@@ -72,7 +72,7 @@ jobs:
               WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
                 https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
 
-              LAST_WORKFLOW=$(echo $WORKFLOWS | jq -r '.items[0]')
+              LAST_WORKFLOW=$(echo $WORKFLOWS | jq -r '.items[1]')
               WORKFLOW_NAME=$(echo $LAST_WORKFLOW | jq -r '.name')
               WORKFLOW_STATUS=$(echo $LAST_WORKFLOW | jq -r '.status')
               WORKFLOW_PIPELINE_ID=$(echo $LAST_WORKFLOW | jq -r '.pipeline_id')
