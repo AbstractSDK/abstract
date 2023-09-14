@@ -6,7 +6,7 @@ use crate::{
 use abstract_core::{
     ibc_host::{
         state::{ActionAfterCreationCache, REVERSE_CHAIN_PROXYS, TEMP_ACTION_AFTER_CREATION},
-        ExecuteMsg,
+        ExecuteMsg, HelperAction,
     },
     objects::{chain_name::ChainName, AccountId},
 };
@@ -68,13 +68,16 @@ pub(crate) fn _handle_host_action(
                     HostAction::Dispatch { manager_msg } => {
                         receive_dispatch(deps, account, manager_msg)
                     }
-                    HostAction::SendAllBack {} => {
-                        receive_send_all_back(deps, env, account, proxy_address, client_chain)
-                    }
+                    HostAction::Helpers(helper_action) => match helper_action {
+                        HelperAction::SendAllBack => {
+                            receive_send_all_back(deps, env, account, proxy_address, client_chain)
+                        }
+                        _ => unimplemented!(""),
+                    },
                     HostAction::Internal(InternalAction::Register { .. }) => {
                         Err(HostError::Std(StdError::generic_err("Unreachable")))
                     }
-                    HostAction::App { msg: _ } => todo!(),
+                    _ => unimplemented!(""),
                 }
             } else {
                 // If no account is created already, we create one and execute the action on reply

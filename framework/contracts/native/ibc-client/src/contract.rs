@@ -66,6 +66,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             action,
             callback_info,
         } => commands::execute_send_packet(deps, env, info, host_chain, action, callback_info),
+        ExecuteMsg::RemoteQueries {
+            host_chain,
+            queries,
+            callback_info,
+        } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
         ExecuteMsg::RegisterChainHost { chain, note, host } => {
             commands::execute_allow_chain_host(deps, env, info, chain, host, note)
         }

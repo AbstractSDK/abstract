@@ -2,11 +2,13 @@ use crate::adapter::CwStakingAdapter;
 use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
 use crate::resolver::{self, is_over_ibc};
+use crate::CW_STAKING;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
+use abstract_staking_adapter_traits::msg::ExecuteMsg;
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
 /// Execute staking operation locally or over IBC
@@ -67,8 +69,18 @@ fn handle_ibc_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let action = abstract_sdk::core::ibc_host::HostAction::App {
-        msg: to_binary(&action)?,
+    // construct the action to be called on the host
+    let action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
+        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+            module_id: CW_STAKING.to_string(),
+            exec_msg: to_binary::<ExecuteMsg>(
+                &StakingExecuteMsg {
+                    provider: provider_name.clone(),
+                    action: action.clone(),
+                }
+                .into(),
+            )?,
+        },
     };
 
     // If the calling entity is a contract, we provide a callback on successful cross-chain-staking

@@ -74,18 +74,13 @@ pub fn receive_action_callback(
             }
             None
         }
-        IbcClientCallback::ExecuteAction {
-            receiver,
-            callback_id,
-        } => {
+        IbcClientCallback::UserRemoteAction(callback_info) => {
             // Here we transfer the callback back to the module that requested it
-            // We need to get the address of the remote proxy from the account creation response
-
             let callback = IbcResponseMsg {
-                id: callback_id,
+                id: callback_info.id,
                 result: callback.result,
             };
-            Some(callback.into_cosmos_account_msg(receiver))
+            Some(callback.into_cosmos_account_msg(callback_info.receiver))
         }
     }
     .transpose()?;

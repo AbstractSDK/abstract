@@ -4,7 +4,7 @@ use crate::{
     objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Coin;
+use cosmwasm_std::{Coin, Empty, QueryRequest};
 use polytone::callbacks::CallbackMessage;
 
 pub mod state {
@@ -93,6 +93,17 @@ pub enum ExecuteMsg {
         // optional callback info
         callback_info: Option<CallbackInfo>,
     },
+    /// Allows to query something on a remote contract and act on that query result
+    /// This has to be an Execute variant for IBC queries
+    RemoteQueries {
+        // host chain to be executed on
+        // Example: "osmosis"
+        host_chain: String,
+        // execute following queries
+        queries: Vec<QueryRequest<Empty>>,
+        // mandatory callback info
+        callback_info: CallbackInfo,
+    },
     RemoveHost {
         host_chain: String,
     },
@@ -105,13 +116,8 @@ pub enum ExecuteMsg {
 /// This enum is used for sending callbacks to the note contract of the IBC client
 #[cosmwasm_schema::cw_serde]
 pub enum IbcClientCallback {
-    ExecuteAction {
-        receiver: String,
-        callback_id: String,
-    },
-    CreateAccount {
-        account_id: AccountId,
-    },
+    UserRemoteAction(CallbackInfo),
+    CreateAccount { account_id: AccountId },
     WhoAmI {},
 }
 

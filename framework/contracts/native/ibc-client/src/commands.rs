@@ -26,7 +26,7 @@ use abstract_sdk::{
 };
 use cosmwasm_std::{
     to_binary, wasm_execute, Coin, CosmosMsg, Deps, DepsMut, Empty, Env, IbcMsg, MessageInfo,
-    Storage,
+    QueryRequest, Storage,
 };
 use polytone::callbacks::CallbackRequest;
 
@@ -157,6 +157,29 @@ fn send_remote_host_action(
     Ok(note_message.into())
 }
 
+fn send_remote_host_query(
+    deps: Deps,
+    _env: Env,
+    host_chain: ChainName,
+    queries: Vec<QueryRequest<Empty>>,
+    callback_request: CallbackRequest,
+) -> IbcClientResult<CosmosMsg<Empty>> {
+    // Send this message via the Polytone implementation
+    let note_contract = POLYTONE_NOTE.load(deps.storage, &host_chain)?;
+
+    let note_message = wasm_execute(
+        note_contract.to_string(),
+        &polytone_note::msg::ExecuteMsg::Query {
+            msgs: queries,
+            callback: callback_request,
+            timeout_seconds: PACKET_LIFETIME.into(),
+        },
+        vec![],
+    )?;
+
+    Ok(note_message.into())
+}
+
 pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
@@ -185,11 +208,7 @@ pub fn execute_send_packet(
 
     let callback_request = callback_info.map(|c| CallbackRequest {
         receiver: env.contract.address.to_string(),
-        msg: to_binary(&IbcClientCallback::ExecuteAction {
-            receiver: c.receiver,
-            callback_id: c.id,
-        })
-        .unwrap(),
+        msg: to_binary(&IbcClientCallback::UserRemoteAction(c)).unwrap(),
     });
 
     let note_message = send_remote_host_action(
@@ -201,6 +220,26 @@ pub fn execute_send_packet(
         action,
         callback_request,
     )?;
+
+    Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
+}
+
+pub fn execute_send_query(
+    deps: DepsMut,
+    env: Env,
+    host_chain: String,
+    queries: Vec<QueryRequest<Empty>>,
+    callback_info: CallbackInfo,
+) -> IbcClientResult {
+    let host_chain = ChainName::from_str(&host_chain)?;
+
+    let callback_request = CallbackRequest {
+        receiver: env.contract.address.to_string(),
+        msg: to_binary(&IbcClientCallback::UserRemoteAction(callback_info)).unwrap(),
+    };
+
+    let note_message =
+        send_remote_host_query(deps.as_ref(), env, host_chain, queries, callback_request)?;
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }

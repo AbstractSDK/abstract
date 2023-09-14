@@ -1,4 +1,5 @@
 use crate::handlers::execute::exchange_resolver::is_over_ibc;
+use crate::EXCHANGE;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
@@ -11,7 +12,7 @@ use abstract_dex_adapter_traits::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
-use abstract_dex_adapter_traits::msg::IBC_DEX_PROVIDER_ID;
+use abstract_dex_adapter_traits::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};
@@ -91,7 +92,7 @@ fn handle_ibc_request(
     dex_name: DexName,
     action: &DexAction,
 ) -> DexResult {
-    let host_chain = ChainName::from_string(dex_name)?; // TODO, this is faulty
+    let host_chain = ChainName::from_string(dex_name.clone())?; // TODO, this is faulty
 
     let ans = adapter.name_service(deps.as_ref());
     let ibc_client = adapter.ibc_client(deps.as_ref());
@@ -100,8 +101,17 @@ fn handle_ibc_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let action = abstract_sdk::core::ibc_host::HostAction::App {
-        msg: to_binary(&action)?,
+    let action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
+        manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
+            module_id: EXCHANGE.to_string(),
+            exec_msg: to_binary::<ExecuteMsg>(
+                &DexExecuteMsg::Action {
+                    dex: dex_name,
+                    action: action.clone(),
+                }
+                .into(),
+            )?,
+        },
     };
 
     // If the calling entity is a contract, we provide a callback on successful swap

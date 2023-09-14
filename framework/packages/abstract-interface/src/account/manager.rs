@@ -2,7 +2,7 @@ pub use abstract_core::manager::{ExecuteMsgFns as ManagerExecFns, QueryMsgFns as
 use abstract_core::{
     adapter,
     ibc::CallbackInfo,
-    ibc_host::HostAction,
+    ibc_host::{HelperAction, HostAction},
     manager::*,
     module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
     objects::module::{ModuleInfo, ModuleVersion},
@@ -242,7 +242,7 @@ impl<Chain: CwEnv> Manager<Chain> {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
                 host_chain: destination.into(),
-                action: HostAction::SendAllBack {},
+                action: HostAction::Helpers(HelperAction::SendAllBack),
                 callback_info,
             }],
         };
