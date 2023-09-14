@@ -84,7 +84,7 @@ pub enum HostAction {
         manager_msg: manager::ExecuteMsg,
     },
     SendAllBack {},
-    /// Can't be called through the packet endpoint directly
+    /// Can't be called by an account directly. These are permissionned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
 }
 
