@@ -13,7 +13,7 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::coin;
 use cw_orch::prelude::{
     queriers::{Bank, Ibc},
-    *
+    *,
 };
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
