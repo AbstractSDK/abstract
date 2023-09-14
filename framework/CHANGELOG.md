@@ -8,23 +8,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased] - yyyy-mm-dd
 
 ### Added
-- Install modules on account or Sub-account creation
-- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change
-- Query on module factory to see how much funds needs to be attached for installing modules
-- Version control on instantiation to the Apps alongside with registry traits
-- Instantiation funds added to module configuration, allowing modules to perform external setup calls
+
+- Install modules on account or Sub-account creation.
+- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change.
+- Query on module factory to see how much funds needs to be attached for installing modules.
+- Version control on instantiation to the Apps alongside with registry traits.
+- Instantiation funds added to module configuration, allowing modules to perform external setup calls.
 
 ### Changed
+
 - Updated fetch_data arguments of CwStakingCommand
-- StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address
-- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts
-- Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases 
+- StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address.
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts.
+- Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases.
+- Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
+- Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
 
 ### Fixed
-- Partially fixed cw-staking for Osmosis
-- Manager governance now changes only after new "owner" claimed ownership
-- Fixed and separated cw-staking and dex adapters for kujira
+
+- Partially fixed cw-staking for Osmosis.
+- Manager governance now changes only after new "owner" claimed ownership.
+- Fixed and separated cw-staking and dex adapters for kujira.
 - `ExecOnModule` calls now forward any provided funds to the module that is called.
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
 
 ## [0.17.2] - 2023-07-27
 

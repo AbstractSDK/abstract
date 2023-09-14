@@ -7,6 +7,7 @@ use abstract_core::objects::fee::FixedFee;
 use abstract_core::objects::module::{ModuleInfo, ModuleVersion, Monetization};
 use abstract_core::objects::module_reference::ModuleReference;
 use abstract_core::objects::namespace::Namespace;
+use abstract_core::objects::{AccountId, ABSTRACT_ACCOUNT_ID};
 use abstract_core::version_control::UpdateModule;
 use abstract_core::{manager::ManagerModuleInfo, PROXY};
 use abstract_interface::*;
@@ -16,7 +17,6 @@ use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
 use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
-use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use module_factory::error::ModuleFactoryError;
@@ -46,7 +46,7 @@ fn instantiate() -> AResult {
     assert_that!(account.manager.config()?).is_equal_to(abstract_core::manager::ConfigResponse {
         version_control_address: deployment.version_control.address()?,
         module_factory_address: deployment.module_factory.address()?,
-        account_id: TEST_ACCOUNT_ID.into(),
+        account_id: TEST_ACCOUNT_ID,
         is_suspended: false,
     });
     Ok(())
@@ -181,7 +181,7 @@ fn install_standalone_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -236,7 +236,7 @@ fn install_standalone_versions_not_met() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(0)));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -285,7 +285,7 @@ fn install_multiple_modules() -> AResult {
     let chain = Mock::new(&sender);
     chain.add_balance(&sender, vec![coin(86, "token1"), coin(500, "token2")])?;
     let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
-    let account = AbstractAccount::new(&deployment, Some(0));
+    let account = AbstractAccount::new(&deployment, Some(ABSTRACT_ACCOUNT_ID));
 
     let standalone1_contract = Box::new(ContractWrapper::new(
         mock_modules::standalone_cw2::mock_execute,
@@ -383,21 +383,21 @@ fn install_multiple_modules() -> AResult {
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
         String::from("abstract:standalone1"),
-        // Querying no_cw2 fails
-        // String::from("abstract:standalone2"),
+        String::from("abstract:standalone2"),
     ])?;
     assert_eq!(
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
-                    contract: String::from(mock_modules::standalone_cw2::MOCK_STANDALONE_ID),
-                    version: String::from(mock_modules::V1)
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone1"),
+                    version: String::from(mock_modules::V1),
                 },
-                // ContractVersion {
-                //     contract: String::from("abstract:standalone2"),
-                //     version: String::from(mock_modules::V1)
-                // },
+                // Second doesn't have cw2
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone2"),
+                    version: String::from(mock_modules::V1),
+                },
             ]
         }
     );
