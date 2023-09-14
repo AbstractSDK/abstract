@@ -17,6 +17,7 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
+/// This script deploys the Abstract contracts to the specified networks.
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
