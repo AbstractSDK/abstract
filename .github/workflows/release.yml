@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Tickle CircleCI
+      - name: Tickle CircleCI to Build Wasm Binaries
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
@@ -38,56 +38,48 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
-    - name: Tickle CircleCI for Deploy and Wait for Completion
-      env:
-        CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-      run: |
-        BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
-        
-        # Trigger the CircleCI pipeline and get the pipeline ID
-        RESPONSE=$(curl -X POST \
-          -H "Circle-Token: ${CCI_TOKEN}" \
-          -H 'Content-Type: application/json' \
-          -H 'Accept: application/json' \
-          -d '{
-            "branch": "'"$BRANCH_NAME"'",
-            "parameters": {
-              "GHA_Meta": "deploy_all"
-            }
-          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
-
-        PIPELINE_ID=$(echo $RESPONSE | jq -r '.id')
-
-        # Wait for the CircleCI pipeline to finish
-        while true; do
-          STATUS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
-            https://circleci.com/api/v2/pipeline/$PIPELINE_ID | jq -r '.state')
+      - name: Tickle CircleCI for Deploy and Wait for Completion of Build
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
           
-          if [[ "$STATUS" == "success" || "$STATUS" == "failed" || "$STATUS" == "canceled" ]]; then
-            break
-          fi
-
-          echo "CircleCI job status: $STATUS. Waiting for completion..."
-          sleep 30  # Wait for 30 seconds before checking again
-        done
-
-        # Fail the GitHub Action if the CircleCI job failed
-        if [[ "$STATUS" == "failed" ]]; then
-          exit 1
-        fi
-
-          - name: Tickle CircleCI for Deploy
-            env:
-              CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-            run: |
-              curl -X POST \
-              -H "Circle-Token: ${CCI_TOKEN}" \
-              -H 'Content-Type: application/json' \
-              -H 'Accept: application/json' \
-              -d '{
+          # Trigger the CircleCI pipeline
+          RESPONSE=$(curl -X POST \
+            -H "Circle-Token: ${CCI_TOKEN}" \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json' \
+            -d '{
               "branch": "'"$BRANCH_NAME"'",
               "parameters": {
                 "GHA_Meta": "deploy_all"
               }
-              }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+            }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
 
+          PIPELINE_ID=$(echo $RESPONSE | jq -r '.id')
+
+          # Wait a bit to ensure the workflow is created
+          sleep 20
+
+          # Fetch the workflow ID associated with the triggered pipeline
+          WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
+            https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
+          WORKFLOW_ID=$(echo $WORKFLOWS | jq -r '.items[0].id')
+
+          # Poll the status of the workflow
+          while true; do
+            STATUS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
+              https://circleci.com/api/v2/workflow/$WORKFLOW_ID | jq -r '.status')
+            
+            if [[ "$STATUS" == "success" || "$STATUS" == "failed" || "$STATUS" == "canceled" || "$STATUS" == "error" ]]; then
+              break
+            fi
+
+            echo "CircleCI workflow status: $STATUS. Waiting for completion of build"
+            sleep 30
+          done
+
+          # Fail the GitHub Action if the CircleCI workflow failed
+          if [[ "$STATUS" != "success" ]]; then
+            exit 1
+          fi
