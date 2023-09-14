@@ -1,12 +1,9 @@
 #![warn(missing_docs)]
-
+//! # Dex Adapter API
 use crate::contract::DexAdapter;
-use abstract_core::{
-    adapter,
-    objects::{AnsAsset, AssetEntry, DexAssetPairing},
-};
+use abstract_core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
+use cosmwasm_std::{Decimal, Uint128};
 // re-export response types
 pub use abstract_dex_adapter_traits::types::*;
 

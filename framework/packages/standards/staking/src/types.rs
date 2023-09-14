@@ -1,4 +1,5 @@
 #![warn(missing_docs)]
+//! # Staking Adapter types
 use cosmwasm_std::{Addr, Uint128};
 use cw_asset::AssetInfo;
 use cw_utils::{Duration, Expiration};
@@ -7,7 +8,9 @@ use cw_utils::{Duration, Expiration};
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
 pub enum StakingTarget {
+    /// Address of the staking contract (Cosmwasm)
     Contract(Addr),
+    /// Pool id of the staking contract (Osmosis)
     Id(u64),
 }
 
@@ -45,31 +48,45 @@ impl From<Addr> for StakingTarget {
     }
 }
 
+/// Response for the staking_info query
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfoResponse {
+    /// Contract or pool id to stake to
     pub staking_target: StakingTarget,
+    /// Staking token
     pub staking_token: AssetInfo,
+    /// Different supported unbonding periods. None if no unbonding is supported.
     pub unbonding_periods: Option<Vec<Duration>>,
+    /// Max number of claims. None if no limit.
     pub max_claims: Option<u32>,
 }
 
+/// Response for the staked query
 #[cosmwasm_schema::cw_serde]
 pub struct StakeResponse {
+    /// Amount of staked tokens
     pub amount: Uint128,
 }
 
+/// Response for the rewards query
 #[cosmwasm_schema::cw_serde]
 pub struct RewardTokensResponse {
+    /// List of reward tokens
     pub tokens: Vec<AssetInfo>,
 }
 
+/// Response for the unbonding query
 #[cosmwasm_schema::cw_serde]
 pub struct UnbondingResponse {
+    /// List of unbonding entries
     pub claims: Vec<Claim>,
 }
 
+/// A claim for a given amount of tokens that are unbonding.
 #[cosmwasm_schema::cw_serde]
 pub struct Claim {
+    /// Amount of tokens that are unbonding
     pub amount: Uint128,
+    /// When the tokens can be claimed
     pub claimable_at: Expiration,
 }
