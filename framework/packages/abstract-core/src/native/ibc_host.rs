@@ -65,6 +65,7 @@ pub struct InstantiateMsg {
 pub struct MigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum InternalAction {
     /// Registers a new account from a remote chain
     Register {
@@ -74,16 +75,23 @@ pub enum InternalAction {
     },
 }
 
+#[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
+pub enum Helpers {
+    /// What do we need here ? TODO
+    SendAllBack {},
+}
+
 /// Callable actions on a remote host
 #[cosmwasm_schema::cw_serde]
+#[non_exhaustive]
 pub enum HostAction {
-    App {
-        msg: Binary,
-    },
+
     Dispatch {
         manager_msg: manager::ExecuteMsg,
     },
-    SendAllBack {},
+    // Some helpers that help
+    Helpers(HelperAction),
     /// Can't be called by an account directly. These are permissionned messages that only the IBC Client is allowed to call by itself.
     Internal(InternalAction),
 }
