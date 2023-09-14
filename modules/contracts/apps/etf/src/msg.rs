@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 //! # Liquidity Interface Add-On
 //!
 //! `crate::msg` is an app which allows users to deposit into or withdraw from a [`crate::proxy`] contract.

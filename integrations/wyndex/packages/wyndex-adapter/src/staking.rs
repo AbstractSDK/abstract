@@ -41,7 +41,7 @@ use {
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkError, Resolve,
     },
-    abstract_staking_adapter_traits::msg::{
+    abstract_staking_adapter_traits::types::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
     abstract_staking_adapter_traits::CwStakingCommand,

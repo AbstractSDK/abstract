@@ -15,7 +15,7 @@ use cw_orch::deploy::Deploy;
 
 use abstract_core::adapter::BaseQueryMsgFns;
 
-use abstract_staking_adapter_traits::msg::{
+use abstract_staking_adapter_traits::types::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};

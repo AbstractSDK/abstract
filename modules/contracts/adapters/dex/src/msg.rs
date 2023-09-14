@@ -1,6 +1,4 @@
-//! # Decentralized Exchange Adapter
-//!
-//! [`abstract_dex_adapter`] is a generic dex-interfacing contract that handles address retrievals and dex-interactions.
+#![warn(missing_docs)]
 
 use abstract_core::{
     adapter,
@@ -8,6 +6,8 @@ use abstract_core::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
+// re-export response types
+pub use abstract_dex_adapter_traits::types::*;
 
 pub type DexName = String;
 pub type OfferAsset = AnsAsset;
@@ -15,12 +15,7 @@ pub type AskAsset = AnsAsset;
 
 pub const IBC_DEX_ID: u32 = 11335;
 
-pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
-pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;
-pub type InstantiateMsg = adapter::InstantiateMsg<DexInstantiateMsg>;
-
-impl adapter::AdapterExecuteMsg for DexExecuteMsg {}
-impl adapter::AdapterQueryMsg for DexQueryMsg {}
+abstract_adapter::adapter_msg_types!(DexAdapter, DexExecuteMsg, DexQueryMsg);
 
 #[cosmwasm_schema::cw_serde]
 pub struct DexInstantiateMsg {
@@ -82,14 +77,6 @@ pub enum DexAction {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub enum SwapRouter {
-    /// Matrix router
-    Matrix,
-    /// Use a custom router (using String type for cross-chain compatibility)
-    Custom(String),
-}
-
-#[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
@@ -103,25 +90,4 @@ pub enum DexQueryMsg {
     /// Endpoint can be used by front-end to easily interact with contracts.
     #[returns(GenerateMessagesResponse)]
     GenerateMessages { message: DexExecuteMsg },
-}
-
-// LP/protocol fees could be withheld from either input or output so commission asset must be included.
-#[cosmwasm_schema::cw_serde]
-pub struct SimulateSwapResponse {
-    pub pool: DexAssetPairing,
-    /// Amount you would receive when performing the swap.
-    pub return_amount: Uint128,
-    /// Spread in ask_asset for this swap
-    pub spread_amount: Uint128,
-    /// Commission charged for the swap
-    pub commission: (AssetEntry, Uint128),
-    /// Adapter fee charged for the swap (paid in offer asset)
-    pub usage_fee: Uint128,
-}
-
-/// Response from GenerateMsgs
-#[cosmwasm_schema::cw_serde]
-pub struct GenerateMessagesResponse {
-    /// messages generated for dex action
-    pub messages: Vec<CosmosMsg>,
 }

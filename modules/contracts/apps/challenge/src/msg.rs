@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 use crate::{
     contract::ChallengeApp,
     state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
