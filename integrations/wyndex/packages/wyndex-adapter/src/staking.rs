@@ -65,7 +65,7 @@ impl CwStakingCommand for WynDex {
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         _version_control_contract: &VersionControlContract,
-        lp_tokens: impl IntoIterator<Item = AssetEntry>,
+        lp_tokens: Vec<AssetEntry>,
     ) -> std::result::Result<(), AbstractSdkError> {
         self.tokens = lp_tokens
             .into_iter()

@@ -39,7 +39,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         version_control_contract: &VersionControlContract,
-        staking_assets: impl IntoIterator<Item = AssetEntry>,
+        staking_assets: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
