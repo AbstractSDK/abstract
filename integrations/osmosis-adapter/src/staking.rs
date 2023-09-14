@@ -77,13 +77,13 @@ pub mod fns {
             &self,
             querier: &QuerierWrapper,
             ans_host: &AnsHost,
-            staking_assets: impl IntoIterator<Item = AssetEntry>,
+            staking_assets: Vec<AssetEntry>,
         ) -> AbstractSdkResult<Vec<OsmosisTokenContext>> {
             staking_assets
                 .into_iter()
                 .map(|s_asset| {
                     let dex_pair =
-                        AnsEntryConvertor::new(AnsEntryConvertor::new(s_asset).lp_token()?)
+                        AnsEntryConvertor::new(AnsEntryConvertor::new(s_asset.clone()).lp_token()?)
                             .dex_asset_pairing()?;
 
                     let pool_ref = ans_host.query_asset_pairing(querier, &dex_pair)?;
@@ -185,12 +185,12 @@ pub mod fns {
             let unstake_msgs: Vec<_> = unstake_request
                 .into_iter()
                 .zip(self.tokens.iter())
-                .map(|(unstake, tokens)| {
+                .map(|(unstake, token)| {
                     MsgBeginUnlocking {
                         owner: self.local_proxy_addr.as_ref().unwrap().to_string(),
-                        id: tokens.pool_id,
+                        id: token.pool_id,
                         coins: vec![Coin {
-                            denom: tokens.lp_token.clone(),
+                            denom: token.lp_token.clone(),
                             amount: unstake.amount,
                         }
                         .into()],
@@ -283,15 +283,12 @@ pub mod fns {
                         .iter()
                         .find(|&c| c.denom == token.lp_token)
                         .map(|c| {
-                            (
-                                token.pool_id.into(),
-                                vec![Claim {
-                                    amount: Uint128::from_str(&c.amount).unwrap(),
-                                    claimable_at: Expiration::Never {},
-                                }],
-                            )
+                            vec![Claim {
+                                amount: Uint128::from_str(&c.amount).unwrap(),
+                                claimable_at: Expiration::Never {},
+                            }]
                         })
-                        .unwrap_or((token.pool_id.into(), vec![]))
+                        .unwrap_or_default()
                 })
                 .collect();
 

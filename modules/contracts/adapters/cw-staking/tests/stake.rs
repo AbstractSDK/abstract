@@ -88,7 +88,7 @@ fn staking_inited() -> anyhow::Result<()> {
     // query reward tokens
     let reward_tokens = staking.reward_tokens(WYNDEX.into(), vec![AssetEntry::new(EUR_USD_LP)])?;
     assert_that!(reward_tokens).is_equal_to(RewardTokensResponse {
-        tokens: vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())],
+        tokens: vec![vec![AssetInfoBase::Native(WYND_TOKEN.to_owned())]],
     });
 
     let module_data = staking.module_data()?;
@@ -118,10 +118,10 @@ fn stake_lp() -> anyhow::Result<()> {
     let staked_balance = staking.staked(
         WYNDEX.into(),
         proxy_addr.to_string(),
-        AssetEntry::new(EUR_USD_LP),
+        vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amount.u128()).is_equal_to(100u128);
+    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
 
     Ok(())
 }
@@ -144,10 +144,10 @@ fn stake_lp_wthout_chain() -> anyhow::Result<()> {
     let staked_balance = staking.staked(
         WYNDEX.into(),
         proxy_addr.to_string(),
-        AssetEntry::new(EUR_USD_LP),
+        vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amount.u128()).is_equal_to(100u128);
+    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
 
     Ok(())
 }
@@ -166,10 +166,10 @@ fn unstake_lp() -> anyhow::Result<()> {
     let staked_balance = staking.staked(
         WYNDEX.into(),
         proxy_addr.to_string(),
-        AssetEntry::new(EUR_USD_LP),
+        vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amount.u128()).is_equal_to(100u128);
+    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(100u128);
 
     // now unbond 50
     staking.unstake(AnsAsset::new(EUR_USD_LP, 50u128), WYNDEX.into(), dur)?;
@@ -177,10 +177,10 @@ fn unstake_lp() -> anyhow::Result<()> {
     let staked_balance = staking.staked(
         WYNDEX.into(),
         proxy_addr.to_string(),
-        AssetEntry::new(EUR_USD_LP),
+        vec![AssetEntry::new(EUR_USD_LP)],
         dur,
     )?;
-    assert_that!(staked_balance.amount.u128()).is_equal_to(50u128);
+    assert_that!(staked_balance.amounts[0].u128()).is_equal_to(50u128);
     Ok(())
 }
 
@@ -203,14 +203,14 @@ fn claim_unbonded_lp() -> anyhow::Result<()> {
     let unbonding_balance = staking.unbonding(
         WYNDEX.into(),
         proxy_addr.to_string(),
-        AssetEntry::new(EUR_USD_LP),
+        vec![AssetEntry::new(EUR_USD_LP)],
     )?;
     let claimable_at = dur.after(&unstake_block_info);
     assert_that!(unbonding_balance).is_equal_to(UnbondingResponse {
-        claims: vec![Claim {
+        claims: vec![vec![Claim {
             amount: Uint128::from(50u128),
             claimable_at,
-        }],
+        }]],
     });
 
     // forward 5 seconds

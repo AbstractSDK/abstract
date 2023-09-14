@@ -150,12 +150,12 @@ pub struct StakeResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct RewardTokensResponse {
-    pub tokens: Vec<(StakingTarget, Vec<AssetInfo>)>,
+    pub tokens: Vec<Vec<AssetInfo>>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct UnbondingResponse {
-    pub claims: Vec<(StakingTarget, Vec<Claim>)>,
+    pub claims: Vec<Vec<Claim>>,
 }
 
 #[cosmwasm_schema::cw_serde]

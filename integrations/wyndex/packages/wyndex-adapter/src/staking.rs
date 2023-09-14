@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
@@ -37,7 +35,7 @@ use {
     },
     abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
-        StakingTarget, UnbondingResponse,
+        UnbondingResponse,
     },
     abstract_staking_adapter_traits::CwStakingCommand,
     abstract_staking_adapter_traits::CwStakingError,
@@ -69,18 +67,18 @@ impl CwStakingCommand for WynDex {
     ) -> std::result::Result<(), AbstractSdkError> {
         self.tokens = lp_tokens
             .into_iter()
-            .map(|lp_token| {
+            .map(|entry| {
                 let staking_contract_address =
-                    self.staking_contract_address(deps, ans_host, &lp_token)?;
+                    self.staking_contract_address(deps, ans_host, &entry)?;
                 let AssetInfoBase::Cw20(lp_token_address) =
-                    lp_token.resolve(&deps.querier, ans_host)?
+                    entry.resolve(&deps.querier, ans_host)?
                 else {
                     return Err(
                         StdError::generic_err("expected CW20 as LP token for staking.").into(),
                     );
                 };
 
-                let lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
+                let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
                 Ok(WynDexTokenContext {
                     lp_token,
                     lp_token_address,
@@ -273,10 +271,7 @@ impl CwStakingCommand for WynDex {
                         claimable_at: claim.release_at,
                     })
                     .collect();
-                Ok((
-                    StakingTarget::from(token.staking_contract_address.clone()),
-                    claims,
-                ))
+                Ok(claims)
             })
             .collect::<StakingResult<_>>()?;
 
@@ -284,9 +279,10 @@ impl CwStakingCommand for WynDex {
     }
 
     fn query_rewards(&self, querier: &QuerierWrapper) -> StakingResult<RewardTokensResponse> {
-        let rewards = self.tokens.iter().try_fold(
-            HashMap::<&Addr, Vec<AssetInfo>>::new(),
-            |mut acc, t| -> StakingResult<_> {
+        let tokens = self
+            .tokens
+            .iter()
+            .map(|t| {
                 let resp: DistributionDataResponse = querier.query_wasm_smart(
                     t.staking_contract_address.clone(),
                     &wyndex_stake::msg::QueryMsg::DistributionData {},
@@ -304,22 +300,12 @@ impl CwStakingCommand for WynDex {
                                 AssetInfo::Cw20(token)
                             }
                         };
-                        Result::<_, CwStakingError>::Ok(token)
+                        Ok(token)
                     })
-                    .collect::<Result<Vec<_>, _>>()?;
-
-                let entry = acc.entry(&t.staking_contract_address).or_default();
-                entry.extend(reward_tokens);
-
-                Ok(acc)
-            },
-        )?;
-
-        // Convert to response
-        let tokens = rewards
-            .into_iter()
-            .map(|(addr, assets)| (StakingTarget::from(addr.to_owned()), assets))
-            .collect();
+                    .collect::<StakingResult<_>>()?;
+                Ok(reward_tokens)
+            })
+            .collect::<StakingResult<_>>()?;
         Ok(RewardTokensResponse { tokens })
     }
 }

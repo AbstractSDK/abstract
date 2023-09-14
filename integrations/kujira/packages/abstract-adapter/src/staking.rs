@@ -36,14 +36,10 @@ use ::{
     abstract_staking_adapter_traits::msg::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
-    abstract_staking_adapter_traits::{
-        msg::{StakingInfo, StakingTarget},
-        CwStakingCommand, CwStakingError,
-    },
+    abstract_staking_adapter_traits::{msg::StakingInfo, CwStakingCommand, CwStakingError},
     cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
     cw_asset::{AssetInfo, AssetInfoBase},
     kujira::bow::staking as BowStaking,
-    std::collections::HashMap,
 };
 
 #[cfg(feature = "full_integration")]
@@ -59,18 +55,17 @@ impl CwStakingCommand for Kujira {
     ) -> AbstractSdkResult<()> {
         self.tokens = lp_tokens
             .into_iter()
-            .map(|lp_token| {
+            .map(|entry| {
                 let staking_contract_address =
-                    self.staking_contract_address(deps, ans_host, &lp_token)?;
+                    self.staking_contract_address(deps, ans_host, &entry)?;
 
-                let AssetInfoBase::Native(denom) = lp_token.resolve(&deps.querier, ans_host)?
-                else {
+                let AssetInfoBase::Native(denom) = entry.resolve(&deps.querier, ans_host)? else {
                     return Err(
                         StdError::generic_err("expected denom as LP token for staking.").into(),
                     );
                 };
                 let lp_token_denom = denom;
-                let lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
+                let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
 
                 Ok(KujiraTokenContext {
                     lp_token,
@@ -226,9 +221,10 @@ impl CwStakingCommand for Kujira {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
-        let tokens = self.tokens.iter().try_fold(
-            HashMap::<&Addr, Vec<AssetInfo>>::new(),
-            |mut acc, t| -> Result<_, CwStakingError> {
+        let tokens = self
+            .tokens
+            .iter()
+            .map(|t| {
                 let reward_info: BowStaking::IncentivesResponse = querier
                     .query_wasm_smart(
                         t.staking_contract_address.clone(),
@@ -246,6 +242,7 @@ impl CwStakingCommand for Kujira {
                             e
                         ))
                     })?;
+
                 let reward_tokens = reward_info
                     .incentives
                     .into_iter()
@@ -253,19 +250,11 @@ impl CwStakingCommand for Kujira {
                         let token = AssetInfo::Native(asset.denom.to_string());
                         Result::<_, CwStakingError>::Ok(token)
                     })
-                    .collect::<Result<Vec<_>, _>>()?;
+                    .collect::<Result<_, _>>()?;
+                Ok(reward_tokens)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
 
-                let entry = acc.entry(&t.staking_contract_address).or_default();
-                entry.extend(reward_tokens);
-                Ok(acc)
-            },
-        )?;
-
-        // Convert to response
-        let tokens = tokens
-            .into_iter()
-            .map(|(addr, assets)| (StakingTarget::from(addr.to_owned()), assets))
-            .collect();
         Ok(RewardTokensResponse { tokens })
     }
 }

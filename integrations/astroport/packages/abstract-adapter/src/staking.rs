@@ -44,8 +44,7 @@ use ::{
         AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
-        RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse, StakingTarget,
-        UnbondingResponse,
+        RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
     },
     abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
     astroport::generator::{
@@ -73,18 +72,18 @@ impl CwStakingCommand for Astroport {
     ) -> AbstractSdkResult<()> {
         self.tokens = lp_tokens
             .into_iter()
-            .map(|lp_token| {
+            .map(|entry| {
                 let generator_contract_address =
-                    self.staking_contract_address(deps, ans_host, &lp_token)?;
+                    self.staking_contract_address(deps, ans_host, &entry)?;
 
-                let AssetInfo::Cw20(token_addr) = lp_token.resolve(&deps.querier, ans_host)? else {
+                let AssetInfo::Cw20(token_addr) = entry.resolve(&deps.querier, ans_host)? else {
                     return Err(
                         StdError::generic_err("expected CW20 as LP token for staking.").into(),
                     );
                 };
 
                 let lp_token_address = token_addr;
-                let lp_token = AnsEntryConvertor::new(lp_token).lp_token()?;
+                let lp_token = AnsEntryConvertor::new(entry.clone()).lp_token()?;
 
                 Ok(AstroportTokenContext {
                     lp_token,
@@ -261,9 +260,10 @@ impl CwStakingCommand for Astroport {
         &self,
         querier: &QuerierWrapper,
     ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
-        let tokens = self.tokens.iter().try_fold(
-            HashMap::<&Addr, Vec<AssetInfo>>::new(),
-            |mut acc, t| -> Result<_, CwStakingError> {
+        let tokens = self
+            .tokens
+            .iter()
+            .map(|t| {
                 let reward_info: RewardInfoResponse = querier
                     .query_wasm_smart(
                         t.generator_contract_address.clone(),
@@ -287,21 +287,15 @@ impl CwStakingCommand for Astroport {
                     astroport::asset::AssetInfo::NativeToken { denom } => AssetInfo::native(denom),
                 };
 
-                let entry = acc.entry(&t.generator_contract_address).or_default();
-                entry.push(token);
+                let mut tokens = vec![token];
 
                 if let Some(reward_token) = reward_info.proxy_reward_token {
-                    entry.push(AssetInfo::cw20(reward_token));
+                    tokens.push(AssetInfo::cw20(reward_token));
                 }
-                Ok(acc)
-            },
-        )?;
+                Ok(tokens)
+            })
+            .collect::<Result<_, CwStakingError>>()?;
 
-        // Convert to response
-        let tokens = tokens
-            .into_iter()
-            .map(|(addr, assets)| (StakingTarget::from(addr.to_owned()), assets))
-            .collect();
         Ok(RewardTokensResponse { tokens })
     }
 }
