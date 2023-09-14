@@ -85,23 +85,53 @@ jobs:
               echo "Received null values. Dumping workflow data:"
               echo "$WORKFLOWS"
               exit 1
-            fi
+          fi
 
-            # Check if the last workflow's name matches and has the correct pipeline id
-            if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$PIPELINE_ID" ]]; then
-              if [[ "$WORKFLOW_STATUS" == "success" ]]; then
-                break
-              elif [[ "$WORKFLOW_STATUS" == "failed" || "$WORKFLOW_STATUS" == "canceled" || "$WORKFLOW_STATUS" == "error" ]]; then
-                echo "Workflow has ended with status: $WORKFLOW_STATUS"
-                exit 1
-              else
-                echo "Workflow status: $WORKFLOW_STATUS. Waiting for completion..."
-                sleep 30  # Wait for 30 seconds before checking again
-              fi
-            else {
+          # Check if the last workflow's name matches and has the correct pipeline id
+          if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$PIPELINE_ID" ]]; then
+              case "$WORKFLOW_STATUS" in
+                  "success")
+                      echo "Workflow 'build-and-commit' completed successfully!"
+                      break
+                      ;;
+                  "running")
+                      echo "Workflow 'build-and-commit' is currently running..."
+                      ;;
+                  "not_run")
+                      echo "Workflow 'build-and-commit' has not run yet..."
+                      ;;
+                  "failed")
+                      echo "Workflow 'build-and-commit' failed. Exiting."
+                      exit 1
+                      ;;
+                  "error")
+                      echo "Workflow 'build-and-commit' ended with an error. Exiting."
+                      exit 1
+                      ;;
+                  "failing")
+                      echo "Workflow 'build-and-commit' is currently failing..."
+                      ;;
+                  "on_hold")
+                      echo "Workflow 'build-and-commit' is currently on hold..."
+                      ;;
+                  "canceled")
+                      echo "Workflow 'build-and-commit' was canceled. Exiting."
+                      exit 1
+                      ;;
+                  "unauthorized")
+                      echo "Unauthorized to access workflow 'build-and-commit'. Exiting."
+                      exit 1
+                      ;;
+                  *)
+                      echo "Unknown workflow status for 'build-and-commit': $WORKFLOW_STATUS. Waiting..."
+                      ;;
+              esac
+
+              sleep 30  # Wait for 30 seconds before checking again
+          else
               echo "Waiting for 'build-and-commit' workflow to start..."
               sleep 30  # Wait for 30 seconds before checking again
-            } fi
+          fi
           done
 
           echo "Workflow 'build-and-commit' has completed successfully!"
