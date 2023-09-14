@@ -97,11 +97,8 @@ fn resolve_assets_to_transfer(
     ans_host: &AnsHost,
 ) -> StakingResult<Vec<Coin>> {
     match dex_action {
-        StakingAction::Stake {
-            asset: staking_token,
-            ..
-        } => {
-            let resolved: Coin = staking_token.resolve(&deps.querier, ans_host)?.try_into()?;
+        StakingAction::Stake { stake, .. } => {
+            let resolved: Coin = stake.resolve(&deps.querier, ans_host)?.try_into()?;
             Ok(vec![resolved])
         }
         _ => Ok(vec![]),

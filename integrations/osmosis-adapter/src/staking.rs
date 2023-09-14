@@ -30,15 +30,15 @@ pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
     use abstract_sdk::{AbstractSdkError, AccountVerification};
     use abstract_staking_adapter_traits::msg::{
-        Claim, RewardTokensResponse, StakeRequest, StakeResponse, StakedQuery, StakingInfo,
-        StakingInfoResponse, UnbondingResponse, UnstakeRequest,
+        Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
+        UnbondingResponse,
     };
     use cw_utils::Expiration;
     use osmosis_std::types::osmosis::lockup::{LockupQuerier, MsgBeginUnlockingAll};
     use std::str::FromStr;
 
     use abstract_core::objects::ans_host::AnsHost;
-    use abstract_core::objects::{AnsEntryConvertor, AssetEntry, PoolReference};
+    use abstract_core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry, PoolReference};
     use osmosis_std::types::osmosis::poolmanager::v1beta1::PoolmanagerQuerier;
 
     use abstract_sdk::AbstractSdkResult;
@@ -153,7 +153,7 @@ pub mod fns {
         fn stake(
             &self,
             _deps: Deps,
-            stake_request: Vec<StakeRequest>,
+            stake_request: Vec<AnsAsset>,
             unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<cosmwasm_std::CosmosMsg>, CwStakingError> {
             let lock_coins: Vec<_> = stake_request
@@ -161,7 +161,7 @@ pub mod fns {
                 .zip(self.tokens.iter())
                 .map(|(stake, token)| {
                     Coin {
-                        amount: stake.asset.amount,
+                        amount: stake.amount,
                         denom: token.lp_token.clone(),
                     }
                     .into()
@@ -179,7 +179,7 @@ pub mod fns {
         fn unstake(
             &self,
             _deps: Deps,
-            unstake_request: Vec<UnstakeRequest>,
+            unstake_request: Vec<AnsAsset>,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<Vec<CosmosMsg>, CwStakingError> {
             let unstake_msgs: Vec<_> = unstake_request
@@ -191,7 +191,7 @@ pub mod fns {
                         id: tokens.pool_id,
                         coins: vec![Coin {
                             denom: tokens.lp_token.clone(),
-                            amount: unstake.asset.amount,
+                            amount: unstake.amount,
                         }
                         .into()],
                     }
@@ -231,7 +231,7 @@ pub mod fns {
                 .iter()
                 .map(|t| StakingInfo {
                     staking_token: AssetInfoBase::Native(t.lp_token.clone()),
-                    staking_target: t.pool_id.clone().into(),
+                    staking_target: t.pool_id.into(),
                     unbonding_periods: Some(vec![]),
                     max_claims: None,
                 })
@@ -244,7 +244,7 @@ pub mod fns {
             &self,
             querier: &QuerierWrapper,
             staker: Addr,
-            _stakes: Vec<StakedQuery>,
+            _stakes: Vec<AssetEntry>,
             _unbonding_period: Option<cw_utils::Duration>,
         ) -> Result<StakeResponse, CwStakingError> {
             let lockup_request = LockupQuerier::new(querier);

@@ -1,10 +1,5 @@
-use std::collections::HashMap;
-
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::{
-    msg::{StakeRequest, StakedQuery, StakingInfo, StakingTarget, UnstakeRequest},
-    Identify,
-};
+use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, KUJIRA};
@@ -34,17 +29,21 @@ impl Identify for Kujira {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsEntryConvertor, AssetEntry},
+        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
-    abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
+    abstract_staking_adapter_traits::{
+        msg::{StakingInfo, StakingTarget},
+        CwStakingCommand, CwStakingError,
+    },
     cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
     cw_asset::{AssetInfo, AssetInfoBase},
     kujira::bow::staking as BowStaking,
+    std::collections::HashMap,
 };
 
 #[cfg(feature = "full_integration")]
@@ -87,7 +86,7 @@ impl CwStakingCommand for Kujira {
     fn stake(
         &self,
         _deps: Deps,
-        stake_request: Vec<StakeRequest>,
+        stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let msg = BowStaking::ExecuteMsg::Stake { addr: None };
@@ -100,7 +99,7 @@ impl CwStakingCommand for Kujira {
                     token.staking_contract_address.clone(),
                     &msg,
                     vec![Coin {
-                        amount: stake.asset.amount,
+                        amount: stake.amount,
                         denom: token.lp_token_denom.clone(),
                     }],
                 )?
@@ -115,7 +114,7 @@ impl CwStakingCommand for Kujira {
     fn unstake(
         &self,
         _deps: Deps,
-        unstake_request: Vec<UnstakeRequest>,
+        unstake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unstake_msgs = unstake_request
@@ -127,7 +126,7 @@ impl CwStakingCommand for Kujira {
                     &BowStaking::ExecuteMsg::Withdraw {
                         amount: Coin {
                             denom: token.lp_token_denom.clone(),
-                            amount: unstake.asset.amount,
+                            amount: unstake.amount,
                         },
                     },
                     vec![],
@@ -185,7 +184,7 @@ impl CwStakingCommand for Kujira {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        _stakes: Vec<StakedQuery>,
+        _stakes: Vec<AssetEntry>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, CwStakingError> {
         let amounts: Vec<Uint128> = self

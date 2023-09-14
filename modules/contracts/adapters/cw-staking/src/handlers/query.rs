@@ -45,6 +45,7 @@ pub fn query_handler(
             provider,
             staker_address,
             stakes,
+            unbonding_period,
         } => {
             let staking_tokens = stakes.iter().map(|s| s.staking_token.clone());
             // if provider is on an app-chain, error
@@ -66,6 +67,7 @@ pub fn query_handler(
                 Ok(to_binary(&provider.query_staked(
                     &deps.querier,
                     deps.api.addr_validate(&staker_address)?,
+                    stakes,
                     unbonding_period,
                 )?)?)
             }

@@ -53,8 +53,8 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 #[inline(always)]
 fn staking_assets_from_action(action: &StakingAction) -> impl Iterator<Item = AssetEntry> {
     match action {
-        StakingAction::Stake { stake } => stake.iter().map(|req| req.asset.name.clone()).into(),
-        StakingAction::Unstake { unstake } => {
+        StakingAction::Stake { stake, .. } => stake.iter().map(|req| req.asset.name.clone()).into(),
+        StakingAction::Unstake { unstake, .. } => {
             unstake.iter().map(|req| req.asset.name.clone()).into()
         }
         StakingAction::ClaimRewards {

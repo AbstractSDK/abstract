@@ -1,8 +1,6 @@
-use crate::msg::{
-    RewardTokensResponse, StakeRequest, StakeResponse, StakedQuery, StakingInfoResponse,
-    UnbondingResponse, UnstakeRequest,
-};
+use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{CwStakingError, Identify};
+use abstract_core::objects::AnsAsset;
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
@@ -48,7 +46,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     fn stake(
         &self,
         deps: Deps,
-        stake_request: Vec<StakeRequest>,
+        stake_request: Vec<AnsAsset>,
         unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
@@ -56,7 +54,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
     fn unstake(
         &self,
         deps: Deps,
-        unstake_request: Vec<UnstakeRequest>,
+        unstake_request: Vec<AnsAsset>,
         unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
@@ -76,7 +74,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        stakes: Vec<StakedQuery>,
+        stakes: Vec<AssetEntry>,
         unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, E>;
 

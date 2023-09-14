@@ -3,11 +3,8 @@ use std::collections::HashMap;
 use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::{
-    msg::{StakeRequest, StakedQuery, StakingInfo, StakingTarget, UnstakeRequest},
-    Identify,
-};
-use cosmwasm_std::{Addr, Env};
+use abstract_staking_adapter_traits::Identify;
+use cosmwasm_std::Addr;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub struct WynDex {
@@ -34,12 +31,13 @@ impl Identify for WynDex {
 #[cfg(feature = "full_integration")]
 use {
     abstract_sdk::{
-        core::objects::{AnsEntryConvertor, AssetEntry},
+        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkError, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
-        Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+        Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
+        StakingTarget, UnbondingResponse,
     },
     abstract_staking_adapter_traits::CwStakingCommand,
     abstract_staking_adapter_traits::CwStakingError,
@@ -63,7 +61,7 @@ impl CwStakingCommand for WynDex {
     fn fetch_data(
         &mut self,
         deps: Deps,
-        _env: Env,
+        _env: cosmwasm_std::Env,
         _info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         _version_control_contract: &VersionControlContract,
@@ -97,7 +95,7 @@ impl CwStakingCommand for WynDex {
     fn stake(
         &self,
         _deps: Deps,
-        stake_request: Vec<StakeRequest>,
+        stake_request: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
@@ -113,7 +111,7 @@ impl CwStakingCommand for WynDex {
                     contract_addr: token.lp_token_address.to_string(),
                     msg: to_binary(&Cw20ExecuteMsg::Send {
                         contract: token.staking_contract_address.to_string(),
-                        amount: stake.asset.amount,
+                        amount: stake.amount,
                         msg: msg.clone(),
                     })?,
                     funds: vec![],
@@ -127,7 +125,7 @@ impl CwStakingCommand for WynDex {
     fn unstake(
         &self,
         _deps: Deps,
-        unstake_request: Vec<UnstakeRequest>,
+        unstake_request: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)?;
@@ -138,7 +136,7 @@ impl CwStakingCommand for WynDex {
                 Ok(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: token.staking_contract_address.to_string(),
                     msg: to_binary(&StakeCw20ExecuteMsg::Unbond {
-                        tokens: unstake.asset.amount,
+                        tokens: unstake.amount,
                         unbonding_period,
                     })?,
                     funds: vec![],
@@ -217,7 +215,7 @@ impl CwStakingCommand for WynDex {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        _stakes: Vec<StakedQuery>,
+        _stakes: Vec<AssetEntry>,
         unbonding_period: Option<Duration>,
     ) -> StakingResult<StakeResponse> {
         let unbonding_period = unwrap_unbond(self, unbonding_period)

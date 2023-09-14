@@ -1,14 +1,6 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-
 use crate::ASTROPORT;
 use crate::AVAILABLE_CHAINS;
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::msg::StakeRequest;
-use abstract_staking_adapter_traits::msg::StakedQuery;
-use abstract_staking_adapter_traits::msg::StakingInfo;
-use abstract_staking_adapter_traits::msg::StakingTarget;
-use abstract_staking_adapter_traits::msg::UnstakeRequest;
 use abstract_staking_adapter_traits::Identify;
 use cosmwasm_std::Addr;
 
@@ -47,12 +39,13 @@ impl Identify for Astroport {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_sdk::{
-        core::objects::{AnsEntryConvertor, AssetEntry},
+        core::objects::{AnsAsset, AnsEntryConvertor, AssetEntry},
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
     abstract_staking_adapter_traits::msg::{
-        RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
+        RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse, StakingTarget,
+        UnbondingResponse,
     },
     abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
     astroport::generator::{
@@ -64,6 +57,7 @@ use ::{
     },
     cw20::Cw20ExecuteMsg,
     cw_asset::AssetInfo,
+    std::collections::{HashMap, HashSet},
 };
 
 #[cfg(feature = "full_integration")]
@@ -105,7 +99,7 @@ impl CwStakingCommand for Astroport {
     fn stake(
         &self,
         _deps: Deps,
-        stake_request: Vec<StakeRequest>,
+        stake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let msg = to_binary(&Cw20HookMsg::Deposit {})?;
@@ -118,7 +112,7 @@ impl CwStakingCommand for Astroport {
                     token.lp_token_address.to_string(),
                     &Cw20ExecuteMsg::Send {
                         contract: token.generator_contract_address.to_string(),
-                        amount: stake.asset.amount,
+                        amount: stake.amount,
                         msg: msg.clone(),
                     },
                     vec![],
@@ -134,7 +128,7 @@ impl CwStakingCommand for Astroport {
     fn unstake(
         &self,
         _deps: Deps,
-        unstake_request: Vec<UnstakeRequest>,
+        unstake_request: Vec<AnsAsset>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, CwStakingError> {
         let unstake_msgs = unstake_request
@@ -145,7 +139,7 @@ impl CwStakingCommand for Astroport {
                     token.generator_contract_address.to_string(),
                     &GeneratorExecuteMsg::Withdraw {
                         lp_token: token.lp_token_address.to_string(),
-                        amount: unstake.asset.amount,
+                        amount: unstake.amount,
                     },
                     vec![],
                 )?
@@ -225,7 +219,7 @@ impl CwStakingCommand for Astroport {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        _stakes: Vec<StakedQuery>,
+        _stakes: Vec<AssetEntry>,
         _unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, CwStakingError> {
         let amounts = self
