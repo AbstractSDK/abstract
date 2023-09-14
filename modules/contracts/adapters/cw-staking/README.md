@@ -32,14 +32,12 @@ abstract-cw-staking = { git = "https://github.com/AbstractSDK/abstract.git", tag
 
 ## Usage with the Abstract SDK
 
-To interact with a dex, you first need to retrieve the dex using the Dex Adapter. Here's a basic example in Rust:
-
 ```rust
-// Retrieve the dex
-use abstract_dex_adapter::api::DexInterface;
+// Retrieve the staking interface
+use abstract_cw_staking_adapter::api::CwStakingAdapter;
 ...
 
-let dex_name = "osmosis".to_string();
+let staking_name = "osmosis".to_string();
 let offer_asset = OfferAsset::new("juno", 1000u128);
 let ask_asset = AssetEntry::new("uusd");
 let max_spread = Some(Decimal::percent(1));
@@ -50,22 +48,22 @@ let dex = app.dex(deps.as_ref(), dex_name);
 let swap_msg = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
 ```
 
-## Why Use the Dex Adapter?
+## Why Use the Cw Staking Adapter?
 
 ### Simplified Development
-By using the Dex Adapter, developers can bypass the intricacies of each individual dex. This means less time spent on understanding and integrating with each dex's unique API, and more time focusing on building core functionalities.
+By using the Cw Staking Adapter, developers can bypass the intricacies of each individual Staking Provider. This means less time spent on understanding and integrating with each staking provider's unique API, and more time focusing on building core functionalities.
 
 ### Flexibility
-The Dex Adapter ensures that your application remains flexible. If a new dex emerges or if there are changes to an existing one, your application can easily adapt without undergoing major overhauls.
+The DexCw Staking Adapter ensures that your application remains flexible. If a new Staking provider or use-case emerges or if there are changes to an existing one, your application can easily adapt without undergoing major overhauls.
 
 ### Use Cases
-- **Rapid Prototyping**: Quickly build and test applications on top of various dexes without the need for multiple integrations.
-- **Cross-Dex Applications**: Build applications that leverage multiple dexes simultaneously, offering users more options and better rates.
-- **Future-Proofing**: Ensure your application remains compatible with future dexes that emerge in the Cosmos ecosystem.
+- **Rapid Prototyping**: Quickly build and test applications on top of various staking providers without the need for multiple integrations.
+- **Cross-Dex Applications**: Build applications that leverage multiple Staking providers simultaneously, offering users more options and better rates.
+- **Future-Proofing**: Ensure your application remains compatible with future staking solutions that emerge in the Cosmos ecosystem.
 
 ## Documentation
 
-- **Dex Interface**: For a detailed look at the dex interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/bcf26f2f446478fd2825de5b187321dc9a626341/modules/contracts/adapters/dex/src/api.rs#L43).
+- **Dex Interface**: For a detailed look at the cw-staking interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/bcf26f2f446478fd2825de5b187321dc9a626341/modules/contracts/adapters/cw-staking/src/api.rs#L43).
 - **Adapters Documentation**: Comprehensive information about adapters can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#adapters).
 
 ## Contributing
