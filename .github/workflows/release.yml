@@ -44,7 +44,7 @@ jobs:
         run: |
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
           
-          # Trigger the CircleCI pipeline
+          # Trigger the CircleCI pipeline and get the pipeline ID
           RESPONSE=$(curl -X POST \
             -H "Circle-Token: ${CCI_TOKEN}" \
             -H 'Content-Type: application/json' \
@@ -58,28 +58,31 @@ jobs:
 
           PIPELINE_ID=$(echo $RESPONSE | jq -r '.id')
 
-          # Wait a bit to ensure the workflow is created
-          sleep 20
-
-          # Fetch the workflow ID associated with the triggered pipeline
-          WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
-            https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
-          WORKFLOW_ID=$(echo $WORKFLOWS | jq -r '.items[0].id')
-
-          # Poll the status of the workflow
+          # Wait for the CircleCI workflow to finish
           while true; do
-            STATUS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
-              https://circleci.com/api/v2/workflow/$WORKFLOW_ID | jq -r '.status')
+            WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
+              https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
             
-            if [[ "$STATUS" == "success" || "$STATUS" == "failed" || "$STATUS" == "canceled" || "$STATUS" == "error" ]]; then
-              break
-            fi
+            LAST_WORKFLOW=$(echo $WORKFLOWS | jq -r '.items[-1]')
+            WORKFLOW_NAME=$(echo $LAST_WORKFLOW | jq -r '.name')
+            WORKFLOW_STATUS=$(echo $LAST_WORKFLOW | jq -r '.status')
+            WORKFLOW_PIPELINE_ID=$(echo $LAST_WORKFLOW | jq -r '.pipeline_id')
 
-            echo "CircleCI workflow status: $STATUS. Waiting for completion of build"
-            sleep 30
+            # Check if the last workflow's name matches and has the correct pipeline id
+            if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$PIPELINE_ID" ]]; then
+              if [[ "$WORKFLOW_STATUS" == "success" ]]; then
+                break
+              elif [[ "$WORKFLOW_STATUS" == "failed" || "$WORKFLOW_STATUS" == "canceled" || "$WORKFLOW_STATUS" == "error" ]]; then
+                echo "Workflow has ended with status: $WORKFLOW_STATUS"
+                exit 1
+              else
+                echo "Workflow status: $WORKFLOW_STATUS. Waiting for completion..."
+                sleep 30  # Wait for 30 seconds before checking again
+              fi
+            else
+              echo "Waiting for 'build-and-commit' workflow to start..."
+              sleep 30  # Wait for 30 seconds before checking again
+            fi
           done
 
-          # Fail the GitHub Action if the CircleCI workflow failed
-          if [[ "$STATUS" != "success" ]]; then
-            exit 1
-          fi
+          echo "Workflow 'build-and-commit' has completed successfully!"
