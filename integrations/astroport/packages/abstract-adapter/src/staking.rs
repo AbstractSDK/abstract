@@ -6,7 +6,7 @@ use cosmwasm_std::Addr;
 
 #[derive(Clone, Debug)]
 pub struct Astroport {
-    tokens: Vec<AstroportTokenContext>,
+    pub tokens: Vec<AstroportTokenContext>,
 }
 
 #[derive(Clone, Debug)]

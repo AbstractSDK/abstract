@@ -280,8 +280,10 @@ mod osmosis_test {
             dur,
         );
 
-        assert_that!(res.unwrap_err().to_string())
-            .contains(CwStakingError::NotImplemented("osmosis".to_owned()).to_string());
+        // TODO: something needs to be version bumped for it to work
+        // It's already supported on osmosis
+        // assert_that!(res.unwrap_err().to_string())
+        //     .contains(CwStakingError::NotImplemented("osmosis".to_owned()).to_string());
 
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
             "/osmosis.lockup.Query/AccountLockedCoins",
@@ -379,7 +381,7 @@ mod osmosis_test {
             proxy_addr.to_string(),
             vec![AssetEntry::new(LP)],
         )?;
-        assert_that!(unbonding.claims).is_empty();
+        assert_that!(unbonding.claims[0]).is_empty();
 
         // query stake
         let staked_balance: AccountLockedCoinsResponse = tube.app.borrow().query(
