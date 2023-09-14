@@ -2,15 +2,12 @@
 //! # Staking Adapter
 //!
 //! `abstract::cw-staking`
-
 use cw_utils::Duration;
-
 use abstract_core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_schema::QueryResponses;
+use crate::contract::CwStakingAdapter;
 // Re-export response types
 pub use abstract_staking_adapter_traits::types::*;
-
-use crate::contract::CwStakingAdapter;
 
 pub type ProviderName = String;
 
