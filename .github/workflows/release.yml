@@ -63,7 +63,11 @@ jobs:
             exit 1
           fi
 
-          # Wait for the CircleCI workflow to finish
+          # Waiting for potential propagation delay
+          echo "Waiting for potential propagation delay..."
+          sleep 30
+
+          # Now, start polling CircleCI for the workflow status
           while true; do
             WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
               https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
@@ -94,10 +98,10 @@ jobs:
                 echo "Workflow status: $WORKFLOW_STATUS. Waiting for completion..."
                 sleep 30  # Wait for 30 seconds before checking again
               fi
-            else
+            else {
               echo "Waiting for 'build-and-commit' workflow to start..."
               sleep 30  # Wait for 30 seconds before checking again
-            fi
+            } fi
           done
 
           echo "Workflow 'build-and-commit' has completed successfully!"
