@@ -37,10 +37,10 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.toolchain }}
-      - name: cargo generate-lockfile
+      - name: cargo generate-lockfile 
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
-        run: cargo generate-lockfile
+        run: cargo generate-lockfile --config net.git-fetch-with-cli=true
       # https://twitter.com/jonhoo/status/1571290371124260865
       - name: cargo test --locked
         working-directory: ./framework
