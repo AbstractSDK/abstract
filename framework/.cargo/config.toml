@@ -8,3 +8,6 @@ optimize-w32 = "run-script optimize-w32"
 store = "run-script store"
 instantiate = "run-script instantiate"
 migrate = "run-script migrate"
+
+[net]
+git-fetch-with-cli = true

@@ -42,7 +42,7 @@ jobs:
       - name: cargo generate-lockfile 
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework
-        run: cargo generate-lockfile --config net.git-fetch-with-cli=true
+        run: cargo generate-lockfile
       # https://twitter.com/jonhoo/status/1571290371124260865
       - name: cargo test --locked
         working-directory: ./framework
