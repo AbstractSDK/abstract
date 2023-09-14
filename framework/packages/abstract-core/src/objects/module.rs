@@ -34,6 +34,20 @@ pub struct ModuleInfo {
     pub version: ModuleVersion,
 }
 
+impl TryFrom<ModuleInfo> for ContractVersion {
+    type Error = AbstractError;
+
+    fn try_from(value: ModuleInfo) -> Result<Self, Self::Error> {
+        let ModuleVersion::Version(version) = value.version else {
+            return Err(AbstractError::MissingVersion("module".to_owned()));
+        };
+        Ok(ContractVersion {
+            contract: format!("{}:{}", value.namespace, value.name),
+            version,
+        })
+    }
+}
+
 const MAX_LENGTH: usize = 64;
 
 /// Validate attributes of a [`ModuleInfo`].

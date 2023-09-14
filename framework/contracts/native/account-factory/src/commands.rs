@@ -134,7 +134,7 @@ pub fn execute_create_account(
                 ("trace", &account_id.trace().to_string()),
             ],
         )
-        // Create manager
+        // Create proxy
         .add_submessage(SubMsg {
             id: CREATE_ACCOUNT_PROXY_MSG_ID,
             gas_limit: None,
@@ -143,7 +143,7 @@ pub fn execute_create_account(
                 funds: funds_to_proxy.into_vec(),
                 // Currently set admin to self, update later when we know the contract's address.
                 admin: Some(env.contract.address.to_string()),
-                label: format!("Abstract Account: {}", account_id),
+                label: format!("Proxy of Account: {}", account_id),
                 msg: to_binary(&ProxyInstantiateMsg {
                     account_id,
                     ans_host_address: config.ans_host_contract.to_string(),
@@ -168,17 +168,17 @@ pub fn after_proxy_create_manager(
 ) -> AccountFactoryResult {
     let config = CONFIG.load(deps.storage)?;
 
-    // Get address of Manager contract
+    // Get address of Proxy contract
     let res: MsgInstantiateContractResponse =
         Message::parse_from_bytes(result.unwrap().data.unwrap().as_slice()).map_err(|_| {
             StdError::parse_err("MsgInstantiateContractResponse", "failed to parse data")
         })?;
     let proxy_address = deps.api.addr_validate(res.get_contract_address())?;
 
-    // Query version_control for code_id of proxy
+    // Query version_control for code_id of manager
     let module: Module = query_module(&deps.querier, &config.version_control_contract, MANAGER)?;
 
-    // Update the manager address and proxy module in the context.
+    // Update the proxy address and manager module in the context.
     let context = CONTEXT.update(deps.storage, |c| {
         Result::<_, StdError>::Ok(Context {
             account_proxy_address: Some(proxy_address.clone()),
@@ -192,7 +192,7 @@ pub fn after_proxy_create_manager(
             "create_proxy",
             vec![("proxy_address", proxy_address.to_string())],
         )
-        // Instantiate proxy contract
+        // Instantiate manager contract
         .add_submessage(SubMsg {
             id: CREATE_ACCOUNT_MANAGER_MSG_ID,
             gas_limit: None,
@@ -200,7 +200,7 @@ pub fn after_proxy_create_manager(
                 code_id: proxy_code_id,
                 funds: vec![],
                 admin: Some(env.contract.address.into_string()),
-                label: format!("Proxy of Account: {}", context.account_id),
+                label: format!("Abstract Account: {}", context.account_id),
                 msg: to_binary(&ManagerInstantiateMsg {
                     account_id: context.account_id,
                     version_control_address: config.version_control_contract.to_string(),
@@ -293,8 +293,8 @@ pub fn after_proxy_add_to_manager_and_set_admin(
     let whitelist_manager: CosmosMsg<Empty> = CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: proxy_address.to_string(),
         funds: vec![],
-        msg: to_binary(&ProxyExecMsg::AddModule {
-            module: manager_address.to_string(),
+        msg: to_binary(&ProxyExecMsg::AddModules {
+            modules: vec![manager_address.to_string()],
         })?,
     });
 

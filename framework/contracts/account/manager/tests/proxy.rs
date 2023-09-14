@@ -17,7 +17,6 @@ use common::{
     create_default_account, init_mock_adapter, install_adapter, mock_modules, AResult, TEST_COIN,
 };
 use cosmwasm_std::{coin, to_binary, wasm_execute, Addr, Coin, CosmosMsg};
-use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use module_factory::error::ModuleFactoryError;
@@ -384,21 +383,21 @@ fn install_multiple_modules() -> AResult {
     // Make sure all installed
     let account_module_versions = account.manager.module_versions(vec![
         String::from("abstract:standalone1"),
-        // Querying no_cw2 fails
-        // String::from("abstract:standalone2"),
+        String::from("abstract:standalone2"),
     ])?;
     assert_eq!(
         account_module_versions,
         ModuleVersionsResponse {
             versions: vec![
-                ContractVersion {
-                    contract: String::from(mock_modules::standalone_cw2::MOCK_STANDALONE_ID),
-                    version: String::from(mock_modules::V1)
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone1"),
+                    version: String::from(mock_modules::V1),
                 },
-                // ContractVersion {
-                //     contract: String::from("abstract:standalone2"),
-                //     version: String::from(mock_modules::V1)
-                // },
+                // Second doesn't have cw2
+                cw2::ContractVersion {
+                    contract: String::from("abstract:standalone2"),
+                    version: String::from(mock_modules::V1),
+                },
             ]
         }
     );
