@@ -5,9 +5,6 @@ use abstract_core::{
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{CosmosMsg, Decimal, Uint128};
-// re-export response types
-pub use abstract_dex_adapter_traits::types::*;
-
 
 #[cosmwasm_schema::cw_serde]
 pub enum SwapRouter {

@@ -93,9 +93,9 @@ abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
-abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-dex-adapter-traits = { path = "../framework/packages/standards/dex" }
+abstract-staking-adapter-traits = { path = "../framework/packages/standards/staking" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

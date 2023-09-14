@@ -1,5 +1,6 @@
 #![warn(missing_docs)]
 
+use crate::contract::DexAdapter;
 use abstract_core::{
     adapter,
     objects::{AnsAsset, AssetEntry, DexAssetPairing},

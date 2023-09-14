@@ -1,5 +1,5 @@
 [workspace]
-members = ["packages/*", "contracts/native/*", "contracts/account/*", "scripts"]
+members = ["packages/abstract-*","packages/standards/*", "contracts/native/*", "contracts/account/*", "scripts"]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -73,9 +73,9 @@ abstract-core = { version = "0.18.0", path = "packages/abstract-core" }
 abstract-macros = { version = "0.18.0", path = "packages/abstract-macros" }
 abstract-ica = { version = "0.18.0", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { version = "0.18.0", path = "packages/utils" }
-abstract-dex-adapter-traits = { path = "packages/dex" }
-abstract-staking-adapter-traits = { path = "packages/staking" }
+abstract-adapter-utils = { version = "0.18.0", path = "packages/standards/utils" }
+abstract-dex-adapter-traits = { path = "packages/standards/dex" }
+abstract-staking-adapter-traits = { path = "packages/standards/staking" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
