@@ -11,7 +11,7 @@ use abstract_sdk::{
     cw_helpers::wasm_smart_query,
     feature_objects::{AnsHost, VersionControlContract},
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, StdError};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw2::set_contract_version;
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -60,11 +60,7 @@ impl<
             &FactoryQuery::Context {},
         )?)?;
 
-        let Some(account_base) = resp.account_base else {
-            return Err(
-                StdError::generic_err("context of module factory not properly set.").into(),
-            );
-        };
+        let account_base = resp.account_base;
 
         // Base state
         let state = AppState {

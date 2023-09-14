@@ -158,6 +158,13 @@ pub enum UpdateSubAccountAction {
     /// Note: since it happens after the claim by this manager state won't have spam accounts
     RegisterSubAccount { id: u32 },
 }
+
+#[cosmwasm_schema::cw_serde]
+pub struct RegisterModuleData {
+    pub module_address: String,
+    pub module: Module,
+}
+
 /// Manager execute messages
 #[cw_ownable::cw_ownable_execute]
 #[cosmwasm_schema::cw_serde]
@@ -177,7 +184,7 @@ pub enum ExecuteMsg {
     },
     /// Registers a module after creation.
     /// Used as a callback *only* by the Module Factory to register the module on the Account.
-    RegisterModule { module_addr: String, module: Module },
+    RegisterModules { modules: Vec<RegisterModuleData> },
     /// Uninstall a module given its ID.
     UninstallModule { module_id: String },
     /// Upgrade the module to a new version

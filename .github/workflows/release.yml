@@ -1,0 +1,51 @@
+name: release-deploy-publish 
+
+# Job that updates the wasms of the mono-repo after a PR is merged to main.
+# Or if it is triggerd manually.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - 'release/*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Tickle CircleCI
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "release",
+          "parameters": {
+            "GHA_Meta": "build_wasms"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tickle CircleCI for Deploy
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "release",
+          "parameters": {
+            "GHA_Meta": "deploy_all"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline

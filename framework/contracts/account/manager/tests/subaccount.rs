@@ -165,7 +165,7 @@ fn installed_app_updating_on_subaccount_should_succeed() -> AResult {
     account
         .proxy
         .call_as(&account.manager.address()?)
-        .add_module(mock_app.to_string())?;
+        .add_modules(vec![mock_app.to_string()])?;
 
     let (sub_manager, _sub_proxy) =
         get_account_contracts(&deployment.version_control, Some(AccountId::local(2)));
@@ -296,7 +296,7 @@ fn account_move_ownership_to_sub_account() -> AResult {
     sub_account
         .proxy
         .call_as(&sub_manager_addr)
-        .add_module(mock_module.to_string())?;
+        .add_modules(vec![mock_module.to_string()])?;
     sub_account
         .proxy
         .call_as(&mock_module)
@@ -369,7 +369,7 @@ fn sub_account_move_ownership_to_sub_account() -> AResult {
     sub_account
         .proxy
         .call_as(&sub_manager_addr)
-        .add_module(mock_module.to_string())?;
+        .add_modules(vec![mock_module.to_string()])?;
     sub_account
         .proxy
         .call_as(&mock_module)
