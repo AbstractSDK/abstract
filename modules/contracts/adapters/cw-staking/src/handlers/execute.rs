@@ -90,9 +90,9 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_STAKING_PROVIDER_ID.into(),
-            msg: to_binary(&StakingExecuteMsg { 
-                provider: provider_name.clone(), 
-                action: action.clone()
+            msg: to_binary(&StakingExecuteMsg {
+                provider: provider_name.clone(),
+                action: action.clone(),
             })?,
             receiver: info.sender.into_string(),
         })

@@ -121,9 +121,9 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_DEX_PROVIDER_ID.into(),
-            msg: to_binary(&DexExecuteMsg::Action { 
-                dex: dex_name.clone(), 
-                action: action.clone()
+            msg: to_binary(&DexExecuteMsg::Action {
+                dex: dex_name.clone(),
+                action: action.clone(),
             })?,
             receiver: info.sender.into_string(),
         })
