@@ -2,9 +2,7 @@ use abstract_interface::Abstract;
 use anyhow::Result as AnyResult;
 
 use cw_orch::deploy::Deploy;
-
-use cw_orch_interchain_core::channel::IbcQueryHandler;
-use cw_orch_interchain_core::InterchainEnv;
+use cw_orch::prelude::*;
 use cw_orch_polytone::{Polytone, PolytoneConnection};
 use tokio::runtime::Runtime;
 
@@ -44,7 +42,6 @@ pub mod mock_test {
         ibc_client::QueryMsgFns, ibc_host::QueryMsgFns as _, objects::chain_name::ChainName,
     };
     use cosmwasm_std::Addr;
-    use cw_orch_mock_ibc::MockInterchainEnv;
 
     use crate::{JUNO, STARGAZE};
 

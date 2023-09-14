@@ -53,7 +53,8 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.16.1" }
+# cw-orch = { version = "0.16.1" }
+cw-orch = { git="https://github.com/AbstractSDK/cw-orchestrator.git" }
 tokio = { version = "1.4", features = ["full"] }
 cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
 polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
@@ -97,13 +98,9 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
-[patch.crates-io]
-cw-multi-test = { git = "ssh://git@github.com/AbstractSDK/cw-multi-test", branch = "update/add-ibc-support" }
-# cw-multi-test = { path = "../../cw-multi-test" }
-
-# [patch."ssh://git@github.com/AbstractSDK/cw-orch-interchain.git"]
-# cw-orch-mock-ibc = { path = "../../cw-orch-interchain/packages/cw-orch-mock-ibc" }
-# cw-orch-interchain-core = { path = "../../cw-orch-interchain/packages/interchain-core" }
+[patch."ssh://git@github.com/AbstractSDK/cw-orch-interchain.git"]
+cw-orch-interchain-mock = { path = "../../cw-orch-interchain/packages/interchain-mock" }
+cw-orch-interchain-core = { path = "../../cw-orch-interchain/packages/interchain-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

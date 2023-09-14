@@ -17,10 +17,7 @@ use cw_orch::{
     deploy::Deploy,
     prelude::{queriers::Bank, *},
 };
-use cw_orch_interchain::channel_creator::ChannelCreator;
-use cw_orch_interchain_core::env::InterchainEnv;
 use cw_orch_proto::tokenfactory::{create_denom, create_transfer_channel, get_denom, mint};
-use cw_orch_starship::Starship;
 
 pub fn test_send_funds() -> AnyResult<()> {
     env_logger::init();

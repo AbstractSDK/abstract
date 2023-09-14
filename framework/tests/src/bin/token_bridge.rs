@@ -13,14 +13,11 @@ use anyhow::Result as AnyResult;
 use cosmwasm_std::coin;
 use cw_orch::prelude::{
     queriers::{Bank, Ibc},
-    TxHandler,
+    *
 };
-use cw_orch_interchain::channel_creator::ChannelCreator;
-use cw_orch_interchain_core::InterchainEnv;
 use cw_orch_proto::tokenfactory::{
     create_denom, create_transfer_channel, get_denom, mint, transfer_tokens,
 };
-use cw_orch_starship::Starship;
 use ibc_relayer_types::core::ics24_host::identifier::PortId;
 
 pub fn token_bridge() -> AnyResult<()> {

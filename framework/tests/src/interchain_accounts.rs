@@ -9,8 +9,7 @@ use abstract_core::{
 use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Empty;
-use cw_orch::prelude::ContractInstance;
-use cw_orch_interchain_core::{channel::IbcQueryHandler, InterchainEnv};
+use cw_orch::prelude::*;
 use tokio::runtime::Runtime;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
@@ -82,7 +81,6 @@ mod test {
     use cosmwasm_std::{to_binary, wasm_execute};
 
     use anyhow::Result as AnyResult;
-    use cw_orch_mock_ibc::MockInterchainEnv;
 
     use super::*;
     use crate::interchain_accounts::create_test_remote_account;

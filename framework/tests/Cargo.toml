@@ -19,11 +19,7 @@ cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
 
-cw-orch = { workspace = true, features = ["daemon"] }
-cw-orch-interchain-core = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
-cw-orch-mock-ibc = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
-cw-orch-interchain = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
-cw-orch-starship = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
 cw-orch-proto = { git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git" }
 abstract-core = { workspace = true, features = ["interface"] }
 
