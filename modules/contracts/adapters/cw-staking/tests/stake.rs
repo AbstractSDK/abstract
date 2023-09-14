@@ -7,6 +7,7 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
+use abstract_staking_adapter_traits::msg::StakingInfo;
 use cw20::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
@@ -71,15 +72,17 @@ fn staking_inited() -> anyhow::Result<()> {
     let (_, wyndex, staking, _) = setup_mock()?;
 
     // query staking info
-    let staking_info = staking.info(WYNDEX.into(), AssetEntry::new(EUR_USD_LP))?;
+    let staking_info = staking.info(WYNDEX.into(), vec![AssetEntry::new(EUR_USD_LP)])?;
     assert_that!(staking_info).is_equal_to(StakingInfoResponse {
-        staking_target: wyndex.eur_usd_staking.into(),
-        staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
-        unbonding_periods: Some(vec![
-            cw_utils::Duration::Time(1),
-            cw_utils::Duration::Time(2),
-        ]),
-        max_claims: None,
+        infos: vec![StakingInfo {
+            staking_target: wyndex.eur_usd_staking.into(),
+            staking_token: AssetInfoBase::Cw20(wyndex.eur_usd_lp.address()?),
+            unbonding_periods: Some(vec![
+                cw_utils::Duration::Time(1),
+                cw_utils::Duration::Time(2),
+            ]),
+            max_claims: None,
+        }],
     });
 
     // query reward tokens
