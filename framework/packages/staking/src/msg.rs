@@ -167,7 +167,7 @@ pub struct RewardTokensResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct UnbondingResponse {
-    pub claims: Vec<Claim>,
+    pub claims: Vec<(StakingTarget, Vec<Claim>)>,
 }
 
 #[cosmwasm_schema::cw_serde]

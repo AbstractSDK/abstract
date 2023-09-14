@@ -282,14 +282,16 @@ pub mod fns {
                     unlock_coins
                         .iter()
                         .find(|&c| c.denom == token.lp_token)
-                        .map(|c| Claim {
-                            amount: Uint128::from_str(&c.amount).unwrap(),
-                            claimable_at: Expiration::Never {},
+                        .map(|c| {
+                            (
+                                token.pool_id.into(),
+                                vec![Claim {
+                                    amount: Uint128::from_str(&c.amount).unwrap(),
+                                    claimable_at: Expiration::Never {},
+                                }],
+                            )
                         })
-                        .unwrap_or(Claim {
-                            amount: Uint128::new(0),
-                            claimable_at: Expiration::Never {},
-                        })
+                        .unwrap_or((token.pool_id.into(), vec![]))
                 })
                 .collect();
 
