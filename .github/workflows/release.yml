@@ -36,6 +36,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Tickle CircleCI for Deploy
         env:
@@ -46,7 +47,7 @@ jobs:
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
           -d '{
-          "branch": "release",
+          "branch": "'"$BRANCH_NAME"'",
           "parameters": {
             "GHA_Meta": "deploy_all"
           }
