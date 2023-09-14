@@ -22,11 +22,15 @@ pub trait IbcCallbackEndpoint: Handler + ModuleInterface {
             }
             .into());
         };
-        let IbcResponseMsg { id, result } = msg;
+        let IbcResponseMsg {
+            id,
+            msg: callback_msg,
+            result,
+        } = msg;
         let maybe_handler = self.maybe_ibc_callback_handler(&id);
         maybe_handler.map_or_else(
             || Ok(Response::new()),
-            |handler| handler(deps, env, info, self, id, result),
+            |handler| handler(deps, env, info, self, id, callback_msg, result),
         )
     }
 }

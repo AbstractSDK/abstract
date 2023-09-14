@@ -101,12 +101,12 @@ fn handle_ibc_request(
     // construct the ics20 call(s)
     let ics20_transfer_msg = ibc_client.ics20_transfer(host_chain.to_string(), coins)?;
     // construct the action to be called on the host
-    let action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
+    let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
             module_id: EXCHANGE.to_string(),
             exec_msg: to_binary::<ExecuteMsg>(
                 &DexExecuteMsg::Action {
-                    dex: dex_name,
+                    dex: dex_name.clone(),
                     action: action.clone(),
                 }
                 .into(),
@@ -121,10 +121,14 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_DEX_PROVIDER_ID.into(),
+            msg: to_binary(&DexExecuteMsg::Action { 
+                dex: dex_name.clone(), 
+                action: action.clone()
+            })?,
             receiver: info.sender.into_string(),
         })
     };
-    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), action, callback)?;
+    let ibc_action_msg = ibc_client.host_action(host_chain.to_string(), host_action, callback)?;
 
     // call both messages on the proxy
     Ok(Response::new().add_messages(vec![ics20_transfer_msg, ibc_action_msg]))

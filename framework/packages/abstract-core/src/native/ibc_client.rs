@@ -192,7 +192,7 @@ pub struct RemoteProxyResponse {
 #[cfg(test)]
 mod tests {
     use crate::ibc::IbcResponseMsg;
-    use cosmwasm_std::{CosmosMsg, Empty};
+    use cosmwasm_std::{to_binary, CosmosMsg, Empty};
     use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
@@ -202,11 +202,13 @@ mod tests {
     fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
         let callback_id = "15".to_string();
+        let callback_msg = to_binary("15").unwrap();
 
         let result = Callback::FatalError("ibc execution error".to_string());
 
         let response_msg = IbcResponseMsg {
             id: callback_id,
+            msg: callback_msg,
             result,
         };
 

@@ -78,6 +78,7 @@ pub fn receive_action_callback(
             // Here we transfer the callback back to the module that requested it
             let callback = IbcResponseMsg {
                 id: callback_info.id,
+                msg: callback_info.msg,
                 result: callback.result,
             };
             Some(callback.into_cosmos_account_msg(callback_info.receiver))

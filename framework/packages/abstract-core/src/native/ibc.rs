@@ -5,15 +5,26 @@ use schemars::JsonSchema;
 // CallbackInfo from modules, that is turned into an IbcResponseMsg by the ibc client
 #[cosmwasm_schema::cw_serde]
 pub struct CallbackInfo {
+    /// Used to identify the callback that is sent (acts like the reply ID)
     pub id: String,
+    /// Used to add information to the callback.
+    /// This is usually used to provide information to the ibc callback function for context
+    /// Use `EMPTY_BINARY` if you don't need this field
+    pub msg: Binary,
+    /// Contract that will be called with the callback message
     pub receiver: String,
 }
+
+pub const EMPTY_BINARY: Binary = Binary(vec![]);
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
 pub struct IbcResponseMsg {
-    /// The ID chosen by the caller in the `callback_id`
+    /// The ID chosen by the caller in the `callback_info.id`
     pub id: String,
+    /// The msg sent with the callback request.
+    /// This is usually used to provide information to the ibc callback function for context
+    pub msg: Binary,
     pub result: Callback,
 }
 
