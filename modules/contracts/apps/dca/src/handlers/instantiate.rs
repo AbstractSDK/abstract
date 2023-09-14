@@ -1,9 +1,9 @@
 use abstract_sdk::features::AbstractNameService;
-use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 use cw_asset::AssetInfoBase;
 
 use crate::contract::{AppResult, DCAApp};
+use crate::error::DCAError;
 use crate::msg::AppInstantiateMsg;
 use crate::state::{Config, CONFIG, NEXT_ID};
 
@@ -18,7 +18,7 @@ pub fn instantiate_handler(
     let asset = ans_host.query_asset(&deps.querier, &msg.native_asset)?;
     let native_denom = match asset {
         AssetInfoBase::Native(denom) => denom,
-        _ => return Err(AbstractSdkError::generic_err("native_asset should be native").into()),
+        _ => return Err(DCAError::NotNativeAsset {}),
     };
     let config: Config = Config {
         native_denom,
@@ -28,7 +28,7 @@ pub fn instantiate_handler(
     };
 
     CONFIG.save(deps.storage, &config)?;
-    NEXT_ID.save(deps.storage, &0)?;
-    // Example instantiation that doesn't do anything
+    NEXT_ID.save(deps.storage, &Default::default())?;
+
     Ok(Response::new())
 }
