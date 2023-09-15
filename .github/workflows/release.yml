@@ -15,7 +15,7 @@ jobs:
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
-          curl -X POST \
+          RESPONSE=$(curl -s -X POST \
           -H "Circle-Token: ${CCI_TOKEN}" \
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
@@ -24,4 +24,6 @@ jobs:
           "parameters": {
             "GHA_Meta": "build_commit_deploy"
           }
-          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline 
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
+          
+          echo "CircleCI Response: $RESPONSE"
