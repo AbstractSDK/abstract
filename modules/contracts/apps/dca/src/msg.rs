@@ -84,7 +84,9 @@ pub enum DCAExecuteMsg {
     },
     /// Internal method for triggering swap.
     /// It can be called only by the Croncat Manager
-    Convert { dca_id: String },
+    Convert { 
+        /// Unique identifier for the DCA
+        dca_id: String },
 }
 
 #[cosmwasm_schema::cw_serde]
