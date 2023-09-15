@@ -1,5 +1,5 @@
 use crate::msg::AskAsset;
-use crate::msg::{DexAction, OfferAsset, SwapRouter};
+use crate::msg::{DexAction, OfferAsset};
 use crate::state::SWAP_FEE;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
@@ -80,22 +80,6 @@ pub trait DexAdapter: AbstractNameService + Execution {
                 )?,
                 SWAP,
             ),
-            DexAction::CustomSwap {
-                offer_assets,
-                ask_assets,
-                max_spread,
-                router,
-            } => (
-                self.resolve_custom_swap(
-                    deps,
-                    offer_assets,
-                    ask_assets,
-                    exchange,
-                    max_spread,
-                    router,
-                )?,
-                CUSTOM_SWAP,
-            ),
         })
     }
 
@@ -140,40 +124,6 @@ pub trait DexAdapter: AbstractNameService + Execution {
         }
 
         Ok(swap_msgs)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn resolve_custom_swap(
-        &self,
-        _deps: Deps,
-        _offer_assets: Vec<OfferAsset>,
-        _ask_assets: Vec<AskAsset>,
-        _exchange: &dyn DexCommand,
-        _max_spread: Option<Decimal>,
-        _router: Option<SwapRouter>,
-    ) -> Result<Vec<CosmosMsg>, DexError> {
-        todo!()
-
-        // let ans_host = api.ans(deps);
-        //
-        // // Resolve the asset information
-        // let mut offer_asset_infos: Vec<AssetInfo> =
-        //     exchange.resolve_assets(deps, &api, offer_assets.into_iter().unzip().0)?;
-        // let mut ask_asset_infos: Vec<AssetInfo> =
-        //     exchange.resolve_assets(deps, &api, ask_assets.into_iter().unzip().0)?;
-        //
-        // let offer_assets: Vec<Asset> = offer_assets
-        //     .into_iter()
-        //     .zip(offer_asset_infos)
-        //     .map(|(asset, info)| Asset::new(info, asset.1))
-        //     .collect();
-        // let ask_assets: Vec<Asset> = ask_assets
-        //     .into_iter()
-        //     .zip(ask_asset_infos)
-        //     .map(|(asset, info)| Asset::new(info, asset.1))
-        //     .collect();
-        //
-        // exchange.custom_swap(deps, offer_assets, ask_assets, max_spread)
     }
 
     fn resolve_provide_liquidity(

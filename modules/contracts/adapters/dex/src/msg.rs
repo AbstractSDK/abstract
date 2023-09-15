@@ -64,14 +64,6 @@ pub enum DexAction {
         max_spread: Option<Decimal>,
         belief_price: Option<Decimal>,
     },
-    /// Allow alternative swap routers and methods
-    CustomSwap {
-        offer_assets: Vec<OfferAsset>,
-        ask_assets: Vec<AskAsset>,
-        max_spread: Option<Decimal>,
-        /// Optionally supply a router to use
-        router: Option<SwapRouter>,
-    },
 }
 
 #[cosmwasm_schema::cw_serde]

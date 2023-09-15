@@ -146,10 +146,6 @@ pub(crate) fn resolve_assets_to_transfer(
             amount: amount.to_owned(),
         })?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
-        DexAction::CustomSwap { offer_assets, .. } => {
-            let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();
-            coins
-        }
     }
     .map_err(Into::into)
 }

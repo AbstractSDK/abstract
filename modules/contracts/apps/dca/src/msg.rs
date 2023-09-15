@@ -99,7 +99,7 @@ pub enum DCAExecuteMsg {
     /// It can be called only by the Croncat Manager
     Convert {
         /// Unique identifier for the DCA
-        dca_id: String,
+        dca_id: DCAId,
     },
 }
 
