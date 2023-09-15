@@ -224,10 +224,7 @@ fn empty_stake_fails() {
     let err = suite
         .migrate_stake(Pair::Native, user, 0, unbonding_period)
         .unwrap_err();
-    assert_eq!(
-        cw20_base::ContractError::InvalidZeroAmount {},
-        err.downcast().unwrap()
-    );
+    assert!(err.root_cause().to_string().contains("empty coins"));
 
     // migrating more stake than available should fail
     suite
