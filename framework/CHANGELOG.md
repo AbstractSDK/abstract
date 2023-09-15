@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query on module factory to see how much funds needs to be attached for installing modules.
 - Version control on instantiation to the Apps alongside with registry traits.
 - Instantiation funds added to module configuration, allowing modules to perform external setup calls.
+- An `a`
 
 ### Changed
 
