@@ -62,17 +62,18 @@ pub struct AppInstantiateMsg {
 pub enum DCAExecuteMsg {
     /// Used to update config of DCA App
     UpdateConfig {
-        /// New native gas/stake asset for this chain
+        /// Native gas asset for this chain
         /// used for covering gas expenses of croncat agents
-        new_native_asset: Option<AssetEntry>,
+        native_asset: Option<AssetEntry>,
         /// New initial amount in native asset that sent on creating/refilling DCA
         /// to croncat to cover gas usage of agents
-        new_dca_creation_amount: Option<Uint128>,
+        new_dca_task_balance: Option<Uint128>,
         /// New threshold for refilling a task
-        /// TIP: you can put it to "0"
-        new_refill_threshold: Option<Uint128>,
-        /// New max trade spread
-        new_max_spread: Option<Decimal>,
+        /// TIP: you can set it to "0" to disable refilling.
+        /// The task will then stop running when it runs out of funds.
+        task_refill_threshold: Option<Uint128>,
+        /// Set the max trade spread
+        max_spread: Option<Decimal>,
     },
     /// Used to create a new DCA
     CreateDCA {
