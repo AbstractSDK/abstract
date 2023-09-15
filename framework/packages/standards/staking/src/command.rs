@@ -50,7 +50,7 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         unbonding_period: Option<Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
-    /// Stake the provided asset into the staking contract
+    /// Unstake the provided asset from the staking contract
     fn unstake(
         &self,
         deps: Deps,
