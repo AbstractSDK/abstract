@@ -25,7 +25,6 @@ jobs:
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
           -d '{
-          "branch": "release",
           "parameters": {
             "GHA_Meta": "build_commit_deploy"
           }
