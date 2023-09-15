@@ -15,76 +15,102 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
-    outputs:
-      BUILD_PIPELINE_ID: ${{ steps.build_output.outputs.BUILD_PIPELINE_ID }}
     steps:
       - name: Tickle CircleCI to Build Wasm Binaries
-        id: trigger_build
+        id: build_output
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
           BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
+          
           RESPONSE=$(curl -X POST \
-            -H "Circle-Token: ${CCI_TOKEN}" \
-            -H 'Content-Type: application/json' \
-            -H 'Accept: application/json' \
-            -d '{
-              "branch": "'"$BRANCH_NAME"'",
-              "parameters": {
-                "GHA_Meta": "build_wasms"
-              }
-            }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
-          PIPELINE_ID=$(echo $RESPONSE | jq -r '.id')
-          echo "BUILD_PIPELINE_ID=$PIPELINE_ID" >> $GITHUB_ENV
-
-      - name: Set BUILD_PIPELINE_ID as output
-        id: build_output
-        run: echo "::set-output name=BUILD_PIPELINE_ID::$BUILD_PIPELINE_ID"
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "'"$BRANCH_NAME"'",
+          "parameters": {
+            "GHA_Meta": "build_wasms"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Set BUILD_PIPELINE_ID from previous job
-        run: echo "BUILD_PIPELINE_ID=${{ needs.build.outputs.BUILD_PIPELINE_ID }}" >> $GITHUB_ENV
+        - name: Tickle CircleCI for Deploy and Wait for Completion of Build
+          env:
+            CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+          run: |
+            BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
+              
+            # Trigger the CircleCI pipeline and get the pipeline ID
+            RESPONSE=$(curl -X POST \
+              -H "Circle-Token: ${CCI_TOKEN}" \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
+              -d '{
+                "branch": "'"$BRANCH_NAME"'",
+                "parameters": {
+                  "GHA_Meta": "deploy_all"
+                }
+              }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
 
-      - name: Tickle CircleCI for Deploy and Wait for Completion of Build
-        env:
-          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-        run: |
-          BRANCH_NAME=$(echo "${GITHUB_REF}" | sed -e "s/refs\/heads\///")
-          
-          # Now, start polling CircleCI for the workflow status
-          while true; do
-            WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
-              https://circleci.com/api/v2/pipeline/$BUILD_PIPELINE_ID/workflow)
+            PIPELINE_ID=$(echo $RESPONSE | jq -r '.id')
 
-            LAST_WORKFLOW=$(echo $WORKFLOWS | jq -r '.items[1]')
-            WORKFLOW_NAME=$(echo $LAST_WORKFLOW | jq -r '.name')
-            WORKFLOW_STATUS=$(echo $LAST_WORKFLOW | jq -r '.status')
-            WORKFLOW_PIPELINE_ID=$(echo $LAST_WORKFLOW | jq -r '.pipeline_id')
-
-            if [[ "$LAST_WORKFLOW" == "null" || "$WORKFLOW_NAME" == "null" || "$WORKFLOW_STATUS" == "null" || "$WORKFLOW_PIPELINE_ID" == "null" ]]; then
-              echo "Received null values. Dumping workflow data:"
-              echo "$WORKFLOWS"
+            if [[ "$PIPELINE_ID" == "null" ]]; then
+              echo "Failed to get PIPELINE_ID. Exiting."
               exit 1
             fi
 
-            # Check if the last workflow's name matches and has the correct pipeline id
-            if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$BUILD_PIPELINE_ID" ]]; then
-              if [[ "$WORKFLOW_STATUS" == "success" ]]; then
-                echo "Workflow 'build-and-commit' completed successfully!"
-                break
-              else
-                echo "Workflow status: $WORKFLOW_STATUS"
-                sleep 30  # Wait for 30 seconds before checking again
+            # Waiting for potential propagation delay
+            echo "Waiting for potential propagation delay..."
+            sleep 30
+
+            # Now, start polling CircleCI for the workflow status
+            while true; do
+              WORKFLOWS=$(curl -H "Circle-Token: ${CCI_TOKEN}" \
+                https://circleci.com/api/v2/pipeline/$PIPELINE_ID/workflow)
+
+              LAST_WORKFLOW=$(echo $WORKFLOWS | jq -r '.items[1]')
+              WORKFLOW_NAME=$(echo $LAST_WORKFLOW | jq -r '.name')
+              WORKFLOW_STATUS=$(echo $LAST_WORKFLOW | jq -r '.status')
+              WORKFLOW_PIPELINE_ID=$(echo $LAST_WORKFLOW | jq -r '.pipeline_id')
+
+              if [[ "$LAST_WORKFLOW" == "null" || "$WORKFLOW_NAME" == "null" || "$WORKFLOW_STATUS" == "null" || "$WORKFLOW_PIPELINE_ID" == "null" ]]; then
+                echo "Received null values. Dumping workflow data:"
+                echo "$WORKFLOWS"
+                exit 1
               fi
-            else
+
+              # Check if the last workflow's name matches and has the correct pipeline id
+              if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$PIPELINE_ID" ]]; then
+                if [[ "$WORKFLOW_STATUS" == "success" ]]; then
+                  echo "Workflow 'build-and-commit' completed successfully. Kicking off Deploy ..."
+
+                RESPONSE=$(curl -X POST \
+                  -H "Circle-Token: ${CCI_TOKEN}" \
+                  -H 'Content-Type: application/json' \
+                  -H 'Accept: application/json' \
+                  -d '{
+                  "branch": "'"$BRANCH_NAME"'",
+                  "parameters": {
+                    "GHA_Meta": "deploy_all"
+                  }
+                  }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
+                
+                echo "CircleCI deploy_all response: $RESPONSE"
+                  break
+                else
+                  echo "Workflow status: $WORKFLOW_STATUS"
+                  sleep 30  # Wait for 30 seconds before checking again
+                fi
+              else
               echo "Current workflow name: $WORKFLOW_NAME"
               echo "Current workflow pipeline ID: $WORKFLOW_PIPELINE_ID"
-              echo "Expected pipeline ID: $BUILD_PIPELINE_ID"
+              echo "Expected pipeline ID: $PIPELINE_ID"
               echo "Waiting for 'build-and-commit' workflow to start..."
               sleep 30  # Wait for 30 seconds before checking again
-            fi
-          done
+              fi
+            done
