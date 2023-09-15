@@ -28,6 +28,6 @@ jobs:
           -d '{
           "branch": "main",
           "parameters": {
-            "GHA_Meta": "build_wasms"
+            "GHA_Meta": "build_commit_deploy"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline 
