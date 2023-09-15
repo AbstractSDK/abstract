@@ -25,13 +25,11 @@ workflows:
     jobs:
       - build
   deploy:
-    when:
-      equal: [ "deploy_all", << pipeline.parameters.GHA_Meta >> ]
     jobs:
-      - build
       - deploy:
           requires:
             - build
+            
   modules-coverage:
     when: 
       equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
