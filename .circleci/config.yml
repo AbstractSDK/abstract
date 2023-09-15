@@ -28,7 +28,7 @@ workflows:
     jobs:
       - deploy:
           requires:
-            - build
+            - build-and-commit
             
   modules-coverage:
     when: 
