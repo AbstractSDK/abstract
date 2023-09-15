@@ -110,7 +110,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         let mut abstr = Self::new(chain);
         // We register all the contracts default state
-        abstr.set_contracts_state();
+        abstr.set_contracts_state(None);
         Ok(abstr)
     }
 }
