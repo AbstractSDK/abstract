@@ -17,7 +17,6 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Tickle CircleCI to Build Wasm Binaries
-        id: build_output
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
@@ -26,7 +25,7 @@ jobs:
           -H 'Content-Type: application/json' \
           -H 'Accept: application/json' \
           -d '{
-          "branch": "main",
+          "branch": "release",
           "parameters": {
             "GHA_Meta": "build_commit_deploy"
           }
