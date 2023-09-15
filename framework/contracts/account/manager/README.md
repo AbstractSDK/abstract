@@ -1,0 +1,1 @@
+# Abstract Manager
