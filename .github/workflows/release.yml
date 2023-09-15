@@ -1,5 +1,6 @@
 name: Release and Publish 
 
+
 # Job that updates the wasms of the mono-repo after a PR is merged to main.
 # Or if it is triggerd manually.
 
@@ -27,9 +28,11 @@ jobs:
           -H 'Accept: application/json' \
           -d '{
           "branch": "'"$BRANCH_NAME"'",
+
           "parameters": {
             "GHA_Meta": "build_commit_deploy"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
           
           echo "CircleCI Response: $RESPONSE"
+
