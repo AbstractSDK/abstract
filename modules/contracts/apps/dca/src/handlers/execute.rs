@@ -62,18 +62,18 @@ pub fn execute_handler(
 ) -> AppResult {
     match msg {
         DCAExecuteMsg::UpdateConfig {
-            new_native_asset,
-            new_dca_creation_amount,
-            new_refill_threshold,
-            new_max_spread,
+            native_asset,
+            new_dca_task_balance,
+            task_refill_threshold,
+            max_spread,
         } => update_config(
             deps,
             info,
             app,
-            new_native_asset,
-            new_dca_creation_amount,
-            new_refill_threshold,
-            new_max_spread,
+            native_asset,
+            new_dca_task_balance,
+            task_refill_threshold,
+            max_spread,
         ),
         DCAExecuteMsg::CreateDCA {
             source_asset,
