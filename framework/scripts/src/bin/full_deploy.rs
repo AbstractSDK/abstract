@@ -22,7 +22,6 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
     let networks = rt.block_on(assert_wallet_balance(&networks));
-    let number = 1;
     println!("number: {}", number);
 
     for network in networks {
