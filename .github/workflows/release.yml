@@ -87,20 +87,8 @@ jobs:
               # Check if the last workflow's name matches and has the correct pipeline id
               if [[ "$WORKFLOW_NAME" == "build-and-commit" && "$WORKFLOW_PIPELINE_ID" == "$PIPELINE_ID" ]]; then
                 if [[ "$WORKFLOW_STATUS" == "success" ]]; then
-                  echo "Workflow 'build-and-commit' completed successfully. Kicking off Deploy ..."
+                  echo "Workflow 'build-and-commit' completed successfully!"
 
-                RESPONSE=$(curl -X POST \
-                  -H "Circle-Token: ${CCI_TOKEN}" \
-                  -H 'Content-Type: application/json' \
-                  -H 'Accept: application/json' \
-                  -d '{
-                  "branch": "'"$BRANCH_NAME"'",
-                  "parameters": {
-                    "GHA_Meta": "deploy_all"
-                  }
-                  }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
-                
-                echo "CircleCI deploy_all response: $RESPONSE"
                   break
                 else
                   echo "Workflow status: $WORKFLOW_STATUS"
