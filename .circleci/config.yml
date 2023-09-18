@@ -73,6 +73,11 @@ jobs:
     resource_class: large
     steps:
       - checkout
+      - run:
+          name: Decode TEST_MNEMONIC
+          command: |
+            decoded_value=$(echo "$TEST_MNEMONIC" | base64 --decode)
+            export TEST_MNEMONIC="$decoded_value"
       - run: 
           name: Deploy
           command: |
