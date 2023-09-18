@@ -39,10 +39,10 @@ workflows:
     when:
       equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
     jobs: 
-      # - build
-      - deploy
-          # requires:
-          #   - build
+      - build
+      - deploy:
+          requires:
+            - build
 
 jobs:
   build:
@@ -76,7 +76,6 @@ jobs:
       - run: 
           name: Deploy
           command: |
-            export RUST_LOG="debug" && 
             cd framework
             cargo run --bin full_deploy -- --network-ids uni-6
 
