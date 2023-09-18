@@ -51,7 +51,12 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
-            let chain_name = env::var(DEX_ADAPTER_CHAIN_NAME_VAR).unwrap_or_else(|_| panic!("Internal env variable {}, needs to be set to use the abstract dex adapter", DEX_ADAPTER_CHAIN_NAME_VAR));
+            let chain_name = env::var(DEX_ADAPTER_CHAIN_NAME_VAR).unwrap_or_else(|_| {
+                panic!(
+                    "Internal env variable {}, needs to be set to use the abstract dex adapter",
+                    DEX_ADAPTER_CHAIN_NAME_VAR
+                )
+            });
             artifacts_dir_from_workspace!()
                 .find_wasm_path(format!("abstract_dex_adapter-{}", chain_name).as_str())
                 .unwrap()

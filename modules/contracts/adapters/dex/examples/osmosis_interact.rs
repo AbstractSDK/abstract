@@ -1,4 +1,3 @@
-
 #![cfg(feature = "osmosis")]
 
 use crate::networks::OSMO_5;
@@ -6,24 +5,17 @@ use tokio::runtime::Runtime;
 
 use abstract_interface::{Abstract, AbstractAccount};
 
-
-
-
-
 use abstract_osmosis_adapter::OSMOSIS;
-
 
 use cosmwasm_std::Uint128;
 use cw_orch::deploy::Deploy;
-use cw_orch::{prelude::*};
+use cw_orch::prelude::*;
 
 use anyhow::Result as AnyResult;
 
 use cosmwasm_std::coins;
 
 fn swap() -> AnyResult<()> {
-
-
     let rt = Runtime::new()?;
     let chain = DaemonBuilder::default()
         .chain(OSMO_5)
