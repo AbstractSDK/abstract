@@ -98,9 +98,9 @@ rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 
-[patch."ssh://git@github.com/AbstractSDK/cw-orch-interchain.git"]
-cw-orch-interchain-mock = { path = "../../cw-orch-interchain/packages/interchain-mock" }
-cw-orch-interchain-core = { path = "../../cw-orch-interchain/packages/interchain-core" }
+# [patch."ssh://git@github.com/AbstractSDK/cw-orch-interchain.git"]
+# cw-orch-interchain-mock = { path = "../../cw-orch-interchain/packages/interchain-mock" }
+# cw-orch-interchain-core = { path = "../../cw-orch-interchain/packages/interchain-core" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
