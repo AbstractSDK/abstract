@@ -80,7 +80,7 @@ abstract-macros = { version = "0.18.0", path = "packages/abstract-macros" }
 abstract-ica = { version = "0.18.0", path = "packages/abstract-ica" }
 
 abstract-adapter-utils = { version = "0.18.0", path = "packages/standards/utils" }
-abstract-dex-adapter-traits = { path = "packages/standards/dex" }
+abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-adapter-traits = { path = "packages/standards/staking" }
 
 ## Testing

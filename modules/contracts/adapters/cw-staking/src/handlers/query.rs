@@ -1,10 +1,9 @@
 use crate::{
     contract::{CwStakingAdapter, StakingResult},
-    msg::StakingQueryMsg,
     resolver::{self, is_over_ibc},
 };
 use abstract_sdk::features::{AbstractNameService, AbstractRegistryAccess};
-use abstract_staking_adapter_traits::CwStakingError;
+use abstract_staking_adapter_traits::{msg::StakingQueryMsg, CwStakingError};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 /// Handle queries related to staking
 pub fn query_handler(

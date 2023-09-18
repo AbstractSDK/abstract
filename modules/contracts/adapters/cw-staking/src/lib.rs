@@ -2,8 +2,11 @@ mod adapter;
 pub mod contract;
 mod handlers;
 
-pub mod msg;
 mod resolver;
+
+pub mod msg {
+    pub use abstract_staking_adapter_traits::msg::*;
+}
 
 pub use abstract_staking_adapter_traits::CwStakingCommand;
 pub use adapter::CwStakingAdapter;

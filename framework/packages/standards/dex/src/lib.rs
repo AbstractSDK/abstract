@@ -1,9 +1,9 @@
 mod command;
 mod error;
 
+pub mod msg;
 #[cfg(feature = "testing")]
 pub mod tests;
-pub mod types;
 
 // Export interface for use in SDK modules
 pub use command::{DexCommand, Fee, FeeOnInput, Return, Spread};

@@ -1,5 +1,5 @@
 [package]
-name = "abstract-dex-adapter-traits"
+name = "abstract-dex-standard"
 description = "The tendermint staking adapter is a Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
 
 version = { workspace = true }

@@ -14,7 +14,7 @@
 ///
 /// Generates:
 /// ```ignore
-/// // These are the entry point messages expected by the smart-contract. Our custom messages get wradaptered by the abstract base message.
+/// // These are the entry point messages expected by the smart-contract. Our custom messages get wrapped by the abstract base message.
 /// pub type InstantiateMsg =
 ///     <MyAdapter as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
 /// pub type ExecuteMsg = <MyAdapter as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;

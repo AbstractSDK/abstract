@@ -1,9 +1,9 @@
-use crate::msg::AskAsset;
-use crate::msg::{DexAction, OfferAsset};
 use crate::state::SWAP_FEE;
 use abstract_core::objects::AnsEntryConvertor;
 use abstract_core::objects::{DexAssetPairing, PoolReference};
-use abstract_dex_adapter_traits::DexError;
+
+use abstract_dex_standard::msg::{DexAction, OfferAsset};
+use abstract_dex_standard::DexError;
 use abstract_sdk::core::objects::AnsAsset;
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::Chargeable;
@@ -13,7 +13,7 @@ use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
 
 use cw_asset::Asset;
 
-use abstract_dex_adapter_traits::DexCommand;
+use abstract_dex_standard::DexCommand;
 
 pub const PROVIDE_LIQUIDITY: u64 = 7542;
 pub const PROVIDE_LIQUIDITY_SYM: u64 = 7543;

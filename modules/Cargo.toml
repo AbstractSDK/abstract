@@ -62,7 +62,7 @@ abstract-ica = { version = "0.18.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 abstract-adapter-utils = { version = "0.18.0" }
-abstract-dex-adapter-traits = { version = "0.18.0" }
+abstract-dex-standard = { version = "0.18.0" }
 abstract-staking-adapter-traits = { version = "0.18.0" }
 
 # Juno dexes #
@@ -94,7 +94,7 @@ abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
 abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/standards/dex" }
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
 abstract-staking-adapter-traits = { path = "../framework/packages/standards/staking" }
 
 # Backup release profile, will result in warnings during optimization

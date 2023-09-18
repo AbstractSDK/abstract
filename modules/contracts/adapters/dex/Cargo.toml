@@ -59,7 +59,7 @@ abstract-adapter = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-dex-adapter-traits = { workspace = true }
+abstract-dex-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Wyndex #

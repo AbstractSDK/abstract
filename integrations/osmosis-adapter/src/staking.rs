@@ -25,7 +25,7 @@ impl Identify for Osmosis {
 pub mod fns {
     use abstract_sdk::features::AbstractRegistryAccess;
     use abstract_sdk::{AbstractSdkError, AccountVerification};
-    use abstract_staking_adapter_traits::types::{
+    use abstract_staking_adapter_traits::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     };
     use cw_utils::Expiration;

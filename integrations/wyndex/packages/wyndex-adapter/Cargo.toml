@@ -25,11 +25,11 @@ cosmwasm-std = { workspace = true }
 
 #abstract-sdk = { version = "0.18.0", path = "../../../../framework/packages/abstract-sdk" }
 #abstract-staking-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/standards/staking" }
-#abstract-dex-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/standards/dex" }
+#abstract-dex-standard = { version = "0.18.0", path = "../../../../framework/packages/standards/dex" }
 # For releases we must remove the path
 abstract-sdk = { version = "0.18.0" }
 abstract-staking-adapter-traits = { version = "0.18.0" }
-abstract-dex-adapter-traits = { version = "0.18.0" }
+abstract-dex-standard = { version = "0.18.0" }
 
 # Optional
 wyndex = { path = "../wyndex/", optional = true }

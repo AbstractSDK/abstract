@@ -3,8 +3,10 @@ pub mod api;
 pub mod contract;
 mod exchanges;
 pub(crate) mod handlers;
-pub mod msg;
 pub mod state;
+pub mod msg {
+    pub use abstract_dex_standard::msg::*;
+}
 
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;

@@ -1,12 +1,10 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::{
-    msg::{
-        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-    },
-    EXCHANGE,
-};
+use crate::EXCHANGE;
 use abstract_core::objects::{module::ModuleId, AssetEntry};
+use abstract_dex_standard::msg::{
+    DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+};
 use abstract_sdk::AdapterInterface;
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies},
