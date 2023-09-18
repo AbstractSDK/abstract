@@ -52,6 +52,6 @@ The CronCat App can help to execute certain actions within time limits (for exam
 - **Games**: Periodic `tick` is important event for some games 
 
 ### Documentation
-- **CronCat Interface**: For a detailed look at the CronCat interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/cd81ad219973767feeb09809782300412956073f/modules/contracts/apps/croncat/src/api.rs#L21).
+- **CronCat Interface**: For a detailed look at the CronCat interface, refer to the [Rust trait interface](https://github.com/AbstractSDK/abstract/blob/42d967c3b13c1194e92a03244c8c5b2843726d12/modules/contracts/apps/croncat/src/api.rs#L21).
 - **Apps Documentation**: Comprehensive information about apps can be found in the [official documentation](https://docs.abstract.money/3_framework/7_module_types.html#apps).
 
