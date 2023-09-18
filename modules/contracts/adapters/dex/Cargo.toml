@@ -27,7 +27,7 @@ name = "osmosis_interact"
 required-features = ["osmosis"]
 
 [features]
-default = ["export","osmosis"]
+default = ["export", "osmosis"]
 export = []
 interface = ["dep:abstract-interface", "dep:cw-orch", "export"]
 juno = [
