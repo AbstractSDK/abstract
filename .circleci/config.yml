@@ -79,6 +79,7 @@ jobs:
       - run: 
           name: Deploy
           command: |
+            echo TEST_MNEMONIC &&
             cd framework
             cargo run --bin full_deploy -- --network-ids uni-6
 
