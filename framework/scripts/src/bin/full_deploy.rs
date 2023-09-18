@@ -21,7 +21,6 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
     let networks = rt.block_on(assert_wallet_balance(&networks));
-    println!("number: {}", number);
 
     for network in networks {
         let urls = network.grpc_urls.to_vec();
