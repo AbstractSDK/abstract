@@ -76,12 +76,11 @@ jobs:
       - run:
           name: Decode TEST_MNEMONIC
           command: |
-            decoded_value=$(echo "$TEST_MNEMONIC" | base64 --decode)
+            decoded_value=$(echo "$TEST_MNEMONIC_BASE64" | base64 --decode)
             export TEST_MNEMONIC="$decoded_value"
       - run: 
           name: Deploy
           command: |
-            echo ${TEST_MNEMONIC} &&
             cd framework
             cargo run --bin full_deploy -- --network-ids uni-6
 
