@@ -251,7 +251,7 @@ impl Distribution {
         let totals = TOTAL_PER_PERIOD.load(storage).unwrap_or_default();
         self.reward_multipliers
             .iter()
-            .zip(totals.into_iter())
+            .zip(totals)
             .map(
                 |(&(unbonding_period, multiplier), (unbonding_period2, total_stake))| {
                     // sanity check

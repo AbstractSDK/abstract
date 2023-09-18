@@ -41,21 +41,21 @@ pub struct StakingExecuteMsg {
 pub enum StakingAction {
     /// Stakes/bonds a given token
     Stake {
-        asset: AnsAsset,
+        assets: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     },
 
     /// Unstake/unbond a given token
     Unstake {
-        asset: AnsAsset,
+        assets: Vec<AnsAsset>,
         unbonding_period: Option<Duration>,
     },
 
     /// Claim rewards for a given token
-    ClaimRewards { asset: AssetEntry },
+    ClaimRewards { assets: Vec<AssetEntry> },
 
     /// Claim matured unbonding tokens
-    Claim { asset: AssetEntry },
+    Claim { assets: Vec<AssetEntry> },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -66,25 +66,25 @@ pub enum StakingQueryMsg {
     #[returns(StakingInfoResponse)]
     Info {
         provider: ProviderName,
-        staking_token: AssetEntry,
+        staking_tokens: Vec<AssetEntry>,
     },
     #[returns(StakeResponse)]
     Staked {
         provider: ProviderName,
-        staking_token: AssetEntry,
         staker_address: String,
         unbonding_period: Option<Duration>,
+        stakes: Vec<AssetEntry>,
     },
     #[returns(UnbondingResponse)]
     Unbonding {
         provider: ProviderName,
-        staking_token: AssetEntry,
         staker_address: String,
+        staking_tokens: Vec<AssetEntry>,
     },
     #[returns(RewardTokensResponse)]
     RewardTokens {
         provider: ProviderName,
-        staking_token: AssetEntry,
+        staking_tokens: Vec<AssetEntry>,
     },
 }
 
@@ -132,6 +132,11 @@ impl From<Addr> for StakingTarget {
 
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfoResponse {
+    pub infos: Vec<StakingInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakingInfo {
     pub staking_target: StakingTarget,
     pub staking_token: AssetInfo,
     pub unbonding_periods: Option<Vec<Duration>>,
@@ -140,17 +145,17 @@ pub struct StakingInfoResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct StakeResponse {
-    pub amount: Uint128,
+    pub amounts: Vec<Uint128>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct RewardTokensResponse {
-    pub tokens: Vec<AssetInfo>,
+    pub tokens: Vec<Vec<AssetInfo>>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct UnbondingResponse {
-    pub claims: Vec<Claim>,
+    pub claims: Vec<Vec<Claim>>,
 }
 
 #[cosmwasm_schema::cw_serde]
