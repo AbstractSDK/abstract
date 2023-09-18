@@ -47,6 +47,7 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
     }
 }
 
+#[allow(unused_variables)]
 pub(crate) fn resolve_exchange(
     value: &str,
     proxy_addr: Addr,
