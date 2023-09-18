@@ -4,6 +4,7 @@ version = "0.0.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
+  "Buckram <misha@abstract.money>",
   "Abstract Money <contact@abstract.money>",
 ]
 edition = "2021"

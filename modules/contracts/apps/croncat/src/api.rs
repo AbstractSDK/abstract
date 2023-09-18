@@ -78,6 +78,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
         )
     }
 
+    // Remove task by tag
     pub fn remove_task(&self, task_tag: impl Into<String>) -> AbstractSdkResult<CosmosMsg> {
         self.base.apps(self.deps).request(
             self.module_id,
@@ -87,6 +88,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
         )
     }
 
+    // Clean CronCat App state
     pub fn purge(&self, task_tags: Vec<String>) -> AbstractSdkResult<CosmosMsg> {
         self.base
             .apps(self.deps)
@@ -161,6 +163,7 @@ impl<'a, T: CronCatInterface> CronCat<'a, T> {
         )
     }
 
+    // Get address of the CronCat Manager
     pub fn query_manager_addr(
         &self,
         creator_addr: impl Into<String>,
