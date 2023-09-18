@@ -73,6 +73,7 @@ jobs:
     resource_class: large
     environment:
       TEST_MNEMONIC: $TEST_MNEMONIC 
+      RUST_LOG: $RUST_LOG
     steps:
       - checkout
       - run: 
