@@ -15,6 +15,7 @@ abstract_app::app_msg_types!(DCAApp, DCAExecuteMsg, DCAQueryMsg);
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
+/// The frequency at which swaps are executed.
 pub enum Frequency {
     /// Blocks will schedule the next DCA purchase every `n` blocks.
     EveryNBlocks(u64),
@@ -23,6 +24,7 @@ pub enum Frequency {
 }
 
 impl Frequency {
+    /// Convert `Frequency` to a croncat interval
     pub fn to_interval(self) -> CronCatInterval {
         match self {
             Frequency::EveryNBlocks(blocks) => CronCatInterval::Block(blocks),

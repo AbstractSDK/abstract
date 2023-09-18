@@ -10,14 +10,20 @@ use cosmwasm_std::{Decimal, Uint128};
 use abstract_core::objects::DexAssetPairing;
 use cosmwasm_std::CosmosMsg;
 
+/// The name of the dex to trade on.
 pub type DexName = String;
+/// Name of the asset you want to offer
 pub type OfferAsset = AnsAsset;
+/// Name of the asset you want to receive
 pub type AskAsset = AnsAsset;
-
+/// Reply ID for IBC DEX interactions.
 pub const IBC_DEX_ID: u32 = 11335;
 
+/// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
+/// Top-level Abstract Adapter instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
 pub type InstantiateMsg = adapter::InstantiateMsg<DexInstantiateMsg>;
+/// Top-level Abstract Adapter query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
 pub type QueryMsg = adapter::QueryMsg<DexQueryMsg>;
 
 impl adapter::AdapterExecuteMsg for DexExecuteMsg {}
@@ -46,21 +52,30 @@ pub struct GenerateMessagesResponse {
     pub messages: Vec<CosmosMsg>,
 }
 
+/// Instantiation message for dex adapter
 #[cosmwasm_schema::cw_serde]
 pub struct DexInstantiateMsg {
+    /// Fee charged on each swap.
     pub swap_fee: Decimal,
+    /// Recipient account for fees.
     pub recipient_account: u32,
 }
 
 /// Dex Execute msg
 #[cosmwasm_schema::cw_serde]
 pub enum DexExecuteMsg {
+    /// Update the fee
     UpdateFee {
+        /// New fee to set
         swap_fee: Option<Decimal>,
+        /// New recipient account for fees
         recipient_account: Option<u32>,
     },
+    /// Action to perform on the DEX
     Action {
+        /// The name of the dex to interact with
         dex: DexName,
+        /// The action to perform
         action: DexAction,
     },
 }
@@ -73,10 +88,12 @@ pub enum DexAction {
         // support complex pool types
         /// Assets to add
         assets: Vec<OfferAsset>,
+        /// Max spread to accept, is a percentage represented as a decimal.
         max_spread: Option<Decimal>,
     },
     /// Provide liquidity equally between assets to a pool
     ProvideLiquiditySymmetric {
+        /// The asset to offer
         offer_asset: OfferAsset,
         // support complex pool types
         /// Assets that are paired with the offered asset
@@ -85,30 +102,44 @@ pub enum DexAction {
     },
     /// Withdraw liquidity from a pool
     WithdrawLiquidity {
+        /// The asset LP token name that is provided.
         lp_token: AssetEntry,
+        /// The amount of LP tokens to redeem.
         amount: Uint128,
     },
     /// Standard swap between one asset to another
     Swap {
+        /// The asset to offer
         offer_asset: OfferAsset,
+        /// The asset to receive
         ask_asset: AssetEntry,
+        /// The percentage of spread compared to pre-swap price or belief price (if provided)
         max_spread: Option<Decimal>,
+        /// The belief price when submitting the transaction.
         belief_price: Option<Decimal>,
     },
 }
 
+/// Query messages for the dex adapter
 #[cosmwasm_schema::cw_serde]
 #[derive(QueryResponses)]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 pub enum DexQueryMsg {
+    /// Simulate a swap between two assets
     #[returns(SimulateSwapResponse)]
     SimulateSwap {
+        /// The asset to offer
         offer_asset: OfferAsset,
+        /// The asset to receive
         ask_asset: AssetEntry,
+        /// Name of the dex to simulate the swap on
         dex: Option<DexName>,
     },
     /// Endpoint can be used by front-end to easily interact with contracts.
     #[returns(GenerateMessagesResponse)]
-    GenerateMessages { message: DexExecuteMsg },
+    GenerateMessages {
+        /// Execute message to generate messages for
+        message: DexExecuteMsg,
+    },
 }

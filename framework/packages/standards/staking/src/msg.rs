@@ -16,12 +16,14 @@ pub type ProviderName = String;
 /// The callback id for staking over ibc
 pub const IBC_STAKING_PROVIDER_ID: u32 = 22335;
 
+/// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = adapter::ExecuteMsg<StakingExecuteMsg>;
+/// Top-level Abstract Adapter instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
 pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;
+/// Top-level Abstract Adapter query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
 pub type QueryMsg = adapter::QueryMsg<StakingQueryMsg>;
 
 impl adapter::AdapterExecuteMsg for StakingExecuteMsg {}
-
 impl adapter::AdapterQueryMsg for StakingQueryMsg {}
 
 /// A request message that's sent to this staking adapter

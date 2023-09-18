@@ -1,5 +1,5 @@
 #![warn(missing_docs)]
-
+//! Message types for the challenge app
 use crate::{
     contract::ChallengeApp,
     state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
