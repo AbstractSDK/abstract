@@ -4,6 +4,7 @@
 pub(crate) mod ans_asset;
 pub mod ans_host;
 pub mod common_namespace;
+pub mod version_control;
 
 mod entry;
 pub mod oracle;
@@ -11,7 +12,8 @@ pub mod pool;
 
 pub use pool::*;
 
-pub mod account_id;
+pub mod account;
+pub mod chain_name;
 pub mod dependency;
 pub mod deposit_info;
 pub mod deposit_manager;
@@ -26,7 +28,7 @@ pub mod price_source;
 pub mod time_weighted_average;
 pub mod validation;
 
-pub use account_id::{AccountId, ABSTRACT_ACCOUNT_ID};
+pub use account::{AccountId, ABSTRACT_ACCOUNT_ID};
 pub use ans_asset::AnsAsset;
 
 pub use entry::ans_entry_convertor::AnsEntryConvertor;

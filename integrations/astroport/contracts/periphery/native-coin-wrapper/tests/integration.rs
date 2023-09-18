@@ -137,7 +137,7 @@ fn proper_initialization() {
 
     let config_res: Config = app
         .wrap()
-        .query_wasm_smart(&native_wrapper_instance, &QueryMsg::Config {})
+        .query_wasm_smart(native_wrapper_instance, &QueryMsg::Config {})
         .unwrap();
 
     assert_eq!(

@@ -1,16 +1,10 @@
-workspaces := "./framework ./adapters ./app-template ./integration-bundles"
+workspaces := "./framework ./modules ./app-template"
+modules := "./modules/contracts/apps/croncat ./modules/contracts/apps/dca ./modules/contracts/adapters/dex ./modules/contracts/adapters/cw-staking"
 
 docs-install:
   cargo install mdbook
   cargo install mdbook-mermaid
   cargo install mdbook-admonish
-
-# Serve docs locally, pass --open to open in browser
-docs-serve *FLAGS:
-  (cd docs && mdbook serve {{FLAGS}}) 
-
-docs-build:
-  (cd docs && mdbook build)
 
 # Pull a specific repo from its main remote
 pull repo:
@@ -42,3 +36,16 @@ nightly-build:
 # Wasms all the workspaces that can be wasm'd
 wasm-all:
   ./scripts/wasm-all.sh
+
+# Wasms all the workspaces that can be wasm'd
+wasm-all-ci:
+  ./scripts/wasm-all-ci.sh
+
+schema-modules:
+  #!/usr/bin/env bash
+  set -e;
+  for path in {{modules}}
+  do 
+    (cd $path; cargo run --example schema --features schema); 
+  done
+  set +e

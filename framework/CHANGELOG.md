@@ -9,9 +9,69 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Install modules on account or Sub-account creation.
+- Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change.
+- Query on module factory to see how much funds needs to be attached for installing modules.
+- Version control on instantiation to the Apps alongside with registry traits.
+- Instantiation funds added to module configuration, allowing modules to perform external setup calls.
+
+### Changed
+
+- Updated fetch_data arguments of CwStakingCommand
+- StakingInfoResponse now returns staking target(which is either contract address or pool id) instead of always staking contract address.
+- Owner of the sub-accounts now Proxy, allowing modules to interact with sub-accounts.
+- Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases.
+- Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
+- Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
+- Stake methods on cw-staking adapter now accept list, allowing users to do multi-stake/unstake/etc.
+
+### Fixed
+
+- Partially fixed cw-staking for Osmosis.
+- Manager governance now changes only after new "owner" claimed ownership.
+- Fixed and separated cw-staking and dex adapters for kujira.
+- `ExecOnModule` calls now forward any provided funds to the module that is called.
+- Manager queries of standalone module versions will now return version of the contract from the Version Control storage instead of error  
+
+## [0.17.2] - 2023-07-27
+
+### Added
+- Neutron + Archway to registry
+
 ### Changed
 
 ### Fixed
+
+## [0.17.1] - 2023-07-26
+
+### Added
+
+- Ability to set admin to native contracts during instantiation
+- Query handler for module data
+- Added neutron
+
+### Changed
+
+- Address of App/Adapter returned and set by default.
+
+### Fixed
+
+## [0.17.0] - 2023-07-05
+
+### Added
+
+- Ability to add module metadata.
+- Ability to set an install fee for modules.
+- Account interaction helpers
+
+### Changed
+
+- Removed the ability to claim multiple namespaces.
+- It is now possible to replace a module code-id/address on testnets.
+
+### Fixed
+
+- Adapter execution from the manager with a provided proxy address is now allowed.
 
 ## [0.7.0] - 2023-02-15
 

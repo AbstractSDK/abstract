@@ -1,0 +1,96 @@
+[package]
+name = "croncat-app"
+version = "0.0.2"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = ""
+documentation = ""
+repository = ""
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+
+# Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
+#
+# Critically this prevents dev-dependencies from enabling features even when not building a target that
+# uses dev-dependencies, e.g. the library crate. This in turn ensures that we can catch invalid feature
+# flag combinations that would otherwise only surface in dependent crates
+#
+# Reference - https://doc.rust-lang.org/nightly/cargo/reference/features.html#feature-resolver-version-2
+# See - https://github.com/apache/arrow-rs/pull/1822/files
+resolver = "2"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[features]
+default = ["export"]
+export = []
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw2 = { workspace = true }
+cw20 = { version = "0.16.0" }
+
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true }
+
+# Dependencies for interface
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
+
+# Croncat dependencies
+croncat-sdk-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-integration-utils = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+# TODO: avoid using contract dep
+croncat-factory = { version = "1.0.4", features = [
+  "library",
+], git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-manager = { version = "1.0.4", features = [
+  "library",
+], git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+
+[dev-dependencies]
+croncat-app = { path = ".", features = ["interface"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
+speculoos = "0.11.0"
+semver = "1.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+cw-orch = { workspace = true, features = ["daemon"] }
+cw-multi-test = "0.16.4"
+
+# Croncat intefraces
+croncat-sdk-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+# Croncat contracts
+croncat-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+
+# Testing cw20
+cw20-base = "0.16.0"

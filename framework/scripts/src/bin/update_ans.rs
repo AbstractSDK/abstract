@@ -11,7 +11,6 @@ use cw_orch::{
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-const MNEMONIC: &str = "clock post desk civil pottery foster expand merit dash seminar song memory figure uniform spice circle try happy obvious trash crime hybrid hood cushion";
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
@@ -20,13 +19,12 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network)
-            .mnemonic(MNEMONIC)
             .build()?;
 
         let deployment = Abstract::load_from(chain)?;
         // Take the assets, contracts, and pools from resources and upload them to the ans host
         let ans_host = deployment.ans_host;
-        ans_host.update_all()?;
+        ans_host.update_all_local()?;
     }
     Ok(())
 }
@@ -47,7 +45,11 @@ fn main() {
 
     let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n))
+        .collect::<Vec<_>>();
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);

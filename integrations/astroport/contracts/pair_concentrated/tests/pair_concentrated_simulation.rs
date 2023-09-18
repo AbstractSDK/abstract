@@ -31,7 +31,7 @@ fn simulate_case(case: Vec<(usize, u128, u64)>) {
         track_asset_balances: None,
     };
 
-    let balances = vec![100_000_000_000000u128, 100_000_000_000000u128];
+    let balances = vec![100_000_000_000_000_u128, 100_000_000_000_000_u128];
 
     let mut helper = Helper::new(&owner, test_coins.clone(), params).unwrap();
 
@@ -94,8 +94,8 @@ fn simulate_provide_case(case: Vec<(impl Into<String>, u128, u128, u64)>) {
 
     // owner makes the first provide cuz the pool charges small amount of fees
     let assets = vec![
-        helper.assets[&test_coins[0]].with_balance(1_000_000000u128),
-        helper.assets[&test_coins[1]].with_balance(1_000_000000u128),
+        helper.assets[&test_coins[0]].with_balance(1_000_000_000_u128),
+        helper.assets[&test_coins[1]].with_balance(1_000_000_000_u128),
     ];
     helper.provide_liquidity(&owner, &assets).unwrap();
 
@@ -120,8 +120,8 @@ fn simulate_provide_case(case: Vec<(impl Into<String>, u128, u128, u64)>) {
             }
         } else {
             let entry = accounts.entry(user).or_default();
-            entry.0 = entry.0 + coin0_amnt;
-            entry.1 = entry.1 + coin1_amnt;
+            entry.0 += coin0_amnt;
+            entry.1 += coin1_amnt;
             entry.2 += 1;
         }
 
@@ -297,9 +297,9 @@ fn single_provide_test() {
 fn generate_cases() -> impl Strategy<Value = Vec<(usize, u128, u64)>> {
     prop::collection::vec(
         (
-            0..=1usize,                     // offer_ind
-            1_000000..1_000_000_000000u128, // dy
-            0..3600u64,                     // shift_time
+            0..=1usize,                       // offer_ind
+            1_000000..1_000_000_000_000_u128, // dy
+            0..3600u64,                       // shift_time
         ),
         0..MAX_EVENTS,
     )
@@ -308,10 +308,10 @@ fn generate_cases() -> impl Strategy<Value = Vec<(usize, u128, u64)>> {
 fn generate_provide_cases() -> impl Strategy<Value = Vec<(String, u128, u128, u64)>> {
     prop::collection::vec(
         (
-            "[a-b]{3}",                     // user
-            1_000000..1_000_000_000000u128, // coin0
-            1_000000..1_000_000_000000u128, // coin1
-            0..3600u64,                     // shift_time
+            "[a-b]{3}",                       // user
+            1_000000..1_000_000_000_000_u128, // coin0
+            1_000000..1_000_000_000_000_u128, // coin1
+            0..3600u64,                       // shift_time
         ),
         MAX_EVENTS,
     )

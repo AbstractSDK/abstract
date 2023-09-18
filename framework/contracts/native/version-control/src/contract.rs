@@ -39,10 +39,11 @@ pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> VCResult {
 }
 
 #[cfg_attr(feature = "export", cosmwasm_std::entry_point)]
-pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: InstantiateMsg) -> VCResult {
+pub fn instantiate(deps: DepsMut, _env: Env, _info: MessageInfo, msg: InstantiateMsg) -> VCResult {
     cw2::set_contract_version(deps.storage, VERSION_CONTROL, CONTRACT_VERSION)?;
 
     let InstantiateMsg {
+        admin,
         allow_direct_module_registration_and_updates,
         namespace_registration_fee,
     } = msg;
@@ -59,8 +60,8 @@ pub fn instantiate(deps: DepsMut, _env: Env, info: MessageInfo, msg: Instantiate
         },
     )?;
 
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&admin))?;
 
     // Save the abstract namespace to the Abstract admin account
     namespaces_info().save(
@@ -83,14 +84,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> V
         }
         ExecuteMsg::RemoveModule { module } => remove_module(deps, info, module),
         ExecuteMsg::YankModule { module } => yank_module(deps, info, module),
-        ExecuteMsg::SetModuleMonetization {
+        ExecuteMsg::UpdateModuleConfiguration {
             module_name,
             namespace,
-            monetization,
-        } => set_module_monetization(deps, info, module_name, namespace, monetization),
-        ExecuteMsg::SetModuleMetadata { module, metadata } => {
-            set_module_metadata(deps, info, module, metadata)
-        }
+            update_module,
+        } => update_module_config(deps, info, module_name, namespace, update_module),
         ExecuteMsg::ClaimNamespace {
             namespace,
             account_id,

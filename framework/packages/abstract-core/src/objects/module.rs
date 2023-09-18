@@ -34,6 +34,20 @@ pub struct ModuleInfo {
     pub version: ModuleVersion,
 }
 
+impl TryFrom<ModuleInfo> for ContractVersion {
+    type Error = AbstractError;
+
+    fn try_from(value: ModuleInfo) -> Result<Self, Self::Error> {
+        let ModuleVersion::Version(version) = value.version else {
+            return Err(AbstractError::MissingVersion("module".to_owned()));
+        };
+        Ok(ContractVersion {
+            contract: format!("{}:{}", value.namespace, value.name),
+            version,
+        })
+    }
+}
+
 const MAX_LENGTH: usize = 64;
 
 /// Validate attributes of a [`ModuleInfo`].
@@ -152,8 +166,8 @@ impl<'a> PrimaryKey<'a> for &ModuleInfo {
 impl<'a> Prefixer<'a> for &ModuleInfo {
     fn prefix(&self) -> Vec<Key> {
         let mut res = self.namespace.prefix();
-        res.extend(self.name.prefix().into_iter());
-        res.extend(self.version.prefix().into_iter());
+        res.extend(self.name.prefix());
+        res.extend(self.version.prefix());
         res
     }
 }
@@ -364,14 +378,34 @@ pub fn assert_module_data_validity(
             let Some(addr) = module_address else {
                 // if no addr provided and module doesn't have it, just return
                 // this will be the case when registering a code-id on VC
-                return Ok(())
+                return Ok(());
             };
             addr
         }
     };
 
+    let ModuleVersion::Version(version) = &module_claim.info.version else {
+        panic!("Module version is not versioned, context setting is wrong")
+    };
+
     // verify that the contract's data is equal to its registered data
-    let cw_2_data = cw2::CONTRACT.query(querier, module_address.clone())?;
+    let cw_2_data_res = cw2::CONTRACT.query(querier, module_address.clone());
+
+    // For standalone we only check the version if cw2 exists
+    if let ModuleReference::Standalone(_) = module_claim.reference {
+        if let Ok(cw_2_data) = cw_2_data_res {
+            ensure_eq!(
+                version,
+                &cw_2_data.version,
+                AbstractError::UnequalModuleData {
+                    cw2: cw_2_data.version,
+                    module: version.to_owned()
+                }
+            );
+        }
+        return Ok(());
+    }
+    let cw_2_data = cw_2_data_res?;
 
     // Assert that the contract name is equal to the module name
     ensure_eq!(
@@ -382,10 +416,6 @@ pub fn assert_module_data_validity(
             module: module_claim.info.id()
         }
     );
-
-    let ModuleVersion::Version(version) = &module_claim.info.version else {
-    panic!("Module version is not versioned, context setting is wrong")
-    };
 
     // Assert that the contract version is equal to the module version
     ensure_eq!(
@@ -400,7 +430,6 @@ pub fn assert_module_data_validity(
     match module_claim.reference {
         ModuleReference::AccountBase(_) => return Ok(()),
         ModuleReference::Native(_) => return Ok(()),
-        ModuleReference::Standalone(_) => return Ok(()),
         _ => {}
     }
 
@@ -434,6 +463,13 @@ pub enum Monetization {
     None,
     InstallFee(FixedFee),
 }
+
+impl Default for Monetization {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
 /// Module Metadata String
 pub type ModuleMetadata = String;
 
@@ -749,6 +785,30 @@ mod test {
             let actual: Result<Version, _> = version.try_into();
 
             assert_that!(actual).is_err();
+        }
+    }
+
+    mod standalone_modules_valid {
+        use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
+
+        use super::*;
+
+        #[test]
+        fn no_cw2_contract() {
+            let deps = mock_dependencies();
+            let res = assert_module_data_validity(
+                &deps.as_ref().querier,
+                &Module {
+                    info: ModuleInfo {
+                        namespace: Namespace::new("counter").unwrap(),
+                        name: "counter".to_owned(),
+                        version: ModuleVersion::Version("1.1.0".to_owned()),
+                    },
+                    reference: ModuleReference::Standalone(0),
+                },
+                Some(Addr::unchecked(MOCK_CONTRACT_ADDR)),
+            );
+            assert!(res.is_ok());
         }
     }
 }

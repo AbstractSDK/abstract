@@ -1,5 +1,5 @@
 use crate::{
-    constants::ASSET_DELIMITER,
+    constants::{ASSET_DELIMITER, ATTRIBUTE_DELIMITER, TYPE_DELIMITER},
     objects::{pool_type::PoolType, AssetEntry},
 };
 use cosmwasm_std::StdError;
@@ -63,31 +63,31 @@ impl PoolMetadata {
     }
 }
 
-const ATTRIBUTE_COUNT: usize = 3;
-const ATTTRIBUTE_SEPARATOR: &str = ":";
-
 impl FromStr for PoolMetadata {
     type Err = StdError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let attributes: Vec<&str> = s.split(ATTTRIBUTE_SEPARATOR).collect();
-
-        if attributes.len() != ATTRIBUTE_COUNT {
+        // Split it into three parts
+        let parts = s.split_once(TYPE_DELIMITER).and_then(|(dex, remainder)| {
+            remainder
+                .split_once(ATTRIBUTE_DELIMITER)
+                .map(|(assets, pool_type)| (dex, assets, pool_type))
+        });
+        let Some((dex, assets, pool_type)) = parts else {
             return Err(StdError::generic_err(format!(
-                "invalid pool metadata format `{s}`; must be in format `{{dex}}:{{asset1}},{{asset2}}:{{pool_type}}...`"
+                "invalid pool metadata format `{s}`; must be in format `{{dex}}{TYPE_DELIMITER}{{asset1}},{{asset2}}{ATTRIBUTE_DELIMITER}{{pool_type}}...`"
             )));
-        }
+        };
 
-        let dex = String::from(attributes[0]);
-        let assets: Vec<&str> = attributes[1].split(ASSET_DELIMITER).collect();
-        let pool_type = PoolType::from_str(attributes[2])?;
+        let assets: Vec<&str> = assets.split(ASSET_DELIMITER).collect();
+        let pool_type = PoolType::from_str(pool_type)?;
 
         Ok(PoolMetadata::new(dex, pool_type, assets))
     }
 }
 
 /// To string
-/// Ex: "junoswap:uusd,uust:stable"
+/// Ex: "junoswap/uusd,uust:stable"
 impl fmt::Display for PoolMetadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let assets_str = self
@@ -97,11 +97,11 @@ impl fmt::Display for PoolMetadata {
             .collect::<Vec<&str>>()
             .join(ASSET_DELIMITER);
         let pool_type_str = self.pool_type.to_string();
+        let dex = &self.dex;
 
         write!(
             f,
-            "{}",
-            vec![self.dex.clone(), assets_str, pool_type_str].join(ATTTRIBUTE_SEPARATOR)
+            "{dex}{TYPE_DELIMITER}{assets_str}{ATTRIBUTE_DELIMITER}{pool_type_str}",
         )
     }
 }
@@ -128,7 +128,7 @@ mod tests {
                 assets: assets.into_iter().map(|a| a.into()).collect(),
             };
             assert_that!(actual).is_equal_to(expected);
-            assert_that!(actual.to_string()).is_equal_to("junoswap:uusd,uust:stable".to_string());
+            assert_that!(actual.to_string()).is_equal_to("junoswap/uusd,uust:stable".to_string());
         }
 
         #[test]
@@ -190,7 +190,7 @@ mod tests {
 
     #[test]
     fn test_pool_metadata_from_str() {
-        let pool_metadata_str = "junoswap:uusd,uust:stable";
+        let pool_metadata_str = "junoswap/uusd,uust:stable";
         let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
 
         assert_eq!(pool_metadata.dex, "junoswap");
@@ -202,11 +202,19 @@ mod tests {
                 .collect::<Vec<AssetEntry>>()
         );
         assert_eq!(pool_metadata.pool_type, PoolType::Stable);
+
+        // Wrong formatting
+        let pool_metadata_str = "junoswap:uusd,uust/stable";
+        let err = PoolMetadata::from_str(pool_metadata_str).unwrap_err();
+
+        assert_eq!(err, StdError::generic_err(format!(
+            "invalid pool metadata format `{pool_metadata_str}`; must be in format `{{dex}}{TYPE_DELIMITER}{{asset1}},{{asset2}}{ATTRIBUTE_DELIMITER}{{pool_type}}...`"
+        )));
     }
 
     #[test]
     fn test_pool_metadata_to_string() {
-        let pool_metadata_str = "junoswap:uusd,uust:weighted";
+        let pool_metadata_str = "junoswap/uusd,uust:weighted";
         let pool_metadata = PoolMetadata::from_str(pool_metadata_str).unwrap();
 
         assert_eq!(pool_metadata.to_string(), pool_metadata_str);

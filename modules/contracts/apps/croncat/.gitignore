@@ -1,0 +1,9 @@
+/target
+
+artifacts/*
+
+.env
+
+.vscode
+.idea
+state.json

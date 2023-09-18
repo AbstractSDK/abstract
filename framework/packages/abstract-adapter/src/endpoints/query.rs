@@ -1,6 +1,9 @@
 use crate::state::{AdapterContract, ContractError};
-use abstract_core::adapter::{
-    AdapterConfigResponse, AdapterQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+use abstract_core::{
+    adapter::{
+        AdapterConfigResponse, AdapterQueryMsg, AuthorizedAddressesResponse, BaseQueryMsg, QueryMsg,
+    },
+    objects::module_version::{ModuleDataResponse, MODULE},
 };
 use abstract_sdk::base::{Handler, QueryEndpoint};
 use cosmwasm_std::{to_binary, Addr, Binary, Deps, Env, StdResult};
@@ -31,7 +34,7 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
 {
     fn base_query(&self, deps: Deps, _env: Env, query: BaseQueryMsg) -> Result<Binary, Error> {
         match query {
-            BaseQueryMsg::Config {} => {
+            BaseQueryMsg::BaseConfig {} => {
                 to_binary(&self.dapp_config(deps).map_err(Error::from)?).map_err(Into::into)
             }
             BaseQueryMsg::AuthorizedAddresses { proxy_address } => {
@@ -46,19 +49,36 @@ impl<Error: ContractError, CustomInitMsg, CustomExecMsg, CustomQueryMsg, Receive
                 })
                 .map_err(Into::into)
             }
+            BaseQueryMsg::ModuleData {} => {
+                to_binary(&self.module_data(deps).map_err(Error::from)?).map_err(Into::into)
+            }
         }
     }
 
     fn dapp_config(&self, deps: Deps) -> StdResult<AdapterConfigResponse> {
         let state = self.base_state.load(deps.storage)?;
         Ok(AdapterConfigResponse {
-            version_control_address: state.version_control,
+            version_control_address: state.version_control.address,
             ans_host_address: state.ans_host.address,
             dependencies: self
                 .dependencies()
                 .iter()
                 .map(|dep| dep.id.to_string())
                 .collect(),
+        })
+    }
+
+    fn module_data(&self, deps: Deps) -> StdResult<ModuleDataResponse> {
+        let module_data = MODULE.load(deps.storage)?;
+        Ok(ModuleDataResponse {
+            module_id: module_data.module,
+            version: module_data.version,
+            dependencies: module_data
+                .dependencies
+                .into_iter()
+                .map(Into::into)
+                .collect(),
+            metadata: module_data.metadata,
         })
     }
 }

@@ -463,7 +463,6 @@ mod testing {
         let ts = env.block.time.seconds();
 
         let array = (1..=CAPACITY * 3)
-            .into_iter()
             .map(|i| Observation {
                 timestamp: ts + i as u64 * 1000,
                 base_sma: Default::default(),
@@ -476,7 +475,7 @@ mod testing {
         for (k, obs) in array.iter().enumerate() {
             env.block.time = env.block.time.plus_seconds(1000);
 
-            buffer.push(&obs);
+            buffer.push(obs);
             buffer.commit(&mut deps.storage).unwrap();
             let k1 = k as u32 + 1;
 
@@ -518,7 +517,6 @@ mod testing {
         assert_eq!(err.to_string(), "Generic error: Buffer is empty");
 
         let array = (1..=30)
-            .into_iter()
             .map(|i| Observation {
                 timestamp: env.block.time.seconds() + i * 1000,
                 base_sma: Default::default(),
@@ -568,7 +566,6 @@ mod testing {
         assert_eq!(err.to_string(), "Generic error: Buffer is empty");
 
         let array = (1..=30)
-            .into_iter()
             .map(|i| Observation {
                 timestamp: env.block.time.seconds() + i * 1000,
                 base_sma: Default::default(),

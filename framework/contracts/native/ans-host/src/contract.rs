@@ -27,8 +27,8 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
-    _msg: InstantiateMsg,
+    _info: MessageInfo,
+    msg: InstantiateMsg,
 ) -> AnsHostResult {
     set_contract_version(deps.storage, ANS_HOST, CONTRACT_VERSION)?;
 
@@ -43,8 +43,8 @@ pub fn instantiate(
     // Initialize the dexes
     REGISTERED_DEXES.save(deps.storage, &vec![])?;
 
-    // Set up the admin as the creator of the contract
-    cw_ownable::initialize_owner(deps.storage, deps.api, Some(info.sender.as_str()))?;
+    // Set up the admin
+    cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.admin))?;
 
     Ok(AnsHostResponse::action("instantiate"))
 }

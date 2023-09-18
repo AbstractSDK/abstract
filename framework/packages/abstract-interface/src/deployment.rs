@@ -19,7 +19,7 @@ pub struct Abstract<Chain: CwEnv> {
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     // We don't have a custom error type
     type Error = AbstractInterfaceError;
-    type DeployData = Empty;
+    type DeployData = String;
 
     fn store_on(chain: Chain) -> Result<Self, AbstractInterfaceError> {
         let ans_host = AnsHost::new(ANS_HOST, chain.clone());
@@ -48,12 +48,12 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         Ok(deployment)
     }
 
-    fn deploy_on(chain: Chain, _data: Empty) -> Result<Self, AbstractInterfaceError> {
+    fn deploy_on(chain: Chain, data: String) -> Result<Self, AbstractInterfaceError> {
         // upload
         let mut deployment = Self::store_on(chain.clone())?;
 
         // ########### Instantiate ##############
-        deployment.instantiate(&chain)?;
+        deployment.instantiate(&chain, data)?;
 
         // Set Factory
         deployment.version_control.execute(
@@ -101,7 +101,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
         Some(
             PathBuf::from(crate_path)
-                .join("daemon_state.json")
+                .join("state.json")
                 .display()
                 .to_string(),
         )
@@ -129,17 +129,20 @@ impl<Chain: CwEnv> Abstract<Chain> {
         }
     }
 
-    pub fn instantiate(&mut self, chain: &Chain) -> Result<(), CwOrchError> {
+    pub fn instantiate(&mut self, chain: &Chain, admin: String) -> Result<(), CwOrchError> {
         let sender = &chain.sender();
 
         self.ans_host.instantiate(
-            &abstract_core::ans_host::InstantiateMsg {},
+            &abstract_core::ans_host::InstantiateMsg {
+                admin: admin.clone(),
+            },
             Some(sender),
             None,
         )?;
 
         self.version_control.instantiate(
             &abstract_core::version_control::InstantiateMsg {
+                admin: admin.clone(),
                 allow_direct_module_registration_and_updates: Some(true),
                 namespace_registration_fee: None,
             },
@@ -149,6 +152,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
         self.module_factory.instantiate(
             &abstract_core::module_factory::InstantiateMsg {
+                admin: admin.clone(),
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
             },
@@ -158,6 +162,7 @@ impl<Chain: CwEnv> Abstract<Chain> {
 
         self.account_factory.instantiate(
             &abstract_core::account_factory::InstantiateMsg {
+                admin,
                 version_control_address: self.version_control.address()?.into_string(),
                 ans_host_address: self.ans_host.address()?.into_string(),
                 module_factory_address: self.module_factory.address()?.into_string(),

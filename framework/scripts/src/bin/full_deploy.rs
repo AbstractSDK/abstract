@@ -18,15 +18,15 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
-    rt.block_on(assert_wallet_balance(&networks));
+    let networks = rt.block_on(assert_wallet_balance(&networks));
 
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
-            .chain(network)
+            .chain(network.clone())
             .build()?;
         let sender = chain.sender();
-        let deployment = Abstract::deploy_on(chain, Empty {})?;
+        let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         deployment

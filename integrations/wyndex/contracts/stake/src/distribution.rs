@@ -190,7 +190,7 @@ pub fn query_withdrawable_rewards(
 ) -> StdResult<WithdrawableRewardsResponse> {
     // Not checking address, as if it is invalid it is guaranteed not to appear in maps, so
     // `withdrawable_rewards` would return error itself.
-    let owner = Addr::unchecked(&owner);
+    let owner = Addr::unchecked(owner);
 
     let cfg = CONFIG.load(deps.storage)?;
     let distributions =

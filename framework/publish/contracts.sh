@@ -16,7 +16,7 @@ fi
 # these are imported by other packages
 BASE_PACKAGES="abstract-ica abstract-macros"
 UTILS_PACKAGES="abstract-core abstract-testing abstract-sdk"
-CORE_CONTRACTS="proxy manager"
+CORE_CONTRACTS="manager proxy"
 NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
 
  for pack in $BASE_PACKAGES; do
@@ -35,11 +35,18 @@ for pack in $UTILS_PACKAGES; do
   )
 done
 
+read -p "Please comment out abstract-adapter and abstract-app in manager/Cargo.toml#dev-dependencies and type 'yes' to continue: " input
+if [ "$input" != "yes" ]
+then
+  echo "The script will terminate now. Please run it again after updating the version."
+  exit 1
+fi
+
 for con in $CORE_CONTRACTS; do
   (
     cd "contracts/account/$con"
     echo "Publishing account base $con"
-    cargo publish
+    cargo publish --allow-dirty
   )
 done
 
@@ -47,12 +54,8 @@ for con in $NATIVE_CONTRACTS; do
   (
     cd "contracts/native/$con"
     echo "Publishing native $con"
-    cargo publish
+    cargo publish --allow-dirty
   )
 done
 
-echo "Everything is published!"
-
-VERSION=$(grep -A1 "\[workspace.package\]" Cargo.toml | awk -F'"' '/version/ {print $2}');
-git tag v"$VERSION"
-git push origin v"$VERSION"
+echo "All the contracts are published!"

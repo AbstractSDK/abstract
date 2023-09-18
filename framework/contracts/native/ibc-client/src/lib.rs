@@ -15,7 +15,7 @@ mod test_common {
 
     pub fn mock_init(deps: DepsMut) -> IbcClientResult {
         let msg = InstantiateMsg {
-            chain: "test_chain".into(),
+            chain: "test-chain".into(),
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };

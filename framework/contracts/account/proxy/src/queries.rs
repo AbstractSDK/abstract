@@ -138,7 +138,7 @@ mod test {
     fn mock_init(deps: DepsMut) {
         let info = mock_info(TEST_CREATOR, &[]);
         let msg = InstantiateMsg {
-            account_id: 0,
+            account_id: TEST_ACCOUNT_ID,
             ans_host_address: TEST_ANS_HOST.to_string(),
         };
         let _res = instantiate(deps, mock_env(), info, msg).unwrap();
@@ -187,8 +187,8 @@ mod test {
         mock_init(deps.as_mut());
         execute_as_admin(
             &mut deps,
-            ExecuteMsg::AddModule {
-                module: "test_module".to_string(),
+            ExecuteMsg::AddModules {
+                modules: vec!["test_module".to_string()],
             },
         )
         .unwrap();

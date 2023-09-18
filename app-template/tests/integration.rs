@@ -14,14 +14,14 @@ use cosmwasm_std::Addr;
 const ADMIN: &str = "admin";
 
 /// Set up the test environment with the contract installed
-fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)> {
+fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterface<Mock>)> {
     // Create a sender
     let sender = Addr::unchecked(ADMIN);
     // Create the mock
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = App::new(APP_ID, mock.clone());
+    let contract = AppInterface::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock, Empty {})?;
@@ -37,7 +37,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, App<Mock>)>
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+        .claim_namespace(1, "my-namespace".to_string())?;
 
     contract.deploy(APP_VERSION.parse()?)?;
 

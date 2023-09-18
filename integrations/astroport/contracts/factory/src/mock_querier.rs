@@ -69,7 +69,7 @@ impl WasmMockQuerier {
     pub fn handle_query(&self, request: &QueryRequest<Empty>) -> QuerierResult {
         match &request {
             QueryRequest::Wasm(WasmQuery::Smart {contract_addr, msg})// => {
-                => match from_binary(&msg).unwrap() {
+                => match from_binary(msg).unwrap() {
                     QueryMsg::Pair {} => {
                        let pair_info: PairInfo =
                         match self.astroport_pair_querier.pairs.get(contract_addr) {

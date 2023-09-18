@@ -1,3 +1,4 @@
+use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::{module_factory, objects::module::ModuleInfo};
 use abstract_interface::*;
 use abstract_testing::prelude::TEST_ADMIN;
@@ -12,7 +13,7 @@ type AResult = anyhow::Result<()>; // alias for Result<(), anyhow::Error>
 fn instantiate() -> AResult {
     let sender = Addr::unchecked(TEST_ADMIN);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = deployment.module_factory;
     let factory_config = factory.config()?;
@@ -30,7 +31,7 @@ fn caller_must_be_manager() -> AResult {
     let _not_owner = Addr::unchecked("not_owner");
     let sender = Addr::unchecked(TEST_ADMIN);
     let chain = Mock::new(&sender);
-    let deployment = Abstract::deploy_on(chain, Empty {})?;
+    let deployment = Abstract::deploy_on(chain, sender.to_string())?;
 
     let factory = &deployment.module_factory;
     let test_module = ModuleInfo::from_id(
@@ -38,7 +39,9 @@ fn caller_must_be_manager() -> AResult {
         abstract_core::objects::module::ModuleVersion::Latest,
     )?;
 
-    let res = factory.install_module(test_module, None).unwrap_err();
+    let res = factory
+        .install_modules(vec![ModuleInstallConfig::new(test_module, None)])
+        .unwrap_err();
     assert_that(&res.root().to_string())
         .contains("ensure that the contract is a Manager or Proxy contract");
 

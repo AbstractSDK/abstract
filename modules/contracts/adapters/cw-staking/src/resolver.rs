@@ -1,0 +1,70 @@
+use abstract_adapter_utils::identity::decompose_platform_name;
+use abstract_adapter_utils::identity::is_available_on;
+use abstract_adapter_utils::identity::is_current_chain;
+use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
+use cosmwasm_std::Env;
+
+use crate::contract::StakingResult;
+
+use abstract_staking_adapter_traits::Identify;
+
+/// Any cw-staking provider should be identified by the adapter
+/// This allows erroring the execution before sending any IBC message to another chain
+/// This provides superior UX in case of an IBC execution
+pub(crate) fn identify_provider(value: &str) -> Result<Box<dyn Identify>, CwStakingError> {
+    match value {
+        abstract_wyndex_adapter::WYNDEX => {
+            Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
+        }
+        abstract_osmosis_adapter::OSMOSIS => {
+            Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
+        }
+        abstract_astroport_adapter::ASTROPORT => {
+            Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
+        }
+        abstract_kujira_adapter::KUJIRA => {
+            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        }
+        _ => Err(CwStakingError::UnknownDex(value.to_string())),
+    }
+}
+
+/// Given the provider name, return the local provider implementation
+pub(crate) fn resolve_local_provider(
+    name: &str,
+) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
+    match name {
+        #[cfg(feature = "juno")]
+        abstract_wyndex_adapter::WYNDEX => {
+            Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
+        }
+        #[cfg(feature = "osmosis")]
+        abstract_osmosis_adapter::OSMOSIS => {
+            Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
+        }
+        #[cfg(any(feature = "terra", feature = "neutron"))]
+        abstract_astroport_adapter::ASTROPORT => {
+            Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
+        }
+        #[cfg(feature = "kujira")]
+        abstract_kujira_adapter::KUJIRA => {
+            Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
+        }
+        _ => Err(CwStakingError::ForeignDex(name.to_owned())),
+    }
+}
+
+/// Given a FULL provider nam (e.g. juno>wyndex), returns wether the request is local or over IBC
+pub fn is_over_ibc(env: Env, platform_name: &str) -> StakingResult<(String, bool)> {
+    let (chain_name, local_platform_name) = decompose_platform_name(platform_name);
+    if chain_name.is_some() && !is_current_chain(env.clone(), &chain_name.clone().unwrap()) {
+        Ok((local_platform_name, true))
+    } else {
+        let platform_id = identify_provider(&local_platform_name)?;
+        // We verify the adapter is available on the current chain
+        if !is_available_on(platform_id, env, chain_name.as_deref()) {
+            return Err(CwStakingError::UnknownDex(platform_name.to_string()));
+        }
+        Ok((local_platform_name, false))
+    }
+}

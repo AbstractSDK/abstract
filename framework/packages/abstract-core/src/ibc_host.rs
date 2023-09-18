@@ -13,7 +13,7 @@ use crate::{
         MigrateMsg as MiddlewareMigrateMsg, QueryMsg as MiddlewareQueryMsg,
     },
     ibc_client::CallbackInfo,
-    objects::account_id::AccountId,
+    objects::account::AccountId,
 };
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Binary, CosmosMsg, Empty, QueryRequest};
@@ -152,8 +152,9 @@ pub struct AccountInfo {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
-    use abstract_testing::prelude::*;
+    use crate::objects::account::TEST_ACCOUNT_ID;
     use speculoos::prelude::*;
 
     #[test]

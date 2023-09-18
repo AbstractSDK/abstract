@@ -63,8 +63,8 @@ impl<'a> PrimaryKey<'a> for &DexAssetPairing {
 impl<'a> Prefixer<'a> for &DexAssetPairing {
     fn prefix(&self) -> Vec<cw_storage_plus::Key> {
         let mut res = self.0 .0 .0.prefix();
-        res.extend(self.0 .1 .0.prefix().into_iter());
-        res.extend(self.0 .2.prefix().into_iter());
+        res.extend(self.0 .1 .0.prefix());
+        res.extend(self.0 .2.prefix());
         res
     }
 }

@@ -1,0 +1,72 @@
+[package]
+name = "abstract-dca-app"
+version = "0.0.2"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Abstract Money <contact@abstract.money>",
+]
+edition = "2021"
+homepage = ""
+documentation = ""
+repository = ""
+license = "GPL-3.0-or-later"
+keywords = ["cosmos", "cosmwasm", "abstractsdk"]
+resolver = "2"
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[features]
+default = ["export"]
+export = []
+# enable node-backed tests (ensure Docker is running)
+# run with `cargo test --jobs 1 --features node-tests`
+node-tests = ["interface"]
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true }
+
+# Dependencies for interface
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
+croncat-app = { workspace = true, default-features = false }
+abstract-dex-adapter = { workspace = true, default-features = false }
+
+[dev-dependencies]
+abstract-dca-app = { path = ".", features = ["interface"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true, features = ["test-utils"] }
+speculoos = "0.11.0"
+semver = "1.0"
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+cw-orch = { workspace = true, features = ["daemon"] }
+
+croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+wyndex-bundle = { workspace = true }
+abstract-dex-adapter = { workspace = true, features = [
+  "interface",
+  "juno",
+  "testing",
+] }
+croncat-app = { workspace = true, features = ["interface"] }

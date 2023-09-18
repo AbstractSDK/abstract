@@ -3,17 +3,31 @@ mod common;
 use abstract_app::mock::{MockInitMsg, MockMigrateMsg};
 use abstract_core::{
     app::{self, BaseInstantiateMsg},
-    objects::module::{ModuleInfo, ModuleVersion},
+    manager::ModuleVersionsResponse,
+    module_factory::{ModuleInstallConfig, SimulateInstallModulesResponse},
+    objects::{
+        fee::FixedFee,
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion, Monetization},
+        module_reference::ModuleReference,
+        namespace::Namespace,
+        AccountId,
+    },
+    version_control::UpdateModule,
     AbstractError,
 };
-use abstract_interface::{Abstract, AbstractAccount, Manager, ManagerExecFns, VCExecFns};
+use abstract_interface::{
+    Abstract, AbstractAccount, AbstractInterfaceError, AccountDetails, MFactoryQueryFns, Manager,
+    ManagerExecFns, ManagerQueryFns, VCExecFns,
+};
 
 use abstract_manager::error::ManagerError;
 use abstract_testing::addresses::{TEST_ACCOUNT_ID, TEST_NAMESPACE};
 
 use common::mock_modules::*;
 use common::{create_default_account, AResult};
-use cosmwasm_std::to_binary;
+use cosmwasm_std::{coin, to_binary};
+use cw2::ContractVersion;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 use speculoos::prelude::*;
@@ -31,6 +45,7 @@ fn install_module_version(
             module: MockInitMsg,
             base: BaseInstantiateMsg {
                 ans_host_address: abstr.ans_host.addr_str()?,
+                version_control_address: abstr.version_control.addr_str()?,
             },
         },
         None,
@@ -43,7 +58,7 @@ fn install_module_version(
 fn install_app_successful() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -82,7 +97,7 @@ fn install_app_successful() -> AResult {
 fn install_app_versions_not_met() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -109,7 +124,7 @@ fn install_app_versions_not_met() -> AResult {
 fn upgrade_app() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -279,7 +294,7 @@ fn upgrade_app() -> AResult {
 fn uninstall_modules() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
     abstr
@@ -314,7 +329,7 @@ fn uninstall_modules() -> AResult {
 fn update_adapter_with_authorized_addrs() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy } = &account;
     abstr
@@ -363,7 +378,7 @@ fn update_adapter_with_authorized_addrs() -> AResult {
 fn upgrade_manager_last() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
 
@@ -424,7 +439,7 @@ fn upgrade_manager_last() -> AResult {
 fn no_duplicate_migrations() -> AResult {
     let sender = Addr::unchecked(common::OWNER);
     let chain = Mock::new(&sender);
-    let abstr = Abstract::deploy_on(chain.clone(), Empty {})?;
+    let abstr = Abstract::deploy_on(chain.clone(), sender.to_string())?;
 
     let account = create_default_account(&abstr.account_factory)?;
     let AbstractAccount { manager, proxy: _ } = &account;
@@ -460,6 +475,763 @@ fn no_duplicate_migrations() -> AResult {
         .to_string(),
     );
 
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: Some(String::from("account_description")),
+                link: Some(String::from("https://account_link_of_at_least_11_char")),
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
+                            },
+                        })?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            None,
+        )
+        .unwrap();
+
+    // Make sure all installed
+    let account_module_versions = account.manager.module_versions(vec![
+        String::from(adapter_1::MOCK_ADAPTER_ID),
+        String::from(adapter_2::MOCK_ADAPTER_ID),
+        String::from(app_1::MOCK_APP_ID),
+    ])?;
+    assert_eq!(
+        account_module_versions,
+        ModuleVersionsResponse {
+            versions: vec![
+                ContractVersion {
+                    contract: String::from(adapter_1::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(adapter_2::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(app_1::MOCK_APP_ID),
+                    version: String::from(V1)
+                }
+            ]
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn create_sub_account_with_installed_module() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+
+    _deployer_acc.manager.create_sub_account(
+        vec![
+            ModuleInstallConfig::new(
+                ModuleInfo::from_id(
+                    adapter_1::MOCK_ADAPTER_ID,
+                    ModuleVersion::Version(V1.to_owned()),
+                )?,
+                None,
+            ),
+            ModuleInstallConfig::new(
+                ModuleInfo::from_id(
+                    adapter_2::MOCK_ADAPTER_ID,
+                    ModuleVersion::Version(V1.to_owned()),
+                )?,
+                None,
+            ),
+            ModuleInstallConfig::new(
+                ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                Some(to_binary(&app::InstantiateMsg {
+                    module: MockInitMsg,
+                    base: BaseInstantiateMsg {
+                        ans_host_address: deployment.ans_host.addr_str()?,
+                        version_control_address: deployment.ans_host.addr_str()?,
+                    },
+                })?),
+            ),
+        ],
+        String::from("sub_account"),
+        None,
+        Some(String::from("account_description")),
+        None,
+        None,
+    )?;
+
+    let account = AbstractAccount::new(&deployment, Some(AccountId::local(2)));
+
+    // Make sure all installed
+    let account_module_versions = account.manager.module_versions(vec![
+        String::from(adapter_1::MOCK_ADAPTER_ID),
+        String::from(adapter_2::MOCK_ADAPTER_ID),
+        String::from(app_1::MOCK_APP_ID),
+    ])?;
+    assert_eq!(
+        account_module_versions,
+        ModuleVersionsResponse {
+            versions: vec![
+                ContractVersion {
+                    contract: String::from(adapter_1::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(adapter_2::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(app_1::MOCK_APP_ID),
+                    version: String::from(V1)
+                }
+            ]
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module_and_monetization() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    // Adding coins to fill monetization
+    chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+    // Add monetization
+    deployment.version_control.update_module_configuration(
+        "mock-adapter1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "mock-adapter2".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "mock-app1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin2")))),
+            instantiation_funds: None,
+        },
+    )?;
+    // Check how much we need
+    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
+        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+    ])?;
+    assert_eq!(
+        simulate_response,
+        SimulateInstallModulesResponse {
+            total_required_funds: vec![coin(10, "coin1"), coin(5, "coin2")],
+            monetization_funds: vec![
+                (adapter_1::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
+                (adapter_2::MOCK_ADAPTER_ID.to_string(), coin(5, "coin1")),
+                (app_1::MOCK_APP_ID.to_string(), coin(5, "coin2"))
+            ],
+            initialization_funds: vec![],
+        }
+    );
+
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: None,
+                link: None,
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
+                            },
+                        })?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            // we attach 5 extra coin2, rest should go to proxy
+            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+        )
+        .unwrap();
+    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    assert_eq!(balances, vec![coin(5, "coin2")]);
+    // Make sure all installed
+    let account_module_versions = account.manager.module_versions(vec![
+        String::from(adapter_1::MOCK_ADAPTER_ID),
+        String::from(adapter_2::MOCK_ADAPTER_ID),
+        String::from(app_1::MOCK_APP_ID),
+    ])?;
+    assert_eq!(
+        account_module_versions,
+        ModuleVersionsResponse {
+            versions: vec![
+                ContractVersion {
+                    contract: String::from(adapter_1::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(adapter_2::MOCK_ADAPTER_ID),
+                    version: String::from(V1)
+                },
+                ContractVersion {
+                    contract: String::from(app_1::MOCK_APP_ID),
+                    version: String::from(V1)
+                }
+            ]
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module_and_monetization_should_fail() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    // Adding coins to fill monetization
+    chain.add_balance(&sender, vec![coin(10, "coin1"), coin(10, "coin2")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+    // Add monetization
+    deployment.version_control.update_module_configuration(
+        "mock-adapter1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "mock-adapter2".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin1")))),
+            instantiation_funds: None,
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "mock-app1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(5, "coin2")))),
+            instantiation_funds: None,
+        },
+    )?;
+
+    // Check how much we need
+    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
+        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+    ])?;
+    assert_eq!(
+        simulate_response.total_required_funds,
+        vec![coin(10, "coin1"), coin(5, "coin2")]
+    );
+
+    let result = factory.create_new_account(
+        AccountDetails {
+            name: String::from("second_account"),
+            description: None,
+            link: None,
+            namespace: None,
+            base_asset: None,
+            install_modules: vec![
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_1::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(
+                        adapter_2::MOCK_ADAPTER_ID,
+                        ModuleVersion::Version(V1.to_owned()),
+                    )?,
+                    None,
+                ),
+                ModuleInstallConfig::new(
+                    ModuleInfo::from_id(app_1::MOCK_APP_ID, ModuleVersion::Version(V1.to_owned()))?,
+                    Some(to_binary(&app::InstantiateMsg {
+                        module: MockInitMsg,
+                        base: BaseInstantiateMsg {
+                            ans_host_address: deployment.ans_host.addr_str()?,
+                            version_control_address: deployment.version_control.addr_str()?,
+                        },
+                    })?),
+                ),
+            ],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        // we attach 1 less coin1
+        Some(&[coin(9, "coin1"), coin(10, "coin2")]),
+    );
+    // Mock doesn't implement debug so we can't .unwrap_err, LOL
+    let Err(AbstractInterfaceError::Orch(e)) = result else {
+        panic!()
+    };
+    assert!(e.root().to_string().contains(&format!(
+        "Expected {:?}, sent {:?}",
+        simulate_response.total_required_funds,
+        vec![coin(9, "coin1"), coin(10, "coin2")]
+    )));
+
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module_and_init_funds() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    // Adding coins to fill monetization
+    chain.add_balance(&sender, vec![coin(15, "coin1"), coin(10, "coin2")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+
+    let standalone_contract = Box::new(ContractWrapper::new(
+        standalone_no_cw2::mock_execute,
+        standalone_no_cw2::mock_instantiate,
+        standalone_no_cw2::mock_query,
+    ));
+    let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
+
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: ModuleVersion::Version(V1.to_owned()),
+        },
+        ModuleReference::Standalone(standalone_id),
+    )])?;
+
+    // Add init_funds
+    deployment.version_control.update_module_configuration(
+        "mock-app1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "standalone".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: None,
+            instantiation_funds: Some(vec![coin(6, "coin1")]),
+        },
+    )?;
+
+    // Check how much we need
+    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
+        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: V1.into(),
+        },
+    ])?;
+    assert_eq!(
+        simulate_response,
+        SimulateInstallModulesResponse {
+            total_required_funds: vec![coin(9, "coin1"), coin(5, "coin2")],
+            monetization_funds: vec![],
+            initialization_funds: vec![
+                (
+                    app_1::MOCK_APP_ID.to_string(),
+                    vec![coin(3, "coin1"), coin(5, "coin2")]
+                ),
+                ("tester:standalone".to_string(), vec![coin(6, "coin1")])
+            ],
+        }
+    );
+
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: None,
+                link: None,
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
+                            },
+                        })?),
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo {
+                            namespace: Namespace::new("tester")?,
+                            name: "standalone".to_owned(),
+                            version: V1.into(),
+                        },
+                        Some(to_binary(&MockInitMsg)?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+            Some(&[coin(10, "coin1"), coin(10, "coin2")]),
+        )
+        .unwrap();
+    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
+    // Make sure all installed
+    Ok(())
+}
+
+#[test]
+fn create_account_with_installed_module_monetization_and_init_funds() -> AResult {
+    let sender = Addr::unchecked(common::OWNER);
+    let chain = Mock::new(&sender);
+    // Adding coins to fill monetization
+    chain.add_balance(&sender, vec![coin(18, "coin1"), coin(20, "coin2")])?;
+    let deployment = Abstract::deploy_on(chain.clone(), sender.to_string())?;
+
+    let factory = &deployment.account_factory;
+
+    let _deployer_acc = factory.create_new_account(
+        AccountDetails {
+            name: String::from("first_account"),
+            description: Some(String::from("account_description")),
+            link: Some(String::from("https://account_link_of_at_least_11_char")),
+            namespace: Some(String::from(TEST_NAMESPACE)),
+            base_asset: None,
+            install_modules: vec![],
+        },
+        GovernanceDetails::Monarchy {
+            monarch: sender.to_string(),
+        },
+        None,
+    )?;
+    deploy_modules(&chain);
+
+    let standalone_contract = Box::new(ContractWrapper::new(
+        standalone_cw2::mock_execute,
+        standalone_cw2::mock_instantiate,
+        standalone_cw2::mock_query,
+    ));
+    let standalone_id = chain.app.borrow_mut().store_code(standalone_contract);
+
+    deployment.version_control.propose_modules(vec![(
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: ModuleVersion::Version(V1.to_owned()),
+        },
+        ModuleReference::Standalone(standalone_id),
+    )])?;
+
+    // Add init_funds
+    deployment.version_control.update_module_configuration(
+        "mock-app1".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(10, "coin2")))),
+            instantiation_funds: Some(vec![coin(3, "coin1"), coin(5, "coin2")]),
+        },
+    )?;
+    deployment.version_control.update_module_configuration(
+        "standalone".to_owned(),
+        Namespace::new("tester").unwrap(),
+        UpdateModule::Versioned {
+            version: V1.to_owned(),
+            metadata: None,
+            monetization: Some(Monetization::InstallFee(FixedFee::new(&coin(8, "coin1")))),
+            instantiation_funds: Some(vec![coin(6, "coin1")]),
+        },
+    )?;
+
+    // Check how much we need
+    let simulate_response = deployment.module_factory.simulate_install_modules(vec![
+        ModuleInfo::from_id(adapter_1::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(adapter_2::MOCK_ADAPTER_ID, V1.into()).unwrap(),
+        ModuleInfo::from_id(app_1::MOCK_APP_ID, V1.into()).unwrap(),
+        ModuleInfo {
+            namespace: Namespace::new("tester")?,
+            name: "standalone".to_owned(),
+            version: V1.into(),
+        },
+    ])?;
+    assert_eq!(
+        simulate_response,
+        SimulateInstallModulesResponse {
+            total_required_funds: vec![coin(17, "coin1"), coin(15, "coin2")],
+            monetization_funds: vec![
+                (app_1::MOCK_APP_ID.to_string(), coin(10, "coin2")),
+                ("tester:standalone".to_string(), coin(8, "coin1"))
+            ],
+            initialization_funds: vec![
+                (
+                    app_1::MOCK_APP_ID.to_string(),
+                    vec![coin(3, "coin1"), coin(5, "coin2")]
+                ),
+                ("tester:standalone".to_string(), vec![coin(6, "coin1")]),
+            ],
+        }
+    );
+
+    let account = factory
+        .create_new_account(
+            AccountDetails {
+                name: String::from("second_account"),
+                description: None,
+                link: None,
+                namespace: None,
+                base_asset: None,
+                install_modules: vec![
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_1::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            adapter_2::MOCK_ADAPTER_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        None,
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo::from_id(
+                            app_1::MOCK_APP_ID,
+                            ModuleVersion::Version(V1.to_owned()),
+                        )?,
+                        Some(to_binary(&app::InstantiateMsg {
+                            module: MockInitMsg,
+                            base: BaseInstantiateMsg {
+                                ans_host_address: deployment.ans_host.addr_str()?,
+                                version_control_address: deployment.version_control.addr_str()?,
+                            },
+                        })?),
+                    ),
+                    ModuleInstallConfig::new(
+                        ModuleInfo {
+                            namespace: Namespace::new("tester")?,
+                            name: "standalone".to_owned(),
+                            version: V1.into(),
+                        },
+                        Some(to_binary(&MockInitMsg)?),
+                    ),
+                ],
+            },
+            GovernanceDetails::Monarchy {
+                monarch: sender.to_string(),
+            },
+            // we attach 1 extra coin1 and 5 extra coin2, rest should go to proxy
+            Some(&[coin(18, "coin1"), coin(20, "coin2")]),
+        )
+        .unwrap();
+    let balances = chain.query_all_balances(&account.proxy.address()?)?;
+    assert_eq!(balances, vec![coin(1, "coin1"), coin(5, "coin2")]);
+    // Make sure all installed
     Ok(())
 }
 

@@ -1,7 +1,7 @@
 mod commands;
 pub mod contract;
 mod error;
-mod querier;
+pub(crate) mod queries;
 mod response;
 
 pub(crate) use abstract_sdk::core::account_factory::state;
@@ -16,11 +16,15 @@ mod test_common {
     use cosmwasm_std::DepsMut;
 
     pub fn mock_init(deps: DepsMut) -> AccountFactoryResult {
+        let info = mock_info(TEST_ADMIN, &[]);
+        let admin = info.sender.to_string();
+
         contract::instantiate(
             deps,
             mock_env(),
-            mock_info(TEST_ADMIN, &[]),
+            info,
             InstantiateMsg {
+                admin,
                 version_control_address: TEST_VERSION_CONTROL.to_string(),
                 ans_host_address: TEST_ANS_HOST.to_string(),
                 module_factory_address: TEST_MODULE_FACTORY.to_string(),

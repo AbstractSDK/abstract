@@ -92,7 +92,7 @@ impl<
             ..
         } = from_slice(&packet.data)?;
         // fill the local proxy address
-        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id))?;
+        self.proxy_address = ACCOUNTS.may_load(deps.storage, (&channel, account_id.clone()))?;
         match action {
             HostAction::Internal(InternalAction::Register {
                 account_proxy_address,
@@ -147,7 +147,7 @@ impl<
                 }
                 self.admin.assert_admin(deps.as_ref(), &info.sender)?;
                 self.proxy_address =
-                    ACCOUNTS.may_load(deps.storage, (&closed_channel, account_id))?;
+                    ACCOUNTS.may_load(deps.storage, (&closed_channel, account_id.clone()))?;
                 ACCOUNTS.remove(deps.storage, (&closed_channel, account_id));
                 // Execute provided msgs on proxy.
                 self.executor(deps.as_ref())
