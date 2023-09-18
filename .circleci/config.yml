@@ -21,13 +21,13 @@ workflows:
   version: 2
   build-and-commit:
     when:
-      equal: [ "build_wasms", << pipeline.parameters.gha_meta >>]
+      equal: [ "build_wasms", << pipeline.parameters.GHA_Meta >>]
     jobs:
       - build
               
   modules-coverage:
     when: 
-      equal: [ "modules_coverage", << pipeline.parameters.gha_meta >>]
+      equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs: 
       - coverage
   # add this to give green ci when nothing is ran
@@ -37,7 +37,7 @@ workflows:
 
   build-commit-deploy:
     when:
-      equal: ["build_commit_deploy", << pipeline.parameters.gha_meta >>]
+      equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
     jobs: 
       - build
       - deploy:
