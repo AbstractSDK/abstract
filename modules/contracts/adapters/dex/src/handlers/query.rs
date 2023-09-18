@@ -41,7 +41,10 @@ pub fn query_handler(
                         adapter.proxy_address(deps)?,
                     )?;
                     let (messages, _) = crate::adapter::DexAdapter::resolve_dex_action(
-                        adapter, deps, action, exchange.as_ref(),
+                        adapter,
+                        deps,
+                        action,
+                        exchange.as_ref(),
                     )?;
                     to_binary(&GenerateMessagesResponse { messages }).map_err(Into::into)
                 }

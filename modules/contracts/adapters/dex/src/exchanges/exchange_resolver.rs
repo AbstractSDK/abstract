@@ -6,17 +6,17 @@ use cosmwasm_std::Addr;
 use cosmwasm_std::Env;
 
 #[cfg(feature = "terra")]
+use super::terraswap::TERRASWAP;
+#[cfg(feature = "juno")]
+use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
+#[cfg(feature = "terra")]
 use abstract_astroport_adapter::ASTROPORT;
 #[cfg(feature = "kujira")]
 use abstract_kujira_adapter::KUJIRA;
-#[cfg(feature = "juno")]
-use crate::exchanges::junoswap::{JunoSwap, JUNOSWAP};
 #[cfg(feature = "osmosis")]
 use abstract_osmosis_adapter::{dex::Osmosis, OSMOSIS};
 #[cfg(feature = "juno")]
 use abstract_wyndex_adapter::{dex::WynDex, WYNDEX};
-#[cfg(feature = "terra")]
-use super::terraswap::TERRASWAP;
 
 // use abst
 

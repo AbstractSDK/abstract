@@ -31,6 +31,4 @@ osmosis-std = { version = "=0.19.1", optional = true }
 
 [dev-dependencies]
 abstract-osmosis-adapter = { path = ".", features = ["full_integration"] }
-cw-orch = { version = "0.16.2", features = [
-  "osmosis-test-tube",
-] }
+cw-orch = { version = "0.16.2", features = ["osmosis-test-tube"] }
