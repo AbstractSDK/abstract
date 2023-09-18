@@ -1,4 +1,7 @@
 #![warn(missing_docs)]
+//! # DCA App
+//!
+//! `abstract::cw-staking`
 
 use abstract_core::objects::{AssetEntry, DexName, PoolReference};
 use abstract_dex_adapter::msg::OfferAsset;
@@ -106,6 +109,7 @@ pub enum DCAExecuteMsg {
     },
 }
 
+/// DCA query messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
@@ -116,10 +120,14 @@ pub enum DCAQueryMsg {
     Config {},
     /// Get DCA Entry
     #[returns(DCAResponse)]
-    DCA { dca_id: DCAId },
+    DCA {
+        /// Id of the DCA
+        dca_id: DCAId,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Response for config query
 pub struct ConfigResponse {
     /// Native gas/stake asset that used for attaching to croncat task
     pub native_asset: AssetEntry,
@@ -134,6 +142,7 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Response for d_c_a query
 pub struct DCAResponse {
     /// DCA entry if there is any by this DCA Id
     pub dca: Option<DCAEntry>,
