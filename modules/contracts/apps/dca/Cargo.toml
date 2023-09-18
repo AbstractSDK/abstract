@@ -61,8 +61,20 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
-
+cw-multi-test = { workspace = true }
+# Croncat intefraces
+croncat-sdk-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+# Croncat contracts
+croncat-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+
+
 wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
@@ -70,3 +82,7 @@ abstract-dex-adapter = { workspace = true, features = [
   "testing",
 ] }
 croncat-app = { workspace = true, features = ["interface"] }
+
+# Testing cw20
+cw20-base = "0.16.0"
+cw20 = "0.16.0"

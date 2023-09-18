@@ -44,9 +44,8 @@ use cw_multi_test::Executor;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
-
 use crate::common::contracts::TasksResponseCaster;
+use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
 const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
@@ -115,6 +114,7 @@ fn setup_croncat_contracts(
         msg: to_binary(&msg).unwrap(),
         contract_name: MANAGER_NAME.to_owned(),
     };
+
     app.execute_contract(
         sender.clone(),
         factory_addr.clone(),
