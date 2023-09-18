@@ -39,7 +39,7 @@ workflows:
     when:
       equal: ["build_commit_deploy", << pipeline.parameters.GHA_Meta >>]
     jobs: 
-      # - build
+      - build
       - deploy
           # requires:
           #   - build
