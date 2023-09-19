@@ -138,7 +138,7 @@ impl<'a, T: Execution> Executor<'a, T> {
 }
 
 /// CosmosMsg from the executor methods
-#[must_use = "Pass it to the response"]
+#[must_use = "Pass it to the Response::add_message"]
 #[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq, Eq))]
 pub struct UnusedExecutorMsg(CosmosMsg);
 
