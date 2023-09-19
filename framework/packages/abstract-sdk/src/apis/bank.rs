@@ -231,7 +231,7 @@ mod test {
     mod transfer_coins {
         use abstract_core::proxy::ExecuteMsg;
 
-        use crate::{Execution, Executor};
+        use crate::{Execution, Executor, UnusedExecutorMsg};
 
         use super::*;
 
@@ -247,7 +247,7 @@ mod test {
             let bank_transfer: AccountAction = bank.transfer(coins.clone(), &recipient).unwrap();
 
             let executor: Executor<'_, MockModule> = app.executor(deps.as_ref());
-            let account_message: CosmosMsg = executor.execute(vec![bank_transfer]).unwrap();
+            let account_message: UnusedExecutorMsg = executor.execute(vec![bank_transfer]).unwrap();
             let response: Response = Response::new().add_message(account_message);
             // ANCHOR_END: transfer
 

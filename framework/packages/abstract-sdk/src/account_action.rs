@@ -5,6 +5,7 @@ use cosmwasm_std::CosmosMsg;
 ///
 /// If required you can create an AccountAction from a CosmosMsg using `AccountAction::from(msg)`.
 #[derive(Debug, PartialEq, Clone, Default)]
+#[must_use = "Pass AccountAction to the Executor"]
 pub struct AccountAction(Vec<CosmosMsg>);
 
 impl AccountAction {

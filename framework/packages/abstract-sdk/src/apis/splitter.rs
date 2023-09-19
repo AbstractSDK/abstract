@@ -59,6 +59,7 @@ mod test {
 
     use crate::{
         apis::splitter::SplitterInterface, mock_module::MockModule, AbstractSdkError, Execution,
+        UnusedExecutorMsg,
     };
 
     fn split() -> Result<Response, AbstractSdkError> {
@@ -79,7 +80,7 @@ mod test {
         let split_funds = module.splitter(deps.as_ref()).split(asset, &receivers)?;
         assert_eq!(split_funds.messages().len(), 3);
 
-        let msg: CosmosMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
+        let msg: UnusedExecutorMsg = module.executor(deps.as_ref()).execute(vec![split_funds])?;
 
         Ok(Response::new().add_message(msg))
         // ANCHOR_END: usage
