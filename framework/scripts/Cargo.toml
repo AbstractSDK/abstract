@@ -15,7 +15,9 @@ cw-asset = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
 cw20-base = { workspace = true }
-cw-orch = { package="cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", features = ["daemon"] }
+cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", features = [
+  "daemon",
+] }
 abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true, features = ["daemon"] }
