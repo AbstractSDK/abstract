@@ -1,4 +1,5 @@
 use abstract_interface::Abstract;
+use abstract_interface_scripts::abstract_ibc::abstract_ibc_connection_with;
 use anyhow::Result as AnyResult;
 
 use cw_orch::deploy::Deploy;
@@ -31,7 +32,7 @@ pub fn ibc_abstract_setup<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     ))?;
 
     // Create the connection between client and host
-    abstr_1.ibc_connection_with(rt, interchain, &abstr_2, &polytone_connection)?;
+    abstract_ibc_connection_with(&abstr_1, rt, interchain, &abstr_2, &polytone_connection)?;
 
     Ok((abstr_1, abstr_2))
 }

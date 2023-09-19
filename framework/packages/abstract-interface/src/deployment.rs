@@ -6,19 +6,12 @@ use crate::{
     Proxy, VersionControl,
 };
 use abstract_core::account_factory::ExecuteMsgFns as _;
-use abstract_core::ibc_client::{ExecuteMsgFns as _, QueryMsgFns};
-use abstract_core::ibc_host::ExecuteMsgFns;
-use abstract_core::objects::chain_name::ChainName;
 use abstract_core::{
     ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
     VERSION_CONTROL,
 };
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
-use cw_orch_interchain_core::channel::IbcQueryHandler;
-use cw_orch_interchain_core::{InterchainEnv, InterchainError};
-use cw_orch_polytone::PolytoneConnection;
-use tokio::runtime::Runtime;
 
 pub struct IbcAbstract<Chain: CwEnv> {
     pub client: IbcClient<Chain>,
@@ -262,45 +255,5 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 module_factory::contract::CONTRACT_VERSION.to_string(),
             ),
         ]
-    }
-}
-
-/// This is only used for testing and shouldn't be used in production
-impl<Chain: IbcQueryHandler> Abstract<Chain> {
-    pub fn ibc_connection_with<IBC: InterchainEnv<Chain>>(
-        &self,
-        rt: &Runtime,
-        interchain: &IBC,
-        dest: &Abstract<Chain>,
-        polytone: &PolytoneConnection<Chain>,
-    ) -> Result<(), InterchainError> {
-        // First we register client and host respectively
-        let chain1_id = self.ibc.client.get_chain().chain_id();
-        let chain1_name = ChainName::from_chain_id(&chain1_id);
-
-        let chain2_id = dest.ibc.client.get_chain().chain_id();
-        let chain2_name = ChainName::from_chain_id(&chain2_id);
-
-        // First, we register the host with the client.
-        // We register the polytone note with it because they are linked
-        // This triggers an IBC message that is used to get back the proxy address
-        let proxy_tx_result = self.ibc.client.register_chain_host(
-            chain2_name.to_string(),
-            dest.ibc.host.address()?.to_string(),
-            polytone.source.note.address()?.to_string(),
-        )?;
-        // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
-        rt.block_on(interchain.wait_ibc(&chain1_id, proxy_tx_result))
-            .unwrap();
-
-        // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
-        let proxy_address = self.ibc.client.host(chain2_name.to_string())?;
-
-        dest.ibc.host.register_chain_proxy(
-            chain1_name.to_string(),
-            proxy_address.remote_polytone_proxy.unwrap(),
-        )?;
-
-        Ok(())
     }
 }

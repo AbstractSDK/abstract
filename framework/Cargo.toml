@@ -56,7 +56,6 @@ cw-semver = { version = "1.0" }
 # cw-orch = { version = "0.16.1" }
 cw-orch = { version = "0.16.3" }
 tokio = { version = "1.4", features = ["full"] }
-cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
 polytone = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
 polytone-note = { git = "https://github.com/AbstractSDK/polytone", version = "1.0.0" }
 

@@ -11,3 +11,6 @@ migrate = "run-script migrate"
 
 [net]
 git-fetch-with-cli = true
+
+[registries.abstract-money]
+index = "ssh://git@ssh.shipyard.rs/abstract-money/crate-index.git"
