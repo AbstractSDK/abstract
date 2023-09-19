@@ -138,7 +138,7 @@ impl<'a, T: TransferInterface> Bank<'a, T> {
             .map(|asset| asset.transfer_msg(recipient.clone()))
             .collect::<Result<Vec<_>, _>>()
             .map_err(Into::into)
-            .map(|msgs| DepositMsgs(msgs))
+            .map(DepositMsgs)
     }
 
     /// Withdraw funds from the Account to this contract.
