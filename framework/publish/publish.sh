@@ -7,6 +7,26 @@ function print_usage() {
   echo "Publishes crates to crates.io."
 }
 
+publish_crate() {
+  # Run the cargo publish command, capturing both stdout and stderr
+  # Check if the command was successful
+  if output=$(cargo publish 2>&1); then
+    echo "Successfully published crate. 🎉"
+  else
+    # Check for the specific error message
+    if [[ $output == *"crate version"*"is already uploaded"* ]]; then
+      echo "Crate version is already uploaded 😱. Proceeding..."
+    else
+      echo "Failed to publish crate. Exiting. 😵"
+      echo "Error: $output"
+      return 1
+    fi
+  fi
+
+  # Indicate success
+  return 0
+}
+
 if [ $# = 1 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ] ; }
 then
     print_usage
@@ -23,7 +43,7 @@ NATIVE_CONTRACTS="ans-host account-factory module-factory version-control"
    (
      cd "packages/$pack"
      echo "Publishing base $pack"
-     cargo publish
+    publish_crate
    )
  done
 
@@ -31,7 +51,7 @@ for pack in $UTILS_PACKAGES; do
   (
     cd "packages/$pack"
     echo "Publishing util $pack"
-    cargo publish
+    publish_crate
   )
 done
 
@@ -39,7 +59,7 @@ for con in $CORE_CONTRACTS; do
   (
     cd "contracts/account/$con"
     echo "Publishing account base $con"
-    cargo publish --allow-dirty
+    publish_crate
   )
 done
 
@@ -47,8 +67,20 @@ for con in $NATIVE_CONTRACTS; do
   (
     cd "contracts/native/$con"
     echo "Publishing native $con"
-    cargo publish --allow-dirty
+    publish_crate
   )
 done
 
 echo "All the contracts are published!"
+
+# Now all the packages and standards
+
+PACKAGES="abstract-interface abstract-adapter abstract-app abstract-ibc-host"
+
+for pack in $PACKAGES; do
+  (
+    cd "packages/$pack"
+    echo "Publishing $pack"
+    publish_crate
+  )
+done
