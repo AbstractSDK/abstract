@@ -12,5 +12,4 @@ After deploying the contracts you can proceed with publishing the rest of the co
 
 - You have all the latest addresses and code-ids in the `state.json` file located in the `abstract-interface` folder.
 
-You can then trigger the release by executing `./publish/contracts.sh`.
-
+You can then trigger the release by executing `./publish/publish.sh`.
