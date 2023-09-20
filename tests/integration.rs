@@ -1,8 +1,5 @@
-use abstract_core::{
-    app::BaseInstantiateMsg,
-    objects::{gov_type::GovernanceDetails, AccountId},
-};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse},
@@ -24,7 +21,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = AppInterface::new(APP_ID, mock.clone());
+    let app = AppInterface::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
