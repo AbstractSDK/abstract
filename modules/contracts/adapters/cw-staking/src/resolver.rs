@@ -34,7 +34,7 @@ pub(crate) fn resolve_local_provider(
     name: &str,
 ) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
-        #[cfg(feature = "juno")]
+        #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }

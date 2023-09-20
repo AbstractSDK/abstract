@@ -36,20 +36,31 @@ interface = [
   "export",
   "abstract-staking-adapter-traits/interface",
 ]
-juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
-osmosis = ["abstract-osmosis-adapter/full_integration"]
-terra = ["abstract-astroport-adapter/full_integration"]
-neutron = ["abstract-astroport-adapter/full_integration"]
-kujira = ["abstract-kujira-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
-testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
+testing = ["abstract-wyndex-adapter/local"]
+cw-orch = ["dep:cw-orch"]
+# Remove after optimizer toolchain bumps to 1.71.0
 # Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed! 
 # TODO: Remove
-cw-orch = ["dep:cw-orch"]                    # Remove after optimizer toolchain bumps to 1.71.0
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
+# Supported Dexes
+wynd = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
+osmosis = ["abstract-osmosis-adapter/full_integration"]
+astroport = ["abstract-astroport-adapter/full_integration"]
+kujira = ["abstract-kujira-adapter/full_integration"]
+
+# Builds
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira", "neutron"]
+builds = [
+  { name = "juno", features = ["wynd"] },
+  { name = "terra", features = ["astroport"] },
+  { name = "neutron", features = ["astroport"] },
+  { name = "osmosis", features = ["osmosis"] },
+  { name = "kujira", features = ["bow"] },
+  {name = "injective", features = ["astroport"]},
+  { name = "sei", features = ["astroport"] },
+]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
