@@ -61,19 +61,19 @@ pub struct Executor<'a, T: Execution> {
 
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
-    fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<UnusedExecutorMsg> {
+    fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
         let msg = wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::ModuleActionWithData { msg },
             vec![],
         )?
         .into();
-        Ok(UnusedExecutorMsg(msg))
+        Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<UnusedExecutorMsg> {
+    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
         let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
         let msg: CosmosMsg = wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
@@ -81,7 +81,7 @@ impl<'a, T: Execution> Executor<'a, T> {
             vec![],
         )?
         .into();
-        Ok(UnusedExecutorMsg(msg))
+        Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
@@ -138,12 +138,12 @@ impl<'a, T: Execution> Executor<'a, T> {
 }
 
 /// CosmosMsg from the executor methods
-#[must_use = "Pass it to the Response::add_message"]
+#[must_use = "ExecutorMsg should be provided to Response::add_message"]
 #[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq, Eq))]
-pub struct UnusedExecutorMsg(CosmosMsg);
+pub struct ExecutorMsg(CosmosMsg);
 
-impl From<UnusedExecutorMsg> for CosmosMsg {
-    fn from(val: UnusedExecutorMsg) -> Self {
+impl From<ExecutorMsg> for CosmosMsg {
+    fn from(val: ExecutorMsg) -> Self {
         val.0
     }
 }
@@ -184,7 +184,7 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let expected = UnusedExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
+            let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
@@ -207,7 +207,7 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let expected = UnusedExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
+            let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
