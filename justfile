@@ -36,6 +36,21 @@ watch:
 check:
   cargo check --all-features
 
+juno-local:
+  docker kill juno_node_1 || true
+  docker volume rm -f junod_data || true
+  docker run --rm -d \
+    --name juno_node_1 \
+    -p 1317:1317 \
+    -p 26656:26656 \
+    -p 26657:26657 \
+    -p 9090:9090 \
+    -e STAKE_TOKEN=ujunox \
+    -e UNSAFE_CORS=true \
+    --mount type=volume,source=junod_data,target=/root \
+    ghcr.io/cosmoscontracts/juno:15.0.0 \
+    ./setup_and_run.sh juno16g2rahf5846rxzp3fwlswy08fz8ccuwk03k57y # You can add used sender addresses here
+
 wasm:
   #!/usr/bin/env bash
 
