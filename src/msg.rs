@@ -17,6 +17,7 @@ pub enum AppExecuteMsg {
     UpdateConfig {},
 }
 
+/// App query messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
