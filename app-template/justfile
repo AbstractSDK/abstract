@@ -53,19 +53,11 @@ wasm:
   docker run --rm -v "$(pwd)":/code \
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-    ${image}:0.12.13
+    ${image}:0.14.0
 
 # Generate the schemas for the app contract
 schema:
   cargo schema
-
-# Generate the typescript client for the app contract
-ts-codegen: schema
-  (cd typescript && npm run codegen)
-
-# Publish the typescript sdk
-ts-publish: ts-codegen
-  (cd typescript && npm publish --access public)
 
 # Generate the schemas for this app and publish them to the schemas repository for access in the Abstract frontend
 publish-schemas namespace name version: schema
