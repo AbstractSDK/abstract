@@ -53,13 +53,27 @@ kujira = ["abstract-kujira-adapter/full_integration"]
 # Builds
 [package.metadata.optimizer]
 builds = [
-  { name = "juno", features = ["wynd"] },
-  { name = "terra", features = ["astroport"] },
-  { name = "neutron", features = ["astroport"] },
-  { name = "osmosis", features = ["osmosis"] },
-  { name = "kujira", features = ["bow"] },
-  {name = "injective", features = ["astroport"]},
-  { name = "sei", features = ["astroport"] },
+  { name = "juno", features = [
+    "wynd",
+  ] },
+  { name = "terra", features = [
+    "astroport",
+  ] },
+  { name = "neutron", features = [
+    "astroport",
+  ] },
+  { name = "osmosis", features = [
+    "osmosis",
+  ] },
+  { name = "kujira", features = [
+    "bow",
+  ] },
+  { name = "injective", features = [
+    "astroport",
+  ] },
+  { name = "sei", features = [
+    "astroport",
+  ] },
 ]
 
 [dependencies]
