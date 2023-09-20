@@ -62,10 +62,17 @@ jobs:
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
+            # Check for changes
             git add framework/artifacts --force
             git add modules/artifacts --force
-            git commit -m 'Update WASM artifacts [skip ci]'
-            git push origin $CIRCLE_BRANCH
+            if git diff-index --quiet HEAD --; then
+              # No changes
+              echo "No changes to commit"
+            else
+              # Changes detected
+              git commit -m 'Update WASM artifacts [skip ci]'
+              git push origin $CIRCLE_BRANCH
+            fi
 
   deploy:
     docker:
