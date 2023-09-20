@@ -88,6 +88,14 @@ jobs:
             git add framework/scripts --force
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
+      - run:
+          name: Commit and push state file
+          command: |
+            git config --global user.name 'CircleCI'
+            git config --global user.email 'circleci@example.com'
+            git add ~/.cw-orchestrator/state.json --force
+            git commit -m 'Update deploy deploy file [skip ci]'
+            git push origin $CIRCLE_BRANCH
 
 
 
