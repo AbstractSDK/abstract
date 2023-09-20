@@ -5,6 +5,8 @@ install-tools:
   cargo install cargo-watch
   cargo install cargo-limit
 
+## Development Helpers ##
+
 # Build everything
 build:
   cargo build --all-features
@@ -33,9 +35,6 @@ watch:
 
 check:
   cargo check --all-features
-
-deploy:
-  cargo run --example deploy --features
 
 wasm:
   #!/usr/bin/env bash
@@ -100,3 +99,20 @@ publish-schemas namespace name version: schema
 
   # Create a pull request using 'gh' CLI tool
   gh pr create --title 'Add schemas for {{namespace}} {{name}} {{version}}' --body ""
+
+## Exection commands ##
+
+run-script script +CHAINS:
+  cargo run --example {{script}} -- --network-ids {{CHAINS}}
+
+deploy +CHAINS:
+  just run-script deploy {{CHAINS}}
+
+create-account +CHAINS:
+  just run-script create-account {{CHAINS}}
+
+claim-namespace +CHAINS:
+  just run-script claim-namespace {{CHAINS}}
+
+install-module +CHAINS:
+  just run-script install-module {{CHAINS}}

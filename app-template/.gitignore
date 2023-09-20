@@ -8,3 +8,5 @@ Cargo.lock
 .idea
 
 typescript/node_modules
+
+state_local.json
