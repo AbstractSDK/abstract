@@ -104,8 +104,6 @@ jobs:
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
 
-
-
   coverage:
     docker:
       - image: cimg/rust:1.72.0
