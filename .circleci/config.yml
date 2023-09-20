@@ -65,14 +65,8 @@ jobs:
             # Check for changes
             git add framework/artifacts --force
             git add modules/artifacts --force
-            if git diff-index --quiet HEAD --; then
-              # No changes
-              echo "No changes to commit"
-            else
-              # Changes detected
-              git commit -m 'Update WASM artifacts [skip ci]'
-              git push origin $CIRCLE_BRANCH
-            fi
+            git commit -m 'Update WASM binaries [skip ci]'  
+            fir push origin $CIRCLE_BRANCH
 
   deploy:
     docker:
