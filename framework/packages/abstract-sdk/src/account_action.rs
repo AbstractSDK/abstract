@@ -1,7 +1,7 @@
 use cosmwasm_std::CosmosMsg;
 
 /// Encapsulates an action on the account.
-/// When a method returns an AccountAction, this means this message needs to be dispatched to the account using the [`crate::Execution`] api.
+/// When a method returns an AccountAction, this means this message needs to be dispatched to the account using the [`Execution`](crate::Execution) api.
 ///
 /// If required you can create an AccountAction from a CosmosMsg using `AccountAction::from(msg)`.
 #[derive(Debug, PartialEq, Clone, Default)]
