@@ -59,3 +59,4 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { version = "0.16.3", features = ["daemon"] }
+clap = { version = "4.3.7", features = ["derive"] }

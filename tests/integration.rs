@@ -5,7 +5,7 @@ use abstract_core::{
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use app::{
     contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
 // Use prelude to get all the necessary imports
@@ -42,24 +42,11 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
         .version_control
         .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
-    contract.deploy(APP_VERSION.parse()?)?;
+    app.deploy(APP_VERSION.parse()?)?;
 
-    account.install_module(
-        APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-                version_control_address: abstr_deployment.version_control.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(app.clone(), &AppInstantiateMsg {}, None)?;
 
-    let modules = account.manager.module_infos(None, None)?;
-    contract.set_address(&modules.module_infos[1].address);
-
-    Ok((account, abstr_deployment, contract))
+    Ok((account, abstr_deployment, app))
 }
 
 #[test]
