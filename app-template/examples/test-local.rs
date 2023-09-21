@@ -1,4 +1,5 @@
 //! Deploys Abstract and the App module to a local Junod instance. See how to spin up a local chain here: https://docs.junonetwork.io/developer-guides/junod-local-dev-setup
+//! You can also start a juno container by running `just juno-local`.
 //!
 //! Ensure the local juno is running before executing this script.
 //!
