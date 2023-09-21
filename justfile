@@ -5,6 +5,8 @@ install-tools:
   cargo install cargo-watch
   cargo install cargo-limit
 
+## Development Helpers ##
+
 # Build everything
 build:
   cargo build --all-features
@@ -34,8 +36,20 @@ watch:
 check:
   cargo check --all-features
 
-deploy:
-  cargo run --example deploy --features
+juno-local:
+  docker kill juno_node_1 || true
+  docker volume rm -f junod_data || true
+  docker run --rm -d \
+    --name juno_node_1 \
+    -p 1317:1317 \
+    -p 26656:26656 \
+    -p 26657:26657 \
+    -p 9090:9090 \
+    -e STAKE_TOKEN=ujunox \
+    -e UNSAFE_CORS=true \
+    --mount type=volume,source=junod_data,target=/root \
+    ghcr.io/cosmoscontracts/juno:15.0.0 \
+    ./setup_and_run.sh juno16g2rahf5846rxzp3fwlswy08fz8ccuwk03k57y # You can add used sender addresses here
 
 wasm:
   #!/usr/bin/env bash
@@ -53,19 +67,11 @@ wasm:
   docker run --rm -v "$(pwd)":/code \
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-    ${image}:0.12.13
+    ${image}:0.14.0
 
 # Generate the schemas for the app contract
 schema:
   cargo schema
-
-# Generate the typescript client for the app contract
-ts-codegen: schema
-  (cd typescript && npm run codegen)
-
-# Publish the typescript sdk
-ts-publish: ts-codegen
-  (cd typescript && npm publish --access public)
 
 # Generate the schemas for this app and publish them to the schemas repository for access in the Abstract frontend
 publish-schemas namespace name version: schema
@@ -108,3 +114,20 @@ publish-schemas namespace name version: schema
 
   # Create a pull request using 'gh' CLI tool
   gh pr create --title 'Add schemas for {{namespace}} {{name}} {{version}}' --body ""
+
+## Exection commands ##
+
+run-script script +CHAINS:
+  cargo run --example {{script}} -- --network-ids {{CHAINS}}
+
+deploy +CHAINS:
+  just run-script deploy {{CHAINS}}
+
+create-account +CHAINS:
+  just run-script create-account {{CHAINS}}
+
+claim-namespace +CHAINS:
+  just run-script claim-namespace {{CHAINS}}
+
+install-module +CHAINS:
+  just run-script install-module {{CHAINS}}
