@@ -54,7 +54,7 @@ You can see the full list of tasks available by running `just --list`.
 You can test the module using the different provided methods.
 
 1. **Integration testing:** We provide an integration testing setup [here](./tests/integration.rs). You should use this to set up your environment and test the different execution and query entry-points of your module. Once you are satisfied with the results you can try deploying it to a real chain. 
-2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. At this point you can also test your front-end with the contracts.
+2. **Local Daemon:** Once you have confirmed that your module works as expected you can spin up a local node and deploy Abstract + your app onto the chain. You can do this by running the [test-local](./examples/test-local.rs) example, which uses a locally running juno daemon to deploy to. You can setup local juno using `just juno-local` command. At this point you can also test your front-end with the contracts.
 
 Once testing is done you can attempt an actual deployment on test and mainnet.
 

@@ -36,6 +36,21 @@ watch:
 check:
   cargo check --all-features
 
+juno-local:
+  docker kill juno_node_1 || true
+  docker volume rm -f junod_data || true
+  docker run --rm -d \
+    --name juno_node_1 \
+    -p 1317:1317 \
+    -p 26656:26656 \
+    -p 26657:26657 \
+    -p 9090:9090 \
+    -e STAKE_TOKEN=ujunox \
+    -e UNSAFE_CORS=true \
+    --mount type=volume,source=junod_data,target=/root \
+    ghcr.io/cosmoscontracts/juno:15.0.0 \
+    ./setup_and_run.sh juno16g2rahf5846rxzp3fwlswy08fz8ccuwk03k57y # You can add used sender addresses here
+
 wasm:
   #!/usr/bin/env bash
 
@@ -52,21 +67,11 @@ wasm:
   docker run --rm -v "$(pwd)":/code \
     --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-    ${image}:0.12.13
-
-## Schema commands ##
+    ${image}:0.14.0
 
 # Generate the schemas for the app contract
 schema:
   cargo schema
-
-# Generate the typescript client for the app contract
-ts-codegen: schema
-  (cd typescript && npm run codegen)
-
-# Publish the typescript sdk
-ts-publish: ts-codegen
-  (cd typescript && npm publish --access public)
 
 # Generate the schemas for this app and publish them to the schemas repository for access in the Abstract frontend
 publish-schemas namespace name version: schema
@@ -85,6 +90,7 @@ publish-schemas namespace name version: schema
 
   tmp_dir="$(mktemp -d)"
   schema_out_dir="$tmp_dir/{{namespace}}/{{name}}/{{version}}"
+  metadata_out_dir="$tmp_dir/{{namespace}}/{{name}}"
 
   # Clone the repository to the temporary directory
   git clone https://github.com/AbstractSDK/schemas "$tmp_dir"
@@ -94,7 +100,7 @@ publish-schemas namespace name version: schema
   cp -a "./schema/." "$schema_out_dir"
 
   # Copy metadata.json to the target directory
-  cp "./metadata.json" "$schema_out_dir"
+  cp "./metadata.json" "$metadata_out_dir"
 
   # Create a new branch with a name based on the inputs
   cd "$tmp_dir"

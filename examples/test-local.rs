@@ -6,18 +6,17 @@
 //!
 //! `cargo run --example test-local`
 
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
+use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::{Abstract, AppDeployer, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
     msg::AppInstantiateMsg,
     AppInterface,
 };
-use cosmwasm_std::Empty;
 use cw_orch::{
     anyhow,
     deploy::Deploy,
-    prelude::{networks::LOCAL_JUNO, ContractInstance, Daemon, TxHandler},
+    prelude::{networks::LOCAL_JUNO, Daemon, TxHandler},
     tokio::runtime::Runtime,
 };
 use semver::Version;
@@ -39,7 +38,7 @@ fn main() -> anyhow::Result<()> {
         .build()
         .unwrap();
     // Deploy abstract locally
-    let abstract_deployment = Abstract::deploy_on(daemon.clone(), Empty {})?;
+    let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().to_string())?;
 
     let app = AppInterface::new(APP_ID, daemon.clone());
 
@@ -59,16 +58,7 @@ fn main() -> anyhow::Result<()> {
     app.deploy(version)?;
 
     // Install app
-    account.install_module(
-        APP_ID,
-        &app::msg::InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstract_deployment.ans_host.addr_str()?,
-            },
-            module: AppInstantiateMsg {},
-        },
-        None,
-    )?;
+    account.install_app(app, &AppInstantiateMsg {}, None)?;
 
     assert_that!(account.manager.is_module_installed(APP_ID).unwrap()).is_true();
     Ok(())

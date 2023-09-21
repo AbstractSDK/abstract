@@ -1,4 +1,4 @@
-use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 use app::{
     contract::{APP_ID, APP_VERSION},
@@ -24,7 +24,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
     let app = AppInterface::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock, Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(mock, sender.to_string())?;
 
     // Create a new account to install the app onto
     let account =
@@ -37,7 +37,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, AppInterfac
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
-        .claim_namespace(1, "my-namespace".to_string())?;
+        .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
     app.deploy(APP_VERSION.parse()?)?;
 
