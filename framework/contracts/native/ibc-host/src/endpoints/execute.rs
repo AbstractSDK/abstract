@@ -10,7 +10,7 @@ use abstract_core::{
     objects::chain_name::ChainName,
     proxy::state::ADMIN,
 };
-use abstract_sdk::core::ibc_host::ExecuteMsg;
+use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
 use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo};
 
 use super::packet::handle_host_action;
@@ -56,7 +56,11 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             account_id,
             client_chain,
         } => {
-            ensure_eq!(env.contract.address, info.sender, HostError::Unauthorized);
+            ensure_eq!(
+                env.contract.address,
+                info.sender,
+                HostError::Unauthorized {}
+            );
 
             let name = format!(
                 "Remote Abstract Account for {}/{}",
@@ -87,7 +91,8 @@ fn update_config(
 
     if let Some(version_control_address) = version_control_address {
         // validate address format
-        config.version_control = deps.api.addr_validate(&version_control_address)?;
+        config.version_control =
+            VersionControlContract::new(deps.api.addr_validate(&version_control_address)?);
     }
 
     if let Some(account_factory_address) = account_factory_address {
@@ -112,7 +117,7 @@ fn register_chain_proxy(
     let proxy = deps.api.addr_validate(&proxy)?;
     // Can't register if it already exists
     if CHAIN_PROXYS.has(deps.storage, &chain) || REVERSE_CHAIN_PROXYS.has(deps.storage, &proxy) {
-        return Err(HostError::ProxyAddressExists);
+        return Err(HostError::ProxyAddressExists {});
     }
 
     CHAIN_PROXYS.save(deps.storage, &chain, &proxy)?;

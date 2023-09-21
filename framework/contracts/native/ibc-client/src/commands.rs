@@ -7,7 +7,7 @@ use crate::{
 use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::{
-        state::{POLYTONE_NOTE, REMOTE_HOST, REVERSE_POLYTONE_NOTE},
+        state::{IbcCounterpart, IBC_COUNTERPART, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     ibc_host, manager,
@@ -49,7 +49,8 @@ pub fn execute_update_config(
         };
     }
     if let Some(version_control) = new_version_control {
-        cfg.version_control = deps.api.addr_validate(&version_control)?;
+        cfg.version_control =
+            VersionControlContract::new(deps.api.addr_validate(&version_control)?);
         // New version control address implies new accounts.
         clear_accounts(deps.storage);
     }
@@ -73,16 +74,22 @@ pub fn execute_allow_chain_host(
 
     let note = deps.api.addr_validate(&note)?;
     // Can't allow if it already exists
-    if POLYTONE_NOTE.has(deps.storage, &host_chain)
+    if IBC_COUNTERPART.has(deps.storage, &host_chain)
         || REVERSE_POLYTONE_NOTE.has(deps.storage, &note)
-        || REMOTE_HOST.has(deps.storage, &host_chain)
     {
-        return Err(IbcClientError::HostAddressExists);
+        return Err(IbcClientError::HostAddressExists {});
     }
 
-    POLYTONE_NOTE.save(deps.storage, &host_chain, &note)?;
+    IBC_COUNTERPART.save(
+        deps.storage,
+        &host_chain,
+        &IbcCounterpart {
+            polytone_note: note.clone(),
+            remote_abstract_host: host,
+            remote_proxy: None,
+        },
+    )?;
     REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &host_chain)?;
-    REMOTE_HOST.save(deps.storage, &host_chain, &host)?;
 
     // When allowing a new chain host, we need to also get the proxy address of that host.
     // We do so by calling an empty message on the polytone note. This will come back in form of a execute by callback
@@ -113,11 +120,10 @@ pub fn execute_remove_host(
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    if let Some(note) = POLYTONE_NOTE.may_load(deps.storage, &host_chain)? {
-        REVERSE_POLYTONE_NOTE.remove(deps.storage, &note);
+    if let Some(ibc_counterpart) = IBC_COUNTERPART.may_load(deps.storage, &host_chain)? {
+        REVERSE_POLYTONE_NOTE.remove(deps.storage, &ibc_counterpart.polytone_note);
     }
-    POLYTONE_NOTE.remove(deps.storage, &host_chain);
-    REMOTE_HOST.remove(deps.storage, &host_chain);
+    IBC_COUNTERPART.remove(deps.storage, &host_chain);
 
     Ok(IbcClientResponse::action("remove_host"))
 }
@@ -132,8 +138,9 @@ fn send_remote_host_action(
     callback_request: Option<CallbackRequest>,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let note_contract = POLYTONE_NOTE.load(deps.storage, &host_chain)?;
-    let remote_ibc_host = REMOTE_HOST.load(deps.storage, &host_chain)?;
+    let ibc_counterpart = IBC_COUNTERPART.load(deps.storage, &host_chain)?;
+    let note_contract = ibc_counterpart.polytone_note;
+    let remote_ibc_host = ibc_counterpart.remote_abstract_host;
 
     let note_message = wasm_execute(
         note_contract.to_string(),
@@ -165,7 +172,9 @@ fn send_remote_host_query(
     callback_request: CallbackRequest,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let note_contract = POLYTONE_NOTE.load(deps.storage, &host_chain)?;
+    let note_contract = IBC_COUNTERPART
+        .load(deps.storage, &host_chain)?
+        .polytone_note;
 
     let note_message = wasm_execute(
         note_contract.to_string(),
@@ -191,10 +200,10 @@ pub fn execute_send_packet(
     let host_chain = ChainName::from_str(&host_chain)?;
 
     let cfg = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(cfg.version_control);
 
     // Verify that the sender is a proxy contract
-    let account_base = version_control
+    let account_base = cfg
+        .version_control
         .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
@@ -252,10 +261,10 @@ pub fn execute_register_account(
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
-    let version_control = VersionControlContract::new(cfg.version_control);
 
     // Verify that the sender is a proxy contract
-    let account_base = version_control
+    let account_base = cfg
+        .version_control
         .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
@@ -296,9 +305,9 @@ pub fn execute_send_funds(
     let cfg = CONFIG.load(deps.storage)?;
     let mem = cfg.ans_host;
     // Verify that the sender is a proxy contract
-    let version_control = VersionControlContract::new(cfg.version_control);
 
-    let account_base = version_control
+    let account_base = cfg
+        .version_control
         .account_registry(deps.as_ref())
         .assert_proxy(&info.sender)?;
 
@@ -440,7 +449,7 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
             let cfg = Config {
-                version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+                version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
                 ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
             };
             CONFIG.save(deps.as_mut().storage, &cfg)?;
@@ -477,7 +486,8 @@ mod test {
             assert_that!(res.messages).is_empty();
 
             let cfg = CONFIG.load(deps.as_ref().storage)?;
-            assert_that!(cfg.version_control).is_equal_to(Addr::unchecked(new_version_control));
+            assert_that!(cfg.version_control.address)
+                .is_equal_to(Addr::unchecked(new_version_control));
 
             Ok(())
         }
@@ -524,10 +534,14 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            REMOTE_HOST.save(
+            IBC_COUNTERPART.save(
                 deps.as_mut().storage,
                 &ChainName::from_str(TEST_CHAIN)?,
-                &"test_remote_host".into(),
+                &IbcCounterpart {
+                    polytone_note: Addr::unchecked("note"),
+                    remote_abstract_host: "test_remote_host".into(),
+                    remote_proxy: None,
+                },
             )?;
 
             let msg = ExecuteMsg::RemoveHost {
@@ -537,7 +551,7 @@ mod test {
             let res = execute_as_admin(deps.as_mut(), msg)?;
             assert_that!(res.messages).is_empty();
 
-            assert_that!(REMOTE_HOST.is_empty(&deps.storage)).is_true();
+            assert_that!(IBC_COUNTERPART.is_empty(&deps.storage)).is_true();
 
             Ok(())
         }

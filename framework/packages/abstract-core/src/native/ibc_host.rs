@@ -17,7 +17,7 @@ use cosmwasm_std::{Addr, CosmosMsg};
 pub mod state {
     use cw_storage_plus::{Item, Map};
 
-    use crate::objects::ans_host::AnsHost;
+    use crate::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 
     use super::*;
 
@@ -38,7 +38,7 @@ pub mod state {
         /// Address of the account factory, used to create remote accounts
         pub account_factory: Addr,
         /// Address of the local version control, for retrieving account information
-        pub version_control: Addr,
+        pub version_control: VersionControlContract,
     }
 
     #[cosmwasm_schema::cw_serde]
@@ -141,7 +141,10 @@ pub enum QueryMsg {
     #[returns(ConfigResponse)]
     Config {},
     #[returns(RegisteredChainsResponse)]
-    RegisteredChains {},
+    RegisteredChains {
+        start: Option<String>,
+        limit: Option<u32>,
+    },
     #[returns(RegisteredChainResponse)]
     AssociatedClient { chain: String },
 }

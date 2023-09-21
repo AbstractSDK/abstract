@@ -8,14 +8,17 @@ use abstract_core::{
     objects::chain_name::ChainName,
 };
 use abstract_sdk::core::ibc_host::QueryMsg;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env};
+use cw_storage_plus::Bound;
 
-use crate::contract::HostResult;
+use crate::{contract::HostResult, HostError};
 
 pub fn query(deps: Deps, _env: Env, query: QueryMsg) -> HostResult<Binary> {
     match query {
         QueryMsg::Config {} => to_binary(&dapp_config(deps)?),
-        QueryMsg::RegisteredChains {} => to_binary(&registered_chains(deps)?),
+        QueryMsg::RegisteredChains { start, limit } => {
+            to_binary(&registered_chains(deps, start, limit)?)
+        }
         QueryMsg::AssociatedClient { chain } => to_binary(&associated_client(deps, chain)?),
     }
     .map_err(Into::into)
@@ -25,18 +28,25 @@ fn dapp_config(deps: Deps) -> HostResult<ConfigResponse> {
     Ok(ConfigResponse {
         ans_host_address: state.ans_host.address,
         account_factory_address: state.account_factory,
-        version_control_address: state.version_control,
+        version_control_address: state.version_control.address,
     })
 }
 
 // Potentiel TODO : should we use pagination here ?
-fn registered_chains(deps: Deps) -> HostResult<RegisteredChainsResponse> {
-    let chains = CHAIN_PROXYS
-        .range(deps.storage, None, None, Order::Ascending)
-        .collect::<StdResult<Vec<_>>>()?
-        .into_iter()
-        .map(|(name, proxy)| (name, proxy.to_string()))
-        .collect();
+fn registered_chains(
+    deps: Deps,
+    start: Option<String>,
+    limit: Option<u32>,
+) -> HostResult<RegisteredChainsResponse> {
+    let start = start.map(ChainName::from_string).transpose()?;
+
+    let chains = cw_paginate::paginate_map(
+        &CHAIN_PROXYS,
+        deps.storage,
+        start.as_ref().map(Bound::exclusive),
+        limit,
+        |name, proxy| Ok::<_, HostError>((name, proxy.to_string())),
+    )?;
 
     Ok(RegisteredChainsResponse { chains })
 }

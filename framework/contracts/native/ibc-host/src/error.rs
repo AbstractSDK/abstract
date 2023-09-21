@@ -28,26 +28,14 @@ pub enum HostError {
     #[error("Semver parsing error: {0}")]
     SemVer(String),
 
-    #[error("Invalid reply id")]
-    InvalidReplyId,
-
-    #[error("A valid proxy address must be provided.")]
-    MissingProxyAddress,
-
-    #[error("Missing target proxy to send messages to.")]
-    NoTarget,
-
-    #[error("Remote account can not be created from a Local trace")]
-    LocalTrace,
-
     #[error("Expected port {0} got {1} instead.")]
     ClientMismatch(String, String),
 
     #[error("Chain or proxy address already registered.")]
-    ProxyAddressExists,
+    ProxyAddressExists {},
 
     #[error("Unauthorized action")]
-    Unauthorized,
+    Unauthorized {},
 }
 
 impl From<semver::Error> for HostError {

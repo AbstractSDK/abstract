@@ -16,7 +16,7 @@ use cosmwasm_schema::QueryResponses;
 pub type ProviderName = String;
 
 /// The callback id for staking over ibc
-pub const IBC_STAKING_PROVIDER_ID: &str = "IBC_staking_action";
+pub const IBC_STAKING_PROVIDER_ID: &str = "IBC_STAKING_ACTION";
 
 pub type ExecuteMsg = adapter::ExecuteMsg<StakingExecuteMsg>;
 pub type InstantiateMsg = adapter::InstantiateMsg<Empty>;

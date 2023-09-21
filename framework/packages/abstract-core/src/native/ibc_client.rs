@@ -7,11 +7,13 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Coin, Empty, QueryRequest};
 use polytone::callbacks::CallbackMessage;
 
+use self::state::IbcCounterpart;
+
 pub mod state {
 
     use crate::objects::{
         account::AccountId, ans_host::AnsHost, chain_name::ChainName,
-        common_namespace::ADMIN_NAMESPACE,
+        common_namespace::ADMIN_NAMESPACE, version_control::VersionControlContract,
     };
     use cosmwasm_std::Addr;
     use cw_controllers::Admin;
@@ -19,21 +21,25 @@ pub mod state {
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub version_control: Addr,
+        pub version_control: VersionControlContract,
         pub ans_host: AnsHost,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 
-    // Saves the local note deployed contract
+    #[cosmwasm_schema::cw_serde]
+    pub struct IbcCounterpart {
+        pub polytone_note: Addr,
+        pub remote_abstract_host: String,
+        // Saves the remote polytone proxy addreses corresponding to that contract
+        // This is used for executing message on the host
+        pub remote_proxy: Option<String>,
+    }
+
+    // Saves the local note deployed contract and the remote abstract host connected
     // This allows sending cross-chain messages
-    pub const POLYTONE_NOTE: Map<&ChainName, Addr> = Map::new("polytone_note");
+    pub const IBC_COUNTERPART: Map<&ChainName, IbcCounterpart> = Map::new("ibc_counterparts");
     pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("reverse-polytone_note");
-    // Saves the remote ibc host addresses
-    pub const REMOTE_HOST: Map<&ChainName, String> = Map::new("abstract-ibc-hosts");
-    // Saves the remote polytone proxy addreses corresponding to that contract
-    // This is used for executing message on the host
-    pub const REMOTE_PROXY: Map<&ChainName, String> = Map::new("abstract-ibc-client-proxy");
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
@@ -149,6 +155,9 @@ pub enum QueryMsg {
     // get the IBC execution proxys
     #[returns(ListRemoteProxysResponse)]
     ListRemoteProxys {},
+    // get the IBC counterparts connected to this abstract client
+    #[returns(ListIbcCounterpartResponse)]
+    ListIbcCounterparts {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -168,12 +177,17 @@ pub struct ListRemoteHostsResponse {
 }
 #[cosmwasm_schema::cw_serde]
 pub struct ListRemoteProxysResponse {
-    pub proxys: Vec<(ChainName, String)>,
+    pub proxys: Vec<(ChainName, Option<String>)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ListIbcCounterpartResponse {
+    pub counterparts: Vec<(ChainName, IbcCounterpart)>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct HostResponse {
-    pub remote_host: Option<String>,
+    pub remote_host: String,
     pub remote_polytone_proxy: Option<String>,
 }
 #[cosmwasm_schema::cw_serde]

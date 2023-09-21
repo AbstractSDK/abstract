@@ -34,6 +34,7 @@ abstract-core = { workspace = true }
 semver = { workspace = true }
 abstract-macros = { workspace = true }
 cw-orch = { workspace = true, optional = true }
+cw-paginate = "0.2.1"
 
 [dev-dependencies]
 abstract-interface = { workspace = true }

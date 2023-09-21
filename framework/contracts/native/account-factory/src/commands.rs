@@ -58,7 +58,9 @@ pub fn execute_create_account(
     // Else get the next account id and set the origin to local.
     let account_id = if let Some(account_id) = account_id {
         // if the account_id is provided, assert that the caller is the ibc host
-        let ibc_host = config.ibc_host.ok_or(AccountFactoryError::IbcHostNotSet)?;
+        let ibc_host = config
+            .ibc_host
+            .ok_or(AccountFactoryError::IbcHostNotSet {})?;
         ensure_eq!(
             info.sender,
             ibc_host,

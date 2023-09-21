@@ -5,7 +5,7 @@ use crate::{
 use abstract_core::{
     ibc::IbcResponseMsg,
     ibc_client::{
-        state::{REMOTE_PROXY, REVERSE_POLYTONE_NOTE},
+        state::{IBC_COUNTERPART, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
 };
@@ -35,26 +35,34 @@ pub fn receive_action_callback(
 
     let callback_msg: IbcClientCallback = from_binary(&callback.initiator_msg)?;
 
-    let msg = match callback_msg {
+    match callback_msg {
         IbcClientCallback::WhoAmI {} => {
             // This response is used to store the Counterparty proxy address (this is used to whitelist the address on the host side)
             if let Callback::Execute(Ok(response)) = &callback.result {
-                REMOTE_PROXY.save(deps.storage, &host_chain, &response.executed_by)?;
+                IBC_COUNTERPART.update(deps.storage, &host_chain, |c| match c {
+                    None => Err(IbcClientError::UnregisteredChain(host_chain.to_string())),
+                    Some(mut counterpart) => {
+                        counterpart.remote_proxy = Some(response.executed_by.clone());
+                        Ok(counterpart)
+                    }
+                })?;
             } else {
                 return Err(IbcClientError::IbcFailed(callback));
             }
-            None
+            Ok(IbcClientResponse::action("register_remote_proxy")
+                .add_attribute("chain", host_chain.to_string()))
         }
         IbcClientCallback::CreateAccount { account_id } => {
             // We need to get the address of the remote proxy from the account creation response
             if let Callback::Execute(Ok(response)) = &callback.result {
                 let account_creation_result = response.result[0].clone();
 
-                let remote_proxy_address = account_creation_result
+                let wasm_event = account_creation_result
                     .events
                     .into_iter()
                     .find(|e| e.ty == "wasm")
-                    .ok_or(IbcClientError::IbcFailed(callback.clone()))?
+                    .ok_or(IbcClientError::IbcFailed(callback.clone()))?;
+                let remote_proxy_address = wasm_event
                     .attributes
                     .into_iter()
                     // We need to skip until we get to the actual account creation part
@@ -72,18 +80,23 @@ pub fn receive_action_callback(
             } else {
                 return Err(IbcClientError::IbcFailed(callback));
             }
-            None
+            Ok(
+                IbcClientResponse::action("acknowledge_remote_account_registration")
+                    .add_attribute("account_id", account_id.to_string())
+                    .add_attribute("chain", host_chain.to_string()),
+            )
         }
         IbcClientCallback::UserRemoteAction(callback_info) => {
             // Here we transfer the callback back to the module that requested it
             let callback = IbcResponseMsg {
-                id: callback_info.id,
+                id: callback_info.id.clone(),
                 msg: callback_info.msg,
                 result: callback.result,
             };
-            Some(callback.into_cosmos_account_msg(callback_info.receiver))
+            Ok(IbcClientResponse::action("user_specific_callback")
+                .add_message(callback.into_cosmos_account_msg(callback_info.receiver)?)
+                .add_attribute("chain", host_chain.to_string())
+                .add_attribute("callback_id", callback_info.id))
         }
     }
-    .transpose()?;
-    Ok(IbcClientResponse::action("acknowledge_register").add_messages(msg))
 }

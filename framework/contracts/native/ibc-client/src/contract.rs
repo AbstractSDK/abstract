@@ -10,6 +10,7 @@ use abstract_core::{
     IBC_CLIENT,
 };
 use abstract_macros::abstract_response;
+use abstract_sdk::feature_objects::VersionControlContract;
 use cosmwasm_std::{to_binary, Deps, DepsMut, Env, MessageInfo, QueryResponse, Response};
 use cw_semver::Version;
 
@@ -36,7 +37,9 @@ pub fn instantiate(
         None::<String>,
     )?;
     let cfg = Config {
-        version_control: deps.api.addr_validate(&msg.version_control_address)?,
+        version_control: VersionControlContract::new(
+            deps.api.addr_validate(&msg.version_control_address)?,
+        ),
         ans_host: AnsHost {
             address: deps.api.addr_validate(&msg.ans_host_address)?,
         },
@@ -102,6 +105,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         }
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
         QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
+        QueryMsg::ListIbcCounterparts {} => to_binary(&queries::list_ibc_counterparts(deps)?),
     }
     .map_err(Into::into)
 }
@@ -144,7 +148,7 @@ mod tests {
 
         // config
         let expected_config = Config {
-            version_control: Addr::unchecked(TEST_VERSION_CONTROL),
+            version_control: VersionControlContract::new(Addr::unchecked(TEST_VERSION_CONTROL)),
             ans_host: AnsHost::new(Addr::unchecked(TEST_ANS_HOST)),
         };
 

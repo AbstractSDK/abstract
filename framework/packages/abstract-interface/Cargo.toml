@@ -31,8 +31,6 @@ speculoos = { workspace = true }
 cosmrs = "0.14.0"
 polytone = { workspace = true }
 
-tonic = "0.9.2"
-
 # Keep these here
 module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.18.0" }
 account-factory = { package = "abstract-account-factory", path = "../../contracts/native/account-factory", default-features = false, version = "0.18.0" }

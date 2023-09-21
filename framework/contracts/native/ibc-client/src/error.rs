@@ -41,5 +41,5 @@ pub enum IbcClientError {
     IbcFailed(CallbackMessage),
 
     #[error("Chain or host address already registered.")]
-    HostAddressExists,
+    HostAddressExists {},
 }
