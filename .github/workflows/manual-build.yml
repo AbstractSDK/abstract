@@ -1,0 +1,26 @@
+
+name: Manual CircleCI Wasm Builder
+
+# Job that updates the wasms of the mono-repo only if it is triggered manually.
+
+on:
+  workflow_dispatch: # Trigger manually on any branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tickle CircleCI
+        env:
+          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+        run: |
+          curl -X POST \
+          -H "Circle-Token: ${CCI_TOKEN}" \
+          -H 'Content-Type: application/json' \
+          -H 'Accept: application/json' \
+          -d '{
+          "branch": "${{ github.ref }}",
+          "parameters": {
+            "GHA_Meta": "build_wasms"
+          }
+          }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
