@@ -61,25 +61,27 @@ pub struct Executor<'a, T: Execution> {
 
 impl<'a, T: Execution> Executor<'a, T> {
     /// Execute a single message on the `ModuleActionWithData` endpoint.
-    fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<CosmosMsg> {
-        Ok(wasm_execute(
+    fn execute_with_data(&self, msg: CosmosMsg) -> AbstractSdkResult<ExecutorMsg> {
+        let msg = wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::ModuleActionWithData { msg },
             vec![],
         )?
-        .into())
+        .into();
+        Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
     /// These messages will be executed on the proxy contract and the sending module must be whitelisted.
-    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<CosmosMsg> {
+    pub fn execute(&self, actions: Vec<AccountAction>) -> AbstractSdkResult<ExecutorMsg> {
         let msgs = actions.into_iter().flat_map(|a| a.messages()).collect();
-        Ok(wasm_execute(
+        let msg: CosmosMsg = wasm_execute(
             self.base.proxy_address(self.deps)?.to_string(),
             &ExecuteMsg::ModuleAction { msgs },
             vec![],
         )?
-        .into())
+        .into();
+        Ok(ExecutorMsg(msg))
     }
 
     /// Execute the msgs on the Account.
@@ -94,7 +96,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         let msg = self.execute(actions)?;
         let sub_msg = SubMsg {
             id,
-            msg,
+            msg: msg.into(),
             gas_limit: None,
             reply_on,
         };
@@ -113,7 +115,7 @@ impl<'a, T: Execution> Executor<'a, T> {
         let msg = self.execute_with_data(actions)?;
         let sub_msg = SubMsg {
             id,
-            msg,
+            msg: msg.into(),
             gas_limit: None,
             reply_on,
         };
@@ -132,6 +134,17 @@ impl<'a, T: Execution> Executor<'a, T> {
         let resp = Response::default();
 
         Ok(with_abstract_event!(resp, self.base.module_id(), action).add_message(msg))
+    }
+}
+
+/// CosmosMsg from the executor methods
+#[must_use = "ExecutorMsg should be provided to Response::add_message"]
+#[cfg_attr(not(target_arch = "wasm32"), derive(Debug, PartialEq, Eq))]
+pub struct ExecutorMsg(CosmosMsg);
+
+impl From<ExecutorMsg> for CosmosMsg {
+    fn from(val: ExecutorMsg) -> Self {
+        val.0
     }
 }
 
@@ -171,14 +184,14 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let expected = CosmosMsg::Wasm(WasmMsg::Execute {
+            let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
                 })
                 .unwrap(),
                 funds: vec![],
-            });
+            }));
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
 
@@ -194,7 +207,7 @@ mod test {
             let actual_res = executor.execute(messages.clone());
             assert_that!(actual_res).is_ok();
 
-            let expected = CosmosMsg::Wasm(WasmMsg::Execute {
+            let expected = ExecutorMsg(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: TEST_PROXY.to_string(),
                 msg: to_binary(&ExecuteMsg::ModuleAction {
                     msgs: flatten_actions(messages),
@@ -202,7 +215,7 @@ mod test {
                 .unwrap(),
                 // funds should be empty
                 funds: vec![],
-            });
+            }));
             assert_that!(actual_res.unwrap()).is_equal_to(expected);
         }
     }
