@@ -15,6 +15,6 @@ fn successful_wasm() {
 
     // Construct the counter interface
     let contract = AppInterface::new(APP_ID, mock);
-
+    // Panics if no path to a .wasm file is found
     contract.wasm();
 }

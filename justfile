@@ -12,7 +12,7 @@ pull repo:
 
 # Push the local repo to a specific branch
 push repo branch:
-    git subtree pull --prefix={{repo}} {{repo}} {{branch}}
+    git subtree push --prefix={{repo}} {{repo}} {{branch}}
 
 # Run a cargo command in all the workspace repos
 cargo-all *command:
