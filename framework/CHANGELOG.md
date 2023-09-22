@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
 - Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
 - Removed the `CustomSwap` option on the dex adapter.
+- Stake methods on cw-staking adapter now accept list, allowing users to do multi-stake/unstake/etc.
+- Added must_use attribute on abstract sdk methods
 
 ### Fixed
 

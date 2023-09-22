@@ -41,29 +41,37 @@ pub struct StakingExecuteMsg {
 pub enum StakingAction {
     /// Stakes/bonds a given token
     Stake {
-        /// The ANS-resolvable asset information of the asset to stake.
-        asset: AnsAsset,
+        /// The ANS-resolvable asset information of the assets to stake.
+        assets: Vec<AnsAsset>,
         /// The unbonding period for the specified stake.
         unbonding_period: Option<Duration>,
     },
     /// Unstake/unbond a given token
     Unstake {
-        /// The ANS-resolvable asset information of the asset to unstake.
-        asset: AnsAsset,
+        /// The ANS-resolvable asset information of the assets to unstake.
+        assets: Vec<AnsAsset>,
         /// The unbonding period for the specified stake.
         unbonding_period: Option<Duration>,
     },
-    /// Claim rewards for a given token
     ClaimRewards {
         /// Staking asset to claim rewards for.
         asset: AssetEntry,
     },
-
+    
     /// Claim matured unbonding tokens
     Claim {
         /// Unbonded staking asset to claim.
         asset: AssetEntry,
     },
+    /// Claim rewards for a set of staked assets.
+    ClaimRewards { 
+        /// Staked assets to claim rewards for.
+        assets: Vec<AssetEntry> },
+
+    /// Claim matured unbonding tokens
+    Claim { 
+        /// Unbonded staking assets to claim.
+        assets: Vec<AssetEntry> },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -77,8 +85,8 @@ pub enum StakingQueryMsg {
     Info {
         /// Name of the provider
         provider: ProviderName,
-        /// The staking token to query
-        staking_token: AssetEntry,
+        /// The staking tokens to query
+        staking_tokens: Vec<AssetEntry>,
     },
     /// Get the staked amount for a given provider, staking token, staker address and unbonding period
     #[returns(StakeResponse)]
@@ -86,7 +94,7 @@ pub enum StakingQueryMsg {
         /// Name of the provider
         provider: ProviderName,
         /// The staking token to query
-        staking_token: AssetEntry,
+        stakes: Vec<AssetEntry>,
         /// The address of the staker (contract or user)
         staker_address: String,
         /// The unbonding period for the specified staked position.
@@ -97,8 +105,8 @@ pub enum StakingQueryMsg {
     Unbonding {
         /// Name of the provider
         provider: ProviderName,
-        /// The staking token to query
-        staking_token: AssetEntry,
+        /// The staking tokens to query
+        staking_tokens: Vec<AssetEntry>,
         /// The address of the staker (contract or user)
         staker_address: String,
     },
@@ -107,8 +115,8 @@ pub enum StakingQueryMsg {
     RewardTokens {
         /// Name of the provider
         provider: ProviderName,
-        /// The staking token to query
-        staking_token: AssetEntry,
+        /// The staking tokens to query
+        staking_tokens: Vec<AssetEntry>,
     },
 }
 
@@ -164,6 +172,11 @@ impl From<Addr> for StakingTarget {
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfoResponse {
     /// Contract or pool id to stake to
+    pub infos: Vec<StakingInfo>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct StakingInfo {
     pub staking_target: StakingTarget,
     /// Staking token
     pub staking_token: AssetInfo,
@@ -176,22 +189,22 @@ pub struct StakingInfoResponse {
 /// Response for the staked query
 #[cosmwasm_schema::cw_serde]
 pub struct StakeResponse {
-    /// Amount of staked tokens
-    pub amount: Uint128,
+    /// Amount of staked tokens, per token provided in query
+    pub amounts: Vec<Uint128>,
 }
 
 /// Response for the rewards query
 #[cosmwasm_schema::cw_serde]
 pub struct RewardTokensResponse {
-    /// List of reward tokens
-    pub tokens: Vec<AssetInfo>,
+    /// List of reward tokens, per token provided in query
+    pub tokens: Vec<Vec<AssetInfo>>,
 }
 
 /// Response for the unbonding query
 #[cosmwasm_schema::cw_serde]
 pub struct UnbondingResponse {
-    /// List of unbonding entries
-    pub claims: Vec<Claim>,
+    /// List of unbonding entries, per token provided in query
+    pub claims: Vec<Vec<Claim>>,
 }
 
 /// A claim for a given amount of tokens that are unbonding.

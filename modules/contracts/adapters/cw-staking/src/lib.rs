@@ -77,7 +77,7 @@ pub mod interface {
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Stake {
-                        asset: stake_asset,
+                        assets: vec![stake_asset],
                         unbonding_period: duration,
                     },
                 },
@@ -98,7 +98,7 @@ pub mod interface {
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Unstake {
-                        asset: stake_asset,
+                        assets: vec![stake_asset],
                         unbonding_period: duration,
                     },
                 },
@@ -117,7 +117,9 @@ pub mod interface {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
-                    action: StakingAction::Claim { asset: stake_asset },
+                    action: StakingAction::Claim {
+                        assets: vec![stake_asset],
+                    },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_msg)?;
@@ -134,7 +136,9 @@ pub mod interface {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
-                    action: StakingAction::ClaimRewards { asset: stake_asset },
+                    action: StakingAction::ClaimRewards {
+                        assets: vec![stake_asset],
+                    },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;
