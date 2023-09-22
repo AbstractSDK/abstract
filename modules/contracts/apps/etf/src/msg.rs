@@ -68,9 +68,15 @@ pub struct EtfInstantiateMsg {
 pub enum EtfExecuteMsg {
     /// Deposit asset into the ETF
     #[cfg_attr(feature = "interface", payable)]
-    Deposit { asset: AssetUnchecked },
+    Deposit {
+        /// Asset to deposit
+        asset: AssetUnchecked,
+    },
     /// Set the withdraw fee
-    SetFee { fee: Decimal },
+    SetFee {
+        /// New fee
+        fee: Decimal,
+    },
 }
 
 /// Query Msg
@@ -85,14 +91,20 @@ pub enum EtfQueryMsg {
     State {},
 }
 
+/// Hook when sending CW20 tokens
 #[cosmwasm_schema::cw_serde]
 pub enum Cw20HookMsg {
+    /// Hook for depositing assets
     Deposit {},
+    /// Hook for claiming assets for your LP tokens
     Claim {},
 }
 
+/// State query response
 #[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
+    /// Address of the LP token
     pub share_token_address: Addr,
+    /// Fee charged on withdrawal
     pub fee: Decimal,
 }
