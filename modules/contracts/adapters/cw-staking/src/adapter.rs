@@ -1,8 +1,8 @@
-use abstract_staking_adapter_traits::msg::StakingAction;
-use abstract_staking_adapter_traits::CwStakingError;
+use abstract_staking_standard::msg::StakingAction;
+use abstract_staking_standard::CwStakingError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 
-use abstract_staking_adapter_traits::CwStakingCommand;
+use abstract_staking_standard::CwStakingCommand;
 
 use abstract_sdk::{
     core::objects::AssetEntry,

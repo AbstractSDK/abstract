@@ -1,5 +1,5 @@
 [package]
-name = "abstract-staking-adapter-traits"
+name = "abstract-staking-standard"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }

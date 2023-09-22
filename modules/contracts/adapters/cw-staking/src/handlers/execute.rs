@@ -5,7 +5,7 @@ use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
-use abstract_staking_adapter_traits::msg::{
+use abstract_staking_standard::msg::{
     ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
 };
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};

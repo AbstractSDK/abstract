@@ -7,7 +7,7 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
-use abstract_staking_adapter_traits::msg::StakingInfo;
+use abstract_staking_standard::msg::StakingInfo;
 use cw20::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 
@@ -16,7 +16,7 @@ use cw_orch::deploy::Deploy;
 
 use abstract_core::adapter::BaseQueryMsgFns;
 
-use abstract_staking_adapter_traits::msg::{
+use abstract_staking_standard::msg::{
     Claim, RewardTokensResponse, StakingInfoResponse, UnbondingResponse,
 };
 use cosmwasm_std::{coin, Addr, Empty, Uint128};

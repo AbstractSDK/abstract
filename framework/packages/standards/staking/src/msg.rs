@@ -53,25 +53,16 @@ pub enum StakingAction {
         /// The unbonding period for the specified stake.
         unbonding_period: Option<Duration>,
     },
+    /// Claim rewards for a set of staked assets.
     ClaimRewards {
-        /// Staking asset to claim rewards for.
-        asset: AssetEntry,
+        /// Staked assets to claim rewards for.
+        assets: Vec<AssetEntry>,
     },
-    
     /// Claim matured unbonding tokens
     Claim {
-        /// Unbonded staking asset to claim.
-        asset: AssetEntry,
-    },
-    /// Claim rewards for a set of staked assets.
-    ClaimRewards { 
-        /// Staked assets to claim rewards for.
-        assets: Vec<AssetEntry> },
-
-    /// Claim matured unbonding tokens
-    Claim { 
         /// Unbonded staking assets to claim.
-        assets: Vec<AssetEntry> },
+        assets: Vec<AssetEntry>,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -175,8 +166,10 @@ pub struct StakingInfoResponse {
     pub infos: Vec<StakingInfo>,
 }
 
+/// Info for a stakeable token
 #[cosmwasm_schema::cw_serde]
 pub struct StakingInfo {
+    /// Address or pool id to stake to
     pub staking_target: StakingTarget,
     /// Staking token
     pub staking_token: AssetInfo,

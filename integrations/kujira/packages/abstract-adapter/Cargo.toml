@@ -14,7 +14,7 @@ full_integration = ["dep:kujira", "dep:cw20", "dep:cw-asset", "dep:cw-utils"]
 [dependencies]
 cosmwasm-std = { version = "1.1.2", features = ["stargate"] }
 abstract-core = { version = "0.18.0", path = "../../../../framework/packages/abstract-core" }
-abstract-staking-adapter-traits = { version = "0.18.0", path = "../../../../framework/packages/standards/staking" }
+abstract-staking-standard = { version = "0.18.0", path = "../../../../framework/packages/standards/staking" }
 abstract-dex-standard = { version = "0.18.0", path = "../../../../framework/packages/standards/dex" }
 kujira = { version = "0.8.2", optional = true }
 

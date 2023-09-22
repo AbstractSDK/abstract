@@ -81,7 +81,7 @@ abstract-ica = { version = "0.18.0", path = "packages/abstract-ica" }
 
 abstract-adapter-utils = { version = "0.18.0", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
-abstract-staking-adapter-traits = { path = "packages/standards/staking" }
+abstract-staking-standard = { path = "packages/standards/staking" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
