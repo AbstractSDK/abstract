@@ -68,7 +68,7 @@ env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
 lazy_static = "1.4.0"
 
-croncat-integration-testing = { version = "1.1.1" }
+croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
 wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
