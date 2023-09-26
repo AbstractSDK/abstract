@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Query on module factory to see how much funds needs to be attached for installing modules.
 - Version control on instantiation to the Apps alongside with registry traits.
 - Instantiation funds added to module configuration, allowing modules to perform external setup calls.
+- An `adapter_msg_types` similar to `app_msg_types`. This can be used to easily define the top-level entrypoint messages.
 
 ### Changed
 
@@ -23,7 +24,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Install modules replaced install module method on module factory to reduce gas consumption for multi-install cases.
 - Modified the account id structure. Each account is now identified with a unique ID and a trace. This is a requirement for Abstract IBC.
 - Register Module(and Add Module) will now accept list of items, which reduces gas for multi-module install
+- Removed the `CustomSwap` option on the dex adapter.
 - Stake methods on cw-staking adapter now accept list, allowing users to do multi-stake/unstake/etc.
+- Added must_use attribute on abstract sdk methods
+- Renamed `abstract-(dex/staking)-adapter-traits` to `abstract-(dex/staking)-standard`
 
 ### Fixed
 

@@ -1,6 +1,6 @@
 use crate::AVAILABLE_CHAINS;
 use crate::KUJIRA;
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 
 // Source https://docs.rs/kujira/0.8.2/kujira/
 #[derive(Default)]
@@ -18,7 +18,7 @@ impl Identify for Kujira {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::{
+    abstract_dex_standard::{
         coins_in_assets, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::cw_helpers::wasm_smart_query,
@@ -324,7 +324,7 @@ pub fn decimal2decimal256(dec_value: Decimal) -> StdResult<Decimal256> {
 
 #[cfg(test)]
 mod tests {
-    use abstract_dex_adapter_traits::tests::expect_eq;
+    use abstract_dex_standard::tests::expect_eq;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::Coin;
     use cosmwasm_std::Decimal256;
@@ -338,7 +338,7 @@ mod tests {
 
     use super::decimal2decimal256;
     use super::Kujira;
-    use abstract_dex_adapter_traits::tests::DexCommandTester;
+    use abstract_dex_standard::tests::DexCommandTester;
     use abstract_sdk::core::objects::PoolAddress;
     use cosmwasm_std::coins;
     use cosmwasm_std::Decimal;

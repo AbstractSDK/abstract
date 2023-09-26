@@ -4,13 +4,14 @@ pub mod contract;
 mod exchanges;
 pub(crate) mod handlers;
 pub mod state;
+pub mod msg {
+    pub use abstract_dex_standard::msg::*;
+}
 
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
 //:{Dex, DexInterface};
 pub const EXCHANGE: &str = "abstract:dex";
-
-pub use abstract_dex_adapter_traits::msg;
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
