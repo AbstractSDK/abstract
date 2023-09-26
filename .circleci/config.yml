@@ -94,7 +94,8 @@ jobs:
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
-            git add ~/.cw-orchestrator/state.json --force
+            cp ~/.cw-orchestrator/state.json ./framework/scripts/
+            git add ./framework/scripts/state.json
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
 
