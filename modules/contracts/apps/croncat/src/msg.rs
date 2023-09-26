@@ -1,3 +1,8 @@
+#![warn(missing_docs)]
+//! # CronCat App
+//!
+//! `abstract::croncat`
+
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use croncat_integration_utils::CronCatTaskRequest;

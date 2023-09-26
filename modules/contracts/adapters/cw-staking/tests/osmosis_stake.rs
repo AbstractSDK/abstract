@@ -18,8 +18,8 @@ mod osmosis_test {
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
-    use abstract_staking_adapter_traits::msg::StakingInfo;
-    use abstract_staking_adapter_traits::CwStakingError;
+    use abstract_staking_standard::msg::StakingInfo;
+    use abstract_staking_standard::CwStakingError;
     use cosmwasm_std::coins;
 
     use abstract_cw_staking::msg::{
@@ -29,7 +29,7 @@ mod osmosis_test {
     use abstract_core::objects::{AnsAsset, AssetEntry};
     use cw_orch::deploy::Deploy;
 
-    use abstract_staking_adapter_traits::msg::StakingInfoResponse;
+    use abstract_staking_standard::msg::StakingInfoResponse;
     use cosmwasm_std::{coin, Addr, Empty, Uint128};
     use cw_asset::AssetInfoBase;
     use cw_orch::interface;

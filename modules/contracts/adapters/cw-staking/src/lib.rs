@@ -4,8 +4,11 @@ mod handlers;
 
 mod resolver;
 
-pub use abstract_staking_adapter_traits::msg;
-pub use abstract_staking_adapter_traits::CwStakingCommand;
+pub mod msg {
+    pub use abstract_staking_standard::msg::*;
+}
+
+pub use abstract_staking_standard::CwStakingCommand;
 pub use adapter::CwStakingAdapter;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
@@ -15,7 +18,7 @@ pub mod host_staking {
     pub use abstract_osmosis_adapter::staking::Osmosis;
 }
 
-pub use abstract_staking_adapter_traits::error;
+pub use abstract_staking_standard::error;
 
 #[cfg(feature = "interface")]
 pub mod interface {

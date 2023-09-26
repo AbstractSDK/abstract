@@ -1,3 +1,8 @@
+#![warn(missing_docs)]
+//! # DCA App
+//!
+//! `abstract::cw-staking`
+
 use abstract_core::objects::{AssetEntry, DexName, PoolReference};
 use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
@@ -9,20 +14,11 @@ use crate::{
     state::{DCAEntry, DCAId},
 };
 
-// This is used for type safety
-// The second part is used to indicate the messages are used as the apps messages
-// This is equivalent to
-// pub type InstantiateMsg = <App as abstract_sdk::base::InstantiateEndpoint>::InstantiateMsg;
-// pub type ExecuteMsg = <App as abstract_sdk::base::ExecuteEndpoint>::ExecuteMsg;
-// pub type QueryMsg = <App as abstract_sdk::base::QueryEndpoint>::QueryMsg;
-// pub type MigrateMsg = <App as abstract_sdk::base::MigrateEndpoint>::MigrateMsg;
-
-// impl app::AppExecuteMsg for AppExecuteMsg {}
-// impl app::AppQueryMsg for AppQueryMsg {}
 abstract_app::app_msg_types!(DCAApp, DCAExecuteMsg, DCAQueryMsg);
 
 #[cosmwasm_schema::cw_serde]
 #[non_exhaustive]
+/// The frequency at which swaps are executed.
 pub enum Frequency {
     /// Blocks will schedule the next DCA purchase every `n` blocks.
     EveryNBlocks(u64),
@@ -31,6 +27,7 @@ pub enum Frequency {
 }
 
 impl Frequency {
+    /// Convert `Frequency` to a croncat interval
     pub fn to_interval(self) -> CronCatInterval {
         match self {
             Frequency::EveryNBlocks(blocks) => CronCatInterval::Block(blocks),
@@ -106,9 +103,13 @@ pub enum DCAExecuteMsg {
     },
     /// Internal method for triggering swap.
     /// It can be called only by the Croncat Manager
-    Convert { dca_id: DCAId },
+    Convert {
+        /// Unique identifier for the DCA
+        dca_id: DCAId,
+    },
 }
 
+/// DCA query messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
@@ -119,10 +120,14 @@ pub enum DCAQueryMsg {
     Config {},
     /// Get DCA Entry
     #[returns(DCAResponse)]
-    DCA { dca_id: DCAId },
+    DCA {
+        /// Id of the DCA
+        dca_id: DCAId,
+    },
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Response for config query
 pub struct ConfigResponse {
     /// Native gas/stake asset that used for attaching to croncat task
     pub native_asset: AssetEntry,
@@ -137,6 +142,7 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
+/// Response for d_c_a query
 pub struct DCAResponse {
     /// DCA entry if there is any by this DCA Id
     pub dca: Option<DCAEntry>,

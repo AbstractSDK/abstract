@@ -1,6 +1,6 @@
 use crate::ASTROPORT;
 use crate::AVAILABLE_CHAINS;
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 // Source https://github.com/astroport-fi/astroport-core
 #[derive(Default)]
 pub struct Astroport {}
@@ -16,7 +16,7 @@ impl Identify for Astroport {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_dex_adapter_traits::{
+    abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::core::objects::PoolAddress,
@@ -297,7 +297,7 @@ fn cw_asset_to_astroport(asset: &Asset) -> Result<astroport::asset::Asset, DexEr
 
 #[cfg(test)]
 mod tests {
-    use abstract_dex_adapter_traits::tests::expect_eq;
+    use abstract_dex_standard::tests::expect_eq;
     use cosmwasm_schema::serde::Deserialize;
     use cosmwasm_std::to_binary;
     use cosmwasm_std::Coin;
@@ -309,7 +309,7 @@ mod tests {
     use cw20::Cw20ExecuteMsg;
 
     use super::Astroport;
-    use abstract_dex_adapter_traits::tests::DexCommandTester;
+    use abstract_dex_standard::tests::DexCommandTester;
     use abstract_sdk::core::objects::PoolAddress;
     use cosmwasm_std::coins;
     use cosmwasm_std::Decimal;
