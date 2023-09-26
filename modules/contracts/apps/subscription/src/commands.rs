@@ -10,9 +10,7 @@ use abstract_core::objects::AccountId;
 use abstract_sdk::core::manager::state::ACCOUNT_ID;
 use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::core::objects::common_namespace::ADMIN_NAMESPACE;
-use abstract_sdk::core::version_control::state::ACCOUNT_ADDRESSES;
 use abstract_sdk::core::version_control::AccountBase;
-use abstract_sdk::features::AccountIdentification;
 use abstract_sdk::{AccountVerification, Execution, TransferInterface};
 use cosmwasm_std::{
     from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
@@ -73,7 +71,7 @@ pub fn try_pay(
         ("Received funds:", asset.to_string()),
     ];
 
-    let maybe_subscriber = SUBSCRIBERS.may_load(deps.storage, os_id)?;
+    let maybe_subscriber = SUBSCRIBERS.may_load(deps.storage, &os_id)?;
     // Minimum of one month's worth to (re)-subscribe.
     // prevents un- and re-subscribing all the time.
     let required_payment = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
@@ -81,7 +79,7 @@ pub fn try_pay(
     if let Some(mut active_sub) = maybe_subscriber {
         // Subscriber is active, update balance
         active_sub.expiration_block += paid_for_blocks;
-        SUBSCRIBERS.save(deps.storage, os_id, &active_sub)?;
+        SUBSCRIBERS.save(deps.storage, &os_id, &active_sub)?;
     } else {
         // Subscriber is (re)activating his subscription.
         if asset.amount.u128() < required_payment.u128() {
@@ -90,13 +88,13 @@ pub fn try_pay(
                 deposit_info.to_string(),
             ));
         }
-        let maybe_old_client = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
+        let maybe_old_client = DORMANT_SUBSCRIBERS.may_load(deps.storage, &os_id)?;
         // if old client
         if let Some(mut old_client) = maybe_old_client {
-            DORMANT_SUBSCRIBERS.remove(deps.storage, os_id);
+            DORMANT_SUBSCRIBERS.remove(deps.storage, &os_id);
             old_client.expiration_block = env.block.height + paid_for_blocks;
             old_client.last_emission_claim_block = env.block.height;
-            SUBSCRIBERS.save(deps.storage, os_id, &old_client)?;
+            SUBSCRIBERS.save(deps.storage, &os_id, &old_client)?;
             return Ok(Response::new()
                 .add_attributes(attrs)
                 // Unsuspend subscriber
@@ -120,7 +118,7 @@ pub fn try_pay(
                 last_emission_claim_block: env.block.height,
                 manager_addr,
             };
-            SUBSCRIBERS.save(deps.storage, os_id, &new_sub)?;
+            SUBSCRIBERS.save(deps.storage, &os_id, &new_sub)?;
         }
         let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
         subscription_state.active_subs += 1;
@@ -149,16 +147,16 @@ pub fn unsubscribe(
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut suspend_msgs: Vec<SubMsg> = vec![];
     for os_id in os_ids {
-        let mut subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
+        let mut subscriber = SUBSCRIBERS.load(deps.storage, &os_id)?;
         // contributors have free access
         if CONTRIBUTORS.has(deps.storage, &subscriber.manager_addr) {
             continue;
         }
-        if let Some(mut msg) = expired_sub_msgs(deps.as_ref(), &env, &mut subscriber, os_id, &app)?
+        if let Some(mut msg) = expired_sub_msgs(deps.as_ref(), &env, &mut subscriber, &os_id, &app)?
         {
             subscription_state.active_subs -= 1;
-            SUBSCRIBERS.remove(deps.storage, os_id);
-            DORMANT_SUBSCRIBERS.save(deps.storage, os_id, &subscriber)?;
+            SUBSCRIBERS.remove(deps.storage, &os_id);
+            DORMANT_SUBSCRIBERS.save(deps.storage, &os_id, &subscriber)?;
             suspend_msgs.append(&mut msg);
         }
     }
@@ -189,13 +187,13 @@ pub fn claim_subscriber_emissions(
     app: &SubscriptionApp,
     deps: Deps,
     env: &Env,
-    os_id: AccountId,
+    os_id: &AccountId,
 ) -> SubscriptionResult {
     let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
 
-    let subscriber_proxy_address = app.account_registry(deps).account_base(&os_id)?.proxy;
+    let subscriber_proxy_address = app.account_registry(deps).account_base(os_id)?.proxy;
 
     if subscriber.last_emission_claim_block >= env.block.height {
         return Err(SubscriptionError::EmissionsAlreadyClaimed {});
@@ -258,11 +256,9 @@ pub fn update_contributor_compensation(
     let _config = load_contribution_config(deps.storage)?;
     // Load all needed states
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
-    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let contributor_addr = app
         .account_registry(deps.as_ref())
-        .account_base(&contributor_os_id)
-        .map_err(|e| SubscriptionError::OsNotFound(contributor_os_id))?
+        .account_base(&contributor_os_id)?
         .manager;
 
     let maybe_compensation = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
@@ -306,7 +302,7 @@ pub fn update_contributor_compensation(
             let os_id = ACCOUNT_ID
                 .query(&deps.querier, contributor_addr.clone())
                 .map_err(|_| SubscriptionError::ContributorNotManager)?;
-            let subscriber = SUBSCRIBERS.load(deps.storage, os_id)?;
+            let subscriber = SUBSCRIBERS.load(deps.storage, &os_id)?;
             if subscriber.manager_addr != contributor_addr {
                 return Err(SubscriptionError::ContributorNotManager);
             }
@@ -315,8 +311,8 @@ pub fn update_contributor_compensation(
             subscription_state.active_subs -= 1;
             SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
             // Move to dormant. Prevents them from claiming user emissions
-            SUBSCRIBERS.remove(deps.storage, os_id);
-            DORMANT_SUBSCRIBERS.save(deps.storage, os_id, &subscriber)?;
+            SUBSCRIBERS.remove(deps.storage, &os_id);
+            DORMANT_SUBSCRIBERS.save(deps.storage, &os_id, &subscriber)?;
             state.total_weight += Uint128::from(compensation.weight);
             state.income_target += compensation.base_per_block;
             Compensation {
@@ -344,12 +340,14 @@ pub fn update_contributor_compensation(
 pub fn remove_contributor(
     deps: DepsMut,
     msg_info: MessageInfo,
+    app: SubscriptionApp,
     os_id: AccountId,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let manager_address =
-        get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?.manager;
+    let manager_address = app
+        .account_registry(deps.as_ref())
+        .account_base(&os_id)?
+        .manager;
     remove_contributor_from_storage(deps.storage, manager_address.clone())?;
     // He must re-activate to join active set and earn emissions
     let msg = suspend_os(manager_address.clone(), true)?;
@@ -402,12 +400,11 @@ pub fn try_claim_compensation(
         }
         _ => cached_state.emissions,
     };
-    let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
     let AccountBase {
         manager: contributor_address,
         proxy: contributor_proxy_address,
-    } = get_os_core(&deps.querier, os_id, &sub_config.version_control_address)?;
+    } = app.account_registry(deps.as_ref()).account_base(&os_id)?;
 
     let mut compensation = CONTRIBUTORS.load(deps.storage, &contributor_address)?;
     let twa_data = INCOME_TWA.load(deps.storage)?;
@@ -447,22 +444,24 @@ pub fn try_claim_compensation(
     };
 
     let sub_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-    let base_asset: Asset = Asset::new(sub_config.payment_asset, base_amount);
-    let token_asset: Asset = Asset::new(config.token_info, token_amount * Uint128::from(1u32));
-    let mut msgs = vec![];
+    let mut assets = vec![];
     // Construct msgs
     if !base_amount.is_zero() {
-        msgs.push(base_asset.transfer_msg(contributor_proxy_address.clone())?)
+        let base_asset: Asset = Asset::new(sub_config.payment_asset, base_amount);
+        assets.push(base_asset);
     }
 
     if !token_amount.is_zero() {
-        msgs.push(token_asset.transfer_msg(contributor_proxy_address)?)
+        let token_asset: Asset = Asset::new(config.token_info, token_amount * Uint128::from(1u32));
+        assets.push(token_asset)
     }
-    if msgs.is_empty() {
+    if assets.is_empty() {
         Err(SubscriptionError::NoAssetsToSend)
     } else {
+        let bank = app.bank(deps.as_ref());
+        let transfer_action = bank.transfer(assets, &contributor_proxy_address)?;
         Ok(Response::new()
-            .add_message(app.executor(deps.as_ref()).execute(msgs)?)
+            .add_message(app.executor(deps.as_ref()).execute(vec![transfer_action])?)
             .add_attribute("action", "claim_contribution"))
     }
 }
@@ -530,18 +529,12 @@ pub fn update_subscription_config(
     _env: Env,
     info: MessageInfo,
     payment_asset: Option<AssetInfoUnchecked>,
-    version_control_address: Option<String>,
     factory_address: Option<String>,
     subscription_cost_per_block: Option<Decimal>,
 ) -> SubscriptionResult {
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-
-    if let Some(version_control_address) = version_control_address {
-        // validate address format
-        config.version_control_address = deps.api.addr_validate(&version_control_address)?;
-    }
 
     if let Some(factory_address) = factory_address {
         // validate address format
@@ -616,7 +609,7 @@ fn expired_sub_msgs(
     deps: Deps,
     env: &Env,
     subscriber: &mut Subscriber,
-    os_id: AccountId,
+    os_id: &AccountId,
     app: &SubscriptionApp,
 ) -> Result<Option<Vec<SubMsg>>, SubscriptionError> {
     if subscriber.expiration_block <= env.block.height {

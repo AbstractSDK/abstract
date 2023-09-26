@@ -45,4 +45,7 @@ abstract-interface = { workspace = true, optional = true }
 
 [dev-dependencies]
 cw20 = { workspace = true, features = ["interface"] }
-
+# Deploy
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+clap = { workspace = true }

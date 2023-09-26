@@ -1,5 +1,4 @@
 use abstract_app::AppError;
-use abstract_core::objects::AccountId;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
@@ -83,9 +82,6 @@ pub enum SubscriptionError {
 
     #[error("contributor must be a manager address")]
     ContributorNotManager,
-
-    #[error("no os found with id {0}")]
-    OsNotFound(AccountId),
 
     #[error("You must wait one TWA period before claiming can start")]
     AveragingPeriodNotPassed,

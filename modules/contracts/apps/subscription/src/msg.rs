@@ -97,7 +97,6 @@ pub enum SubscriptionExecuteMsg {
     },
     UpdateSubscriptionConfig {
         payment_asset: Option<AssetInfoUnchecked>,
-        version_control_address: Option<String>,
         factory_address: Option<String>,
         subscription_cost: Option<Decimal>,
     },

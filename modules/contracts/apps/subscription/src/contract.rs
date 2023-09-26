@@ -38,6 +38,9 @@ const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 #[cfg(feature = "export")]
 abstract_app::export_endpoints!(SUBSCRIPTION_MODULE, SubscriptionApp);
 
+#[cfg(feature = "interface")]
+abstract_app::cw_orch_interface!(SUBSCRIPTION_MODULE, SubscriptionApp, SubscriptionApp);
+
 pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
@@ -109,7 +112,7 @@ fn request_handler(
             commands::try_claim_compensation(app, deps, env, os_id)
         }
         SubscriptionExecuteMsg::ClaimEmissions { os_id } => {
-            commands::claim_subscriber_emissions(&app, deps.as_ref(), &env, os_id)
+            commands::claim_subscriber_emissions(&app, deps.as_ref(), &env, &os_id)
         }
         SubscriptionExecuteMsg::UpdateContributor {
             contributor_os_id,
@@ -127,11 +130,10 @@ fn request_handler(
             expiration_block.map(|w| w.u64()),
         ),
         SubscriptionExecuteMsg::RemoveContributor { os_id } => {
-            commands::remove_contributor(deps, info, os_id)
+            commands::remove_contributor(deps, info, app, os_id)
         }
         SubscriptionExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
-            version_control_address,
             factory_address,
             subscription_cost,
         } => commands::update_subscription_config(
@@ -139,7 +141,6 @@ fn request_handler(
             env,
             info,
             payment_asset,
-            version_control_address,
             factory_address,
             subscription_cost,
         ),
@@ -199,8 +200,8 @@ pub fn query_handler(
             })
         }
         SubscriptionQueryMsg::SubscriberState { os_id } => {
-            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, os_id)?;
-            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, os_id)?;
+            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &os_id)?;
+            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, &os_id)?;
             let subscription_state = if let Some(sub) = maybe_sub {
                 to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,
