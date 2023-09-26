@@ -34,7 +34,7 @@ interface = [
   "dep:cw-orch",
   "dep:abstract-interface",
   "export",
-  "abstract-staking-adapter-traits/interface",
+  "abstract-staking-standard/interface",
 ]
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
@@ -70,7 +70,7 @@ abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-staking-adapter-traits = { workspace = true }
+abstract-staking-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Juno dexes #

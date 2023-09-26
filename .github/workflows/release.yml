@@ -1,6 +1,5 @@
 name: Release and Publish 
 
-
 on:
   workflow_dispatch:
   pull_request:
@@ -32,4 +31,3 @@ jobs:
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
           
           echo "CircleCI Response: $RESPONSE"
-

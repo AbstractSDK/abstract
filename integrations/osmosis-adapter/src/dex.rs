@@ -1,5 +1,5 @@
 use crate::{AVAILABLE_CHAINS, OSMOSIS};
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
@@ -19,7 +19,7 @@ impl Identify for Osmosis {
 #[cfg(feature = "full_integration")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     cosmwasm_std::{
         Coin, CosmosMsg, Decimal, Decimal256, Deps, StdError, StdResult, Uint128, Uint256,
     },

@@ -1,7 +1,7 @@
 use crate::ASTROPORT;
 use crate::AVAILABLE_CHAINS;
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Clone, Debug)]
@@ -43,10 +43,10 @@ use ::{
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
-    abstract_staking_adapter_traits::msg::{
+    abstract_staking_standard::msg::{
         RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse, UnbondingResponse,
     },
-    abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError},
+    abstract_staking_standard::{CwStakingCommand, CwStakingError},
     astroport::generator::{
         Config, Cw20HookMsg, ExecuteMsg as GeneratorExecuteMsg, QueryMsg as GeneratorQueryMsg,
         RewardInfoResponse,
@@ -259,7 +259,7 @@ impl CwStakingCommand for Astroport {
     fn query_rewards(
         &self,
         querier: &QuerierWrapper,
-    ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
+    ) -> Result<abstract_staking_standard::msg::RewardTokensResponse, CwStakingError> {
         let tokens = self
             .tokens
             .iter()

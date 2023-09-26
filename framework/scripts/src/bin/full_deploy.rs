@@ -1,3 +1,4 @@
+use reqwest::Url;
 use std::{fs, net::TcpStream, path::Path};
 
 use abstract_core::objects::gov_type::GovernanceDetails;
@@ -63,7 +64,7 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 }
 
 async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
-    let parsed_url = url::Url::parse(url_str)?;
+    let parsed_url = Url::parse(url_str)?;
 
     let host = parsed_url
         .host_str()
