@@ -7,7 +7,9 @@ use cosmwasm_std::{coin, to_binary, Addr, Coin, Decimal, Uint128};
 use cw20::{BalanceResponse, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_orch::prelude::*;
 
-use cw_multi_test::{App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg};
+use cw_orch::mock::cw_multi_test::{
+    App, AppResponse, BankSudo, ContractWrapper, Executor, SudoMsg,
+};
 
 use wyndex::asset::{Asset, AssetInfo, AssetInfoValidated};
 use wyndex::factory::{

@@ -7,7 +7,7 @@ use cw_controllers::AdminError;
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum AppError {
+pub enum DCAError {
     #[error("{0}")]
     Std(#[from] StdError),
 
@@ -28,4 +28,7 @@ pub enum AppError {
 
     #[error("Convert can be called only by the croncat manager")]
     NotManagerConvert {},
+
+    #[error("Native asset should be native")]
+    NotNativeAsset {},
 }

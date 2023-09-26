@@ -18,9 +18,9 @@ impl Identify for JunoSwap {
 #[cfg(feature = "juno")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::DexError,
-    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
-    abstract_dex_adapter_traits::{DexCommand, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::DexError,
+    abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_standard::{DexCommand, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{
         to_binary, wasm_execute, Coin, CosmosMsg, Decimal, Deps, Fraction, Uint128, WasmMsg,

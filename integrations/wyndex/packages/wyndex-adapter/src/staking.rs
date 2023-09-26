@@ -1,7 +1,7 @@
 use crate::AVAILABLE_CHAINS;
 pub use crate::WYNDEX;
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
@@ -33,12 +33,12 @@ use {
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkError, Resolve,
     },
-    abstract_staking_adapter_traits::msg::{
+    abstract_staking_standard::msg::{
         Claim, RewardTokensResponse, StakeResponse, StakingInfo, StakingInfoResponse,
         UnbondingResponse,
     },
-    abstract_staking_adapter_traits::CwStakingCommand,
-    abstract_staking_adapter_traits::CwStakingError,
+    abstract_staking_standard::CwStakingCommand,
+    abstract_staking_standard::CwStakingError,
     cosmwasm_std::{to_binary, CosmosMsg, Deps, QuerierWrapper, StdError, Uint128, WasmMsg},
     cw20::Cw20ExecuteMsg,
     cw_asset::{AssetInfo, AssetInfoBase},

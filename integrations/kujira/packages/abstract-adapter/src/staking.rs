@@ -1,5 +1,5 @@
 use abstract_sdk::core::objects::LpToken;
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_standard::Identify;
 use cosmwasm_std::Addr;
 
 use crate::{AVAILABLE_CHAINS, KUJIRA};
@@ -33,10 +33,10 @@ use ::{
         feature_objects::{AnsHost, VersionControlContract},
         AbstractSdkResult, Resolve,
     },
-    abstract_staking_adapter_traits::msg::{
+    abstract_staking_standard::msg::{
         RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse,
     },
-    abstract_staking_adapter_traits::{msg::StakingInfo, CwStakingCommand, CwStakingError},
+    abstract_staking_standard::{msg::StakingInfo, CwStakingCommand, CwStakingError},
     cosmwasm_std::{wasm_execute, Coin, CosmosMsg, Deps, Env, QuerierWrapper, StdError, Uint128},
     cw_asset::{AssetInfo, AssetInfoBase},
     kujira::bow::staking as BowStaking,
@@ -220,7 +220,7 @@ impl CwStakingCommand for Kujira {
     fn query_rewards(
         &self,
         querier: &QuerierWrapper,
-    ) -> Result<abstract_staking_adapter_traits::msg::RewardTokensResponse, CwStakingError> {
+    ) -> Result<abstract_staking_standard::msg::RewardTokensResponse, CwStakingError> {
         let tokens = self
             .tokens
             .iter()

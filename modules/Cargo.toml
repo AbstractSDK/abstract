@@ -62,8 +62,8 @@ abstract-ica = { version = "0.18.0" }
 
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 abstract-adapter-utils = { version = "0.18.0" }
-abstract-dex-adapter-traits = { version = "0.18.0" }
-abstract-staking-adapter-traits = { version = "0.18.0" }
+abstract-dex-standard = { version = "0.18.0" }
+abstract-staking-standard = { version = "0.18.0" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }
@@ -79,13 +79,13 @@ croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 
 ## Testing
-# cw-multi-test = { version = "0.16.2" }
-cw-multi-test = { package = "abstract-cw-multi-test", version = "0.16.5" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
+# TODO: Remove
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }
@@ -94,9 +94,9 @@ abstract-testing = { path = "../framework/packages/abstract-testing" }
 abstract-core = { path = "../framework/packages/abstract-core" }
 abstract-macros = { path = "../framework/packages/abstract-macros" }
 abstract-ica = { path = "../framework/packages/abstract-ica" }
-abstract-adapter-utils = { path = "../framework/packages/utils" }
-abstract-dex-adapter-traits = { path = "../framework/packages/dex" }
-abstract-staking-adapter-traits = { path = "../framework/packages/staking" }
+abstract-adapter-utils = { path = "../framework/packages/standards/utils" }
+abstract-dex-standard = { path = "../framework/packages/standards/dex" }
+abstract-staking-standard = { path = "../framework/packages/standards/staking" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]
