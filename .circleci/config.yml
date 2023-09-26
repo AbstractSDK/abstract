@@ -66,7 +66,7 @@ jobs:
             git add framework/artifacts --force
             git add modules/artifacts --force
             git commit -m 'Update WASM binaries [skip ci]'  
-            fir push origin $CIRCLE_BRANCH
+            git push origin $CIRCLE_BRANCH
 
   deploy:
     docker:
