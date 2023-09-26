@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Removed the `CustomSwap` option on the dex adapter.
 - Stake methods on cw-staking adapter now accept list, allowing users to do multi-stake/unstake/etc.
 - Added must_use attribute on abstract sdk methods
+- Renamed `abstract-(dex/staking)-adapter-traits` to `abstract-(dex/staking)-standard`
 
 ### Fixed
 
