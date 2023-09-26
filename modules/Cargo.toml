@@ -79,15 +79,13 @@ croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
 
 ## Testing
-# cw-multi-test = { version = "0.16.2" }
-cw-multi-test = { package = "abstract-cw-multi-test", version = "0.16.5" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
 # TODO: Remove
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "add/export_custom_cw_multi_test" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }

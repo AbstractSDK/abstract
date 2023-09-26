@@ -61,7 +61,7 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
-cw-multi-test = { workspace = true }
+
 # Croncat intefraces
 croncat-sdk-factory = { version = "1.0.4"}
 croncat-sdk-tasks = { version = "1.0.4"}
