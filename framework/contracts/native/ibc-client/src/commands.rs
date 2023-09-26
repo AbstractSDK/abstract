@@ -3,6 +3,7 @@ use crate::{
     error::IbcClientError,
     ibc::PACKET_LIFETIME,
 };
+use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::AccountAction;
 use abstract_sdk::{
     core::{
@@ -131,7 +132,7 @@ pub fn execute_register_os(
     let packet = PacketMsg {
         retries: 0u8,
         client_chain: cfg.chain,
-        account_id,
+        account_id: account_id.clone(),
         callback_info: None,
         action: HostAction::Internal(InternalAction::Register {
             account_proxy_address: account_base.proxy.into_string(),
@@ -185,7 +186,7 @@ pub fn execute_send_funds(
     };
 
     let ics20_channel_entry = ChannelEntry {
-        connected_chain: host_chain,
+        connected_chain: ChainName::from_string(host_chain)?,
         protocol: ICS20.to_string(),
     };
     let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;
@@ -264,7 +265,7 @@ mod test {
 
     mod update_config {
         use super::*;
-        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config};
+        use abstract_core::{abstract_ica::StdAck, ibc_client::state::Config, objects::AccountId};
         use abstract_testing::prelude::TEST_VERSION_CONTROL;
         use cosmwasm_std::{Empty, Timestamp};
 
@@ -331,7 +332,7 @@ mod test {
 
             ACCOUNTS.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", AccountId::local(5)),
                 &AccountData {
                     last_update_time: Timestamp::from_nanos(5u64),
                     remote_addr: None,
@@ -341,7 +342,7 @@ mod test {
 
             LATEST_QUERIES.save(
                 deps.as_mut().storage,
-                ("channel", 5u32),
+                ("channel", AccountId::local(5)),
                 &LatestQueryResponse {
                     last_update_time: Timestamp::from_nanos(5u64),
                     response: StdAck::Result(to_binary(&Empty {})?),

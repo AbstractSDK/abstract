@@ -47,7 +47,8 @@ impl<
                 account_id,
                 ..
             } = packet;
-            let client_proxy_addr = CLIENT_PROXY.load(deps.storage, (&channel, account_id))?;
+            let client_proxy_addr =
+                CLIENT_PROXY.load(deps.storage, (&channel, account_id.clone()))?;
             let local_proxy_addr = ACCOUNTS.load(deps.storage, (&channel, account_id))?;
             self.proxy_address = Some(local_proxy_addr);
             // send everything back to client
@@ -127,7 +128,7 @@ pub fn reply_init_callback<
     let contract_addr = deps.api.addr_validate(&raw_addr)?;
 
     if ACCOUNTS
-        .may_load(deps.storage, (&channel, account_id))?
+        .may_load(deps.storage, (&channel, account_id.clone()))?
         .is_some()
     {
         return Err(HostError::ChannelAlreadyRegistered.into());

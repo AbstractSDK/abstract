@@ -1,5 +1,5 @@
 use crate::{
-    error::AppError,
+    error::DCAError,
     handlers,
     msg::{AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg},
 };
@@ -14,10 +14,10 @@ pub const DCA_APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const DCA_APP_ID: &str = "abstract:dca";
 
 /// The type of the result returned by your app's entry points.
-pub type AppResult<T = Response> = Result<T, AppError>;
+pub type AppResult<T = Response> = Result<T, DCAError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type DCAApp = AppContract<AppError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, Empty>;
+pub type DCAApp = AppContract<DCAError, AppInstantiateMsg, DCAExecuteMsg, DCAQueryMsg, Empty>;
 
 const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)

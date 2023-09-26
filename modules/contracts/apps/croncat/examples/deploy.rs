@@ -47,7 +47,7 @@ fn main() -> anyhow::Result<()> {
     let account_config = account.manager.config()?;
     abstract_deployment
         .version_control
-        .claim_namespace(account_config.account_id.u64() as u32, "croncat".to_owned())?;
+        .claim_namespace(account_config.account_id, "croncat".to_owned())?;
 
     // Deploy
     app.deploy(version)?;

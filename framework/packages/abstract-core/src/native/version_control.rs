@@ -23,7 +23,7 @@ pub mod state {
     use cw_storage_plus::{Item, Map};
 
     use crate::objects::{
-        account_id::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
+        account::AccountId, common_namespace::ADMIN_NAMESPACE, module::ModuleInfo,
         module_reference::ModuleReference, namespace::Namespace,
     };
 
@@ -38,6 +38,8 @@ pub mod state {
     pub const PENDING_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("pendm");
     // We can iterate over the map giving just the prefix to get all the versions
     pub const REGISTERED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("lib");
+    // Reverse map for module info of standalone modules
+    pub const STANDALONE_INFOS: Map<u64, ModuleInfo> = Map::new("stli");
     // Yanked Modules
     pub const YANKED_MODULES: Map<&ModuleInfo, ModuleReference> = Map::new("yknd");
     // Modules Configuration
@@ -46,7 +48,7 @@ pub mod state {
     pub const MODULE_DEFAULT_CONFIG: Map<(&Namespace, &str), ModuleDefaultConfiguration> =
         Map::new("dcfg");
     /// Maps Account ID to the address of its core contracts
-    pub const ACCOUNT_ADDRESSES: Map<AccountId, AccountBase> = Map::new("accs");
+    pub const ACCOUNT_ADDRESSES: Map<&AccountId, AccountBase> = Map::new("accs");
 }
 
 /// Sub indexes for namespaces.
@@ -64,13 +66,13 @@ impl<'a> IndexList<AccountId> for NamespaceIndexes<'a> {
 /// Primary index for namespaces.
 pub fn namespaces_info<'a>() -> IndexedMap<'a, &'a Namespace, AccountId, NamespaceIndexes<'a>> {
     let indexes = NamespaceIndexes {
-        account_id: MultiIndex::new(|_pk, d| *d, "namespace", "namespace_account"),
+        account_id: MultiIndex::new(|_pk, d| d.clone(), "nmspc", "nmspc_a"),
     };
-    IndexedMap::new("namespace", indexes)
+    IndexedMap::new("nmspc", indexes)
 }
 
 use crate::objects::{
-    account_id::AccountId,
+    account::AccountId,
     module::{Module, ModuleInfo, ModuleMetadata, ModuleStatus, Monetization},
     module_reference::ModuleReference,
     namespace::Namespace,

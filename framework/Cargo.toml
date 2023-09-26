@@ -1,5 +1,11 @@
 [workspace]
-members = ["packages/*", "contracts/native/*", "contracts/account/*", "scripts"]
+members = [
+  "packages/abstract-*",
+  "packages/standards/*",
+  "contracts/native/*",
+  "contracts/account/*",
+  "scripts",
+]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
 #
@@ -47,7 +53,7 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.15.0" }
+cw-orch = { version = "0.16.1" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -73,18 +79,15 @@ abstract-core = { version = "0.18.0", path = "packages/abstract-core" }
 abstract-macros = { version = "0.18.0", path = "packages/abstract-macros" }
 abstract-ica = { version = "0.18.0", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { version = "0.18.0", path = "packages/utils" }
-abstract-dex-adapter-traits = { path = "packages/dex" }
-abstract-staking-adapter-traits = { path = "packages/staking" }
+abstract-adapter-utils = { version = "0.18.0", path = "packages/standards/utils" }
+abstract-dex-standard = { path = "packages/standards/dex" }
+abstract-staking-standard = { path = "packages/standards/staking" }
 
 ## Testing
 cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
-
-[patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

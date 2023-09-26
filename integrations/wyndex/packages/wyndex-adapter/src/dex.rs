@@ -1,6 +1,6 @@
 use crate::AVAILABLE_CHAINS;
 use crate::WYNDEX;
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 // Source https://github.com/cosmorama/wynddex/tree/v1.0.0
 #[derive(Default)]
 pub struct WynDex {}
@@ -16,7 +16,7 @@ impl Identify for WynDex {
 
 #[cfg(feature = "full_integration")]
 use ::{
-    abstract_dex_adapter_traits::{
+    abstract_dex_standard::{
         coins_in_assets, cw_approve_msgs, DexCommand, DexError, Fee, FeeOnInput, Return, Spread,
     },
     abstract_sdk::core::objects::PoolAddress,

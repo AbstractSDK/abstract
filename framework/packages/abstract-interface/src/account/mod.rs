@@ -138,8 +138,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     /// Gets the account ID of the account in the local store.
     pub fn id(&self) -> Result<AccountId, crate::AbstractInterfaceError> {
-        let account_id: u64 = self.manager.config()?.account_id.into();
-        Ok(account_id.try_into().unwrap())
+        Ok(self.manager.config()?.account_id)
     }
 
     /// Installs an adapter from an adapter object
@@ -189,7 +188,7 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
         funds: Option<&[Coin]>,
     ) -> Result<Addr, crate::AbstractInterfaceError> {
         let resp = self.install_module(&module.id(), &init_msg, funds)?;
-        let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_module")?;
+        let module_address = resp.event_attr_value(ABSTRACT_EVENT_TYPE, "new_modules")?;
         let module_address = Addr::unchecked(module_address);
 
         module.set_address(&module_address);

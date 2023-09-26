@@ -1,11 +1,13 @@
 use crate::adapter::CwStakingAdapter;
 use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
-use crate::msg::{ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID};
 use crate::resolver::{self, is_over_ibc};
 use abstract_sdk::core::ibc_client::CallbackInfo;
 use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
+use abstract_staking_standard::msg::{
+    ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
+};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
 const ACTION_RETRIES: u8 = 3;
@@ -97,12 +99,13 @@ fn resolve_assets_to_transfer(
     ans_host: &AnsHost,
 ) -> StakingResult<Vec<Coin>> {
     match dex_action {
-        StakingAction::Stake {
-            asset: staking_token,
-            ..
-        } => {
-            let resolved: Coin = staking_token.resolve(&deps.querier, ans_host)?.try_into()?;
-            Ok(vec![resolved])
+        StakingAction::Stake { assets, .. } => {
+            let resolved: Vec<Coin> = assets
+                .resolve(&deps.querier, ans_host)?
+                .into_iter()
+                .map(Coin::try_from)
+                .collect::<Result<_, cw_asset::AssetError>>()?;
+            Ok(resolved)
         }
         _ => Ok(vec![]),
     }

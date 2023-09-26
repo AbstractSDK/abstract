@@ -1,10 +1,10 @@
 use crate::msg::{RewardTokensResponse, StakeResponse, StakingInfoResponse, UnbondingResponse};
 use crate::{CwStakingError, Identify};
+use abstract_core::objects::AnsAsset;
 use abstract_sdk::core::objects::{AssetEntry, ContractEntry};
 use abstract_sdk::feature_objects::{AnsHost, VersionControlContract};
 use abstract_sdk::AbstractSdkResult;
-use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper, Uint128};
-use cw_utils::Duration;
+use cosmwasm_std::{Addr, CosmosMsg, Deps, Env, QuerierWrapper};
 use std::error::Error;
 
 /// Trait that defines the staking commands for providers
@@ -39,23 +39,23 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         info: Option<cosmwasm_std::MessageInfo>,
         ans_host: &AnsHost,
         version_control_contract: &VersionControlContract,
-        staking_asset: AssetEntry,
+        staking_assets: Vec<AssetEntry>,
     ) -> AbstractSdkResult<()>;
 
     /// Stake the provided asset into the staking contract
     fn stake(
         &self,
         deps: Deps,
-        amount: Uint128,
-        unbonding_period: Option<Duration>,
+        stake_request: Vec<AnsAsset>,
+        unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
-    /// Stake the provided asset into the staking contract
+    /// Unstake the provided asset from the staking contract
     fn unstake(
         &self,
         deps: Deps,
-        amount: Uint128,
-        unbonding_period: Option<Duration>,
+        unstake_request: Vec<AnsAsset>,
+        unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<Vec<CosmosMsg>, E>;
 
     /// Claim rewards on the staking contract
@@ -74,7 +74,8 @@ pub trait CwStakingCommand<E: Error = CwStakingError>: Identify {
         &self,
         querier: &QuerierWrapper,
         staker: Addr,
-        unbonding_period: Option<Duration>,
+        stakes: Vec<AssetEntry>,
+        unbonding_period: Option<cw_utils::Duration>,
     ) -> Result<StakeResponse, E>;
 
     /// Query information on unbonding positions for a given staker.
