@@ -35,7 +35,7 @@ fn create_convert_task_internal(
         actions: vec![CronCatAction {
             msg: wasm_execute(
                 env.contract.address,
-                &ExecuteMsg::from(DCAExecuteMsg::Convert { dca_id: dca_id }),
+                &ExecuteMsg::from(DCAExecuteMsg::Convert { dca_id }),
                 vec![],
             )?
             .into(),
