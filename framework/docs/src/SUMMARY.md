@@ -19,6 +19,9 @@
   - [Abstract Name Service](./5_platform/ans.md)
   - [Version Control](./5_platform/version_control.md)
   - [Account Factory](./5_platform/account_factory.md)
+  - [Account Console](./5_platform/account_console.md)
+  - [Module Factory](./5_platform/module_factory.md)
+  - [Monetization](./5_platform/monetization.md)
 
 - [Interchain Abstract Accounts]()
 

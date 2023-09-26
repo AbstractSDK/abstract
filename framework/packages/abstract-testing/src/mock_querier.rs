@@ -114,7 +114,7 @@ impl MockQuerierBuilder {
         self
     }
 
-    /// Add a smart contract handler to the mock querier. The handler will be called when the
+    /// Add a smart query contract handler to the mock querier. The handler will be called when the
     /// contract address is queried with the given message.
     /// Usage:
     /// ```rust
@@ -142,6 +142,23 @@ impl MockQuerierBuilder {
         self
     }
 
+    /// Add a raw query contract handler to the mock querier. The handler will be called when the
+    /// contract address is queried with the given message.
+    /// Usage:
+    /// ```rust
+    /// use cosmwasm_std::{from_binary, to_binary};
+    /// use abstract_testing::MockQuerierBuilder;
+    /// use cosmwasm_std::testing::MockQuerier;
+    /// use abstract_sdk::mock_module::{MockModuleQueryMsg, MockModuleQueryResponse};
+    /// # // ANCHOR: raw_query
+    /// let querier = MockQuerierBuilder::default().with_raw_handler("contract1", |key: &str| {
+    ///     // Example: Let's say, in the raw storage, the key "the key" maps to the value "the value"
+    ///     match key {
+    ///         "the key" => to_binary("the value").map_err(|e| e.to_string()),
+    ///         _ => to_binary("").map_err(|e| e.to_string())
+    ///     }
+    /// # // ANCHOR_END: raw_query
+    /// ```
     pub fn with_raw_handler<RH: 'static>(mut self, contract: &str, handler: RH) -> Self
     where
         RH: Fn(&str) -> BinaryQueryResult,
