@@ -16,6 +16,9 @@ parameters:
   GHA_Meta:
     type: string
     default: ""
+  branch:
+    type: string
+    default: "main"
 
 workflows:
   version: 2
@@ -66,7 +69,7 @@ jobs:
             git add framework/artifacts --force
             git add modules/artifacts --force
             git commit -m 'Update WASM binaries [skip ci]'  
-            git push origin $CIRCLE_BRANCH
+            git push origin << pipeline.parameters.branch >>
 
   deploy:
     docker:
