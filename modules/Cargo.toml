@@ -3,6 +3,7 @@ members = [
   "contracts/apps/*",
   "contracts/adapters/*",
   "packages/bundles/wyndex",
+  "scripts",
 ]
 
 resolver = "2"
@@ -60,7 +61,6 @@ abstract-core = { version = "0.19.0" }
 abstract-macros = { version = "0.19.0" }
 abstract-ica = { version = "0.19.0" }
 
-abstract-dex-adapter = { path = "./contracts/adapters/dex" }
 abstract-adapter-utils = { version = "0.19.0" }
 abstract-dex-standard = { version = "0.19.0" }
 abstract-staking-standard = { version = "0.19.0" }
@@ -75,8 +75,17 @@ abstract-astroport-adapter = { path = "../integrations/astroport/packages/abstra
 # Kujira #
 abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-adapter", default-features = false }
 
-croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
+
+## Apps
+croncat-app = { path = "./contracts/apps/croncat" }
+challenge-app = { path = "./contracts/apps/challenge" }
+etf-app = { path = "./contracts/apps/etf" }
+dca-app = { path = "./contracts/apps/dca" }
+
+abstract-dex-adapter = { path = "./contracts/adapters/dex" }
+abstract-staking-adapter = { path = "./contracts/adapters/cw-staking" }
+
 
 ## Testing
 rstest = "0.17.0"
@@ -84,8 +93,6 @@ speculoos = "0.11.0"
 anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-# TODO: Remove
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }

@@ -1,5 +1,5 @@
 [package]
-name = "abstract-dca-app"
+name = "dca-app"
 version = "0.0.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
@@ -52,7 +52,7 @@ croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
-abstract-dca-app = { path = ".", features = ["interface"] }
+dca-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
