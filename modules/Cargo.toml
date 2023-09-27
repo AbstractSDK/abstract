@@ -82,10 +82,8 @@ croncat-app = { path = "./contracts/apps/croncat" }
 challenge-app = { path = "./contracts/apps/challenge" }
 etf-app = { path = "./contracts/apps/etf" }
 dca-app = { path = "./contracts/apps/dca" }
-
+abstract-cw-staking ={ path = "./contracts/adapters/cw-staking" }
 abstract-dex-adapter = { path = "./contracts/adapters/dex" }
-abstract-staking-adapter = { path = "./contracts/adapters/cw-staking" }
-
 
 ## Testing
 rstest = "0.17.0"

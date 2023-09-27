@@ -33,4 +33,10 @@ sha256 = "1"
 clap = { workspace = true }
 dirs = "5.0.1"
 
+croncat-app = { workspace = true, features = ["interface"] }
+challenge-app = { workspace = true, features = ["interface"] }
+etf-app = { workspace = true, features = ["interface"] }
+dca-app = { workspace = true, features = ["interface"] }
 
+abstract-dex-adapter = { workspace = true, features = ["interface"] }
+abstract-cw-staking = { workspace = true, features = ["interface"] }

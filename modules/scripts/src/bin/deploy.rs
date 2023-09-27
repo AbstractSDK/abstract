@@ -1,17 +1,19 @@
+use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_interface::{Abstract, AdapterDeployer, AppDeployer};
+use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
+use cosmwasm_std::Decimal;
+use dca_app::{contract::DCA_APP_ID, DCAApp};
+use etf_app::{contract::interface::EtfApp, ETF_ID};
 use reqwest::Url;
-use std::{
-    fs::{self, File},
-    io::BufReader,
-    net::TcpStream,
-};
-use abstract_interface::Abstract;
+use semver::Version;
+use std::net::TcpStream;
 
-use abstract_module_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
     prelude::{
-        networks::{parse_network, ChainInfo},
+        networks::{parse_network, ChainInfo, JUNO_1},
         *,
     },
 };
@@ -20,18 +22,42 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn full_deploy() -> anyhow::Result<()> {
     let rt = Runtime::new()?;
+
+    let version: Version = ABSTRACT_VERSION.parse().unwrap();
+
+    let chain = DaemonBuilder::default()
+        .handle(rt.handle())
+        .chain(JUNO_1.clone())
+        .build()?;
+
+    let deployment = Abstract::load_from(chain)
+        .unwrap()
+        .get_all_deployed_chains();
+    let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
 
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
             .chain(network.clone())
             .build()?;
-        let deployment = Abstract::load_from(chain)?;
+        let _deployment = Abstract::load_from(chain.clone())?;
 
-        let sender = chain.sender();
-        
+        let _staking =
+            CwStakingAdapter::new(CW_STAKING, chain.clone()).deploy(version.clone(), Empty {})?;
+        let _dex = DexAdapter::new(EXCHANGE, chain.clone()).deploy(
+            version.clone(),
+            DexInstantiateMsg {
+                recipient_account: 0,
+                swap_fee: Decimal::permille(3),
+            },
+        )?;
+        let _etf = EtfApp::new(ETF_ID, chain.clone()).deploy(version.clone())?;
+        let _dca = DCAApp::new(DCA_APP_ID, chain.clone()).deploy(version.clone())?;
+        let _challenge =
+            ChallengeApp::new(CHALLENGE_APP_ID, chain.clone()).deploy(version.clone())?;
+    }
     Ok(())
 }
 
@@ -54,28 +80,6 @@ async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".cw-orchestrator")
-        .join("chains.json");
-    let status_str = serde_json::to_string_pretty(status)?;
-    fs::write(path, status_str)?;
-    Ok(())
-}
-
-fn read_deployment() -> anyhow::Result<DeploymentStatus> {
-    let path = dirs::home_dir()
-        .unwrap()
-        .join(".cw-orchestrator")
-        .join("chains.json");
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    // Read the JSON contents of the file as an instance of `DeploymentStatus`. If not present use default.
-    Ok(serde_json::from_reader(reader).unwrap_or_default())
-}
-
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Arguments {
@@ -90,11 +94,7 @@ fn main() {
 
     use dotenv::dotenv;
 
-    let args = Arguments::parse();
-
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
-
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = full_deploy() {
         log::error!("{}", err);
         err.chain()
             .skip(1)
