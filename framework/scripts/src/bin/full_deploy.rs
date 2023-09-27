@@ -1,10 +1,10 @@
 use reqwest::Url;
-use std::{fs, net::TcpStream, path::Path};
+use std::{fs::{self, File}, net::TcpStream, io::BufReader };
 
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
 
-use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus};
+use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
@@ -18,10 +18,32 @@ use tokio::runtime::Runtime;
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
+fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
+    if networks.is_empty() {
+        networks = SUPPORTED_CHAINS.to_vec();
+    }
+
+    let deployment_status = read_deployment()?;
+    if deployment_status.success {
+        log::info!("Do you want to re-deploy to {:?}?", networks);
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        if input.to_lowercase().contains("n") {
+            return Ok(());
+        }
+    }
+    let deployment_status = deployment_status.clone();
+
+    // If some chains need to be deployed, deploy them
+    // if !deployment_status.chain_ids.is_empty() {
+    //     networks = deployment_status.chain_ids.into_iter().map(|n| parse_network(&n)).collect();
+    // }
+
     let networks = rt.block_on(assert_wallet_balance(&networks));
+
+    // write_deployment(&deployment_status)?;
 
     for network in networks {
         let urls = network.grpc_urls.to_vec();
@@ -36,19 +58,13 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         let sender = chain.sender();
 
-        let mut deployment_status = DeploymentStatus {
-            chain_id: network.chain_id.to_string(),
-            success: false, // Default to false
-        };
-
         let deployment = match Abstract::deploy_on(chain, sender.to_string()) {
             Ok(deployment) => {
-                deployment_status.success = true;
-                write_deployment(&deployment_status)?;
+                // write_deployment(&deployment_status)?;
                 deployment
             }
             Err(e) => {
-                write_deployment(&deployment_status)?;
+                // write_deployment(&deployment_status)?;
                 return Err(e.into());
             }
         };
@@ -60,6 +76,8 @@ fn full_deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
                 monarch: sender.to_string(),
             })?;
     }
+
+    // fs::copy(Path::new("~/.cw-orchestrator/state.json"), to)
     Ok(())
 }
 
@@ -83,10 +101,19 @@ async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
 }
 
 fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
-    let path = Path::new("scripts").join("deployments.json");
+    let path = dirs::home_dir().unwrap().join(".cw-orchestrator").join("chains.json");
     let status_str = serde_json::to_string_pretty(status)?;
     fs::write(path, status_str)?;
     Ok(())
+}
+
+fn read_deployment() -> anyhow::Result<DeploymentStatus> {
+    let path = dirs::home_dir().unwrap().join(".cw-orchestrator").join("chains.json");
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    // Read the JSON contents of the file as an instance of `DeploymentStatus`. If not present use default.
+    Ok(serde_json::from_reader(reader).unwrap_or_default())
 }
 
 #[derive(Parser, Default, Debug)]
