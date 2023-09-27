@@ -1,6 +1,6 @@
 use crate::contract::{AppResult, DCAApp};
 use crate::msg::{ConfigResponse, DCAQueryMsg, DCAResponse};
-use crate::state::{CONFIG, DCA_LIST};
+use crate::state::{DCAId, CONFIG, DCA_LIST};
 use abstract_core::objects::DexAssetPairing;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Resolve;
@@ -30,10 +30,12 @@ fn query_config(deps: Deps, app: &DCAApp) -> AppResult<ConfigResponse> {
 }
 
 /// Get dca
-fn query_dca(deps: Deps, app: &DCAApp, dca_id: String) -> AppResult<DCAResponse> {
+fn query_dca(deps: Deps, app: &DCAApp, dca_id: DCAId) -> AppResult<DCAResponse> {
     let dca = DCA_LIST.may_load(deps.storage, dca_id)?;
-    let ans_host = app.ans_host(deps)?;
+
     let pool_references = if let Some(entry) = dca.as_ref() {
+        let ans_host = app.ans_host(deps)?;
+
         DexAssetPairing::new(
             entry.source_asset.name.clone(),
             entry.target_asset.clone(),

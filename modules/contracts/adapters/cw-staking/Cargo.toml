@@ -34,7 +34,7 @@ interface = [
   "dep:cw-orch",
   "dep:abstract-interface",
   "export",
-  "abstract-staking-adapter-traits/interface",
+  "abstract-staking-standard/interface",
 ]
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local"]
@@ -95,7 +95,7 @@ abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-staking-adapter-traits = { workspace = true }
+abstract-staking-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Juno dexes #

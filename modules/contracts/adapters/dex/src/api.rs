@@ -1,13 +1,10 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::{
-    msg::{
-        AskAsset, DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
-        SwapRouter,
-    },
-    EXCHANGE,
-};
+use crate::EXCHANGE;
 use abstract_core::objects::{module::ModuleId, AssetEntry};
+use abstract_dex_standard::msg::{
+    DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
+};
 use abstract_sdk::AdapterInterface;
 use abstract_sdk::{
     features::{AccountIdentification, Dependencies},
@@ -82,22 +79,6 @@ impl<'a, T: DexInterface> Dex<'a, T> {
             ask_asset,
             belief_price,
             max_spread,
-        })
-    }
-
-    /// Execute a custom swap in the DEX
-    pub fn custom_swap(
-        &self,
-        offer_assets: Vec<OfferAsset>,
-        ask_assets: Vec<AskAsset>,
-        max_spread: Option<Decimal>,
-        router: Option<SwapRouter>,
-    ) -> AbstractSdkResult<CosmosMsg> {
-        self.request(DexAction::CustomSwap {
-            offer_assets,
-            ask_assets,
-            max_spread,
-            router,
         })
     }
 
@@ -198,50 +179,6 @@ mod test {
         });
 
         let actual = dex.swap(offer_asset, ask_asset, max_spread, belief_price);
-
-        assert_that!(actual).is_ok();
-
-        let actual = match actual.unwrap() {
-            CosmosMsg::Wasm(msg) => msg,
-            _ => panic!("expected wasm msg"),
-        };
-        let expected = wasm_execute(
-            abstract_testing::prelude::TEST_MODULE_ADDRESS,
-            &expected,
-            vec![],
-        )
-        .unwrap();
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn custom_swap_msg() {
-        let mut deps = mock_dependencies();
-        deps.querier = abstract_testing::mock_querier();
-        let stub = MockModule::new();
-        let dex_name = "astroport".to_string();
-
-        let dex = stub
-            .dex(deps.as_ref(), dex_name.clone())
-            .with_module_id(abstract_testing::prelude::TEST_MODULE_ID);
-
-        let offer_assets = vec![OfferAsset::new("juno", 1000u128)];
-        let ask_assets = vec![AskAsset::new("uusd", 1000u128)];
-        let max_spread = Some(Decimal::percent(1));
-        let router = Some(SwapRouter::Custom("custom_router".to_string()));
-
-        let expected = expected_request_with_test_proxy(DexExecuteMsg::Action {
-            dex: dex_name,
-            action: DexAction::CustomSwap {
-                offer_assets: offer_assets.clone(),
-                ask_assets: ask_assets.clone(),
-                max_spread,
-                router: router.clone(),
-            },
-        });
-
-        let actual = dex.custom_swap(offer_assets, ask_assets, max_spread, router);
 
         assert_that!(actual).is_ok();
 

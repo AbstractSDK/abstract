@@ -1,12 +1,12 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_staking_adapter_traits::{CwStakingCommand, CwStakingError};
+use abstract_staking_standard::{CwStakingCommand, CwStakingError};
 use cosmwasm_std::Env;
 
 use crate::contract::StakingResult;
 
-use abstract_staking_adapter_traits::Identify;
+use abstract_staking_standard::Identify;
 
 /// Any cw-staking provider should be identified by the adapter
 /// This allows erroring the execution before sending any IBC message to another chain

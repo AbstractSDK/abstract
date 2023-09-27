@@ -1,7 +1,7 @@
 mod command;
 mod error;
-pub mod msg;
 
+pub mod msg;
 #[cfg(feature = "testing")]
 pub mod tests;
 
