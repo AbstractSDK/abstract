@@ -34,11 +34,11 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
         log::info!("Do you want to re-deploy to {:?}?", networks);
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)?;
-        if input.to_lowercase().contains("n") {
+        if input.to_lowercase().contains('n') {
             return Ok(());
         }
     }
-    let deployment_status = deployment_status.clone();
+    // let deployment_status = deployment_status.clone();
 
     // If some chains need to be deployed, deploy them
     // if !deployment_status.chain_ids.is_empty() {
@@ -103,7 +103,7 @@ async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
     let _ = TcpStream::connect(socket_addr);
     Ok(())
 }
-
+#[allow(dead_code)]
 fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
     let path = dirs::home_dir()
         .unwrap()
