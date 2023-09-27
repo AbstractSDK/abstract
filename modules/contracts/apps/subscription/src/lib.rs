@@ -44,14 +44,14 @@ pub mod interface {
             ans_host_address: String,
             factory_addr: String,
             version_control_addr: String,
-        ) -> AppInitMsg<InstantiateMsg> {
-            AppInitMsg::<InstantiateMsg> {
+        ) -> AppInitMsg<SubscriptionInstantiateMsg> {
+            AppInitMsg::<SubscriptionInstantiateMsg> {
                 base: BaseInstantiateMsg {
                     ans_host_address,
                     version_control_address: version_control_addr,
                 },
-                module: InstantiateMsg {
-                    subscription: SubscriptionInstantiateMsg {
+                module: SubscriptionInstantiateMsg {
+                    subscribers: SubscribersInstantiateMsg {
                         factory_addr,
                         payment_asset: AssetInfoUnchecked::native(payment_denom),
                         subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
@@ -60,7 +60,7 @@ pub mod interface {
                                 AssetInfoUnchecked::cw20(token_addr.clone()),
                             ),
                     },
-                    contribution: Some(ContributionInstantiateMsg {
+                    contributors: Some(ContributorsInstantiateMsg {
                         protocol_income_share: Decimal::percent(10),
                         emission_user_share: Decimal::percent(50),
                         max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),

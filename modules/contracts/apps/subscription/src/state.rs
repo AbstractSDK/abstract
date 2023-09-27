@@ -58,7 +58,7 @@ pub enum EmissionType {
 
 /// Config for subscriber functionality
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct SubscriptionConfig {
+pub struct SubscribersConfig {
     /// Only addr that can register on OS
     pub factory_address: Addr,
     /// Asset that's accepted as payment
@@ -91,7 +91,7 @@ pub struct Subscriber {
 
 /// Average number of subscribers
 pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");
-pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
+pub const SUBSCRIPTION_CONFIG: Item<SubscribersConfig> = Item::new("\u{0}{10}sub_config");
 pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
 pub const SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("subscribed");
 pub const DORMANT_SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("un-subscribed");
@@ -99,7 +99,7 @@ pub const DORMANT_SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("un-subscr
 // #### CONTRIBUTION SECTION ####
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ContributionConfig {
+pub struct ContributorsConfig {
     /// Percentage of income that is redirected to the protocol
     pub protocol_income_share: Decimal,
     /// Percentage of emissions allocated to users
@@ -114,7 +114,7 @@ pub struct ContributionConfig {
     pub token_info: AssetInfo,
 }
 
-impl ContributionConfig {
+impl ContributorsConfig {
     pub fn verify(self) -> StdResult<Self> {
         if !(decimal_is_percentage(&self.protocol_income_share)
             || decimal_is_percentage(&self.emission_user_share))
@@ -146,7 +146,7 @@ pub struct ContributionState {
 
 // List contributors
 pub const CONTRIBUTORS: Map<&Addr, Compensation> = Map::new("contributors");
-pub const CONTRIBUTION_CONFIG: Item<ContributionConfig> = Item::new("\u{0}{10}con_config");
+pub const CONTRIBUTION_CONFIG: Item<ContributorsConfig> = Item::new("\u{0}{10}con_config");
 pub const CACHED_CONTRIBUTION_STATE: Item<ContributionState> =
     Item::new("\u{0}{15}cache_con_state");
 pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("\u{0}{9}con_state");

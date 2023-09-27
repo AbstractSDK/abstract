@@ -2,14 +2,13 @@ use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::error::SubscriptionError;
 use crate::msg::DepositHookMsg;
 use crate::state::{
-    Compensation, ContributionConfig, ContributionState, Subscriber, SubscriptionConfig,
+    Compensation, ContributorsConfig, ContributionState, Subscriber, SubscribersConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use abstract_core::objects::AccountId;
 use abstract_sdk::core::manager::state::ACCOUNT_ID;
 use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
-use abstract_sdk::core::objects::common_namespace::ADMIN_NAMESPACE;
 use abstract_sdk::core::version_control::AccountBase;
 use abstract_sdk::{AccountVerification, Execution, TransferInterface};
 use cosmwasm_std::{
@@ -18,10 +17,8 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ReceiveMsg;
 use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
-use cw_controllers::Admin;
 
 pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
-const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
 pub fn receive_cw20(
     deps: DepsMut,
     env: Env,
@@ -103,8 +100,9 @@ pub fn try_pay(
                     // Send the received asset to the proxy
                     asset.transfer_msg(base_state.proxy_address)?,
                 ));
-            // New client
-        } else {
+        } else
+        // New client
+        {
             // only factory can add subscribers
             if msg_info.sender != config.factory_address {
                 return Err(SubscriptionError::CallerNotFactory {});
@@ -252,7 +250,7 @@ pub fn update_contributor_compensation(
     weight: Option<u32>,
     expiration_block: Option<u64>,
 ) -> SubscriptionResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let _config = load_contribution_config(deps.storage)?;
     // Load all needed states
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
@@ -343,7 +341,7 @@ pub fn remove_contributor(
     app: SubscriptionApp,
     os_id: AccountId,
 ) -> SubscriptionResult {
-    ADMIN.assert_admin(deps.as_ref(), &msg_info.sender)?;
+    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let manager_address = app
         .account_registry(deps.as_ref())
         .account_base(&os_id)?
@@ -472,7 +470,7 @@ fn update_contribution_state(
     store: &mut dyn Storage,
     _env: Env,
     contributor_state: &mut ContributionState,
-    contributor_config: &ContributionConfig,
+    contributor_config: &ContributorsConfig,
     income: Decimal,
 ) -> StdResult<()> {
     let floor_emissions: Decimal =
@@ -528,13 +526,14 @@ pub fn update_subscription_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
+    app: SubscriptionApp,
     payment_asset: Option<AssetInfoUnchecked>,
     factory_address: Option<String>,
     subscription_cost_per_block: Option<Decimal>,
 ) -> SubscriptionResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    let mut config: SubscribersConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
     if let Some(factory_address) = factory_address {
         // validate address format
@@ -561,6 +560,7 @@ pub fn update_contribution_config(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
+    app: SubscriptionApp,
     protocol_income_share: Option<Decimal>,
     emission_user_share: Option<Decimal>,
     max_emissions_multiple: Option<Decimal>,
@@ -568,7 +568,7 @@ pub fn update_contribution_config(
     emissions_amp_factor: Option<Uint128>,
     emissions_offset: Option<Uint128>,
 ) -> SubscriptionResult {
-    ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
+    app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config = CONTRIBUTION_CONFIG.load(deps.storage)?;
 
@@ -620,7 +620,7 @@ fn expired_sub_msgs(
     Ok(None)
 }
 
-fn load_contribution_config(store: &dyn Storage) -> Result<ContributionConfig, SubscriptionError> {
+fn load_contribution_config(store: &dyn Storage) -> Result<ContributorsConfig, SubscriptionError> {
     // Check if user is using contribution feature
     let maybe_config = CONTRIBUTION_CONFIG.may_load(store)?;
     match maybe_config {

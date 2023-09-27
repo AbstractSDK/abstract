@@ -2,8 +2,8 @@ use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
 use crate::msg::{
-    ConfigResponse, ContributorStateResponse, InstantiateMsg, MigrateMsg, StateResponse,
-    SubscriberStateResponse, SubscriptionFeeResponse,
+    ConfigResponse, ContributorStateResponse, StateResponse,
+    SubscriberStateResponse, SubscriptionFeeResponse, SubscriptionInstantiateMsg, AppMigrateMsg,
 };
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use crate::state::*;
@@ -19,10 +19,10 @@ pub type SubscriptionResult<T = Response> = Result<T, SubscriptionError>;
 
 pub type SubscriptionApp = AppContract<
     SubscriptionError,
-    InstantiateMsg,
+    SubscriptionInstantiateMsg,
     SubscriptionExecuteMsg,
     SubscriptionQueryMsg,
-    MigrateMsg,
+    AppMigrateMsg,
     Cw20ReceiveMsg,
 >;
 
@@ -46,14 +46,14 @@ pub fn instantiate_handler(
     env: Env,
     _info: MessageInfo,
     _app: SubscriptionApp,
-    msg: InstantiateMsg,
+    msg: SubscriptionInstantiateMsg,
 ) -> SubscriptionResult {
-    let subscription_config: SubscriptionConfig = SubscriptionConfig {
-        payment_asset: msg.subscription.payment_asset.check(deps.api, None)?,
-        subscription_cost_per_block: msg.subscription.subscription_cost_per_block,
-        factory_address: deps.api.addr_validate(&msg.subscription.factory_addr)?,
+    let subscription_config: SubscribersConfig = SubscribersConfig {
+        payment_asset: msg.subscribers.payment_asset.check(deps.api, None)?,
+        subscription_cost_per_block: msg.subscribers.subscription_cost_per_block,
+        factory_address: deps.api.addr_validate(&msg.subscribers.factory_addr)?,
         subscription_per_block_emissions: msg
-            .subscription
+            .subscribers
             .subscription_per_block_emissions
             .check(deps.api)?,
     };
@@ -61,8 +61,8 @@ pub fn instantiate_handler(
     let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };
 
     // Optional contribution setup
-    if let Some(msg) = msg.contribution {
-        let contributor_config: ContributionConfig = ContributionConfig {
+    if let Some(msg) = msg.contributors {
+        let contributor_config: ContributorsConfig = ContributorsConfig {
             emissions_amp_factor: msg.emissions_amp_factor,
             emission_user_share: msg.emission_user_share,
             emissions_offset: msg.emissions_offset,
@@ -115,7 +115,7 @@ fn request_handler(
             commands::claim_subscriber_emissions(&app, deps.as_ref(), &env, &os_id)
         }
         SubscriptionExecuteMsg::UpdateContributor {
-            contributor_os_id,
+            os_id: contributor_os_id,
             base_per_block,
             weight,
             expiration_block,
@@ -135,11 +135,12 @@ fn request_handler(
         SubscriptionExecuteMsg::UpdateSubscriptionConfig {
             payment_asset,
             factory_address,
-            subscription_cost,
+            subscription_cost_per_block: subscription_cost,
         } => commands::update_subscription_config(
             deps,
             env,
             info,
+            app,
             payment_asset,
             factory_address,
             subscription_cost,
@@ -155,6 +156,7 @@ fn request_handler(
             deps,
             env,
             info,
+            app,
             protocol_income_share,
             emission_user_share,
             max_emissions_multiple,
