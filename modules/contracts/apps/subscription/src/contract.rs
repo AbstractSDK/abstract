@@ -2,8 +2,8 @@ use crate::commands::BLOCKS_PER_MONTH;
 use crate::commands::{self, receive_cw20};
 use crate::error::SubscriptionError;
 use crate::msg::{
-    ConfigResponse, ContributorStateResponse, StateResponse,
-    SubscriberStateResponse, SubscriptionFeeResponse, SubscriptionInstantiateMsg, AppMigrateMsg,
+    AppMigrateMsg, ConfigResponse, ContributorStateResponse, StateResponse,
+    SubscriberStateResponse, SubscriptionFeeResponse, SubscriptionInstantiateMsg,
 };
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use crate::state::*;

@@ -2,7 +2,7 @@ use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::error::SubscriptionError;
 use crate::msg::DepositHookMsg;
 use crate::state::{
-    Compensation, ContributorsConfig, ContributionState, Subscriber, SubscribersConfig,
+    Compensation, ContributionState, ContributorsConfig, Subscriber, SubscribersConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
     DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
@@ -100,9 +100,8 @@ pub fn try_pay(
                     // Send the received asset to the proxy
                     asset.transfer_msg(base_state.proxy_address)?,
                 ));
-        } else
-        // New client
-        {
+        } else {
+            // New client
             // only factory can add subscribers
             if msg_info.sender != config.factory_address {
                 return Err(SubscriptionError::CallerNotFactory {});
