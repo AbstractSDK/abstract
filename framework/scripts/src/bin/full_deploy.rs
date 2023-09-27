@@ -1,5 +1,9 @@
 use reqwest::Url;
-use std::{fs::{self, File}, net::TcpStream, io::BufReader };
+use std::{
+    fs::{self, File},
+    io::BufReader,
+    net::TcpStream,
+};
 
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::Abstract;
@@ -101,14 +105,20 @@ async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
 }
 
 fn write_deployment(status: &DeploymentStatus) -> anyhow::Result<()> {
-    let path = dirs::home_dir().unwrap().join(".cw-orchestrator").join("chains.json");
+    let path = dirs::home_dir()
+        .unwrap()
+        .join(".cw-orchestrator")
+        .join("chains.json");
     let status_str = serde_json::to_string_pretty(status)?;
     fs::write(path, status_str)?;
     Ok(())
 }
 
 fn read_deployment() -> anyhow::Result<DeploymentStatus> {
-    let path = dirs::home_dir().unwrap().join(".cw-orchestrator").join("chains.json");
+    let path = dirs::home_dir()
+        .unwrap()
+        .join(".cw-orchestrator")
+        .join("chains.json");
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 

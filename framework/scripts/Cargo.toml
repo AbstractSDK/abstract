@@ -40,4 +40,4 @@ clap = { workspace = true }
 dirs = "5.0.1"
 
 [patch.crates-io]
-cw-orch-networks = {git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/chaininfo_eq_derive" }
+cw-orch-networks = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/chaininfo_eq_derive" }
