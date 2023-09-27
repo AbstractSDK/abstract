@@ -1,6 +1,6 @@
-use crate::contract::{SubscriptionApp, SubscriptionResult};
+use crate::contract::{SubscriptionApp, SubscriptionResult, BLOCKS_PER_MONTH};
 use crate::error::SubscriptionError;
-use crate::msg::DepositHookMsg;
+use crate::msg::SubscriptionExecuteMsg;
 use crate::state::{
     Compensation, ContributionState, ContributorsConfig, Subscriber, SubscribersConfig,
     CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
@@ -12,29 +12,84 @@ use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::core::version_control::AccountBase;
 use abstract_sdk::{AccountVerification, Execution, TransferInterface};
 use cosmwasm_std::{
-    from_binary, to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
-    StdError, StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
+    to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError,
+    StdResult, Storage, SubMsg, Uint128, Uint64, WasmMsg,
 };
-use cw20::Cw20ReceiveMsg;
-use cw_asset::{Asset, AssetInfo, AssetInfoUnchecked};
+use cw_asset::{Asset, AssetInfoUnchecked};
 
-pub const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
-pub fn receive_cw20(
+pub fn execute_handler(
     deps: DepsMut,
     env: Env,
-    msg_info: MessageInfo,
+    info: MessageInfo,
     app: SubscriptionApp,
-    cw20_msg: Cw20ReceiveMsg,
+    msg: SubscriptionExecuteMsg,
 ) -> SubscriptionResult {
-    match from_binary(&cw20_msg.msg)? {
-        DepositHookMsg::Pay { os_id } => {
-            // Construct deposit asset
-            let asset = Asset {
-                info: AssetInfo::Cw20(msg_info.sender.clone()),
-                amount: cw20_msg.amount,
-            };
-            try_pay(app, deps, env, msg_info, asset, os_id)
+    match msg {
+        SubscriptionExecuteMsg::Pay { os_id } => {
+            let maybe_received_coin = info.funds.last();
+            if let Some(coin) = maybe_received_coin.cloned() {
+                try_pay(app, deps, env, info, Asset::from(coin), os_id)
+            } else {
+                Err(SubscriptionError::NotUsingCW20Hook {})
+            }
         }
+        SubscriptionExecuteMsg::Unsubscribe { os_ids } => unsubscribe(deps, env, app, os_ids),
+        SubscriptionExecuteMsg::ClaimCompensation { os_id } => {
+            try_claim_compensation(app, deps, env, os_id)
+        }
+        SubscriptionExecuteMsg::ClaimEmissions { os_id } => {
+            claim_subscriber_emissions(&app, deps.as_ref(), &env, &os_id)
+        }
+        SubscriptionExecuteMsg::UpdateContributor {
+            os_id: contributor_os_id,
+            base_per_block,
+            weight,
+            expiration_block,
+        } => update_contributor_compensation(
+            deps,
+            env,
+            info,
+            app,
+            contributor_os_id,
+            base_per_block,
+            weight.map(|w| w.u64() as u32),
+            expiration_block.map(|w| w.u64()),
+        ),
+        SubscriptionExecuteMsg::RemoveContributor { os_id } => {
+            remove_contributor(deps, info, app, os_id)
+        }
+        SubscriptionExecuteMsg::UpdateSubscriptionConfig {
+            payment_asset,
+            factory_address,
+            subscription_cost_per_block: subscription_cost,
+        } => update_subscription_config(
+            deps,
+            env,
+            info,
+            app,
+            payment_asset,
+            factory_address,
+            subscription_cost,
+        ),
+        SubscriptionExecuteMsg::UpdateContributionConfig {
+            protocol_income_share,
+            emission_user_share,
+            max_emissions_multiple,
+            project_token_info,
+            emissions_amp_factor,
+            emissions_offset,
+        } => update_contribution_config(
+            deps,
+            env,
+            info,
+            app,
+            protocol_income_share,
+            emission_user_share,
+            max_emissions_multiple,
+            project_token_info,
+            emissions_amp_factor,
+            emissions_offset,
+        ),
     }
 }
 
