@@ -221,10 +221,14 @@ mod osmosis_test {
             .unwrap();
 
         // install exchange on AbstractAccount
-        os.manager.install_module(CW_STAKING_ADAPTER_ID, &Empty {}, None)?;
+        os.manager
+            .install_module(CW_STAKING_ADAPTER_ID, &Empty {}, None)?;
         // load exchange data into type
         staking.set_address(&Addr::unchecked(
-            os.manager.module_info(CW_STAKING_ADAPTER_ID)?.unwrap().address,
+            os.manager
+                .module_info(CW_STAKING_ADAPTER_ID)?
+                .unwrap()
+                .address,
         ));
 
         tube.bank_send(

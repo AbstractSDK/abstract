@@ -301,7 +301,8 @@ fn setup() -> anyhow::Result<(
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock
-    let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(DEX_ADAPTER_ID, mock.clone());
+    let dex_adapter =
+        abstract_dex_adapter::interface::DexAdapter::new(DEX_ADAPTER_ID, mock.clone());
 
     dex_adapter.deploy(
         abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
@@ -340,8 +341,14 @@ fn setup() -> anyhow::Result<(
                 monarch: ADMIN.to_string(),
             })?;
     // Install DEX
-    account.manager.install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
-    let module_addr = account.manager.module_info(DEX_ADAPTER_ID)?.unwrap().address;
+    account
+        .manager
+        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    let module_addr = account
+        .manager
+        .module_info(DEX_ADAPTER_ID)?
+        .unwrap()
+        .address;
     dex_adapter.set_address(&module_addr);
 
     // Install croncat
