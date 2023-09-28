@@ -148,11 +148,9 @@ pub fn update(ans_host: &AnsHost<Daemon>, diff: AnsDataDiff) -> Result<(), Abstr
     Ok(())
 }
 
-use cw_orch::{
-    prelude::{
-        networks::{JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
-        *,
-    },
+use cw_orch::prelude::{
+    networks::{JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
+    *,
 };
 use serde::{Deserialize, Serialize};
 
