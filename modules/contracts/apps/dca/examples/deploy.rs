@@ -4,8 +4,8 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use dca_app::{contract::DCA_APP_ID, DCAApp};
 use abstract_interface::AppDeployer;
+use dca_app::{contract::DCA_APP_ID, DCAApp};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

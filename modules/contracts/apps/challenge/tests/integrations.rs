@@ -1,4 +1,13 @@
 use crate::msg::QueryMsg;
+use abstract_core::{
+    app::BaseInstantiateMsg,
+    objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+    },
+};
+use abstract_dex_adapter::msg::OfferAsset;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
@@ -11,15 +20,6 @@ use challenge_app::{
     },
     *,
 };
-use abstract_core::{
-    app::BaseInstantiateMsg,
-    objects::{
-        gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
-    },
-};
-use abstract_dex_adapter::msg::OfferAsset;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use cosmwasm_std::{coin, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};

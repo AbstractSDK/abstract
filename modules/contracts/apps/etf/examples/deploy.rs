@@ -5,9 +5,9 @@ use cw_orch::daemon::DaemonBuilder;
 use cw_orch::daemon::networks::parse_network;
 use cw_orch::tokio::runtime::Runtime;
 
+use clap::Parser;
 use etf_app::contract::interface::EtfApp;
 use etf_app::ETF_ID;
-use clap::Parser;
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

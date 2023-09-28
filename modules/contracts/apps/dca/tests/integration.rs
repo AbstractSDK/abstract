@@ -10,6 +10,10 @@ use abstract_core::{
     app::{BaseInstantiateMsg, BaseQueryMsgFns},
     objects::gov_type::GovernanceDetails,
 };
+use abstract_dex_adapter::interface::DexAdapter;
+use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
+use abstract_dex_adapter::EXCHANGE;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
 use dca_app::{
@@ -17,10 +21,6 @@ use dca_app::{
     msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
     *,
 };
-use abstract_dex_adapter::interface::DexAdapter;
-use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
-use abstract_dex_adapter::EXCHANGE;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 
 use common::contracts;
 

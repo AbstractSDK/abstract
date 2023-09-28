@@ -4,8 +4,8 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
 use abstract_interface::AppDeployer;
+use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
