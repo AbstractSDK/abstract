@@ -33,6 +33,7 @@ fn update_ans(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
 
         // Finally we upload on-chain
         script_helpers::update(&ans_host, diff)?;
+        ans_host.update_all_local()?;
     }
     Ok(())
 }
@@ -53,7 +54,11 @@ fn main() {
 
     let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n))
+        .collect::<Vec<_>>();
 
     if let Err(ref err) = update_ans(networks) {
         log::error!("{}", err);

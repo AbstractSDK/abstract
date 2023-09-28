@@ -397,6 +397,7 @@ mod tests {
 
         use super::*;
 
+        use abstract_core::objects::{account::AccountTrace, AccountId};
         use abstract_testing::prelude::mocked_account_querier_builder;
 
         /// This sets up the test with the following:
@@ -503,7 +504,11 @@ mod tests {
             let other_proxy = "some_other_proxy";
             let mut deps = mock_dependencies();
             deps.querier = mocked_account_querier_builder()
-                .account("some_other_manager", other_proxy, 69420u32)
+                .account(
+                    "some_other_manager",
+                    other_proxy,
+                    AccountId::new(69420u32, AccountTrace::Local).unwrap(),
+                )
                 .build();
 
             setup_with_authorized_addresses(deps.as_mut(), vec![TEST_AUTHORIZED_ADDRESS]);

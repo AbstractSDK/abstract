@@ -22,7 +22,6 @@ cw20 = { workspace = true, features = ["interface"] }
 cw-orch = { workspace = true }
 cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
-cw-multi-test = { workspace = true }
 cw-asset = { workspace = true }
 anyhow = { workspace = true }
 cw-controllers = "1.0.1"

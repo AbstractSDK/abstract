@@ -4,6 +4,7 @@ version = "0.0.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
+  "Buckram <misha@abstract.money>",
   "Abstract Money <contact@abstract.money>",
 ]
 edition = "2021"
@@ -59,13 +60,13 @@ abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 # Croncat dependencies
-croncat-sdk-factory = "1.0.3"
-croncat-sdk-tasks = "1.0.3"
-croncat-sdk-manager = "1.0.3"
-croncat-integration-utils = "1.1.0"
+croncat-sdk-factory = { version = "1.0.4" }
+croncat-sdk-tasks = { version = "1.0.4" }
+croncat-sdk-manager = { version = "1.0.4" }
+croncat-integration-utils = { version = "1.0.4" }
 # TODO: avoid using contract dep
-croncat-factory = { version = "1.0.3", features = ["library"] }
-croncat-manager = { version = "1.0.3", features = ["library"] }
+croncat-factory = { version = "1.0.4", features = ["library"] }
+croncat-manager = { version = "1.0.4", features = ["library"] }
 
 [dev-dependencies]
 croncat-app = { path = ".", features = ["interface"] }
@@ -77,16 +78,15 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
-cw-multi-test = "0.16.4"
 
 # Croncat intefraces
-croncat-sdk-agents = "1.0.3"
+croncat-sdk-agents = { version = "1.0.4" }
 # Croncat contracts
-croncat-factory = "1.0.3"
-croncat-tasks = "1.0.3"
-croncat-manager = "1.0.3"
-croncat-agents = "1.0.3"
-croncat-integration-testing = "1.1.0"
+croncat-factory = { version = "1.0.4" }
+croncat-tasks = { version = "1.0.4" }
+croncat-manager = { version = "1.0.4" }
+croncat-agents = { version = "1.0.4" }
+croncat-integration-testing = { version = "1.1.1" }
 
 # Testing cw20
 cw20-base = "0.16.0"

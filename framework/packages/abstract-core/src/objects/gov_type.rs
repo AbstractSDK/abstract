@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::AbstractError;
 
-use super::account_id::ACCOUNT_ID;
+use super::account::ACCOUNT_ID;
 
 const MIN_GOV_TYPE_LENGTH: usize = 4;
 const MAX_GOV_TYPE_LENGTH: usize = 64;
@@ -55,7 +55,7 @@ impl GovernanceDetails<String> {
                 let base = crate::version_control::state::ACCOUNT_ADDRESSES.query(
                     &deps.querier,
                     version_control_addr,
-                    account_id,
+                    &account_id,
                 )?;
                 let Some(b) = base else {
                     return Err(AbstractError::Std(cosmwasm_std::StdError::generic_err(

@@ -1,7 +1,7 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
+use abstract_dex_standard::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
 /// Any exchange should be identified by the adapter
@@ -24,7 +24,9 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::dex::Astroport>::default())
         }
-        crate::exchanges::kujira::KUJIRA => Ok(Box::<crate::exchanges::kujira::Kujira>::default()),
+        abstract_kujira_adapter::KUJIRA => {
+            Ok(Box::<abstract_kujira_adapter::dex::Kujira>::default())
+        }
         _ => Err(DexError::UnknownDex(value.to_owned())),
     }
 }
@@ -44,7 +46,7 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         #[cfg(any(feature = "terra", feature = "neutron"))]
         abstract_astroport_adapter::ASTROPORT => Ok(&abstract_astroport_adapter::dex::Astroport {}),
         #[cfg(feature = "kujira")]
-        crate::exchanges::kujira::KUJIRA => Ok(&crate::exchanges::kujira::Kujira {}),
+        abstract_kujira_adapter::KUJIRA => Ok(&abstract_kujira_adapter::dex::Kujira {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }
 }

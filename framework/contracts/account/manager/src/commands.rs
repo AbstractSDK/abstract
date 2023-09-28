@@ -1,4 +1,4 @@
-use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_cw2};
+use crate::{contract::ManagerResult, error::ManagerError, queries::query_module_version};
 use crate::{validation, versioning};
 use abstract_core::manager::state::{
     ACCOUNT_FACTORY, MODULE_QUEUE, PENDING_GOVERNANCE, SUB_ACCOUNTS,
@@ -8,10 +8,10 @@ use abstract_core::adapter::{
     AuthorizedAddressesResponse, BaseExecuteMsg, BaseQueryMsg, ExecuteMsg as AdapterExecMsg,
     QueryMsg as AdapterQuery,
 };
-use abstract_core::manager::{InternalConfigAction, UpdateSubAccountAction};
+use abstract_core::manager::{InternalConfigAction, RegisterModuleData, UpdateSubAccountAction};
 use abstract_core::module_factory::ModuleInstallConfig;
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_core::objects::AssetEntry;
+use abstract_core::objects::{AccountId, AssetEntry};
 
 use abstract_core::objects::version_control::VersionControlContract;
 use abstract_core::proxy::state::ACCOUNT_ID;
@@ -138,13 +138,12 @@ pub(crate) fn install_modules_internal(
     ))
 }
 
-// Sets the Treasury address on the module if applicable and adds it to the state
-pub fn register_module(
+/// Adds the modules to the internal store for reference and adds them to the proxy allowlist if applicable.
+pub fn register_modules(
     mut deps: DepsMut,
     msg_info: MessageInfo,
     _env: Env,
-    module: Module,
-    module_address: String,
+    modules: Vec<RegisterModuleData>,
 ) -> ManagerResult {
     let config = CONFIG.load(deps.storage)?;
     let proxy_addr = ACCOUNT_MODULES.load(deps.storage, PROXY)?;
@@ -154,44 +153,49 @@ pub fn register_module(
         return Err(ManagerError::CallerNotModuleFactory {});
     }
 
-    let mut response = update_module_addresses(
-        deps.branch(),
-        Some(vec![(module.info.id(), module_address.clone())]),
-        None,
-    )?;
+    let to_add = modules
+        .iter()
+        .map(|reg| (reg.module.info.id(), reg.module_address.clone()))
+        .collect();
 
-    match module {
-        Module {
-            reference: ModuleReference::App(_),
-            info,
-            ..
-        } => {
-            let id = info.id();
-            // assert version requirements
-            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_to_proxy(
-                proxy_addr.into_string(),
-                module_address,
-            )?)
-        }
-        Module {
-            reference: ModuleReference::Adapter(_),
-            info,
-            ..
-        } => {
-            let id = info.id();
-            // assert version requirements
-            let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
-            versioning::set_as_dependent(deps.storage, id, dependencies)?;
-            response = response.add_message(add_module_to_proxy(
-                proxy_addr.into_string(),
-                module_address,
-            )?)
-        }
-        _ => (),
-    };
-
+    let mut response = update_module_addresses(deps.branch(), Some(to_add), None)?;
+    let mut add_modules = vec![];
+    for RegisterModuleData {
+        module,
+        module_address,
+    } in modules
+    {
+        match module {
+            Module {
+                reference: ModuleReference::App(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+                add_modules.push(module_address);
+            }
+            Module {
+                reference: ModuleReference::Adapter(_),
+                info,
+                ..
+            } => {
+                let id = info.id();
+                // assert version requirements
+                let dependencies = versioning::assert_install_requirements(deps.as_ref(), &id)?;
+                versioning::set_as_dependent(deps.storage, id, dependencies)?;
+                add_modules.push(module_address);
+            }
+            _ => (),
+        };
+    }
+    // add modules to proxy if any
+    if !add_modules.is_empty() {
+        response =
+            response.add_message(add_modules_to_proxy(proxy_addr.into_string(), add_modules)?)
+    }
     Ok(response)
 }
 
@@ -288,7 +292,7 @@ fn unregister_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerR
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
-        id,
+        &AccountId::local(id),
     )?;
 
     if account.is_some_and(|a| a.manager == info.sender) {
@@ -310,7 +314,7 @@ fn register_sub_account(deps: DepsMut, info: MessageInfo, id: u32) -> ManagerRes
     let account = abstract_core::version_control::state::ACCOUNT_ADDRESSES.query(
         &deps.querier,
         config.version_control_address,
-        id,
+        &AccountId::local(id),
     )?;
 
     if account.is_some_and(|a| a.manager == info.sender) {
@@ -424,10 +428,12 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
     if let GovernanceDetails::SubAccount { manager, .. } = acc_info.governance_details {
         let id = ACCOUNT_ID.load(storage)?;
         // For optimizing the gas we save it, in case new owner is sub-account as well
-        account_id = Some(id);
+        account_id = Some(id.clone());
         let unregister_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount { id }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::UnregisterSubAccount {
+                id: id.clone().seq(),
+            }),
             vec![],
         )?;
         msgs.push(unregister_message.into());
@@ -442,7 +448,9 @@ pub(crate) fn update_governance(storage: &mut dyn Storage) -> ManagerResult<Vec<
         };
         let register_message = wasm_execute(
             manager,
-            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount { id }),
+            &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
+                id: id.seq(),
+            }),
             vec![],
         )?;
         msgs.push(register_message.into());
@@ -524,8 +532,12 @@ pub fn set_migrate_msgs_and_context(
     migrate_msg: Option<Binary>,
     msgs: &mut Vec<CosmosMsg>,
 ) -> Result<(), ManagerError> {
+    let config = CONFIG.load(deps.storage)?;
+    let version_control = VersionControlContract::new(config.version_control_address);
+
     let old_module_addr = load_module_addr(deps.storage, &module_info.id())?;
-    let old_module_cw2 = query_module_cw2(&deps.as_ref(), old_module_addr.clone())?;
+    let old_module_cw2 =
+        query_module_version(deps.as_ref(), old_module_addr.clone(), &version_control)?;
     let requested_module = query_module(deps.as_ref(), module_info.clone(), Some(old_module_cw2))?;
 
     let migrate_msgs = match requested_module.module.reference {
@@ -684,9 +696,9 @@ pub fn replace_adapter(
         old_adapter_addr.into_string(),
     )?);
     // Add new adapter to proxy
-    msgs.push(add_module_to_proxy(
+    msgs.push(add_modules_to_proxy(
         proxy_addr.into_string(),
-        new_adapter_addr.into_string(),
+        vec![new_adapter_addr.into_string()],
     )?);
 
     Ok(msgs)
@@ -706,9 +718,9 @@ pub fn update_info(
         validate_name(&name)?;
         info.name = name;
     }
-    validate_description(&description)?;
+    validate_description(description.as_deref())?;
     info.description = description;
-    validate_link(&link)?;
+    validate_link(link.as_deref())?;
     info.link = link;
     INFO.save(deps.storage, &info)?;
 
@@ -769,9 +781,9 @@ fn install_ibc_client(deps: DepsMut, proxy: Addr) -> Result<CosmosMsg, ManagerEr
 
     ACCOUNT_MODULES.save(deps.storage, IBC_CLIENT, &ibc_client_addr)?;
 
-    Ok(add_module_to_proxy(
+    Ok(add_modules_to_proxy(
         proxy.into_string(),
-        ibc_client_addr.to_string(),
+        vec![ibc_client_addr.to_string()],
     )?)
 }
 
@@ -785,7 +797,7 @@ fn uninstall_ibc_client(deps: DepsMut, proxy: Addr, ibc_client: Addr) -> StdResu
 fn query_module(
     deps: Deps,
     module_info: ModuleInfo,
-    old_contract_cw2: Option<ContractVersion>,
+    old_contract_version: Option<ContractVersion>,
 ) -> Result<ModuleResponse, ManagerError> {
     let config = CONFIG.load(deps.storage)?;
     // Construct feature object to access registry functions
@@ -794,7 +806,7 @@ fn query_module(
 
     let module = match &module_info.version {
         ModuleVersion::Version(new_version) => {
-            let old_contract = old_contract_cw2.unwrap();
+            let old_contract = old_contract_version.unwrap();
 
             let new_version = new_version.parse::<Version>().unwrap();
             let old_version = old_contract.version.parse::<Version>().unwrap();
@@ -805,7 +817,6 @@ fn query_module(
                     old_version.to_string(),
                 ));
             }
-
             Module {
                 info: module_info.clone(),
                 reference: version_registry.query_module_reference_raw(&module_info)?,
@@ -848,14 +859,14 @@ fn self_upgrade_msg(
     }
 }
 
-fn add_module_to_proxy(
+fn add_modules_to_proxy(
     proxy_address: String,
-    module_address: String,
+    module_addresses: Vec<String>,
 ) -> StdResult<CosmosMsg<Empty>> {
     Ok(wasm_execute(
         proxy_address,
-        &ProxyMsg::AddModule {
-            module: module_address,
+        &ProxyMsg::AddModules {
+            modules: module_addresses,
         },
         vec![],
     )?
@@ -934,25 +945,31 @@ pub fn update_internal_config(
         // Perform module installation.
         let queued_modules = MODULE_QUEUE.load(deps.storage)?;
 
-        let config = CONFIG.load(deps.storage)?;
+        // No need to send message to install module if there is none
+        let mut response = if queued_modules.is_empty() {
+            ManagerResponse::new(
+                "manager_after_init",
+                std::iter::once(Attribute::new("installed_modules", "[]")),
+            )
+        } else {
+            let config = CONFIG.load(deps.storage)?;
 
-        let (install_msg, install_attributes) = install_modules_internal(
-            deps.storage,
-            queued_modules,
-            config.module_factory_address,
-            info.funds,
-        )?;
-
-        let mut response =
+            let (install_msg, install_attributes) = install_modules_internal(
+                deps.storage,
+                queued_modules,
+                config.module_factory_address,
+                info.funds,
+            )?;
             ManagerResponse::new("manager_after_init", std::iter::once(install_attributes))
-                .add_message(install_msg);
+                .add_message(install_msg)
+        };
 
         let account_info = INFO.load(deps.storage)?;
         if let GovernanceDetails::SubAccount { manager, .. } = account_info.governance_details {
             response = response.add_message(wasm_execute(
                 manager,
                 &ExecuteMsg::UpdateSubAccount(UpdateSubAccountAction::RegisterSubAccount {
-                    id: ACCOUNT_ID.load(deps.storage)?,
+                    id: ACCOUNT_ID.load(deps.storage)?.seq(),
                 }),
                 vec![],
             )?);
@@ -1490,12 +1507,14 @@ mod tests {
 
             let _info = mock_info("not_module_factory", &[]);
 
-            let msg = ExecuteMsg::RegisterModule {
-                module_addr: "module_addr".to_string(),
-                module: Module {
-                    info: ModuleInfo::from_id_latest("test:module")?,
-                    reference: ModuleReference::App(1),
-                },
+            let msg = ExecuteMsg::RegisterModules {
+                modules: vec![RegisterModuleData {
+                    module_address: "module_addr".to_string(),
+                    module: Module {
+                        info: ModuleInfo::from_id_latest("test:module")?,
+                        reference: ModuleReference::App(1),
+                    },
+                }],
             };
 
             let res = execute_as(deps.as_mut(), "not_module_factory", msg);

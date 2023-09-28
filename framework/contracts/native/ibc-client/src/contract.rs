@@ -137,7 +137,7 @@ mod tests {
     fn instantiate_works() {
         let mut deps = mock_dependencies();
         let msg = InstantiateMsg {
-            chain: "test_chain".into(),
+            chain: "test-chain".into(),
             ans_host_address: TEST_ANS_HOST.into(),
             version_control_address: TEST_VERSION_CONTROL.into(),
         };
@@ -147,7 +147,7 @@ mod tests {
 
         // config
         let expected_config = Config {
-            chain: "test_chain".into(),
+            chain: "test-chain".into(),
             version_control_address: Addr::unchecked(TEST_VERSION_CONTROL),
         };
 

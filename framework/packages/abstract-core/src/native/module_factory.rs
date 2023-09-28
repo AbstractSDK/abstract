@@ -8,6 +8,7 @@ pub mod state {
     use std::collections::VecDeque;
 
     use crate::{
+        manager::RegisterModuleData,
         objects::module::{Module, ModuleInfo},
         version_control::AccountBase,
     };
@@ -24,8 +25,9 @@ pub mod state {
 
     #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
     pub struct Context {
-        pub account_base: Option<AccountBase>,
+        pub account_base: AccountBase,
         pub modules: VecDeque<Module>,
+        pub modules_to_register: Vec<RegisterModuleData>,
     }
 
     pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
@@ -34,6 +36,7 @@ pub mod state {
 }
 
 use crate::{
+    manager::RegisterModuleData,
     objects::module::{Module, ModuleInfo},
     version_control::AccountBase,
 };
@@ -110,14 +113,18 @@ pub struct ConfigResponse {
 
 #[cosmwasm_schema::cw_serde]
 pub struct ContextResponse {
-    pub account_base: Option<AccountBase>,
+    pub account_base: AccountBase,
     pub modules: Vec<Module>,
+    pub modules_to_register: Vec<RegisterModuleData>,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct SimulateInstallModulesResponse {
     pub total_required_funds: Vec<Coin>,
-    pub required_funds: Vec<(String, Coin)>,
+    /// Funds transferred to the module creator
+    pub monetization_funds: Vec<(String, Coin)>,
+    /// Funds transferred to the module contract at instantiation
+    pub initialization_funds: Vec<(String, Vec<Coin>)>,
 }
 
 /// We currently take no arguments for migrations

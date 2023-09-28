@@ -56,8 +56,8 @@ pub fn instantiate(
     )?;
 
     // Verify info
-    validate_description(&msg.description)?;
-    validate_link(&msg.link)?;
+    validate_description(msg.description.as_deref())?;
+    validate_link(msg.link.as_deref())?;
     validate_name(&msg.name)?;
 
     let governance_details = msg.owner.verify(deps.as_ref(), version_control_address)?;
@@ -116,10 +116,9 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> M
                 ExecuteMsg::UninstallModule { module_id } => {
                     uninstall_module(deps, info, module_id)
                 }
-                ExecuteMsg::RegisterModule {
-                    module,
-                    module_addr,
-                } => register_module(deps, info, env, module, module_addr),
+                ExecuteMsg::RegisterModules { modules } => {
+                    register_modules(deps, info, env, modules)
+                }
                 ExecuteMsg::ExecOnModule {
                     module_id,
                     exec_msg,

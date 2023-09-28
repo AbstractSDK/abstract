@@ -34,13 +34,13 @@ interface = [
   "dep:cw-orch",
   "dep:abstract-interface",
   "export",
-  "abstract-staking-adapter-traits/interface",
+  "abstract-staking-standard/interface",
 ]
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 terra = ["abstract-astroport-adapter/full_integration"]
 neutron = ["abstract-astroport-adapter/full_integration"]
-kujira = ["dep:kujira"]
+kujira = ["abstract-kujira-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
 testing = ["abstract-wyndex-adapter/local", "abstract-astroport-adapter/local"]
 # Keep this until https://github.com/osmosis-labs/test-tube/issues/28 is fixed! 
@@ -70,7 +70,7 @@ abstract-interface = { workspace = true, optional = true }
 cw-orch = { workspace = true, optional = true }
 
 # Local
-abstract-staking-adapter-traits = { workspace = true }
+abstract-staking-standard = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 
 # Juno dexes #
@@ -83,7 +83,7 @@ abstract-osmosis-adapter = { workspace = true }
 abstract-astroport-adapter = { workspace = true }
 
 # Kujira #
-kujira = { version = "0.8.2", optional = true }
+abstract-kujira-adapter = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

@@ -1,8 +1,8 @@
-use crate::msg::StakingAction;
-use abstract_staking_adapter_traits::CwStakingError;
+use abstract_staking_standard::msg::StakingAction;
+use abstract_staking_standard::CwStakingError;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, SubMsg};
 
-use abstract_staking_adapter_traits::CwStakingCommand;
+use abstract_staking_standard::CwStakingCommand;
 
 use abstract_sdk::{
     core::objects::AssetEntry,
@@ -25,7 +25,7 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
         action: StakingAction,
         mut provider: Box<dyn CwStakingCommand>,
     ) -> Result<SubMsg, CwStakingError> {
-        let staking_asset = staking_asset_from_action(&action);
+        let staking_asset = staking_assets_from_action(&action);
 
         provider.fetch_data(
             deps.as_ref(),
@@ -38,15 +38,15 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 
         let msgs = match action {
             StakingAction::Stake {
-                asset: staking_token,
+                assets,
                 unbonding_period,
-            } => provider.stake(deps.as_ref(), staking_token.amount, unbonding_period)?,
+            } => provider.stake(deps.as_ref(), assets, unbonding_period)?,
             StakingAction::Unstake {
-                asset: staking_token,
+                assets,
                 unbonding_period,
-            } => provider.unstake(deps.as_ref(), staking_token.amount, unbonding_period)?,
-            StakingAction::ClaimRewards { asset: _ } => provider.claim_rewards(deps.as_ref())?,
-            StakingAction::Claim { asset: _ } => provider.claim(deps.as_ref())?,
+            } => provider.unstake(deps.as_ref(), assets, unbonding_period)?,
+            StakingAction::ClaimRewards { assets: _ } => provider.claim_rewards(deps.as_ref())?,
+            StakingAction::Claim { assets: _ } => provider.claim(deps.as_ref())?,
         };
 
         self.executor(deps.as_ref())
@@ -57,21 +57,21 @@ pub trait CwStakingAdapter: AbstractNameService + AbstractRegistryAccess + Execu
 }
 
 #[inline(always)]
-fn staking_asset_from_action(action: &StakingAction) -> AssetEntry {
+fn staking_assets_from_action(action: &StakingAction) -> Vec<AssetEntry> {
     match action {
         StakingAction::Stake {
-            asset: staking_token,
+            assets: staking_tokens,
             ..
-        } => staking_token.name.clone(),
+        } => staking_tokens.iter().map(|req| req.name.clone()).collect(),
         StakingAction::Unstake {
-            asset: staking_token,
+            assets: staking_tokens,
             ..
-        } => staking_token.name.clone(),
+        } => staking_tokens.iter().map(|req| req.name.clone()).collect(),
         StakingAction::ClaimRewards {
-            asset: staking_token,
-        } => staking_token.clone(),
+            assets: staking_tokens,
+        } => staking_tokens.clone(),
         StakingAction::Claim {
-            asset: staking_token,
+            assets: staking_token,
         } => staking_token.clone(),
     }
 }

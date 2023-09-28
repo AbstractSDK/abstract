@@ -7,7 +7,6 @@ edition = { workspace = true }
 name = "script_helpers"
 path = "src/lib.rs"
 
-
 [dependencies]
 cosmwasm-std = { workspace = true }
 serde = { workspace = true }
@@ -39,3 +38,7 @@ env_logger = { workspace = true }
 serde-cw-value = "0.7.0"
 sha256 = "1"
 clap = { workspace = true }
+dirs = "5.0.1"
+
+[patch.crates-io]
+cw-orch-networks = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/chaininfo_eq_derive" }

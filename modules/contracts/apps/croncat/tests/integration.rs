@@ -5,7 +5,9 @@ use std::cell::RefMut;
 use abstract_core::{
     ans_host::ContractsResponse,
     app::BaseInstantiateMsg,
-    objects::{gov_type::GovernanceDetails, UncheckedContractEntry},
+    objects::{
+        account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
+    },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
 
@@ -38,13 +40,12 @@ use croncat_sdk_tasks::{
 
 use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
-use cw_multi_test::Executor;
+use cw_orch::mock::cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
-
 use crate::common::contracts::TasksResponseCaster;
+use cosmwasm_std::{coins, to_binary, Addr, BankMsg, Uint128, WasmMsg};
 // consts for testing
 const ADMIN: &str = "admin";
 const AGENT: &str = "agent";
@@ -53,7 +54,7 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(
-    mut app: RefMut<cw_multi_test::App>,
+    mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(Addr, Addr)> {
     let sender = Addr::unchecked(ADMIN);
@@ -113,6 +114,7 @@ fn setup_croncat_contracts(
         msg: to_binary(&msg).unwrap(),
         contract_name: MANAGER_NAME.to_owned(),
     };
+
     app.execute_contract(
         sender.clone(),
         factory_addr.clone(),
@@ -246,9 +248,10 @@ fn setup() -> anyhow::Result<TestingSetup> {
                 monarch: ADMIN.to_string(),
             })?;
     // claim the namespace so app can be deployed
-    abstr_deployment
-        .version_control
-        .claim_namespace(1, "croncat".to_owned())?;
+    abstr_deployment.version_control.claim_namespace(
+        AccountId::new(1, AccountTrace::Local)?,
+        "croncat".to_owned(),
+    )?;
 
     // Instantiating croncat contracts
     mock.set_balance(&sender, coins(100, DENOM))?;

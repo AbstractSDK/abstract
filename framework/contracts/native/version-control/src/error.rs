@@ -75,8 +75,14 @@ pub enum VCError {
     #[error("No action specified")]
     NoAction,
 
+    #[error("Account {0} already exists")]
+    AccountAlreadyExists(AccountId),
+
     #[error("Invalid fee payment sent. Expected {}, sent {:?}", expected, sent)]
     InvalidFeePayment { expected: Coin, sent: Vec<Coin> },
+
+    #[error("Initialization funds can only be specified for apps and standalone modules")]
+    RedundantInitFunds {},
 }
 
 impl From<cw_semver::Error> for VCError {

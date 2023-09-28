@@ -13,8 +13,13 @@ pub mod state {
     use serde::{Deserialize, Serialize};
 
     use crate::{
-        module_factory::ModuleInstallConfig,
-        objects::{account_id::AccountId, gov_type::GovernanceDetails, module::Module, AssetEntry},
+        native::module_factory::ModuleInstallConfig,
+        objects::{
+            account::{AccountId, AccountSequence},
+            gov_type::GovernanceDetails,
+            module::Module,
+            AssetEntry,
+        },
     };
 
     /// Account Factory configuration
@@ -23,7 +28,6 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
-        pub next_account_id: AccountId,
     }
 
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
@@ -32,6 +36,7 @@ pub mod state {
         pub account_proxy_address: Option<Addr>,
         pub manager_module: Option<Module>,
         pub proxy_module: Option<Module>,
+        pub account_id: AccountId,
 
         pub additional_config: AdditionalContextConfig,
         pub install_modules: Vec<ModuleInstallConfig>,
@@ -49,16 +54,21 @@ pub mod state {
         pub owner: GovernanceDetails<String>,
     }
 
-    pub const CONFIG: Item<Config> = Item::new("\u{0}{5}config");
-    pub const CONTEXT: Item<Context> = Item::new("\u{0}{6}context");
+    pub const CONFIG: Item<Config> = Item::new("cfg");
+    pub const CONTEXT: Item<Context> = Item::new("contxt");
+    pub const LOCAL_ACCOUNT_SEQUENCE: Item<AccountSequence> = Item::new("acseq");
 }
 
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 
 use crate::{
-    module_factory::ModuleInstallConfig,
-    objects::{account_id::AccountId, gov_type::GovernanceDetails, AssetEntry},
+    native::module_factory::ModuleInstallConfig,
+    objects::{
+        account::{AccountSequence, AccountTrace},
+        gov_type::GovernanceDetails,
+        AssetEntry,
+    },
 };
 
 /// Msg used on instantiation
@@ -124,7 +134,18 @@ pub struct ConfigResponse {
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
-    pub next_account_id: AccountId,
+    pub local_account_sequence: AccountSequence,
+}
+
+/// Sequence numbers for each origin.
+#[cosmwasm_schema::cw_serde]
+pub struct SequencesResponse {
+    pub sequences: Vec<(AccountTrace, AccountSequence)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct SequenceResponse {
+    pub sequence: AccountSequence,
 }
 
 /// Account Factory migrate messages

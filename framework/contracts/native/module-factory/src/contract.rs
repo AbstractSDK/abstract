@@ -75,11 +75,11 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> ModuleFactoryResult {
         Reply {
             id: commands::CREATE_APP_RESPONSE_ID,
             result,
-        } => commands::register_contract(deps, result),
+        } => commands::handle_reply(deps, result),
         Reply {
             id: commands::CREATE_STANDALONE_RESPONSE_ID,
             result,
-        } => commands::register_contract(deps, result),
+        } => commands::handle_reply(deps, result),
         _ => Err(ModuleFactoryError::UnexpectedReply {}),
     }
 }
@@ -120,15 +120,27 @@ pub fn query_simulate_install_modules(
 
     let mut coins = Coins::default();
     let mut install_funds = vec![];
+    let mut init_funds = vec![];
     for module in module_responses {
         if let Monetization::InstallFee(fee) = module.config.monetization {
             coins.add(fee.fee())?;
             install_funds.push((module.module.info.id(), fee.fee()))
         }
+        if !module.config.instantiation_funds.is_empty() {
+            init_funds.push((
+                module.module.info.id(),
+                module.config.instantiation_funds.clone(),
+            ));
+
+            for init_coin in module.config.instantiation_funds {
+                coins.add(init_coin)?;
+            }
+        }
     }
     let resp = SimulateInstallModulesResponse {
         total_required_funds: coins.into_vec(),
-        required_funds: install_funds,
+        monetization_funds: install_funds,
+        initialization_funds: init_funds,
     };
     Ok(resp)
 }
@@ -137,10 +149,12 @@ pub fn query_context(deps: Deps) -> StdResult<ContextResponse> {
     let Context {
         account_base,
         modules,
+        modules_to_register,
     }: Context = CONTEXT.load(deps.storage)?;
     let resp = ContextResponse {
         account_base,
         modules: modules.into(),
+        modules_to_register,
     };
 
     Ok(resp)

@@ -2,11 +2,13 @@ mod adapter;
 pub mod contract;
 mod handlers;
 
-pub mod providers;
 mod resolver;
 
-pub use abstract_staking_adapter_traits::msg;
-pub use abstract_staking_adapter_traits::CwStakingCommand;
+pub mod msg {
+    pub use abstract_staking_standard::msg::*;
+}
+
+pub use abstract_staking_standard::CwStakingCommand;
 pub use adapter::CwStakingAdapter;
 
 pub const CW_STAKING: &str = "abstract:cw-staking";
@@ -16,7 +18,7 @@ pub mod host_staking {
     pub use abstract_osmosis_adapter::staking::Osmosis;
 }
 
-pub use abstract_staking_adapter_traits::error;
+pub use abstract_staking_standard::error;
 
 #[cfg(feature = "interface")]
 pub mod interface {
@@ -75,7 +77,7 @@ pub mod interface {
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Stake {
-                        asset: stake_asset,
+                        assets: vec![stake_asset],
                         unbonding_period: duration,
                     },
                 },
@@ -96,7 +98,7 @@ pub mod interface {
                 request: StakingExecuteMsg {
                     provider,
                     action: StakingAction::Unstake {
-                        asset: stake_asset,
+                        assets: vec![stake_asset],
                         unbonding_period: duration,
                     },
                 },
@@ -115,7 +117,9 @@ pub mod interface {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
-                    action: StakingAction::Claim { asset: stake_asset },
+                    action: StakingAction::Claim {
+                        assets: vec![stake_asset],
+                    },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_msg)?;
@@ -132,7 +136,9 @@ pub mod interface {
                 proxy_address: None,
                 request: StakingExecuteMsg {
                     provider,
-                    action: StakingAction::ClaimRewards { asset: stake_asset },
+                    action: StakingAction::ClaimRewards {
+                        assets: vec![stake_asset],
+                    },
                 },
             });
             manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;
