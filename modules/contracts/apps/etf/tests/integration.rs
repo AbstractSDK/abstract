@@ -23,7 +23,7 @@ use etf_app::{
     contract::interface::EtfApp,
     msg::Cw20HookMsg,
     msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
-    ETF_ID,
+    ETF_APP_ID,
 };
 use semver::Version;
 use speculoos::prelude::*;
@@ -57,7 +57,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // Deploy mock dex
     let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
 
-    let etf = EtfApp::new(ETF_ID, mock.clone());
+    let etf = EtfApp::new(ETF_APP_ID, mock.clone());
     etf.deploy(version)?;
 
     let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());
@@ -73,7 +73,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
 
     // install etf
     account.manager.install_module(
-        ETF_ID,
+        ETF_APP_ID,
         &abstract_core::app::InstantiateMsg {
             module: etf_app::msg::EtfInstantiateMsg {
                 fee: Decimal::percent(5),
@@ -92,7 +92,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // get its address
     let etf_addr = account
         .manager
-        .module_addresses(vec![ETF_ID.into()])?
+        .module_addresses(vec![ETF_APP_ID.into()])?
         .modules[0]
         .1
         .clone();

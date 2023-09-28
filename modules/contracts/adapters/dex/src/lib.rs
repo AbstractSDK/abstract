@@ -11,7 +11,7 @@ pub mod msg {
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
 //:{Dex, DexInterface};
-pub const EXCHANGE: &str = "abstract:dex";
+pub const DEX_ADAPTER_ID: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
@@ -20,7 +20,7 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{msg::*, EXCHANGE};
+    use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
@@ -78,7 +78,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
     }

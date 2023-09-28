@@ -6,7 +6,7 @@ use cw_orch::daemon::DaemonBuilder;
 use cw_orch::prelude::ContractInstance;
 
 use abstract_cw_staking::interface::CwStakingAdapter;
-use abstract_cw_staking::CW_STAKING;
+use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 use abstract_interface::VersionControl;
 use abstract_sdk::core::{
     adapter,
@@ -37,7 +37,7 @@ fn deploy_cw_staking(
 
     if let Some(prev_version) = prev_version {
         let Module { info, reference } = version_control.module(ModuleInfo::from_id(
-            CW_STAKING,
+            CW_STAKING_ADAPTER_ID,
             ModuleVersion::from(prev_version),
         )?)?;
 
@@ -47,7 +47,7 @@ fn deploy_cw_staking(
         };
         version_control.propose_modules(vec![(new_info, reference)])?;
     } else if let Some(code_id) = code_id {
-        let mut cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
+        let mut cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
         cw_staking.set_code_id(code_id);
         let init_msg = adapter::InstantiateMsg {
             module: Empty {},
@@ -67,7 +67,7 @@ fn deploy_cw_staking(
     } else {
         log::info!("Uploading Cw staking");
         // Upload and deploy with the version
-        let cw_staking = CwStakingAdapter::new(CW_STAKING, chain);
+        let cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
 
         cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
     }

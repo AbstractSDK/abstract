@@ -48,7 +48,7 @@ mod osmosis_test {
     pub const LP: &str = "osmosis/osmo,atom";
 
     use crate::common::create_default_account;
-    use abstract_cw_staking::CW_STAKING;
+    use abstract_cw_staking::CW_STAKING_ADAPTER_ID;
 
     fn get_pool_token(id: u64) -> String {
         format!("gamm/pool/{}", id)
@@ -96,7 +96,7 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -117,7 +117,7 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -136,7 +136,7 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, claim_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
             Ok(())
         }
 
@@ -155,7 +155,7 @@ mod osmosis_test {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
             Ok(())
         }
     }
@@ -175,7 +175,7 @@ mod osmosis_test {
 
         let _root_os = create_default_account(&deployment.account_factory)?;
         let staking: OsmosisStakingAdapter<OsmosisTestTube> =
-            OsmosisStakingAdapter::new(CW_STAKING, tube.clone());
+            OsmosisStakingAdapter::new(CW_STAKING_ADAPTER_ID, tube.clone());
 
         staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
 
@@ -221,10 +221,10 @@ mod osmosis_test {
             .unwrap();
 
         // install exchange on AbstractAccount
-        os.manager.install_module(CW_STAKING, &Empty {}, None)?;
+        os.manager.install_module(CW_STAKING_ADAPTER_ID, &Empty {}, None)?;
         // load exchange data into type
         staking.set_address(&Addr::unchecked(
-            os.manager.module_info(CW_STAKING)?.unwrap().address,
+            os.manager.module_info(CW_STAKING_ADAPTER_ID)?.unwrap().address,
         ));
 
         tube.bank_send(

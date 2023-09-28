@@ -12,7 +12,7 @@ use abstract_core::{
 };
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
-use abstract_dex_adapter::EXCHANGE;
+use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 use dca_app::msg::{DCAResponse, Frequency};
 use dca_app::state::{DCAEntry, DCAId};
@@ -301,7 +301,7 @@ fn setup() -> anyhow::Result<(
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock
-    let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(EXCHANGE, mock.clone());
+    let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(DEX_ADAPTER_ID, mock.clone());
 
     dex_adapter.deploy(
         abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
@@ -340,8 +340,8 @@ fn setup() -> anyhow::Result<(
                 monarch: ADMIN.to_string(),
             })?;
     // Install DEX
-    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
-    let module_addr = account.manager.module_info(EXCHANGE)?.unwrap().address;
+    account.manager.install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    let module_addr = account.manager.module_info(DEX_ADAPTER_ID)?.unwrap().address;
     dex_adapter.set_address(&module_addr);
 
     // Install croncat
@@ -383,7 +383,7 @@ fn setup() -> anyhow::Result<(
     let module_addr = account.manager.module_info(DCA_APP_ID)?.unwrap().address;
     dca_app.set_address(&module_addr);
     account.manager.update_adapter_authorized_addresses(
-        EXCHANGE,
+        DEX_ADAPTER_ID,
         vec![module_addr.to_string()],
         vec![],
     )?;
@@ -446,7 +446,7 @@ fn successful_install() -> anyhow::Result<()> {
                     version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
                 },
                 DependencyResponse {
-                    id: EXCHANGE.to_owned(),
+                    id: DEX_ADAPTER_ID.to_owned(),
                     version_req: vec![format!(
                         "^{}",
                         abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()

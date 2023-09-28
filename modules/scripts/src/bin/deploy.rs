@@ -1,10 +1,10 @@
-use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, EXCHANGE};
+use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
+use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
 use abstract_interface::{Abstract, AdapterDeployer, AppDeployer};
 use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
 use cosmwasm_std::Decimal;
 use dca_app::{contract::DCA_APP_ID, DCAApp};
-use etf_app::{contract::interface::EtfApp, ETF_ID};
+use etf_app::{contract::interface::EtfApp, ETF_APP_ID};
 use reqwest::Url;
 use semver::Version;
 use std::net::TcpStream;
@@ -44,16 +44,16 @@ fn full_deploy() -> anyhow::Result<()> {
             .build()?;
         let _deployment = Abstract::load_from(chain.clone())?;
 
-        let _staking = CwStakingAdapter::new(CW_STAKING, chain.clone())
+        let _staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone())
             .maybe_deploy(version.clone(), Empty {})?;
-        let _dex = DexAdapter::new(EXCHANGE, chain.clone()).maybe_deploy(
+        let _dex = DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).maybe_deploy(
             version.clone(),
             DexInstantiateMsg {
                 recipient_account: 0,
                 swap_fee: Decimal::permille(3),
             },
         )?;
-        let _etf = EtfApp::new(ETF_ID, chain.clone()).maybe_deploy(version.clone())?;
+        let _etf = EtfApp::new(ETF_APP_ID, chain.clone()).maybe_deploy(version.clone())?;
         let _dca = DCAApp::new(DCA_APP_ID, chain.clone()).maybe_deploy(version.clone())?;
         let _challenge =
             ChallengeApp::new(CHALLENGE_APP_ID, chain.clone()).maybe_deploy(version.clone())?;
