@@ -1,19 +1,15 @@
-name: Release and Publish 
+name: Manual CircleCI Wasm Builder
+
+# Job that updates the wasms of the mono-repo only if it is triggered manually.
 
 on:
-  workflow_dispatch:
-  pull_request:
-    types:
-      - opened
-    branches:
-      - 'release/*'
+  workflow_dispatch: # Trigger manually on any branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/release/') || github.event_name == 'workflow_dispatch'
     steps:
-      - name: Tickle CircleCI to Build Wasm Binaries
+      - name: Tickle CircleCI
         env:
           CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
         run: |
@@ -26,7 +22,7 @@ jobs:
           "branch": "'"$BRANCH_NAME"'",
 
           "parameters": {
-            "GHA_Meta": "build_commit_deploy"
+            "GHA_Meta": "build_wasms"
           }
           }' https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline)
           

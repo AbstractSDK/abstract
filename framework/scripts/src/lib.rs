@@ -5,6 +5,7 @@ use cw_orch::{
         *,
     },
 };
+use serde::{Deserialize, Serialize};
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
 pub const SUPPORTED_CHAINS: &[ChainInfo] =
@@ -20,6 +21,12 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
     fcd_url: None,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DeploymentStatus {
+    pub chain_ids: Vec<String>,
+    pub success: bool,
+}
 
 pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [ChainInfo<'a>] {
     if chains.is_empty() {
