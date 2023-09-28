@@ -22,9 +22,9 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DeploymentStatus {
-    pub chain_id: String,
+    pub chain_ids: Vec<String>,
     pub success: bool,
 }
 

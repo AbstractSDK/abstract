@@ -16,6 +16,9 @@ parameters:
   GHA_Meta:
     type: string
     default: ""
+  branch:
+    type: string
+    default: "main"
 
 workflows:
   version: 2
