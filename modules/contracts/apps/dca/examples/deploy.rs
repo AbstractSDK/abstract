@@ -4,7 +4,7 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_dca_app::{contract::DCA_APP_ID, DCAApp};
+use dca_app::{contract::DCA_APP_ID, DCAApp};
 use abstract_interface::AppDeployer;
 use semver::Version;
 

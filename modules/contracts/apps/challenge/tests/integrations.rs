@@ -1,5 +1,5 @@
 use crate::msg::QueryMsg;
-use abstract_challenge_app::{
+use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
         ChallengeQueryMsg, ChallengeRequest, ChallengeResponse, ChallengesResponse,

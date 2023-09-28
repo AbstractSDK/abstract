@@ -10,9 +10,9 @@ use abstract_core::{
     app::{BaseInstantiateMsg, BaseQueryMsgFns},
     objects::gov_type::GovernanceDetails,
 };
-use abstract_dca_app::msg::{DCAResponse, Frequency};
-use abstract_dca_app::state::{DCAEntry, DCAId};
-use abstract_dca_app::{
+use dca_app::msg::{DCAResponse, Frequency};
+use dca_app::state::{DCAEntry, DCAId};
+use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
     *,

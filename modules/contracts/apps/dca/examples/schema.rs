@@ -1,4 +1,4 @@
-use abstract_dca_app::contract::DCAApp as App;
+use dca_app::contract::DCAApp as App;
 use cosmwasm_schema::remove_schemas;
 use std::env::current_dir;
 use std::fs::create_dir_all;

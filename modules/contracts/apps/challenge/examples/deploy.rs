@@ -4,7 +4,7 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
+use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
 use abstract_interface::AppDeployer;
 use semver::Version;
 

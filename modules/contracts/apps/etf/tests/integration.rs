@@ -19,7 +19,7 @@ use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
 use cw_orch::deploy::Deploy;
 
-use abstract_etf::{
+use etf_app::{
     contract::interface::EtfApp,
     msg::Cw20HookMsg,
     msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
@@ -75,7 +75,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     account.manager.install_module(
         ETF_ID,
         &abstract_core::app::InstantiateMsg {
-            module: abstract_etf::msg::EtfInstantiateMsg {
+            module: etf_app::msg::EtfInstantiateMsg {
                 fee: Decimal::percent(5),
                 manager_addr: ETF_MANAGER.into(),
                 token_code_id: etf_token_code_id,
