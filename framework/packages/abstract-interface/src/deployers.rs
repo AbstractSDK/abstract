@@ -13,11 +13,33 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
     + Uploadable
     + Sized
 {
+    /// Deploys the adapter. If the adapter is already deployed, it will return an error.
+    /// Use `maybe_deploy` if you want to deploy the adapter only if it is not already deployed.
     fn deploy(
         &self,
         version: Version,
         custom_init_msg: CustomInitMsg,
     ) -> Result<(), crate::AbstractInterfaceError> {
+        let deployed = self.maybe_deploy(version.clone(), custom_init_msg)?;
+        if deployed {
+            Ok(())
+        } else {
+            Err(StdErr(format!(
+                "Adapter {} already exists with version {}",
+                self.id(),
+                version
+            ))
+            .into())
+        }
+    }
+
+    /// Deploys the adapter if it is not already deployed
+    /// Returns true if the adapter was deployed
+    fn maybe_deploy(
+        &self,
+        version: Version,
+        custom_init_msg: CustomInitMsg,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().to_owned())?;
 
@@ -27,12 +49,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
-            return Err(StdErr(format!(
-                "Adapter {} already exists with version {}",
-                self.id(),
-                version
-            ))
-            .into());
+            return Ok(false);
         };
 
         self.upload()?;
@@ -48,13 +65,32 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         abstr
             .version_control
             .register_adapters(vec![(self.as_instance(), version.to_string())])?;
-        Ok(())
+
+        Ok(true)
     }
 }
 
 /// Trait for deploying APPs
 pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
+    /// Deploys the app. If the app is already deployed, it will return an error.
+    /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
     fn deploy(&self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
+        let deployed = self.maybe_deploy(version.clone())?;
+        if deployed {
+            Ok(())
+        } else {
+            Err(StdErr(format!(
+                "App {} already exists with version {}",
+                self.id(),
+                version
+            ))
+            .into())
+        }
+    }
+
+    /// Deploys the application if it is not already deployed
+    /// Returns true if the application was deployed
+    fn maybe_deploy(&self, version: Version) -> Result<bool, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
@@ -64,12 +100,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
             .get_app_code(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
-            return Err(StdErr(format!(
-                "App {} already exists with version {}",
-                self.id(),
-                version
-            ))
-            .into());
+            return Ok(false);
         };
 
         self.upload()?;
@@ -77,6 +108,7 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
         abstr
             .version_control
             .register_apps(vec![(self.as_instance(), version.to_string())])?;
-        Ok(())
+
+        Ok(true)
     }
 }
