@@ -42,27 +42,36 @@ fn full_deploy() -> anyhow::Result<()> {
             .handle(rt.handle())
             .chain(network.clone())
             .build()?;
-        let _deployment = Abstract::load_from(chain.clone())?;
 
-        let _staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
-            version.clone(),
+        // Deploy Adapters
+        CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
+            abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,
             Empty {},
             DeployStrategy::Try,
         )?;
-        let _dex = DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
-            version.clone(),
+        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
+            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
             DexInstantiateMsg {
                 recipient_account: 0,
                 swap_fee: Decimal::permille(3),
             },
             DeployStrategy::Try,
         )?;
-        let _etf =
-            EtfApp::new(ETF_APP_ID, chain.clone()).deploy(version.clone(), DeployStrategy::Try)?;
-        let _dca =
-            DCAApp::new(DCA_APP_ID, chain.clone()).deploy(version.clone(), DeployStrategy::Try)?;
-        let _challenge = ChallengeApp::new(CHALLENGE_APP_ID, chain.clone())
-            .deploy(version.clone(), DeployStrategy::Try)?;
+
+        // Deploy apps
+        EtfApp::new(ETF_APP_ID, chain.clone()).deploy(
+            etf_app::contract::CONTRACT_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
+
+        DCAApp::new(DCA_APP_ID, chain.clone()).deploy(
+            dca_app::contract::DCA_APP_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
+        ChallengeApp::new(CHALLENGE_APP_ID, chain.clone()).deploy(
+            challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
+            DeployStrategy::Try,
+        )?;
     }
     Ok(())
 }
