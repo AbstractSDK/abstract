@@ -1,5 +1,5 @@
 use crate::handlers;
-use crate::msg::{AppMigrateMsg, SubscriptionInstantiateMsg};
+use crate::msg::{AppMigrateMsg, SubscribersInstantiateMsg};
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use abstract_app::AppContract;
 use abstract_subscription_interface::SubscriptionError;
@@ -11,7 +11,7 @@ pub type SubscriptionResult<T = Response> = Result<T, SubscriptionError>;
 
 pub type SubscriptionApp = AppContract<
     SubscriptionError,
-    SubscriptionInstantiateMsg,
+    SubscribersInstantiateMsg,
     SubscriptionExecuteMsg,
     SubscriptionQueryMsg,
     AppMigrateMsg,

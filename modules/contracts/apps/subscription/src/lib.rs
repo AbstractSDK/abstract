@@ -8,8 +8,7 @@ pub mod interface {
     use crate::msg::*;
     use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use abstract_interface::AppDeployer;
-    use abstract_subscription_interface::contributors::msg::ContributorsInstantiateMsg;
-    use cosmwasm_std::{Decimal, Uint128};
+    use cosmwasm_std::Decimal;
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};
     use std::str::FromStr;
@@ -41,32 +40,30 @@ pub mod interface {
             ans_host_address: String,
             factory_addr: String,
             version_control_addr: String,
-        ) -> AppInitMsg<SubscriptionInstantiateMsg> {
-            AppInitMsg::<SubscriptionInstantiateMsg> {
+        ) -> AppInitMsg<SubscribersInstantiateMsg> {
+            AppInitMsg::<SubscribersInstantiateMsg> {
                 base: BaseInstantiateMsg {
                     ans_host_address,
                     version_control_address: version_control_addr,
                 },
-                module: SubscriptionInstantiateMsg {
-                    subscribers: SubscribersInstantiateMsg {
-                        factory_addr,
-                        payment_asset: AssetInfoUnchecked::native(payment_denom),
-                        subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
-                        subscription_per_block_emissions:
-                            crate::state::UncheckedEmissionType::IncomeBased(
-                                AssetInfoUnchecked::cw20(token_addr.clone()),
-                            ),
-                        // 3 days
-                        income_averaging_period: 259200u64.into(),
-                    },
-                    contributors: Some(ContributorsInstantiateMsg {
-                        protocol_income_share: Decimal::percent(10),
-                        emission_user_share: Decimal::percent(50),
-                        max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
-                        token_info: AssetInfoUnchecked::cw20(token_addr),
-                        emissions_amp_factor: Uint128::new(680000),
-                        emissions_offset: Uint128::new(5200),
-                    }),
+                module: SubscribersInstantiateMsg {
+                    factory_addr,
+                    payment_asset: AssetInfoUnchecked::native(payment_denom),
+                    subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
+                    subscription_per_block_emissions:
+                        crate::state::UncheckedEmissionType::IncomeBased(AssetInfoUnchecked::cw20(
+                            token_addr.clone(),
+                        )),
+                    // 3 days
+                    income_averaging_period: 259200u64.into(),
+                    // contributors: Some(ContributorsInstantiateMsg {
+                    //     protocol_income_share: Decimal::percent(10),
+                    //     emission_user_share: Decimal::percent(50),
+                    //     max_emissions_multiple: Decimal::from_ratio(2u128, 1u128),
+                    //     token_info: AssetInfoUnchecked::cw20(token_addr),
+                    //     emissions_amp_factor: Uint128::new(680000),
+                    //     emissions_offset: Uint128::new(5200),
+                    // }),
                 },
             }
         }

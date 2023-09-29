@@ -64,6 +64,8 @@ pub struct SubscribersConfig {
     pub subscription_cost_per_block: Decimal,
     /// Subscription emissions per block
     pub subscription_per_block_emissions: EmissionType,
+    /// If contributors contract enabled
+    pub contributors_enabled: bool,
 }
 
 /// Keeps track of the active subscribers.

@@ -38,6 +38,7 @@ pub fn execute_handler(
             payment_asset,
             factory_address,
             subscription_cost_per_block: subscription_cost,
+            contributors_enabled,
         } => update_subscription_config(
             deps,
             env,
@@ -46,6 +47,7 @@ pub fn execute_handler(
             payment_asset,
             factory_address,
             subscription_cost,
+            contributors_enabled,
         ),
         SubscriptionExecuteMsg::RefreshTWA {} => {
             INCOME_TWA.try_update_value(&env, deps.storage)?;
@@ -222,6 +224,7 @@ pub fn claim_subscriber_emissions(
         }
         crate::state::EmissionType::IncomeBased(token) => {
             todo!()
+            // TODO:
             // let contributor_config = load_contribution_config(deps.storage)?;
             // let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
 
@@ -255,6 +258,7 @@ pub fn update_subscription_config(
     payment_asset: Option<AssetInfoUnchecked>,
     factory_address: Option<String>,
     subscription_cost_per_block: Option<Decimal>,
+    contributors_enabled: Option<bool>,
 ) -> SubscriptionResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 

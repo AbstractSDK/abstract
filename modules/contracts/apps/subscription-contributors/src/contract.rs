@@ -1,7 +1,7 @@
 use crate::{
     handlers,
     msg::{AppExecuteMsg, AppMigrateMsg, AppQueryMsg, ContributorsInstantiateMsg},
-    replies::{self, INSTANTIATE_REPLY_ID},
+    replies::{self, REFRESH_REPLY_ID},
 };
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
@@ -32,7 +32,7 @@ const APP: App = App::new(CONTRIBUTORS_ID, APP_VERSION, None)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
     .with_migrate(handlers::migrate_handler)
-    .with_replies(&[(INSTANTIATE_REPLY_ID, replies::instantiate_reply)])
+    .with_replies(&[(REFRESH_REPLY_ID, replies::refresh_reply)])
     .with_dependencies(&[SUBSCRIPTIONS_DEPENDENCY]);
 
 // Export handlers

@@ -1,3 +1,4 @@
+use abstract_core::objects::AccountId;
 use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map};
@@ -10,6 +11,9 @@ use std::ops::Sub;
 pub const CONTRIBUTORS: Map<&Addr, Compensation> = Map::new("contributors");
 pub const CACHED_CONTRIBUTION_STATE: Item<ContributionState> = Item::new("cache_state");
 pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("state");
+
+// Temporary AccountId
+pub const COMPENSATION_CLAIMER: Item<AccountId> = Item::new("claimer");
 
 /// Compensation details for contributors
 #[cosmwasm_schema::cw_serde]

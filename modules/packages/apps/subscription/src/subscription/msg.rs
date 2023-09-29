@@ -35,8 +35,6 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint64};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
-use crate::contributors::msg::ContributorsInstantiateMsg;
-
 /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
 /// Top-level Abstract App instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
@@ -52,15 +50,6 @@ impl app::AppQueryMsg for SubscriptionQueryMsg {}
 /// Subscription migration message
 #[cosmwasm_schema::cw_serde]
 pub struct AppMigrateMsg {}
-
-/// Subscription instantiation message
-#[cosmwasm_schema::cw_serde]
-pub struct SubscriptionInstantiateMsg {
-    /// Instantiation message for subscribers
-    pub subscribers: SubscribersInstantiateMsg,
-    /// Optional instantiation message for setting up contributions
-    pub contributors: Option<ContributorsInstantiateMsg>,
-}
 
 /// Subscribers instantiation message
 #[cosmwasm_schema::cw_serde]
@@ -109,6 +98,8 @@ pub enum SubscriptionExecuteMsg {
         factory_address: Option<String>,
         /// new subscription_cost_per_block
         subscription_cost_per_block: Option<Decimal>,
+        /// Enable contributors
+        contributors_enabled: Option<bool>,
         // TODO?: subscription_per_block_emissions
     },
     /// Refresh TWA value

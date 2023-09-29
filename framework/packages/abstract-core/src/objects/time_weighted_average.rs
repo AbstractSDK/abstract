@@ -136,7 +136,7 @@ pub struct TimeWeightedAverageData {
     pub last_averaging_cumulative_value: u128,
     pub averaging_period: u64,
     /// The requested average value
-    average_value: Decimal,
+    pub average_value: Decimal,
 }
 
 impl TimeWeightedAverageData {
