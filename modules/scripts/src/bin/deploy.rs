@@ -6,7 +6,6 @@ use cosmwasm_std::Decimal;
 use dca_app::{contract::DCA_APP_ID, DCAApp};
 use etf_app::{contract::interface::EtfApp, ETF_APP_ID};
 use reqwest::Url;
-use semver::Version;
 use std::net::TcpStream;
 
 use clap::Parser;
@@ -24,8 +23,6 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy() -> anyhow::Result<()> {
     let rt = Runtime::new()?;
-
-    let version: Version = ABSTRACT_VERSION.parse().unwrap();
 
     let chain = DaemonBuilder::default()
         .handle(rt.handle())
