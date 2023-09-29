@@ -1,6 +1,6 @@
 [package]
 name = "challenge-app"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
