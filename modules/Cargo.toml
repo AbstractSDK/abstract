@@ -91,7 +91,7 @@ speculoos = "0.11.0"
 anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "main" }
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/network_specific_uploads" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }

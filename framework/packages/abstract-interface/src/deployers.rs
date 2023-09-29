@@ -7,6 +7,17 @@ use cw_orch::prelude::*;
 use semver::Version;
 use serde::Serialize;
 
+/// Strategy for deploying
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DeployStrategy {
+    /// Error if already present
+    Error,
+    /// Ignore if already present
+    Try,
+    /// Force deployment
+    Force,
+}
+
 /// Trait for deploying Adapters
 pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInstance<Chain>
     + CwOrchInstantiate<Chain, InstantiateMsg = abstract_core::adapter::InstantiateMsg<CustomInitMsg>>
@@ -19,27 +30,8 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
         &self,
         version: Version,
         custom_init_msg: CustomInitMsg,
+        strategy: DeployStrategy,
     ) -> Result<(), crate::AbstractInterfaceError> {
-        let deployed = self.maybe_deploy(version.clone(), custom_init_msg)?;
-        if deployed {
-            Ok(())
-        } else {
-            Err(StdErr(format!(
-                "Adapter {} already exists with version {}",
-                self.id(),
-                version
-            ))
-            .into())
-        }
-    }
-
-    /// Deploys the adapter if it is not already deployed
-    /// Returns true if the adapter was deployed
-    fn maybe_deploy(
-        &self,
-        version: Version,
-        custom_init_msg: CustomInitMsg,
-    ) -> Result<bool, crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::load_from(self.get_chain().to_owned())?;
 
@@ -49,8 +41,23 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             .get_adapter_addr(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
-            return Ok(false);
-        };
+            match strategy {
+                DeployStrategy::Error => {
+                    return Err(StdErr(format!(
+                        "Adapter {} already exists with version {}",
+                        self.id(),
+                        version
+                    ))
+                    .into())
+                }
+                DeployStrategy::Try => {
+                    if version_check.is_ok() {
+                        return Ok(());
+                    }
+                }
+                _ => {}
+            }
+        }
 
         self.upload()?;
         let init_msg = abstract_core::adapter::InstantiateMsg {
@@ -66,7 +73,7 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
             .version_control
             .register_adapters(vec![(self.as_instance(), version.to_string())])?;
 
-        Ok(true)
+        Ok(())
     }
 }
 
@@ -74,23 +81,11 @@ pub trait AdapterDeployer<Chain: CwEnv, CustomInitMsg: Serialize>: ContractInsta
 pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain> {
     /// Deploys the app. If the app is already deployed, it will return an error.
     /// Use `maybe_deploy` if you want to deploy the app only if it is not already deployed.
-    fn deploy(&self, version: Version) -> Result<(), crate::AbstractInterfaceError> {
-        let deployed = self.maybe_deploy(version.clone())?;
-        if deployed {
-            Ok(())
-        } else {
-            Err(StdErr(format!(
-                "App {} already exists with version {}",
-                self.id(),
-                version
-            ))
-            .into())
-        }
-    }
-
-    /// Deploys the application if it is not already deployed
-    /// Returns true if the application was deployed
-    fn maybe_deploy(&self, version: Version) -> Result<bool, crate::AbstractInterfaceError> {
+    fn deploy(
+        &self,
+        version: Version,
+        strategy: DeployStrategy,
+    ) -> Result<(), crate::AbstractInterfaceError> {
         // retrieve the deployment
         let abstr = Abstract::<Chain>::load_from(self.get_chain().to_owned())?;
 
@@ -100,7 +95,22 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
             .get_app_code(&self.id(), ModuleVersion::from(version.to_string()));
 
         if version_check.is_ok() {
-            return Ok(false);
+            match strategy {
+                DeployStrategy::Error => {
+                    return Err(StdErr(format!(
+                        "Adapter {} already exists with version {}",
+                        self.id(),
+                        version
+                    ))
+                    .into())
+                }
+                DeployStrategy::Try => {
+                    if version_check.is_ok() {
+                        return Ok(());
+                    }
+                }
+                _ => {}
+            }
         };
 
         self.upload()?;
@@ -109,6 +119,6 @@ pub trait AppDeployer<Chain: CwEnv>: Sized + Uploadable + ContractInstance<Chain
             .version_control
             .register_apps(vec![(self.as_instance(), version.to_string())])?;
 
-        Ok(true)
+        Ok(())
     }
 }
