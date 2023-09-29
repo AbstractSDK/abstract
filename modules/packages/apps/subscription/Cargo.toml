@@ -1,0 +1,26 @@
+[package]
+name = "abstract-subscription-interface"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[features]
+interface = ["cw-orch"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cw-controllers = { workspace = true }
+thiserror = { workspace = true }
+abstract-sdk = { workspace = true }
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+cw-asset = { workspace = true }
+cw-storage-plus = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-orch = { workspace = true, optional = true }

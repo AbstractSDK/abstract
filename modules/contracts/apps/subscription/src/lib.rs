@@ -1,23 +1,21 @@
 pub mod contract;
-pub mod error;
 mod handlers;
-pub mod msg;
+pub use abstract_subscription_interface::msg::subscription as msg;
 pub mod queries;
-pub mod state;
-
-pub const SUBSCRIPTION: &str = "abstract:subscription";
+pub use abstract_subscription_interface::state::subscription as state;
 
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::msg::*;
     use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use abstract_interface::AppDeployer;
+    use abstract_subscription_interface::msg::contributors::ContributorsInstantiateMsg;
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};
     use std::str::FromStr;
 
-    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, MigrateMsg)]
+    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, AppMigrateMsg)]
     pub struct Subscription;
 
     impl<Chain: CwEnv> AppDeployer<Chain> for Subscription<Chain> {}
@@ -59,6 +57,8 @@ pub mod interface {
                             crate::state::UncheckedEmissionType::IncomeBased(
                                 AssetInfoUnchecked::cw20(token_addr.clone()),
                             ),
+                        // 3 days
+                        income_averaging_period: 259200u64.into(),
                     },
                     contributors: Some(ContributorsInstantiateMsg {
                         protocol_income_share: Decimal::percent(10),
@@ -67,8 +67,6 @@ pub mod interface {
                         token_info: AssetInfoUnchecked::cw20(token_addr),
                         emissions_amp_factor: Uint128::new(680000),
                         emissions_offset: Uint128::new(5200),
-                        // 3 days
-                        income_averaging_period: 259200u64.into(),
                     }),
                 },
             }

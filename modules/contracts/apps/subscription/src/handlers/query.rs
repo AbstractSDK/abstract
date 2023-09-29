@@ -1,17 +1,13 @@
-use abstract_sdk::AccountVerification;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, Uint128};
 use cw_asset::Asset;
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult, BLOCKS_PER_MONTH},
     msg::{
-        ConfigResponse, ContributorStateResponse, StateResponse, SubscriberStateResponse,
-        SubscriptionFeeResponse, SubscriptionQueryMsg,
+        ConfigResponse, StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
+        SubscriptionQueryMsg,
     },
-    state::{
-        CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS, DORMANT_SUBSCRIBERS, SUBSCRIBERS,
-        SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
-    },
+    state::{DORMANT_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
 };
 
 pub fn query_handler(
@@ -24,9 +20,9 @@ pub fn query_handler(
         // handle dapp-specific queries here
         SubscriptionQueryMsg::State {} => {
             let subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-            let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
+            // TODO: let contributor_state = CONTRIBUTION_STATE.load(deps.storage)?;
             to_binary(&StateResponse {
-                contribution: contributor_state,
+                // contribution: contributor_state,
                 subscription: subscription_state,
             })
         }
@@ -42,9 +38,9 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Config {} => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
+            // TODO: let contributor_config = CONTRIBUTION_CONFIG.load(deps.storage)?;
             to_binary(&ConfigResponse {
-                contribution: contributor_config,
+                // contribution: contributor_config,
                 subscription: subscription_config,
             })
         }
@@ -66,17 +62,18 @@ pub fn query_handler(
             };
             Ok(subscription_state)
         }
-        SubscriptionQueryMsg::ContributorState { os_id } => {
-            let account_registry = app.account_registry(deps);
-            let contributor_addr = account_registry.account_base(&os_id)?.manager;
-            let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
-            let subscription_state = if let Some(compensation) = maybe_contributor {
-                to_binary(&ContributorStateResponse { compensation })?
-            } else {
-                return Err(StdError::generic_err("provided address is not a contributor").into());
-            };
-            Ok(subscription_state)
-        }
+        // TODO:
+        // SubscriptionQueryMsg::ContributorState { os_id } => {
+        //     let account_registry = app.account_registry(deps);
+        //     let contributor_addr = account_registry.account_base(&os_id)?.manager;
+        //     let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
+        //     let subscription_state = if let Some(compensation) = maybe_contributor {
+        //         to_binary(&ContributorStateResponse { compensation })?
+        //     } else {
+        //         return Err(StdError::generic_err("provided address is not a contributor").into());
+        //     };
+        //     Ok(subscription_state)
+        // }
     }
     .map_err(Into::into)
 }

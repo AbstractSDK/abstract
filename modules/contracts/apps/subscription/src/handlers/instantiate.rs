@@ -1,13 +1,10 @@
-use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
+use abstract_subscription_interface::state::subscription::INCOME_TWA;
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
     msg::SubscriptionInstantiateMsg,
-    state::{
-        ContributionState, ContributorsConfig, SubscribersConfig, SubscriptionState,
-        CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, INCOME_TWA, SUBSCRIPTION_CONFIG,
-        SUBSCRIPTION_STATE,
-    },
+    state::{SubscribersConfig, SubscriptionState, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
 };
 
 pub fn instantiate_handler(
@@ -31,29 +28,17 @@ pub fn instantiate_handler(
 
     // Optional contribution setup
     if let Some(msg) = msg.contributors {
-        let contributor_config: ContributorsConfig = ContributorsConfig {
-            emissions_amp_factor: msg.emissions_amp_factor,
-            emission_user_share: msg.emission_user_share,
-            emissions_offset: msg.emissions_offset,
-            protocol_income_share: msg.protocol_income_share,
-            max_emissions_multiple: msg.max_emissions_multiple,
-            token_info: msg.token_info.check(deps.api, None)?,
-        }
-        .verify()?;
-
-        let contributor_state: ContributionState = ContributionState {
-            income_target: Decimal::zero(),
-            expense: Decimal::zero(),
-            total_weight: Uint128::zero(),
-            emissions: Decimal::zero(),
-        };
-        CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
-        CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
-        INCOME_TWA.instantiate(deps.storage, &env, None, msg.income_averaging_period.u64())?;
+        // TODO: install app on account
     }
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &subscription_config)?;
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
+    INCOME_TWA.instantiate(
+        deps.storage,
+        &env,
+        None,
+        msg.subscribers.income_averaging_period.u64(),
+    )?;
 
     Ok(Response::new())
 }

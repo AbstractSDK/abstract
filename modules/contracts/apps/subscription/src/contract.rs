@@ -1,8 +1,8 @@
-use crate::error::SubscriptionError;
+use abstract_subscription_interface::SubscriptionError;
 use crate::handlers;
 use crate::msg::{AppMigrateMsg, SubscriptionInstantiateMsg};
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
-use crate::SUBSCRIPTION;
+use abstract_subscription_interface::SUBSCRIPTION_ID;
 use abstract_app::AppContract;
 use cosmwasm_std::Response;
 use cw20::Cw20ReceiveMsg;
@@ -21,7 +21,7 @@ pub type SubscriptionApp = AppContract<
 pub(crate) const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
 
 const SUBSCRIPTION_MODULE: SubscriptionApp =
-    SubscriptionApp::new(SUBSCRIPTION, CONTRACT_VERSION, None)
+    SubscriptionApp::new(SUBSCRIPTION_ID, CONTRACT_VERSION, None)
         .with_execute(handlers::execute_handler)
         .with_instantiate(handlers::instantiate_handler)
         .with_query(handlers::query_handler)

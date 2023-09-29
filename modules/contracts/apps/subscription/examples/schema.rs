@@ -1,7 +1,6 @@
 use abstract_subscription::contract::SubscriptionApp;
 use abstract_subscription::msg::{
-    ConfigResponse, ContributorStateResponse, StateResponse, SubscriberStateResponse,
-    SubscriptionFeeResponse,
+    ConfigResponse, StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
 };
 use cosmwasm_schema::{export_schema, export_schema_with_title, remove_schemas, schema_for};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
@@ -18,7 +17,7 @@ fn main() {
 
     export_schema(&schema_for!(ConfigResponse), &out_dir);
     export_schema(&schema_for!(StateResponse), &out_dir);
-    export_schema(&schema_for!(ContributorStateResponse), &out_dir);
+    // export_schema(&schema_for!(ContributorStateResponse), &out_dir);
     export_schema(&schema_for!(SubscriberStateResponse), &out_dir);
 
     export_schema_with_title(&schema_for!(AssetInfo), &out_dir, "AssetInfoBase_for_Addr");

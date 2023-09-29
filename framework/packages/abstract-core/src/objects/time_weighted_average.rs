@@ -1,5 +1,5 @@
 use crate::AbstractResult;
-use cosmwasm_std::{Decimal, Env, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Uint128};
 use cw_storage_plus::Item;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -65,6 +65,16 @@ impl<'a> TimeWeightedAverage<'a> {
 
     pub fn load(&self, store: &dyn Storage) -> AbstractResult<TimeWeightedAverageData> {
         self.0.load(store).map_err(Into::into)
+    }
+
+    pub fn query(
+        &self,
+        querier: &QuerierWrapper,
+        remote_contract_addr: Addr,
+    ) -> AbstractResult<TimeWeightedAverageData> {
+        self.0
+            .query(querier, remote_contract_addr)
+            .map_err(Into::into)
     }
 
     /// Get average value, updates when possible

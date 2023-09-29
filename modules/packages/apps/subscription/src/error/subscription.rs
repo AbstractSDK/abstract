@@ -53,23 +53,14 @@ pub enum SubscriptionError {
     #[error("The contributor you wanted to remove is not registered.")]
     ContributorNotRegistered,
 
-    #[error("You can't claim before the end of the current period.")]
-    CompensationAlreadyClaimed,
-
     #[error("Your contribution compensation expired")]
     ContributionExpired,
 
     #[error("emissions for this OS are already claimed")]
-    EmissionsAlreadyClaimed,
+    EmissionsAlreadyClaimed {},
 
     #[error("only the factory can register new subscribers")]
     CallerNotFactory,
-
-    #[error("compensation does not yield you any assets.")]
-    NoAssetsToSend,
-
-    #[error("income target is zero, no contributions can be paid out.")]
-    TargetIsZero,
 
     #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
     InsufficientPayment(u64, String),
@@ -79,10 +70,4 @@ pub enum SubscriptionError {
 
     #[error("Contribution function must be enabled to use this feature")]
     ContributionNotEnabled,
-
-    #[error("contributor must be a manager address")]
-    ContributorNotManager,
-
-    #[error("You must wait one TWA period before claiming can start")]
-    AveragingPeriodNotPassed,
 }

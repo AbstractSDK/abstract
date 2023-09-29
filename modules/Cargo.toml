@@ -3,6 +3,7 @@ members = [
   "contracts/apps/*",
   "contracts/adapters/*",
   "packages/bundles/wyndex",
+  "packages/apps/subscription",
 ]
 
 resolver = "2"
@@ -77,6 +78,7 @@ abstract-kujira-adapter = { path = "../integrations/kujira/packages/abstract-ada
 
 croncat-app = { path = "./contracts/apps/croncat" }
 wyndex-bundle = { path = "./packages/bundles/wyndex" }
+abstract-subscription-interface = { path = "./packages/apps/subscription" }
 
 ## Testing
 rstest = "0.17.0"
