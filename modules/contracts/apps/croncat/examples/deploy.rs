@@ -50,7 +50,7 @@ fn main() -> anyhow::Result<()> {
         .claim_namespace(account_config.account_id, "croncat".to_owned())?;
 
     // Deploy
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
     account.install_module(

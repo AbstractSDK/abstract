@@ -4,6 +4,7 @@ use abstract_dex_adapter::contract::CONTRACT_VERSION;
 use abstract_dex_adapter::msg::DexInstantiateMsg;
 use abstract_dex_adapter::DEX_ADAPTER_ID;
 use abstract_interface::AdapterDeployer;
+use abstract_interface::DeployStrategy;
 use cw20::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
 use cw_orch::deploy::Deploy;
@@ -44,6 +45,7 @@ fn setup_mock() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: ABSTRACT_ACCOUNT_ID.seq(),
         },
+        DeployStrategy::Try,
     )?;
 
     let account = create_default_account(&deployment.account_factory)?;

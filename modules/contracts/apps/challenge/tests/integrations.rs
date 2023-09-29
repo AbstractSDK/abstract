@@ -124,7 +124,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 
-    challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?)?;
+    challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     let _module_info = ModuleInfo::from_id(
         CHALLENGE_APP_ID,

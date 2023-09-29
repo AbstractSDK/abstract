@@ -4,7 +4,7 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_interface::AppDeployer;
+use abstract_interface::{AppDeployer, DeployStrategy};
 use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
 use semver::Version;
 
@@ -23,6 +23,6 @@ fn main() -> anyhow::Result<()> {
         .build()?;
     let app = ChallengeApp::new(CHALLENGE_APP_ID, chain);
 
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
     Ok(())
 }

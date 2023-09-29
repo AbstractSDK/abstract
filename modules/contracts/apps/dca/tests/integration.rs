@@ -310,6 +310,7 @@ fn setup() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },
+        DeployStrategy::Try,
     )?;
 
     let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
@@ -322,7 +323,10 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .version_control
         .claim_namespace(AccountId::local(1), "croncat".to_string())?;
-    cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
+    cron_cat_app.deploy(
+        croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?,
+        DeployStrategy::Try,
+    )?;
 
     // Register factory entry
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
@@ -369,7 +373,7 @@ fn setup() -> anyhow::Result<(
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
-    dca_app.deploy(DCA_APP_VERSION.parse()?)?;
+    dca_app.deploy(DCA_APP_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_module(
         DCA_APP_ID,
         &InstantiateMsg {

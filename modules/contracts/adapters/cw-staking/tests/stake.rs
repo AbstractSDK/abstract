@@ -7,6 +7,7 @@ use abstract_cw_staking::msg::StakingQueryMsgFns;
 use abstract_interface::Abstract;
 use abstract_interface::AbstractAccount;
 use abstract_interface::AdapterDeployer;
+use abstract_interface::DeployStrategy;
 use abstract_staking_standard::msg::StakingInfo;
 use cw20::Cw20ExecuteMsgFns;
 use cw20_base::msg::QueryMsgFns;
@@ -45,7 +46,7 @@ fn setup_mock() -> anyhow::Result<(
     let _root_os = create_default_account(&deployment.account_factory)?;
     let staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone());
 
-    staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
+    staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
 
     let os = create_default_account(&deployment.account_factory)?;
     let proxy_addr = os.proxy.address()?;

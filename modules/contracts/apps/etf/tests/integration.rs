@@ -2,8 +2,8 @@
 // mod test_utils;
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, ManagerQueryFns, ProxyExecFns,
-    ProxyQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy,
+    ManagerQueryFns, ProxyExecFns, ProxyQueryFns,
 };
 
 use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
@@ -58,7 +58,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
 
     let etf = EtfApp::new(ETF_APP_ID, mock.clone());
-    etf.deploy(version)?;
+    etf.deploy(version, DeployStrategy::Try)?;
 
     let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());
     // upload the etf token code

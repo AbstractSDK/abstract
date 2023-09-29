@@ -67,6 +67,7 @@ fn full_deploy() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(unused)]
 async fn ping_grpc(url_str: &str) -> anyhow::Result<()> {
     let parsed_url = Url::parse(url_str)?;
 

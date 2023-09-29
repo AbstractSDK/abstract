@@ -1,5 +1,6 @@
 use abstract_interface::AdapterDeployer;
 use abstract_interface::AnsHost;
+use abstract_interface::DeployStrategy;
 use abstract_interface::VCExecFns;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
@@ -69,7 +70,7 @@ fn deploy_cw_staking(
         // Upload and deploy with the version
         let cw_staking = CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain);
 
-        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
+        cw_staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Try)?;
     }
 
     Ok(())

@@ -1,4 +1,5 @@
 use abstract_interface::AppDeployer;
+use abstract_interface::DeployStrategy;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
 
@@ -21,7 +22,7 @@ fn deploy_etf(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .build()?;
         let etf = EtfApp::new(ETF_APP_ID, chain);
-        etf.deploy(version.clone())?;
+        etf.deploy(version.clone(), DeployStrategy::Try)?;
     }
     Ok(())
 }

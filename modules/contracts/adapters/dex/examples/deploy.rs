@@ -1,5 +1,6 @@
 use abstract_dex_adapter::interface::DexAdapter;
 use abstract_interface::AdapterDeployer;
+use abstract_interface::DeployStrategy;
 use cw_orch::daemon::ChainInfo;
 use cw_orch::daemon::DaemonBuilder;
 
@@ -25,6 +26,7 @@ fn deploy_dex(network: ChainInfo) -> anyhow::Result<()> {
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },
+        DeployStrategy::Try,
     )?;
     Ok(())
 }

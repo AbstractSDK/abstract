@@ -17,6 +17,7 @@ mod osmosis_test {
     use abstract_interface::AbstractAccount;
     use abstract_interface::AbstractInterfaceError;
     use abstract_interface::AdapterDeployer;
+    use abstract_interface::DeployStrategy;
     use abstract_interface::Manager;
     use abstract_staking_standard::msg::StakingInfo;
     use abstract_staking_standard::CwStakingError;
@@ -177,7 +178,7 @@ mod osmosis_test {
         let staking: OsmosisStakingAdapter<OsmosisTestTube> =
             OsmosisStakingAdapter::new(CW_STAKING_ADAPTER_ID, tube.clone());
 
-        staking.deploy(CONTRACT_VERSION.parse()?, Empty {})?;
+        staking.deploy(CONTRACT_VERSION.parse()?, Empty {}, DeployStrategy::Error)?;
 
         let os = create_default_account(&deployment.account_factory)?;
         // let proxy_addr = os.proxy.address()?;
