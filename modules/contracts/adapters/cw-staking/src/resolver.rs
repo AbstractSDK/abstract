@@ -42,7 +42,7 @@ pub(crate) fn resolve_local_provider(
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(any(feature = "terra2", feature = "neutron"))]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }

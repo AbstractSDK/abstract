@@ -41,9 +41,9 @@ pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, D
         abstract_osmosis_adapter::OSMOSIS => Ok(&abstract_osmosis_adapter::dex::Osmosis {
             local_proxy_addr: None,
         }),
-        #[cfg(feature = "terra")]
+        #[cfg(feature = "terra2")]
         crate::exchanges::terraswap::TERRASWAP => Ok(&crate::exchanges::terraswap::Terraswap {}),
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(any(feature = "terra2", feature = "neutron"))]
         abstract_astroport_adapter::ASTROPORT => Ok(&abstract_astroport_adapter::dex::Astroport {}),
         #[cfg(feature = "kujira")]
         abstract_kujira_adapter::KUJIRA => Ok(&abstract_kujira_adapter::dex::Kujira {}),
