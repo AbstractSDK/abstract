@@ -49,7 +49,7 @@ cw-orch = ["dep:cw-orch"]                    # Remove after optimizer toolchain 
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira", "neutron"]
+features = ["juno", "terra2", "osmosis", "kujira", "neutron"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }
