@@ -1,9 +1,9 @@
 # Install the tools that are used in this justfile
 install-tools:
-  cargo install cargo-nextest --locked
-  cargo install taplo-cli --locked
-  cargo install cargo-watch
-  cargo install cargo-limit
+  cargo install cargo-nextest --locked || true
+  cargo install taplo-cli --locked || true
+  cargo install cargo-watch || true
+  cargo install cargo-limit || true
 
 ## Development Helpers ##
 
@@ -69,6 +69,16 @@ wasm:
     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
     ${image}:0.14.0
 
+## Frontend Helpers ##
+
+# Generate the typescript client for the app contract
+ts-codegen: schema
+  (cd packages/typescript && npm install && npm run codegen)
+
+# Publish the typescript sdk
+ts-publish: ts-codegen
+  (cd packages/typescript && npm publish --access public)
+
 # Generate the schemas for the app contract
 schema:
   cargo schema
@@ -122,12 +132,4 @@ run-script script +CHAINS:
 
 deploy +CHAINS:
   just run-script deploy {{CHAINS}}
-
-create-account +CHAINS:
-  just run-script create-account {{CHAINS}}
-
-claim-namespace +CHAINS:
-  just run-script claim-namespace {{CHAINS}}
-
-install-module +CHAINS:
-  just run-script install-module {{CHAINS}}
+  

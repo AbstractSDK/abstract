@@ -38,7 +38,7 @@ wynd = [
 osmosis = ["abstract-osmosis-adapter/full_integration"]
 astroport = ["abstract-astroport-adapter/full_integration"]
 bow = ["abstract-kujira-adapter/full_integration"]
-terra2 = ["dep:terraswap"]
+terraswap = ["dep:terraswap"]
 
 # Builds
 [package.metadata.optimizer]
@@ -47,7 +47,7 @@ builds = [
     "wynd",
   ] },
   { name = "terra", features = [
-    "astroport", "terra2"
+    "astroport", "terraswap"
   ] },
   { name = "neutron", features = [
     "astroport",
