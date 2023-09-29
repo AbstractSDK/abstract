@@ -42,11 +42,11 @@ pub(crate) fn resolve_local_provider(
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(feature = "astroport")]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        #[cfg(feature = "kujira")]
+        #[cfg(feature = "bow")]
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }
