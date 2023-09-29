@@ -193,16 +193,6 @@ where
 
         Ok(module.reference.unwrap_app()?)
     }
-    /// Does not page over the apps
-    pub fn remove_all_apps(&self) -> Result<(), crate::AbstractInterfaceError> {
-        let modules = self.module_list(None, None, None)?.modules;
-        for module in modules {
-            if let ModuleReference::App(_) = module.module.reference {
-                self.remove_module(module.module.info)?;
-            }
-        }
-        Ok(())
-    }
 }
 
 #[cfg(feature = "daemon")]
