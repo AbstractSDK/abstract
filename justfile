@@ -132,12 +132,4 @@ run-script script +CHAINS:
 
 deploy +CHAINS:
   just run-script deploy {{CHAINS}}
-
-create-account +CHAINS:
-  just run-script create-account {{CHAINS}}
-
-claim-namespace +CHAINS:
-  just run-script claim-namespace {{CHAINS}}
-
-install-module +CHAINS:
-  just run-script install-module {{CHAINS}}
+  
