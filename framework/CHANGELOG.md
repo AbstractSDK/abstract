@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+
+- `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
+
+### Changed
+
+### Removed
+
 ## [0.19.0] - 2023-09-26
 
 ### Added
