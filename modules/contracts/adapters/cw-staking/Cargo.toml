@@ -38,7 +38,7 @@ interface = [
 ]
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
-terra = ["abstract-astroport-adapter/full_integration"]
+terra2 = ["abstract-astroport-adapter/full_integration"]
 neutron = ["abstract-astroport-adapter/full_integration"]
 kujira = ["abstract-kujira-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
