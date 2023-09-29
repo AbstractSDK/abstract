@@ -1,10 +1,11 @@
-use abstract_subscription_interface::state::subscription::INCOME_TWA;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
     msg::SubscriptionInstantiateMsg,
-    state::{SubscribersConfig, SubscriptionState, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
+    state::{
+        SubscribersConfig, SubscriptionState, INCOME_TWA, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
+    },
 };
 
 pub fn instantiate_handler(

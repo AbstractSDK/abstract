@@ -3,7 +3,7 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Decimal, Uint128, Uint64};
 use cw_asset::AssetInfoUnchecked;
 
-use crate::state::contributors::{Compensation, ContributionState, ContributorsConfig};
+use super::state::{Compensation, ContributionState, ContributorsConfig};
 
 /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = app::ExecuteMsg<AppExecuteMsg>;
@@ -66,7 +66,7 @@ pub enum AppExecuteMsg {
         /// Base amount payment per block
         base_per_block: Option<Decimal>,
         /// Weight of the contributor
-        weight: Option<Uint64>,
+        weight: Option<u32>,
         /// Block id when "contract" with this contributor expires
         expiration_block: Option<Uint64>,
     },

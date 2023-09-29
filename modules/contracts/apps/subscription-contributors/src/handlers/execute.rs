@@ -8,12 +8,14 @@ use abstract_sdk::features::AbstractResponse;
 use abstract_sdk::{
     AbstractSdkResult, AccountVerification, Execution, ModuleInterface, TransferInterface,
 };
-use abstract_subscription_interface::state::subscription;
+use abstract_subscription_interface::subscription::msg as subscr_msg;
+use abstract_subscription_interface::subscription::state as subscr_state;
+
 use abstract_subscription_interface::utils::suspend_os;
 use abstract_subscription_interface::{ContributorsError, SUBSCRIPTION_ID};
 use cosmwasm_std::{
-    Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage,
-    Uint128, Uint64,
+    wasm_execute, Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
+    Storage, SubMsg, Uint128, Uint64,
 };
 use cw_asset::{Asset, AssetInfoUnchecked};
 
@@ -23,7 +25,7 @@ use crate::msg::AppExecuteMsg;
 
 pub fn execute_handler(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     app: App,
     msg: AppExecuteMsg,
@@ -36,25 +38,36 @@ pub fn execute_handler(
             emissions_amp_factor,
             emissions_offset,
             project_token_info,
-        } => update_config(deps, info, app),
-        AppExecuteMsg::ClaimCompensation { os_id } => todo!(),
+        } => update_contribution_config(
+            deps,
+            env,
+            info,
+            app,
+            protocol_income_share,
+            emission_user_share,
+            max_emissions_multiple,
+            project_token_info,
+            emissions_amp_factor,
+            emissions_offset,
+        ),
+        AppExecuteMsg::ClaimCompensation { os_id } => try_claim_compensation(app, deps, env, os_id),
         AppExecuteMsg::UpdateContributor {
             os_id,
             base_per_block,
             weight,
             expiration_block,
-        } => todo!(),
-        AppExecuteMsg::RemoveContributor { os_id } => todo!(),
+        } => update_contributor_compensation(
+            deps,
+            env,
+            info,
+            app,
+            os_id,
+            base_per_block,
+            weight,
+            expiration_block,
+        ),
+        AppExecuteMsg::RemoveContributor { os_id } => remove_contributor(deps, info, app, os_id),
     }
-}
-
-/// Update the configuration of the app
-fn update_config(deps: DepsMut, msg_info: MessageInfo, app: App) -> AppResult {
-    // Only the admin should be able to call this
-    app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
-    let mut _config = CONTRIBUTION_CONFIG.load(deps.storage)?;
-
-    Ok(app.tag_response(Response::default(), "update_config"))
 }
 
 // #################### //
@@ -71,7 +84,7 @@ pub fn update_contributor_compensation(
     contributor_os_id: AccountId,
     base_per_block: Option<Decimal>,
     weight: Option<u32>,
-    expiration_block: Option<u64>,
+    expiration_block: Option<Uint64>,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &msg_info.sender)?;
     let _config = CONTRIBUTION_CONFIG.load(deps.storage)?;
@@ -88,7 +101,7 @@ pub fn update_contributor_compensation(
         Some(current_compensation) => {
             // Can only update if already claimed last period.
             let sbuscription_addr = subscription_module_addr(&app, deps.as_ref())?;
-            let twa_income = subscription::INCOME_TWA.query(&deps.querier, sbuscription_addr)?;
+            let twa_income = subscr_state::INCOME_TWA.query(&deps.querier, sbuscription_addr)?;
             if current_compensation.last_claim_block.u64() < twa_income.last_averaging_block_height
             {
                 return try_claim_compensation(app, deps, env, contributor_os_id);
@@ -191,100 +204,115 @@ pub fn remove_contributor(
 // Compute share of income
 /// Calculate the compensation for contribution
 pub fn try_claim_compensation(app: App, deps: DepsMut, env: Env, os_id: AccountId) -> AppResult {
-    let config = CONTRIBUTION_CONFIG.load(deps.storage)?;
-    let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
-    // Update contribution state if income changes
-    // TODO:
-    // let maybe_new_income = INCOME_TWA.try_update_value(&env, deps.storage)?;
-    // if let Some(income) = maybe_new_income {
-    //     // Cache current state. This state will be used to pay out contributors of last period.
-    //     CACHED_CONTRIBUTION_STATE.save(deps.storage, &state)?;
-    //     // Overwrite current state with new income.
-    //     update_contribution_state(deps.storage, env, &mut state, &config, income)?;
-    // }
-
-    let cached_state = match CACHED_CONTRIBUTION_STATE.may_load(deps.storage)? {
-        Some(state) => state,
-        None => return Err(ContributorsError::AveragingPeriodNotPassed {}),
-    };
-
-    if cached_state.income_target.is_zero() {
-        return Err(ContributorsError::TargetIsZero {});
-    };
-
     let subscription_addr = subscription_module_addr(&app, deps.as_ref())?;
-    let contributor_emissions = match subscription::SUBSCRIPTION_CONFIG
-        .query(&deps.querier, subscription_addr.clone())?
-        .subscription_per_block_emissions
-    {
-        subscription::EmissionType::IncomeBased(_) => {
-            cached_state.emissions * (Decimal::one() - config.emission_user_share)
+    let income_twa = subscr_state::INCOME_TWA.query(&deps.querier, subscription_addr.clone())?;
+    if income_twa.need_refresh(&env) {
+        // Refresh first
+        Ok(Response::new().add_submessage(SubMsg::reply_on_success(
+            wasm_execute(
+                subscription_addr,
+                &subscr_msg::ExecuteMsg::from(subscr_msg::SubscriptionExecuteMsg::RefreshTWA {}),
+                vec![],
+            )?,
+            0,
+        )))
+    } else {
+        let config = CONTRIBUTION_CONFIG.load(deps.storage)?;
+        let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
+        // Update contribution state if income changes
+        // TODO:
+        let maybe_new_income = subscr_state::INCOME_TWA.try_update_value(&env, deps.storage)?;
+        if let Some(income) = maybe_new_income {
+            // Cache current state. This state will be used to pay out contributors of last period.
+            CACHED_CONTRIBUTION_STATE.save(deps.storage, &state)?;
+            // Overwrite current state with new income.
+            update_contribution_state(deps.storage, env, &mut state, &config, income)?;
         }
-        _ => cached_state.emissions,
-    };
 
-    let AccountBase {
-        manager: contributor_address,
-        proxy: contributor_proxy_address,
-    } = app.account_registry(deps.as_ref()).account_base(&os_id)?;
-
-    let mut compensation = CONTRIBUTORS.load(deps.storage, &contributor_address)?;
-    let twa_data = subscription::INCOME_TWA.query(&deps.querier, subscription_addr.clone())?;
-
-    if compensation.last_claim_block.u64() >= twa_data.last_averaging_block_height {
-        // Already claimed previous period
-        return Err(ContributorsError::CompensationAlreadyClaimed {});
-    };
-
-    let payable_blocks =
-        if twa_data.last_averaging_block_height > compensation.expiration_block.u64() {
-            // End of last period is after the expiration
-            // Pay period between last claim and expiration
-            remove_contributor_from_storage(deps.storage, contributor_address)?;
-            compensation.expiration_block - compensation.last_claim_block
-        } else {
-            // pay full period
-            let period =
-                Uint64::from(twa_data.last_averaging_block_height) - compensation.last_claim_block;
-            // update compensation details
-            compensation.last_claim_block = twa_data.last_averaging_block_height.into();
-            CONTRIBUTORS.save(deps.storage, &contributor_address, &compensation)?;
-            period
+        let cached_state = match CACHED_CONTRIBUTION_STATE.may_load(deps.storage)? {
+            Some(state) => state,
+            None => return Err(ContributorsError::AveragingPeriodNotPassed {}),
         };
 
-    // Payout depends on how much income was earned over that period.
-    let payout_ratio = cached_state.expense / cached_state.income_target;
-    // Pay period between last claim and end of cached state.
-    let base_amount: Uint128 =
-        (compensation.base_per_block * payout_ratio) * Uint128::from(payable_blocks);
-    // calculate token emissions
-    let token_amount = if !cached_state.total_weight.is_zero() {
-        contributor_emissions
-            * Decimal::from_ratio(compensation.weight as u128, cached_state.total_weight)
-    } else {
-        Decimal::zero()
-    };
+        if cached_state.income_target.is_zero() {
+            return Err(ContributorsError::TargetIsZero {});
+        };
 
-    let sub_config = subscription::SUBSCRIPTION_CONFIG.query(&deps.querier, subscription_addr)?;
-    let mut assets = vec![];
-    // Construct msgs
-    if !base_amount.is_zero() {
-        let base_asset: Asset = Asset::new(sub_config.payment_asset, base_amount);
-        assets.push(base_asset);
-    }
+        let subscription_addr = subscription_module_addr(&app, deps.as_ref())?;
+        let contributor_emissions = match subscr_state::SUBSCRIPTION_CONFIG
+            .query(&deps.querier, subscription_addr.clone())?
+            .subscription_per_block_emissions
+        {
+            subscr_state::EmissionType::IncomeBased(_) => {
+                cached_state.emissions * (Decimal::one() - config.emission_user_share)
+            }
+            _ => cached_state.emissions,
+        };
 
-    if !token_amount.is_zero() {
-        let token_asset: Asset = Asset::new(config.token_info, token_amount * Uint128::from(1u32));
-        assets.push(token_asset)
-    }
-    if assets.is_empty() {
-        Err(ContributorsError::NoAssetsToSend {})
-    } else {
-        let bank = app.bank(deps.as_ref());
-        let transfer_action = bank.transfer(assets, &contributor_proxy_address)?;
-        Ok(Response::new()
-            .add_message(app.executor(deps.as_ref()).execute(vec![transfer_action])?)
-            .add_attribute("action", "claim_contribution"))
+        let AccountBase {
+            manager: contributor_address,
+            proxy: contributor_proxy_address,
+        } = app.account_registry(deps.as_ref()).account_base(&os_id)?;
+
+        let mut compensation = CONTRIBUTORS.load(deps.storage, &contributor_address)?;
+        let twa_data = subscr_state::INCOME_TWA.query(&deps.querier, subscription_addr.clone())?;
+
+        if compensation.last_claim_block.u64() >= twa_data.last_averaging_block_height {
+            // Already claimed previous period
+            return Err(ContributorsError::CompensationAlreadyClaimed {});
+        };
+
+        let payable_blocks =
+            if twa_data.last_averaging_block_height > compensation.expiration_block.u64() {
+                // End of last period is after the expiration
+                // Pay period between last claim and expiration
+                remove_contributor_from_storage(deps.storage, contributor_address)?;
+                compensation.expiration_block - compensation.last_claim_block
+            } else {
+                // pay full period
+                let period = Uint64::from(twa_data.last_averaging_block_height)
+                    - compensation.last_claim_block;
+                // update compensation details
+                compensation.last_claim_block = twa_data.last_averaging_block_height.into();
+                CONTRIBUTORS.save(deps.storage, &contributor_address, &compensation)?;
+                period
+            };
+
+        // Payout depends on how much income was earned over that period.
+        let payout_ratio = cached_state.expense / cached_state.income_target;
+        // Pay period between last claim and end of cached state.
+        let base_amount: Uint128 =
+            (compensation.base_per_block * payout_ratio) * Uint128::from(payable_blocks);
+        // calculate token emissions
+        let token_amount = if !cached_state.total_weight.is_zero() {
+            contributor_emissions
+                * Decimal::from_ratio(compensation.weight as u128, cached_state.total_weight)
+        } else {
+            Decimal::zero()
+        };
+
+        let sub_config = subscr_state::SUBSCRIPTION_CONFIG.query(&deps.querier, subscription_addr)?;
+        let mut assets = vec![];
+        // Construct msgs
+        if !base_amount.is_zero() {
+            let base_asset: Asset = Asset::new(sub_config.payment_asset, base_amount);
+            assets.push(base_asset);
+        }
+
+        if !token_amount.is_zero() {
+            let token_asset: Asset =
+                Asset::new(config.token_info, token_amount * Uint128::from(1u32));
+            assets.push(token_asset)
+        }
+        if assets.is_empty() {
+            Err(ContributorsError::NoAssetsToSend {})
+        } else {
+            let bank = app.bank(deps.as_ref());
+            let transfer_action = bank.transfer(assets, &contributor_proxy_address)?;
+            Ok(Response::new()
+                .add_message(app.executor(deps.as_ref()).execute(vec![transfer_action])?)
+                .add_attribute("action", "claim_contribution"))
+        }
     }
 }
 

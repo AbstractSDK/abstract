@@ -1,4 +1,4 @@
-use abstract_subscription_interface::state::contributors::{ContributionState, CONTRIBUTION_STATE};
+use crate::state::{ContributionState, CONTRIBUTION_STATE};
 use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 
 use crate::contract::{App, AppResult};

@@ -1,15 +1,14 @@
 pub mod contract;
 mod handlers;
-pub use abstract_subscription_interface::msg::subscription as msg;
+pub use abstract_subscription_interface::subscription::{msg, state};
 pub mod queries;
-pub use abstract_subscription_interface::state::subscription as state;
 
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::msg::*;
     use abstract_core::app::{BaseInstantiateMsg, InstantiateMsg as AppInitMsg};
     use abstract_interface::AppDeployer;
-    use abstract_subscription_interface::msg::contributors::ContributorsInstantiateMsg;
+    use abstract_subscription_interface::contributors::msg::ContributorsInstantiateMsg;
     use cosmwasm_std::{Decimal, Uint128};
     use cw_asset::AssetInfoUnchecked;
     use cw_orch::{interface, prelude::*};

@@ -34,7 +34,7 @@ pub enum ContributorsError {
 
     #[error("contributor must be a manager address")]
     ContributorNotManager {},
-    
+
     #[error("compensation does not yield you any assets.")]
     NoAssetsToSend {},
 

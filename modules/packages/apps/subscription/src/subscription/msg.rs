@@ -28,15 +28,14 @@
 //! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
-use crate::state::subscription::UncheckedEmissionType;
-use crate::state::subscription::{Subscriber, SubscribersConfig, SubscriptionState};
+use super::state::{Subscriber, SubscribersConfig, SubscriptionState, UncheckedEmissionType};
 use abstract_core::app;
 use abstract_core::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128, Uint64};
+use cosmwasm_std::{Decimal, Uint64};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
-use super::contributors::ContributorsInstantiateMsg;
+use crate::contributors::msg::ContributorsInstantiateMsg;
 
 /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
@@ -112,6 +111,8 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_block: Option<Decimal>,
         // TODO?: subscription_per_block_emissions
     },
+    /// Refresh TWA value
+    RefreshTWA {},
 }
 
 /// Subscriptions query messages

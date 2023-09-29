@@ -1,12 +1,11 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult, BLOCKS_PER_MONTH};
 use crate::msg::SubscriptionExecuteMsg;
 use crate::state::{
-    Subscriber, SubscribersConfig, DORMANT_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG,
-    SUBSCRIPTION_STATE,
+    Subscriber, SubscribersConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
+    SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use abstract_core::objects::AccountId;
 use abstract_sdk::{AccountVerification, Execution, TransferInterface};
-use abstract_subscription_interface::state::subscription::INCOME_TWA;
 use abstract_subscription_interface::utils::suspend_os;
 use abstract_subscription_interface::SubscriptionError;
 use cosmwasm_std::{
@@ -48,6 +47,10 @@ pub fn execute_handler(
             factory_address,
             subscription_cost,
         ),
+        SubscriptionExecuteMsg::RefreshTWA {} => {
+            INCOME_TWA.try_update_value(&env, deps.storage)?;
+            Ok(Response::new())
+        }
     }
 }
 

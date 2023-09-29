@@ -1,12 +1,11 @@
 use crate::{
     handlers,
+    msg::{AppExecuteMsg, AppMigrateMsg, AppQueryMsg, ContributorsInstantiateMsg},
     replies::{self, INSTANTIATE_REPLY_ID},
 };
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_subscription_interface::{msg::contributors::{
-    AppExecuteMsg, AppMigrateMsg, AppQueryMsg, ContributorsInstantiateMsg,
-}, CONTRIBUTORS_ID};
+use abstract_subscription_interface::CONTRIBUTORS_ID;
 use abstract_subscription_interface::{ContributorsError, SUBSCRIPTION_ID};
 use cosmwasm_std::Response;
 

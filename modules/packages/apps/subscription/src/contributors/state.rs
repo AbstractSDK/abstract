@@ -1,4 +1,3 @@
-use abstract_core::objects::time_weighted_average::TimeWeightedAverage;
 use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map};
@@ -9,8 +8,7 @@ use std::ops::Sub;
 
 // List contributors
 pub const CONTRIBUTORS: Map<&Addr, Compensation> = Map::new("contributors");
-pub const CACHED_CONTRIBUTION_STATE: Item<ContributionState> =
-    Item::new("cache_state");
+pub const CACHED_CONTRIBUTION_STATE: Item<ContributionState> = Item::new("cache_state");
 pub const CONTRIBUTION_STATE: Item<ContributionState> = Item::new("state");
 
 /// Compensation details for contributors
@@ -28,7 +26,7 @@ impl Compensation {
         mut self,
         base_per_block: Option<Decimal>,
         weight: Option<u32>,
-        expiration_block: Option<u64>,
+        expiration_block: Option<Uint64>,
     ) -> Self {
         if let Some(base_per_block) = base_per_block {
             self.base_per_block = base_per_block;
@@ -39,7 +37,7 @@ impl Compensation {
         }
 
         if let Some(expiration_block) = expiration_block {
-            self.expiration_block = expiration_block.into();
+            self.expiration_block = expiration_block;
         }
         self
     }

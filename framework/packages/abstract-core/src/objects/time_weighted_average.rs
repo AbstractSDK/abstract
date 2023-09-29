@@ -138,3 +138,14 @@ pub struct TimeWeightedAverageData {
     /// The requested average value
     average_value: Decimal,
 }
+
+impl TimeWeightedAverageData {
+    pub fn need_refresh(&self, env: &Env) -> bool {
+        let block_time = env.block.time.seconds();
+
+        let time_elapsed = block_time - self.last_averaging_block_time;
+
+        // At least one full period has passed since the last update
+        time_elapsed >= self.averaging_period
+    }
+}
