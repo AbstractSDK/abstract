@@ -271,8 +271,7 @@ fn daily_check_in(
             _ => {
                 return Err(AppError::Std(StdError::generic_err(format!(
                     "Challenge has ended. Challenge end is {:?} current block is {:?}",
-                    challenge.end,
-                    env.block
+                    challenge.end, env.block
                 ))));
             }
         }

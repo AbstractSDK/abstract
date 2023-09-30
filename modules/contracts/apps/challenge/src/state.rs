@@ -5,7 +5,7 @@ use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 use cw_utils::Expiration;
 
-use crate::msg::{ChallengeRequest};
+use crate::msg::ChallengeRequest;
 
 pub const DAY: u64 = 86400;
 
@@ -50,13 +50,12 @@ impl ChallengeEntry {
             name: request.name,
             collateral: request.collateral,
             description: request.description,
-            end:request.end,
+            end: request.end,
             strike_amount: 10,
             status: ChallengeStatus::default(),
             admin_strikes: StrikeConfig::default(),
         }
     }
-
 }
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job

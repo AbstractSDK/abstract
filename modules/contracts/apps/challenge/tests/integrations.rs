@@ -20,7 +20,7 @@ use challenge_app::{
     },
     *,
 };
-use cosmwasm_std::{coin, Uint128, Timestamp};
+use cosmwasm_std::{coin, Timestamp, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 use lazy_static::lazy_static;
@@ -35,7 +35,9 @@ lazy_static! {
         name: "test".to_string(),
         collateral: OfferAsset::new("denom", Uint128::new(100_000_000_000)),
         description: "Test Challenge".to_string(),
-        end: cw_utils::Expiration::AtTime(Timestamp::from_nanos(1571975019879305533 + 100000000000)),
+        end: cw_utils::Expiration::AtTime(Timestamp::from_nanos(
+            1571975019879305533 + 100000000000
+        )),
         strike_amount: 100,
     };
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
