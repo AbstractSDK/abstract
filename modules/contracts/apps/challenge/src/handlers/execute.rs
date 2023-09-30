@@ -58,7 +58,6 @@ fn create_challenge(
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut challenge = ChallengeEntry::new(challenge_req);
-    challenge.set_total_check_ins(&env)?;
 
     //check that the challenge status is ChallengeStatus::Uninitialized
     if challenge.status != ChallengeStatus::Uninitialized {
@@ -256,7 +255,7 @@ fn daily_check_in(
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
 
     // If the challenge has ended, we set the status to Over and return
-    if env.block.time > challenge.end {
+    if challenge.end.is_expired(&env.block) {
         match challenge.status {
             ChallengeStatus::Active => {
                 challenge.status = ChallengeStatus::Over;
@@ -271,9 +270,9 @@ fn daily_check_in(
             }
             _ => {
                 return Err(AppError::Std(StdError::generic_err(format!(
-                    "Challenge has ended. Challenge end_timestamp is {:?} current timestamp is {:?}",
-                    challenge.end.seconds(),
-                    env.block.time.seconds()
+                    "Challenge has ended. Challenge end is {:?} current block is {:?}",
+                    challenge.end,
+                    env.block
                 ))));
             }
         }
@@ -458,15 +457,13 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
     }
 
     let compute_amount_per_friend = || -> Result<u128, AppError> {
-        if challenge.total_check_ins == 0 || num_friends == 0 {
+        if num_friends == 0 {
             return Err(AppError::Std(StdError::generic_err(format!(
-                "Cannot compute amount per friend. total_check_ins: {}, num_friends: {}",
-                challenge.total_check_ins, num_friends
+                "Cannot compute amount per friend. num_friends: {}",
+                num_friends
             ))));
         }
-        let amount_per_friend =
-            (challenge.collateral.amount.u128() / challenge.total_check_ins) / num_friends;
-        Ok(amount_per_friend)
+        Ok(challenge.strike_amount)
     };
 
     let reaminder = challenge.collateral.amount.u128() % num_friends;

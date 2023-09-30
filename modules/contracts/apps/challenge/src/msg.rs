@@ -7,6 +7,7 @@ use crate::{
 use abstract_dex_adapter::msg::OfferAsset;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
+use cw_utils::Expiration;
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
@@ -122,29 +123,15 @@ pub struct ChallengeRequest {
     /// Desciption of the challenge
     pub description: String,
     /// In what period challenge should end
-    pub end: DurationChoice,
+    pub end: Expiration,
+    /// How much should be paid out when challenge fails.
+    pub strike_amount: u128,
 }
 
 /// Response for check_ins query
 /// Returns a list of check ins
 #[cosmwasm_schema::cw_serde]
 pub struct CheckInsResponse(pub Vec<CheckIn>);
-
-/// Duration for challenge
-#[cosmwasm_schema::cw_serde]
-pub enum DurationChoice {
-    /// One week
-    Week,
-    /// One month
-    Month,
-    /// Quarter of the year
-    Quarter,
-    /// One year
-    Year,
-    /// 100 years
-    OneHundredYears,
-}
-
 /// Response for vote query
 #[cosmwasm_schema::cw_serde]
 pub struct VoteResponse {

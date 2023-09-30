@@ -3,8 +3,9 @@ use chrono::Duration;
 use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
+use cw_utils::Expiration;
 
-use crate::msg::{ChallengeRequest, DurationChoice};
+use crate::msg::{ChallengeRequest};
 
 pub const DAY: u64 = 86400;
 
@@ -18,8 +19,9 @@ pub struct ChallengeEntry {
     pub name: String,
     pub collateral: OfferAsset,
     pub description: String,
-    pub end: Timestamp,
-    pub total_check_ins: u128,
+    pub end: Expiration,
+    /// Amount charged when a user fails a challenge.
+    pub strike_amount: u128,
     pub status: ChallengeStatus,
     pub admin_strikes: StrikeConfig,
 }
@@ -48,54 +50,13 @@ impl ChallengeEntry {
             name: request.name,
             collateral: request.collateral,
             description: request.description,
-            end: Self::to_timestamp(request.end),
-            total_check_ins: 0,
+            end:request.end,
+            strike_amount: 10,
             status: ChallengeStatus::default(),
             admin_strikes: StrikeConfig::default(),
         }
     }
 
-    /// Sets the total number of check-ins based on the end time.
-    pub fn set_total_check_ins(&mut self, env: &Env) -> StdResult<()> {
-        let now = env.block.time;
-
-        match self.end.seconds().checked_sub(now.seconds()) {
-            Some(duration_secs) => {
-                // Calculate the total number of check-ins
-                self.total_check_ins = duration_secs as u128 / DAY as u128;
-                Ok(())
-            }
-            None => {
-                // If the end time is in the past, set the total check ins to 0.
-                self.total_check_ins = 0;
-                // If the end time is in the past or there's an overflow in calculation, return an error.
-                Err(StdError::generic_err(format!(
-                    "Cannot compute. challenge.end time is in the past: {}, now is: {}",
-                    self.end, now
-                )))
-            }
-        }
-    }
-
-    pub fn to_timestamp(end: DurationChoice) -> Timestamp {
-        match end {
-            DurationChoice::Week => {
-                Timestamp::from_seconds(Duration::weeks(1).to_std().unwrap().as_secs())
-            }
-            DurationChoice::Month => {
-                Timestamp::from_seconds(Duration::days(30).to_std().unwrap().as_secs())
-            }
-            DurationChoice::Quarter => {
-                Timestamp::from_seconds(Duration::days(90).to_std().unwrap().as_secs())
-            }
-            DurationChoice::Year => {
-                Timestamp::from_seconds(Duration::days(365).to_std().unwrap().as_secs())
-            }
-            DurationChoice::OneHundredYears => {
-                Timestamp::from_seconds(Duration::days(365 * 100).to_std().unwrap().as_secs())
-            }
-        }
-    }
 }
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job
