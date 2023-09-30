@@ -65,6 +65,8 @@ jobs:
           command: |
             git config --global user.name 'CircleCI'
             git config --global user.email 'circleci@example.com'
+            # Pull latest changes
+            git pull origin $CIRCLE_BRANCH
             # Check for changes
             git add framework/artifacts --force
             git add modules/artifacts --force

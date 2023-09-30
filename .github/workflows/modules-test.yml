@@ -41,22 +41,22 @@ jobs:
       - name: cargo test --locked
         working-directory: ./modules
         run: cargo test --locked --all-features --all-targets
-  coverage:
-    runs-on: ubuntu-latest
-    steps:
-      - name: tickle coverage
-        env:
-          CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
-          CIRCLE_BRANCH: ${{ github.head_ref }}
-        run: |
-          echo $CIRCLE_BRANCH;
-          curl -X POST \
-          -H "Circle-Token: ${CCI_TOKEN}" \
-          -H 'Content-Type: application/json' \
-          -H 'Accept: application/json' \
-          -d "{
-            \"branch\": \"${CIRCLE_BRANCH}\",
-            \"parameters\": {
-              \"GHA_Meta\": \"modules_coverage\"
-            }
-          }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline
+  # coverage:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: tickle coverage
+  #       env:
+  #         CCI_TOKEN: ${{ secrets.CCI_TOKEN }}
+  #         CIRCLE_BRANCH: ${{ github.head_ref }}
+  #       run: |
+  #         echo $CIRCLE_BRANCH;
+  #         curl -X POST \
+  #         -H "Circle-Token: ${CCI_TOKEN}" \
+  #         -H 'Content-Type: application/json' \
+  #         -H 'Accept: application/json' \
+  #         -d "{
+  #           \"branch\": \"${CIRCLE_BRANCH}\",
+  #           \"parameters\": {
+  #             \"GHA_Meta\": \"modules_coverage\"
+  #           }
+  #         }" https://circleci.com/api/v2/project/gh/AbstractSDK/abstract/pipeline

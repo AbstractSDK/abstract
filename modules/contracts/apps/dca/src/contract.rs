@@ -26,7 +26,7 @@ const DCA_APP: DCAApp = DCAApp::new(DCA_APP_ID, DCA_APP_VERSION, None)
     .with_dependencies(&[
         StaticDependency::new(CRONCAT_ID, &[CRONCAT_MODULE_VERSION]),
         StaticDependency::new(
-            abstract_dex_adapter::EXCHANGE,
+            abstract_dex_adapter::DEX_ADAPTER_ID,
             &[abstract_dex_adapter::contract::CONTRACT_VERSION],
         ),
     ]);

@@ -1,5 +1,5 @@
 use crate::handlers;
-use crate::EXCHANGE;
+use crate::DEX_ADAPTER_ID;
 
 use abstract_adapter::{export_endpoints, AdapterContract};
 use abstract_dex_standard::msg::{DexExecuteMsg, DexInstantiateMsg, DexQueryMsg};
@@ -11,7 +11,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type DexAdapter = AdapterContract<DexError, DexInstantiateMsg, DexExecuteMsg, DexQueryMsg>;
 pub type DexResult<T = Response> = Result<T, DexError>;
 
-pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(EXCHANGE, CONTRACT_VERSION, None)
+pub const DEX_ADAPTER: DexAdapter = DexAdapter::new(DEX_ADAPTER_ID, CONTRACT_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
