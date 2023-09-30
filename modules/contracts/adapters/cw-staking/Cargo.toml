@@ -38,7 +38,7 @@ interface = [
 ]
 juno = ["abstract-wyndex-adapter/full_integration", "dep:cw-controllers"]
 osmosis = ["abstract-osmosis-adapter/full_integration"]
-terra = ["abstract-astroport-adapter/full_integration"]
+terra2 = ["abstract-astroport-adapter/full_integration"]
 neutron = ["abstract-astroport-adapter/full_integration"]
 kujira = ["abstract-kujira-adapter/full_integration"]
 schema = ["abstract-adapter/schema"]
@@ -49,7 +49,7 @@ cw-orch = ["dep:cw-orch"]                    # Remove after optimizer toolchain 
 osmosis-test = ["cw-orch/osmosis-test-tube"]
 
 [package.metadata.optimizer]
-features = ["juno", "terra", "osmosis", "kujira", "neutron"]
+features = ["juno", "terra2", "osmosis", "kujira", "neutron"]
 
 [dependencies]
 cosmwasm-schema = { workspace = true }

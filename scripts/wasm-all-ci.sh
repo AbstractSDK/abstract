@@ -68,6 +68,7 @@ docker cp Cargo.lock modules_with_code:/code
 # copy code into this volume
 docker cp ./contracts modules_with_code:/code
 docker cp ./packages modules_with_code:/code
+docker cp ./scripts modules_with_code:/code
 
 # Run the build
 docker run --volumes-from modules_with_code ${abstract_image}:0.14.0

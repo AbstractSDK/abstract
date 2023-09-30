@@ -9,7 +9,7 @@ use abstract_core::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 
 use common::contracts;
 use croncat_app::{
@@ -267,7 +267,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         None,
     )?;
 
-    contract.deploy(CRONCAT_MODULE_VERSION.parse()?)?;
+    contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_module(
         CRONCAT_ID,
         &InstantiateMsg {

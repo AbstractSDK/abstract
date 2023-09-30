@@ -1,5 +1,14 @@
 use crate::msg::QueryMsg;
-use abstract_challenge_app::{
+use abstract_core::{
+    app::BaseInstantiateMsg,
+    objects::{
+        gov_type::GovernanceDetails,
+        module::{ModuleInfo, ModuleVersion},
+    },
+};
+use abstract_dex_adapter::msg::OfferAsset;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
+use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
         ChallengeQueryMsg, ChallengeRequest, ChallengeResponse, ChallengesResponse,
@@ -11,15 +20,6 @@ use abstract_challenge_app::{
     },
     *,
 };
-use abstract_core::{
-    app::BaseInstantiateMsg,
-    objects::{
-        gov_type::GovernanceDetails,
-        module::{ModuleInfo, ModuleVersion},
-    },
-};
-use abstract_dex_adapter::msg::OfferAsset;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use cosmwasm_std::{coin, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
@@ -124,7 +124,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
     // Deploy Abstract to the mock
     let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 
-    challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?)?;
+    challenge_app.deploy(CHALLENGE_APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     let _module_info = ModuleInfo::from_id(
         CHALLENGE_APP_ID,
