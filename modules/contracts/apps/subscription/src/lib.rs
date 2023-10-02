@@ -40,13 +40,13 @@ pub mod interface {
             ans_host_address: String,
             factory_addr: String,
             version_control_addr: String,
-        ) -> AppInitMsg<SubscribersInstantiateMsg> {
-            AppInitMsg::<SubscribersInstantiateMsg> {
+        ) -> AppInitMsg<SubscriptionInstantiateMsg> {
+            AppInitMsg::<SubscriptionInstantiateMsg> {
                 base: BaseInstantiateMsg {
                     ans_host_address,
                     version_control_address: version_control_addr,
                 },
-                module: SubscribersInstantiateMsg {
+                module: SubscriptionInstantiateMsg {
                     factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
                     subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),

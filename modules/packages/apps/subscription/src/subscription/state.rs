@@ -55,7 +55,7 @@ pub enum EmissionType {
 
 /// Config for subscriber functionality
 #[cosmwasm_schema::cw_serde]
-pub struct SubscribersConfig {
+pub struct SubscriptionConfig {
     /// Only addr that can register on OS
     pub factory_address: Addr,
     /// Asset that's accepted as payment
@@ -89,7 +89,7 @@ pub struct Subscriber {
 }
 
 /// Average number of subscribers
-pub const SUBSCRIPTION_CONFIG: Item<SubscribersConfig> = Item::new("\u{0}{10}sub_config");
+pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
 pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
 pub const SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("subscribed");
 pub const DORMANT_SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("un-subscribed");

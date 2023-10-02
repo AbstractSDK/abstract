@@ -28,7 +28,7 @@
 //! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
-use super::state::{Subscriber, SubscribersConfig, SubscriptionState, UncheckedEmissionType};
+use super::state::{Subscriber, SubscriptionConfig, SubscriptionState, UncheckedEmissionType};
 use abstract_core::app;
 use abstract_core::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
@@ -38,7 +38,7 @@ use cw_asset::{Asset, AssetInfoUnchecked};
 /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
 /// Top-level Abstract App instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
-pub type InstantiateMsg = app::InstantiateMsg<SubscribersInstantiateMsg>;
+pub type InstantiateMsg = app::InstantiateMsg<SubscriptionInstantiateMsg>;
 /// Top-level Abstract App query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
 pub type QueryMsg = app::QueryMsg<SubscriptionQueryMsg>;
 /// Top-level Abstract App migrate message. This is the message that is passed to the `query` entrypoint of the smart-contract.
@@ -51,9 +51,9 @@ impl app::AppQueryMsg for SubscriptionQueryMsg {}
 #[cosmwasm_schema::cw_serde]
 pub struct AppMigrateMsg {}
 
-/// Subscribers instantiation message
+/// Subscription instantiation message
 #[cosmwasm_schema::cw_serde]
-pub struct SubscribersInstantiateMsg {
+pub struct SubscriptionInstantiateMsg {
     /// Asset for payment
     pub payment_asset: AssetInfoUnchecked,
     /// Only addr that can register Abstract Account
@@ -143,7 +143,7 @@ pub enum DepositHookMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     /// Config for the subscribers
-    pub subscription: SubscribersConfig,
+    pub subscription: SubscriptionConfig,
 }
 
 /// Query response for [`SubscriptionQueryMsg::State`]

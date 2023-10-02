@@ -1,13 +1,13 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult, BLOCKS_PER_MONTH};
 use crate::msg::SubscriptionExecuteMsg;
 use crate::state::{
-    Subscriber, SubscribersConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
+    Subscriber, SubscriptionConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
     SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
 use abstract_core::objects::AccountId;
-use abstract_sdk::{AccountVerification, Execution, TransferInterface};
+use abstract_sdk::{AccountVerification, Execution, ModuleInterface, TransferInterface};
 use abstract_subscription_interface::utils::suspend_os;
-use abstract_subscription_interface::SubscriptionError;
+use abstract_subscription_interface::{SubscriptionError, CONTRIBUTORS_ID};
 use cosmwasm_std::{
     to_binary, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdResult,
     SubMsg, Uint128, WasmMsg,
@@ -260,9 +260,26 @@ pub fn update_subscription_config(
     subscription_cost_per_block: Option<Decimal>,
     contributors_enabled: Option<bool>,
 ) -> SubscriptionResult {
+    // Let contributors contract self-enable
+    if let (Some(true), None, None, None) = (
+        &contributors_enabled,
+        &payment_asset,
+        &factory_address,
+        &subscription_cost_per_block,
+    ) {
+        let contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
+        if info.sender == contributos_addr {
+            SUBSCRIPTION_CONFIG.update(deps.storage, |mut config| {
+                config.contributors_enabled = true;
+                StdResult::Ok(config)
+            })?;
+            return Ok(Response::new().add_attribute("action", "update_subscriber_config"));
+        }
+    }
+
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let mut config: SubscribersConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
+    let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
 
     if let Some(factory_address) = factory_address {
         // validate address format
@@ -276,6 +293,10 @@ pub fn update_subscription_config(
 
     if let Some(payment_asset) = payment_asset {
         config.payment_asset = payment_asset.check(deps.api, None)?;
+    }
+
+    if let Some(contributors_enabled) = contributors_enabled {
+        config.contributors_enabled = contributors_enabled;
     }
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;

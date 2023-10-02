@@ -1,15 +1,19 @@
 use crate::state::{ContributionState, CONTRIBUTION_STATE};
-use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
+use abstract_sdk::ModuleInterface;
+use abstract_subscription_interface::SUBSCRIPTION_ID;
+use cosmwasm_std::{wasm_execute, Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 
 use crate::contract::{App, AppResult};
 use crate::msg::ContributorsInstantiateMsg;
 use crate::state::{ContributorsConfig, CONTRIBUTION_CONFIG};
 
+use abstract_subscription_interface::subscription::msg as subscr_msg;
+
 pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    _app: App,
+    app: App,
     msg: ContributorsInstantiateMsg,
 ) -> AppResult {
     let contributor_config: ContributorsConfig = ContributorsConfig {
@@ -31,5 +35,19 @@ pub fn instantiate_handler(
     CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
     CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
 
-    Ok(Response::new())
+    // self-enable contributors
+    let subscription_addr = app.modules(deps.as_ref()).module_address(SUBSCRIPTION_ID)?;
+    let update_config_msg = wasm_execute(
+        subscription_addr,
+        &subscr_msg::ExecuteMsg::from(
+            subscr_msg::SubscriptionExecuteMsg::UpdateSubscriptionConfig {
+                payment_asset: None,
+                factory_address: None,
+                subscription_cost_per_block: None,
+                contributors_enabled: Some(true),
+            },
+        ),
+        vec![],
+    )?;
+    Ok(Response::new().add_message(update_config_msg))
 }

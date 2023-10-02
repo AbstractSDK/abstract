@@ -134,13 +134,14 @@ pub fn update_contributor_compensation(
         None => {
             let compensation =
                 Compensation::default().overwrite(base_per_block, weight, expiration_block);
-
-            let os_id = app
-                .account_registry(deps.as_ref())
-                .assert_manager(&contributor_addr)
-                .map_err(|_| ContributorsError::ContributorNotManager {})?;
+            
             // TODO: @CyberHoward
             // New contributor had to be subscriber?
+
+            // let os_id = app
+            //     .account_registry(deps.as_ref())
+            //     .assert_manager(&contributor_addr)
+            //     .map_err(|_| ContributorsError::ContributorNotManager {})?;
 
             // let subscriber = SUBSCRIBERS.load(deps.storage, &os_id)?;
             // if subscriber.manager_addr != contributor_addr {

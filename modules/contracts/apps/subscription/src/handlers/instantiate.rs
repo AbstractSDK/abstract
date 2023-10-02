@@ -1,10 +1,10 @@
-use abstract_subscription_interface::subscription::msg::SubscribersInstantiateMsg;
+use abstract_subscription_interface::subscription::msg::SubscriptionInstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
     state::{
-        SubscribersConfig, SubscriptionState, INCOME_TWA, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
+        SubscriptionConfig, SubscriptionState, INCOME_TWA, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
     },
 };
 
@@ -12,10 +12,10 @@ pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    app: SubscriptionApp,
-    msg: SubscribersInstantiateMsg,
+    _app: SubscriptionApp,
+    msg: SubscriptionInstantiateMsg,
 ) -> SubscriptionResult {
-    let subscription_config: SubscribersConfig = SubscribersConfig {
+    let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.payment_asset.check(deps.api, None)?,
         subscription_cost_per_block: msg.subscription_cost_per_block,
         factory_address: deps.api.addr_validate(&msg.factory_addr)?,
