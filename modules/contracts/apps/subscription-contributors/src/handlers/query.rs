@@ -1,18 +1,23 @@
-use crate::contract::{ContributorsApp, AppResult};
-use crate::msg::{AppQueryMsg, ConfigResponse};
+use crate::contract::{AppResult, ContributorsApp};
+use crate::msg::ContributorsQueryMsg;
 use crate::state::CONTRIBUTION_CONFIG;
 use abstract_sdk::AccountVerification;
 use abstract_subscription_interface::contributors::msg::{ContributorStateResponse, StateResponse};
 use abstract_subscription_interface::contributors::state::{CONTRIBUTION_STATE, CONTRIBUTORS};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
-pub fn query_handler(deps: Deps, _env: Env, app: &ContributorsApp, msg: AppQueryMsg) -> AppResult<Binary> {
+pub fn query_handler(
+    deps: Deps,
+    _env: Env,
+    app: &ContributorsApp,
+    msg: ContributorsQueryMsg,
+) -> AppResult<Binary> {
     match msg {
-        AppQueryMsg::Config {} => to_binary(&query_config(deps)?),
-        AppQueryMsg::State {} => to_binary(&StateResponse {
+        ContributorsQueryMsg::Config {} => to_binary(&CONTRIBUTION_CONFIG.load(deps.storage)?),
+        ContributorsQueryMsg::State {} => to_binary(&StateResponse {
             contribution: CONTRIBUTION_STATE.load(deps.storage)?,
         }),
-        AppQueryMsg::ContributorState { os_id } => {
+        ContributorsQueryMsg::ContributorState { os_id } => {
             let account_registry = app.account_registry(deps);
             let contributor_addr = account_registry.account_base(&os_id)?.manager;
             let maybe_contributor = CONTRIBUTORS.may_load(deps.storage, &contributor_addr)?;
@@ -25,9 +30,4 @@ pub fn query_handler(deps: Deps, _env: Env, app: &ContributorsApp, msg: AppQuery
         }
     }
     .map_err(Into::into)
-}
-
-fn query_config(deps: Deps) -> StdResult<ConfigResponse> {
-    let config = CONTRIBUTION_CONFIG.load(deps.storage)?;
-    Ok(ConfigResponse { config })
 }

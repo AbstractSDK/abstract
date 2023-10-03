@@ -3,54 +3,39 @@ use abstract_core::{
     AbstractResult,
 };
 use cosmwasm_std::{Addr, Api, Decimal, Timestamp};
-use cw_asset::{AssetInfo, AssetInfoUnchecked};
+use cw_address_like::AddressLike;
+use cw_asset::{AssetInfo, AssetInfoBase};
 use cw_storage_plus::{Item, Map};
 
 // #### SUBSCRIPTION SECTION ####
 
 /// Setting for protocol token emissions
 #[cosmwasm_schema::cw_serde]
-pub enum UncheckedEmissionType {
+pub enum EmissionType<T: AddressLike> {
     None,
     /// A fixed number of tokens are distributed to users on a per-week basis.
     /// emission = week_shared / total_subscribers
-    WeekShared(Decimal, AssetInfoUnchecked),
+    WeekShared(Decimal, AssetInfoBase<T>),
     /// Each user receives a fixed number of tokens on a per-week basis.
     /// emission = week_per_user
-    WeekPerUser(Decimal, AssetInfoUnchecked),
+    WeekPerUser(Decimal, AssetInfoBase<T>),
     /// Requires contribution functionality to be active
     /// Emissions will be based on protocol income and user/contributor split.
     /// See [`ContributionConfig`]
-    IncomeBased(AssetInfoUnchecked),
+    IncomeBased(AssetInfoBase<T>),
 }
 
-impl UncheckedEmissionType {
-    pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType> {
+impl EmissionType<String> {
+    pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType<Addr>> {
         match self {
-            UncheckedEmissionType::None => Ok(EmissionType::None),
-            UncheckedEmissionType::WeekShared(d, a) => {
-                Ok(EmissionType::WeekShared(d, a.check(api, None)?))
-            }
-            UncheckedEmissionType::WeekPerUser(d, a) => {
+            EmissionType::None => Ok(EmissionType::None),
+            EmissionType::WeekShared(d, a) => Ok(EmissionType::WeekShared(d, a.check(api, None)?)),
+            EmissionType::WeekPerUser(d, a) => {
                 Ok(EmissionType::WeekPerUser(d, a.check(api, None)?))
             }
-            UncheckedEmissionType::IncomeBased(a) => {
-                Ok(EmissionType::IncomeBased(a.check(api, None)?))
-            }
+            EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
         }
     }
-}
-
-/// Setting for protocol token emissions
-#[cosmwasm_schema::cw_serde]
-pub enum EmissionType {
-    None,
-    /// emission = week_shared / total_subs
-    WeekShared(Decimal, AssetInfo),
-    /// emission = week_per_user
-    WeekPerUser(Decimal, AssetInfo),
-    /// Requires contribution functionality to be active
-    IncomeBased(AssetInfo),
 }
 
 /// Config for subscriber functionality
@@ -63,7 +48,7 @@ pub struct SubscriptionConfig {
     /// Cost of the subscription on a per-week basis.
     pub subscription_cost_per_week: Decimal,
     /// Subscription emissions per week
-    pub subscription_per_week_emissions: EmissionType,
+    pub subscription_per_week_emissions: EmissionType<Addr>,
     /// If contributors contract enabled
     pub contributors_enabled: bool,
 }

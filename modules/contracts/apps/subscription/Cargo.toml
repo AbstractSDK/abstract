@@ -54,4 +54,7 @@ clap = { workspace = true }
 cw-utils = { workspace = true }
 
 abstract-subscription = { path = ".", features = ["interface"] }
-abstract-subscription-contributors = { path = "../subscription-contributors", features = ["interface"] }
+abstract-subscription-contributors = { path = "../subscription-contributors", features = [
+    "interface",
+] }
+cw20-base = { workspace = true, features = ["interface"]}

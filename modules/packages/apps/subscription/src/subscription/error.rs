@@ -66,7 +66,7 @@ pub enum SubscriptionError {
     InsufficientPayment(u64, String),
 
     #[error("Subscriber emissions are not enabled")]
-    SubscriberEmissionsNotEnabled,
+    SubscriberEmissionsNotEnabled {},
 
     #[error("Contribution function must be enabled to use this feature")]
     ContributionNotEnabled {},

@@ -20,7 +20,7 @@
 //! ## Emissions
 //! Protocol emissions are an important part of creating a tight community of users and contributors around your product. The emissions feature of this
 //! module allows you to easily configure emission parameters based on your needs.
-//! These emission parameters are set when creating the module and are described on the [`UncheckedEmissionType`] struct.
+//! These emission parameters are set when creating the module and are described on the [`EmissionType`] struct.
 //!
 //! ## Contributions
 //! The contribution feature of this contract can be used to provide direct incentives for users to join in building out your product.
@@ -28,7 +28,7 @@
 //! * The total income of the system is shared between the DAO and the contributors. See [`ContributionConfig`].
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
-use super::state::{Subscriber, SubscriptionConfig, SubscriptionState, UncheckedEmissionType};
+use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
 use abstract_core::app;
 use abstract_core::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
@@ -58,10 +58,10 @@ pub struct SubscriptionInstantiateMsg {
     pub payment_asset: AssetInfoUnchecked,
     /// Only addr that can register Abstract Account
     pub factory_addr: String,
-    /// Cost of the subscription on a per-day basis.
+    /// Cost of the subscription on a per-week basis.
     pub subscription_cost_per_week: Decimal,
-    /// Subscription emissions per day
-    pub subscription_per_week_emissions: UncheckedEmissionType,
+    /// Subscription emissions per week
+    pub subscription_per_week_emissions: EmissionType<String>,
     /// How often update income average
     pub income_averaging_period: Uint64,
 }
@@ -100,7 +100,8 @@ pub enum SubscriptionExecuteMsg {
         subscription_cost_per_week: Option<Decimal>,
         /// Enable contributors
         contributors_enabled: Option<bool>,
-        // TODO?: subscription_per_week_emissions
+        /// Subscription emissions per week
+        subscription_per_week_emissions: Option<EmissionType<String>>,
     },
     /// Refresh TWA value
     RefreshTWA {},
@@ -116,7 +117,7 @@ pub enum SubscriptionQueryMsg {
     #[returns(StateResponse)]
     State {},
     /// Get config of subscriptions and contributors
-    #[returns(ConfigResponse)]
+    #[returns(SubscriptionConfig)]
     Config {},
     /// Get minimum of one month's worth to (re)-subscribe.
     #[returns(SubscriptionFeeResponse)]
@@ -137,13 +138,6 @@ pub enum DepositHookMsg {
         /// Subscriber account id
         os_id: AccountId,
     },
-}
-
-/// Query response for [`SubscriptionQueryMsg::Config`]
-#[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {
-    /// Config for the subscribers
-    pub subscription: SubscriptionConfig,
 }
 
 /// Query response for [`SubscriptionQueryMsg::State`]

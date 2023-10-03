@@ -1,6 +1,6 @@
 use crate::{
     handlers,
-    msg::{AppExecuteMsg, AppMigrateMsg, AppQueryMsg, ContributorsInstantiateMsg},
+    msg::{ContributorsExecuteMsg, AppMigrateMsg, ContributorsQueryMsg, ContributorsInstantiateMsg},
     replies::{self, REFRESH_REPLY_ID},
 };
 use abstract_app::AppContract;
@@ -18,8 +18,8 @@ pub type AppResult<T = Response> = Result<T, ContributorsError>;
 pub type ContributorsApp = AppContract<
     ContributorsError,
     ContributorsInstantiateMsg,
-    AppExecuteMsg,
-    AppQueryMsg,
+    ContributorsExecuteMsg,
+    ContributorsQueryMsg,
     AppMigrateMsg,
 >;
 

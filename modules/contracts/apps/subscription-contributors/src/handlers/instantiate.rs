@@ -35,19 +35,22 @@ pub fn instantiate_handler(
     CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
     CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
 
+    // TODO: this contract is not installed yet and reading module-factory context sounds wrong
+    // come up with a better solution something like post-install hooks to abstract
+    //
     // self-enable contributors
-    let subscription_addr = app.modules(deps.as_ref()).module_address(SUBSCRIPTION_ID)?;
-    let update_config_msg = wasm_execute(
-        subscription_addr,
-        &subscr_msg::ExecuteMsg::from(
-            subscr_msg::SubscriptionExecuteMsg::UpdateSubscriptionConfig {
-                payment_asset: None,
-                factory_address: None,
-                subscription_cost_per_week: None,
-                contributors_enabled: Some(true),
-            },
-        ),
-        vec![],
-    )?;
-    Ok(Response::new().add_message(update_config_msg))
+    // let subscription_addr = app.modules(deps.as_ref()).module_address(SUBSCRIPTION_ID)?;
+    // let update_config_msg = wasm_execute(
+    //     subscription_addr,
+    //     &subscr_msg::ExecuteMsg::from(
+    //         subscr_msg::SubscriptionExecuteMsg::UpdateSubscriptionConfig {
+    //             payment_asset: None,
+    //             factory_address: None,
+    //             subscription_cost_per_week: None,
+    //             contributors_enabled: Some(true),
+    //         },
+    //     ),
+    //     vec![],
+    // )?;
+    Ok(Response::new())
 }

@@ -6,16 +6,16 @@ use cw_asset::AssetInfoUnchecked;
 use super::state::{Compensation, ContributionState, ContributorsConfig};
 
 /// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
-pub type ExecuteMsg = app::ExecuteMsg<AppExecuteMsg>;
+pub type ExecuteMsg = app::ExecuteMsg<ContributorsExecuteMsg>;
 /// Top-level Abstract App instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
 pub type InstantiateMsg = app::InstantiateMsg<ContributorsInstantiateMsg>;
 /// Top-level Abstract App query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-pub type QueryMsg = app::QueryMsg<AppQueryMsg>;
+pub type QueryMsg = app::QueryMsg<ContributorsQueryMsg>;
 /// Top-level Abstract App migrate message. This is the message that is passed to the `query` entrypoint of the smart-contract.
 pub type MigrateMsg = app::MigrateMsg<AppMigrateMsg>;
 
-impl app::AppExecuteMsg for AppExecuteMsg {}
-impl app::AppQueryMsg for AppQueryMsg {}
+impl app::AppExecuteMsg for ContributorsExecuteMsg {}
+impl app::AppQueryMsg for ContributorsQueryMsg {}
 
 /// Contributors instantiation message
 #[cosmwasm_schema::cw_serde]
@@ -34,11 +34,11 @@ pub struct ContributorsInstantiateMsg {
     pub token_info: AssetInfoUnchecked,
 }
 
-/// App execute messages
+/// Contributors execute messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
-pub enum AppExecuteMsg {
+pub enum ContributorsExecuteMsg {
     /// Update config of contributors
     UpdateConfig {
         /// New ercentage of income that is redirected to the protocol
@@ -77,13 +77,13 @@ pub enum AppExecuteMsg {
     },
 }
 
-/// App query messages
+/// Contributors query messages
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
-pub enum AppQueryMsg {
-    #[returns(ConfigResponse)]
+pub enum ContributorsQueryMsg {
+    #[returns(ContributorsConfig)]
     Config {},
     #[returns(StateResponse)]
     State {},
@@ -99,12 +99,6 @@ pub enum AppQueryMsg {
 pub enum AppMigrateMsg {}
 
 #[cosmwasm_schema::cw_serde]
-pub struct ConfigResponse {
-    /// Config for the contributors
-    pub config: ContributorsConfig,
-}
-
-#[cosmwasm_schema::cw_serde]
 pub struct StateResponse {
     /// State of contributors
     pub contribution: ContributionState,
@@ -116,6 +110,3 @@ pub struct ContributorStateResponse {
     /// Compensation details for contributors
     pub compensation: Compensation,
 }
-
-#[cosmwasm_schema::cw_serde]
-pub enum ContributorsExecuteMsg {}

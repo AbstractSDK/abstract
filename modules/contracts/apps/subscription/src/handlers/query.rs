@@ -4,10 +4,7 @@ use cw_asset::Asset;
 
 use crate::{
     contract::{SubscriptionApp, SubscriptionResult},
-    msg::{
-        ConfigResponse, StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
-        SubscriptionQueryMsg,
-    },
+    msg::{StateResponse, SubscriberStateResponse, SubscriptionFeeResponse, SubscriptionQueryMsg},
     state::{DORMANT_SUBSCRIBERS, SUBSCRIBERS, SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE},
 };
 
@@ -37,9 +34,7 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Config {} => {
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            to_binary(&ConfigResponse {
-                subscription: subscription_config,
-            })
+            to_binary(&subscription_config)
         }
         SubscriptionQueryMsg::SubscriberState { os_id } => {
             let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &os_id)?;

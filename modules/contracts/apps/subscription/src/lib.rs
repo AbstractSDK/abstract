@@ -50,10 +50,9 @@ pub mod interface {
                     factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
                     subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
-                    subscription_per_week_emissions:
-                        crate::state::UncheckedEmissionType::IncomeBased(AssetInfoUnchecked::cw20(
-                            token_addr.clone(),
-                        )),
+                    subscription_per_week_emissions: crate::state::EmissionType::IncomeBased(
+                        AssetInfoUnchecked::cw20(token_addr.clone()),
+                    ),
                     // 3 days
                     income_averaging_period: 259200u64.into(),
                     // contributors: Some(ContributorsInstantiateMsg {

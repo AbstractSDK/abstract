@@ -6,4 +6,4 @@ mod replies;
 #[cfg(feature = "interface")]
 pub use contract::interface::ContributorsInterface;
 #[cfg(feature = "interface")]
-pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};
+pub use msg::{ContributorsExecuteMsgFns, ContributorsQueryMsgFns};

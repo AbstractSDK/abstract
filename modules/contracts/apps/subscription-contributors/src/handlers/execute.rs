@@ -20,19 +20,19 @@ use cosmwasm_std::{
 };
 use cw_asset::{Asset, AssetInfoUnchecked};
 
-use crate::contract::{ContributorsApp, AppResult};
+use crate::contract::{AppResult, ContributorsApp};
 
-use crate::msg::AppExecuteMsg;
+use crate::msg::ContributorsExecuteMsg;
 
 pub fn execute_handler(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
     app: ContributorsApp,
-    msg: AppExecuteMsg,
+    msg: ContributorsExecuteMsg,
 ) -> AppResult {
     match msg {
-        AppExecuteMsg::UpdateConfig {
+        ContributorsExecuteMsg::UpdateConfig {
             protocol_income_share,
             emission_user_share,
             max_emissions_multiple,
@@ -51,8 +51,10 @@ pub fn execute_handler(
             emissions_amp_factor,
             emissions_offset,
         ),
-        AppExecuteMsg::ClaimCompensation { os_id } => try_claim_compensation(app, deps, env, os_id),
-        AppExecuteMsg::UpdateContributor {
+        ContributorsExecuteMsg::ClaimCompensation { os_id } => {
+            try_claim_compensation(app, deps, env, os_id)
+        }
+        ContributorsExecuteMsg::UpdateContributor {
             os_id,
             base_per_week,
             weight,
@@ -67,7 +69,9 @@ pub fn execute_handler(
             weight,
             expiration_timestamp,
         ),
-        AppExecuteMsg::RemoveContributor { os_id } => remove_contributor(deps, info, app, os_id),
+        ContributorsExecuteMsg::RemoveContributor { os_id } => {
+            remove_contributor(deps, info, app, os_id)
+        }
     }
 }
 
@@ -207,7 +211,12 @@ pub fn remove_contributor(
 // Compute share of those emissions
 // Compute share of income
 /// Calculate the compensation for contribution
-pub fn try_claim_compensation(app: ContributorsApp, deps: DepsMut, env: Env, os_id: AccountId) -> AppResult {
+pub fn try_claim_compensation(
+    app: ContributorsApp,
+    deps: DepsMut,
+    env: Env,
+    os_id: AccountId,
+) -> AppResult {
     let subscription_addr = subscription_module_addr(&app, deps.as_ref())?;
     let income_twa = subscr_state::INCOME_TWA.query(&deps.querier, subscription_addr.clone())?;
     if income_twa.need_refresh(&env) {

@@ -7,6 +7,7 @@ use crate::state::{
 use abstract_core::objects::AccountId;
 use abstract_sdk::{AccountVerification, Execution, ModuleInterface, TransferInterface};
 use abstract_subscription_interface::contributors::state as contr_state;
+use abstract_subscription_interface::subscription::state::EmissionType;
 use abstract_subscription_interface::utils::suspend_os;
 use abstract_subscription_interface::{
     SubscriptionError, CONTRIBUTORS_ID, DURATION_IN_WEEKS, WEEK_IN_SECONDS,
@@ -39,6 +40,7 @@ pub fn execute_handler(
             factory_address,
             subscription_cost_per_week: subscription_cost,
             contributors_enabled,
+            subscription_per_week_emissions,
         } => update_subscription_config(
             deps,
             env,
@@ -48,6 +50,7 @@ pub fn execute_handler(
             factory_address,
             subscription_cost,
             contributors_enabled,
+            subscription_per_week_emissions,
         ),
         SubscriptionExecuteMsg::RefreshTWA {} => {
             INCOME_TWA.try_update_value(&env, deps.storage)?;
@@ -220,7 +223,7 @@ pub fn claim_subscriber_emissions(
 
     let asset = match subscription_config.subscription_per_week_emissions {
         crate::state::EmissionType::None => {
-            return Err(SubscriptionError::SubscriberEmissionsNotEnabled)
+            return Err(SubscriptionError::SubscriberEmissionsNotEnabled {});
         }
         crate::state::EmissionType::WeekShared(shared_emissions, token) => {
             // active_sub can't be 0 as we already loaded from storage
@@ -273,18 +276,22 @@ pub fn update_subscription_config(
     factory_address: Option<String>,
     subscription_cost_per_week: Option<Decimal>,
     contributors_enabled: Option<bool>,
+    subscription_per_week_emissions: Option<EmissionType<String>>,
 ) -> SubscriptionResult {
+    // TODO: it's not installed during contributors instantiate method
+    // Should come up with a better idea to "auto-update" that
+    //
     // Let contributors contract self-enable
-    if let Some(true) = &contributors_enabled {
-        let contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
-        if info.sender == contributos_addr {
-            SUBSCRIPTION_CONFIG.update(deps.storage, |mut config| {
-                config.contributors_enabled = true;
-                StdResult::Ok(config)
-            })?;
-            return Ok(Response::new().add_attribute("action", "update_subscriber_config"));
-        }
-    }
+    // if let Some(true) = &contributors_enabled {
+    //     let contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
+    //     if info.sender == contributos_addr {
+    //         SUBSCRIPTION_CONFIG.update(deps.storage, |mut config| {
+    //             config.contributors_enabled = true;
+    //             StdResult::Ok(config)
+    //         })?;
+    //         return Ok(Response::new().add_attribute("action", "update_subscriber_config"));
+    //     }
+    // }
 
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -305,7 +312,17 @@ pub fn update_subscription_config(
     }
 
     if let Some(contributors_enabled) = contributors_enabled {
+        // make sure it's installed
+        let _contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
+
+        // TODO: Do we want to edit deps?
+        // app.modules(deps.as_ref())
+        //     .assert_module_dependency(CONTRIBUTORS_ID)?;
         config.contributors_enabled = contributors_enabled;
+    }
+
+    if let Some(subscription_per_week_emissions) = subscription_per_week_emissions {
+        config.subscription_per_week_emissions = subscription_per_week_emissions.check(deps.api)?;
     }
 
     SUBSCRIPTION_CONFIG.save(deps.storage, &config)?;
