@@ -13,7 +13,7 @@ pub mod interface {
     use cw_orch::{interface, prelude::*};
     use std::str::FromStr;
 
-    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, AppMigrateMsg)]
+    #[interface(InstantiateMsg, ExecuteMsg, QueryMsg, SubscriptionMigrateMsg)]
     pub struct Subscription;
 
     impl<Chain: CwEnv> AppDeployer<Chain> for Subscription<Chain> {}
@@ -49,8 +49,8 @@ pub mod interface {
                 module: SubscriptionInstantiateMsg {
                     factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
-                    subscription_cost_per_block: Decimal::from_str("0.000001").unwrap(),
-                    subscription_per_block_emissions:
+                    subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
+                    subscription_per_week_emissions:
                         crate::state::UncheckedEmissionType::IncomeBased(AssetInfoUnchecked::cw20(
                             token_addr.clone(),
                         )),

@@ -9,9 +9,7 @@
 
 use abstract_core::objects::gov_type::GovernanceDetails;
 use abstract_interface::{Abstract, AppDeployer, VCExecFns};
-use abstract_subscription_contributors::{
-    contract::APP_VERSION, msg::ContributorsInstantiateMsg, AppInterface,
-};
+use abstract_subscription_contributors::{contract::APP_VERSION, ContributorsInterface};
 use abstract_subscription_interface::CONTRIBUTORS_ID;
 use cw_orch::{
     anyhow,
@@ -20,7 +18,6 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 use semver::Version;
-use speculoos::{assert_that, prelude::BooleanAssertions};
 
 const LOCAL_MNEMONIC: &str = "clip hire initial neck maid actor venue client foam budget lock catalog sweet steak waste crater broccoli pipe steak sister coyote moment obvious choose";
 
@@ -40,7 +37,7 @@ fn main() -> anyhow::Result<()> {
     // Deploy abstract locally
     let abstract_deployment = Abstract::deploy_on(daemon.clone(), daemon.sender().to_string())?;
 
-    let app = AppInterface::new(CONTRIBUTORS_ID, daemon.clone());
+    let app = ContributorsInterface::new(CONTRIBUTORS_ID, daemon.clone());
 
     // Create account
     let account = abstract_deployment.account_factory.create_default_account(

@@ -1,5 +1,5 @@
 use abstract_core::objects::AccountId;
-use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Uint128, Uint64};
+use cosmwasm_std::{Addr, Decimal, StdError, StdResult, Timestamp, Uint128};
 use cw_asset::AssetInfo;
 use cw_storage_plus::{Item, Map};
 
@@ -19,29 +19,29 @@ pub const COMPENSATION_CLAIMER: Item<AccountId> = Item::new("claimer");
 #[cosmwasm_schema::cw_serde]
 #[derive(Default)]
 pub struct Compensation {
-    pub base_per_block: Decimal,
+    pub base_per_week: Decimal,
     pub weight: u32,
-    pub last_claim_block: Uint64,
-    pub expiration_block: Uint64,
+    pub last_claim_timestamp: Timestamp,
+    pub expiration_timestamp: Timestamp,
 }
 
 impl Compensation {
     pub fn overwrite(
         mut self,
-        base_per_block: Option<Decimal>,
+        base_per_week: Option<Decimal>,
         weight: Option<u32>,
-        expiration_block: Option<Uint64>,
+        expiration_timestamp: Option<Timestamp>,
     ) -> Self {
-        if let Some(base_per_block) = base_per_block {
-            self.base_per_block = base_per_block;
+        if let Some(base_per_week) = base_per_week {
+            self.base_per_week = base_per_week;
         }
 
         if let Some(weight) = weight {
             self.weight = weight;
         }
 
-        if let Some(expiration_block) = expiration_block {
-            self.expiration_block = expiration_block;
+        if let Some(expiration_block) = expiration_timestamp {
+            self.expiration_timestamp = expiration_block;
         }
         self
     }
@@ -52,7 +52,7 @@ impl Sub for Compensation {
 
     fn sub(self, other: Self) -> (Decimal, i32) {
         (
-            self.base_per_block - other.base_per_block,
+            self.base_per_week - other.base_per_week,
             self.weight as i32 - other.weight as i32,
         )
     }

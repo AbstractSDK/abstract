@@ -1,6 +1,6 @@
 use crate::handlers;
-use crate::msg::{AppMigrateMsg, SubscriptionInstantiateMsg};
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
+use crate::msg::{SubscriptionInstantiateMsg, SubscriptionMigrateMsg};
 use abstract_app::AppContract;
 use abstract_subscription_interface::SubscriptionError;
 use abstract_subscription_interface::SUBSCRIPTION_ID;
@@ -14,11 +14,9 @@ pub type SubscriptionApp = AppContract<
     SubscriptionInstantiateMsg,
     SubscriptionExecuteMsg,
     SubscriptionQueryMsg,
-    AppMigrateMsg,
+    SubscriptionMigrateMsg,
     Cw20ReceiveMsg,
 >;
-
-pub(crate) const BLOCKS_PER_MONTH: u64 = 10 * 60 * 24 * 30;
 
 const SUBSCRIPTION_MODULE: SubscriptionApp =
     SubscriptionApp::new(SUBSCRIPTION_ID, CONTRACT_VERSION, None)

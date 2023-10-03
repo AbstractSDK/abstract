@@ -1,4 +1,4 @@
-use abstract_subscription_contributors::AppInterface;
+use abstract_subscription_contributors::ContributorsInterface;
 
 use abstract_subscription_interface::CONTRIBUTORS_ID;
 use cw_orch::prelude::*;
@@ -14,7 +14,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = AppInterface::new(CONTRIBUTORS_ID, mock);
+    let contract = ContributorsInterface::new(CONTRIBUTORS_ID, mock);
     // Panics if no path to a .wasm file is found
     contract.wasm();
 }

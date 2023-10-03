@@ -3,7 +3,7 @@ use abstract_sdk::ModuleInterface;
 use abstract_subscription_interface::SUBSCRIPTION_ID;
 use cosmwasm_std::{wasm_execute, Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 
-use crate::contract::{App, AppResult};
+use crate::contract::{ContributorsApp, AppResult};
 use crate::msg::ContributorsInstantiateMsg;
 use crate::state::{ContributorsConfig, CONTRIBUTION_CONFIG};
 
@@ -13,7 +13,7 @@ pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    app: App,
+    app: ContributorsApp,
     msg: ContributorsInstantiateMsg,
 ) -> AppResult {
     let contributor_config: ContributorsConfig = ContributorsConfig {
@@ -43,7 +43,7 @@ pub fn instantiate_handler(
             subscr_msg::SubscriptionExecuteMsg::UpdateSubscriptionConfig {
                 payment_asset: None,
                 factory_address: None,
-                subscription_cost_per_block: None,
+                subscription_cost_per_week: None,
                 contributors_enabled: Some(true),
             },
         ),

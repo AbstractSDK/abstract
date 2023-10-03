@@ -15,7 +15,7 @@ pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub type AppResult<T = Response> = Result<T, ContributorsError>;
 
 /// The type of the app that is used to build your app and access the Abstract SDK features.
-pub type App = AppContract<
+pub type ContributorsApp = AppContract<
     ContributorsError,
     ContributorsInstantiateMsg,
     AppExecuteMsg,
@@ -27,7 +27,7 @@ pub type App = AppContract<
 const SUBSCRIPTIONS_DEPENDENCY: StaticDependency =
     StaticDependency::new(SUBSCRIPTION_ID, &[APP_VERSION]);
 
-const APP: App = App::new(CONTRIBUTORS_ID, APP_VERSION, None)
+const CONTRIBUTORS: ContributorsApp = ContributorsApp::new(CONTRIBUTORS_ID, APP_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler)
@@ -37,7 +37,7 @@ const APP: App = App::new(CONTRIBUTORS_ID, APP_VERSION, None)
 
 // Export handlers
 #[cfg(feature = "export")]
-abstract_app::export_endpoints!(APP, App);
+abstract_app::export_endpoints!(CONTRIBUTORS, ContributorsApp);
 
 #[cfg(feature = "interface")]
-abstract_app::cw_orch_interface!(APP, App, AppInterface);
+abstract_app::cw_orch_interface!(CONTRIBUTORS, ContributorsApp, ContributorsInterface);

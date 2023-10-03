@@ -14,7 +14,7 @@
 //! The income of the instance can change over time as subscribers join and leave.
 //! If we want our infrastructure to change parameters based on the income of the unit, then we need a way of keeping track of that income.
 //! Because blockchains don't have a notion of monthly settlement we settled on a per-month payment schema.
-//! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-block income.
+//! We use a [`TimeWeightedAverage`](crate::objects::time_weighted_average::TimeWeightedAverage) of the ongoing income to to determine a per-week income.
 //! We average the income over a monthly basis.
 //!
 //! ## Emissions
@@ -42,14 +42,14 @@ pub type InstantiateMsg = app::InstantiateMsg<SubscriptionInstantiateMsg>;
 /// Top-level Abstract App query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
 pub type QueryMsg = app::QueryMsg<SubscriptionQueryMsg>;
 /// Top-level Abstract App migrate message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-pub type MigrateMsg = app::MigrateMsg<AppMigrateMsg>;
+pub type MigrateMsg = app::MigrateMsg<SubscriptionMigrateMsg>;
 
 impl app::AppExecuteMsg for SubscriptionExecuteMsg {}
 impl app::AppQueryMsg for SubscriptionQueryMsg {}
 
 /// Subscription migration message
 #[cosmwasm_schema::cw_serde]
-pub struct AppMigrateMsg {}
+pub struct SubscriptionMigrateMsg {}
 
 /// Subscription instantiation message
 #[cosmwasm_schema::cw_serde]
@@ -58,10 +58,10 @@ pub struct SubscriptionInstantiateMsg {
     pub payment_asset: AssetInfoUnchecked,
     /// Only addr that can register Abstract Account
     pub factory_addr: String,
-    /// Cost of the subscription on a per-block basis.
-    pub subscription_cost_per_block: Decimal,
-    /// Subscription emissions per block
-    pub subscription_per_block_emissions: UncheckedEmissionType,
+    /// Cost of the subscription on a per-day basis.
+    pub subscription_cost_per_week: Decimal,
+    /// Subscription emissions per day
+    pub subscription_per_week_emissions: UncheckedEmissionType,
     /// How often update income average
     pub income_averaging_period: Uint64,
 }
@@ -96,11 +96,11 @@ pub enum SubscriptionExecuteMsg {
         payment_asset: Option<AssetInfoUnchecked>,
         /// New asset for payment
         factory_address: Option<String>,
-        /// new subscription_cost_per_block
-        subscription_cost_per_block: Option<Decimal>,
+        /// new subscription_cost_per_week
+        subscription_cost_per_week: Option<Decimal>,
         /// Enable contributors
         contributors_enabled: Option<bool>,
-        // TODO?: subscription_per_block_emissions
+        // TODO?: subscription_per_week_emissions
     },
     /// Refresh TWA value
     RefreshTWA {},

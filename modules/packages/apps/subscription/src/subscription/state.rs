@@ -2,7 +2,7 @@ use abstract_core::{
     objects::{time_weighted_average::TimeWeightedAverage, AccountId},
     AbstractResult,
 };
-use cosmwasm_std::{Addr, Api, Decimal};
+use cosmwasm_std::{Addr, Api, Decimal, Timestamp};
 use cw_asset::{AssetInfo, AssetInfoUnchecked};
 use cw_storage_plus::{Item, Map};
 
@@ -12,12 +12,12 @@ use cw_storage_plus::{Item, Map};
 #[cosmwasm_schema::cw_serde]
 pub enum UncheckedEmissionType {
     None,
-    /// A fixed number of tokens are distributed to users on a per-block basis.
-    /// emission = block_shared / total_subscribers
-    BlockShared(Decimal, AssetInfoUnchecked),
-    /// Each user receives a fixed number of tokens on a per-block basis.
-    /// emission = block_per_user
-    BlockPerUser(Decimal, AssetInfoUnchecked),
+    /// A fixed number of tokens are distributed to users on a per-week basis.
+    /// emission = week_shared / total_subscribers
+    WeekShared(Decimal, AssetInfoUnchecked),
+    /// Each user receives a fixed number of tokens on a per-week basis.
+    /// emission = week_per_user
+    WeekPerUser(Decimal, AssetInfoUnchecked),
     /// Requires contribution functionality to be active
     /// Emissions will be based on protocol income and user/contributor split.
     /// See [`ContributionConfig`]
@@ -28,11 +28,11 @@ impl UncheckedEmissionType {
     pub fn check(self, api: &dyn Api) -> AbstractResult<EmissionType> {
         match self {
             UncheckedEmissionType::None => Ok(EmissionType::None),
-            UncheckedEmissionType::BlockShared(d, a) => {
-                Ok(EmissionType::BlockShared(d, a.check(api, None)?))
+            UncheckedEmissionType::WeekShared(d, a) => {
+                Ok(EmissionType::WeekShared(d, a.check(api, None)?))
             }
-            UncheckedEmissionType::BlockPerUser(d, a) => {
-                Ok(EmissionType::BlockPerUser(d, a.check(api, None)?))
+            UncheckedEmissionType::WeekPerUser(d, a) => {
+                Ok(EmissionType::WeekPerUser(d, a.check(api, None)?))
             }
             UncheckedEmissionType::IncomeBased(a) => {
                 Ok(EmissionType::IncomeBased(a.check(api, None)?))
@@ -45,10 +45,10 @@ impl UncheckedEmissionType {
 #[cosmwasm_schema::cw_serde]
 pub enum EmissionType {
     None,
-    /// emission = block_shared / total_subs
-    BlockShared(Decimal, AssetInfo),
-    /// emission = block_per_user
-    BlockPerUser(Decimal, AssetInfo),
+    /// emission = week_shared / total_subs
+    WeekShared(Decimal, AssetInfo),
+    /// emission = week_per_user
+    WeekPerUser(Decimal, AssetInfo),
     /// Requires contribution functionality to be active
     IncomeBased(AssetInfo),
 }
@@ -60,10 +60,10 @@ pub struct SubscriptionConfig {
     pub factory_address: Addr,
     /// Asset that's accepted as payment
     pub payment_asset: AssetInfo,
-    /// Cost of the subscription on a per-block basis.
-    pub subscription_cost_per_block: Decimal,
-    /// Subscription emissions per block
-    pub subscription_per_block_emissions: EmissionType,
+    /// Cost of the subscription on a per-week basis.
+    pub subscription_cost_per_week: Decimal,
+    /// Subscription emissions per week
+    pub subscription_per_week_emissions: EmissionType,
     /// If contributors contract enabled
     pub contributors_enabled: bool,
 }
@@ -81,9 +81,9 @@ pub struct SubscriptionState {
 #[cosmwasm_schema::cw_serde]
 pub struct Subscriber {
     /// When the subscription ends
-    pub expiration_block: u64,
+    pub expiration_timestamp: Timestamp,
     /// last time emissions were claimed
-    pub last_emission_claim_block: u64,
+    pub last_emission_claim_timestamp: Timestamp,
     /// Address of the OS manager
     pub manager_addr: Addr,
 }

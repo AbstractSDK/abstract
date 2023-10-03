@@ -1,6 +1,6 @@
 use abstract_core::{app, objects::AccountId};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint128, Uint64};
+use cosmwasm_std::{Decimal, Timestamp, Uint128};
 use cw_asset::AssetInfoUnchecked;
 
 use super::state::{Compensation, ContributionState, ContributorsConfig};
@@ -63,12 +63,12 @@ pub enum AppExecuteMsg {
     UpdateContributor {
         /// Abstract account id of contributor
         os_id: AccountId,
-        /// Base amount payment per block
-        base_per_block: Option<Decimal>,
+        /// Base amount payment per week
+        base_per_week: Option<Decimal>,
         /// Weight of the contributor
         weight: Option<u32>,
-        /// Block id when "contract" with this contributor expires
-        expiration_block: Option<Uint64>,
+        /// Timestamp when "contract" with this contributor expires
+        expiration_timestamp: Option<Timestamp>,
     },
     /// Remove the contributor
     RemoveContributor {

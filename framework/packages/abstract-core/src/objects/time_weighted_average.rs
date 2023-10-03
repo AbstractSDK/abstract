@@ -131,6 +131,7 @@ pub struct TimeWeightedAverageData {
     pub cumulative_value: u128,
 
     // Data to get average price
+    // TODO: @CyberHoward Timestamp here instead?
     pub last_averaging_block_time: u64,
     pub last_averaging_block_height: u64,
     pub last_averaging_cumulative_value: u128,

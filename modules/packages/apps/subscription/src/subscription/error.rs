@@ -69,5 +69,5 @@ pub enum SubscriptionError {
     SubscriberEmissionsNotEnabled,
 
     #[error("Contribution function must be enabled to use this feature")]
-    ContributionNotEnabled,
+    ContributionNotEnabled {},
 }

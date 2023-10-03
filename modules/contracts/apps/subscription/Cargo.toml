@@ -51,3 +51,7 @@ cw20 = { workspace = true, features = ["interface"] }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
+cw-utils = { workspace = true }
+
+abstract-subscription = { path = ".", features = ["interface"] }
+abstract-subscription-contributors = { path = "../subscription-contributors", features = ["interface"] }

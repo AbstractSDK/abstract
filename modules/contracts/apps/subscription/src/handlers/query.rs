@@ -1,8 +1,9 @@
+use abstract_subscription_interface::DURATION_IN_WEEKS;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, Uint128};
 use cw_asset::Asset;
 
 use crate::{
-    contract::{SubscriptionApp, SubscriptionResult, BLOCKS_PER_MONTH},
+    contract::{SubscriptionApp, SubscriptionResult},
     msg::{
         ConfigResponse, StateResponse, SubscriberStateResponse, SubscriptionFeeResponse,
         SubscriptionQueryMsg,
@@ -26,7 +27,7 @@ pub fn query_handler(
         }
         SubscriptionQueryMsg::Fee {} => {
             let config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
-            let minimal_cost = Uint128::from(BLOCKS_PER_MONTH) * config.subscription_cost_per_block;
+            let minimal_cost = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
             to_binary(&SubscriptionFeeResponse {
                 fee: Asset {
                     info: config.payment_asset,

@@ -15,7 +15,7 @@
 //! ```
 
 use abstract_interface::AppDeployer;
-use abstract_subscription_contributors::{contract::APP_VERSION, AppInterface};
+use abstract_subscription_contributors::{contract::APP_VERSION, ContributorsInterface};
 use abstract_subscription_interface::CONTRIBUTORS_ID;
 use clap::Parser;
 use cw_orch::{
@@ -36,7 +36,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .build()?;
 
-        let app = AppInterface::new(CONTRIBUTORS_ID, chain);
+        let app = ContributorsInterface::new(CONTRIBUTORS_ID, chain);
         app.deploy(version)?;
 
         // Create an account on our front-end to install the module!

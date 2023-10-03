@@ -1,5 +1,5 @@
 use crate::{
-    contract::{App, AppResult},
+    contract::{ContributorsApp, AppResult},
     handlers::execute::{claim_compensation, subscription_module_addr},
 };
 
@@ -10,7 +10,7 @@ use abstract_subscription_interface::contributors::state::{
 use abstract_subscription_interface::subscription::state as subscr_state;
 use cosmwasm_std::{Decimal, DepsMut, Env, Reply, StdError, StdResult, Storage};
 
-pub fn refresh_reply(deps: DepsMut, env: Env, app: App, _reply: Reply) -> AppResult {
+pub fn refresh_reply(deps: DepsMut, env: Env, app: ContributorsApp, _reply: Reply) -> AppResult {
     let config = CONTRIBUTION_CONFIG.load(deps.storage)?;
     let mut state = CONTRIBUTION_STATE.load(deps.storage)?;
     let os_id = COMPENSATION_CLAIMER.load(deps.storage)?;
