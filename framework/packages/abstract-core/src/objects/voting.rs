@@ -1,23 +1,32 @@
 use crate::AbstractResult;
-use cosmwasm_std::{ensure, Addr, Decimal, Env, StdError, StdResult, Storage};
+use cosmwasm_std::{ensure, Addr, BlockInfo, Decimal, Env, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::{Bound, Item, Map};
-use cw_utils::Duration;
+use cw_utils::{Duration, Expiration};
+
+// TODO: custom error type
 
 pub const DEFAULT_LIMIT: u64 = 25;
 pub type VoteId = u64;
 
 /// Simple voting helper
 pub struct SimpleVoting<'a> {
-    vote_id: Item<'a, VoteId>,
+    next_vote_id: Item<'a, VoteId>,
     votes: Map<'a, (VoteId, &'a Addr), Option<Vote>>,
+    vote_info: Map<'a, VoteId, VoteInfo>,
     vote_config: Item<'a, VoteConfig>,
 }
 
 impl<'a> SimpleVoting<'a> {
-    pub const fn new(id_key: &'a str, vote_config_key: &'a str, votes_key: &'a str) -> Self {
+    pub const fn new(
+        votes_key: &'a str,
+        id_key: &'a str,
+        vote_info_key: &'a str,
+        vote_config_key: &'a str,
+    ) -> Self {
         Self {
-            vote_id: Item::new(id_key),
+            next_vote_id: Item::new(id_key),
             votes: Map::new(votes_key),
+            vote_info: Map::new(vote_info_key),
             vote_config: Item::new(vote_config_key),
         }
     }
@@ -27,7 +36,7 @@ impl<'a> SimpleVoting<'a> {
         store: &mut dyn Storage,
         vote_config: &VoteConfig,
     ) -> AbstractResult<()> {
-        self.vote_id.save(store, &VoteId::default())?;
+        self.next_vote_id.save(store, &VoteId::default())?;
         self.vote_config.save(store, vote_config)?;
         Ok(())
     }
@@ -38,13 +47,19 @@ impl<'a> SimpleVoting<'a> {
         initial_voters: &[Addr],
     ) -> AbstractResult<VoteId> {
         let vote_id = self
-            .vote_id
-            .update(store, |id| AbstractResult::Ok(id + 1))?
-            // to start from zero
-            - 1;
+            .next_vote_id
+            .update(store, |id| AbstractResult::Ok(id + 1))?;
 
+        self.vote_info.save(
+            store,
+            vote_id,
+            &VoteInfo {
+                total_voters: initial_voters.len() as u32,
+                status: VoteStatus::Active {},
+            },
+        )?;
         for voter in initial_voters {
-            self.votes.save(store, (vote_id, voter), &None);
+            self.votes.save(store, (vote_id, voter), &None)?;
         }
         Ok(vote_id)
     }
@@ -52,40 +67,103 @@ impl<'a> SimpleVoting<'a> {
     pub fn cast_vote(
         &self,
         store: &mut dyn Storage,
+        block_info: &BlockInfo,
         vote_id: VoteId,
         voter: &Addr,
         vote: Vote,
-        new_voter: bool,
-    ) -> AbstractResult<()> {
-        match new_voter {
-            true => {
-                // Need to check it's existing vote id
-                let current_vote_id = self.vote_id.load(store)?;
-                ensure!(
-                    current_vote_id <= vote_id,
-                    crate::AbstractError::Std(StdError::generic_err(
-                        "There are no vote by this id"
-                    ))
-                );
-                self.votes.save(store, (vote_id, voter), &Some(vote))?;
+        // new_voter: bool,
+    ) -> AbstractResult<VoteInfo> {
+        // Need to check it's existing vote
+        let mut vote_info =
+            self.vote_info
+                .may_load(store, vote_id)?
+                .ok_or(crate::AbstractError::Std(StdError::generic_err(
+                    "There are no vote by this id",
+                )))?;
+        match &vote_info.status {
+            // If veto configured need to update vote info
+            VoteStatus::Active {} => {
+                let vote_config = self.vote_config.load(store)?;
+                if let Some(duration) = vote_config.veto_duration {
+                    vote_info.status = VoteStatus::VetoPeriod(duration.after(block_info))
+                }
+                self.vote_info.save(store, vote_id, &vote_info)?;
             }
-            false => {
-                self.votes.update(
-                    store,
-                    (vote_id, voter),
-                    |previous_vote| match previous_vote {
-                        // We allow re-voting
-                        Some(_v) => Ok(Some(vote)),
-                        None => Err(StdError::generic_err("This user is not allowed to vote")),
-                    },
-                )?;
+            VoteStatus::VetoPeriod(_) => {}
+            VoteStatus::Finished(_) => {
+                return Err(crate::AbstractError::Std(StdError::generic_err(
+                    "This vote is over",
+                )));
             }
         }
-        Ok(())
+        // match new_voter {
+        //     true => {
+        //         if !self.votes.has(store, (vote_id, voter)) {
+        //             return Err(crate::AbstractError::Std(StdError::generic_err(
+        //                 "New voter is already registered",
+        //             )));
+        //         }
+        //         self.votes.save(store, (vote_id, voter), &Some(vote))?;
+        //         // update vote_info
+        //         vote_info.total_voters += 1;
+        //         self.vote_info.save(store, vote_id, &vote_info)?;
+        //     }
+        //     false => {
+        self.votes.update(
+            store,
+            (vote_id, voter),
+            |previous_vote| match previous_vote {
+                // We allow re-voting
+                Some(_v) => Ok(Some(vote)),
+                None => Err(StdError::generic_err("This user is not allowed to vote")),
+            },
+        )?;
+        // }
+        // }
+        Ok(vote_info)
     }
 
-    pub fn count_votes(&self, store: &mut dyn Storage, vote_id: VoteId) -> AbstractResult<()> {
-        Ok(())
+    pub fn count_votes(
+        &self,
+        store: &mut dyn Storage,
+        vote_id: VoteId,
+    ) -> AbstractResult<VoteInfo> {        
+        let mut vote_info =
+            self.vote_info
+                .may_load(store, vote_id)?
+                .ok_or(crate::AbstractError::Std(StdError::generic_err(
+                    "There are no vote by this id",
+                )))?;
+        if let VoteStatus::Finished(_) = &vote_info.status {
+            return Err(crate::AbstractError::Std(StdError::generic_err(
+                "This vote is over",
+            )));
+        }
+        let vote_config = self.vote_config.load(store)?;
+
+        // Calculate votes
+        let votes = self.votes_for_id(store, vote_id)?;
+        let positive_votes = votes.iter().fold(0u128, |acc, (_voter, vote)| {
+            if matches!(vote, Some(Vote { vote: true, .. })) {
+                acc + 1
+            } else {
+                acc
+            }
+        });
+        let threshold = match vote_config.threshold {
+            Threshold::Majority {} => Uint128::from(vote_info.total_voters / 2),
+            Threshold::Percentage(decimal) => decimal * Uint128::from(vote_info.total_voters),
+        };
+        
+        // Update vote status
+        vote_info.status = if Uint128::new(positive_votes) > threshold {
+            VoteStatus::Finished(VoteResult::Passed {})
+        } else {
+            VoteStatus::Finished(VoteResult::Failed {})
+        };
+        self.vote_info.save(store, vote_id, &vote_info)?;
+
+        Ok(vote_info)
     }
 
     pub fn add_voters(
@@ -94,20 +172,31 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
         new_voters: &[Addr],
     ) -> AbstractResult<()> {
-        // Check it's existing vote id
-        let current_vote_id = self.vote_id.load(store)?;
-        ensure!(
-            current_vote_id <= vote_id,
-            crate::AbstractError::Std(StdError::generic_err("There are no vote by this id"))
-        );
+        // Need to check it's existing vote
+        let mut vote_info =
+            self.vote_info
+                .may_load(store, vote_id)?
+                .ok_or(crate::AbstractError::Std(StdError::generic_err(
+                    "There are no vote by this id",
+                )))?;
+        if let VoteStatus::Finished(_) = &vote_info.status {
+            return Err(crate::AbstractError::Std(StdError::generic_err(
+                "This vote is over",
+            )));
+        }
 
         for voter in new_voters {
             // Don't override already existing vote
             self.votes.update(store, (vote_id, voter), |v| match v {
                 Some(v) => AbstractResult::Ok(v),
-                None => AbstractResult::Ok(None),
+                None => {
+                    vote_info.total_voters += 1;
+                    AbstractResult::Ok(None)
+                }
             })?;
         }
+        self.vote_info.save(store, vote_id, &vote_info)?;
+
         Ok(())
     }
 
@@ -117,9 +206,22 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
         removed_voters: &[Addr],
     ) -> AbstractResult<()> {
+        let mut vote_info =
+            self.vote_info
+                .may_load(store, vote_id)?
+                .ok_or(crate::AbstractError::Std(StdError::generic_err(
+                    "There are no vote by this id",
+                )))?;
+
         for voter in removed_voters {
-            self.votes.remove(store, (vote_id, voter));
+            // Would be nice to get this fixed:
+            // https://github.com/CosmWasm/cosmwasm/issues/290
+            if self.votes.has(store, (vote_id, voter)) {
+                vote_info.total_voters -= 1;
+                self.votes.remove(store, (vote_id, voter));
+            }
         }
+        self.vote_info.save(store, vote_id, &vote_info)?;
         Ok(())
     }
 
@@ -172,9 +274,30 @@ pub struct Vote {
 }
 
 #[cosmwasm_schema::cw_serde]
+pub struct VoteInfo {
+    pub total_voters: u32,
+    pub status: VoteStatus,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum VoteStatus {
+    Active {},
+    VetoPeriod(Expiration),
+    Finished(VoteResult),
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum VoteResult {
+    Passed {},
+    Failed {},
+    Canceled {},
+}
+
+#[cosmwasm_schema::cw_serde]
 pub struct VoteConfig {
     pub threshold: Threshold,
-    pub veto_duration: Duration,
+    // Veto duration after the first vote
+    pub veto_duration: Option<Duration>,
 }
 
 #[cosmwasm_schema::cw_serde]
