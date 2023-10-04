@@ -57,16 +57,10 @@ fn create_challenge(
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-    let mut challenge = ChallengeEntry::new(challenge_req);
-
-    //check that the challenge status is ChallengeStatus::Uninitialized
-    if challenge.status != ChallengeStatus::Uninitialized {
-        return Err(AppError::WrongChallengeStatus {});
-    }
+    let challenge = ChallengeEntry::new(challenge_req);
 
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
-    challenge.status = ChallengeStatus::Active;
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     // Create the initial check_in entry
@@ -97,7 +91,7 @@ fn update_challenge(
     // will return an error if the challenge doesn't exist
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
         .may_load(deps.storage, challenge_id)?
-        .ok_or(AppError::NotFound {})?;
+        .ok_or(AppError::ChallengeNotFound {})?;
 
     if loaded_challenge.status != ChallengeStatus::Active {
         return Err(AppError::WrongChallengeStatus {});
@@ -450,26 +444,20 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
 
     let num_friends = friends.len() as u128;
     if num_friends == 0 {
-        return Err(AppError::Std(StdError::generic_err(
-            "No friends found for the challenge.",
-        )));
+        return Err(AppError::ZeroFriends {});
     }
 
-    let compute_amount_per_friend = || -> Result<u128, AppError> {
-        if num_friends == 0 {
-            return Err(AppError::Std(StdError::generic_err(format!(
-                "Cannot compute amount per friend. num_friends: {}",
-                num_friends
-            ))));
-        }
-        Ok(challenge.strike_amount)
+    let (amount_per_friend, remainder) = match challenge.strike_strategy {
+        crate::state::StrikeStrategy::Split(amount) => (
+            Uint128::new(amount.u128() / num_friends),
+            amount.u128() % num_friends,
+        ),
+        crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
     };
 
-    let reaminder = challenge.collateral.amount.u128() % num_friends;
-
     let asset_per_friend = OfferAsset {
-        name: challenge.collateral.name,
-        amount: Uint128::from(compute_amount_per_friend()?),
+        name: challenge.strike_asset,
+        amount: amount_per_friend,
     };
 
     let bank = app.bank(deps.as_ref());
@@ -492,5 +480,5 @@ fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppRe
             "charge_penalty",
         )
         .add_messages(transfer_msg)
-        .add_attribute("remainder was", reaminder.to_string()))
+        .add_attribute("remainder", remainder.to_string()))
 }

@@ -1,6 +1,5 @@
-use abstract_dex_adapter::msg::OfferAsset;
-use chrono::Duration;
-use cosmwasm_std::{Addr, Deps, Env, StdError, StdResult, Timestamp};
+use abstract_core::objects::AssetEntry;
+use cosmwasm_std::{Addr, Deps, Env, StdResult, Timestamp, Uint128};
 use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 use cw_utils::Expiration;
@@ -17,28 +16,36 @@ pub struct Config {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntry {
     pub name: String,
-    pub collateral: OfferAsset,
+    pub strike_asset: AssetEntry,
+    pub strike_strategy: StrikeStrategy,
     pub description: String,
     pub end: Expiration,
-    /// Amount charged when a user fails a challenge.
-    pub strike_amount: u128,
     pub status: ChallengeStatus,
-    pub admin_strikes: StrikeConfig,
+    pub admin_strikes: AdminStrikes,
+}
+
+/// Strategy for striking the admin
+#[cosmwasm_schema::cw_serde]
+pub enum StrikeStrategy {
+    /// Split amount between friends
+    Split(Uint128),
+    /// Amount for every friend
+    PerFriend(Uint128),
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct StrikeConfig {
-    /// The number of striked the admin has incurred.
+pub struct AdminStrikes {
+    /// The number of strikes the admin has incurred.
     pub num_strikes: u8,
     /// When num_strikes reached the limit, the challenge will be cancelled.
     pub limit: u8,
 }
 
-impl Default for StrikeConfig {
-    fn default() -> Self {
-        StrikeConfig {
+impl AdminStrikes {
+    fn new(limit: Option<u8>) -> Self {
+        AdminStrikes {
             num_strikes: 0,
-            limit: 3,
+            limit: limit.unwrap_or(3),
         }
     }
 }
@@ -48,12 +55,12 @@ impl ChallengeEntry {
     pub fn new(request: ChallengeRequest) -> Self {
         ChallengeEntry {
             name: request.name,
-            collateral: request.collateral,
+            strike_asset: request.strike_asset,
+            strike_strategy: request.strike_strategy,
             description: request.description,
             end: request.end,
-            strike_amount: 10,
             status: ChallengeStatus::default(),
-            admin_strikes: StrikeConfig::default(),
+            admin_strikes: AdminStrikes::new(request.strikes_limit),
         }
     }
 }
@@ -63,10 +70,8 @@ impl ChallengeEntry {
 #[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub enum ChallengeStatus {
-    /// The challenge has not been initialized yet. This is the default state.
-    #[default]
-    Uninitialized,
     /// The challenge is active and can be voted on.
+    #[default]
     Active,
     /// The challenge was cancelled and no collateral was paid out.
     Cancelled,

@@ -26,8 +26,8 @@ pub enum AppError {
     #[error("{0}")]
     DappError(#[from] AbstractAppError),
 
-    #[error("Resource not found")]
-    NotFound {},
+    #[error("Challenge not found")]
+    ChallengeNotFound {},
 
     #[error("Already checked in")]
     AlreadyCheckedIn {},
@@ -46,4 +46,7 @@ pub enum AppError {
 
     #[error("The check in status is not correct for this action")]
     WrongCheckInStatus {},
+
+    #[error("No friends found for the challenge")]
+    ZeroFriends {},
 }

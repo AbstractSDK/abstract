@@ -2,9 +2,12 @@
 //! Message types for the challenge app
 use crate::{
     contract::ChallengeApp,
-    state::{ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, UpdateFriendsOpKind, Vote},
+    state::{
+        ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, StrikeStrategy, UpdateFriendsOpKind,
+        Vote,
+    },
 };
-use abstract_dex_adapter::msg::OfferAsset;
+use abstract_core::objects::AssetEntry;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
 use cw_utils::Expiration;
@@ -118,14 +121,16 @@ pub struct ChallengeResponse {
 pub struct ChallengeRequest {
     /// Name of challenge
     pub name: String,
-    /// Asset punishment for failing a challenge
-    pub collateral: OfferAsset,
+    /// Asset for punishment for failing a challenge
+    pub strike_asset: AssetEntry,
+    /// How strike will get distributed between friends
+    pub strike_strategy: StrikeStrategy,
     /// Desciption of the challenge
     pub description: String,
     /// In what period challenge should end
     pub end: Expiration,
-    /// How much should be paid out when challenge fails.
-    pub strike_amount: u128,
+    /// Strike limit, defaults to 3
+    pub strikes_limit: Option<u8>,
 }
 
 /// Response for check_ins query

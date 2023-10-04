@@ -4,9 +4,9 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
+        AssetEntry,
     },
 };
-use abstract_dex_adapter::msg::OfferAsset;
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
@@ -15,8 +15,8 @@ use challenge_app::{
         CheckInsResponse, FriendsResponse, InstantiateMsg, VoteResponse,
     },
     state::{
-        ChallengeEntryUpdate, ChallengeStatus, CheckInStatus, Friend, UpdateFriendsOpKind, Vote,
-        DAY,
+        ChallengeEntryUpdate, ChallengeStatus, CheckInStatus, Friend, StrikeStrategy,
+        UpdateFriendsOpKind, Vote, DAY,
     },
     *,
 };
@@ -33,12 +33,13 @@ const CHALLENGE_ID: u64 = 1;
 lazy_static! {
     static ref CHALLENGE_REQ: ChallengeRequest = ChallengeRequest {
         name: "test".to_string(),
-        collateral: OfferAsset::new("denom", Uint128::new(100_000_000_000)),
+        strike_asset: AssetEntry::new("denom"),
+        strike_strategy: StrikeStrategy::Split(Uint128::new(100_000_000_000)),
         description: "Test Challenge".to_string(),
         end: cw_utils::Expiration::AtTime(Timestamp::from_nanos(
             1571975019879305533 + 100000000000
         )),
-        strike_amount: 100,
+        strikes_limit: None,
     };
     static ref ALICE_ADDRESS: String = "alice0x".to_string();
     static ref BOB_ADDRESS: String = "bob0x".to_string();
@@ -210,23 +211,20 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
 
     let challenge_query = QueryMsg::from(ChallengeQueryMsg::Challenge { challenge_id: 1 });
 
-    let created = apps
+    let created_challenge = apps
         .challenge_app
-        .query::<ChallengeResponse>(&challenge_query)?;
+        .query::<ChallengeResponse>(&challenge_query)?
+        .challenge
+        .unwrap();
 
-    assert_eq!(created.challenge.as_ref().unwrap().name, "test".to_string());
+    assert_eq!(created_challenge.name, "test".to_string());
+    assert_eq!(created_challenge.strike_asset, challenge_req.strike_asset);
     assert_eq!(
-        created.challenge.as_ref().unwrap().collateral,
-        challenge_req.collateral
+        created_challenge.strike_strategy,
+        challenge_req.strike_strategy
     );
-    assert_eq!(
-        created.challenge.as_ref().unwrap().description,
-        challenge_req.description
-    );
-    assert_eq!(
-        created.challenge.as_ref().unwrap().status,
-        ChallengeStatus::Active
-    );
+    assert_eq!(created_challenge.description, challenge_req.description);
+    assert_eq!(created_challenge.status, ChallengeStatus::Active);
     Ok(())
 }
 
@@ -360,8 +358,8 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     let challenge = CHALLENGE_REQ.clone();
     assert_eq!(created.challenge.as_ref().unwrap().name, challenge.name);
     assert_eq!(
-        created.challenge.as_ref().unwrap().collateral,
-        challenge.collateral
+        created.challenge.as_ref().unwrap().strike_asset,
+        challenge.strike_asset
     );
     assert_eq!(
         created.challenge.as_ref().unwrap().description,
@@ -492,8 +490,8 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let challenge = CHALLENGE_REQ.clone();
     assert_eq!(response.challenge.as_ref().unwrap().name, challenge.name);
     assert_eq!(
-        response.challenge.as_ref().unwrap().collateral,
-        challenge.collateral
+        response.challenge.as_ref().unwrap().strike_asset,
+        challenge.strike_asset
     );
     assert_eq!(
         response.challenge.as_ref().unwrap().description,
