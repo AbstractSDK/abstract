@@ -43,7 +43,8 @@ impl AdminStrikes {
     fn new(limit: Option<u8>) -> Self {
         AdminStrikes {
             num_strikes: 0,
-            limit: limit.unwrap_or(3),
+            // One-time strike by default
+            limit: limit.unwrap_or(1),
         }
     }
 }
