@@ -12,11 +12,10 @@ use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
         ChallengeQueryMsg, ChallengeRequest, ChallengeResponse, ChallengesResponse,
-        CheckInsResponse, FriendsResponse, InstantiateMsg, VoteResponse,
+        FriendsResponse, InstantiateMsg, VoteResponse,
     },
     state::{
-        ChallengeEntryUpdate, ChallengeStatus, CheckInStatus, Friend, StrikeStrategy,
-        UpdateFriendsOpKind, Vote, DAY,
+        ChallengeEntryUpdate, ChallengeStatus, Friend, StrikeStrategy, UpdateFriendsOpKind, Vote,
     },
     *,
 };
@@ -72,41 +71,34 @@ lazy_static! {
     static ref ALICE_VOTE: Vote<String> = Vote {
         voter: ALICE_ADDRESS.clone(),
         approval: Some(true),
-        for_check_in: None,
     };
     static ref VOTES: Vec<Vote<String>> = vec![
         Vote {
             voter: ALICE_ADDRESS.clone(),
             approval: Some(true),
-            for_check_in: None,
         },
         Vote {
             voter: BOB_ADDRESS.clone(),
             approval: Some(true),
-            for_check_in: None,
         },
         Vote {
             voter: CHARLIE_ADDRESS.clone(),
             approval: Some(true),
-            for_check_in: None,
         },
     ];
     static ref ALICE_NO_VOTE: Vote<String> = Vote {
         voter: ALICE_ADDRESS.clone(),
         approval: Some(false),
-        for_check_in: None,
     };
     static ref ONE_NO_VOTE: Vec<Vote<String>> = vec![
         ALICE_NO_VOTE.clone(),
         Vote {
             voter: BOB_ADDRESS.clone(),
             approval: Some(true),
-            for_check_in: None,
         },
         Vote {
             voter: CHARLIE_ADDRESS.clone(),
             approval: Some(true),
-            for_check_in: None,
         },
     ];
 }
@@ -404,37 +396,17 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
 
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
-    apps.challenge_app.daily_check_in(CHALLENGE_ID, None)?;
     apps.challenge_app.update_friends_for_challenge(
         CHALLENGE_ID,
         vec![ALICE.clone(), BOB.clone()],
         UpdateFriendsOpKind::Add,
     )?;
-
-    let response = apps
-        .challenge_app
-        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
-            challenge_id: CHALLENGE_ID,
-        }))?;
-
-    assert_eq!(
-        response.0.last().unwrap().status,
-        CheckInStatus::CheckedInNotYetVoted
-    );
-
     apps.challenge_app
         .cast_vote(CHALLENGE_ID, ALICE_VOTE.clone())?;
-
-    let response = apps
-        .challenge_app
-        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
-            challenge_id: CHALLENGE_ID,
-        }))?;
 
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                last_check_in: response.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: CHALLENGE_ID,
             }))?;
@@ -455,16 +427,9 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
 
     run_challenge_vote_sequence(&mock, &apps, VOTES.clone())?;
 
-    let response = apps
-        .challenge_app
-        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
-            challenge_id: CHALLENGE_ID,
-        }))?;
-
     let vote =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                last_check_in: response.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: CHALLENGE_ID,
             }))?;
@@ -510,16 +475,10 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
 
     println!("Running challenge vote sequence");
     run_challenge_vote_sequence(&mock, &apps, ONE_NO_VOTE.clone())?;
-    let check_ins_res = apps
-        .challenge_app
-        .query::<CheckInsResponse>(&QueryMsg::from(ChallengeQueryMsg::CheckIns {
-            challenge_id: CHALLENGE_ID,
-        }))?;
 
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: CHALLENGE_ID,
             }))?;
@@ -528,7 +487,6 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: BOB_ADDRESS.clone(),
                 challenge_id: CHALLENGE_ID,
             }))?;
@@ -537,7 +495,6 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     let response =
         apps.challenge_app
             .query::<VoteResponse>(&QueryMsg::from(ChallengeQueryMsg::Vote {
-                last_check_in: check_ins_res.0.last().unwrap().last.nanos(),
                 voter_addr: CHARLIE_ADDRESS.clone(),
                 challenge_id: CHALLENGE_ID,
             }))?;
@@ -587,13 +544,13 @@ fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
 }
 
 fn run_challenge_vote_sequence(
-    mock: &Mock,
+    _mock: &Mock,
     apps: &DeployedApps,
     votes: Vec<Vote<String>>,
 ) -> anyhow::Result<()> {
     for _ in 0..3 {
-        mock.wait_seconds(DAY - 100)?; // this ensure we don't miss the check in
-        apps.challenge_app.daily_check_in(1, None)?;
+        // mock.wait_seconds(DAY - 100)?; // this ensure we don't miss the check in
+        // apps.challenge_app.daily_check_in(1, None)?;
     }
 
     for vote in votes.clone() {

@@ -3,8 +3,7 @@
 use crate::{
     contract::ChallengeApp,
     state::{
-        ChallengeEntry, ChallengeEntryUpdate, CheckIn, Friend, StrikeStrategy, UpdateFriendsOpKind,
-        Vote,
+        ChallengeEntry, ChallengeEntryUpdate, Friend, StrikeStrategy, UpdateFriendsOpKind, Vote,
     },
 };
 use abstract_core::objects::AssetEntry;
@@ -45,14 +44,6 @@ pub enum ChallengeExecuteMsg {
         /// Kind of operation: add or remove friends
         op_kind: UpdateFriendsOpKind,
     },
-    /// Daily check in by the challenge author
-    DailyCheckIn {
-        /// Id of the challenge to check in
-        challenge_id: u64,
-        /// metadata can be added for extra description of the check-in.
-        /// For example, if the check-in is a photo, the metadata can be a link to the photo.
-        metadata: Option<String>,
-    },
     /// Cast vote as a friend
     CastVote {
         /// Id of challenge to cast vote on
@@ -91,17 +82,9 @@ pub enum ChallengeQueryMsg {
         /// Id of requested challenge
         challenge_id: u64,
     },
-    /// List of check-ins by Id
-    #[returns(CheckInsResponse)]
-    CheckIns {
-        /// Id of requested challenge
-        challenge_id: u64,
-    },
     /// Get last vote of friend
     #[returns(VoteResponse)]
     Vote {
-        /// Block height of last check in
-        last_check_in: u64,
         /// Addr of the friend
         voter_addr: String,
         /// Id of requested challenge
@@ -133,10 +116,6 @@ pub struct ChallengeRequest {
     pub strikes_limit: Option<u8>,
 }
 
-/// Response for check_ins query
-/// Returns a list of check ins
-#[cosmwasm_schema::cw_serde]
-pub struct CheckInsResponse(pub Vec<CheckIn>);
 /// Response for vote query
 #[cosmwasm_schema::cw_serde]
 pub struct VoteResponse {
