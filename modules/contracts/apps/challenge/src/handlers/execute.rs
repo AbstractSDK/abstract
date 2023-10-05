@@ -1,10 +1,9 @@
 use crate::error::AppError;
-use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError, Uint128};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdError};
 
 use crate::contract::{AppResult, ChallengeApp};
-use abstract_sdk::prelude::*;
+// use abstract_sdk::prelude::*;
 
 use crate::msg::{ChallengeExecuteMsg, ChallengeRequest};
 use crate::state::{
@@ -80,10 +79,7 @@ fn update_challenge(
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
         .may_load(deps.storage, challenge_id)?
         .ok_or(AppError::ChallengeNotFound {})?;
-
-    if loaded_challenge.status != ChallengeStatus::Active {
-        return Err(AppError::WrongChallengeStatus {});
-    }
+    loaded_challenge.status.assert_active()?;
 
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
@@ -110,11 +106,9 @@ fn cancel_challenge(
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    if challenge.status != ChallengeStatus::Active {
-        return Err(AppError::WrongChallengeStatus {});
-    }
+    challenge.status.assert_active()?;
 
-    challenge.status = ChallengeStatus::Cancelled;
+    challenge.status = ChallengeStatus::Cancelled {};
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app.tag_response(
@@ -133,15 +127,13 @@ fn update_friends_for_challenge(
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    if challenge.status != ChallengeStatus::Active {
-        return Err(AppError::WrongChallengeStatus {});
-    }
+    challenge.status.assert_active()?;
 
     match op_kind {
-        UpdateFriendsOpKind::Add => {
+        UpdateFriendsOpKind::Add {} => {
             add_friends_for_challenge(deps, info, app, challenge_id, friends)
         }
-        UpdateFriendsOpKind::Remove => {
+        UpdateFriendsOpKind::Remove {} => {
             remove_friends_from_challenge(deps, info, app, challenge_id, friends)
         }
     }
@@ -254,47 +246,47 @@ fn cast_vote(
     ))
 }
 
-fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppResult {
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
+// fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppResult {
+//     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+//     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
 
-    let num_friends = friends.len() as u128;
-    if num_friends == 0 {
-        return Err(AppError::ZeroFriends {});
-    }
+//     let num_friends = friends.len() as u128;
+//     if num_friends == 0 {
+//         return Err(AppError::ZeroFriends {});
+//     }
 
-    let (amount_per_friend, remainder) = match challenge.strike_strategy {
-        crate::state::StrikeStrategy::Split(amount) => (
-            Uint128::new(amount.u128() / num_friends),
-            amount.u128() % num_friends,
-        ),
-        crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
-    };
+//     let (amount_per_friend, remainder) = match challenge.strike_strategy {
+//         crate::state::StrikeStrategy::Split(amount) => (
+//             Uint128::new(amount.u128() / num_friends),
+//             amount.u128() % num_friends,
+//         ),
+//         crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
+//     };
 
-    let asset_per_friend = OfferAsset {
-        name: challenge.strike_asset,
-        amount: amount_per_friend,
-    };
+//     let asset_per_friend = OfferAsset {
+//         name: challenge.strike_asset,
+//         amount: amount_per_friend,
+//     };
 
-    let bank = app.bank(deps.as_ref());
-    let executor = app.executor(deps.as_ref());
+//     let bank = app.bank(deps.as_ref());
+//     let executor = app.executor(deps.as_ref());
 
-    // Create a transfer action for each friend
-    let transfer_actions: Result<Vec<_>, _> = friends
-        .into_iter()
-        .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
-        .collect();
+//     // Create a transfer action for each friend
+//     let transfer_actions: Result<Vec<_>, _> = friends
+//         .into_iter()
+//         .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
+//         .collect();
 
-    let transfer_msg = executor.execute(transfer_actions?);
+//     let transfer_msg = executor.execute(transfer_actions?);
 
-    Ok(app
-        .tag_response(
-            Response::new().add_attribute(
-                "message",
-                "All votes were negative. ChallengeStatus has been set to OverAndCompleted.",
-            ),
-            "charge_penalty",
-        )
-        .add_messages(transfer_msg)
-        .add_attribute("remainder", remainder.to_string()))
-}
+//     Ok(app
+//         .tag_response(
+//             Response::new().add_attribute(
+//                 "message",
+//                 "All votes were negative. ChallengeStatus has been set to OverAndCompleted.",
+//             ),
+//             "charge_penalty",
+//         )
+//         .add_messages(transfer_msg)
+//         .add_attribute("remainder", remainder.to_string()))
+// }

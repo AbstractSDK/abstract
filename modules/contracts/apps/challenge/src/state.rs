@@ -4,7 +4,7 @@ use cw_address_like::AddressLike;
 use cw_storage_plus::{Item, Map};
 use cw_utils::Expiration;
 
-use crate::msg::ChallengeRequest;
+use crate::{contract::AppResult, error::AppError, msg::ChallengeRequest};
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -58,7 +58,7 @@ impl ChallengeEntry {
             strike_strategy: request.strike_strategy,
             description: request.description,
             end: request.end,
-            status: ChallengeStatus::default(),
+            status: ChallengeStatus::Active {},
             admin_strikes: AdminStrikes::new(request.strikes_limit),
         }
     }
@@ -66,16 +66,23 @@ impl ChallengeEntry {
 
 /// The status of a challenge. This can be used to trigger an automated Croncat job
 /// based on the value of the status
-#[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub enum ChallengeStatus {
     /// The challenge is active and can be voted on.
-    #[default]
-    Active,
+    Active {},
     /// The challenge was cancelled and no collateral was paid out.
-    Cancelled,
+    Cancelled {},
     /// The challenge has pased the end time.
-    Over,
+    Over {},
+}
+
+impl ChallengeStatus {
+    pub fn assert_active(&self) -> AppResult<()> {
+        match self {
+            ChallengeStatus::Active {} => Ok(()),
+            _ => Err(AppError::ChallengeNotActive {}),
+        }
+    }
 }
 
 /// Only this struct and these fields are allowed to be updated.
@@ -88,8 +95,8 @@ pub struct ChallengeEntryUpdate {
 
 #[cosmwasm_schema::cw_serde]
 pub enum UpdateFriendsOpKind {
-    Add,
-    Remove,
+    Add {},
+    Remove {},
 }
 
 #[cosmwasm_schema::cw_serde]

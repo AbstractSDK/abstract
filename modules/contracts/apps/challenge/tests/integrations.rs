@@ -216,7 +216,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         challenge_req.strike_strategy
     );
     assert_eq!(created_challenge.description, challenge_req.description);
-    assert_eq!(created_challenge.status, ChallengeStatus::Active);
+    assert_eq!(created_challenge.status, ChallengeStatus::Active {});
     Ok(())
 }
 
@@ -260,7 +260,7 @@ fn test_should_cancel_challenge() -> anyhow::Result<()> {
 
     let res = apps.challenge_app.query::<ChallengeResponse>(&query)?;
 
-    assert_eq!(res.challenge.unwrap().status, ChallengeStatus::Cancelled);
+    assert_eq!(res.challenge.unwrap().status, ChallengeStatus::Cancelled {});
     Ok(())
 }
 
@@ -277,7 +277,7 @@ fn test_should_add_single_friend_for_challenge() -> anyhow::Result<()> {
     apps.challenge_app.update_friends_for_challenge(
         1,
         vec![ALICE.clone()],
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
 
     let response = apps
@@ -306,7 +306,7 @@ fn test_should_add_friends_for_challenge() -> anyhow::Result<()> {
     apps.challenge_app.update_friends_for_challenge(
         1,
         FRIENDS.clone(),
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
 
     let response = apps
@@ -359,14 +359,14 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     );
     assert_eq!(
         created.challenge.as_ref().unwrap().status,
-        ChallengeStatus::Active
+        ChallengeStatus::Active {}
     );
 
     // add friend
     apps.challenge_app.update_friends_for_challenge(
         1,
         vec![ALICE.clone()],
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
 
     let friend_query = QueryMsg::from(ChallengeQueryMsg::Friends { challenge_id: 1 });
@@ -382,7 +382,7 @@ fn test_should_remove_friend_from_challenge() -> anyhow::Result<()> {
     apps.challenge_app.update_friends_for_challenge(
         1,
         vec![ALICE.clone()],
-        UpdateFriendsOpKind::Remove,
+        UpdateFriendsOpKind::Remove {},
     )?;
 
     let response = apps.challenge_app.query::<FriendsResponse>(&friend_query)?;
@@ -399,7 +399,7 @@ fn test_should_cast_vote() -> anyhow::Result<()> {
     apps.challenge_app.update_friends_for_challenge(
         CHALLENGE_ID,
         vec![ALICE.clone(), BOB.clone()],
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
     apps.challenge_app
         .cast_vote(CHALLENGE_ID, ALICE_VOTE.clone())?;
@@ -422,7 +422,7 @@ fn test_should_not_charge_penalty_for_truthy_votes() -> anyhow::Result<()> {
     apps.challenge_app.update_friends_for_challenge(
         CHALLENGE_ID,
         FRIENDS.clone(),
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
 
     run_challenge_vote_sequence(&mock, &apps, VOTES.clone())?;
@@ -464,13 +464,13 @@ fn test_should_charge_penalty_for_false_votes() -> anyhow::Result<()> {
     );
     assert_eq!(
         response.challenge.as_ref().unwrap().status,
-        ChallengeStatus::Active
+        ChallengeStatus::Active {}
     );
 
     apps.challenge_app.update_friends_for_challenge(
         CHALLENGE_ID,
         FRIENDS.clone(),
-        UpdateFriendsOpKind::Add,
+        UpdateFriendsOpKind::Add {},
     )?;
 
     println!("Running challenge vote sequence");
