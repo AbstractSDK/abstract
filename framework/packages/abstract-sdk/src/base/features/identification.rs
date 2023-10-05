@@ -2,7 +2,7 @@ use abstract_core::{
     objects::common_namespace::ADMIN_NAMESPACE, proxy::state::ACCOUNT_ID,
     version_control::AccountBase,
 };
-use core::objects::AccountId;
+use abstract_core::objects::AccountId;
 use cosmwasm_std::{Addr, Deps};
 use cw_storage_plus::Item;
 

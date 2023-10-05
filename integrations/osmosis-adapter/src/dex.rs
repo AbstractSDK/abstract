@@ -3,9 +3,7 @@ use abstract_dex_standard::Identify;
 use cosmwasm_std::Addr;
 
 #[derive(Default)]
-pub struct Osmosis {
-    pub local_proxy_addr: Option<Addr>,
-}
+pub struct Osmosis {}
 
 impl Identify for Osmosis {
     fn is_available_on(&self, chain_name: &str) -> bool {
@@ -39,6 +37,7 @@ impl DexCommand for Osmosis {
     fn swap(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
@@ -61,7 +60,7 @@ impl DexCommand for Osmosis {
         let token_in = Coin::try_from(offer_asset)?;
 
         let swap_msg: CosmosMsg = MsgSwapExactAmountIn {
-            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            sender: proxy_addr.to_string(),
             routes,
             token_in: Some(token_in.into()),
             token_out_min_amount: Uint128::one().to_string(),
@@ -74,6 +73,7 @@ impl DexCommand for Osmosis {
     fn custom_swap(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         _offer_assets: Vec<Asset>,
         _ask_assets: Vec<Asset>,
         _max_spread: Option<Decimal>,
@@ -87,6 +87,7 @@ impl DexCommand for Osmosis {
     fn provide_liquidity(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
@@ -140,7 +141,7 @@ impl DexCommand for Osmosis {
             compute_osmo_share_out_amount(&pool_assets, &deposits, total_share)?.to_string();
 
         let osmo_msg: CosmosMsg = MsgJoinPool {
-            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            sender: proxy_addr.to_string(),
             pool_id,
             share_out_amount,
             token_in_maxs,
@@ -153,6 +154,7 @@ impl DexCommand for Osmosis {
     fn provide_liquidity_symmetric(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         _pool_id: PoolAddress,
         _offer_asset: Asset,
         _paired_assets: Vec<AssetInfo>,
@@ -163,12 +165,13 @@ impl DexCommand for Osmosis {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<cosmwasm_std::CosmosMsg>, DexError> {
         let pool_id = pool_id.expect_id()?;
         let osmo_msg: CosmosMsg = MsgExitPool {
-            sender: self.local_proxy_addr.as_ref().unwrap().to_string(),
+            sender: proxy_addr.to_string(),
             pool_id,
             share_in_amount: lp_token.amount.to_string(),
             token_out_mins: vec![], // This is fine! see: https://github.com/osmosis-labs/osmosis/blob/c51a248d67cd58e47587d6a955c3d765734eddd7/x/gamm/keeper/pool_service.go#L372

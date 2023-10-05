@@ -9,7 +9,7 @@ use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::cw_helpers::Chargeable;
 use abstract_sdk::features::AbstractNameService;
 use abstract_sdk::Execution;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, StdError, Addr};
 
 use cw_asset::Asset;
 
@@ -31,7 +31,7 @@ pub trait DexAdapter: AbstractNameService + Execution {
         &self,
         deps: Deps,
         action: DexAction,
-        exchange: &dyn DexCommand,
+        exchange: &dyn DexCommand
     ) -> Result<(Vec<CosmosMsg>, ReplyId), DexError> {
         Ok(match action {
             DexAction::ProvideLiquidity { assets, max_spread } => {
@@ -109,9 +109,12 @@ pub trait DexAdapter: AbstractNameService + Execution {
         let mut offer_asset: Asset = Asset::new(offer_asset_info, offer_amount);
         // account for fee
         let fee = SWAP_FEE.load(deps.storage)?;
-        let fee_msg = offer_asset.charge_usage_fee(fee)?;
+        let fee_msg = offer_asset.charge_usage_fee(fee)?;   
+        let proxy_addr = self.proxy_address(deps)?;
+
         let mut swap_msgs = exchange.swap(
             deps,
+            &proxy_addr,
             pair_address,
             offer_asset,
             ask_asset_info,
@@ -134,7 +137,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
         max_spread: Option<Decimal>,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let ans = self.name_service(deps);
-        let assets = ans.query(&offer_assets)?;
+        let assets = ans.query(&offer_assets)?;   
+        let proxy_addr = self.proxy_address(deps)?;
+
 
         let mut pair_assets = offer_assets
             .into_iter()
@@ -147,7 +152,7 @@ pub trait DexAdapter: AbstractNameService + Execution {
             ans.host(),
             (pair_assets.swap_remove(0), pair_assets.swap_remove(0)),
         )?;
-        exchange.provide_liquidity(deps, pair_address, assets, max_spread)
+        exchange.provide_liquidity(deps, &proxy_addr, pair_address, assets, max_spread)
     }
 
     fn resolve_provide_liquidity_symmetric(
@@ -164,8 +169,10 @@ pub trait DexAdapter: AbstractNameService + Execution {
             ans.host(),
             (paired_assets.swap_remove(0), offer_asset.name.clone()),
         )?;
-        let offer_asset = ans.query(&offer_asset)?;
-        exchange.provide_liquidity_symmetric(deps, pair_address, offer_asset, paired_asset_infos)
+        let offer_asset = ans.query(&offer_asset)?;  
+        let proxy_addr = self.proxy_address(deps)?;
+
+        exchange.provide_liquidity_symmetric(deps, &proxy_addr, pair_address, offer_asset, paired_asset_infos)
     }
 
     /// @todo
@@ -192,8 +199,9 @@ pub trait DexAdapter: AbstractNameService + Execution {
             ))
             .into());
         }
+        let proxy_addr = self.proxy_address(deps)?;
 
         let PoolReference { pool_address, .. } = pool_ids.pop().unwrap();
-        exchange.withdraw_liquidity(deps, pool_address, lp_asset)
+        exchange.withdraw_liquidity(deps, &proxy_addr,pool_address, lp_asset)
     }
 }

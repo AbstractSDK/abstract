@@ -1,7 +1,7 @@
 use super::handler::Handler;
 use crate::{AbstractSdkError, AbstractSdkResult};
 use abstract_core::abstract_ica::StdAck;
-use core::objects::dependency::StaticDependency;
+use abstract_core::objects::dependency::StaticDependency;
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Storage};
 use cw2::{ContractVersion, CONTRACT};
 use cw_storage_plus::Item;

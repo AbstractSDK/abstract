@@ -3,7 +3,7 @@
 
 use crate::AbstractSdkResult;
 use abstract_core::objects::AnsEntryConvertor;
-use core::objects::{
+use abstract_core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
@@ -369,7 +369,7 @@ mod tests {
     mod pool_metadata {
         use super::*;
 
-        use core::objects::PoolType;
+        use abstract_core::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -426,7 +426,7 @@ mod tests {
     mod pools {
         use super::*;
         use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-        use core::objects::{PoolAddress, PoolType};
+        use abstract_core::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -474,7 +474,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use core::ans_host::state::CONTRACT_ADDRESSES;
+        use abstract_core::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -549,7 +549,7 @@ mod tests {
         use abstract_core::objects::chain_name::ChainName;
 
         use super::*;
-        use core::ans_host::state::CHANNELS;
+        use abstract_core::ans_host::state::CHANNELS;
         use std::str::FromStr;
 
         #[test]
@@ -586,7 +586,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use core::ans_host::state::REV_ASSET_ADDRESSES;
+        use abstract_core::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

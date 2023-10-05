@@ -110,7 +110,7 @@ mod tests {
     }
     mod adapter_request {
         use super::*;
-        use core::adapter::{self, AdapterRequestMsg};
+        use abstract_core::adapter::{self, AdapterRequestMsg};
 
         #[test]
         fn should_return_err_if_not_dependency() {

@@ -6,7 +6,7 @@ use crate::{
     AbstractSdkResult,
 };
 use abstract_core::manager::state::ACCOUNT_MODULES;
-use core::objects::module::ModuleId;
+use abstract_core::objects::module::ModuleId;
 use cosmwasm_std::{Addr, Deps, QueryRequest, WasmQuery};
 use cw2::{ContractVersion, CONTRACT};
 

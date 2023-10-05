@@ -5,7 +5,7 @@ use abstract_adapter_utils::identity::Identify;
 use abstract_core::objects::{DexAssetPairing, PoolAddress, PoolReference};
 use abstract_sdk::core::objects::AssetEntry;
 use abstract_sdk::feature_objects::AnsHost;
-use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128};
+use cosmwasm_std::{CosmosMsg, Decimal, Deps, Uint128, Addr};
 use cw_asset::{Asset, AssetInfo};
 
 pub type Return = Uint128;
@@ -39,6 +39,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn swap(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
@@ -50,6 +51,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn custom_swap(
         &self,
         _deps: Deps,
+        _proxy_addr: &Addr,
         _offer_assets: Vec<Asset>,
         _ask_assets: Vec<Asset>,
         _max_spread: Option<Decimal>,
@@ -62,6 +64,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn provide_liquidity(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
@@ -71,6 +74,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
@@ -80,6 +84,7 @@ pub trait DexCommand<E: Error = DexError>: Identify {
     fn withdraw_liquidity(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, E>;

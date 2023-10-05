@@ -27,7 +27,7 @@ pub fn wasm_raw_query<C>(
 #[cfg(test)]
 mod test {
     use super::*;
-    use core::{app, app::BaseQueryMsg};
+    use abstract_core::{app, app::BaseQueryMsg};
     use cosmwasm_std::Empty;
 
     #[test]

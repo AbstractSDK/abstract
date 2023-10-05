@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 use abstract_core::objects::AccountId;
-use core::{objects::AssetEntry, AbstractError};
+use abstract_core::{objects::AssetEntry, AbstractError};
 use cosmwasm_std::Addr;
 use cw_asset::AssetError;
 use std::fmt::{Display, Formatter};

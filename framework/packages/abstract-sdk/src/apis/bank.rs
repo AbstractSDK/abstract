@@ -4,7 +4,7 @@
 use crate::features::AccountIdentification;
 use crate::AccountAction;
 use crate::{ans_resolve::Resolve, features::AbstractNameService, AbstractSdkResult};
-use core::objects::{AnsAsset, AssetEntry};
+use abstract_core::objects::{AnsAsset, AssetEntry};
 use cosmwasm_std::to_binary;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, Deps, Env};
 use cw_asset::Asset;

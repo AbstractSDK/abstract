@@ -1,4 +1,5 @@
 use abstract_adapter_utils::Identify;
+use cosmwasm_std::Addr;
 
 pub const JUNOSWAP: &str = "junoswap";
 
@@ -35,6 +36,7 @@ impl DexCommand for JunoSwap {
     fn swap(
         &self,
         deps: Deps,
+        _proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
@@ -111,6 +113,7 @@ impl DexCommand for JunoSwap {
     fn provide_liquidity(
         &self,
         deps: Deps,
+        _proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
@@ -163,6 +166,7 @@ impl DexCommand for JunoSwap {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
+        _proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
@@ -227,6 +231,7 @@ impl DexCommand for JunoSwap {
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
+        _proxy_addr: &Addr,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {

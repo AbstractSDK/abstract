@@ -10,7 +10,7 @@ use crate::{
 };
 pub use abstract_core::objects::{ans_host::AnsHost, version_control::VersionControlContract};
 use abstract_core::version_control::AccountBase;
-use core::PROXY;
+use abstract_core::PROXY;
 use cosmwasm_std::{Addr, Deps};
 
 /// Store a proxy contract address.
