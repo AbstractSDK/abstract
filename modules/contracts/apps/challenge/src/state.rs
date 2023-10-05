@@ -1,10 +1,11 @@
-use abstract_core::objects::AssetEntry;
-use cosmwasm_std::{Addr, Deps, StdResult, Uint128};
-use cw_address_like::AddressLike;
+use abstract_core::objects::{
+    voting::{SimpleVoting, VoteId},
+    AssetEntry,
+};
+use cosmwasm_std::Uint128;
 use cw_storage_plus::{Item, Map};
-use cw_utils::Expiration;
 
-use crate::{contract::AppResult, error::AppError, msg::ChallengeRequest};
+use crate::msg::ChallengeRequest;
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -17,9 +18,8 @@ pub struct ChallengeEntry {
     pub strike_asset: AssetEntry,
     pub strike_strategy: StrikeStrategy,
     pub description: String,
-    pub end: Expiration,
-    pub status: ChallengeStatus,
     pub admin_strikes: AdminStrikes,
+    pub current_vote_id: VoteId,
 }
 
 /// Strategy for striking the admin
@@ -51,36 +51,14 @@ impl AdminStrikes {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(request: ChallengeRequest) -> Self {
+    pub fn new(request: ChallengeRequest, vote_id: VoteId) -> Self {
         ChallengeEntry {
             name: request.name,
             strike_asset: request.strike_asset,
             strike_strategy: request.strike_strategy,
             description: request.description,
-            end: request.end,
-            status: ChallengeStatus::Active {},
             admin_strikes: AdminStrikes::new(request.strikes_limit),
-        }
-    }
-}
-
-/// The status of a challenge. This can be used to trigger an automated Croncat job
-/// based on the value of the status
-#[cosmwasm_schema::cw_serde]
-pub enum ChallengeStatus {
-    /// The challenge is active and can be voted on.
-    Active {},
-    /// The challenge was cancelled and no collateral was paid out.
-    Cancelled {},
-    /// The challenge has pased the end time.
-    Over {},
-}
-
-impl ChallengeStatus {
-    pub fn assert_active(&self) -> AppResult<()> {
-        match self {
-            ChallengeStatus::Active {} => Ok(()),
-            _ => Err(AppError::ChallengeNotActive {}),
+            current_vote_id: vote_id,
         }
     }
 }
@@ -99,60 +77,8 @@ pub enum UpdateFriendsOpKind {
     Remove {},
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct Friend<T: AddressLike> {
-    pub address: T,
-    pub name: String,
-}
-
-impl Friend<String> {
-    /// A helper to convert from a string address to an Addr.
-    /// Additionally it validates the address.
-    pub fn check(self, deps: Deps) -> StdResult<Friend<Addr>> {
-        Ok(Friend {
-            address: deps.api.addr_validate(&self.address)?,
-            name: self.name,
-        })
-    }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct Vote<T: AddressLike> {
-    /// The address of the voter
-    pub voter: T,
-    /// The vote result
-    pub approval: Option<bool>,
-}
-
-impl Vote<String> {
-    /// A helper to convert from a string address to an Addr.
-    /// Additionally it validates the address.
-    pub fn check(self, deps: Deps) -> StdResult<Vote<Addr>> {
-        Ok(Vote {
-            voter: deps.api.addr_validate(&self.voter)?,
-            approval: self.approval,
-        })
-    }
-}
-
-impl Vote<Addr> {
-    /// If the vote approval field is None, we assume the voter approves,
-    /// and return a vote with the approval field set to Some(true).
-    pub fn optimistic(self) -> Vote<Addr> {
-        Vote {
-            voter: self.voter,
-            approval: Some(self.approval.unwrap_or(true)),
-        }
-    }
-}
-
 pub const NEXT_ID: Item<u64> = Item::new("next_id");
+pub const SIMPLE_VOTING: SimpleVoting =
+    SimpleVoting::new("votes", "votes_id", "votes_info", "votes_config");
+
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
-pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("challenge_friends");
-
-/// Key is a tuple of (challenge_id, check_in.last_checked_in, voter_address).
-/// By using a composite key, it ensures only one user can vote per check_in.
-pub const VOTES: Map<(u64, Addr), Vote<Addr>> = Map::new("votes");
-
-/// For looking up all the votes by challenge_id. This is used to tally the votes.
-pub const CHALLENGE_VOTES: Map<u64, Vec<Vote<Addr>>> = Map::new("challenge_votes");

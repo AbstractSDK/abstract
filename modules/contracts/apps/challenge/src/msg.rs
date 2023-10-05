@@ -3,13 +3,16 @@
 use crate::{
     contract::ChallengeApp,
     state::{
-        ChallengeEntry, ChallengeEntryUpdate, Friend, StrikeStrategy, UpdateFriendsOpKind, Vote,
+        AdminStrikes, ChallengeEntry, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind,
     },
 };
-use abstract_core::objects::AssetEntry;
+use abstract_core::objects::{
+    voting::{Vote, VoteStatus},
+    AssetEntry,
+};
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::Addr;
-use cw_utils::Expiration;
+use cw_utils::{Duration, Expiration};
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
@@ -40,7 +43,7 @@ pub enum ChallengeExecuteMsg {
         /// Id of the challenge to update
         challenge_id: u64,
         /// List of added or removed Friends
-        friends: Vec<Friend<String>>,
+        friends: Vec<String>,
         /// Kind of operation: add or remove friends
         op_kind: UpdateFriendsOpKind,
     },
@@ -52,7 +55,7 @@ pub enum ChallengeExecuteMsg {
         /// and the contract will internally set the approval field to Some(true).
         /// This is because we assume that if a friend didn't vote, the friend approves,
         /// otherwise the voter would Vote with approval set to Some(false).
-        vote: Vote<String>,
+        vote: Vote,
     },
 }
 
@@ -96,7 +99,18 @@ pub enum ChallengeQueryMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeResponse {
     /// Challenge info, will return null if there was no challenge by Id
-    pub challenge: Option<ChallengeEntry>,
+    pub challenge: Option<ChallengeEntryResponse>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ChallengeEntryResponse {
+    pub name: String,
+    pub strike_asset: AssetEntry,
+    pub strike_strategy: StrikeStrategy,
+    pub description: String,
+    pub end: Expiration,
+    pub status: VoteStatus,
+    pub admin_strikes: AdminStrikes,
 }
 
 /// Arguments for new challenge
@@ -110,17 +124,19 @@ pub struct ChallengeRequest {
     pub strike_strategy: StrikeStrategy,
     /// Desciption of the challenge
     pub description: String,
-    /// In what period challenge should end
-    pub end: Expiration,
-    /// Strike limit, defaults to 3
+    /// In what duration challenge should end
+    pub duration: Duration,
+    /// Strike limit, defaults to 1
     pub strikes_limit: Option<u8>,
+    /// Initial list of friends
+    pub init_friends: Vec<String>,
 }
 
 /// Response for vote query
 #[cosmwasm_schema::cw_serde]
 pub struct VoteResponse {
     /// The vote, will return null if there was no vote by this user
-    pub vote: Option<Vote<Addr>>,
+    pub vote: Option<Vote>,
 }
 
 /// Response for challenges query
@@ -131,4 +147,4 @@ pub struct ChallengesResponse(pub Vec<ChallengeEntry>);
 /// Response for friends query
 /// Returns a list of friends
 #[cosmwasm_schema::cw_serde]
-pub struct FriendsResponse(pub Vec<Friend<Addr>>);
+pub struct FriendsResponse(pub Vec<Addr>);

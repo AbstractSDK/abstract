@@ -2,7 +2,7 @@ use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
     ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, FriendsResponse, VoteResponse,
 };
-use crate::state::{ChallengeEntry, Vote, CHALLENGE_FRIENDS, CHALLENGE_LIST, VOTES};
+use crate::state::{ChallengeEntry, CHALLENGE_LIST};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 
@@ -41,7 +41,8 @@ fn query_challenge(
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
-    Ok(ChallengeResponse { challenge })
+    todo!()
+    // Ok(ChallengeResponse { challenge: challenge.map(f) })
 }
 
 fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesResponse> {
@@ -58,8 +59,9 @@ fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesR
 }
 
 fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
-    let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
-    Ok(FriendsResponse(friends.unwrap_or_default()))
+    todo!()
+    // let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
+    // Ok(FriendsResponse(friends.unwrap_or_default()))
 }
 
 fn query_vote_for_check_in(
@@ -68,11 +70,12 @@ fn query_vote_for_check_in(
     voter_addr: String,
     challenge_id: u64,
 ) -> AppResult<VoteResponse> {
-    let v = Vote {
-        voter: voter_addr,
-        approval: None,
-    };
-    let v = v.check(deps)?;
-    let vote = VOTES.may_load(deps.storage, (challenge_id, v.voter))?;
-    Ok(VoteResponse { vote })
+    todo!()
+    // let v = Vote {
+    //     voter: voter_addr,
+    //     approval: None,
+    // };
+    // let v = v.check(deps)?;
+    // let vote = VOTES.may_load(deps.storage, (challenge_id, v.voter))?;
+    // Ok(VoteResponse { vote })
 }
