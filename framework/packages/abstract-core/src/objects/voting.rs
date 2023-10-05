@@ -23,6 +23,12 @@ pub enum VoteError {
         vote_id: VoteId,
         expiration: Expiration,
     },
+
+    #[error("Vote period expired, can't do actions: {vote_id}, {expiration}")]
+    VoteExpired {
+        vote_id: VoteId,
+        expiration: Expiration,
+    },
 }
 
 pub type VoteResult<T> = Result<T, VoteError>;
@@ -63,13 +69,21 @@ impl<'a> SimpleVoting<'a> {
         Ok(())
     }
 
-    pub fn new_vote(&self, store: &mut dyn Storage, initial_voters: &[Addr]) -> VoteResult<VoteId> {
+    pub fn new_vote(
+        &self,
+        store: &mut dyn Storage,
+        end: Expiration,
+        initial_voters: &[Addr],
+    ) -> VoteResult<VoteId> {
         let vote_id = self
             .next_vote_id
             .update(store, |id| VoteResult::Ok(id + 1))?;
 
-        self.vote_info
-            .save(store, vote_id, &VoteInfo::new(initial_voters.len() as u32))?;
+        self.vote_info.save(
+            store,
+            vote_id,
+            &VoteInfo::new(initial_voters.len() as u32, end),
+        )?;
         for voter in initial_voters {
             self.votes.save(store, (vote_id, voter), &None)?;
         }
@@ -79,7 +93,7 @@ impl<'a> SimpleVoting<'a> {
     pub fn cast_vote(
         &self,
         store: &mut dyn Storage,
-        block_info: &BlockInfo,
+        block: &BlockInfo,
         vote_id: VoteId,
         voter: &Addr,
         vote: Vote,
@@ -87,13 +101,20 @@ impl<'a> SimpleVoting<'a> {
     ) -> VoteResult<VoteInfo> {
         // Need to check it's existing vote
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.status.assert_not_finished(vote_id)?;
+        vote_info.assert_ready_for_action(vote_id, block)?;
 
         // If veto configured need to update vote info
         if let VoteStatus::Active {} = &vote_info.status {
             let vote_config = self.vote_config.load(store)?;
             if let Some(duration) = vote_config.veto_duration {
-                vote_info.status = VoteStatus::VetoPeriod(duration.after(block_info))
+                let veto_exp = duration.after(block);
+                let expiration = if veto_exp < vote_info.end {
+                    veto_exp
+                } else {
+                    vote_info.end
+                };
+                vote_info.status = VoteStatus::VetoPeriod(expiration)
+
             }
         }
         // match new_voter {
@@ -136,18 +157,15 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
     ) -> VoteResult<VoteInfo> {
         let mut vote_info = self.load_vote_info(store, vote_id)?;
+        vote_info.assert_ready_for_action(vote_id, block)?;
 
-        match vote_info.status {
-            VoteStatus::Active {} => {}
-            VoteStatus::VetoPeriod(expiration) => {
-                if expiration.is_expired(block) {
-                    return Err(VoteError::VetoExpired {
-                        vote_id,
-                        expiration,
-                    });
-                }
+        if let VoteStatus::VetoPeriod(expiration) = vote_info.status {
+            if expiration.is_expired(block) {
+                return Err(VoteError::VetoExpired {
+                    vote_id,
+                    expiration,
+                });
             }
-            VoteStatus::Finished(_) => return Err(VoteError::AlreadyFinished { vote_id }),
         }
         vote_info.status = VoteStatus::Finished(VoteOutcome::Canceled {});
         self.vote_info.save(store, vote_id, &vote_info)?;
@@ -182,11 +200,12 @@ impl<'a> SimpleVoting<'a> {
         &self,
         store: &mut dyn Storage,
         vote_id: VoteId,
+        block: &BlockInfo,
         new_voters: &[Addr],
     ) -> VoteResult<()> {
         // Need to check it's existing vote
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.status.assert_not_finished(vote_id)?;
+        vote_info.assert_ready_for_action(vote_id, block)?;
 
         for voter in new_voters {
             // Don't override already existing vote
@@ -207,10 +226,11 @@ impl<'a> SimpleVoting<'a> {
         &self,
         store: &mut dyn Storage,
         vote_id: VoteId,
+        block: &BlockInfo,
         removed_voters: &[Addr],
     ) -> VoteResult<()> {
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.status.assert_not_finished(vote_id)?;
+        vote_info.assert_ready_for_action(vote_id, block)?;
 
         for voter in removed_voters {
             // Would be nice to get this fixed:
@@ -288,15 +308,29 @@ pub struct VoteInfo {
     pub votes_for: u32,
     pub votes_against: u32,
     pub status: VoteStatus,
+    pub end: Expiration,
 }
 
 impl VoteInfo {
-    pub fn new(initial_voters: u32) -> Self {
+    pub fn new(initial_voters: u32, end: Expiration) -> Self {
         Self {
             total_voters: initial_voters,
             votes_for: 0,
             votes_against: 0,
             status: VoteStatus::Active {},
+            end,
+        }
+    }
+
+    pub fn assert_ready_for_action(&self, vote_id: VoteId, block: &BlockInfo) -> VoteResult<()> {
+        self.status.assert_not_finished(vote_id)?;
+        if self.end.is_expired(block) {
+            Err(VoteError::VoteExpired {
+                vote_id,
+                expiration: self.end,
+            })
+        } else {
+            Ok(())
         }
     }
 }
