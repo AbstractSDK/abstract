@@ -73,7 +73,7 @@ impl DexCommand for Osmosis {
     fn custom_swap(
         &self,
         _deps: Deps,
-        proxy_addr: &Addr,
+        _proxy_addr: &Addr,
         _offer_assets: Vec<Asset>,
         _ask_assets: Vec<Asset>,
         _max_spread: Option<Decimal>,
@@ -154,7 +154,7 @@ impl DexCommand for Osmosis {
     fn provide_liquidity_symmetric(
         &self,
         _deps: Deps,
-        proxy_addr: &Addr,
+        _proxy_addr: &Addr,
         _pool_id: PoolAddress,
         _offer_asset: Asset,
         _paired_assets: Vec<AssetInfo>,

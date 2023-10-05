@@ -21,9 +21,10 @@ use ::{
     },
     abstract_sdk::core::objects::PoolAddress,
     abstract_sdk::cw_helpers::wasm_smart_query,
-    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128},
+    cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps, Uint128, QueryRequest, Addr, Binary},
     // cw20::Cw20ExecuteMsg,
     cw_asset::{Asset, AssetInfo, AssetInfoBase},
+    nibiru_std::proto::nibiru::spot::{QueryPoolResponse, MsgJoinPool, MsgExitPool, QuerySwapExactAmountInRequest, QuerySwapExactAmountInResponse},
 };
 
 #[cfg(feature = "full_integration")]
@@ -31,6 +32,7 @@ impl DexCommand<DexError> for Nibiru {
     fn swap(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         ask_asset: AssetInfo,
@@ -40,12 +42,16 @@ impl DexCommand<DexError> for Nibiru {
         let pair_id = pool_id.expect_id()?;
 
         let swap_msg = nibiru_std::proto::nibiru::spot::MsgSwapAssets{
-            sender: "FAKE-SENDER    ".to_string(),
+            sender: proxy_addr.to_string(),
             pool_id: pair_id,
-            token_in: cw_asset_to_coin(offer_asset),      
-            token_out_denom: ask_asset
+            token_in: Some(cw_asset_to_coin(&offer_asset)?),      
+            token_out_denom: cw_asset_to_denom(&ask_asset)?
         };
 
+        let swap_msg = CosmosMsg::Stargate{
+            type_url: "nibiru.spot.v1."
+            value: Binary::from(swap_msg.to_any())
+        };
 
         Ok(vec![swap_msg])
     }
@@ -53,6 +59,7 @@ impl DexCommand<DexError> for Nibiru {
     fn provide_liquidity(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         mut offer_assets: Vec<Asset>,
         max_spread: Option<Decimal>,
@@ -107,7 +114,7 @@ impl DexCommand<DexError> for Nibiru {
             offer_assets = vec![offer_asset, Asset::new(ask_asset, simulated_received)];
         }
 
-        let wyndex_assets = offer_assets
+        let proto_assets = offer_assets
             .iter()
             .map(cw_asset_to_coin)
             .collect::<Result<Vec<_>, _>>()?;
@@ -116,7 +123,7 @@ impl DexCommand<DexError> for Nibiru {
         let msg = nibiru_std::proto::nibiru::spot::MsgJoinPool{
             sender: "FAKE-SENDER    ".to_string(),
             pool_id: pair_id,
-            tokens_in: offer_asset,      
+            tokens_in: proto_assets,      
             use_all_coins: true
         };
 
@@ -127,6 +134,7 @@ impl DexCommand<DexError> for Nibiru {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,
@@ -137,12 +145,8 @@ impl DexCommand<DexError> for Nibiru {
             return Err(DexError::TooManyAssets(2));
         }
         // Get pair info
-        let pair_config: PoolResponse = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Pool {},
-        )?)?;
-        let wyndex_offer_asset = cw_asset_to_wyndex_valid(&offer_asset)?;
-        let other_asset = if pair_config.assets[0].info == wyndex_offer_asset.info {
+        let pair_config: QueryPoolResponse = deps.querier.query(QueryRequest::Stargate())?;
+        let other_asset = if pair_config.assets[0].info == offer_asset.info {
             let price =
                 Decimal::from_ratio(pair_config.assets[1].amount, pair_config.assets[0].amount);
             let other_token_amount = price * offer_asset.amount;
@@ -150,7 +154,7 @@ impl DexCommand<DexError> for Nibiru {
                 amount: other_token_amount,
                 info: paired_assets[0].clone(),
             }
-        } else if pair_config.assets[1].info == wyndex_offer_asset.info {
+        } else if pair_config.assets[1].info == offer_asset.info {
             let price =
                 Decimal::from_ratio(pair_config.assets[0].amount, pair_config.assets[1].amount);
             let other_token_amount = price * offer_asset.amount;
@@ -173,38 +177,36 @@ impl DexCommand<DexError> for Nibiru {
 
         let coins = coins_in_assets(&offer_assets);
 
-        // approval msgs for cw20 tokens (if present)
-        let mut msgs = cw_approve_msgs(&offer_assets, &pair_address)?;
-
         // construct execute msg
-        let wyndex_assets = offer_assets
+        let proto_assets = offer_assets
             .iter()
-            .map(cw_asset_to_wyndex)
+            .map(cw_asset_to_coin)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let msg = ExecuteMsg::ProvideLiquidity {
-            assets: vec![wyndex_assets[0].clone(), wyndex_assets[1].clone()],
-            slippage_tolerance: None,
-            receiver: None,
+        let msg = MsgJoinPool {
+            sender: proxy_addr,
+            pool_id: pair_id,
+            tokens_in: vec![proto_assets[0].clone(), proto_assets[1].clone()],
+            use_all_coins: true
         };
-
-        // actual call to pair
-        let liquidity_msg = wasm_execute(pair_address, &msg, coins)?.into();
-        msgs.push(liquidity_msg);
-
-        Ok(msgs)
+        
+        Ok(vec![msg])
     }
 
     fn withdraw_liquidity(
         &self,
         _deps: Deps,
+        proxy_addr: &Addr,
         pool_id: PoolAddress,
         lp_token: Asset,
     ) -> Result<Vec<CosmosMsg>, DexError> {
         let pair_id = pool_id.expected_id()?;
-        let hook_msg = Cw20HookMsg::WithdrawLiquidity { assets: vec![] };
-        let withdraw_msg = lp_token.send_msg(pair_address, to_binary(&hook_msg)?)?;
-        Ok(vec![withdraw_msg])
+        let withdraw_message = MsgExitPool{ 
+            sender: proxy_addr.to_string(),
+            pool_id: pool_id,
+            pool_shares: Some(cw_asset_to_coin(lp_token))
+        };
+        Ok(vec![withdraw_message])
     }
 
     fn simulate_swap(
@@ -212,26 +214,23 @@ impl DexCommand<DexError> for Nibiru {
         deps: Deps,
         pool_id: PoolAddress,
         offer_asset: Asset,
-        _ask_asset: AssetInfo,
+        ask_asset: AssetInfo,
     ) -> Result<(Return, Spread, Fee, FeeOnInput), DexError> {
         let pair_id = pool_id.expected_id()?;
+
+        let query = QuerySwapExactAmountInRequest{
+            pool_id: pair_id,
+            token_in: Some(cw_asset_to_coin(&offer_asset)),
+            token_out_denom: ask_asset
+        };
+
         // Do simulation
-        let SimulationResponse {
-            return_amount,
-            spread_amount,
-            commission_amount,
-            ..
-        } = deps.querier.query(&wasm_smart_query(
-            pair_address.to_string(),
-            &QueryMsg::Simulation {
-                referral: false,
-                referral_commission: None,
-                offer_asset: cw_asset_to_wyndex(&offer_asset)?,
-                ask_asset_info: None,
-            },
-        )?)?;
+        let QuerySwapExactAmountInResponse {
+            token_out,
+            fee
+        } = deps.querier.query(QueryRequest::Stargate())?;
         // commission paid in result asset
-        Ok((return_amount, spread_amount, commission_amount, false))
+        Ok((token_out.unwrap().denom, Uint128::zero(), fee.unwrap().denom, false))
     }
 }
 
@@ -246,17 +245,10 @@ fn cw_asset_to_coin(asset: &Asset) -> Result<nibiru_std::proto::cosmos::base::v1
     }
 }
 
-// #[cfg(feature = "full_integration")]
-// fn cw_asset_to_wyndex_valid(asset: &Asset) -> Result<AssetValidated, DexError> {
-//     match &asset.info {
-//         AssetInfoBase::Native(denom) => Ok(AssetValidated {
-//             amount: asset.amount,
-//             info: AssetInfoValidated::Native(denom.clone()),
-//         }),
-//         AssetInfoBase::Cw20(contract_addr) => Ok(AssetValidated {
-//             amount: asset.amount,
-//             info: AssetInfoValidated::Token(contract_addr.clone()),
-//         }),
-//         _ => Err(DexError::UnsupportedAssetType(asset.to_string())),
-//     }
-// }
+#[cfg(feature = "full_integration")]
+fn cw_asset_to_denom(asset: &AssetInfo) -> Result<String, DexError> {
+    match &asset {
+        AssetInfoBase::Native(denom) => Ok(denom.clone()),
+        AssetInfoBase::Cw20(contract_addr) => Err(DexError::UnsupportedAssetType(asset.to_string())),
+    }
+}

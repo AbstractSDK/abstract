@@ -167,7 +167,7 @@ impl DexCommand<DexError> for WynDex {
     fn provide_liquidity_symmetric(
         &self,
         deps: Deps,
-        proxy_addr: &Addr,
+        _proxy_addr: &Addr,
         pool_id: PoolAddress,
         offer_asset: Asset,
         paired_assets: Vec<AssetInfo>,

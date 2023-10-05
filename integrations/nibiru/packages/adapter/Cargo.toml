@@ -1,0 +1,24 @@
+[package]
+name = "nibiru"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nibiru-std = { git = "https://github.com/NibiruChain/cw-nibiru", version = "0.2.0", optional = true }
+
+abstract-sdk = { version = "0.19.0", path = "../../../../framework/packages/abstract-sdk" }
+abstract-dex-standard = { version = "0.19.0", path = "../../../../framework/packages/standards/dex" }
+cw-asset = { version = "3.0.0", optional = true }
+cw-utils = { version = "1.0.2", optional = true }
+cosmwasm-std = { version = "1.4.0", optional = true }
+
+[features]
+default = ["full_integration"]
+full_integration = [
+  "dep:nibiru-std",
+  "dep:cosmwasm-std",
+  "dep:cw-asset",
+  "dep:cw-utils",
+]
