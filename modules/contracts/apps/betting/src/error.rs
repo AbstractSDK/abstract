@@ -3,7 +3,7 @@ use abstract_core::AbstractError;
 use abstract_core::objects::AccountId;
 use abstract_core::objects::validation::ValidationError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{Addr, OverflowError, StdError};
+use cosmwasm_std::{Addr, CheckedFromRatioError, OverflowError, StdError};
 use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -19,6 +19,9 @@ pub enum BetError {
 
     #[error("{0}")]
     Validation(#[from] ValidationError),
+
+    #[error("{0}")]
+    CheckedFromRatioError(#[from] CheckedFromRatioError),
 
     #[error("{0}")]
     AbstractSdk(#[from] AbstractSdkError),

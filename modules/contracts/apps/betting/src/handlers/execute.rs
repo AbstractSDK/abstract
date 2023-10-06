@@ -35,6 +35,8 @@ pub fn execute_handler(
 
             let round = Round::new(round_id);
 
+            deps.api.debug(&format!("to_add: {:?}", to_add));
+
             update_accounts(deps, info, app, round, to_add, to_remove)
         }
         BetExecuteMsg::UpdateConfig { rake } => {
@@ -107,8 +109,6 @@ pub fn create_round(
 
 fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetResult {
 
-    deps.api.debug(&format!("bets: {:?}", bet));
-
     let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
 
     let mut messages: Vec<CosmosMsg> = vec![];
@@ -131,26 +131,28 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
      let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
      messages.extend(deposit_msg.into_iter());
 
-
     // Record the bet
     let bet_account = bet.account_id;
 
     let key = (round.id(), bet_account.clone());
-    let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
+    let mut existing_bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
     // Find and update the existing bet if it exists
-    if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
-        let (_, amount) = &mut bets[index];
+    if let Some(index) = existing_bets.iter().position(|(addr, _)| addr == &info.sender) {
+        let (_, amount) = &mut existing_bets[index];
         *amount += bet.asset.amount;
     } else {
         // Otherwise, add a new bet
-        bets.push((info.sender.clone(), bet.asset.amount));
+        existing_bets.push((info.sender.clone(), bet.asset.amount));
     }
-    BETS.save(deps.storage, key.clone(), &bets)?;
+    BETS.save(deps.storage, key.clone(), &existing_bets)?;
 
     let round_teams = round.accounts(deps.storage)?;
+
+    let bet_totals = query::get_total_bets_for_all_accounts(deps.storage, round.id())?;
+
     for team in round_teams {
         // adjust the odds for the round
-        adjust_odds_for_account(deps.storage, round.id(), team)?;
+        adjust_odds_for_account(deps.storage, round.id(), team, bet_totals)?;
     }
 
     Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
@@ -159,26 +161,36 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
 /// Calculates the new odds for the given round/account pair
 /// # Returns
 /// the new odds
-fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<()> {
+fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId, bet_totals: Uint128) -> StdResult<()> {
     let total_bets_for_account = query::get_total_bets_for_account(storage, round_id, account_id.clone())?;
-    let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, round_id)?;
 
-    // There are no bets for this account or for this round
-    if total_bets_for_account.is_zero() || total_bets_for_all_accounts.is_zero() {
-        return Ok(())
+    if bet_totals.is_zero() || total_bets_for_account.is_zero() {
+        return Ok(());
     }
 
+    let rake = CONFIG.load(storage)?.rake.share();
+
+    // Check if it's the first bet for the round
+    let is_first_bet = bet_totals == total_bets_for_account;
+
     // Calculate the bet-based odds
-    let bet_based_odds = Decimal::from_ratio(total_bets_for_all_accounts, total_bets_for_account);
+    let bet_based_odds = Decimal::from_ratio(bet_totals, total_bets_for_account);
 
-    // Retrieve the initial odds
-    let initial_odds = ODDS.load(storage, (round_id, account_id.clone()))?;
+    let new_odds = if is_first_bet {
+        // Retrieve the initial odds
+        let initial_odds = ODDS.load(storage, (round_id, account_id.clone()))?;
+        // Blend the initial and bet-based odds
+        (initial_odds + bet_based_odds) / Decimal::from_str("2.0").unwrap()
+    } else {
+        bet_based_odds
+    };
 
-    // Blend the initial and bet-based odds (here, it's a simple average, but you might want a different weighting)
-    let new_odds = (initial_odds + bet_based_odds) / Decimal::from_str("2.0").unwrap();
+    // Apply house edge
+    let adjusted_odds = new_odds * (Decimal::one() - rake);
 
-    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)
+    ODDS.save(storage, (round_id, account_id.clone()), &adjusted_odds)
 }
+
 
 // #[cfg(test)]
 // mod test {
@@ -191,7 +203,7 @@ fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account
 //         #[test]
 //         fn test_adjust_odds() {
 //             let mut deps = mock_dependencies();
-//             let bettor = Addr::unchecked("bettor");
+//             let better = Addr::unchecked("better");
 //             let account_id = AccountId::local(1u32.into());
 //             let expected_odds = Decimal::from_str("0.1").unwrap();
 //
@@ -203,8 +215,8 @@ fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account
 //             ODDS.save(deps.as_mut().storage, (2, account_id.clone()), &Decimal::new(inital_odds)).unwrap();
 //
 //             BETS.save(deps.as_mut().storage, (1, account_id.clone()), &vec![
-//                 (bettor.clone(), Uint128::from(100u128)),
-//                 (bettor.clone(), Uint128::from(100u128)),
+//                 (better.clone(), Uint128::from(100u128)),
+//                 (better.clone(), Uint128::from(100u128)),
 //             ]).unwrap();
 //
 //             // Call the function

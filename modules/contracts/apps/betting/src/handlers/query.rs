@@ -1,6 +1,6 @@
 use crate::contract::{BetApp, BetResult};
-use crate::msg::{BetQueryMsg, ConfigResponse, OddsResponse, RoundResponse, RoundsResponse};
-use crate::state::{BETS, CONFIG, Config, ODDS, Round, RoundId, RoundInfo, ROUNDS};
+use crate::msg::{BetQueryMsg, ConfigResponse, ListOddsResponse, OddsResponse, RoundResponse, RoundsResponse};
+use crate::state::{AccountOdds, BETS, CONFIG, Config, ODDS, Round, RoundId, RoundInfo, ROUNDS};
 use cosmwasm_std::{Binary, Decimal, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
 use cw_storage_plus::Bound;
@@ -45,6 +45,19 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
         } => {
             let odds = ODDS.load(deps.storage, (round_id, team_id))?;
             to_binary(&OddsResponse {
+                round_id,
+                odds,
+            })
+        }
+        BetQueryMsg::ListOdds {
+            round_id
+        } => {
+            let odds = ODDS.prefix(round_id).range(deps.storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
+            let odds = odds.into_iter().map(|(key, value)| AccountOdds {
+                account_id: key,
+                odds: value,
+            }).collect::<Vec<AccountOdds>>();
+            to_binary(&ListOddsResponse {
                 round_id,
                 odds,
             })

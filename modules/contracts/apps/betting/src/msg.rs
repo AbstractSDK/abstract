@@ -44,7 +44,7 @@ use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
 use abstract_core::objects::{AccountId, AssetEntry};
-use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet, AccountOdds};
+use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet, AccountOdds, OddsInt};
 
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
@@ -148,7 +148,7 @@ pub struct OddsResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct ListOddsResponse {
     pub round_id: RoundId,
-    pub odds: Vec<(AccountId, Uint128)>
+    pub odds: Vec<AccountOdds>
 }
 
 #[cosmwasm_schema::cw_serde]

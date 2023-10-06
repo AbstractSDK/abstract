@@ -101,6 +101,9 @@ impl Round {
     pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult<()> {
         // Load existing accounts associated with the round
         let mut existing_accounts: Vec<AccountId> = ROUND_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
+        let rake = CONFIG.load(deps.storage)?.rake.share();
+
+        deps.api.debug(&format!("rake: {:?}", rake));
 
         // Add new account IDs after checking for duplicates
         for AccountOdds {account_id, odds } in to_add.into_iter() {
@@ -108,7 +111,9 @@ impl Round {
                 return Err(StdError::generic_err(format!("Duplicate Account ID found: {}", account_id)).into());
             }
             existing_accounts.push(account_id.clone());
-            ODDS.save(deps.storage, (self.id(), account_id), &odds)?;
+            deps.api.debug(&format!("odds {:?} / Decimal::one() + rake.clone() {:?}", odds, Decimal::one() + rake.clone()));
+            let edged_odds = odds.checked_div(Decimal::one() + rake.clone())?;
+            ODDS.save(deps.storage, (self.id(), account_id), &edged_odds)?;
         }
 
         // Remove specified account IDs
@@ -158,13 +163,13 @@ pub struct ValidatedBet {
     pub asset: Asset,
 }
 
-type OddsInt = Decimal;  // Represents odds with two decimal precision
+pub type OddsInt = Decimal;  // Represents odds with two decimal precision
 
 
 impl NewBet {
     pub fn validate(&self, deps: Deps, base_asset: &AssetEntry) -> BetResult<()> {
         if self.asset.amount.is_zero() {
-            return Err(BetError::InvalidFee {});
+            return Err(BetError::InvalidBet {});
         }
 
         // ensure that the asset matches the base asset

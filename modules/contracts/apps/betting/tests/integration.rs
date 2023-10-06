@@ -143,6 +143,29 @@ impl BetEnv<Mock> {
         Ok(self.admin_account()?.manager.address()?)
     }
 
+
+    fn add_team_to_round(&self, round_id: RoundId, account_id: AccountId, odds: Decimal) -> AResult<()> {
+        self.manual_add_teams_to_round(round_id, vec![AccountOdds {
+            account_id,
+            odds,
+        }])?;
+
+        Ok(())
+    }
+
+    fn create_x_accounts(&self, x: usize) -> AResult<Vec<AccountId>> {
+        let mut ids = vec![];
+
+        for i in 0..x {
+            let account = self.abstr.account_factory.create_default_account(GovernanceDetails::Monarchy {
+                monarch: self.admin_account_addr().unwrap().into_string(),
+            }).unwrap();
+            let account_id = account.id().unwrap();
+            ids.push(account_id);
+        }
+
+        Ok(ids)
+    }
     // Add teams to the round with 0 odds to start
     fn add_x_teams_to_round(&self, round_id: RoundId, x: usize) -> AResult<()> {
         let account_ids = (0..x).map(|_| {
@@ -152,7 +175,7 @@ impl BetEnv<Mock> {
             let account_id = account.id().unwrap();
             AccountOdds {
                 account_id,
-                odds: Decimal::new(Uint128::from(x as u128)),
+                odds: Decimal::from_str("1").unwrap(),
             }
         }).collect::<Vec<AccountOdds>>();
 
@@ -266,18 +289,56 @@ fn test_create_round_with_mini_bets() -> AResult {
 
     env.add_x_teams_to_round(round_id, 2)?;
 
-    let bettor = Addr::unchecked("account");
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("{:?}", odds_list);
+
+    let better = Addr::unchecked("account");
     let bet_amount = 100;
 
 
-    env.env.set_balance(&bettor, coins(bet_amount, BET_TOKEN_DENOM))?;
+    env.env.set_balance(&better, coins(bet_amount, BET_TOKEN_DENOM))?;
 
     let betting_on = AccountId::local(2);
 
-    env.bet_on_round_as(bettor, betting_on, round_id, bet_amount)?;
+    env.bet_on_round_as(better, betting_on, round_id, bet_amount)?;
 
     let odds_list = env.bet.list_odds(round_id)?;
     println!("{:?}", odds_list);
 
     Ok(())
 }
+
+#[test]
+fn test_create_round_with_odds() -> AResult {
+    let env = BetEnv::setup(None)?;
+
+    let round_id= env.create_test_round()?;
+
+    // create 2 accounts
+    let mut new_acc_ids = env.create_x_accounts(2)?;
+
+    let team_1 = new_acc_ids.swap_remove(0);
+    let team_2 = new_acc_ids.swap_remove(0);
+
+
+    let decimal = Decimal::from_str("2.22").unwrap();
+    env.add_team_to_round(round_id, team_1, decimal)?;
+    env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1.82").unwrap())?;
+
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("initial odds with house edge: {:?}", odds_list.odds);
+
+    let better = Addr::unchecked("account");
+    let bet_amount = 1000000000;
+
+    env.env.set_balance(&better, coins(bet_amount, BET_TOKEN_DENOM))?;
+
+
+    env.bet_on_round_as(better, team_2, round_id, bet_amount)?;
+
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("odds_list 2: {:?}", odds_list.odds);
+
+    Ok(())
+}
+

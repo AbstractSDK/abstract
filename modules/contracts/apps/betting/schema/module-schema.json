@@ -89,15 +89,20 @@
           "update_accounts": {
             "type": "object",
             "required": [
+              "round_id",
               "to_add",
-              "to_remove",
-              "round_id"
+              "to_remove"
             ],
             "properties": {
+              "round_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              },
               "to_add": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/definitions/AccountId"
+                  "$ref": "#/definitions/AccountOdds"
                 }
               },
               "to_remove": {
@@ -105,11 +110,6 @@
                 "items": {
                   "$ref": "#/definitions/AccountId"
                 }
-              },
-              "round_id": {
-                "type": "integer",
-                "format": "uint64",
-                "minimum": 0.0
               }
             },
             "additionalProperties": false
@@ -120,20 +120,17 @@
       {
         "type": "object",
         "required": [
-          "place_bets"
+          "place_bet"
         ],
         "properties": {
-          "place_bets": {
+          "place_bet": {
             "type": "object",
             "required": [
-              "bets"
+              "bet"
             ],
             "properties": {
-              "bets": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/NewBet"
-                }
+              "bet": {
+                "$ref": "#/definitions/NewBet"
               }
             },
             "additionalProperties": false
@@ -177,17 +174,17 @@
           "set_winning_team": {
             "type": "object",
             "required": [
-              "team_id",
-              "round_id"
+              "round_id",
+              "team_id"
             ],
             "properties": {
-              "team_id": {
-                "$ref": "#/definitions/AccountId"
-              },
               "round_id": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
+              },
+              "team_id": {
+                "$ref": "#/definitions/AccountId"
               }
             },
             "additionalProperties": false
@@ -243,6 +240,22 @@
                 "$ref": "#/definitions/AccountTrace"
               }
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountOdds": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "odds"
+        ],
+        "properties": {
+          "account_id": {
+            "$ref": "#/definitions/AccountId"
+          },
+          "odds": {
+            "$ref": "#/definitions/Decimal"
           }
         },
         "additionalProperties": false
@@ -354,13 +367,37 @@
     "description": "Query Msg",
     "oneOf": [
       {
+        "description": "Returns [`RoundResponse`]",
+        "type": "object",
+        "required": [
+          "round"
+        ],
+        "properties": {
+          "round": {
+            "type": "object",
+            "required": [
+              "round_id"
+            ],
+            "properties": {
+              "round_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
         "description": "Returns [`RoundsResponse`]",
         "type": "object",
         "required": [
-          "rounds"
+          "list_rounds"
         ],
         "properties": {
-          "rounds": {
+          "list_rounds": {
             "type": "object",
             "properties": {
               "limit": {
@@ -389,19 +426,43 @@
         "description": "Returns [`OddsResponse`]",
         "type": "object",
         "required": [
-          "calculate_odds"
+          "odds"
         ],
         "properties": {
-          "calculate_odds": {
+          "odds": {
             "type": "object",
             "required": [
-              "team_id",
+              "round_id",
+              "team_id"
+            ],
+            "properties": {
+              "round_id": {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              "team_id": {
+                "$ref": "#/definitions/AccountId"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      {
+        "description": "Returns [`ListOddsResponse`]",
+        "type": "object",
+        "required": [
+          "list_odds"
+        ],
+        "properties": {
+          "list_odds": {
+            "type": "object",
+            "required": [
               "round_id"
             ],
             "properties": {
-              "team_id": {
-                "$ref": "#/definitions/AccountId"
-              },
               "round_id": {
                 "type": "integer",
                 "format": "uint64",
@@ -494,45 +555,6 @@
   },
   "sudo": null,
   "responses": {
-    "calculate_odds": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OddsResponse",
-      "description": "State query response",
-      "type": "object",
-      "required": [
-        "fee",
-        "share_token_address"
-      ],
-      "properties": {
-        "fee": {
-          "description": "Fee charged on withdrawal",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Decimal"
-            }
-          ]
-        },
-        "share_token_address": {
-          "description": "Address of the LP token",
-          "allOf": [
-            {
-              "$ref": "#/definitions/Addr"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "definitions": {
-        "Addr": {
-          "description": "A human readable address.\n\nIn Cosmos, this is typically bech32 encoded. But for multi-chain smart contracts no assumptions should be made other than being UTF-8 encoded and of reasonable length.\n\nThis type represents a validated address. It can be created in the following ways 1. Use `Addr::unchecked(input)` 2. Use `let checked: Addr = deps.api.addr_validate(input)?` 3. Use `let checked: Addr = deps.api.addr_humanize(canonical_addr)?` 4. Deserialize from JSON. This must only be done from JSON that was validated before such as a contract's state. `Addr` must not be used in messages sent by the user because this would result in unvalidated instances.\n\nThis type is immutable. If you really need to mutate it (Really? Are you sure?), create a mutable copy using `let mut mutable = Addr::to_string()` and operate on that `String` instance.",
-          "type": "string"
-        },
-        "Decimal": {
-          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
-          "type": "string"
-        }
-      }
-    },
     "config": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ConfigResponse",
@@ -566,7 +588,107 @@
         }
       }
     },
-    "rounds": {
+    "list_odds": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ListOddsResponse",
+      "type": "object",
+      "required": [
+        "odds",
+        "round_id"
+      ],
+      "properties": {
+        "odds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AccountOdds"
+          }
+        },
+        "round_id": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountOdds": {
+          "type": "object",
+          "required": [
+            "account_id",
+            "odds"
+          ],
+          "properties": {
+            "account_id": {
+              "$ref": "#/definitions/AccountId"
+            },
+            "odds": {
+              "$ref": "#/definitions/Decimal"
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ChainName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
+        },
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        }
+      }
+    },
+    "list_rounds": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "RoundsResponse",
       "type": "object",
@@ -702,6 +824,157 @@
             }
           },
           "additionalProperties": false
+        }
+      }
+    },
+    "odds": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OddsResponse",
+      "description": "State query response",
+      "type": "object",
+      "required": [
+        "odds",
+        "round_id"
+      ],
+      "properties": {
+        "odds": {
+          "$ref": "#/definitions/Decimal"
+        },
+        "round_id": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "Decimal": {
+          "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+          "type": "string"
+        }
+      }
+    },
+    "round": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RoundResponse",
+      "type": "object",
+      "required": [
+        "description",
+        "id",
+        "name",
+        "teams",
+        "total_bets"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": "string"
+        },
+        "teams": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "integer",
+                "format": "uint64",
+                "minimum": 0.0
+              },
+              {
+                "$ref": "#/definitions/AccountId"
+              }
+            ],
+            "maxItems": 2,
+            "minItems": 2
+          }
+        },
+        "total_bets": {
+          "type": "integer",
+          "format": "uint128",
+          "minimum": 0.0
+        },
+        "winning_team": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": [
+            {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            {
+              "$ref": "#/definitions/AccountId"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        }
+      },
+      "additionalProperties": false,
+      "definitions": {
+        "AccountId": {
+          "description": "Unique identifier for an account. On each chain this is unique.",
+          "type": "object",
+          "required": [
+            "seq",
+            "trace"
+          ],
+          "properties": {
+            "seq": {
+              "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            },
+            "trace": {
+              "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/AccountTrace"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "AccountTrace": {
+          "description": "The identifier of chain that triggered the account creation",
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "local"
+              ]
+            },
+            {
+              "type": "object",
+              "required": [
+                "remote"
+              ],
+              "properties": {
+                "remote": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ChainName"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "ChainName": {
+          "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+          "type": "string"
         }
       }
     }
