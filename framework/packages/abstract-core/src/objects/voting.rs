@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use cosmwasm_std::{Addr, BlockInfo, Decimal, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::{Bound, Item, Map};
 use cw_utils::{Duration, Expiration};
@@ -9,31 +11,32 @@ pub enum VoteError {
     #[error("Std error encountered while handling voting object: {0}")]
     Std(#[from] StdError),
 
-    #[error("No vote by vote id: {vote_id}")]
-    NoVoteById { vote_id: VoteId },
+    #[error("No vote by vote id")]
+    NoVoteById {},
 
-    #[error("No actions allowed on finished voting, vote id: {vote_id}")]
-    AlreadyFinished { vote_id: VoteId },
+    #[error("Actions allowed only for active vote")]
+    VoteNotActive {},
 
     #[error("Threshold error: {0}")]
     ThresholdError(String),
 
-    #[error("Veto period expired, can't cancel vote: {vote_id}, {expiration}")]
-    VetoExpired {
-        vote_id: VoteId,
-        expiration: Expiration,
-    },
+    #[error("Veto period expired, can't cancel vote, expiration: {expiration}")]
+    VetoExpired { expiration: Expiration },
 
-    #[error("Vote period expired, can't do actions: {vote_id}, {expiration}")]
-    VoteExpired {
-        vote_id: VoteId,
-        expiration: Expiration,
-    },
+    #[error("Only admin can do actions during veto period: {expiration}")]
+    VetoNotOver { expiration: Expiration },
+
+    #[error("Veto actions could be done only during veto period, current status: {status}")]
+    NotVeto { status: VoteStatus },
+
+    #[error("Vote period expired, can't do actions, expiration: {expiration}")]
+    VoteExpired { expiration: Expiration },
+
+    #[error("Too early to count votes: voting is not over")]
+    VotingNotOver {},
 }
 
 pub type VoteResult<T> = Result<T, VoteError>;
-
-// TODO: custom error type
 
 pub const DEFAULT_LIMIT: u64 = 25;
 pub type VoteId = u64;
@@ -101,22 +104,7 @@ impl<'a> SimpleVoting<'a> {
     ) -> VoteResult<VoteInfo> {
         // Need to check it's existing vote
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(vote_id, block)?;
-
-        // If veto configured need to update vote info
-        if let VoteStatus::Active {} = &vote_info.status {
-            let vote_config = self.vote_config.load(store)?;
-            if let Some(duration) = vote_config.veto_duration {
-                let veto_exp = duration.after(block);
-                let expiration = if veto_exp < vote_info.end {
-                    veto_exp
-                } else {
-                    vote_info.end
-                };
-                vote_info.status = VoteStatus::VetoPeriod(expiration)
-
-            }
-        }
+        vote_info.assert_ready_for_action(block)?;
         // match new_voter {
         //     true => {
         //         if !self.votes.has(store, (vote_id, voter)) {
@@ -157,40 +145,100 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
     ) -> VoteResult<VoteInfo> {
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(vote_id, block)?;
+        vote_info.assert_ready_for_action(block)?;
 
-        if let VoteStatus::VetoPeriod(expiration) = vote_info.status {
-            if expiration.is_expired(block) {
-                return Err(VoteError::VetoExpired {
-                    vote_id,
-                    expiration,
-                });
-            }
-        }
         vote_info.status = VoteStatus::Finished(VoteOutcome::Canceled {});
         self.vote_info.save(store, vote_id, &vote_info)?;
         Ok(vote_info)
     }
 
-    pub fn count_votes(&self, store: &mut dyn Storage, vote_id: VoteId) -> VoteResult<VoteInfo> {
+    pub fn count_votes(
+        &self,
+        store: &mut dyn Storage,
+        block: &BlockInfo,
+        vote_id: VoteId,
+    ) -> VoteResult<VoteInfo> {
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.status.assert_not_finished(vote_id)?;
-
+        vote_info.status.assert_is_active()?;
         let vote_config = self.vote_config.load(store)?;
 
         // Calculate votes
-        let votes_for = vote_info.votes_for;
         let threshold = match vote_config.threshold {
             Threshold::Majority {} => Uint128::from(vote_info.total_voters / 2),
             Threshold::Percentage(decimal) => decimal * Uint128::from(vote_info.total_voters),
         };
 
-        // Update vote status
-        vote_info.status = if Uint128::from(votes_for) > threshold {
-            VoteStatus::Finished(VoteOutcome::Passed {})
+        let vote_outcome = if Uint128::from(vote_info.votes_for) > threshold {
+            VoteOutcome::Passed
+        } else if Uint128::from(vote_info.votes_against) > threshold
+        // if it's expired or everyone voted it's still should be able to finish voting
+            || vote_info.end.is_expired(block)
+            || vote_info.votes_against + vote_info.votes_for == vote_info.total_voters
+        {
+            VoteOutcome::Failed
         } else {
-            VoteStatus::Finished(VoteOutcome::Failed {})
+            return Err(VoteError::VotingNotOver {});
         };
+
+        // Update vote status
+        vote_info.status = if let Some(duration) = vote_config.veto_duration {
+            let veto_exp = duration.after(block);
+            VoteStatus::VetoPeriod(veto_exp, vote_outcome)
+        } else {
+            VoteStatus::Finished(vote_outcome)
+        };
+        self.vote_info.save(store, vote_id, &vote_info)?;
+
+        Ok(vote_info)
+    }
+
+    /// Called by veto admin
+    pub fn veto_admin_action(
+        &self,
+        store: &mut dyn Storage,
+        block: &BlockInfo,
+        vote_id: VoteId,
+        admin_action: VetoAdminAction,
+    ) -> VoteResult<VoteInfo> {
+        let mut vote_info = self.load_vote_info(store, vote_id)?;
+
+        let VoteStatus::VetoPeriod(exp, vote_outcome) = vote_info.status else {
+            return Err(VoteError::NotVeto {
+                status: vote_info.status,
+            });
+        };
+        if exp.is_expired(block) {
+            return Err(VoteError::VetoExpired { expiration: exp });
+        }
+
+        vote_info.status = match admin_action {
+            VetoAdminAction::Finish {} => VoteStatus::Finished(vote_outcome),
+            VetoAdminAction::Veto {} => VoteStatus::Finished(VoteOutcome::Vetoed),
+        };
+        self.vote_info.save(store, vote_id, &vote_info)?;
+
+        Ok(vote_info)
+    }
+
+    /// Called by non-admin
+    pub fn finish_vote(
+        &self,
+        store: &mut dyn Storage,
+        block: &BlockInfo,
+        vote_id: VoteId,
+    ) -> VoteResult<VoteInfo> {
+        let mut vote_info = self.load_vote_info(store, vote_id)?;
+
+        let VoteStatus::VetoPeriod(expiration, vote_outcome) = vote_info.status else {
+            return Err(VoteError::NotVeto {
+                status: vote_info.status,
+            });
+        };
+        if !expiration.is_expired(block) {
+            return Err(VoteError::VetoNotOver { expiration });
+        }
+
+        vote_info.status = VoteStatus::Finished(vote_outcome);
         self.vote_info.save(store, vote_id, &vote_info)?;
 
         Ok(vote_info)
@@ -202,10 +250,10 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
         block: &BlockInfo,
         new_voters: &[Addr],
-    ) -> VoteResult<()> {
+    ) -> VoteResult<VoteInfo> {
         // Need to check it's existing vote
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(vote_id, block)?;
+        vote_info.assert_ready_for_action(block)?;
 
         for voter in new_voters {
             // Don't override already existing vote
@@ -219,7 +267,7 @@ impl<'a> SimpleVoting<'a> {
         }
         self.vote_info.save(store, vote_id, &vote_info)?;
 
-        Ok(())
+        Ok(vote_info)
     }
 
     pub fn remove_voters(
@@ -228,9 +276,9 @@ impl<'a> SimpleVoting<'a> {
         vote_id: VoteId,
         block: &BlockInfo,
         removed_voters: &[Addr],
-    ) -> VoteResult<()> {
+    ) -> VoteResult<VoteInfo> {
         let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(vote_id, block)?;
+        vote_info.assert_ready_for_action(block)?;
 
         for voter in removed_voters {
             // Would be nice to get this fixed:
@@ -241,7 +289,7 @@ impl<'a> SimpleVoting<'a> {
             }
         }
         self.vote_info.save(store, vote_id, &vote_info)?;
-        Ok(())
+        Ok(vote_info)
     }
 
     pub fn load_vote(
@@ -256,7 +304,7 @@ impl<'a> SimpleVoting<'a> {
     pub fn load_vote_info(&self, store: &dyn Storage, vote_id: VoteId) -> VoteResult<VoteInfo> {
         self.vote_info
             .may_load(store, vote_id)?
-            .ok_or(VoteError::NoVoteById { vote_id })
+            .ok_or(VoteError::NoVoteById {})
     }
 
     pub fn votes_for_id(
@@ -322,11 +370,10 @@ impl VoteInfo {
         }
     }
 
-    pub fn assert_ready_for_action(&self, vote_id: VoteId, block: &BlockInfo) -> VoteResult<()> {
-        self.status.assert_not_finished(vote_id)?;
+    pub fn assert_ready_for_action(&self, block: &BlockInfo) -> VoteResult<()> {
+        self.status.assert_is_active()?;
         if self.end.is_expired(block) {
             Err(VoteError::VoteExpired {
-                vote_id,
                 expiration: self.end,
             })
         } else {
@@ -359,16 +406,26 @@ impl VoteInfo {
 
 #[cosmwasm_schema::cw_serde]
 pub enum VoteStatus {
-    Active {},
-    VetoPeriod(Expiration),
+    Active,
+    VetoPeriod(Expiration, VoteOutcome),
     Finished(VoteOutcome),
 }
 
-impl VoteStatus {
-    pub fn assert_not_finished(&self, vote_id: VoteId) -> VoteResult<()> {
+impl Display for VoteStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VoteStatus::Finished(_) => Err(VoteError::AlreadyFinished { vote_id }),
-            _ => Ok(()),
+            VoteStatus::Active => write!(f, "active"),
+            VoteStatus::VetoPeriod(exp, outcome) => write!(f, "veto_period({exp},{outcome})"),
+            VoteStatus::Finished(outcome) => write!(f, "finished({outcome})"),
+        }
+    }
+}
+
+impl VoteStatus {
+    pub fn assert_is_active(&self) -> VoteResult<()> {
+        match self {
+            VoteStatus::Active => Ok(()),
+            _ => Err(VoteError::VoteNotActive {}),
         }
     }
 }
@@ -376,9 +433,21 @@ impl VoteStatus {
 // TODO: do we want more info like BlockInfo?
 #[cosmwasm_schema::cw_serde]
 pub enum VoteOutcome {
-    Passed {},
-    Failed {},
-    Canceled {},
+    Passed,
+    Failed,
+    Canceled,
+    Vetoed,
+}
+
+impl Display for VoteOutcome {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VoteOutcome::Passed => write!(f, "passed"),
+            VoteOutcome::Failed => write!(f, "failed"),
+            VoteOutcome::Canceled => write!(f, "canceled"),
+            VoteOutcome::Vetoed => write!(f, "vetoed"),
+        }
+    }
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -411,4 +480,10 @@ impl Threshold {
             Ok(())
         }
     }
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum VetoAdminAction {
+    Finish {},
+    Veto {},
 }
