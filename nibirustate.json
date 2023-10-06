@@ -1,0 +1,22 @@
+{
+  "nibiru": {
+    "nibiru-itn-3": {
+      "code_ids": {
+        "abstract:account-factory": 6,
+        "abstract:ans-host": 4,
+        "abstract:manager": 8,
+        "abstract:module-factory": 7,
+        "abstract:proxy": 9,
+        "abstract:version-control": 5
+      },
+      "default": {
+        "abstract:account-factory": "nibi1pvrwmjuusn9wh34j7y520g8gumuy9xtl3gvprlljfdpwju3x7ucsk5xrvl",
+        "abstract:ans-host": "nibi1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqyd53nd",
+        "abstract:manager": "nibi1vhjnzk9ly03dugffvzfcwgry4dgc8x0sv0nqqtfxj3ajn7rn5ghqfs6wg9",
+        "abstract:module-factory": "nibi13ehuhysn5mqjeaheeuew2gjs785f6k7jm8vfsqg3jhtpkwppcmzqczrhj6",
+        "abstract:proxy": "nibi1vhndln95yd7rngslzvf6sax6axcshkxqpmpr886ntelh28p9ghuqsl5ltd",
+        "abstract:version-control": "nibi1436kxs0w2es6xlqpp9rd35e3d0cjnw4sv8j3a7483sgks29jqwgsn6ytm8"
+      }
+    }
+  }
+}
