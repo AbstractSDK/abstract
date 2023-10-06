@@ -1,9 +1,11 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
-    ChallengeQueryMsg, ChallengeResponse, ChallengesResponse, FriendsResponse, VoteResponse,
+    ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
+    FriendsResponse, VoteResponse,
 };
-use crate::state::{ChallengeEntry, CHALLENGE_LIST};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, SIMPLE_VOTING};
+use abstract_core::objects::voting::DEFAULT_LIMIT;
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order};
 use cw_storage_plus::Bound;
 
 pub fn query_handler(
@@ -25,12 +27,7 @@ pub fn query_handler(
         ChallengeQueryMsg::Vote {
             voter_addr,
             challenge_id,
-        } => to_binary(&query_vote_for_check_in(
-            deps,
-            app,
-            voter_addr,
-            challenge_id,
-        )?),
+        } => to_binary(&query_vote(deps, app, voter_addr, challenge_id)?),
     }
     .map_err(Into::into)
 }
@@ -41,41 +38,66 @@ fn query_challenge(
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
-    todo!()
-    // Ok(ChallengeResponse { challenge: challenge.map(f) })
+
+    let challenge = if let Some(entry) = challenge {
+        let vote_info = SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
+        Some(ChallengeEntryResponse::from_entry_and_vote_info(
+            entry, vote_info,
+        ))
+    } else {
+        None
+    };
+    Ok(ChallengeResponse { challenge })
 }
 
-fn query_challenges(deps: Deps, start: u64, limit: u32) -> AppResult<ChallengesResponse> {
-    let challenges: StdResult<Vec<ChallengeEntry>> = CHALLENGE_LIST
-        .range(
-            deps.storage,
-            Some(Bound::exclusive(start)),
-            Some(Bound::inclusive(limit)),
-            Order::Ascending,
-        )
-        .map(|result| result.map(|(_, entry)| entry)) // strip the keys
-        .collect::<StdResult<Vec<ChallengeEntry>>>();
-    Ok(ChallengesResponse(challenges.unwrap_or_default()))
+fn query_challenges(
+    deps: Deps,
+    start: Option<u64>,
+    limit: Option<u64>,
+) -> AppResult<ChallengesResponse> {
+    let min = start.map(Bound::exclusive);
+    let limit = limit.unwrap_or(DEFAULT_LIMIT);
+    let mut last_challenge_id = 0;
+
+    let challenges = CHALLENGE_LIST
+        .range(deps.storage, min, None, Order::Ascending)
+        .take(limit as usize)
+        .map(|result| {
+            result
+                // Map err into AppError
+                .map_err(Into::into)
+                // Cast result into response
+                .and_then(|(challenge_id, entry)| {
+                    last_challenge_id = challenge_id;
+                    let vote_info =
+                        SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
+                    Ok(ChallengeEntryResponse::from_entry_and_vote_info(
+                        entry, vote_info,
+                    ))
+                })
+        })
+        .collect::<AppResult<Vec<ChallengeEntryResponse>>>()?;
+    Ok(ChallengesResponse {
+        challenges,
+        last_index: last_challenge_id,
+    })
 }
 
 fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
-    todo!()
-    // let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
-    // Ok(FriendsResponse(friends.unwrap_or_default()))
+    let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
+    Ok(FriendsResponse {
+        friends: friends.map(Vec::from_iter).unwrap_or_default(),
+    })
 }
 
-fn query_vote_for_check_in(
+fn query_vote(
     deps: Deps,
     _app: &ChallengeApp,
     voter_addr: String,
     challenge_id: u64,
 ) -> AppResult<VoteResponse> {
-    todo!()
-    // let v = Vote {
-    //     voter: voter_addr,
-    //     approval: None,
-    // };
-    // let v = v.check(deps)?;
-    // let vote = VOTES.may_load(deps.storage, (challenge_id, v.voter))?;
-    // Ok(VoteResponse { vote })
+    let voter = deps.api.addr_validate(&voter_addr)?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let vote = SIMPLE_VOTING.load_vote(deps.storage, challenge.current_vote_id, &voter)?;
+    Ok(VoteResponse { vote })
 }

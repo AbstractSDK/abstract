@@ -96,4 +96,4 @@ pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 /// Friends list for the challenge
 // Reduces gas consumption to load all friends
 // Helpful during distributing penalty and re-creation voting
-pub const FRIENDS_LIST: Map<u64, HashSet<Addr>> = Map::new("friends_list");
+pub const CHALLENGE_FRIENDS: Map<u64, HashSet<Addr>> = Map::new("friends_list");
