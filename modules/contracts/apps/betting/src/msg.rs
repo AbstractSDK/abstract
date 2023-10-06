@@ -44,7 +44,7 @@ use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
 use abstract_core::objects::{AccountId, AssetEntry};
-use crate::state::{TrackInfo, TrackId, TrackTeam, NewBet};
+use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet};
 
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
@@ -61,18 +61,18 @@ pub struct BetInstantiateMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum BetExecuteMsg {
-    /// CReate a track for the hackathon
+    /// CReate a round for the hackathon
     /// Admin only
-    CreateTrack(TrackInfo),
+    CreateRound(RoundInfo),
     /// Register as a team for the hackathon
     /// Uses the account caller to find the account id
     Register {
-        track_id: TrackId,
+        round_id: RoundId,
     },
     /// Register a team for the hackathon
     /// Admin
     UpdateAccounts {
-        track_id: TrackId,
+        round_id: RoundId,
         to_add: Vec<AccountId>,
         to_remove: Vec<AccountId>,
     },
@@ -83,7 +83,7 @@ pub enum BetExecuteMsg {
     Withdraw {},
     /// Admin only
     SetWinningTeam {
-        track_id: TrackId,
+        round_id: RoundId,
         team_id: AccountId,
     },
     UpdateConfig {
@@ -97,28 +97,28 @@ pub enum BetExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum BetQueryMsg {
-    /// Returns [`TrackResponse`]
-    #[returns(TrackResponse)]
-    Track {
-        track_id: TrackId,
+    /// Returns [`RoundResponse`]
+    #[returns(RoundResponse)]
+    Round {
+        round_id: RoundId,
     },
-    /// Returns [`TracksResponse`]
-    #[returns(TracksResponse)]
-    Tracks {
-        start_after: Option<TrackId>,
+    /// Returns [`RoundsResponse`]
+    #[returns(RoundsResponse)]
+    Rounds {
+        start_after: Option<RoundId>,
         limit: Option<u32>,
     },
     /// Returns [`OddsResponse`]
     #[returns(OddsResponse)]
     CalculateOdds {
-        track_id: TrackId,
+        round_id: RoundId,
         team_id: AccountId,
     },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     // TotalBets {
-    //     track_id: TrackId,
+    //     round_id: RoundId,
     //     team_id: AccountId,
     // }
 }
@@ -149,16 +149,16 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct TrackResponse {
-    pub id: TrackId,
+pub struct RoundResponse {
+    pub id: RoundId,
     pub name: String,
     pub description: String,
-    pub teams: Vec<TrackTeam>,
-    pub winning_team: Option<TrackTeam>,
+    pub teams: Vec<RoundTeam>,
+    pub winning_team: Option<RoundTeam>,
     pub total_bets: u128,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct TracksResponse {
-    pub tracks: Vec<TrackResponse>,
+pub struct RoundsResponse {
+    pub rounds: Vec<RoundResponse>,
 }

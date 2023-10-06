@@ -28,8 +28,8 @@ use betting_app::{
 };
 
 use speculoos::prelude::*;
-use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, TrackResponse};
-use betting_app::state::{DEFAULT_RAKE_PERCENT, TrackId, TrackInfo};
+use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, RoundResponse};
+use betting_app::state::{DEFAULT_RAKE_PERCENT, RoundId, RoundInfo};
 
 type AResult<T = ()> = anyhow::Result<T>;
 
@@ -137,33 +137,33 @@ impl BetEnv<Mock> {
         Ok(self.admin_account()?.manager.address()?)
     }
 
-    fn manual_add_teams_to_track(&self, track_id: TrackId, teams: Vec<AccountId>) -> AResult<()> {
-        self.bet.call_as(&self.admin_account_addr()?).update_accounts(teams, vec![], track_id)?;
+    fn manual_add_teams_to_round(&self, round_id: RoundId, teams: Vec<AccountId>) -> AResult<()> {
+        self.bet.call_as(&self.admin_account_addr()?).update_accounts(round_id, teams, vec![])?;
 
         Ok(())
     }
 
-    fn create_test_track(&self) -> AResult<TrackId> {
-        self.bet.call_as(&self.admin_account_addr()?).create_track(TrackInfo {
+    fn create_test_round(&self) -> AResult<RoundId> {
+        self.bet.call_as(&self.admin_account_addr()?).create_round(RoundInfo {
             name: "test".to_string(),
             description: "test".to_string(),
             base_bet_token: AssetEntry::new(BET_TOKEN_ANS_ID),
         })?;
 
-        let tracks = self.bet.tracks(None, None)?;
+        let rounds = self.bet.rounds(None, None)?;
 
-        let last_track = tracks.tracks.last().unwrap();
+        let last_round = rounds.rounds.last().unwrap();
 
-        Ok(last_track.id)
+        Ok(last_round.id)
     }
 
 
 }
 
 impl <Chain: CwEnv> BetEnv<Chain> {
-    fn register_on_track(&self, track_id: TrackId, account: AbstractAccount<Chain>) -> AResult<()> {
+    fn register_on_round(&self, round_id: RoundId, account: AbstractAccount<Chain>) -> AResult<()> {
         account.manager.execute_on_module(BET_APP_ID, app::ExecuteMsg::<_, Empty>::Module(BetExecuteMsg::Register {
-            track_id,
+            round_id,
         }))?;
 
         Ok(())
@@ -185,22 +185,22 @@ fn test_init_config() -> AResult {
 }
 
 #[test]
-fn test_create_track() -> AResult {
+fn test_create_round() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    env.create_test_track()?;
+    env.create_test_round()?;
 
-    let tracks = env.bet.tracks(None, None)?;
+    let rounds = env.bet.rounds(None, None)?;
 
-    assert_that!(tracks.tracks).has_length(1);
+    assert_that!(rounds.rounds).has_length(1);
 
-    let track  = tracks.tracks[0].clone();
+    let round  = rounds.rounds[0].clone();
 
-    assert_that!(track.name).is_equal_to("test".to_string());
-    assert_that!(track.description).is_equal_to("test".to_string());
-    assert_that!(track.teams).is_empty();
-    assert_that!(track.winning_team).is_none();
-    assert_that!(track.total_bets).is_equal_to(0);
+    assert_that!(round.name).is_equal_to("test".to_string());
+    assert_that!(round.description).is_equal_to("test".to_string());
+    assert_that!(round.teams).is_empty();
+    assert_that!(round.winning_team).is_none();
+    assert_that!(round.total_bets).is_equal_to(0);
 
 
     Ok(())
@@ -209,10 +209,10 @@ fn test_create_track() -> AResult {
 
 
 #[test]
-fn test_create_track_with_teams() -> AResult {
+fn test_create_round_with_teams() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let track_id= env.create_test_track()?;
+    let round_id= env.create_test_round()?;
 
     // create 10 accounts
     let account_ids = (0..10).map(|_| {
@@ -223,10 +223,10 @@ fn test_create_track_with_teams() -> AResult {
     }).collect::<Result<Vec<_>, _>>()?;
 
 
-    env.manual_add_teams_to_track(track_id, account_ids)?;
+    env.manual_add_teams_to_round(round_id, account_ids)?;
 
-    let track = env.bet.track(track_id)?;
-    assert_that!(&track.teams.len()).is_equal_to(10);
+    let round = env.bet.round(round_id)?;
+    assert_that!(&round.teams.len()).is_equal_to(10);
 
     Ok(())
 }

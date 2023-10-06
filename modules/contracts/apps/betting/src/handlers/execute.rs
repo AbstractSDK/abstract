@@ -23,18 +23,18 @@ pub fn execute_handler(
     msg: BetExecuteMsg,
 ) -> BetResult {
     match msg {
-        BetExecuteMsg::CreateTrack(track) => {
+        BetExecuteMsg::CreateRound(round) => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             // Check asset
-            create_track(deps, info, app, track)
+            create_round(deps, info, app, round)
         }
-        BetExecuteMsg::UpdateAccounts { to_add, to_remove, track_id } => {
+        BetExecuteMsg::UpdateAccounts { to_add, to_remove, round_id } => {
             // Only admin can register specific accounts
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
-            let track = Track::new(track_id);
+            let round = Round::new(round_id);
 
-            update_accounts(deps, info, app, track, to_add, to_remove)
+            update_accounts(deps, info, app, round, to_add, to_remove)
         }
         BetExecuteMsg::UpdateConfig { rake } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -62,7 +62,7 @@ pub fn execute_handler(
     }
 }
 
-fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, track: Track, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult {
+fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult {
     // ensure account exists
     let account_registry = app.account_registry(deps.as_ref());
     for account_id in to_add.iter() {
@@ -70,7 +70,7 @@ fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, track: Track, 
     }
 
     // register account
-    track.update_accounts(deps, to_add, to_remove)?;
+    round.update_accounts(deps, to_add, to_remove)?;
 
     Ok(app.tag_response(
         Response::default(),
@@ -78,27 +78,27 @@ fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, track: Track, 
     ))
 }
 
-pub fn create_track(
+pub fn create_round(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: BetApp,
-    track: TrackInfo,
+    round: RoundInfo,
 ) -> BetResult {
     let ans_host = app.ans_host(deps.as_ref())?;
     let mut state = STATE.load(deps.storage)?;
 
-    // Check track
-    track.validate(deps.as_ref(), &ans_host)?;
+    // Check round
+    round.validate(deps.as_ref(), &ans_host)?;
 
-    TRACKS.save(deps.storage, state.next_track_id, &track)?;
-    TRACK_ACCOUNTS.save(deps.storage, state.next_track_id, &vec![])?;
+    ROUNDS.save(deps.storage, state.next_round_id, &round)?;
+    ROUND_ACCOUNTS.save(deps.storage, state.next_round_id, &vec![])?;
 
     // Update and save the state
     STATE.update(deps.storage, |mut state| -> BetResult<_> {
-        state.next_track_id += 1;
+        state.next_round_id += 1;
         Ok(state)
     })?;
-    Ok(app.custom_tag_response(Response::default(), "create_track", vec![("track_id", state.next_track_id.to_string())]))
+    Ok(app.custom_tag_response(Response::default(), "create_round", vec![("round_id", state.next_round_id.to_string())]))
 }
 
 fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) -> BetResult {
@@ -111,13 +111,13 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
     for bet in bets.iter() {
         let bank = app.bank(deps.as_ref());
 
-        // Validate track exists
-        let track = TRACKS.may_load(deps.storage, bet.track_id)?;
-        if track.is_none() {
-            return Err(BetError::TrackNotFound(bet.track_id));
+        // Validate round exists
+        let round = ROUNDS.may_load(deps.storage, bet.round_id)?;
+        if round.is_none() {
+            return Err(BetError::RoundNotFound(bet.round_id));
         }
 
-        // TODO: this is currently quite inefficient if there are multiple bets for the same track
+        // TODO: this is currently quite inefficient if there are multiple bets for the same round
         // Ensure the account placing the bet exists
          bet.validate(deps.as_ref(), &bet_asset)?;
          // deposit the sent assets
@@ -129,7 +129,7 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
         // This is pseudocode, you'll need a suitable data structure for recording the bets.
         let bet_account = bet.clone().account_id;
 
-        let key = (bet.track_id, bet_account.clone());
+        let key = (bet.round_id, bet_account.clone());
         let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
         // Find and update the existing bet if it exists
         if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
@@ -141,16 +141,16 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
         }
         BETS.save(deps.storage, key.clone(), &bets)?;
 
-        // adjust the odds for the track
-        adjust_odds(deps.storage, bet.track_id, bet_account)?;
+        // adjust the odds for the round
+        adjust_odds(deps.storage, bet.round_id, bet_account)?;
     }
 
     Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
 }
 
-fn adjust_odds(storage: &mut dyn Storage, track_id: TrackId, account_id: AccountId) -> StdResult<()> {
-    let total_bets_for_account = query::get_total_bets_for_account(storage, track_id, account_id.clone())?;
-    let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, track_id)?;
+fn adjust_odds(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<()> {
+    let total_bets_for_account = query::get_total_bets_for_account(storage, round_id, account_id.clone())?;
+    let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, round_id)?;
 
     // Ensure the total bets for the account are not zero before calculating odds
     if total_bets_for_account.is_zero() {
@@ -159,15 +159,15 @@ fn adjust_odds(storage: &mut dyn Storage, track_id: TrackId, account_id: Account
 
     let new_odds = total_bets_for_all_accounts / total_bets_for_account;
 
-    ODDS.save(storage, (track_id, account_id.clone()), &new_odds)
+    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)
 }
 
 
 
 /*
 pub fn validate_bets(bets: &[NewBet], deps: Deps, ans_host: &AnsHost) -> EtfResult<()> {
-    // Cache for accounts registered to a track
-    let mut cache: HashMap<TrackId, HashSet<AccountId>> = HashMap::new();
+    // Cache for accounts registered to a round
+    let mut cache: HashMap<RoundId, HashSet<AccountId>> = HashMap::new();
 
     for bet in bets {
         if bet.asset.amount.is_zero() {
@@ -177,21 +177,21 @@ pub fn validate_bets(bets: &[NewBet], deps: Deps, ans_host: &AnsHost) -> EtfResu
         // ensure that the asset exists
         bet.asset.resolve(&deps.querier, ans_host)?;
 
-        // Load the accounts for the track if not in cache
-        if !cache.contains_key(&bet.track_id) {
-            let track = Track::new(bet.track_id);
-            let accounts = track.accounts(deps.storage)?;
+        // Load the accounts for the round if not in cache
+        if !cache.contains_key(&bet.round_id) {
+            let round = Round::new(bet.round_id);
+            let accounts = round.accounts(deps.storage)?;
             let mut set = HashSet::new();
             set.extend(accounts);
-            cache.insert(bet.track_id, set);
+            cache.insert(bet.round_id, set);
         }
 
         // Validate bet with cache
-        if let Some(accounts) = cache.get(&bet.track_id) {
+        if let Some(accounts) = cache.get(&bet.round_id) {
             if !accounts.contains(&bet.account_id) {
                 return Err(BetError::AccountNotParticipating {
                     account_id: bet.account_id.clone(),
-                    track_id: bet.track_id,
+                    round_id: bet.round_id,
                 });
             }
         }

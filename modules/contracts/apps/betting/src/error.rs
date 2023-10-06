@@ -7,7 +7,7 @@ use cosmwasm_std::{Addr, OverflowError, StdError};
 use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
 use cw_controllers::AdminError;
 use thiserror::Error;
-use crate::state::TrackId;
+use crate::state::RoundId;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum BetError {
@@ -68,16 +68,16 @@ pub enum BetError {
     #[error("The actual amount of tokens transferred is different from the claimed amount.")]
     InvalidAmount {},
 
-    #[error("Track {0} not found")]
-    TrackNotFound(TrackId),
+    #[error("Round {0} not found")]
+    RoundNotFound(RoundId),
 
     // account not found
     #[error("Account {0} not found")]
     AccountNotFound(AccountId),
 
-    #[error("Account {account_id} is not participating in {track_id}")]
+    #[error("Account {account_id} is not participating in {round_id}")]
     AccountNotParticipating {
-        track_id: TrackId,
+        round_id: RoundId,
         account_id: AccountId,
     },
     #[error("Invalid asset. Expected: {expected}, Actual: {actual}")]

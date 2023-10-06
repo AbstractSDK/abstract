@@ -43,14 +43,14 @@
     "description": "Execute Msg",
     "oneOf": [
       {
-        "description": "CReate a track for the hackathon Admin only",
+        "description": "CReate a round for the hackathon Admin only",
         "type": "object",
         "required": [
-          "create_track"
+          "create_round"
         ],
         "properties": {
-          "create_track": {
-            "$ref": "#/definitions/TrackInfo"
+          "create_round": {
+            "$ref": "#/definitions/RoundInfo"
           }
         },
         "additionalProperties": false
@@ -65,10 +65,10 @@
           "register": {
             "type": "object",
             "required": [
-              "track_id"
+              "round_id"
             ],
             "properties": {
-              "track_id": {
+              "round_id": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
@@ -91,7 +91,7 @@
             "required": [
               "to_add",
               "to_remove",
-              "track_id"
+              "round_id"
             ],
             "properties": {
               "to_add": {
@@ -106,7 +106,7 @@
                   "$ref": "#/definitions/AccountId"
                 }
               },
-              "track_id": {
+              "round_id": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
@@ -178,13 +178,13 @@
             "type": "object",
             "required": [
               "team_id",
-              "track_id"
+              "round_id"
             ],
             "properties": {
               "team_id": {
                 "$ref": "#/definitions/AccountId"
               },
-              "track_id": {
+              "round_id": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
@@ -305,7 +305,7 @@
         "required": [
           "account_id",
           "asset",
-          "track_id"
+          "round_id"
         ],
         "properties": {
           "account_id": {
@@ -314,7 +314,7 @@
           "asset": {
             "$ref": "#/definitions/AnsAsset"
           },
-          "track_id": {
+          "round_id": {
             "type": "integer",
             "format": "uint64",
             "minimum": 0.0
@@ -322,7 +322,7 @@
         },
         "additionalProperties": false
       },
-      "TrackInfo": {
+      "RoundInfo": {
         "type": "object",
         "required": [
           "base_bet_token",
@@ -354,13 +354,13 @@
     "description": "Query Msg",
     "oneOf": [
       {
-        "description": "Returns [`TracksResponse`]",
+        "description": "Returns [`RoundsResponse`]",
         "type": "object",
         "required": [
-          "tracks"
+          "rounds"
         ],
         "properties": {
-          "tracks": {
+          "rounds": {
             "type": "object",
             "properties": {
               "limit": {
@@ -396,13 +396,13 @@
             "type": "object",
             "required": [
               "team_id",
-              "track_id"
+              "round_id"
             ],
             "properties": {
               "team_id": {
                 "$ref": "#/definitions/AccountId"
               },
-              "track_id": {
+              "round_id": {
                 "type": "integer",
                 "format": "uint64",
                 "minimum": 0.0
@@ -566,18 +566,18 @@
         }
       }
     },
-    "tracks": {
+    "rounds": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "TracksResponse",
+      "title": "RoundsResponse",
       "type": "object",
       "required": [
-        "tracks"
+        "rounds"
       ],
       "properties": {
-        "tracks": {
+        "rounds": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/TrackResponse"
+            "$ref": "#/definitions/RoundResponse"
           }
         }
       },
@@ -638,7 +638,7 @@
           "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
           "type": "string"
         },
-        "TrackResponse": {
+        "RoundResponse": {
           "type": "object",
           "required": [
             "description",

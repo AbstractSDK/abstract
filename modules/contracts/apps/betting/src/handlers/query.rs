@@ -1,6 +1,6 @@
 use crate::contract::{BetApp, BetResult};
-use crate::msg::{BetQueryMsg, ConfigResponse, TrackResponse, TracksResponse};
-use crate::state::{BETS, CONFIG, Config, Track, TrackId, TrackInfo, TRACKS};
+use crate::msg::{BetQueryMsg, ConfigResponse, RoundResponse, RoundsResponse};
+use crate::state::{BETS, CONFIG, Config, Round, RoundId, RoundInfo, ROUNDS};
 use cosmwasm_std::{Binary, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
 use cw_storage_plus::Bound;
@@ -17,27 +17,27 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
                 bet_asset,
             })
         }
-        BetQueryMsg::Tracks { limit, start_after } => {
+        BetQueryMsg::Rounds { limit, start_after } => {
             let limit = limit.unwrap_or(10) as usize;
 
-            let tracks: Vec<(TrackId, TrackInfo)> = TRACKS
+            let rounds: Vec<(RoundId, RoundInfo)> = ROUNDS
                 .range(deps.storage, start_after.map(Bound::exclusive), None, Order::Ascending)
                 .take(limit)
                 .collect::<StdResult<Vec<_>>>()?;
 
-            let mut tracks_res = vec![];
+            let mut rounds_res = vec![];
 
-            for (id, info) in tracks {
-                let track_res = Track::new(id).query(deps)?;
-                tracks_res.push(track_res);
+            for (id, info) in rounds {
+                let round_res = Round::new(id).query(deps)?;
+                rounds_res.push(round_res);
             }
 
 
-            to_binary(&TracksResponse { tracks: tracks_res })
+            to_binary(&RoundsResponse { rounds: rounds_res })
         }
-        BetQueryMsg::Track { track_id } => {
-            let track_res = Track::new(track_id).query(deps)?;
-            to_binary(&track_res)
+        BetQueryMsg::Round { round_id } => {
+            let round_res = Round::new(round_id).query(deps)?;
+            to_binary(&round_res)
         }
         _ => panic!("Unsupported query message"),
     }
@@ -45,28 +45,28 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
 }
 
 
-/// Returns the total bet amount for a specific `AccountId` in a given `TrackId`.
+/// Returns the total bet amount for a specific `AccountId` in a given `RoundId`.
 pub fn get_total_bets_for_account(
     storage: &dyn Storage,
-    track_id: TrackId,
+    round_id: RoundId,
     account_id: AccountId
 ) -> StdResult<Uint128> {
-    let bets_for_account = BETS.may_load(storage, (track_id, account_id))?.unwrap_or_default();
+    let bets_for_account = BETS.may_load(storage, (round_id, account_id))?.unwrap_or_default();
     let total: Uint128 = bets_for_account.iter().map(|(_, amount)| *amount).sum();
     Ok(total)
 }
 
-/// Returns the total bet amount across all `AccountId`s for a given `TrackId`.
+/// Returns the total bet amount across all `AccountId`s for a given `RoundId`.
 pub fn get_total_bets_for_all_accounts(
     storage: &dyn Storage,
-    track_id: TrackId
+    round_id: RoundId
 ) -> StdResult<Uint128> {
-    let all_keys = BETS.prefix(track_id).keys(storage, None, None, Order::Ascending);
+    let all_keys = BETS.prefix(round_id).keys(storage, None, None, Order::Ascending);
 
     let total = all_keys
         .into_iter()
         .filter_map(|key| {
-            let key = (track_id, key.ok()?);
+            let key = (round_id, key.ok()?);
             BETS.load(storage, key).ok()
         })
         .flatten()

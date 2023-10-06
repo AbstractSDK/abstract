@@ -12,7 +12,7 @@ use cw_asset::{Asset, AssetInfo};
 use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
 use crate::handlers::query::get_total_bets_for_account;
-use crate::msg::TrackResponse;
+use crate::msg::RoundResponse;
 
 /// State stores LP token address
 /// BaseState is initialized in contract
@@ -35,10 +35,10 @@ impl Config {
 pub const DEFAULT_RAKE_PERCENT: u64 = 10;
 
 
-pub type TrackId = u64;
+pub type RoundId = u64;
 
 #[cosmwasm_schema::cw_serde]
-pub struct TrackInfo {
+pub struct RoundInfo {
     pub name: String,
     pub description: String,
     pub base_bet_token: AssetEntry,
@@ -47,25 +47,25 @@ pub struct TrackInfo {
 #[derive(Default)]
 #[cosmwasm_schema::cw_serde]
 pub struct State {
-  pub next_track_id: TrackId,
+  pub next_round_id: RoundId,
 }
 
-pub struct Track(pub TrackId);
-impl Track {
-    pub fn new(id: TrackId) -> Self {
-        Track(id)
+pub struct Round(pub RoundId);
+impl Round {
+    pub fn new(id: RoundId) -> Self {
+        Round(id)
     }
 
-    pub fn id(&self) -> TrackId {
+    pub fn id(&self) -> RoundId {
         self.0
     }
 
-    pub fn info(&self, storage: &dyn Storage) -> BetResult<TrackInfo> {
-        let info = TRACKS.load(storage, self.id()).map_err(|_| BetError::TrackNotFound(self.id()))?;
+    pub fn info(&self, storage: &dyn Storage) -> BetResult<RoundInfo> {
+        let info = ROUNDS.load(storage, self.id()).map_err(|_| BetError::RoundNotFound(self.id()))?;
         Ok(info)
     }
     pub fn accounts(&self, storage: &dyn Storage) -> BetResult<Vec<AccountId>> {
-        Ok(TRACK_ACCOUNTS.load(storage, self.id())?)
+        Ok(ROUND_ACCOUNTS.load(storage, self.id())?)
     }
 
     fn bet_count(&self, storage: &dyn Storage) -> BetResult<u128> {
@@ -73,11 +73,11 @@ impl Track {
         Ok(all_keys.len() as u128)
     }
 
-    pub fn query(&self, deps: Deps) -> BetResult<TrackResponse> {
+    pub fn query(&self, deps: Deps) -> BetResult<RoundResponse> {
         let info = self.info(deps.storage)?;
         let accounts = self.accounts(deps.storage)?;
         let total_bets = self.bet_count(deps.storage)?;
-        Ok(TrackResponse {
+        Ok(RoundResponse {
             id: self.id(),
             name: info.name,
             description: info.description,
@@ -96,11 +96,11 @@ impl Track {
         Ok(total)
     }
 
-    /// Register accounts to a track and error out if duplicates are found.
+    /// Register accounts to a round and error out if duplicates are found.
     /// *unchecked* for account existence.
     pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult<()> {
-        // Load existing accounts associated with the track
-        let mut existing_accounts: Vec<AccountId> = TRACK_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
+        // Load existing accounts associated with the round
+        let mut existing_accounts: Vec<AccountId> = ROUND_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
 
         // Add new account IDs after checking for duplicates
         for account_id in to_add.into_iter() {
@@ -118,7 +118,7 @@ impl Track {
         }
 
         // Save the updated list of accounts back to storage
-        TRACK_ACCOUNTS.save(deps.storage, self.id(), &existing_accounts)?;
+        ROUND_ACCOUNTS.save(deps.storage, self.id(), &existing_accounts)?;
 
         Ok(())
     }
@@ -127,7 +127,7 @@ impl Track {
 
 
 
-impl TrackInfo {
+impl RoundInfo {
     pub fn validate(&self, deps: Deps, ans_host: &AnsHost) -> BetResult<()> {
         validate_name(self.name.as_str())?;
         validate_description(Some(self.description.as_str()))?;
@@ -139,19 +139,19 @@ impl TrackInfo {
 
 }
 
-pub type TrackTeam = (TrackId, AccountId);
+pub type RoundTeam = (RoundId, AccountId);
 
 
 #[cosmwasm_schema::cw_serde]
 
 pub struct NewBet {
-    pub track_id: TrackId,
+    pub round_id: RoundId,
     pub account_id: AccountId,
     pub asset: AnsAsset,
 }
 
 pub struct ValidatedBet {
-    pub track: Track,
+    pub round: Round,
     pub account_id: AccountId,
     pub asset: Asset,
 }
@@ -168,30 +168,30 @@ impl NewBet {
         }
 
         // check that the account being bet on is registered
-        let track = Track::new(self.track_id);
-        let accounts = track.accounts(deps.storage)?;
+        let round = Round::new(self.round_id);
+        let accounts = round.accounts(deps.storage)?;
         let bet_account_id = &self.account_id;
         if !accounts.contains(bet_account_id) {
             return Err(BetError::AccountNotParticipating {
                 account_id: bet_account_id.clone(),
-                track_id: track.id()
+                round_id: round.id()
             });
         }
 
         Ok(())
         //
         // Ok(ValidatedBet {
-        //     track,
+        //     round,
         //     account_id: self.account_id.clone(),
         //     asset: resolved_asset,
         // })
     }
 }
 
-pub const TRACKS: Map<TrackId, TrackInfo> = Map::new("tracks");
+pub const ROUNDS: Map<RoundId, RoundInfo> = Map::new("rounds");
 
-pub const TRACK_ACCOUNTS: Map<TrackId, Vec<AccountId>> = Map::new("track_teams");
+pub const ROUND_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_teams");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
-pub const BETS: Map<(TrackId, AccountId), Vec<(Addr, Uint128)>> = Map::new("bets");
-pub const ODDS: Map<(TrackId, AccountId), Uint128> = Map::new("odds");
+pub const BETS: Map<(RoundId, AccountId), Vec<(Addr, Uint128)>> = Map::new("bets");
+pub const ODDS: Map<(RoundId, AccountId), Uint128> = Map::new("odds");
