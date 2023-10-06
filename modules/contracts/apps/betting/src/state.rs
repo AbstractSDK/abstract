@@ -98,16 +98,17 @@ impl Round {
 
     /// Register accounts to a round and error out if duplicates are found.
     /// *unchecked* for account existence.
-    pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult<()> {
+    pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult<()> {
         // Load existing accounts associated with the round
         let mut existing_accounts: Vec<AccountId> = ROUND_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
 
         // Add new account IDs after checking for duplicates
-        for account_id in to_add.into_iter() {
-            if existing_accounts.contains(&account_id) {
+        for AccountOdds {account_id, odds } in to_add.into_iter() {
+            if existing_accounts.contains(&account_id.clone()) {
                 return Err(StdError::generic_err(format!("Duplicate Account ID found: {}", account_id)).into());
             }
-            existing_accounts.push(account_id);
+            existing_accounts.push(account_id.clone());
+            ODDS.save(deps.storage, (self.id(), account_id), &odds)?;
         }
 
         // Remove specified account IDs
@@ -115,6 +116,7 @@ impl Round {
             if let Some(index) = existing_accounts.iter().position(|x| *x == account_id) {
                 existing_accounts.remove(index);
             }
+            ODDS.remove(deps.storage, (self.id(), account_id.clone()));
         }
 
         // Save the updated list of accounts back to storage
@@ -156,6 +158,9 @@ pub struct ValidatedBet {
     pub asset: Asset,
 }
 
+type OddsInt = Uint128;  // Represents odds with two decimal precision
+
+
 impl NewBet {
     pub fn validate(&self, deps: Deps, base_asset: &AssetEntry) -> BetResult<()> {
         if self.asset.amount.is_zero() {
@@ -188,10 +193,16 @@ impl NewBet {
     }
 }
 
+#[cosmwasm_schema::cw_serde]
+pub struct AccountOdds {
+    pub account_id: AccountId,
+    pub odds: OddsInt, // e.g., 250 for 2.50 odds
+}
+
 pub const ROUNDS: Map<RoundId, RoundInfo> = Map::new("rounds");
 
 pub const ROUND_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_teams");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
 pub const BETS: Map<(RoundId, AccountId), Vec<(Addr, Uint128)>> = Map::new("bets");
-pub const ODDS: Map<(RoundId, AccountId), Uint128> = Map::new("odds");
+pub const ODDS: Map<(RoundId, AccountId), OddsInt> = Map::new("odds");

@@ -17,7 +17,7 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
                 bet_asset,
             })
         }
-        BetQueryMsg::Rounds { limit, start_after } => {
+        BetQueryMsg::ListRounds { limit, start_after } => {
             let limit = limit.unwrap_or(10) as usize;
 
             let rounds: Vec<(RoundId, RoundInfo)> = ROUNDS

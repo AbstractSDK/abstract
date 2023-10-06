@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use abstract_core::{objects::AssetEntry, app::BaseInstantiateMsg, ans_host::ExecuteMsgFns as AnsExecuteMsgFns, objects::gov_type::GovernanceDetails, version_control::ExecuteMsgFns as VersionControlExecuteMsgFns, app};
 use abstract_core::app::BaseExecuteMsg;
-use abstract_core::objects::AccountId;
+use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_core::version_control::AccountBase;
 use abstract_interface::{
     Abstract, AbstractAccount, AppDeployer, DeployStrategy,
@@ -14,7 +14,7 @@ use abstract_interface::{
 use abstract_sdk::core as abstract_core;
 use abstract_testing::addresses::TEST_NAMESPACE;
 use abstract_testing::prelude::TEST_ADMIN;
-use cosmwasm_std::{Addr, Decimal};
+use cosmwasm_std::{Addr, coins, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
@@ -29,7 +29,7 @@ use betting_app::{
 
 use speculoos::prelude::*;
 use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, RoundResponse};
-use betting_app::state::{DEFAULT_RAKE_PERCENT, RoundId, RoundInfo};
+use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, NewBet, RoundId, RoundInfo};
 
 type AResult<T = ()> = anyhow::Result<T>;
 
@@ -88,6 +88,8 @@ pub struct BetEnv<Env: CwEnv> {
     pub env: Env,
 }
 
+const ADMIN_ACCOUNT_SEQ: u32 = 1;
+
 impl BetEnv<Mock> {
     fn setup(initial_balance: Option<Vec<Coin>>) -> anyhow::Result<Self> {
         let owner = Addr::unchecked(TEST_ADMIN);
@@ -129,15 +131,37 @@ impl BetEnv<Mock> {
         })
     }
 
+    fn account(&self, seq: u32) -> AResult<AbstractAccount<Mock>> {
+        Ok(AbstractAccount::new(&self.abstr, Some(AccountId::local(seq.into()))))
+    }
+
     fn admin_account(&self) ->AResult<AbstractAccount<Mock>> {
-        Ok(AbstractAccount::new(&self.abstr, Some(AccountId::local(1u32.into()))))
+        self.account(ADMIN_ACCOUNT_SEQ)
     }
 
     fn admin_account_addr(&self) -> AResult<Addr> {
         Ok(self.admin_account()?.manager.address()?)
     }
 
-    fn manual_add_teams_to_round(&self, round_id: RoundId, teams: Vec<AccountId>) -> AResult<()> {
+    // Add teams to the round with 0 odds to start
+    fn add_x_teams_to_round(&self, round_id: RoundId, x: usize) -> AResult<()> {
+        let account_ids = (0..x).map(|_| {
+            let account= self.abstr.account_factory.create_default_account(GovernanceDetails::Monarchy {
+                monarch: self.admin_account_addr().unwrap().into_string(),
+            }).unwrap();
+            let account_id = account.id().unwrap();
+            AccountOdds {
+                account_id,
+                odds: Uint128::from(x as u128),
+            }
+        }).collect::<Vec<AccountOdds>>();
+
+        self.manual_add_teams_to_round(round_id, account_ids)?;
+
+        Ok(())
+    }
+
+    fn manual_add_teams_to_round(&self, round_id: RoundId, teams: Vec<AccountOdds>) -> AResult<()> {
         self.bet.call_as(&self.admin_account_addr()?).update_accounts(round_id, teams, vec![])?;
 
         Ok(())
@@ -150,25 +174,37 @@ impl BetEnv<Mock> {
             base_bet_token: AssetEntry::new(BET_TOKEN_ANS_ID),
         })?;
 
-        let rounds = self.bet.rounds(None, None)?;
+        let rounds = self.bet.list_rounds(None, None)?;
 
         let last_round = rounds.rounds.last().unwrap();
 
         Ok(last_round.id)
     }
+    // admin execute on round
+    fn execute_as_account_on_round(&self, account: AbstractAccount<Mock>, msg: BetExecuteMsg) -> AResult<()> {
+        account.manager.execute_on_module(BET_APP_ID, app::ExecuteMsg::<_, Empty>::Module(msg))?;
 
+        Ok(())
+    }
 
-}
+    fn register_on_round(&self, account: AbstractAccount<Mock>, round_id: RoundId) -> AResult<()> {
+        self.execute_as_account_on_round(account, BetExecuteMsg::Register { round_id })?;
 
-impl <Chain: CwEnv> BetEnv<Chain> {
-    fn register_on_round(&self, round_id: RoundId, account: AbstractAccount<Chain>) -> AResult<()> {
-        account.manager.execute_on_module(BET_APP_ID, app::ExecuteMsg::<_, Empty>::Module(BetExecuteMsg::Register {
+        Ok(())
+    }
+
+    fn bet_on_round_as(&self, sender: Addr, account_id: AccountId, round_id: RoundId, amount: u128) -> AResult<()> {
+        let bet = NewBet {
             round_id,
-        }))?;
+            account_id,
+            asset: AnsAsset::new(BET_TOKEN_ANS_ID, amount),
+        };
+        self.bet.call_as(&sender).place_bets(vec![bet], &coins(amount, BET_TOKEN_DENOM))?;
 
         Ok(())
     }
 }
+
 
 
 #[test]
@@ -190,7 +226,7 @@ fn test_create_round() -> AResult {
 
     env.create_test_round()?;
 
-    let rounds = env.bet.rounds(None, None)?;
+    let rounds = env.bet.list_rounds(None, None)?;
 
     assert_that!(rounds.rounds).has_length(1);
 
@@ -214,19 +250,31 @@ fn test_create_round_with_teams() -> AResult {
 
     let round_id= env.create_test_round()?;
 
-    // create 10 accounts
-    let account_ids = (0..10).map(|_| {
-        let account= env.abstr.account_factory.create_default_account(GovernanceDetails::Monarchy {
-            monarch: env.admin_account_addr().unwrap().into_string(),
-        }).unwrap();
-        account.id()
-    }).collect::<Result<Vec<_>, _>>()?;
-
-
-    env.manual_add_teams_to_round(round_id, account_ids)?;
+    env.add_x_teams_to_round(round_id, 10)?;
 
     let round = env.bet.round(round_id)?;
     assert_that!(&round.teams.len()).is_equal_to(10);
+
+    Ok(())
+}
+
+#[test]
+fn test_create_round_with_mini_bets() -> AResult {
+    let env = BetEnv::setup(None)?;
+
+    let round_id= env.create_test_round()?;
+
+    env.add_x_teams_to_round(round_id, 2)?;
+
+    let bettor = Addr::unchecked("account");
+    let bet_amount = 100;
+
+
+    env.env.set_balance(&bettor, coins(bet_amount, BET_TOKEN_DENOM))?;
+
+    let betting_on = AccountId::local(2);
+
+    env.bet_on_round_as(bettor, betting_on, round_id, bet_amount)?;
 
     Ok(())
 }

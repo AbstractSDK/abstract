@@ -39,12 +39,12 @@
 //! Migrating this contract is done by calling `ExecuteMsg::Upgrade` on [`crate::manager`] with `crate::ETF` as module.
 
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Decimal};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
 use abstract_core::objects::{AccountId, AssetEntry};
-use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet};
+use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet, AccountOdds};
 
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
@@ -73,9 +73,10 @@ pub enum BetExecuteMsg {
     /// Admin
     UpdateAccounts {
         round_id: RoundId,
-        to_add: Vec<AccountId>,
+        to_add: Vec<AccountOdds>,
         to_remove: Vec<AccountId>,
     },
+    #[cfg_attr(feature = "interface", payable)]
     PlaceBets {
         bets: Vec<NewBet>,
     },
@@ -104,15 +105,20 @@ pub enum BetQueryMsg {
     },
     /// Returns [`RoundsResponse`]
     #[returns(RoundsResponse)]
-    Rounds {
+    ListRounds {
         start_after: Option<RoundId>,
         limit: Option<u32>,
     },
     /// Returns [`OddsResponse`]
     #[returns(OddsResponse)]
-    CalculateOdds {
+    Odds {
         round_id: RoundId,
         team_id: AccountId,
+    },
+    /// Returns [`ListOddsResponse`]
+    #[returns(ListOddsResponse)]
+    ListOdds {
+        round_id: RoundId,
     },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
@@ -135,10 +141,14 @@ pub enum Cw20HookMsg {
 /// State query response
 #[cosmwasm_schema::cw_serde]
 pub struct OddsResponse {
-    /// Address of the LP token
-    pub share_token_address: Addr,
-    /// Fee charged on withdrawal
-    pub fee: Decimal,
+    pub round_id: RoundId,
+    pub odds: Uint128
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct ListOddsResponse {
+    pub round_id: RoundId,
+    pub odds: Vec<(AccountId, Uint128)>
 }
 
 #[cosmwasm_schema::cw_serde]

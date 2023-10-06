@@ -62,10 +62,13 @@ pub fn execute_handler(
     }
 }
 
-fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult {
-    // ensure account exists
+fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult {
     let account_registry = app.account_registry(deps.as_ref());
-    for account_id in to_add.iter() {
+    for AccountOdds {
+        account_id,
+        ..
+    } in to_add.iter() {
+        // ensure account exists
         account_registry.account_base(&account_id).map_err(|_| BetError::AccountNotFound(account_id.clone()))?;
     }
 
@@ -103,6 +106,8 @@ pub fn create_round(
 
 fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) -> BetResult {
 
+    deps.api.debug(&format!("bets: {:?}", bets));
+
     let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
 
     let mut messages: Vec<CosmosMsg> = vec![];
@@ -126,7 +131,6 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
 
 
         // Record the bet
-        // This is pseudocode, you'll need a suitable data structure for recording the bets.
         let bet_account = bet.clone().account_id;
 
         let key = (bet.round_id, bet_account.clone());
@@ -142,13 +146,17 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
         BETS.save(deps.storage, key.clone(), &bets)?;
 
         // adjust the odds for the round
-        adjust_odds(deps.storage, bet.round_id, bet_account)?;
+        let new_odds = adjust_odds(deps.storage, bet.round_id, bet_account)?;
+        deps.api.debug(&format!("new_odds: {:?}", new_odds));
     }
 
     Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
 }
 
-fn adjust_odds(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<()> {
+/// Calculates the new odds for the given round/account pair
+/// # Returns
+/// the new odds
+fn adjust_odds(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<Uint128> {
     let total_bets_for_account = query::get_total_bets_for_account(storage, round_id, account_id.clone())?;
     let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, round_id)?;
 
@@ -157,9 +165,12 @@ fn adjust_odds(storage: &mut dyn Storage, round_id: RoundId, account_id: Account
         return Err(StdError::generic_err("Total bets for the account is zero, cannot calculate odds."));
     }
 
+
     let new_odds = total_bets_for_all_accounts / total_bets_for_account;
 
-    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)
+    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)?;
+
+    Ok(new_odds)
 }
 
 
