@@ -17,7 +17,25 @@ use cw_orch::{
         *,
     },
 };
+use cw_orch::daemon::{ChainKind, NetworkInfo};
 use tokio::runtime::Runtime;
+
+pub const NIBIRU_NETWORK: NetworkInfo = NetworkInfo {
+    id: "nibiru",
+    pub_address_prefix: "nibi",
+    coin_type: 118u32,
+};
+
+pub const NIBIRU_ITN_2: ChainInfo = ChainInfo {
+    kind: ChainKind::Testnet,
+    chain_id: "nibiru-itn-3",
+    gas_denom: "unibi",
+    gas_price: 0.025,
+    grpc_urls: &["https://nibiru-testnet.grpc.kjnodes.com:443"],
+    network_info: NIBIRU_NETWORK,
+    lcd_url: None,
+    fcd_url: None,
+};
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -28,16 +46,16 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     if networks.is_empty() {
         networks = SUPPORTED_CHAINS.to_vec();
     }
-
-    let deployment_status = read_deployment()?;
-    if deployment_status.success {
-        log::info!("Do you want to re-deploy to {:?}?", networks);
-        let mut input = String::new();
-        std::io::stdin().read_line(&mut input)?;
-        if input.to_lowercase().contains('n') {
-            return Ok(());
-        }
-    }
+    //
+    // let deployment_status = read_deployment()?;
+    // if deployment_status.success {
+    //     log::info!("Do you want to re-deploy to {:?}?", networks);
+    //     let mut input = String::new();
+    //     std::io::stdin().read_line(&mut input)?;
+    //     if input.to_lowercase().contains('n') {
+    //         return Ok(());
+    //     }
+    // }
     // let deployment_status = deployment_status.clone();
 
     // If some chains need to be deployed, deploy them
@@ -140,9 +158,10 @@ fn main() {
 
     use dotenv::dotenv;
 
-    let args = Arguments::parse();
+    // let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    // let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = vec![NIBIRU_ITN_2];
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);
