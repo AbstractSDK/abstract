@@ -380,9 +380,7 @@ impl VoteInfo {
             Ok(())
         }
     }
-}
 
-impl VoteInfo {
     pub fn vote_update(&mut self, previous_vote: Option<&Vote>, new_vote: &Vote) {
         match (previous_vote, new_vote.vote) {
             (Some(Vote { vote: true, .. }), true) | (Some(Vote { vote: false, .. }), false) => {}
@@ -453,7 +451,8 @@ impl Display for VoteOutcome {
 #[cosmwasm_schema::cw_serde]
 pub struct VoteConfig {
     pub threshold: Threshold,
-    // Veto duration after the first vote
+    /// Veto duration after the first vote
+    /// None disables veto
     pub veto_duration: Option<Duration>,
 }
 

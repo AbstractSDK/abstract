@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use abstract_core::objects::{
     voting::{SimpleVoting, VoteId},
     AssetEntry,
 };
-use cosmwasm_std::Uint128;
+use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
 use crate::msg::ChallengeRequest;
@@ -20,6 +22,7 @@ pub struct ChallengeEntry {
     pub description: String,
     pub admin_strikes: AdminStrikes,
     pub current_vote_id: VoteId,
+    pub previous_vote_ids: Vec<VoteId>,
 }
 
 /// Strategy for striking the admin
@@ -47,6 +50,13 @@ impl AdminStrikes {
             limit: limit.unwrap_or(1),
         }
     }
+
+    pub fn strike(&mut self) -> bool {
+        self.num_strikes += 1;
+        // check if it's last strike
+        let last_strike = self.num_strikes >= self.limit;
+        last_strike
+    }
 }
 
 impl ChallengeEntry {
@@ -59,6 +69,7 @@ impl ChallengeEntry {
             description: request.description,
             admin_strikes: AdminStrikes::new(request.strikes_limit),
             current_vote_id: vote_id,
+            previous_vote_ids: Vec::default(),
         }
     }
 }
@@ -82,3 +93,7 @@ pub const SIMPLE_VOTING: SimpleVoting =
     SimpleVoting::new("votes", "votes_id", "votes_info", "votes_config");
 
 pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
+/// Friends list for the challenge
+// Reduces gas consumption to load all friends
+// Helpful during distributing penalty and re-creation voting
+pub const FRIENDS_LIST: Map<u64, HashSet<Addr>> = Map::new("friends_list");

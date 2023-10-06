@@ -1,15 +1,19 @@
+use std::collections::HashSet;
+
 use crate::error::AppError;
-use abstract_core::objects::voting::Vote;
+use abstract_core::objects::voting::{Vote, VoteInfo, VoteOutcome, VoteStatus};
+use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult};
+use abstract_sdk::{Execution, TransferInterface};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
 
 use crate::contract::{AppResult, ChallengeApp};
 // use abstract_sdk::prelude::*;
 
 use crate::msg::{ChallengeExecuteMsg, ChallengeRequest};
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_LIST, NEXT_ID,
-    SIMPLE_VOTING,
+    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_LIST, FRIENDS_LIST,
+    NEXT_ID, SIMPLE_VOTING,
 };
 
 pub fn execute_handler(
@@ -35,8 +39,12 @@ pub fn execute_handler(
             friends,
             op_kind,
         } => update_friends_for_challenge(deps, env, info, &app, challenge_id, friends, op_kind),
-        ChallengeExecuteMsg::CastVote { vote, challenge_id } => {
-            cast_vote(deps, env, info, &app, vote, challenge_id)
+        ChallengeExecuteMsg::CastVote {
+            vote_to_punish: vote,
+            challenge_id,
+        } => cast_vote(deps, env, info, &app, vote, challenge_id),
+        ChallengeExecuteMsg::CountVotes { challenge_id } => {
+            count_votes(deps, env, info, &app, challenge_id)
         }
     }
 }
@@ -66,6 +74,11 @@ fn create_challenge(
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
+    FRIENDS_LIST.save(
+        deps.storage,
+        challenge_id,
+        &HashSet::from_iter(friends_validated.into_iter()),
+    )?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -91,7 +104,7 @@ fn update_challenge(
 
     SIMPLE_VOTING
         .load_vote_info(deps.storage, vote_id)?
-        .assert_ready_for_action(vote_id, &env.block)?;
+        .assert_ready_for_action(&env.block)?;
 
     if let Some(name) = new_challenge.name {
         loaded_challenge.name = name;
@@ -118,7 +131,7 @@ fn cancel_challenge(
     challenge_id: u64,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-    let mut challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     let vote_id = challenge.current_vote_id;
     SIMPLE_VOTING.cancel_vote(deps.storage, &env.block, vote_id)?;
 
@@ -148,14 +161,28 @@ fn update_friends_for_challenge(
 
     SIMPLE_VOTING
         .load_vote_info(deps.storage, vote_id)?
-        .assert_ready_for_action(vote_id, &env.block)?;
+        .assert_ready_for_action(&env.block)?;
 
     match op_kind {
         UpdateFriendsOpKind::Add {} => {
             SIMPLE_VOTING.add_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
+            FRIENDS_LIST.update(deps.storage, challenge_id, |friends| {
+                // TODO: replace unwrap with cute error
+                let mut friends = friends.unwrap();
+                friends.extend(friends_validated.into_iter());
+                AppResult::Ok(friends)
+            })?;
         }
         UpdateFriendsOpKind::Remove {} => {
             SIMPLE_VOTING.remove_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
+            FRIENDS_LIST.update(deps.storage, challenge_id, |friends| {
+                // TODO: replace unwrap with cute error
+                let mut friends = friends.unwrap();
+                for removed_friend in friends_validated {
+                    friends.remove(&removed_friend);
+                }
+                AppResult::Ok(friends)
+            })?;
         }
     }
     Ok(app.tag_response(
@@ -177,50 +204,83 @@ fn cast_vote(
     let vote_info =
         SIMPLE_VOTING.cast_vote(deps.storage, &env.block, vote_id, &info.sender, vote)?;
 
-    Ok(app.tag_response(Response::new(), "cast_vote"))
+    Ok(app
+        .tag_response(Response::new(), "cast_vote")
+        .add_attribute("vote_info", format!("{vote_info:?}")))
 }
 
-// fn charge_penalty(deps: DepsMut, app: &ChallengeApp, challenge_id: u64) -> AppResult {
-//     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-//     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
+fn count_votes(
+    deps: DepsMut,
+    env: Env,
+    _info: MessageInfo,
+    app: &ChallengeApp,
+    challenge_id: u64,
+) -> Result<Response, AppError> {
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let vote_id = challenge.current_vote_id;
+    let vote_info = SIMPLE_VOTING.count_votes(deps.storage, &env.block, vote_id)?;
 
-//     let num_friends = friends.len() as u128;
-//     if num_friends == 0 {
-//         return Err(AppError::ZeroFriends {});
-//     }
+    // If passed do the penalty
+    if let VoteStatus::Finished(VoteOutcome::Passed) = vote_info.status {
+        charge_penalty(deps, env, app, vote_info, challenge, challenge_id)
+    } else {
+        // veto period
+        Ok(app
+            .tag_response(Response::new(), "count_votes")
+            .add_attribute("vote_info", format!("{vote_info:?}")))
+    }
+}
 
-//     let (amount_per_friend, remainder) = match challenge.strike_strategy {
-//         crate::state::StrikeStrategy::Split(amount) => (
-//             Uint128::new(amount.u128() / num_friends),
-//             amount.u128() % num_friends,
-//         ),
-//         crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
-//     };
+fn charge_penalty(
+    deps: DepsMut,
+    env: Env,
+    app: &ChallengeApp,
+    vote_info: VoteInfo,
+    mut challenge: ChallengeEntry,
+    challenge_id: u64,
+) -> AppResult {
+    let friends = FRIENDS_LIST.load(deps.storage, challenge_id)?;
+    let num_friends = friends.len() as u128;
+    if num_friends == 0 {
+        return Err(AppError::ZeroFriends {});
+    }
+    let last_strike = challenge.admin_strikes.strike();
+    // Create new voting if required
+    if !last_strike && !vote_info.end.is_expired(&env.block) {
+        let initial_voters: Vec<Addr> = Vec::from_iter(friends.clone());
+        let new_vote_id = SIMPLE_VOTING.new_vote(deps.storage, vote_info.end, &initial_voters)?;
+        challenge.previous_vote_ids.push(challenge.current_vote_id);
+        challenge.current_vote_id = new_vote_id;
+    };
+    CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
-//     let asset_per_friend = OfferAsset {
-//         name: challenge.strike_asset,
-//         amount: amount_per_friend,
-//     };
+    let (amount_per_friend, remainder) = match challenge.strike_strategy {
+        crate::state::StrikeStrategy::Split(amount) => (
+            Uint128::new(amount.u128() / num_friends),
+            amount.u128() % num_friends,
+        ),
+        crate::state::StrikeStrategy::PerFriend(amount) => (amount, 0),
+    };
 
-//     let bank = app.bank(deps.as_ref());
-//     let executor = app.executor(deps.as_ref());
+    let asset_per_friend = OfferAsset {
+        name: challenge.strike_asset,
+        amount: amount_per_friend,
+    };
 
-//     // Create a transfer action for each friend
-//     let transfer_actions: Result<Vec<_>, _> = friends
-//         .into_iter()
-//         .map(|friend| bank.transfer(vec![asset_per_friend.clone()], &friend.address))
-//         .collect();
+    let bank = app.bank(deps.as_ref());
+    let executor = app.executor(deps.as_ref());
 
-//     let transfer_msg = executor.execute(transfer_actions?);
+    // Create a transfer action for each friend
+    let transfer_actions = friends
+        .iter()
+        .map(|friend_addr| bank.transfer(vec![asset_per_friend.clone()], friend_addr))
+        .collect::<Result<Vec<_>, _>>()?;
 
-//     Ok(app
-//         .tag_response(
-//             Response::new().add_attribute(
-//                 "message",
-//                 "All votes were negative. ChallengeStatus has been set to OverAndCompleted.",
-//             ),
-//             "charge_penalty",
-//         )
-//         .add_messages(transfer_msg)
-//         .add_attribute("remainder", remainder.to_string()))
-// }
+    let transfer_msg = executor.execute(transfer_actions)?;
+
+    Ok(app
+        .tag_response(Response::new(), "charge_penalty")
+        .add_message(transfer_msg)
+        .add_attribute("vote_info", format!("{vote_info:?}"))
+        .add_attribute("remainder", remainder.to_string()))
+}

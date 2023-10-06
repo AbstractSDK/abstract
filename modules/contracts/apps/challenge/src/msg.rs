@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use abstract_core::objects::{
-    voting::{Vote, VoteStatus},
+    voting::{Vote, VoteConfig, VoteStatus},
     AssetEntry,
 };
 use cosmwasm_schema::QueryResponses;
@@ -15,6 +15,12 @@ use cosmwasm_std::Addr;
 use cw_utils::{Duration, Expiration};
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
+
+/// Challenge instantiate message
+#[cosmwasm_schema::cw_serde]
+pub struct ChallengeInstantiateMsg {
+    pub vote_config: VoteConfig,
+}
 
 /// Challenge execute messages
 #[cosmwasm_schema::cw_serde]
@@ -55,7 +61,12 @@ pub enum ChallengeExecuteMsg {
         /// and the contract will internally set the approval field to Some(true).
         /// This is because we assume that if a friend didn't vote, the friend approves,
         /// otherwise the voter would Vote with approval set to Some(false).
-        vote: Vote,
+        vote_to_punish: Vote,
+    },
+    /// Count votes for challenge id
+    CountVotes {
+        /// Challenge id for counting votes
+        challenge_id: u64,
     },
 }
 
