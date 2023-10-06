@@ -27,14 +27,14 @@ pub fn execute_handler(
             // Check asset
             create_track(deps, info, app, track)
         }
-        BetExecuteMsg::UpdateAccounts { account_ids, track_id } => {
+        BetExecuteMsg::UpdateAccounts { to_add, to_remove, track_id } => {
             // Only admin can register specific accounts
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
             let track = Track::new(track_id);
 
-            register_account(deps, info, app, track, account_ids)
-        },
+            update_accounts(deps, info, app, track, to_add, to_remove)
+        }
         BetExecuteMsg::UpdateConfig { rake } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             // TODO: use config constant, not sure why this is not working.
@@ -51,25 +51,24 @@ pub fn execute_handler(
                 "update_config",
                 attrs,
             ))
-        },
+        }
         _ => panic!("Unsupported execute message"),
     }
 }
 
-fn register_account(deps: DepsMut, info: MessageInfo, app: EtfApp, track: Track, account_ids: Vec<AccountId>) -> EtfResult {
+fn update_accounts(deps: DepsMut, info: MessageInfo, app: EtfApp, track: Track, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> EtfResult {
     // ensure account exists
     let account_registry = app.account_registry(deps.as_ref());
-    for account_id in account_ids.iter() {
+    for account_id in to_add.iter() {
         account_registry.account_base(&account_id).map_err(|_| BetError::AccountNotFound(account_id.clone()))?;
     }
 
     // register account
-    track.unchecked_register_accounts(deps, account_ids.clone())?;
+    track.update_accounts(deps, to_add, to_remove)?;
 
-    Ok(app.custom_tag_response(
+    Ok(app.tag_response(
         Response::default(),
         "update_accounts",
-        vec![("account_ids", account_ids.iter().map(|id| id.to_string()).collect::<Vec<String>>().join(","))],
     ))
 }
 
@@ -77,7 +76,7 @@ pub fn create_track(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: EtfApp,
-    track: TrackInfo
+    track: TrackInfo,
 ) -> EtfResult {
     let mut state = STATE.load(deps.storage)?;
 
@@ -87,7 +86,7 @@ pub fn create_track(
     TRACKS.save(deps.storage, state.next_track_id, &track)?;
 
     // Update and save the state
-    STATE.update(deps.storage, |mut state | -> EtfResult<_> {
+    STATE.update(deps.storage, |mut state| -> EtfResult<_> {
         state.next_track_id += 1;
         Ok(state)
     })?;

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use abstract_core::AbstractResult;
 use abstract_core::objects::fee::Fee;
-use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult};
 use cw_storage_plus::{Item, Map};
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
 use abstract_core::objects::validation::{validate_description, validate_name};
@@ -57,15 +57,33 @@ impl Track {
         Ok(TRACK_ACCOUNTS.load(deps.storage, self.id())?)
     }
 
-    /// Register an account to a track without checking the account's existence
-    pub fn unchecked_register_accounts(&self, deps: DepsMut, account_ids: Vec<AccountId>) -> EtfResult<()> {
-        TRACK_ACCOUNTS.update(deps.storage, self.id(), |teams| -> StdResult<Vec<AccountId>> {
-            let mut teams: Vec<AccountId> = teams.unwrap_or_default();
-            teams.extend(account_ids);
-            Ok(teams)
-        })?;
+    /// Register accounts to a track and error out if duplicates are found.
+    /// *unchecked* for account existence.
+    pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> EtfResult<()> {
+        // Load existing accounts associated with the track
+        let mut existing_accounts: Vec<AccountId> = TRACK_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
+
+        // Add new account IDs after checking for duplicates
+        for account_id in to_add.into_iter() {
+            if existing_accounts.contains(&account_id) {
+                return Err(StdError::generic_err(format!("Duplicate Account ID found: {}", account_id)).into());
+            }
+            existing_accounts.push(account_id);
+        }
+
+        // Remove specified account IDs
+        for account_id in to_remove.into_iter() {
+            if let Some(index) = existing_accounts.iter().position(|x| *x == account_id) {
+                existing_accounts.remove(index);
+            }
+        }
+
+        // Save the updated list of accounts back to storage
+        TRACK_ACCOUNTS.save(deps.storage, self.id(), &existing_accounts)?;
+
         Ok(())
     }
+
 }
 
 

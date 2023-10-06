@@ -71,8 +71,9 @@ pub enum BetExecuteMsg {
     /// Register a team for the hackathon
     /// Admin
     UpdateAccounts {
-        account_ids: Vec<AccountId>,
         track_id: TrackId,
+        to_add: Vec<AccountId>,
+        to_remove: Vec<AccountId>,
     },
     PlaceBets {
         bets: Vec<NewBet>,
