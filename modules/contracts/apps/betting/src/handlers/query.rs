@@ -1,8 +1,9 @@
 use crate::contract::{BetApp, BetResult};
-use crate::msg::{BetQueryMsg, ConfigResponse};
-use crate::state::{BETS, CONFIG, Config, TrackId};
+use crate::msg::{BetQueryMsg, ConfigResponse, TrackResponse, TracksResponse};
+use crate::state::{BETS, CONFIG, Config, Track, TrackId, TrackInfo, TRACKS};
 use cosmwasm_std::{Binary, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
+use cw_storage_plus::Bound;
 
 pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> BetResult<Binary> {
     match msg {
@@ -15,6 +16,28 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
                 rake: rake.share(),
                 bet_asset,
             })
+        }
+        BetQueryMsg::Tracks { limit, start_after } => {
+            let limit = limit.unwrap_or(10) as usize;
+
+            let tracks: Vec<(TrackId, TrackInfo)> = TRACKS
+                .range(deps.storage, start_after.map(Bound::exclusive), None, Order::Ascending)
+                .take(limit)
+                .collect::<StdResult<Vec<_>>>()?;
+
+            let mut tracks_res = vec![];
+
+            for (id, info) in tracks {
+                let track_res = Track::new(id).query(deps)?;
+                tracks_res.push(track_res);
+            }
+
+
+            to_binary(&TracksResponse { tracks: tracks_res })
+        }
+        BetQueryMsg::Track { track_id } => {
+            let track_res = Track::new(track_id).query(deps)?;
+            to_binary(&track_res)
         }
         _ => panic!("Unsupported query message"),
     }

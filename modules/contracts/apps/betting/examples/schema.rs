@@ -1,6 +1,5 @@
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 use betting_app::contract::BetApp;
-use betting_app::msg::StateResponse;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
@@ -11,5 +10,4 @@ fn main() {
     remove_schemas(&out_dir).unwrap();
 
     BetApp::export_schema(&out_dir);
-    export_schema(&schema_for!(StateResponse), &out_dir);
 }

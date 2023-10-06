@@ -97,6 +97,11 @@ pub enum BetExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum BetQueryMsg {
+    /// Returns [`TrackResponse`]
+    #[returns(TrackResponse)]
+    Track {
+        track_id: TrackId,
+    },
     /// Returns [`TracksResponse`]
     #[returns(TracksResponse)]
     Tracks {

@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use abstract_core::AbstractResult;
 use abstract_core::objects::fee::Fee;
-use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, Order, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::{Item, Map, MultiIndex};
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
 use abstract_core::objects::ans_host::AnsHost;
@@ -11,6 +11,8 @@ use abstract_sdk::features::AbstractNameService;
 use cw_asset::{Asset, AssetInfo};
 use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
+use crate::handlers::query::get_total_bets_for_account;
+use crate::msg::TrackResponse;
 
 /// State stores LP token address
 /// BaseState is initialized in contract
@@ -58,12 +60,40 @@ impl Track {
         self.0
     }
 
-    pub fn info(&self, deps: Deps) -> BetResult<TrackInfo> {
-        let info = TRACKS.load(deps.storage, self.id()).map_err(|_| BetError::TrackNotFound(self.id()))?;
+    pub fn info(&self, storage: &dyn Storage) -> BetResult<TrackInfo> {
+        let info = TRACKS.load(storage, self.id()).map_err(|_| BetError::TrackNotFound(self.id()))?;
         Ok(info)
     }
     pub fn accounts(&self, storage: &dyn Storage) -> BetResult<Vec<AccountId>> {
         Ok(TRACK_ACCOUNTS.load(storage, self.id())?)
+    }
+
+    fn bet_count(&self, storage: &dyn Storage) -> BetResult<u128> {
+        let all_keys: Vec<_> = BETS.prefix(self.id()).keys(storage, None, None, Order::Ascending).collect();
+        Ok(all_keys.len() as u128)
+    }
+
+    pub fn query(&self, deps: Deps) -> BetResult<TrackResponse> {
+        let info = self.info(deps.storage)?;
+        let accounts = self.accounts(deps.storage)?;
+        let total_bets = self.bet_count(deps.storage)?;
+        Ok(TrackResponse {
+            id: self.id(),
+            name: info.name,
+            description: info.description,
+            teams: accounts.into_iter().map(|x| (self.id(), x)).collect(),
+            // TODO
+            winning_team: None,
+            total_bets,
+        })
+    }
+
+    pub fn total_bets(&self, storage: &dyn Storage) -> BetResult<Uint128> {
+        let accounts = self.accounts(storage)?;
+        let total: Uint128 = accounts.iter().map(|account_id| {
+            get_total_bets_for_account(storage, self.id(), account_id.clone()).unwrap_or_default()
+        }).sum();
+        Ok(total)
     }
 
     /// Register accounts to a track and error out if duplicates are found.

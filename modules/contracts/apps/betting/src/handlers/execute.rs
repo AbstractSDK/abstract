@@ -91,6 +91,7 @@ pub fn create_track(
     track.validate(deps.as_ref(), &ans_host)?;
 
     TRACKS.save(deps.storage, state.next_track_id, &track)?;
+    TRACK_ACCOUNTS.save(deps.storage, state.next_track_id, &vec![])?;
 
     // Update and save the state
     STATE.update(deps.storage, |mut state| -> BetResult<_> {
