@@ -281,9 +281,13 @@ impl<'a> SimpleVoting<'a> {
         vote_info.assert_ready_for_action(block)?;
 
         for voter in removed_voters {
-            // Would be nice to get this fixed:
-            // https://github.com/CosmWasm/cosmwasm/issues/290
-            if self.votes.has(store, (vote_id, voter)) {
+            if let Some(vote) = self.votes.may_load(store, (vote_id, voter))? {
+                if let Some(previous_vote) = vote {
+                    match previous_vote.vote {
+                        true => vote_info.votes_for -= 1,
+                        false => vote_info.votes_against -= 1,
+                    }
+                }
                 vote_info.total_voters -= 1;
                 self.votes.remove(store, (vote_id, voter));
             }
