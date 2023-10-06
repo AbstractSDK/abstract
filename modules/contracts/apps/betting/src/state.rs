@@ -158,7 +158,7 @@ pub struct ValidatedBet {
     pub asset: Asset,
 }
 
-type OddsInt = Uint128;  // Represents odds with two decimal precision
+type OddsInt = Decimal;  // Represents odds with two decimal precision
 
 
 impl NewBet {
@@ -184,12 +184,6 @@ impl NewBet {
         }
 
         Ok(())
-        //
-        // Ok(ValidatedBet {
-        //     round,
-        //     account_id: self.account_id.clone(),
-        //     asset: resolved_asset,
-        // })
     }
 }
 
@@ -204,5 +198,5 @@ pub const ROUNDS: Map<RoundId, RoundInfo> = Map::new("rounds");
 pub const ROUND_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_teams");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
-pub const BETS: Map<(RoundId, AccountId), Vec<(Addr, Uint128)>> = Map::new("bets");
-pub const ODDS: Map<(RoundId, AccountId), OddsInt> = Map::new("odds");
+pub const BETS: Map<RoundTeam, Vec<(Addr, Uint128)>> = Map::new("bets");
+pub const ODDS: Map<RoundTeam, OddsInt> = Map::new("odds");

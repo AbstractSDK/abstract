@@ -1,7 +1,7 @@
 use crate::contract::{BetApp, BetResult};
-use crate::msg::{BetQueryMsg, ConfigResponse, RoundResponse, RoundsResponse};
-use crate::state::{BETS, CONFIG, Config, Round, RoundId, RoundInfo, ROUNDS};
-use cosmwasm_std::{Binary, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
+use crate::msg::{BetQueryMsg, ConfigResponse, OddsResponse, RoundResponse, RoundsResponse};
+use crate::state::{BETS, CONFIG, Config, ODDS, Round, RoundId, RoundInfo, ROUNDS};
+use cosmwasm_std::{Binary, Decimal, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
 use cw_storage_plus::Bound;
 
@@ -38,6 +38,16 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
         BetQueryMsg::Round { round_id } => {
             let round_res = Round::new(round_id).query(deps)?;
             to_binary(&round_res)
+        }
+        BetQueryMsg::Odds {
+            round_id,
+            team_id
+        } => {
+            let odds = ODDS.load(deps.storage, (round_id, team_id))?;
+            to_binary(&OddsResponse {
+                round_id,
+                odds,
+            })
         }
         _ => panic!("Unsupported query message"),
     }

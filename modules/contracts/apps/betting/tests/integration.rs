@@ -152,7 +152,7 @@ impl BetEnv<Mock> {
             let account_id = account.id().unwrap();
             AccountOdds {
                 account_id,
-                odds: Uint128::from(x as u128),
+                odds: Decimal::new(Uint128::from(x as u128)),
             }
         }).collect::<Vec<AccountOdds>>();
 
@@ -199,7 +199,7 @@ impl BetEnv<Mock> {
             account_id,
             asset: AnsAsset::new(BET_TOKEN_ANS_ID, amount),
         };
-        self.bet.call_as(&sender).place_bets(vec![bet], &coins(amount, BET_TOKEN_DENOM))?;
+        self.bet.call_as(&sender).place_bet(bet, &coins(amount, BET_TOKEN_DENOM))?;
 
         Ok(())
     }
@@ -275,6 +275,9 @@ fn test_create_round_with_mini_bets() -> AResult {
     let betting_on = AccountId::local(2);
 
     env.bet_on_round_as(bettor, betting_on, round_id, bet_amount)?;
+
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("{:?}", odds_list);
 
     Ok(())
 }

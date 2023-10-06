@@ -77,10 +77,10 @@ pub enum BetExecuteMsg {
         to_remove: Vec<AccountId>,
     },
     #[cfg_attr(feature = "interface", payable)]
-    PlaceBets {
-        bets: Vec<NewBet>,
+    PlaceBet {
+        bet: NewBet,
     },
-    DistributeWinnings {    },
+    DistributeWinnings {  },
     Withdraw {},
     /// Admin only
     SetWinningTeam {
@@ -142,7 +142,7 @@ pub enum Cw20HookMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct OddsResponse {
     pub round_id: RoundId,
-    pub odds: Uint128
+    pub odds: Decimal
 }
 
 #[cosmwasm_schema::cw_serde]

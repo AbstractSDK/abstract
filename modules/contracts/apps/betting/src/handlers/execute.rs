@@ -1,9 +1,10 @@
+use std::str::FromStr;
 use abstract_core::objects::AccountId;
 use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 
 use crate::contract::{BetApp, BetResult};
@@ -53,10 +54,10 @@ pub fn execute_handler(
                 attrs,
             ))
         }
-        BetExecuteMsg::PlaceBets {
-            bets
+        BetExecuteMsg::PlaceBet {
+            bet: bets
         } => {
-            place_bets(deps, info, app, bets)
+            place_bet(deps, info, app, bets)
         }
         _ => panic!("Unsupported execute message"),
     }
@@ -104,50 +105,52 @@ pub fn create_round(
     Ok(app.custom_tag_response(Response::default(), "create_round", vec![("round_id", state.next_round_id.to_string())]))
 }
 
-fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) -> BetResult {
+fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetResult {
 
-    deps.api.debug(&format!("bets: {:?}", bets));
+    deps.api.debug(&format!("bets: {:?}", bet));
 
     let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
 
     let mut messages: Vec<CosmosMsg> = vec![];
 
-    // Loop through each bet to validate and record
-    for bet in bets.iter() {
-        let bank = app.bank(deps.as_ref());
+    let bank = app.bank(deps.as_ref());
 
-        // Validate round exists
-        let round = ROUNDS.may_load(deps.storage, bet.round_id)?;
-        if round.is_none() {
-            return Err(BetError::RoundNotFound(bet.round_id));
-        }
-
-        // TODO: this is currently quite inefficient if there are multiple bets for the same round
-        // Ensure the account placing the bet exists
-         bet.validate(deps.as_ref(), &bet_asset)?;
-         // deposit the sent assets
-         let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
-         messages.extend(deposit_msg.into_iter());
+    // Validate round exists
+    let round = ROUNDS.may_load(deps.storage, bet.round_id)?;
+    if round.is_none() {
+        return Err(BetError::RoundNotFound(bet.round_id));
+    }
+    let round = Round::new(bet.round_id);
 
 
-        // Record the bet
-        let bet_account = bet.clone().account_id;
+    // TODO: this is currently quite inefficient if there are multiple bets for the same round
+    // Ensure the account placing the bet exists
+     bet.validate(deps.as_ref(), &bet_asset)?;
 
-        let key = (bet.round_id, bet_account.clone());
-        let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
-        // Find and update the existing bet if it exists
-        if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
-            let (_, amount) = &mut bets[index];
-            *amount += bet.asset.amount;
-        } else {
-            // Otherwise, add a new bet
-            bets.push((info.sender.clone(), bet.asset.amount));
-        }
-        BETS.save(deps.storage, key.clone(), &bets)?;
+     // deposit the sent assets
+     let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
+     messages.extend(deposit_msg.into_iter());
 
+
+    // Record the bet
+    let bet_account = bet.account_id;
+
+    let key = (round.id(), bet_account.clone());
+    let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
+    // Find and update the existing bet if it exists
+    if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
+        let (_, amount) = &mut bets[index];
+        *amount += bet.asset.amount;
+    } else {
+        // Otherwise, add a new bet
+        bets.push((info.sender.clone(), bet.asset.amount));
+    }
+    BETS.save(deps.storage, key.clone(), &bets)?;
+
+    let round_teams = round.accounts(deps.storage)?;
+    for team in round_teams {
         // adjust the odds for the round
-        let new_odds = adjust_odds(deps.storage, bet.round_id, bet_account)?;
-        deps.api.debug(&format!("new_odds: {:?}", new_odds));
+        adjust_odds_for_account(deps.storage, round.id(), team)?;
     }
 
     Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
@@ -156,22 +159,63 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
 /// Calculates the new odds for the given round/account pair
 /// # Returns
 /// the new odds
-fn adjust_odds(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<Uint128> {
+fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId) -> StdResult<()> {
     let total_bets_for_account = query::get_total_bets_for_account(storage, round_id, account_id.clone())?;
     let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, round_id)?;
 
-    // Ensure the total bets for the account are not zero before calculating odds
-    if total_bets_for_account.is_zero() {
-        return Err(StdError::generic_err("Total bets for the account is zero, cannot calculate odds."));
+    // There are no bets for this account or for this round
+    if total_bets_for_account.is_zero() || total_bets_for_all_accounts.is_zero() {
+        return Ok(())
     }
 
+    // Calculate the bet-based odds
+    let bet_based_odds = Decimal::from_ratio(total_bets_for_all_accounts, total_bets_for_account);
 
-    let new_odds = total_bets_for_all_accounts / total_bets_for_account;
+    // Retrieve the initial odds
+    let initial_odds = ODDS.load(storage, (round_id, account_id.clone()))?;
 
-    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)?;
+    // Blend the initial and bet-based odds (here, it's a simple average, but you might want a different weighting)
+    let new_odds = (initial_odds + bet_based_odds) / Decimal::from_str("2.0").unwrap();
 
-    Ok(new_odds)
+    ODDS.save(storage, (round_id, account_id.clone()), &new_odds)
 }
+
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     use speculoos::prelude::*;
+//     mod adjust_odds {
+//         use cosmwasm_std::testing::mock_dependencies;
+//         use super::*;
+//
+//         #[test]
+//         fn test_adjust_odds() {
+//             let mut deps = mock_dependencies();
+//             let bettor = Addr::unchecked("bettor");
+//             let account_id = AccountId::local(1u32.into());
+//             let expected_odds = Decimal::from_str("0.1").unwrap();
+//
+//             // Set up the storage
+//             // Initial odds of 2, with two accounts
+//             let inital_odds = Uint128::from(2u128);
+//
+//             ODDS.save(deps.as_mut().storage, (1, account_id.clone()), &Decimal::new(inital_odds)).unwrap();
+//             ODDS.save(deps.as_mut().storage, (2, account_id.clone()), &Decimal::new(inital_odds)).unwrap();
+//
+//             BETS.save(deps.as_mut().storage, (1, account_id.clone()), &vec![
+//                 (bettor.clone(), Uint128::from(100u128)),
+//                 (bettor.clone(), Uint128::from(100u128)),
+//             ]).unwrap();
+//
+//             // Call the function
+//             let new_odds = adjust_odds_for_account(&mut storage, round_id, account_id.clone()).unwrap();
+//
+//             // Check the result
+//             assert_eq!(new_odds, expected_odds);
+//         }
+//     }
+// }
+
 
 
 
