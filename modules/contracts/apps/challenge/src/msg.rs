@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use abstract_core::objects::{
-    voting::{Vote, VoteConfig, VoteStatus},
+    voting::{VetoAdminAction, Vote, VoteConfig, VoteInfo, VoteStatus},
     AssetEntry,
 };
 use cosmwasm_schema::QueryResponses;
@@ -68,6 +68,16 @@ pub enum ChallengeExecuteMsg {
         /// Challenge id for counting votes
         challenge_id: u64,
     },
+    VetoAction {
+        challenge_id: u64,
+        action: VetoChallengeAction,
+    },
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum VetoChallengeAction {
+    AdminAction(VetoAdminAction),
+    FinishExpired,
 }
 
 /// Challenge query messages
@@ -86,9 +96,9 @@ pub enum ChallengeQueryMsg {
     #[returns(ChallengesResponse)]
     Challenges {
         /// start after challenge Id
-        start_after: u64,
+        start_after: Option<u64>,
         /// Max amount of challenges in response
-        limit: u32,
+        limit: Option<u64>,
     },
     /// List of friends by Id
     #[returns(FriendsResponse)]
@@ -124,6 +134,20 @@ pub struct ChallengeEntryResponse {
     pub admin_strikes: AdminStrikes,
 }
 
+impl ChallengeEntryResponse {
+    pub fn from_entry_and_vote_info(entry: ChallengeEntry, vote_info: VoteInfo) -> Self {
+        Self {
+            name: entry.name,
+            strike_asset: entry.strike_asset,
+            strike_strategy: entry.strike_strategy,
+            description: entry.description,
+            end: vote_info.end,
+            status: vote_info.status,
+            admin_strikes: entry.admin_strikes,
+        }
+    }
+}
+
 /// Arguments for new challenge
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeRequest {
@@ -153,9 +177,14 @@ pub struct VoteResponse {
 /// Response for challenges query
 /// Returns a list of challenges
 #[cosmwasm_schema::cw_serde]
-pub struct ChallengesResponse(pub Vec<ChallengeEntry>);
+pub struct ChallengesResponse {
+    pub challenges: Vec<ChallengeEntryResponse>,
+    pub last_index: u64,
+}
 
 /// Response for friends query
 /// Returns a list of friends
 #[cosmwasm_schema::cw_serde]
-pub struct FriendsResponse(pub Vec<Addr>);
+pub struct FriendsResponse {
+    pub friends: Vec<Addr>,
+}

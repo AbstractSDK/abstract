@@ -10,9 +10,9 @@ use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult, Uint128
 use crate::contract::{AppResult, ChallengeApp};
 // use abstract_sdk::prelude::*;
 
-use crate::msg::{ChallengeExecuteMsg, ChallengeRequest};
+use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, VetoChallengeAction};
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_LIST, FRIENDS_LIST,
+    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_LIST, CHALLENGE_FRIENDS,
     NEXT_ID, SIMPLE_VOTING,
 };
 
@@ -46,6 +46,10 @@ pub fn execute_handler(
         ChallengeExecuteMsg::CountVotes { challenge_id } => {
             count_votes(deps, env, info, &app, challenge_id)
         }
+        ChallengeExecuteMsg::VetoAction {
+            challenge_id,
+            action,
+        } => veto_action(deps, env, info, &app, challenge_id, action),
     }
 }
 
@@ -74,7 +78,7 @@ fn create_challenge(
     // Generate the challenge id and update the status
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
-    FRIENDS_LIST.save(
+    CHALLENGE_FRIENDS.save(
         deps.storage,
         challenge_id,
         &HashSet::from_iter(friends_validated.into_iter()),
@@ -166,7 +170,7 @@ fn update_friends_for_challenge(
     match op_kind {
         UpdateFriendsOpKind::Add {} => {
             SIMPLE_VOTING.add_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
-            FRIENDS_LIST.update(deps.storage, challenge_id, |friends| {
+            CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |friends| {
                 // TODO: replace unwrap with cute error
                 let mut friends = friends.unwrap();
                 friends.extend(friends_validated.into_iter());
@@ -175,7 +179,7 @@ fn update_friends_for_challenge(
         }
         UpdateFriendsOpKind::Remove {} => {
             SIMPLE_VOTING.remove_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
-            FRIENDS_LIST.update(deps.storage, challenge_id, |friends| {
+            CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |friends| {
                 // TODO: replace unwrap with cute error
                 let mut friends = friends.unwrap();
                 for removed_friend in friends_validated {
@@ -215,7 +219,7 @@ fn count_votes(
     _info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: u64,
-) -> Result<Response, AppError> {
+) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     let vote_id = challenge.current_vote_id;
     let vote_info = SIMPLE_VOTING.count_votes(deps.storage, &env.block, vote_id)?;
@@ -231,6 +235,41 @@ fn count_votes(
     }
 }
 
+fn veto_action(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    app: &ChallengeApp,
+    challenge_id: u64,
+    action: VetoChallengeAction,
+) -> AppResult {
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let vote_id = challenge.current_vote_id;
+
+    let vote_info = match action {
+        VetoChallengeAction::AdminAction(action) => {
+            app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+            SIMPLE_VOTING.veto_admin_action(deps.storage, &env.block, vote_id, action)?
+        }
+        VetoChallengeAction::FinishExpired => {
+            SIMPLE_VOTING
+                .load_vote(deps.storage, vote_id, &info.sender)?
+                .ok_or(AppError::VoterNotFound {})?;
+            SIMPLE_VOTING.finish_vote(deps.storage, &env.block, vote_id)?
+        }
+    };
+
+    // If passed do the penalty
+    if let VoteStatus::Finished(VoteOutcome::Passed) = vote_info.status {
+        charge_penalty(deps, env, app, vote_info, challenge, challenge_id)
+    } else {
+        // veto period
+        Ok(app
+            .tag_response(Response::new(), "veto_action")
+            .add_attribute("vote_info", format!("{vote_info:?}")))
+    }
+}
+
 fn charge_penalty(
     deps: DepsMut,
     env: Env,
@@ -239,7 +278,7 @@ fn charge_penalty(
     mut challenge: ChallengeEntry,
     challenge_id: u64,
 ) -> AppResult {
-    let friends = FRIENDS_LIST.load(deps.storage, challenge_id)?;
+    let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
     let num_friends = friends.len() as u128;
     if num_friends == 0 {
         return Err(AppError::ZeroFriends {});
