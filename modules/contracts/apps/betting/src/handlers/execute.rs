@@ -3,10 +3,10 @@ use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Storage};
+use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo, Response, Storage};
 use cw_storage_plus::Item;
 
-use crate::contract::{EtfApp, EtfResult};
+use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
 use crate::msg::BetExecuteMsg;
 use crate::state::*;
@@ -19,9 +19,9 @@ pub fn execute_handler(
     deps: DepsMut,
     _env: Env,
     info: MessageInfo,
-    app: EtfApp,
+    app: BetApp,
     msg: BetExecuteMsg,
-) -> EtfResult {
+) -> BetResult {
     match msg {
         BetExecuteMsg::CreateTrack(track) => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
@@ -62,7 +62,7 @@ pub fn execute_handler(
     }
 }
 
-fn update_accounts(deps: DepsMut, info: MessageInfo, app: EtfApp, track: Track, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> EtfResult {
+fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, track: Track, to_add: Vec<AccountId>, to_remove: Vec<AccountId>) -> BetResult {
     // ensure account exists
     let account_registry = app.account_registry(deps.as_ref());
     for account_id in to_add.iter() {
@@ -81,26 +81,33 @@ fn update_accounts(deps: DepsMut, info: MessageInfo, app: EtfApp, track: Track, 
 pub fn create_track(
     deps: DepsMut,
     msg_info: MessageInfo,
-    app: EtfApp,
+    app: BetApp,
     track: TrackInfo,
-) -> EtfResult {
+) -> BetResult {
+    let ans_host = app.ans_host(deps.as_ref())?;
     let mut state = STATE.load(deps.storage)?;
 
     // Check track
-    track.validate()?;
+    track.validate(deps.as_ref(), &ans_host)?;
 
     TRACKS.save(deps.storage, state.next_track_id, &track)?;
 
     // Update and save the state
-    STATE.update(deps.storage, |mut state| -> EtfResult<_> {
+    STATE.update(deps.storage, |mut state| -> BetResult<_> {
         state.next_track_id += 1;
         Ok(state)
     })?;
     Ok(app.custom_tag_response(Response::default(), "create_track", vec![("track_id", state.next_track_id.to_string())]))
 }
 
-fn place_bets(deps: DepsMut, info: MessageInfo, app: EtfApp, bets: Vec<NewBet>) -> EtfResult {
+fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) -> BetResult {
+
+    let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
+
     let ans_host = app.ans_host(deps.as_ref())?;
+    let bank = app.bank(deps.as_ref());
+    let mut messages: Vec<CosmosMsg> = vec![];
+
     // Loop through each bet to validate and record
     for bet in bets.iter() {
         // Validate track exists
@@ -111,9 +118,11 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: EtfApp, bets: Vec<NewBet>) 
 
         // TODO: this is currently quite inefficient if there are multiple bets for the same track
         // Ensure the account placing the bet exists
-        bet.validate(deps.as_ref(), &ans_host)?;
+         bet.validate(deps.as_ref(), &ans_host, &bet_asset)?;
+         // deposit the sent assets
+         let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
+         messages.extend(deposit_msg.into_iter());
 
-        // TODO: Validate the bet amount (e.g., check it's non-zero, within limits)
 
         // Record the bet
         // This is pseudocode, you'll need a suitable data structure for recording the bets.
@@ -122,7 +131,7 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: EtfApp, bets: Vec<NewBet>) 
         // TODO: Update odds or total bets if required
     }
 
-    Ok(app.tag_response(Response::default(), "place_bets"))
+    Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
 }
 
 

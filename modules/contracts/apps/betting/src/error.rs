@@ -3,8 +3,8 @@ use abstract_core::AbstractError;
 use abstract_core::objects::AccountId;
 use abstract_core::objects::validation::ValidationError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{OverflowError, StdError};
-use cw_asset::AssetError;
+use cosmwasm_std::{Addr, OverflowError, StdError};
+use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
 use cw_controllers::AdminError;
 use thiserror::Error;
 use crate::state::TrackId;
@@ -80,4 +80,6 @@ pub enum BetError {
         track_id: TrackId,
         account_id: AccountId,
     },
+    #[error("Invalid asset. Expected: {expected}, Actual: {actual}")]
+    InvalidAsset { expected: AssetInfo, actual: AssetInfoBase<Addr> },
 }

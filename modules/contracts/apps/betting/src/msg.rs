@@ -42,17 +42,18 @@ use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Addr, Decimal};
 use cw_asset::AssetUnchecked;
 
-use crate::contract::EtfApp;
-use abstract_core::objects::AccountId;
-use abstract_core::objects::fee::Fee;
+use crate::contract::BetApp;
+use abstract_core::objects::{AccountId, AssetEntry};
 use crate::state::{TrackInfo, TrackId, TrackTeam, NewBet};
 
 
-abstract_app::app_msg_types!(EtfApp, BetExecuteMsg, BetQueryMsg);
+abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
 
 /// Init msg
 #[cosmwasm_schema::cw_serde]
 pub struct BetInstantiateMsg {
+    pub rake: Option<Decimal>,
+    pub bet_asset: AssetEntry,
 }
 
 /// Execute Msg
@@ -139,6 +140,7 @@ pub struct OddsResponse {
 pub struct ConfigResponse {
     /// Address of the LP token
     pub rake: Decimal,
+    pub bet_asset: AssetEntry,
 }
 
 #[cosmwasm_schema::cw_serde]

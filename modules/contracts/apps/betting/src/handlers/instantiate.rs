@@ -1,11 +1,11 @@
+use abstract_core::objects::fee::Fee;
 use abstract_sdk::AbstractResponse;
-use cosmwasm_std::{
-    DepsMut, Env, MessageInfo, Response,
-};
+use abstract_sdk::features::AbstractNameService;
+use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response};
 
-use crate::contract::{EtfApp, EtfResult};
+use crate::contract::{BetApp, BetResult};
 use crate::msg::BetInstantiateMsg;
-use crate::state::{Config, CONFIG, State, STATE};
+use crate::state::{Config, CONFIG, DEFAULT_RAKE_PERCENT, State, STATE};
 
 pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
 
@@ -13,11 +13,20 @@ pub fn instantiate_handler(
     deps: DepsMut,
     env: Env,
     _info: MessageInfo,
-    app: EtfApp,
+    app: BetApp,
     msg: BetInstantiateMsg,
-) -> EtfResult {
+) -> BetResult {
     let state: State = State::default();
-    let config = Config::default();
+    STATE.save(deps.storage, &state)?;
+
+    let config = Config {
+        rake: Fee::new(msg.rake.unwrap_or(Decimal::percent(DEFAULT_RAKE_PERCENT)))?,
+        bet_asset: msg.bet_asset
+    };
+
+    config.validate(deps.as_ref(), &app)?;
+    CONFIG.save(deps.storage, &config)?;
+
 
     // let lp_token_name: String = msg
     //     .token_name
@@ -27,8 +36,6 @@ pub fn instantiate_handler(
     //     .token_symbol
     //     .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
-    STATE.save(deps.storage, &state)?;
-    CONFIG.save(deps.storage, &config)?;
     // RAKE.save(deps.storage, &Fee::new(msg.fee)?)?;
     Ok(app.tag_response(Response::new(), "instantiate"))
 
