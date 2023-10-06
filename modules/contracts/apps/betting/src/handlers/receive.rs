@@ -1,4 +1,4 @@
-// use crate::contract::{EtfApp, EtfResult};
+// use crate::contract::{BetApp, EtfResult};
 // use crate::error::BetError;
 // use crate::handlers::execute;
 // use crate::msg::Cw20HookMsg;
@@ -17,7 +17,7 @@
 //     deps: DepsMut,
 //     env: Env,
 //     msg_info: MessageInfo,
-//     dapp: EtfApp,
+//     dapp: BetApp,
 //     cw20_msg: Cw20ReceiveMsg,
 // ) -> EtfResult {
 //     match from_binary(&cw20_msg.msg)? {

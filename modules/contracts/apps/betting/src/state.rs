@@ -1,8 +1,8 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use abstract_core::AbstractResult;
 use abstract_core::objects::fee::Fee;
-use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult, Storage};
-use cw_storage_plus::{Item, Map};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult, Storage, Uint128};
+use cw_storage_plus::{Item, Map, MultiIndex};
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::validation::{validate_description, validate_name};
@@ -127,7 +127,7 @@ pub struct ValidatedBet {
 }
 
 impl NewBet {
-    pub fn validate(&self, deps: Deps, ans_host: &AnsHost, base_asset: &AssetEntry) -> BetResult<()> {
+    pub fn validate(&self, deps: Deps, base_asset: &AssetEntry) -> BetResult<()> {
         if self.asset.amount.is_zero() {
             return Err(BetError::InvalidFee {});
         }
@@ -163,3 +163,5 @@ pub const TRACKS: Map<TrackId, TrackInfo> = Map::new("tracks");
 pub const TRACK_ACCOUNTS: Map<TrackId, Vec<AccountId>> = Map::new("track_teams");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
+pub const BETS: Map<(TrackId, AccountId), Vec<(Addr, Uint128)>> = Map::new("bets");
+pub const ODDS: Map<(TrackId, AccountId), Uint128> = Map::new("odds");

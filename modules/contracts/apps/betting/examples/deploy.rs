@@ -7,8 +7,8 @@ use cw_orch::daemon::networks::parse_network;
 use cw_orch::tokio::runtime::Runtime;
 
 use clap::Parser;
-use etf_app::contract::interface::EtfApp;
-use etf_app::ETF_APP_ID;
+use betting_app::contract::interface::BetApp;
+use betting_app::BET_APP_ID;
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,7 +21,7 @@ fn deploy_etf(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .chain(network)
             .handle(rt.handle())
             .build()?;
-        let etf = EtfApp::new(ETF_APP_ID, chain);
+        let etf = BetApp::new(BET_APP_ID, chain);
         etf.deploy(version.clone(), DeployStrategy::Try)?;
     }
     Ok(())

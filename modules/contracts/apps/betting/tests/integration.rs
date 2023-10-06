@@ -1,178 +1,133 @@
 // #[cfg(test)]
 // mod test_utils;
 
+use std::str::FromStr;
+
+use abstract_core::objects::AssetEntry;
+use abstract_core::ans_host::ExecuteMsgFns as AnsExecuteMsgFns;
+use abstract_core::app::BaseInstantiateMsg;
+use abstract_core::objects::gov_type::GovernanceDetails;
+use abstract_core::version_control::ExecuteMsgFns as VersionControlExecuteMsgFns;
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy,
-    ManagerQueryFns, ProxyExecFns, ProxyQueryFns,
+    Abstract, AbstractAccount, AppDeployer, DeployStrategy,
+    ManagerQueryFns,
 };
-
-use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
 use abstract_sdk::core as abstract_core;
-
+use abstract_testing::addresses::TEST_NAMESPACE;
 use abstract_testing::prelude::TEST_ADMIN;
-use cosmwasm_std::{coin, Addr, Decimal, Empty};
-use cw20::Cw20ExecuteMsgFns;
-use cw20_base::contract::Cw20Base as AbstractCw20Base;
+use cosmwasm_std::Addr;
+use cw_asset::AssetInfoUnchecked;
+use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
-use cw20_base::msg::QueryMsgFns;
-use cw_asset::{AssetInfo, AssetUnchecked};
-use cw_orch::deploy::Deploy;
-
-use etf_app::{
-    contract::interface::EtfApp,
-    msg::Cw20HookMsg,
-    msg::{BetExecuteMsgFns, BetQueryMsgFns},
-    ETF_APP_ID,
-};
-use semver::Version;
-use speculoos::prelude::*;
-
-use wyndex_bundle::*;
+use betting_app::BET_APP_ID;
+use betting_app::contract::CONTRACT_VERSION;
+use betting_app::contract::interface::BetApp;
+use betting_app::msg::{BetInstantiateMsg, InstantiateMsg};
 
 type AResult = anyhow::Result<()>;
 
 const ETF_MANAGER: &str = "etf_manager";
 const ETF_TOKEN: &str = "etf_token";
 
-pub struct EtfEnv<Chain: CwEnv> {
-    pub account: AbstractAccount<Chain>,
-    pub etf: EtfApp<Chain>,
-    pub share_token: AbstractCw20Base<Chain>,
-    pub wyndex: WynDex,
-    pub abstract_core: Abstract<Chain>,
+// Returns an account with the necessary setup
+fn setup_new_account<Env: CwEnv>(
+    abstr_deployment: &Abstract<Env>,
+    namespace: impl ToString,
+) -> anyhow::Result<AbstractAccount<Env>> {
+    // TODO: might need to move this
+    let signing_account = abstr_deployment.account_factory.get_chain().sender();
+
+    // Create a new account to install the app onto
+    let account = abstr_deployment
+        .account_factory
+        .create_default_account(GovernanceDetails::Monarchy {
+            monarch: signing_account.into_string(),
+        })
+        .unwrap();
+
+    // claim the namespace so app can be deployed
+    abstr_deployment
+        .version_control
+        .claim_namespace(account.id().unwrap(), namespace.to_string())
+        .unwrap();
+
+    // register base asset!
+    // account.proxy.call_as(&abstr_deployment.account_factory.get_chain().sender).update_assets(vec![(AssetEntry::from(ISSUE_ASSET), UncheckedPriceSource::None)], vec![]).unwrap();
+
+    Ok(account)
 }
 
-fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
-    let version: Version = env!("CARGO_PKG_VERSION").parse().unwrap();
-    // Deploy abstract
-    let abstract_ = Abstract::deploy_on(mock.clone(), mock.sender.to_string())?;
-    // create first AbstractAccount
-    abstract_.account_factory.create_default_account(
-        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
-            monarch: mock.sender.to_string(),
-        },
-    )?;
+const BET_TOKEN_ANS_ID: &str = "testing>bet";
+const BET_TOKEN_DENOM: &str = "factory/xxx/betting";
 
-    // Deploy mock dex
-    let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
-
-    let etf = EtfApp::new(ETF_APP_ID, mock.clone());
-    etf.deploy(version, DeployStrategy::Try)?;
-
-    let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());
-    // upload the etf token code
-    let etf_token_code_id = etf_token.upload()?.uploaded_code_id()?;
-
-    // Create an AbstractAccount that we will turn into a etf
-    let account = abstract_.account_factory.create_default_account(
-        abstract_core::objects::gov_type::GovernanceDetails::Monarchy {
-            monarch: mock.sender.to_string(),
-        },
-    )?;
-
-    // install etf
-    account.manager.install_module(
-        ETF_APP_ID,
-        &abstract_core::app::InstantiateMsg {
-            module: etf_app::msg::EtfInstantiateMsg {
-                fee: Decimal::percent(5),
-                manager_addr: ETF_MANAGER.into(),
-                token_code_id: etf_token_code_id,
-                token_name: Some("Test ETF Shares".into()),
-                token_symbol: Some("TETF".into()),
-            },
-            base: abstract_core::app::BaseInstantiateMsg {
-                ans_host_address: abstract_.ans_host.addr_str()?,
-                version_control_address: abstract_.version_control.addr_str()?,
-            },
-        },
-        None,
-    )?;
-    // get its address
-    let etf_addr = account
-        .manager
-        .module_addresses(vec![ETF_APP_ID.into()])?
-        .modules[0]
-        .1
-        .clone();
-    // set the address on the contract
-    etf.set_address(&Addr::unchecked(etf_addr.clone()));
-
-    // set the etf token address
-    let etf_config = etf.state()?;
-    etf_token.set_address(&Addr::unchecked(etf_config.share_token_address));
-
-    Ok(EtfEnv {
-        account,
-        etf,
-        share_token: etf_token,
-        abstract_core: abstract_,
-        wyndex,
-    })
+fn setup_default_assets<Env: CwEnv>(abstr: &Abstract<Env>) {
+    // register juno as an asset
+    abstr
+        .ans_host
+        .update_asset_addresses(
+            vec![(
+                BET_TOKEN_ANS_ID.to_string(),
+                AssetInfoUnchecked::from_str(&format!("native:{}", BET_TOKEN_DENOM)).unwrap(),
+            )],
+            vec![],
+        )
+        .unwrap();
 }
+
+pub struct BetEnv<Env: CwEnv> {
+    pub account: AbstractAccount<Env>,
+    pub etf: BetApp<Env>,
+    pub abstr: Abstract<Env>,
+    pub env: Env,
+}
+
+impl BetEnv<Mock> {
+    fn setup(initial_balance: Option<Vec<Coin>>) -> anyhow::Result<Self> {
+        let owner = Addr::unchecked(TEST_ADMIN);
+
+        // create testing environment
+        let mock = Mock::new(&owner);
+
+        let abstr = Abstract::deploy_on(mock.clone(), mock.sender().to_string()).unwrap();
+        let bet_app = BetApp::new(BET_APP_ID, mock.clone());
+
+        bet_app.deploy(CONTRACT_VERSION.parse().unwrap(), DeployStrategy::Force)?;
+
+        let account = setup_new_account(&abstr, TEST_NAMESPACE)?;
+        setup_default_assets(&abstr);
+
+        account.install_module(
+            BET_APP_ID,
+            &InstantiateMsg {
+                base: BaseInstantiateMsg {
+                    ans_host_address: abstr.ans_host.addr_str()?,
+                    version_control_address: abstr.version_control.addr_str()?,
+                },
+                module: BetInstantiateMsg {
+                    rake: None,
+                    bet_asset: AssetEntry::new(BET_TOKEN_ANS_ID),
+                },
+            },
+            None,
+        )?;
+
+        let modules = account.manager.module_infos(None, None)?;
+        bet_app.set_address(&modules.module_infos[0].address);
+
+        Ok(Self {
+            env: mock,
+            account,
+            etf: bet_app,
+            abstr,
+        })
+    }
+}
+
 
 #[test]
-fn proper_initialization() -> AResult {
-    let owner = Addr::unchecked(TEST_ADMIN);
+fn test_init() -> AResult {
+    let test_env = BetEnv::setup(None)?;
 
-    // create testing environment
-    let mock = Mock::new(&owner);
-
-    // create a etf
-    let etf_env = crate::create_etf(mock.clone())?;
-    let WynDex { usd_token, .. } = etf_env.wyndex;
-    let etf = etf_env.etf;
-    let etf_token = etf_env.share_token;
-    let etf_addr = etf.addr_str()?;
-    let proxy = &etf_env.account.proxy;
-    let manager = &etf_env.account.manager;
-
-    // Set usd as base asset
-    proxy.call_as(&manager.address()?).update_assets(
-        vec![(AssetEntry::new("usd"), UncheckedPriceSource::None)],
-        vec![],
-    )?;
-    let base_asset = proxy.base_asset()?;
-    assert_that!(base_asset.base_asset).is_equal_to(AssetInfo::native("usd"));
-
-    // check config setup
-    let state = etf.state()?;
-    assert_that!(state.share_token_address).is_equal_to(etf_token.address()?);
-
-    // give user some funds
-    mock.set_balances(&[(&owner, &[coin(1_000u128, usd_token.to_string())])])?;
-
-    etf.deposit(
-        AssetUnchecked::new(AssetInfo::native("usd".to_string()), 1000u128),
-        &[coin(1_000u128, USD)],
-    )?;
-
-    // check that the etf token is minted
-    let etf_token_balance = etf_token.balance(owner.to_string())?.balance;
-    assert_that!(etf_token_balance.u128()).is_equal_to(1000u128);
-
-    // the proxy contract received the funds
-    let balances = mock.query_all_balances(&proxy.address()?)?;
-    assert_that!(balances).is_equal_to(vec![coin(1_000u128, usd_token.to_string())]);
-
-    // withdraw from the etf
-    etf_token.call_as(&owner).send(
-        500u128.into(),
-        etf_addr.clone(),
-        cosmwasm_std::to_binary(&Cw20HookMsg::Claim {})?,
-    )?;
-
-    // check that the etf token decreased
-    let etf_token_balance = etf_token.balance(owner.to_string())?.balance;
-    assert_that!(etf_token_balance.u128()).is_equal_to(500u128);
-
-    // check that the proxy USD balance decreased (by 500 - fee (5%) = 475)))
-    let balances = mock.query_all_balances(&proxy.address()?)?;
-    assert_that!(balances).is_equal_to(vec![coin(525u128, usd_token.to_string())]);
-
-    // and the owner USD balance increased (by 500 - fee (5%) = 475)
-    let balances = mock.query_all_balances(&owner)?;
-    assert_that!(balances).is_equal_to(vec![coin(475u128, usd_token.to_string())]);
     Ok(())
 }

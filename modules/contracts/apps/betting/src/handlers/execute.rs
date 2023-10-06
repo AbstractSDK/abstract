@@ -3,7 +3,7 @@ use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{CosmosMsg, DepsMut, Env, MessageInfo, Response, Storage};
+use cosmwasm_std::{Addr, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 
 use crate::contract::{BetApp, BetResult};
@@ -11,8 +11,8 @@ use crate::error::BetError;
 use crate::msg::BetExecuteMsg;
 use crate::state::*;
 use crate::state::CONFIG;
-use std::collections::{HashMap, HashSet};
 use abstract_sdk::features::AbstractNameService;
+use crate::handlers::query;
 
 
 pub fn execute_handler(
@@ -104,12 +104,12 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
 
     let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
 
-    let ans_host = app.ans_host(deps.as_ref())?;
-    let bank = app.bank(deps.as_ref());
     let mut messages: Vec<CosmosMsg> = vec![];
 
     // Loop through each bet to validate and record
     for bet in bets.iter() {
+        let bank = app.bank(deps.as_ref());
+
         // Validate track exists
         let track = TRACKS.may_load(deps.storage, bet.track_id)?;
         if track.is_none() {
@@ -118,7 +118,7 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
 
         // TODO: this is currently quite inefficient if there are multiple bets for the same track
         // Ensure the account placing the bet exists
-         bet.validate(deps.as_ref(), &ans_host, &bet_asset)?;
+         bet.validate(deps.as_ref(), &bet_asset)?;
          // deposit the sent assets
          let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
          messages.extend(deposit_msg.into_iter());
@@ -126,13 +126,41 @@ fn place_bets(deps: DepsMut, info: MessageInfo, app: BetApp, bets: Vec<NewBet>) 
 
         // Record the bet
         // This is pseudocode, you'll need a suitable data structure for recording the bets.
-        // BETS.save(deps.storage, (bet.track_id, bet.account_id, info.sender), &bet.amount)?;
+        let bet_account = bet.clone().account_id;
 
-        // TODO: Update odds or total bets if required
+        let key = (bet.track_id, bet_account.clone());
+        let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
+        // Find and update the existing bet if it exists
+        if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
+            let (_, amount) = &mut bets[index];
+            *amount += bet.asset.amount;
+        } else {
+            // Otherwise, add a new bet
+            bets.push((info.sender.clone(), bet.asset.amount));
+        }
+        BETS.save(deps.storage, key.clone(), &bets)?;
+
+        // adjust the odds for the track
+        adjust_odds(deps.storage, bet.track_id, bet_account)?;
     }
 
     Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
 }
+
+fn adjust_odds(storage: &mut dyn Storage, track_id: TrackId, account_id: AccountId) -> StdResult<()> {
+    let total_bets_for_account = query::get_total_bets_for_account(storage, track_id, account_id.clone())?;
+    let total_bets_for_all_accounts = query::get_total_bets_for_all_accounts(storage, track_id)?;
+
+    // Ensure the total bets for the account are not zero before calculating odds
+    if total_bets_for_account.is_zero() {
+        return Err(StdError::generic_err("Total bets for the account is zero, cannot calculate odds."));
+    }
+
+    let new_odds = total_bets_for_all_accounts / total_bets_for_account;
+
+    ODDS.save(storage, (track_id, account_id.clone()), &new_odds)
+}
+
 
 
 /*
@@ -179,7 +207,7 @@ pub fn validate_bets(bets: &[NewBet], deps: Deps, ans_host: &AnsHost) -> EtfResu
 // pub fn try_provide_liquidity(
 //     deps: DepsMut,
 //     msg_info: MessageInfo,
-//     app: EtfApp,
+//     app: BetApp,
 //     asset: Asset,
 //     // optional sender address
 //     // set if called from CW20 hook
@@ -273,7 +301,7 @@ pub fn validate_bets(bets: &[NewBet], deps: Deps, ans_host: &AnsHost) -> EtfResu
 // pub fn try_withdraw_liquidity(
 //     deps: DepsMut,
 //     _env: Env,
-//     app: EtfApp,
+//     app: BetApp,
 //     sender: Addr,
 //     amount: Uint128,
 // ) -> EtfResult {

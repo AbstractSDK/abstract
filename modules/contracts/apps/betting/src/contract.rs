@@ -1,7 +1,7 @@
 use crate::error::BetError;
 use crate::handlers;
 use crate::msg::{BetExecuteMsg, BetInstantiateMsg, BetQueryMsg};
-use crate::ETF_APP_ID;
+use crate::BET_APP_ID;
 use abstract_app::AppContract;
 use cosmwasm_std::{Empty, Response};
 use cw20::Cw20ReceiveMsg;
@@ -15,7 +15,7 @@ pub type BetResult<T = Response> = Result<T, BetError>;
 pub type BetApp =
     AppContract<BetError, BetInstantiateMsg, BetExecuteMsg, BetQueryMsg, Empty, Cw20ReceiveMsg>;
 
-const ETF_APP: BetApp = BetApp::new(ETF_APP_ID, CONTRACT_VERSION, None)
+const ETF_APP: BetApp = BetApp::new(BET_APP_ID, CONTRACT_VERSION, None)
     .with_instantiate(handlers::instantiate_handler)
     .with_execute(handlers::execute_handler)
     .with_query(handlers::query_handler);
