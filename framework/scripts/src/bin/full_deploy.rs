@@ -37,6 +37,37 @@ pub const NIBIRU_ITN_2: ChainInfo = ChainInfo {
     fcd_url: None,
 };
 
+
+pub const NEUTRON_NETWORK: NetworkInfo = NetworkInfo {
+    id: "neutron",
+    pub_address_prefix: "neutron",
+    coin_type: 118u32,
+};
+
+/// <https://github.com/cosmos/chain-registry/blob/master/testnets/neutrontestnet/chain.json>
+// pub const PION_1: ChainInfo = ChainInfo {
+//     kind: ChainKind::Testnet,
+//     chain_id: "pion-1",
+//     gas_denom: "untrn",
+//     gas_price: 0.001,
+//     grpc_urls: &["http://grpc-palvus.pion-1.ntrn.tech:80"],
+//     network_info: NEUTRON_NETWORK,
+//     lcd_url: Some("https://rest-palvus.pion-1.ntrn.tech"),
+//     fcd_url: None,
+// };
+
+/// <https://github.com/cosmos/chain-registry/blob/master/neutron/chain.json>
+pub const NEUTRON_1: ChainInfo = ChainInfo {
+    kind: ChainKind::Mainnet,
+    chain_id: "neutron-1",
+    gas_denom: "untrn",
+    gas_price: 0.01,
+    grpc_urls: &["https://neutron-grpc.soob.co:443"],
+    network_info: NEUTRON_NETWORK,
+    lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
+    fcd_url: None,
+};
+
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
@@ -161,7 +192,7 @@ fn main() {
     // let args = Arguments::parse();
 
     // let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
-    let networks = vec![NIBIRU_ITN_2];
+    let networks = vec![NEUTRON_1];
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);

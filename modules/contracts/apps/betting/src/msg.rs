@@ -45,7 +45,7 @@ use cw_asset::AssetUnchecked;
 use crate::contract::EtfApp;
 use abstract_core::objects::AccountId;
 use abstract_core::objects::fee::Fee;
-use crate::state::{NewBet, Track, TrackId, TrackTeam};
+use crate::state::{NewBet, TrackInfo, TrackId, TrackTeam};
 
 
 abstract_app::app_msg_types!(EtfApp, BetExecuteMsg, BetQueryMsg);
@@ -62,17 +62,16 @@ pub struct BetInstantiateMsg {
 pub enum BetExecuteMsg {
     /// CReate a track for the hackathon
     /// Admin only
-    CreateTrack(Track),
+    CreateTrack(TrackInfo),
     /// Register as a team for the hackathon
     /// Uses the account caller to find the account id
-    RegisterAsTeam {
+    Register {
         track_id: TrackId,
     },
-
     /// Register a team for the hackathon
     /// Admin
-    RegisterTeam {
-        account_id: AccountId,
+    UpdateAccounts {
+        account_ids: Vec<AccountId>,
         track_id: TrackId,
     },
     PlaceBets {
@@ -98,6 +97,12 @@ pub enum BetExecuteMsg {
 #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(QueryResponses)]
 pub enum BetQueryMsg {
+    /// Returns [`TracksResponse`]
+    #[returns(TracksResponse)]
+    Tracks {
+        start_after: Option<TrackId>,
+        limit: Option<u32>,
+    },
     /// Returns [`OddsResponse`]
     #[returns(OddsResponse)]
     CalculateOdds {
@@ -135,4 +140,19 @@ pub struct OddsResponse {
 pub struct ConfigResponse {
     /// Address of the LP token
     pub rake: Decimal,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TrackResponse {
+    pub id: TrackId,
+    pub name: String,
+    pub description: String,
+    pub teams: Vec<TrackTeam>,
+    pub winning_team: Option<TrackTeam>,
+    pub total_bets: u128,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct TracksResponse {
+    pub tracks: Vec<TrackResponse>,
 }

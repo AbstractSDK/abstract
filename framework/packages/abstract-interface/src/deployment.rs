@@ -50,7 +50,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
     fn deploy_on(chain: Chain, data: String) -> Result<Self, AbstractInterfaceError> {
         // upload
-        let mut deployment = Self::store_on(chain.clone())?;
+        let mut deployment = Self::load_from(chain.clone())?;
+        // let mut deployment = Self::store_on(chain.clone())?;
 
         // ########### Instantiate ##############
         deployment.instantiate(&chain, data)?;

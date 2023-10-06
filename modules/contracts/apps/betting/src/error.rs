@@ -1,11 +1,13 @@
 use abstract_app::AppError;
 use abstract_core::AbstractError;
+use abstract_core::objects::AccountId;
 use abstract_core::objects::validation::ValidationError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{OverflowError, StdError};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
+use crate::state::TrackId;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum BetError {
@@ -63,4 +65,10 @@ pub enum BetError {
     #[error("The actual amount of tokens transferred is different from the claimed amount.")]
     InvalidAmount {},
 
+    #[error("Track {0} not found")]
+    TrackNotFound(TrackId),
+
+    // account not found
+    #[error("Account {0} not found")]
+    AccountNotFound(AccountId)
 }

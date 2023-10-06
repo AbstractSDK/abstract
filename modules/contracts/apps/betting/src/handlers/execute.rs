@@ -1,3 +1,4 @@
+use abstract_core::objects::AccountId;
 use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
@@ -8,6 +9,7 @@ use cosmwasm_std::{
 use cw_storage_plus::Item;
 
 use crate::contract::{EtfApp, EtfResult};
+use crate::error::BetError;
 use crate::msg::BetExecuteMsg;
 use crate::state::*;
 use crate::state::COTFIG_2;
@@ -25,6 +27,14 @@ pub fn execute_handler(
             // Check asset
             create_track(deps, info, app, track)
         }
+        BetExecuteMsg::UpdateAccounts { account_ids, track_id } => {
+            // Only admin can register specific accounts
+            app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+
+            let track = Track::new(track_id);
+
+            register_account(deps, info, app, track, account_ids)
+        },
         BetExecuteMsg::UpdateConfig { rake } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             // TODO: use config constant, not sure why this is not working.
@@ -46,11 +56,28 @@ pub fn execute_handler(
     }
 }
 
+fn register_account(deps: DepsMut, info: MessageInfo, app: EtfApp, track: Track, account_ids: Vec<AccountId>) -> EtfResult {
+    // ensure account exists
+    let account_registry = app.account_registry(deps.as_ref());
+    for account_id in account_ids.iter() {
+        account_registry.account_base(&account_id).map_err(|_| BetError::AccountNotFound(account_id.clone()))?;
+    }
+
+    // register account
+    track.unchecked_register_accounts(deps, account_ids.clone())?;
+
+    Ok(app.custom_tag_response(
+        Response::default(),
+        "update_accounts",
+        vec![("account_ids", account_ids.iter().map(|id| id.to_string()).collect::<Vec<String>>().join(","))],
+    ))
+}
+
 pub fn create_track(
     deps: DepsMut,
     msg_info: MessageInfo,
     app: EtfApp,
-    track: Track
+    track: TrackInfo
 ) -> EtfResult {
     let mut state = STATE.load(deps.storage)?;
 
