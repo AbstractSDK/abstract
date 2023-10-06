@@ -3,16 +3,17 @@ use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{
-    DepsMut, Env, MessageInfo, Response,
-};
+use cosmwasm_std::{DepsMut, Env, MessageInfo, Response, Storage};
 use cw_storage_plus::Item;
 
 use crate::contract::{EtfApp, EtfResult};
 use crate::error::BetError;
 use crate::msg::BetExecuteMsg;
 use crate::state::*;
-use crate::state::COTFIG_2;
+use crate::state::CONFIG;
+use std::collections::{HashMap, HashSet};
+use abstract_sdk::features::AbstractNameService;
+
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -51,6 +52,11 @@ pub fn execute_handler(
                 "update_config",
                 attrs,
             ))
+        }
+        BetExecuteMsg::PlaceBets {
+            bets
+        } => {
+            place_bets(deps, info, app, bets)
         }
         _ => panic!("Unsupported execute message"),
     }
@@ -92,6 +98,72 @@ pub fn create_track(
     })?;
     Ok(app.custom_tag_response(Response::default(), "create_track", vec![("track_id", state.next_track_id.to_string())]))
 }
+
+fn place_bets(deps: DepsMut, info: MessageInfo, app: EtfApp, bets: Vec<NewBet>) -> EtfResult {
+    let ans_host = app.ans_host(deps.as_ref())?;
+    // Loop through each bet to validate and record
+    for bet in bets.iter() {
+        // Validate track exists
+        let track = TRACKS.may_load(deps.storage, bet.track_id)?;
+        if track.is_none() {
+            return Err(BetError::TrackNotFound(bet.track_id));
+        }
+
+        // TODO: this is currently quite inefficient if there are multiple bets for the same track
+        // Ensure the account placing the bet exists
+        bet.validate(deps.as_ref(), &ans_host)?;
+
+        // TODO: Validate the bet amount (e.g., check it's non-zero, within limits)
+
+        // Record the bet
+        // This is pseudocode, you'll need a suitable data structure for recording the bets.
+        // BETS.save(deps.storage, (bet.track_id, bet.account_id, info.sender), &bet.amount)?;
+
+        // TODO: Update odds or total bets if required
+    }
+
+    Ok(app.tag_response(Response::default(), "place_bets"))
+}
+
+
+/*
+pub fn validate_bets(bets: &[NewBet], deps: Deps, ans_host: &AnsHost) -> EtfResult<()> {
+    // Cache for accounts registered to a track
+    let mut cache: HashMap<TrackId, HashSet<AccountId>> = HashMap::new();
+
+    for bet in bets {
+        if bet.asset.amount.is_zero() {
+            return Err(BetError::InvalidBet {});
+        }
+
+        // ensure that the asset exists
+        bet.asset.resolve(&deps.querier, ans_host)?;
+
+        // Load the accounts for the track if not in cache
+        if !cache.contains_key(&bet.track_id) {
+            let track = Track::new(bet.track_id);
+            let accounts = track.accounts(deps.storage)?;
+            let mut set = HashSet::new();
+            set.extend(accounts);
+            cache.insert(bet.track_id, set);
+        }
+
+        // Validate bet with cache
+        if let Some(accounts) = cache.get(&bet.track_id) {
+            if !accounts.contains(&bet.account_id) {
+                return Err(BetError::AccountNotParticipating {
+                    account_id: bet.account_id.clone(),
+                    track_id: bet.track_id,
+                });
+            }
+        }
+    }
+
+    Ok(())
+}
+
+ */
+
 
 // /// Called when either providing liquidity with a native token or when providing liquidity
 // /// with a CW20.

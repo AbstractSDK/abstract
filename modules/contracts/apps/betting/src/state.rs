@@ -1,10 +1,12 @@
 use std::collections::HashSet;
 use abstract_core::AbstractResult;
 use abstract_core::objects::fee::Fee;
-use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult};
+use cosmwasm_std::{Addr, Decimal, Deps, DepsMut, StdError, StdResult, Storage};
 use cw_storage_plus::{Item, Map};
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
+use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::validation::{validate_description, validate_name};
+use abstract_sdk::Resolve;
 use crate::contract::EtfResult;
 use crate::error::BetError;
 
@@ -53,8 +55,8 @@ impl Track {
         let info = TRACKS.load(deps.storage, self.id()).map_err(|_| BetError::TrackNotFound(self.id()))?;
         Ok(info)
     }
-    pub fn accounts(&self, deps: Deps) -> EtfResult<Vec<AccountId>> {
-        Ok(TRACK_ACCOUNTS.load(deps.storage, self.id())?)
+    pub fn accounts(&self, storage: &dyn Storage) -> EtfResult<Vec<AccountId>> {
+        Ok(TRACK_ACCOUNTS.load(storage, self.id())?)
     }
 
     /// Register accounts to a track and error out if duplicates are found.
@@ -100,18 +102,33 @@ impl TrackInfo {
 
 pub type TrackTeam = (TrackId, AccountId);
 
+
 #[cosmwasm_schema::cw_serde]
 
 pub struct NewBet {
-    track_id: TrackId,
-    account_id: AccountId,
-    asset: AnsAsset,
+    pub track_id: TrackId,
+    pub account_id: AccountId,
+    pub asset: AnsAsset,
 }
 
 impl NewBet {
-    pub fn validate(&self, deps: Deps) -> EtfResult<()> {
+    pub fn validate(&self, deps: Deps, ans_host: &AnsHost) -> EtfResult<()> {
         if self.asset.amount.is_zero() {
             return Err(BetError::InvalidFee {});
+        }
+
+        // ensure that the asset exists
+        self.asset.resolve(&deps.querier, ans_host)?;
+
+        // check that the account being bet on is registered
+        let track = Track::new(self.track_id);
+        let accounts = track.accounts(deps.storage)?;
+        let bet_account_id = &self.account_id;
+        if !accounts.contains(bet_account_id) {
+            return Err(BetError::AccountNotParticipating {
+                account_id: bet_account_id.clone(),
+                track_id: track.id()
+            });
         }
 
         Ok(())
@@ -121,5 +138,5 @@ impl NewBet {
 pub const TRACKS: Map<TrackId, TrackInfo> = Map::new("tracks");
 
 pub const TRACK_ACCOUNTS: Map<TrackId, Vec<AccountId>> = Map::new("track_teams");
-pub const COTFIG_2: Item<Config> = Item::new("config");
+pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");

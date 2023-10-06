@@ -59,6 +59,9 @@ pub enum BetError {
     #[error("The provided fee is invalid")]
     InvalidFee {},
 
+    #[error("The provided bet is invalid")]
+    InvalidBet {},
+
     #[error("The deposit asset {0} is not the base asset for holding value calculation")]
     DepositAssetNotBase(String),
 
@@ -70,5 +73,11 @@ pub enum BetError {
 
     // account not found
     #[error("Account {0} not found")]
-    AccountNotFound(AccountId)
+    AccountNotFound(AccountId),
+
+    #[error("Account {account_id} is not participating in {track_id}")]
+    AccountNotParticipating {
+        track_id: TrackId,
+        account_id: AccountId,
+    },
 }

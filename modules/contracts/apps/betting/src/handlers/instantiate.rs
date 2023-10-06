@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::contract::{EtfApp, EtfResult};
 use crate::msg::BetInstantiateMsg;
-use crate::state::{Config, COTFIG_2, State, STATE};
+use crate::state::{Config, CONFIG, State, STATE};
 
 pub const INSTANTIATE_REPLY_ID: u64 = 1u64;
 
@@ -28,7 +28,7 @@ pub fn instantiate_handler(
     //     .unwrap_or_else(|| String::from(DEFAULT_LP_TOKEN_SYMBOL));
 
     STATE.save(deps.storage, &state)?;
-    COTFIG_2.save(deps.storage, &config)?;
+    CONFIG.save(deps.storage, &config)?;
     // RAKE.save(deps.storage, &Fee::new(msg.fee)?)?;
     Ok(app.tag_response(Response::new(), "instantiate"))
 

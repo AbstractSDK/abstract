@@ -45,7 +45,7 @@ use cw_asset::AssetUnchecked;
 use crate::contract::EtfApp;
 use abstract_core::objects::AccountId;
 use abstract_core::objects::fee::Fee;
-use crate::state::{NewBet, TrackInfo, TrackId, TrackTeam};
+use crate::state::{TrackInfo, TrackId, TrackTeam, NewBet};
 
 
 abstract_app::app_msg_types!(EtfApp, BetExecuteMsg, BetQueryMsg);
@@ -78,9 +78,7 @@ pub enum BetExecuteMsg {
     PlaceBets {
         bets: Vec<NewBet>,
     },
-    DistributeWinnings {
-
-    },
+    DistributeWinnings {    },
     Withdraw {},
     /// Admin only
     SetWinningTeam {
