@@ -533,3 +533,55 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
 
     Ok(())
 }
+
+#[test]
+fn test_draw() -> AResult {
+    let env = BetEnv::setup(None)?;
+
+    let round_id= env.create_test_round()?;
+
+    // create 3 accounts
+    let mut new_acc_ids = env.create_x_accounts(3)?;
+
+    let team_1 = new_acc_ids.get(0).unwrap().clone();
+    let team_2 =  new_acc_ids.get(1).unwrap().clone();
+    let team_3 =  new_acc_ids.get(2).unwrap().clone();
+
+
+    env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
+    env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
+    env.add_team_to_round(round_id, team_3.clone(), Decimal::from_str("1").unwrap())?;
+
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("initial odds: {:?}", odds_list.odds);
+
+    let draw_1 = Addr::unchecked("dd");
+    let draw_2 = Addr::unchecked("ddd");
+    env.env.set_balance(&draw_1, coins(125000000, BET_TOKEN_DENOM))?;
+    env.env.set_balance(&draw_2, coins(200000000, BET_TOKEN_DENOM))?;
+
+    let bet_amount = 125000000;
+    env.bet_on_round_as(draw_1.clone(), round_id, team_1, bet_amount)?;
+
+    let bet_amount = 200000000;
+    env.bet_on_round_as(draw_2.clone(), round_id, team_2.clone(), bet_amount)?;
+
+    // set the winner
+    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, None)?;
+
+    let draw_1_balance = env.env.query_balance(&draw_1, BET_TOKEN_DENOM)?;
+    assert_that!(draw_1_balance.u128()).is_equal_to(0);
+    let draw_2_balance = env.env.query_balance(&draw_2, BET_TOKEN_DENOM)?;
+    assert_that!(draw_2_balance.u128()).is_equal_to(0);
+
+    env.bet.distribute_winnings(round_id)?;
+
+    let draw_1_balance = env.env.query_balance(&draw_1, BET_TOKEN_DENOM)?;
+    assert_that!(draw_1_balance.u128()).is_equal_to(125000000);
+    let draw_2_balance = env.env.query_balance(&draw_2, BET_TOKEN_DENOM)?;
+    assert_that!(draw_2_balance.u128()).is_equal_to(200000000);
+
+
+    Ok(())
+}
+

@@ -244,7 +244,6 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
 
     let round_teams = round.accounts(deps.storage)?;
     for team in round_teams {
-        println!("adjusting odds for team: {}", team);
         // adjust the odds for the round
         adjust_odds_for_team(deps.storage, round.id(), team, bet_totals, rake)?;
     }
