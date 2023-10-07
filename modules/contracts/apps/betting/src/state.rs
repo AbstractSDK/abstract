@@ -141,7 +141,11 @@ impl Round {
             }
             existing_accounts.push(account_id.clone());
             deps.api.debug(&format!("odds {:?} / Decimal::one() + rake.clone() {:?}", odds, Decimal::one() + rake.clone()));
-            let edged_odds = odds.checked_div(Decimal::one() + rake.clone())?;
+            let mut edged_odds = odds.checked_div(Decimal::one() + rake.clone())?;
+            // Don't allow odds to go below 1
+            if edged_odds < Decimal::one() {
+                edged_odds = Decimal::one();
+            }
             ODDS.save(deps.storage, (self.id(), account_id), &edged_odds)?;
         }
 
