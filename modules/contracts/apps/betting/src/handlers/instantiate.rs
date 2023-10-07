@@ -21,10 +21,9 @@ pub fn instantiate_handler(
 
     let config = Config {
         rake: Fee::new(msg.rake.unwrap_or(Decimal::percent(DEFAULT_RAKE_PERCENT)))?,
-        bet_asset: msg.bet_asset
     };
 
-    config.validate(deps.as_ref(), &app)?;
+    config.validate(deps.as_ref())?;
     CONFIG.save(deps.storage, &config)?;
 
 

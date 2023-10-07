@@ -4,36 +4,20 @@ use crate::state::{AccountOdds, BETS, CONFIG, Config, ODDS, Round, RoundId, Roun
 use cosmwasm_std::{Binary, Decimal, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
 use cw_storage_plus::Bound;
+use crate::error::BetError;
 
 pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> BetResult<Binary> {
     match msg {
         BetQueryMsg::Config {} => {
             let Config {
                 rake,
-                bet_asset
             } = CONFIG.load(deps.storage)?;
             to_binary(&ConfigResponse {
                 rake: rake.share(),
-                bet_asset,
             })
         }
         BetQueryMsg::ListRounds { limit, start_after } => {
-            let limit = limit.unwrap_or(10) as usize;
-
-            let rounds: Vec<(RoundId, RoundInfo)> = ROUNDS
-                .range(deps.storage, start_after.map(Bound::exclusive), None, Order::Ascending)
-                .take(limit)
-                .collect::<StdResult<Vec<_>>>()?;
-
-            let mut rounds_res = vec![];
-
-            for (id, info) in rounds {
-                let round_res = Round::new(id).query(deps)?;
-                rounds_res.push(round_res);
-            }
-
-
-            to_binary(&RoundsResponse { rounds: rounds_res })
+            to_binary(&list_rounds(deps, limit, start_after)?)
         }
         BetQueryMsg::Round { round_id } => {
             let round_res = Round::new(round_id).query(deps)?;
@@ -52,19 +36,44 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
         BetQueryMsg::ListOdds {
             round_id
         } => {
-            let odds = ODDS.prefix(round_id).range(deps.storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
-            let odds = odds.into_iter().map(|(key, value)| AccountOdds {
-                account_id: key,
-                odds: value,
-            }).collect::<Vec<AccountOdds>>();
-            to_binary(&ListOddsResponse {
-                round_id,
-                odds,
-            })
+            to_binary(&list_odds(deps, round_id)?)
         }
         _ => panic!("Unsupported query message"),
     }
     .map_err(Into::into)
+}
+
+fn list_rounds(deps: Deps, limit: Option<u32>, start_after: Option<RoundId>) -> BetResult<RoundsResponse> {
+    let limit = limit.unwrap_or(10) as usize;
+
+    let rounds: Vec<(RoundId, RoundInfo)> = ROUNDS
+        .range(deps.storage, start_after.map(Bound::exclusive), None, Order::Ascending)
+        .take(limit)
+        .collect::<StdResult<Vec<_>>>()?;
+
+    let mut rounds_res = vec![];
+
+    for (id, info) in rounds {
+        let round_res = Round::new(id).query(deps)?;
+        rounds_res.push(round_res);
+    }
+
+
+    let response1 = RoundsResponse { rounds: rounds_res };
+    Ok(response1)
+}
+
+fn list_odds(deps: Deps, round_id: RoundId) -> BetResult<ListOddsResponse> {
+    let odds = ODDS.prefix(round_id).range(deps.storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
+    let odds = odds.into_iter().map(|(key, value)| AccountOdds {
+        account_id: key,
+        odds: value,
+    }).collect::<Vec<AccountOdds>>();
+    let response = ListOddsResponse {
+        round_id,
+        odds,
+    };
+    Ok(response)
 }
 
 

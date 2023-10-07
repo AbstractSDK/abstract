@@ -232,7 +232,6 @@ fn test_init_config() -> AResult {
 
     let config = BetQueryMsgFns::config(&test_env.bet)?;
 
-    assert_that!(config.bet_asset).is_equal_to(AssetEntry::new(BET_TOKEN_ANS_ID));
     assert_that!(config.rake).is_equal_to(Decimal::percent(DEFAULT_RAKE_PERCENT));
 
 

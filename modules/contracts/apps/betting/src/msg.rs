@@ -53,7 +53,6 @@ abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
 #[cosmwasm_schema::cw_serde]
 pub struct BetInstantiateMsg {
     pub rake: Option<Decimal>,
-    pub bet_asset: AssetEntry,
 }
 
 /// Execute Msg
@@ -161,7 +160,6 @@ pub struct ListOddsResponse {
 pub struct ConfigResponse {
     /// Address of the LP token
     pub rake: Decimal,
-    pub bet_asset: AssetEntry,
 }
 
 #[cosmwasm_schema::cw_serde]

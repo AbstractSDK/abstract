@@ -20,15 +20,10 @@ use crate::msg::RoundResponse;
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub rake: Fee,
-    pub bet_asset: AssetEntry,
 }
 
 impl Config {
-    pub fn validate(&self, deps: Deps, app: &BetApp) -> BetResult<()> {
-        // ensure that the base betting token exists
-        let ans_host = app.ans_host(deps)?;
-        self.bet_asset.resolve(&deps.querier, &ans_host)?;
-
+    pub fn validate(&self,_deps: Deps) -> BetResult<()> {
         Ok(())
     }
 }
@@ -42,7 +37,7 @@ pub type RoundId = u64;
 pub struct RoundInfo {
     pub name: String,
     pub description: String,
-    pub base_bet_token: AssetEntry,
+    pub bet_asset: AssetEntry,
     pub status: RoundStatus,
 }
 
@@ -119,7 +114,7 @@ impl Round {
             status: info.status,
             bet_count,
             total_bet: AnsAsset {
-                name: info.base_bet_token,
+                name: info.bet_asset,
                 amount: total_bet,
             }
         })
@@ -173,7 +168,7 @@ impl RoundInfo {
         validate_name(self.name.as_str())?;
         validate_description(Some(self.description.as_str()))?;
         // TODO: could save the resolved asset in storage to avoid querying every time
-        self.base_bet_token.resolve(&deps.querier, ans_host)?;
+        self.bet_asset.resolve(&deps.querier, ans_host)?;
         Ok(())
     }
 

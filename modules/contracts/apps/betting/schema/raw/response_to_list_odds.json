@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ListOddsResponse",
+  "type": "object",
+  "required": [
+    "odds",
+    "round_id"
+  ],
+  "properties": {
+    "odds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AccountOdds"
+      }
+    },
+    "round_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AccountId": {
+      "description": "Unique identifier for an account. On each chain this is unique.",
+      "type": "object",
+      "required": [
+        "seq",
+        "trace"
+      ],
+      "properties": {
+        "seq": {
+          "description": "Unique identifier for the accounts create on a local chain. Is reused when creating an interchain account.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "trace": {
+          "description": "Sequence of the chain that triggered the IBC account creation `AccountTrace::Local` if the account was created locally Example: Account created on Juno which has an abstract interchain account on Osmosis, which in turn creates an interchain account on Terra -> `AccountTrace::Remote(vec![\"juno\", \"osmosis\"])`",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AccountTrace"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "AccountOdds": {
+      "type": "object",
+      "required": [
+        "account_id",
+        "odds"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "#/definitions/AccountId"
+        },
+        "odds": {
+          "$ref": "#/definitions/Decimal"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AccountTrace": {
+      "description": "The identifier of chain that triggered the account creation",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "local"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "remote"
+          ],
+          "properties": {
+            "remote": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ChainName"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ChainName": {
+      "description": "The name of a chain, aka the chain-id without the post-fix number. ex. `cosmoshub-4` -> `cosmoshub`, `juno-1` -> `juno`",
+      "type": "string"
+    },
+    "Decimal": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    }
+  }
+}

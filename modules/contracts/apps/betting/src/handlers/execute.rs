@@ -33,7 +33,7 @@ pub fn execute_handler(
             let round_info = RoundInfo {
                 name: name.clone(),
                 description: description.clone(),
-                base_bet_token: base_bet_token.clone(),
+                bet_asset: base_bet_token.clone(),
                 status: RoundStatus::Open,
             };
             // Check asset
@@ -117,7 +117,7 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
             let bets = all_bets.into_iter().map(|(_, value)| value).flatten().collect::<Vec<(Addr, Uint128)>>();
 
             let bank = app.bank(deps.as_ref());
-            let round_info = round.info(deps.storage)?.base_bet_token;
+            let round_info = round.info(deps.storage)?.bet_asset;
 
             let distribution_actions: Result<Vec<AccountAction>, AbstractSdkError> = bets.into_iter()
                 .map(|(better_addr, bet_amount)| {
@@ -134,7 +134,7 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
             let winning_bets = BETS.load(deps.storage, (round_id, winning_team.clone()))?;
 
             let bank = app.bank(deps.as_ref());
-            let round_info = round.info(deps.storage)?.base_bet_token;
+            let round_info = round.info(deps.storage)?.bet_asset;
 
             let distribution_msgs1 = winning_bets.into_iter()
                 .map(|(better_addr, bet_amount)| {
@@ -202,8 +202,6 @@ pub fn create_round(
 }
 
 fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetResult {
-    let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
-
     let mut messages: Vec<CosmosMsg> = vec![];
 
     let bank = app.bank(deps.as_ref());
@@ -214,6 +212,7 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
         return Err(BetError::RoundNotFound(bet.round_id));
     }
     let round = Round::new(bet.round_id);
+    let bet_asset = round.info(deps.storage)?.bet_asset;
 
     // Ensure the account placing the bet exists
      bet.validate(deps.as_ref(), &bet_asset)?;
