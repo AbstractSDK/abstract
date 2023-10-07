@@ -38,7 +38,6 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
         } => {
             to_binary(&list_odds(deps, round_id)?)
         }
-        _ => panic!("Unsupported query message"),
     }
     .map_err(Into::into)
 }
@@ -58,9 +57,7 @@ fn list_rounds(deps: Deps, limit: Option<u32>, start_after: Option<RoundId>) -> 
         rounds_res.push(round_res);
     }
 
-
-    let response1 = RoundsResponse { rounds: rounds_res };
-    Ok(response1)
+    Ok(RoundsResponse { rounds: rounds_res })
 }
 
 fn list_odds(deps: Deps, round_id: RoundId) -> BetResult<ListOddsResponse> {
