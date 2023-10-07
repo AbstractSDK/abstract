@@ -29,7 +29,7 @@ use betting_app::{
 
 use speculoos::prelude::*;
 use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, RoundResponse};
-use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, NewBet, RoundId, RoundInfo};
+use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, NewBet, RoundId, RoundInfo, RoundStatus};
 
 type AResult<T = ()> = anyhow::Result<T>;
 
@@ -249,13 +249,21 @@ fn test_create_round() -> AResult {
 
     assert_that!(rounds.rounds).has_length(1);
 
-    let round  = rounds.rounds[0].clone();
+    let RoundResponse {
+        id, name,
+        description,
+        teams,
+        status,
+        bet_count, total_bet,
+    }  = rounds.rounds[0].clone();
 
-    assert_that!(round.name).is_equal_to("test".to_string());
-    assert_that!(round.description).is_equal_to("test".to_string());
-    assert_that!(round.teams).is_empty();
-    assert_that!(round.winning_team).is_none();
-    assert_that!(round.total_bets).is_equal_to(0);
+    assert_that!(id).is_equal_to(1);
+    assert_that!(name).is_equal_to("test".to_string());
+    assert_that!(description).is_equal_to("test".to_string());
+    assert_that!(teams).is_empty();
+    assert_that!(status).is_equal_to(RoundStatus::Open);
+    assert_that!(total_bet).is_equal_to(AnsAsset::new(BET_TOKEN_ANS_ID.to_string(), 0u128));
+    assert_that!(bet_count).is_equal_to(0);
 
 
     Ok(())
@@ -501,7 +509,7 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     assert_that!(odds_for_potential_winning_team).is_equal_to(Decimal::from_str("1.35").unwrap());
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).set_winner(round_id, team_2)?;
+    env.bet.call_as(&env.admin_account_addr()?).set_winner(round_id, team_2.clone())?;
 
     // distribute the winnings
     env.bet.distribute_winnings(round_id)?;
@@ -513,6 +521,10 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
 
     let winner_2_balance = env.env.query_balance(&winner_2, BET_TOKEN_DENOM)?;
     assert_that!(winner_2_balance.u128()).is_equal_to(270000000);
+
+    let round = env.bet.round(round_id)?;
+    assert_that!(round.status).is_equal_to(RoundStatus::Won { winning_team: team_2 });
+
 
     Ok(())
 }

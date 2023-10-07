@@ -11,6 +11,7 @@ use abstract_sdk::features::AbstractNameService;
 use cw_asset::{Asset, AssetInfo};
 use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
+use crate::handlers::query;
 use crate::handlers::query::get_total_bets_for_team;
 use crate::msg::RoundResponse;
 
@@ -106,23 +107,25 @@ impl Round {
     pub fn query(&self, deps: Deps) -> BetResult<RoundResponse> {
         let info = self.info(deps.storage)?;
         let accounts = self.accounts(deps.storage)?;
-        let total_bets = self.bet_count(deps.storage)?;
+        let bet_count = self.bet_count(deps.storage)?;
+        let total_bet = self.total_bet(deps.storage)?;
+
         Ok(RoundResponse {
             id: self.id(),
             name: info.name,
             description: info.description,
-            teams: accounts.into_iter().map(|x| (self.id(), x)).collect(),
-            // TODO
-            winning_team: None,
-            total_bets,
+            teams: accounts,
+            status: info.status,
+            bet_count,
+            total_bet: AnsAsset {
+                name: info.base_bet_token,
+                amount: total_bet,
+            }
         })
     }
 
-    pub fn total_bets(&self, storage: &dyn Storage) -> BetResult<Uint128> {
-        let accounts = self.accounts(storage)?;
-        let total: Uint128 = accounts.iter().map(|account_id| {
-            get_total_bets_for_team(storage, self.id(), account_id.clone()).unwrap_or_default()
-        }).sum();
+    pub fn total_bet(&self, storage: &dyn Storage) -> BetResult<Uint128> {
+        let total = query::get_total_bets_for_all_accounts(storage, self.id())?;
         Ok(total)
     }
 

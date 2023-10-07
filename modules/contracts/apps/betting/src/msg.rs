@@ -43,7 +43,7 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
-use abstract_core::objects::{AccountId, AssetEntry};
+use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
 use crate::state::{RoundInfo, RoundId, RoundTeamKey, NewBet, AccountOdds, OddsInt, RoundStatus};
 
 
@@ -84,6 +84,7 @@ pub enum BetExecuteMsg {
     PlaceBet {
         bet: NewBet,
     },
+    /// Distribute winnings to the winners of the round
     DistributeWinnings {
         round_id: RoundId,
     },
@@ -168,9 +169,10 @@ pub struct RoundResponse {
     pub id: RoundId,
     pub name: String,
     pub description: String,
-    pub teams: Vec<RoundTeamKey>,
-    pub winning_team: Option<RoundTeamKey>,
-    pub total_bets: u128,
+    pub teams: Vec<AccountId>,
+    pub status: RoundStatus,
+    pub bet_count: u128,
+    pub total_bet: AnsAsset
 }
 
 #[cosmwasm_schema::cw_serde]
