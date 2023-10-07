@@ -6,7 +6,7 @@ use std::{
 };
 
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::Abstract;
+use abstract_interface::{Abstract, VersionControl};
 
 use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
@@ -19,6 +19,7 @@ use cw_orch::{
 };
 use cw_orch::daemon::{ChainKind, NetworkInfo};
 use tokio::runtime::Runtime;
+use abstract_core::VERSION_CONTROL;
 
 pub const NIBIRU_NETWORK: NetworkInfo = NetworkInfo {
     id: "nibiru",
@@ -62,7 +63,7 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     chain_id: "neutron-1",
     gas_denom: "untrn",
     gas_price: 0.01,
-    grpc_urls: &["https://neutron-grpc.soob.co:443"],
+    grpc_urls: &["http://neutron-grpc.polkachu.com:19190"],
     network_info: NEUTRON_NETWORK,
     lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
     fcd_url: None,
