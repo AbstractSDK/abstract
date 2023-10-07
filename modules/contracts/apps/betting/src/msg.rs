@@ -83,6 +83,7 @@ pub enum BetExecuteMsg {
     #[cfg_attr(feature = "interface", payable)]
     PlaceBet {
         bet: Bet,
+        round_id: RoundId,
     },
     /// Distribute winnings to the winners of the round
     DistributeWinnings {

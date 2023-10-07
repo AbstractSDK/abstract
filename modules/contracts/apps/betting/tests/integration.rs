@@ -213,11 +213,10 @@ impl BetEnv<Mock> {
 
     fn bet_on_round_as(&self, sender: Addr, round_id: RoundId, account_id: AccountId, amount: u128) -> AResult<()> {
         let bet = Bet {
-            round_id,
             account_id,
             asset: AnsAsset::new(BET_TOKEN_ANS_ID, amount),
         };
-        self.bet.call_as(&sender).place_bet(bet, &coins(amount, BET_TOKEN_DENOM))?;
+        self.bet.call_as(&sender).place_bet(bet, round_id, &coins(amount, BET_TOKEN_DENOM))?;
 
         Ok(())
     }

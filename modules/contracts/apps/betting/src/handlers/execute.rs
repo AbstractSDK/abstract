@@ -55,9 +55,10 @@ pub fn execute_handler(
             update_config(deps, app, rake)
         }
         BetExecuteMsg::PlaceBet {
-            bet
+            bet,
+            round_id
         } => {
-            place_bet(deps, info, app, bet)
+            place_bet(deps, info, app, round_id, bet)
         }
         BetExecuteMsg::CloseRound {
             round_id, winner
@@ -228,21 +229,22 @@ pub fn create_round(
     Ok(app.custom_tag_response(Response::default(), "create_round", vec![("round_id", state.next_round_id.to_string())]))
 }
 
-fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: Bet) -> BetResult {
+fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, round_id: RoundId, bet: Bet) -> BetResult {
     let mut messages: Vec<CosmosMsg> = vec![];
 
     let bank = app.bank(deps.as_ref());
 
+    // TODO: move into Round
     // Validate round exists
-    let round = ROUNDS.may_load(deps.storage, bet.round_id)?;
+    let round = ROUNDS.may_load(deps.storage, round_id)?;
     if round.is_none() {
-        return Err(BetError::RoundNotFound(bet.round_id));
+        return Err(BetError::RoundNotFound(round_id));
     }
-    let round = Round::new(bet.round_id);
-    let bet_asset = round.info(deps.storage)?.bet_asset;
+
+    let round = Round::new(round_id);
 
     // Ensure the account placing the bet exists
-     bet.validate(deps.as_ref(), &bet_asset)?;
+     bet.validate(deps.as_ref(), &round)?;
 
      // deposit the sent assets
      let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;

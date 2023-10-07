@@ -192,29 +192,30 @@ pub type OddsType = Decimal;  // Represents odds with two decimal precision
 
 
 
-/// TODO: remove round ID
+/// TODO: remove round ID and replace this tuple
 #[cosmwasm_schema::cw_serde]
 pub struct Bet {
-    pub round_id: RoundId,
     pub account_id: AccountId,
     pub asset: AnsAsset,
 }
 
 
 impl Bet {
-    pub fn validate(&self, deps: Deps, base_asset: &AssetEntry) -> BetResult<()> {
+    pub fn validate(&self, deps: Deps, round: &Round) -> BetResult<()> {
+        // check that the account being bet on is registered
+        round.assert_not_closed(deps.storage)?;
+
         if self.asset.amount.is_zero() {
             return Err(BetError::InvalidBet {});
         }
 
+        let bet_asset = round.info(deps.storage)?.bet_asset;
+
         // ensure that the asset matches the base asset
-        if &self.asset.name != base_asset {
+        if self.asset.name != bet_asset {
             return Err(BetError::DepositAssetNotBase(self.asset.name.to_string()));
         }
 
-        // check that the account being bet on is registered
-        let round = Round::new(self.round_id);
-        round.assert_not_closed(deps.storage)?;
         let accounts = round.accounts(deps.storage)?;
         let bet_account_id = &self.account_id;
 

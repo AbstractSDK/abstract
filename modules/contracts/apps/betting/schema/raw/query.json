@@ -124,6 +124,30 @@
         }
       },
       "additionalProperties": false
+    },
+    {
+      "description": "Returns [`BetsResponse`]",
+      "type": "object",
+      "required": [
+        "bets"
+      ],
+      "properties": {
+        "bets": {
+          "type": "object",
+          "required": [
+            "round_id"
+          ],
+          "properties": {
+            "round_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {

@@ -175,6 +175,23 @@
         }
       ]
     },
+    "Bet": {
+      "description": "TODO: remove round ID and replace this tuple",
+      "type": "object",
+      "required": [
+        "account_id",
+        "asset"
+      ],
+      "properties": {
+        "account_id": {
+          "$ref": "#/definitions/AccountId"
+        },
+        "asset": {
+          "$ref": "#/definitions/AnsAsset"
+        }
+      },
+      "additionalProperties": false
+    },
     "BetExecuteMsg": {
       "description": "Execute Msg",
       "oneOf": [
@@ -271,6 +288,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Place a new bet for a round",
           "type": "object",
           "required": [
             "place_bet"
@@ -279,11 +297,17 @@
             "place_bet": {
               "type": "object",
               "required": [
-                "bet"
+                "bet",
+                "round_id"
               ],
               "properties": {
                 "bet": {
-                  "$ref": "#/definitions/NewBet"
+                  "$ref": "#/definitions/Bet"
+                },
+                "round_id": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
                 }
               },
               "additionalProperties": false
@@ -350,6 +374,7 @@
           "additionalProperties": false
         },
         {
+          "description": "Update the config of the contract",
           "type": "object",
           "required": [
             "update_config"
@@ -423,28 +448,6 @@
         },
         "msg": {
           "$ref": "#/definitions/StdAck"
-        }
-      },
-      "additionalProperties": false
-    },
-    "NewBet": {
-      "type": "object",
-      "required": [
-        "account_id",
-        "asset",
-        "round_id"
-      ],
-      "properties": {
-        "account_id": {
-          "$ref": "#/definitions/AccountId"
-        },
-        "asset": {
-          "$ref": "#/definitions/AnsAsset"
-        },
-        "round_id": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
         }
       },
       "additionalProperties": false
