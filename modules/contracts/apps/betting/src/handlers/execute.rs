@@ -77,7 +77,7 @@ pub fn execute_handler(
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             let round = Round::new(round_id);
 
-            close_round(deps, &app, round_id, winner, round)?
+            close_round(deps, &app, winner, round)?
         }
         BetExecuteMsg::DistributeWinnings {
             round_id
@@ -102,20 +102,26 @@ fn register_for_round(deps: DepsMut, info: MessageInfo, app: BetApp, round: Roun
     update_accounts(deps, info, app, round, to_add, to_remove)
 }
 
-fn close_round(deps: DepsMut, app: &BetApp, round_id: RoundId, winner: Option<AccountId>, round: Round) -> Result<Result<Response, BetError>, BetError> {
+fn close_round(deps: DepsMut, app: &BetApp, winner: Option<AccountId>, round: Round) -> Result<Result<Response, BetError>, BetError> {
     let current_status = round.status(deps.storage)?;
 
     Ok(match current_status {
         RoundStatus::Open => {
+            let accounts = round.accounts(deps.storage)?;
+            if let Some(winner) = winner.clone() {
+                if !accounts.contains(&winner) {
+                    return Err(BetError::AccountNotFound(winner));
+                }
+            }
             round.set_status(deps.storage, RoundStatus::Closed { winning_team: winner })?;
 
             Ok(app.custom_tag_response(
                 Response::default(),
                 "update_round_status",
-                vec![("round_id", round_id.to_string()) /*, ("status", new_status.to_string()) */],
+                vec![("round_id", round.id().to_string()) /*, ("status", new_status.to_string()) */],
             ))
         }
-        _ => Err(BetError::RoundAlreadyClosed(round_id)),
+        _ => Err(BetError::RoundAlreadyClosed(round.id())),
     })
 }
 

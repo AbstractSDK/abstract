@@ -7,13 +7,7 @@
     "title": "InstantiateMsg",
     "description": "Init msg",
     "type": "object",
-    "required": [
-      "bet_asset"
-    ],
     "properties": {
-      "bet_asset": {
-        "$ref": "#/definitions/AssetEntry"
-      },
       "rake": {
         "anyOf": [
           {
@@ -27,10 +21,6 @@
     },
     "additionalProperties": false,
     "definitions": {
-      "AssetEntry": {
-        "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-        "type": "string"
-      },
       "Decimal": {
         "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
         "type": "string"
@@ -561,13 +551,9 @@
       "title": "ConfigResponse",
       "type": "object",
       "required": [
-        "bet_asset",
         "rake"
       ],
       "properties": {
-        "bet_asset": {
-          "$ref": "#/definitions/AssetEntry"
-        },
         "rake": {
           "description": "Address of the LP token",
           "allOf": [
@@ -579,10 +565,6 @@
       },
       "additionalProperties": false,
       "definitions": {
-        "AssetEntry": {
-          "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-          "type": "string"
-        },
         "Decimal": {
           "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal(1_000_000_000_000_000_000) == 1.0\n\nThe greatest possible value that can be represented is 340282366920938463463.374607431768211455 (which is (2^128 - 1) / 10^18)",
           "type": "string"
