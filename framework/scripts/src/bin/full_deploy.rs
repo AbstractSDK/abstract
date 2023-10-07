@@ -10,6 +10,7 @@ use abstract_interface::{Abstract, VersionControl};
 
 use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
+use cw_orch::daemon::{ChainKind, NetworkInfo};
 use cw_orch::{
     deploy::Deploy,
     prelude::{
@@ -17,7 +18,6 @@ use cw_orch::{
         *,
     },
 };
-use cw_orch::daemon::{ChainKind, NetworkInfo};
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
