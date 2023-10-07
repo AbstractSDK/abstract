@@ -82,8 +82,24 @@ pub fn execute_handler(
         BetExecuteMsg::DistributeWinnings {
             round_id
         } => distribute_winnings(deps, app, round_id),
-        _ => panic!("Unsupported execute message"),
+        BetExecuteMsg::Register { round_id } => {
+            let round = Round::new(round_id);
+            round.assert_not_closed(deps.storage)?;
+            register_for_round(deps, info, app, round)
+        }
     }
+}
+
+fn register_for_round(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round) -> BetResult {
+    let account_id = app.account_registry(deps.as_ref()).account_id(&info.sender)?;
+    // default odds
+    let odds = Decimal::one();
+    let to_add = vec![AccountOdds {
+        account_id,
+        odds,
+    }];
+    let to_remove = vec![];
+    update_accounts(deps, info, app, round, to_add, to_remove)
 }
 
 fn close_round(deps: DepsMut, app: &BetApp, round_id: RoundId, winner: Option<AccountId>, round: Round) -> Result<Result<Response, BetError>, BetError> {

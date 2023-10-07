@@ -114,7 +114,6 @@ impl BetEnv<Mock> {
                 },
                 module: BetInstantiateMsg {
                     rake: None,
-                    bet_asset: AssetEntry::new(BET_TOKEN_ANS_ID),
                 },
             },
             None,
