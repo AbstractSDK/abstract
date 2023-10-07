@@ -257,7 +257,7 @@ fn test_create_round() -> AResult {
         bet_count, total_bet,
     }  = rounds.rounds[0].clone();
 
-    assert_that!(id).is_equal_to(1);
+    assert_that!(id).is_equal_to(0);
     assert_that!(name).is_equal_to("test".to_string());
     assert_that!(description).is_equal_to("test".to_string());
     assert_that!(teams).is_empty();
@@ -440,7 +440,7 @@ fn test_create_round_with_three_teams_and_claim() -> AResult {
     assert_that!(odds_for_potential_winning_team).is_equal_to(Decimal::from_str("1.8").unwrap());
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).set_winner(round_id, team_2)?;
+    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, Some(team_2))?;
 
     env.bet.distribute_winnings(round_id)?;
     let loser_balance = env.env.query_balance(&loser, BET_TOKEN_DENOM)?;
@@ -509,7 +509,12 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     assert_that!(odds_for_potential_winning_team).is_equal_to(Decimal::from_str("1.35").unwrap());
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).set_winner(round_id, team_2.clone())?;
+    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, Some(team_2.clone()))?;
+
+
+    let round = env.bet.round(round_id)?;
+    assert_that!(round.status).is_equal_to(RoundStatus::Closed { winning_team: Some(team_2) });
+
 
     // distribute the winnings
     env.bet.distribute_winnings(round_id)?;
@@ -523,7 +528,7 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     assert_that!(winner_2_balance.u128()).is_equal_to(270000000);
 
     let round = env.bet.round(round_id)?;
-    assert_that!(round.status).is_equal_to(RoundStatus::Won { winning_team: team_2 });
+    assert_that!(round.status).is_equal_to(RoundStatus::RewardsDistributed {});
 
 
     Ok(())

@@ -49,8 +49,9 @@ pub struct RoundInfo {
 #[cosmwasm_schema::cw_serde]
 pub enum RoundStatus {
     Open,
-    Won {
-        winning_team: AccountId,
+    /// Round is closed, and there may or may not be a winning team
+    Closed {
+        winning_team: Option<AccountId>,
     },
     RewardsDistributed,
 }
@@ -98,7 +99,7 @@ impl Round {
 
     pub fn assert_not_closed(&self, storage: &dyn Storage) -> BetResult<()> {
         let info = self.status(storage)?;
-        if matches!(info, RoundStatus::Won { .. }) {
+        if matches!(info, RoundStatus::Closed { .. }) {
             return Err(BetError::RoundAlreadyClosed(self.id()));
         }
         Ok(())

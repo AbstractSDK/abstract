@@ -4,7 +4,7 @@ use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{Addr, coins, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, coins, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 
 use crate::contract::{BetApp, BetResult};
@@ -71,27 +71,27 @@ pub fn execute_handler(
         } => {
             place_bet(deps, info, app, bet)
         }
-        BetExecuteMsg::SetWinner {
-            round_id, team_id
+        BetExecuteMsg::CloseRound {
+            round_id, winner
         } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             let round = Round::new(round_id);
 
-            set_winner(deps, &app, round_id, team_id, round)?
+            close_round(deps, &app, round_id, winner, round)?
         }
         BetExecuteMsg::DistributeWinnings {
             round_id
-        } => distribute_winnings(deps, app, round_id)?,
+        } => distribute_winnings(deps, app, round_id),
         _ => panic!("Unsupported execute message"),
     }
 }
 
-fn set_winner(deps: DepsMut, app: &BetApp, round_id: RoundId, team_id: AccountId, round: Round) -> Result<Result<Response, BetError>, BetError> {
+fn close_round(deps: DepsMut, app: &BetApp, round_id: RoundId, winner: Option<AccountId>, round: Round) -> Result<Result<Response, BetError>, BetError> {
     let current_status = round.status(deps.storage)?;
 
     Ok(match current_status {
         RoundStatus::Open => {
-            round.set_status(deps.storage, RoundStatus::Won { winning_team: team_id })?;
+            round.set_status(deps.storage, RoundStatus::Closed { winning_team: winner })?;
 
             Ok(app.custom_tag_response(
                 Response::default(),
@@ -103,51 +103,61 @@ fn set_winner(deps: DepsMut, app: &BetApp, round_id: RoundId, team_id: AccountId
     })
 }
 
-fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> Result<Result<Response, BetError>, BetError> {
+fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResult {
     let round = Round::new(round_id);
     let current_status = round.status(deps.storage)?;
 
-    // Round must be closed
-    let winning_team = match current_status {
-        RoundStatus::Won { winning_team } => {
-            Ok(winning_team)
-        },
-        _ => Err(BetError::RoundNotClosed(round_id)),
-    }?;
-
-    // Final winning odds
-    let winning_odds = ODDS.load(deps.storage, (round_id, winning_team.clone()))?;
-    let overall_winnings = query::get_total_bets_for_team(deps.storage, round_id, winning_team.clone())?;
-
-    // load the list of winning bets
-    let winning_bets = BETS.load(deps.storage, (round_id, winning_team.clone()))?;
-
-    let bank = app.bank(deps.as_ref());
-    let round_info = round.info(deps.storage)?.base_bet_token;
-
-    let mut distribution_msgs = vec![];
-    for (better_addr, bet_amount) in winning_bets.iter() {
-        let bet_amount = *bet_amount;
-        let winnings = bet_amount * winning_odds;
-
-        println!("payout_amount: {}", winnings);
-        println!("better_addr: {}, bet_amount: {} winning_total: {}", better_addr, bet_amount, overall_winnings);
-
-        let transfer_asset = AnsAsset::new(round_info.clone(), winnings);
-
-        // Create a transfer message to send the payout to the bettor
-        let payout_msg = bank.transfer(vec![transfer_asset], better_addr)?;
-        distribution_msgs.push(payout_msg);
-    }
-
-    // Execute the message on the proxy
-    let distribution_msg: CosmosMsg = app.executor(deps.as_ref()).execute(distribution_msgs)?.into();
-
-    // Update round's status to RewardsDistributed or something similar
+    // Set distribution status
     round.set_status(deps.storage, RoundStatus::RewardsDistributed)?;
 
-    Ok(Ok(app.tag_response(Response::default().add_message(distribution_msg), "distribute_winnings")))
+    let distribution_msgs = match current_status {
+        RoundStatus::Closed { winning_team: None } => {
+            // No winning team, refund all bets
+            let all_bets = BETS.prefix(round_id).range(deps.storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
+            let bets = all_bets.into_iter().map(|(_, value)| value).flatten().collect::<Vec<(Addr, Uint128)>>();
+
+            let bank = app.bank(deps.as_ref());
+            let round_info = round.info(deps.storage)?.base_bet_token;
+
+            let distribution_actions: Result<Vec<AccountAction>, AbstractSdkError> = bets.into_iter()
+                .map(|(better_addr, bet_amount)| {
+                    let transfer_asset = AnsAsset::new(round_info.clone(), bet_amount);
+                    bank.transfer(vec![transfer_asset], &better_addr)
+                })
+                .collect();
+
+            distribution_actions.map_err(Into::into)
+        }
+        RoundStatus::Closed { winning_team: Some(winning_team) } => {
+            // Distribute the winnings to the winning betters
+            let winning_odds = ODDS.load(deps.storage, (round_id, winning_team.clone()))?;
+            let winning_bets = BETS.load(deps.storage, (round_id, winning_team.clone()))?;
+
+            let bank = app.bank(deps.as_ref());
+            let round_info = round.info(deps.storage)?.base_bet_token;
+
+            let distribution_msgs1 = winning_bets.into_iter()
+                .map(|(better_addr, bet_amount)| {
+                    let winnings = bet_amount * winning_odds;
+                    let transfer_asset = AnsAsset::new(round_info.clone(), winnings);
+                    bank.transfer(vec![transfer_asset], &better_addr)
+                })
+                .collect::<Result<Vec<AccountAction>, AbstractSdkError>>();
+
+            distribution_msgs1.map_err(Into::into)
+        }
+        _ => Err(BetError::RoundNotClosed(round_id))
+    }?;
+
+    let executor = app.executor(deps.as_ref());
+
+
+    let distribution_msg = executor.execute(distribution_msgs)?;
+
+    Ok(app.tag_response(Response::default().add_message(distribution_msg), "distribute_draw"))
+
 }
+
 
 fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult {
     let account_registry = app.account_registry(deps.as_ref());

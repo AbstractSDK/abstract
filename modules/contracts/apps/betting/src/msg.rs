@@ -89,9 +89,9 @@ pub enum BetExecuteMsg {
         round_id: RoundId,
     },
     /// Admin only
-    SetWinner {
+    CloseRound {
         round_id: RoundId,
-        team_id: AccountId,
+        winner: Option<AccountId>,
     },
     UpdateConfig {
         rake: Option<Decimal>,
