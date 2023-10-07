@@ -18,25 +18,6 @@ use cw_orch::{
 };
 use tokio::runtime::Runtime;
 
-
-pub const NIBIRU_NETWORK: NetworkInfo = NetworkInfo {
-    id: "nibiru",
-    pub_address_prefix: "nibi",
-    coin_type: 118u32,
-};
-
-pub const NIBIRU_ITN_2: ChainInfo = ChainInfo {
-    kind: ChainKind::Testnet,
-    chain_id: "nibiru-itn-3",
-    gas_denom: "unibi",
-    gas_price: 0.025,
-    grpc_urls: &["https://nibiru-testnet.grpc.kjnodes.com:443"],
-    network_info: NIBIRU_NETWORK,
-    lcd_url: None,
-    fcd_url: None,
-};
-
-
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
@@ -53,7 +34,7 @@ fn full_deploy() -> anyhow::Result<()> {
         .get_all_deployed_chains();
     let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
 
-    let networks = vec![NIBIRU_ITN_2.clone()];
+
     for network in networks {
         let chain = DaemonBuilder::default()
             .handle(rt.handle())
