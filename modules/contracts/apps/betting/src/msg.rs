@@ -44,7 +44,7 @@ use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
-use crate::state::{RoundInfo, RoundId, RoundTeamKey, NewBet, AccountOdds, OddsInt, RoundStatus};
+use crate::state::{RoundInfo, RoundId, RoundTeamKey, Bet, AccountOdds, OddsType, RoundStatus};
 
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
@@ -79,9 +79,10 @@ pub enum BetExecuteMsg {
         to_add: Vec<AccountOdds>,
         to_remove: Vec<AccountId>,
     },
+    /// Place a new bet for a round
     #[cfg_attr(feature = "interface", payable)]
     PlaceBet {
-        bet: NewBet,
+        bet: Bet,
     },
     /// Distribute winnings to the winners of the round
     DistributeWinnings {
@@ -92,6 +93,7 @@ pub enum BetExecuteMsg {
         round_id: RoundId,
         winner: Option<AccountId>,
     },
+    /// Update the config of the contract
     UpdateConfig {
         rake: Option<Decimal>,
     },
@@ -128,10 +130,11 @@ pub enum BetQueryMsg {
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
-    // TotalBets {
-    //     round_id: RoundId,
-    //     team_id: AccountId,
-    // }
+    /// Returns [`BetsResponse`]
+    #[returns(BetsResponse)]
+    Bets {
+        round_id: RoundId,
+    }
 }
 
 /// Hook when sending CW20 tokens
@@ -160,6 +163,13 @@ pub struct ListOddsResponse {
 pub struct ConfigResponse {
     /// Address of the LP token
     pub rake: Decimal,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct BetsResponse {
+    pub round_id: RoundId,
+    /// Address of the LP token
+    pub bets: Vec<(Addr, Uint128)>,
 }
 
 #[cosmwasm_schema::cw_serde]

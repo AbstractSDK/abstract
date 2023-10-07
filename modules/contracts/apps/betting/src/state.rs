@@ -80,6 +80,13 @@ impl Round {
         Ok(ROUNDS_TO_ACCOUNTS.load(storage, self.id())?)
     }
 
+    pub fn bets(&self, storage: &dyn Storage) -> BetResult<Vec<(Addr, Uint128)>> {
+        let all_bets = BETS.prefix(self.id()).range(storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
+        let bets = all_bets.into_iter().map(|(_, value)| value).flatten().collect::<Vec<(Addr, Uint128)>>();
+
+        Ok(bets)
+    }
+
     fn bet_count(&self, storage: &dyn Storage) -> BetResult<u128> {
         let all_keys: Vec<_> = BETS.prefix(self.id()).keys(storage, None, None, Order::Ascending).collect();
         Ok(all_keys.len() as u128)
@@ -100,6 +107,11 @@ impl Round {
         Ok(())
     }
 
+    pub fn total_bet(&self, storage: &dyn Storage) -> BetResult<Uint128> {
+        let total = query::get_total_bets_for_all_accounts(storage, self.id())?;
+        Ok(total)
+    }
+
     pub fn query(&self, deps: Deps) -> BetResult<RoundResponse> {
         let info = self.info(deps.storage)?;
         let accounts = self.accounts(deps.storage)?;
@@ -118,11 +130,6 @@ impl Round {
                 amount: total_bet,
             }
         })
-    }
-
-    pub fn total_bet(&self, storage: &dyn Storage) -> BetResult<Uint128> {
-        let total = query::get_total_bets_for_all_accounts(storage, self.id())?;
-        Ok(total)
     }
 
     /// Register accounts to a round and error out if duplicates are found.
@@ -181,20 +188,20 @@ impl RoundInfo {
 
 pub type RoundTeamKey = (RoundId, AccountId);
 
+pub type OddsType = Decimal;  // Represents odds with two decimal precision
 
+
+
+/// TODO: remove round ID
 #[cosmwasm_schema::cw_serde]
-
-pub struct NewBet {
+pub struct Bet {
     pub round_id: RoundId,
     pub account_id: AccountId,
     pub asset: AnsAsset,
 }
 
 
-pub type OddsInt = Decimal;  // Represents odds with two decimal precision
-
-
-impl NewBet {
+impl Bet {
     pub fn validate(&self, deps: Deps, base_asset: &AssetEntry) -> BetResult<()> {
         if self.asset.amount.is_zero() {
             return Err(BetError::InvalidBet {});
@@ -225,7 +232,7 @@ impl NewBet {
 #[cosmwasm_schema::cw_serde]
 pub struct AccountOdds {
     pub account_id: AccountId,
-    pub odds: OddsInt, // e.g., 250 for 2.50 odds
+    pub odds: OddsType, // e.g., 250 for 2.50 odds
 }
 
 // Map that stores all the rounds and their information
@@ -235,4 +242,4 @@ pub const ROUNDS_TO_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_tea
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
 pub const BETS: Map<RoundTeamKey, Vec<(Addr, Uint128)>> = Map::new("bets");
-pub const ODDS: Map<RoundTeamKey, OddsInt> = Map::new("odds");
+pub const ODDS: Map<RoundTeamKey, OddsType> = Map::new("odds");

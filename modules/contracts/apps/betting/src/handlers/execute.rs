@@ -51,20 +51,8 @@ pub fn execute_handler(
         }
         BetExecuteMsg::UpdateConfig { rake } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-            // TODO: use config constant, not sure why this is not working.
-            let mut config: Config = Item::new("config").load(deps.storage)?;
-            let mut attrs = vec![];
 
-            if let Some(rake) = rake {
-                config.rake = Fee::new(rake)?;
-                attrs.push(("rake", rake.to_string()));
-            };
-
-            Ok(app.custom_tag_response(
-                Response::default(),
-                "update_config",
-                attrs,
-            ))
+            update_config(deps, app, rake)
         }
         BetExecuteMsg::PlaceBet {
             bet
@@ -88,6 +76,23 @@ pub fn execute_handler(
             register_for_round(deps, info, app, round)
         }
     }
+}
+
+fn update_config(deps: DepsMut, app: BetApp, rake: Option<Decimal>) -> BetResult {
+// TODO: use config constant, not sure why this is not working.
+    let mut config: Config = Item::new("config").load(deps.storage)?;
+    let mut attrs = vec![];
+
+    if let Some(rake) = rake {
+        config.rake = Fee::new(rake)?;
+        attrs.push(("rake", rake.to_string()));
+    };
+
+    Ok(app.custom_tag_response(
+        Response::default(),
+        "update_config",
+        attrs,
+    ))
 }
 
 fn register_for_round(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round) -> BetResult {
@@ -135,8 +140,8 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
     let distribution_msgs = match current_status {
         RoundStatus::Closed { winning_team: None } => {
             // No winning team, refund all bets
-            let all_bets = BETS.prefix(round_id).range(deps.storage, None, None, Order::Ascending).collect::<StdResult<Vec<_>>>()?;
-            let bets = all_bets.into_iter().map(|(_, value)| value).flatten().collect::<Vec<(Addr, Uint128)>>();
+
+            let bets = round.bets(deps.storage)?;
 
             let bank = app.bank(deps.as_ref());
             let round_info = round.info(deps.storage)?.bet_asset;
@@ -223,7 +228,7 @@ pub fn create_round(
     Ok(app.custom_tag_response(Response::default(), "create_round", vec![("round_id", state.next_round_id.to_string())]))
 }
 
-fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetResult {
+fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: Bet) -> BetResult {
     let mut messages: Vec<CosmosMsg> = vec![];
 
     let bank = app.bank(deps.as_ref());

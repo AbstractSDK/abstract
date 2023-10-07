@@ -1,5 +1,5 @@
 use crate::contract::{BetApp, BetResult};
-use crate::msg::{BetQueryMsg, ConfigResponse, ListOddsResponse, OddsResponse, RoundResponse, RoundsResponse};
+use crate::msg::{BetQueryMsg, BetsResponse, ConfigResponse, ListOddsResponse, OddsResponse, RoundResponse, RoundsResponse};
 use crate::state::{AccountOdds, BETS, CONFIG, Config, ODDS, Round, RoundId, RoundInfo, ROUNDS};
 use cosmwasm_std::{Binary, Decimal, Deps, Env, Order, StdResult, Storage, to_binary, Uint128};
 use abstract_core::objects::AccountId;
@@ -37,6 +37,15 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
             round_id
         } => {
             to_binary(&list_odds(deps, round_id)?)
+        }
+        BetQueryMsg::Bets { round_id } => {
+            let round = Round::new(round_id.clone());
+            let bets = round.bets(deps.storage)?;
+            let response = BetsResponse {
+                round_id,
+                bets,
+            };
+            to_binary(&response)
         }
     }
     .map_err(Into::into)

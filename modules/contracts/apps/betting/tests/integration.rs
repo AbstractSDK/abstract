@@ -29,7 +29,7 @@ use betting_app::{
 
 use speculoos::prelude::*;
 use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, RoundResponse};
-use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, NewBet, RoundId, RoundInfo, RoundStatus};
+use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, Bet, RoundId, RoundInfo, RoundStatus};
 
 type AResult<T = ()> = anyhow::Result<T>;
 
@@ -212,7 +212,7 @@ impl BetEnv<Mock> {
     }
 
     fn bet_on_round_as(&self, sender: Addr, round_id: RoundId, account_id: AccountId, amount: u128) -> AResult<()> {
-        let bet = NewBet {
+        let bet = Bet {
             round_id,
             account_id,
             asset: AnsAsset::new(BET_TOKEN_ANS_ID, amount),
