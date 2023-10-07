@@ -69,7 +69,7 @@ pub fn query_handler(deps: Deps, _env: Env, _etf: &BetApp, msg: BetQueryMsg) -> 
 
 
 /// Returns the total bet amount for a specific `AccountId` in a given `RoundId`.
-pub fn get_total_bets_for_account(
+pub fn get_total_bets_for_team(
     storage: &dyn Storage,
     round_id: RoundId,
     account_id: AccountId

@@ -88,4 +88,7 @@ pub enum BetError {
 
     #[error("Round {0} already closed")]
     RoundAlreadyClosed(RoundId),
+
+    #[error("Round {0} not closed")]
+    RoundNotClosed(RoundId),
 }

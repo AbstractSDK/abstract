@@ -61,7 +61,7 @@ pub struct BetInstantiateMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum BetExecuteMsg {
-    /// CReate a round for the hackathon
+    /// Create a round of betting
     /// Admin only
     CreateRound {
         name: String,
@@ -73,8 +73,8 @@ pub enum BetExecuteMsg {
     Register {
         round_id: RoundId,
     },
-    /// Register a team for the hackathon
-    /// Admin
+    /// Register teams manually for the round, with predefined odds set.
+    /// Good for creating games with predefined odds, but payout can exceed account balance.
     UpdateAccounts {
         round_id: RoundId,
         to_add: Vec<AccountOdds>,
@@ -84,12 +84,13 @@ pub enum BetExecuteMsg {
     PlaceBet {
         bet: NewBet,
     },
-    DistributeWinnings {},
-    Withdraw {},
-    /// Admin only
-    UpdateRoundStatus {
+    DistributeWinnings {
         round_id: RoundId,
-        status: RoundStatus,
+    },
+    /// Admin only
+    SetWinner {
+        round_id: RoundId,
+        team_id: AccountId,
     },
     UpdateConfig {
         rake: Option<Decimal>,

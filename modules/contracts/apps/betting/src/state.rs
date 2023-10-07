@@ -11,7 +11,7 @@ use abstract_sdk::features::AbstractNameService;
 use cw_asset::{Asset, AssetInfo};
 use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
-use crate::handlers::query::get_total_bets_for_account;
+use crate::handlers::query::get_total_bets_for_team;
 use crate::msg::RoundResponse;
 
 /// State stores LP token address
@@ -48,9 +48,10 @@ pub struct RoundInfo {
 #[cosmwasm_schema::cw_serde]
 pub enum RoundStatus {
     Open,
-    Closed {
+    Won {
         winning_team: AccountId,
     },
+    RewardsDistributed,
 }
 
 #[derive(Default)]
@@ -96,7 +97,7 @@ impl Round {
 
     pub fn assert_not_closed(&self, storage: &dyn Storage) -> BetResult<()> {
         let info = self.status(storage)?;
-        if matches!(info, RoundStatus::Closed { .. }) {
+        if matches!(info, RoundStatus::Won { .. }) {
             return Err(BetError::RoundAlreadyClosed(self.id()));
         }
         Ok(())
@@ -120,7 +121,7 @@ impl Round {
     pub fn total_bets(&self, storage: &dyn Storage) -> BetResult<Uint128> {
         let accounts = self.accounts(storage)?;
         let total: Uint128 = accounts.iter().map(|account_id| {
-            get_total_bets_for_account(storage, self.id(), account_id.clone()).unwrap_or_default()
+            get_total_bets_for_team(storage, self.id(), account_id.clone()).unwrap_or_default()
         }).sum();
         Ok(total)
     }

@@ -1,10 +1,10 @@
 use std::str::FromStr;
-use abstract_core::objects::{AccountId, AssetEntry};
+use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
 use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
 };
-use cosmwasm_std::{Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Addr, coins, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
 
 use crate::contract::{BetApp, BetResult};
@@ -44,7 +44,7 @@ pub fn execute_handler(
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
             let round = Round::new(round_id);
-
+            round.assert_not_closed(deps.storage)?;
             deps.api.debug(&format!("to_add: {:?}", to_add));
 
             update_accounts(deps, info, app, round, to_add, to_remove)
@@ -71,8 +71,8 @@ pub fn execute_handler(
         } => {
             place_bet(deps, info, app, bet)
         }
-        BetExecuteMsg::UpdateRoundStatus {
-            round_id, status: new_status
+        BetExecuteMsg::SetWinner {
+            round_id, team_id
         } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             let round = Round::new(round_id);
@@ -80,8 +80,7 @@ pub fn execute_handler(
 
             match current_status {
                 RoundStatus::Open => {
-                    assert!(matches!(new_status, RoundStatus::Closed { .. }));
-                    round.set_status(deps.storage, new_status)?;
+                    round.set_status(deps.storage, RoundStatus::Won { winning_team: team_id })?;
 
                     Ok(app.custom_tag_response(
                         Response::default(),
@@ -89,14 +88,57 @@ pub fn execute_handler(
                         vec![("round_id", round_id.to_string()) /*, ("status", new_status.to_string()) */],
                     ))
                 }
-                RoundStatus::Closed {
-                    ..
-                } => Err(BetError::RoundAlreadyClosed(round_id)),
+                _ => Err(BetError::RoundAlreadyClosed(round_id)),
             }
         }
-        // BetExecuteMsg::Withdraw {},
+        BetExecuteMsg::DistributeWinnings {
+            round_id
+        } => distribute_winnings(deps, app, round_id)?,
         _ => panic!("Unsupported execute message"),
     }
+}
+
+fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> Result<Result<Response, BetError>, BetError> {
+    let round = Round::new(round_id);
+    let current_status = round.status(deps.storage)?;
+
+    let winning_team = match current_status {
+        RoundStatus::Won { winning_team } => {
+            Ok(winning_team)
+        },
+        _ => Err(BetError::RoundNotClosed(round_id)),
+    }?;
+
+    let winning_odds = ODDS.load(deps.storage, (round_id, winning_team.clone()))?;
+    println!("winning_odds: {}", winning_odds);
+    let overall_winnings = query::get_total_bets_for_team(deps.storage, round_id, winning_team.clone())?;
+
+    let winning_bets = BETS.load(deps.storage, (round_id, winning_team.clone()))?;
+    let mut distribution_msgs = vec![];
+
+    let bank = app.bank(deps.as_ref());
+    let round_info = round.info(deps.storage)?.base_bet_token;
+
+    for (better_addr, bet_amount) in winning_bets.iter() {
+        let bet_amount = *bet_amount;
+        let winnings = bet_amount * winning_odds;
+
+        println!("payout_amount: {}", winnings);
+        println!("better_addr: {}, bet_amount: {} winning_total: {}", better_addr, bet_amount, overall_winnings);
+
+        let transfer_asset = AnsAsset::new(round_info.clone(), winnings);
+
+        // Create a transfer message to send the payout to the bettor
+        let payout_msg = bank.transfer(vec![transfer_asset], better_addr)?;
+        distribution_msgs.push(payout_msg);
+    }
+
+    let distribution_msg: CosmosMsg = app.executor(deps.as_ref()).execute(distribution_msgs)?.into();
+
+    // Update round's status to RewardsDistributed or something similar
+    round.set_status(deps.storage, RoundStatus::RewardsDistributed)?;
+
+    Ok(Ok(app.tag_response(Response::default().add_message(distribution_msg), "distribute_winnings")))
 }
 
 fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult {
@@ -196,7 +238,7 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
 /// # Returns
 /// the new odds
 fn adjust_odds_for_team(storage: &mut dyn Storage, round_id: RoundId, team_id: AccountId, bet_totals: Uint128, rake: Decimal) -> StdResult<()> {
-    let team_bet_total = query::get_total_bets_for_account(storage, round_id, team_id.clone())?;
+    let team_bet_total = query::get_total_bets_for_team(storage, round_id, team_id.clone())?;
     // No action, odds have not changed
     if team_bet_total.is_zero() {
         return Ok(());
@@ -218,7 +260,12 @@ fn adjust_odds_for_team(storage: &mut dyn Storage, round_id: RoundId, team_id: A
     };
 
     // Apply house edge
-    let adjusted_odds = new_odds * (Decimal::one() - rake);
+    let mut adjusted_odds = new_odds * (Decimal::one() - rake);
+
+    // Don't allow odds to go below 1
+    if adjusted_odds < Decimal::one() {
+        adjusted_odds = Decimal::one();
+    }
 
     ODDS.save(storage, (round_id, team_id.clone()), &adjusted_odds)
 }
