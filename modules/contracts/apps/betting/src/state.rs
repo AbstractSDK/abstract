@@ -42,6 +42,7 @@ pub struct RoundInfo {
     pub name: String,
     pub description: String,
     pub base_bet_token: AssetEntry,
+    pub winning_team: Option<AccountId>,
 }
 
 #[derive(Default)]
@@ -71,6 +72,21 @@ impl Round {
     fn bet_count(&self, storage: &dyn Storage) -> BetResult<u128> {
         let all_keys: Vec<_> = BETS.prefix(self.id()).keys(storage, None, None, Order::Ascending).collect();
         Ok(all_keys.len() as u128)
+    }
+
+    pub fn set_winning_team(&self, storage: &mut dyn Storage, winning_team: AccountId) -> BetResult<()> {
+        let mut info = self.info(storage)?;
+        info.winning_team = Some(winning_team);
+        ROUNDS.save(storage, self.id(), &info)?;
+        Ok(())
+    }
+
+    pub fn assert_not_closed(&self, storage: &dyn Storage) -> BetResult<()> {
+        let info = self.info(storage)?;
+        if info.winning_team.is_some() {
+            return Err(BetError::RoundAlreadyClosed(self.id()));
+        }
+        Ok(())
     }
 
     pub fn query(&self, deps: Deps) -> BetResult<RoundResponse> {
@@ -179,8 +195,10 @@ impl NewBet {
 
         // check that the account being bet on is registered
         let round = Round::new(self.round_id);
+        round.assert_not_closed(deps.storage)?;
         let accounts = round.accounts(deps.storage)?;
         let bet_account_id = &self.account_id;
+
         if !accounts.contains(bet_account_id) {
             return Err(BetError::AccountNotParticipating {
                 account_id: bet_account_id.clone(),
@@ -205,3 +223,4 @@ pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
 pub const BETS: Map<RoundTeam, Vec<(Addr, Uint128)>> = Map::new("bets");
 pub const ODDS: Map<RoundTeam, OddsInt> = Map::new("odds");
+pub const IS_FIRST_BETS: Map<RoundTeam, bool> = Map::new("is_first_bets");

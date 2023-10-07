@@ -191,11 +191,7 @@ impl BetEnv<Mock> {
     }
 
     fn create_test_round(&self) -> AResult<RoundId> {
-        self.bet.call_as(&self.admin_account_addr()?).create_round(RoundInfo {
-            name: "test".to_string(),
-            description: "test".to_string(),
-            base_bet_token: AssetEntry::new(BET_TOKEN_ANS_ID),
-        })?;
+        self.bet.call_as(&self.admin_account_addr()?).create_round(AssetEntry::new(BET_TOKEN_ANS_ID), "test".to_string(), "test".to_string())?;
 
         let rounds = self.bet.list_rounds(None, None)?;
 
@@ -216,7 +212,7 @@ impl BetEnv<Mock> {
         Ok(())
     }
 
-    fn bet_on_round_as(&self, sender: Addr, account_id: AccountId, round_id: RoundId, amount: u128) -> AResult<()> {
+    fn bet_on_round_as(&self, sender: Addr, round_id: RoundId, account_id: AccountId, amount: u128) -> AResult<()> {
         let bet = NewBet {
             round_id,
             account_id,
@@ -300,7 +296,7 @@ fn test_create_round_with_mini_bets() -> AResult {
 
     let betting_on = AccountId::local(2);
 
-    env.bet_on_round_as(better, betting_on, round_id, bet_amount)?;
+    env.bet_on_round_as(better, round_id, betting_on, bet_amount)?;
 
     let odds_list = env.bet.list_odds(round_id)?;
     println!("{:?}", odds_list);
@@ -309,7 +305,7 @@ fn test_create_round_with_mini_bets() -> AResult {
 }
 
 #[test]
-fn test_create_round_with_odds() -> AResult {
+fn test_create_round_with_two_teams() -> AResult {
     let env = BetEnv::setup(None)?;
 
     let round_id= env.create_test_round()?;
@@ -321,23 +317,68 @@ fn test_create_round_with_odds() -> AResult {
     let team_2 = new_acc_ids.swap_remove(0);
 
 
-    let decimal = Decimal::from_str("2.22").unwrap();
-    env.add_team_to_round(round_id, team_1, decimal)?;
-    env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1.82").unwrap())?;
+    env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
+    env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
 
     let odds_list = env.bet.list_odds(round_id)?;
     println!("initial odds with house edge: {:?}", odds_list.odds);
 
     let better = Addr::unchecked("account");
-    let bet_amount = 1000000000;
+    let bet_amount = 100000000;
 
-    env.env.set_balance(&better, coins(bet_amount, BET_TOKEN_DENOM))?;
+    env.env.set_balance(&better, coins(bet_amount * 5999, BET_TOKEN_DENOM))?;
 
 
-    env.bet_on_round_as(better, team_2, round_id, bet_amount)?;
+    env.bet_on_round_as(better.clone(), round_id, team_1, bet_amount)?;
+    println!("odds_list 2: {:?}", odds_list.odds);
+
+    env.bet_on_round_as(better, round_id, team_2, bet_amount / 2)?;
 
     let odds_list = env.bet.list_odds(round_id)?;
+    println!("odds_list 3: {:?}", odds_list.odds);
+
+    Ok(())
+}
+
+
+#[test]
+fn test_create_round_with_three_teams() -> AResult {
+    let env = BetEnv::setup(None)?;
+
+    let round_id= env.create_test_round()?;
+
+    // create 3 accounts
+    let mut new_acc_ids = env.create_x_accounts(3)?;
+
+    let team_1 = new_acc_ids.get(0).unwrap().clone();
+    let team_2 =  new_acc_ids.get(1).unwrap().clone();
+    let team_3 =  new_acc_ids.get(2).unwrap().clone();
+
+
+    env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
+    env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
+    env.add_team_to_round(round_id, team_3.clone(), Decimal::from_str("1").unwrap())?;
+
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("initial odds: {:?}", odds_list.odds);
+
+    let better = Addr::unchecked("account");
+    env.env.set_balance(&better, coins(5005050 * 5999, BET_TOKEN_DENOM))?;
+
+    let bet_amount = 125000000;
+    env.bet_on_round_as(better.clone(), round_id, team_1, bet_amount)?;
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("odds_list 1: {:?}", odds_list.odds);
+
+    let bet_amount = 175000000;
+    env.bet_on_round_as(better.clone(), round_id, team_2, bet_amount)?;
+    let odds_list = env.bet.list_odds(round_id)?;
     println!("odds_list 2: {:?}", odds_list.odds);
+
+    let bet_amount = 45000000;
+    env.bet_on_round_as(better.clone(), round_id, team_3, bet_amount)?;
+    let odds_list = env.bet.list_odds(round_id)?;
+    println!("odds_list 3: {:?}", odds_list.odds);
 
     Ok(())
 }

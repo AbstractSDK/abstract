@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use abstract_core::objects::AccountId;
+use abstract_core::objects::{AccountId, AssetEntry};
 use abstract_sdk::{
     *,
     core::objects::fee::Fee, features::AbstractResponse,
@@ -24,10 +24,20 @@ pub fn execute_handler(
     msg: BetExecuteMsg,
 ) -> BetResult {
     match msg {
-        BetExecuteMsg::CreateRound(round) => {
+        BetExecuteMsg::CreateRound {
+            name,
+            description,
+            base_bet_token,
+        } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+            let round_info = RoundInfo {
+                name: name.clone(),
+                description: description.clone(),
+                base_bet_token: base_bet_token.clone(),
+                winning_team: None,
+            };
             // Check asset
-            create_round(deps, info, app, round)
+            create_round(deps, info, app, round_info)
         }
         BetExecuteMsg::UpdateAccounts { to_add, to_remove, round_id } => {
             // Only admin can register specific accounts
@@ -57,10 +67,24 @@ pub fn execute_handler(
             ))
         }
         BetExecuteMsg::PlaceBet {
-            bet: bets
+            bet
         } => {
-            place_bet(deps, info, app, bets)
+            place_bet(deps, info, app, bet)
         }
+        BetExecuteMsg::SetWinningTeam {
+            round_id, team_id
+        } => {
+            app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+            let round = Round::new(round_id);
+            round.set_winning_team(deps.storage, team_id.clone())?;
+
+            Ok(app.custom_tag_response(
+                Response::default(),
+                "set_winning_team",
+                vec![("round_id", round_id.to_string()), ("team_id", team_id.to_string())],
+            ))
+        }
+        // BetExecuteMsg::Withdraw {},
         _ => panic!("Unsupported execute message"),
     }
 }
@@ -108,7 +132,6 @@ pub fn create_round(
 }
 
 fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetResult {
-
     let bet_asset = CONFIG.load(deps.storage)?.bet_asset;
 
     let mut messages: Vec<CosmosMsg> = vec![];
@@ -122,8 +145,6 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
     }
     let round = Round::new(bet.round_id);
 
-
-    // TODO: this is currently quite inefficient if there are multiple bets for the same round
     // Ensure the account placing the bet exists
      bet.validate(deps.as_ref(), &bet_asset)?;
 
@@ -135,50 +156,51 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, bet: NewBet) -> BetR
     let bet_account = bet.account_id;
 
     let key = (round.id(), bet_account.clone());
-    let mut existing_bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
+    let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
     // Find and update the existing bet if it exists
-    if let Some(index) = existing_bets.iter().position(|(addr, _)| addr == &info.sender) {
-        let (_, amount) = &mut existing_bets[index];
+    if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
+        let (_, amount) = &mut bets[index];
         *amount += bet.asset.amount;
     } else {
         // Otherwise, add a new bet
-        existing_bets.push((info.sender.clone(), bet.asset.amount));
+        bets.push((info.sender.clone(), bet.asset.amount));
     }
-    BETS.save(deps.storage, key.clone(), &existing_bets)?;
+    // save the bets
+    BETS.save(deps.storage, key.clone(), &bets)?;
+
+    // Retrieve the total bets for the round
+    let bet_totals = query::get_total_bets_for_all_accounts(deps.storage, round.id())?;
+    let rake = CONFIG.load(deps.storage)?.rake.share();
 
     let round_teams = round.accounts(deps.storage)?;
-
-    let bet_totals = query::get_total_bets_for_all_accounts(deps.storage, round.id())?;
-
     for team in round_teams {
+        println!("adjusting odds for team: {}", team);
         // adjust the odds for the round
-        adjust_odds_for_account(deps.storage, round.id(), team, bet_totals)?;
+        adjust_odds_for_team(deps.storage, round.id(), team, bet_totals, rake)?;
     }
 
-    Ok(app.tag_response(Response::default().add_messages(messages), "place_bets"))
+    Ok(app.tag_response(Response::default().add_messages(messages), "place_bet"))
 }
 
 /// Calculates the new odds for the given round/account pair
 /// # Returns
 /// the new odds
-fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account_id: AccountId, bet_totals: Uint128) -> StdResult<()> {
-    let total_bets_for_account = query::get_total_bets_for_account(storage, round_id, account_id.clone())?;
-
-    if bet_totals.is_zero() || total_bets_for_account.is_zero() {
+fn adjust_odds_for_team(storage: &mut dyn Storage, round_id: RoundId, team_id: AccountId, bet_totals: Uint128, rake: Decimal) -> StdResult<()> {
+    let team_bet_total = query::get_total_bets_for_account(storage, round_id, team_id.clone())?;
+    // No action, odds have not changed
+    if team_bet_total.is_zero() {
         return Ok(());
     }
 
-    let rake = CONFIG.load(storage)?.rake.share();
+    // Calculate the bet-based odds
+    let bet_based_odds = Decimal::from_ratio(bet_totals, team_bet_total);
 
     // Check if it's the first bet for the round
-    let is_first_bet = bet_totals == total_bets_for_account;
-
-    // Calculate the bet-based odds
-    let bet_based_odds = Decimal::from_ratio(bet_totals, total_bets_for_account);
-
+    let is_first_bet = bet_totals == team_bet_total;
+    // If it's the first bet, blend the initial odds with the bet-based odds since it was the initial prediction
     let new_odds = if is_first_bet {
         // Retrieve the initial odds
-        let initial_odds = ODDS.load(storage, (round_id, account_id.clone()))?;
+        let initial_odds = ODDS.load(storage, (round_id, team_id.clone()))?;
         // Blend the initial and bet-based odds
         (initial_odds + bet_based_odds) / Decimal::from_str("2.0").unwrap()
     } else {
@@ -188,7 +210,7 @@ fn adjust_odds_for_account(storage: &mut dyn Storage, round_id: RoundId, account
     // Apply house edge
     let adjusted_odds = new_odds * (Decimal::one() - rake);
 
-    ODDS.save(storage, (round_id, account_id.clone()), &adjusted_odds)
+    ODDS.save(storage, (round_id, team_id.clone()), &adjusted_odds)
 }
 
 

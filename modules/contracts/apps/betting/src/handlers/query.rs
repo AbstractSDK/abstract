@@ -74,8 +74,9 @@ pub fn get_total_bets_for_account(
     round_id: RoundId,
     account_id: AccountId
 ) -> StdResult<Uint128> {
-    let bets_for_account = BETS.may_load(storage, (round_id, account_id))?.unwrap_or_default();
+    let bets_for_account = BETS.may_load(storage, (round_id, account_id.clone()))?.unwrap_or_default();
     let total: Uint128 = bets_for_account.iter().map(|(_, amount)| *amount).sum();
+
     Ok(total)
 }
 

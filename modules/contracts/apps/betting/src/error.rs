@@ -85,4 +85,7 @@ pub enum BetError {
     },
     #[error("Invalid asset. Expected: {expected}, Actual: {actual}")]
     InvalidAsset { expected: AssetInfo, actual: AssetInfoBase<Addr> },
+
+    #[error("Round {0} already closed")]
+    RoundAlreadyClosed(RoundId),
 }

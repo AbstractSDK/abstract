@@ -63,7 +63,11 @@ pub struct BetInstantiateMsg {
 pub enum BetExecuteMsg {
     /// CReate a round for the hackathon
     /// Admin only
-    CreateRound(RoundInfo),
+    CreateRound {
+        name: String,
+        description: String,
+        base_bet_token: AssetEntry,
+    },
     /// Register as a team for the hackathon
     /// Uses the account caller to find the account id
     Register {
@@ -80,7 +84,7 @@ pub enum BetExecuteMsg {
     PlaceBet {
         bet: NewBet,
     },
-    DistributeWinnings {  },
+    DistributeWinnings {},
     Withdraw {},
     /// Admin only
     SetWinningTeam {
@@ -89,7 +93,7 @@ pub enum BetExecuteMsg {
     },
     UpdateConfig {
         rake: Option<Decimal>,
-    }
+    },
 }
 
 /// Query Msg
@@ -142,13 +146,13 @@ pub enum Cw20HookMsg {
 #[cosmwasm_schema::cw_serde]
 pub struct OddsResponse {
     pub round_id: RoundId,
-    pub odds: Decimal
+    pub odds: Decimal,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListOddsResponse {
     pub round_id: RoundId,
-    pub odds: Vec<AccountOdds>
+    pub odds: Vec<AccountOdds>,
 }
 
 #[cosmwasm_schema::cw_serde]
