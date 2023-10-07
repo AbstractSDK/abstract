@@ -34,7 +34,7 @@ pub fn execute_handler(
                 name: name.clone(),
                 description: description.clone(),
                 base_bet_token: base_bet_token.clone(),
-                winning_team: None,
+                status: RoundStatus::Open,
             };
             // Check asset
             create_round(deps, info, app, round_info)
@@ -71,18 +71,28 @@ pub fn execute_handler(
         } => {
             place_bet(deps, info, app, bet)
         }
-        BetExecuteMsg::SetWinningTeam {
-            round_id, team_id
+        BetExecuteMsg::UpdateRoundStatus {
+            round_id, status: new_status
         } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             let round = Round::new(round_id);
-            round.set_winning_team(deps.storage, team_id.clone())?;
+            let current_status = round.status(deps.storage)?;
 
-            Ok(app.custom_tag_response(
-                Response::default(),
-                "set_winning_team",
-                vec![("round_id", round_id.to_string()), ("team_id", team_id.to_string())],
-            ))
+            match current_status {
+                RoundStatus::Open => {
+                    assert!(matches!(new_status, RoundStatus::Closed { .. }));
+                    round.set_status(deps.storage, new_status)?;
+
+                    Ok(app.custom_tag_response(
+                        Response::default(),
+                        "update_round_status",
+                        vec![("round_id", round_id.to_string()) /*, ("status", new_status.to_string()) */],
+                    ))
+                }
+                RoundStatus::Closed {
+                    ..
+                } => Err(BetError::RoundAlreadyClosed(round_id)),
+            }
         }
         // BetExecuteMsg::Withdraw {},
         _ => panic!("Unsupported execute message"),
@@ -121,7 +131,7 @@ pub fn create_round(
     round.validate(deps.as_ref(), &ans_host)?;
 
     ROUNDS.save(deps.storage, state.next_round_id, &round)?;
-    ROUND_ACCOUNTS.save(deps.storage, state.next_round_id, &vec![])?;
+    ROUNDS_TO_ACCOUNTS.save(deps.storage, state.next_round_id, &vec![])?;
 
     // Update and save the state
     STATE.update(deps.storage, |mut state| -> BetResult<_> {

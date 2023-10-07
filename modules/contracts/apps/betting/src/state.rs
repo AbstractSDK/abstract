@@ -42,7 +42,15 @@ pub struct RoundInfo {
     pub name: String,
     pub description: String,
     pub base_bet_token: AssetEntry,
-    pub winning_team: Option<AccountId>,
+    pub status: RoundStatus,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub enum RoundStatus {
+    Open,
+    Closed {
+        winning_team: AccountId,
+    },
 }
 
 #[derive(Default)]
@@ -65,8 +73,13 @@ impl Round {
         let info = ROUNDS.load(storage, self.id()).map_err(|_| BetError::RoundNotFound(self.id()))?;
         Ok(info)
     }
+    pub fn status(&self, storage: &dyn Storage) -> BetResult<RoundStatus> {
+        let info = self.info(storage)?;
+        Ok(info.status)
+    }
+
     pub fn accounts(&self, storage: &dyn Storage) -> BetResult<Vec<AccountId>> {
-        Ok(ROUND_ACCOUNTS.load(storage, self.id())?)
+        Ok(ROUNDS_TO_ACCOUNTS.load(storage, self.id())?)
     }
 
     fn bet_count(&self, storage: &dyn Storage) -> BetResult<u128> {
@@ -74,16 +87,16 @@ impl Round {
         Ok(all_keys.len() as u128)
     }
 
-    pub fn set_winning_team(&self, storage: &mut dyn Storage, winning_team: AccountId) -> BetResult<()> {
+    pub fn set_status(&self, storage: &mut dyn Storage, status: RoundStatus) -> BetResult<()> {
         let mut info = self.info(storage)?;
-        info.winning_team = Some(winning_team);
+        info.status = status;
         ROUNDS.save(storage, self.id(), &info)?;
         Ok(())
     }
 
     pub fn assert_not_closed(&self, storage: &dyn Storage) -> BetResult<()> {
-        let info = self.info(storage)?;
-        if info.winning_team.is_some() {
+        let info = self.status(storage)?;
+        if matches!(info, RoundStatus::Closed { .. }) {
             return Err(BetError::RoundAlreadyClosed(self.id()));
         }
         Ok(())
@@ -116,7 +129,7 @@ impl Round {
     /// *unchecked* for account existence.
     pub fn update_accounts(&self, deps: DepsMut, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult<()> {
         // Load existing accounts associated with the round
-        let mut existing_accounts: Vec<AccountId> = ROUND_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
+        let mut existing_accounts: Vec<AccountId> = ROUNDS_TO_ACCOUNTS.may_load(deps.storage, self.id())?.unwrap_or_default();
         let rake = CONFIG.load(deps.storage)?.rake.share();
 
         deps.api.debug(&format!("rake: {:?}", rake));
@@ -141,7 +154,7 @@ impl Round {
         }
 
         // Save the updated list of accounts back to storage
-        ROUND_ACCOUNTS.save(deps.storage, self.id(), &existing_accounts)?;
+        ROUNDS_TO_ACCOUNTS.save(deps.storage, self.id(), &existing_accounts)?;
 
         Ok(())
     }
@@ -162,7 +175,7 @@ impl RoundInfo {
 
 }
 
-pub type RoundTeam = (RoundId, AccountId);
+pub type RoundTeamKey = (RoundId, AccountId);
 
 
 #[cosmwasm_schema::cw_serde]
@@ -173,11 +186,6 @@ pub struct NewBet {
     pub asset: AnsAsset,
 }
 
-pub struct ValidatedBet {
-    pub round: Round,
-    pub account_id: AccountId,
-    pub asset: Asset,
-}
 
 pub type OddsInt = Decimal;  // Represents odds with two decimal precision
 
@@ -216,11 +224,11 @@ pub struct AccountOdds {
     pub odds: OddsInt, // e.g., 250 for 2.50 odds
 }
 
+// Map that stores all the rounds and their information
 pub const ROUNDS: Map<RoundId, RoundInfo> = Map::new("rounds");
 
-pub const ROUND_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_teams");
+pub const ROUNDS_TO_ACCOUNTS: Map<RoundId, Vec<AccountId>> = Map::new("round_teams");
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const STATE: Item<State> = Item::new("state");
-pub const BETS: Map<RoundTeam, Vec<(Addr, Uint128)>> = Map::new("bets");
-pub const ODDS: Map<RoundTeam, OddsInt> = Map::new("odds");
-pub const IS_FIRST_BETS: Map<RoundTeam, bool> = Map::new("is_first_bets");
+pub const BETS: Map<RoundTeamKey, Vec<(Addr, Uint128)>> = Map::new("bets");
+pub const ODDS: Map<RoundTeamKey, OddsInt> = Map::new("odds");

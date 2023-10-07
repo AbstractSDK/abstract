@@ -44,7 +44,7 @@ use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
 use abstract_core::objects::{AccountId, AssetEntry};
-use crate::state::{RoundInfo, RoundId, RoundTeam, NewBet, AccountOdds, OddsInt};
+use crate::state::{RoundInfo, RoundId, RoundTeamKey, NewBet, AccountOdds, OddsInt, RoundStatus};
 
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
@@ -87,9 +87,9 @@ pub enum BetExecuteMsg {
     DistributeWinnings {},
     Withdraw {},
     /// Admin only
-    SetWinningTeam {
+    UpdateRoundStatus {
         round_id: RoundId,
-        team_id: AccountId,
+        status: RoundStatus,
     },
     UpdateConfig {
         rake: Option<Decimal>,
@@ -167,8 +167,8 @@ pub struct RoundResponse {
     pub id: RoundId,
     pub name: String,
     pub description: String,
-    pub teams: Vec<RoundTeam>,
-    pub winning_team: Option<RoundTeam>,
+    pub teams: Vec<RoundTeamKey>,
+    pub winning_team: Option<RoundTeamKey>,
     pub total_bets: u128,
 }
 
