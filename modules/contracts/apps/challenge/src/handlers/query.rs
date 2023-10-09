@@ -1,11 +1,11 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
     ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
-    FriendsResponse, VoteResponse,
+    FriendsResponse, PreviousVotesResponse, VoteResponse,
 };
 use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, SIMPLE_VOTING};
-use abstract_core::objects::voting::DEFAULT_LIMIT;
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order};
+use abstract_core::objects::voting::{VoteInfo, VoteResult, DEFAULT_LIMIT};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError};
 use cw_storage_plus::Bound;
 
 pub fn query_handler(
@@ -27,7 +27,17 @@ pub fn query_handler(
         ChallengeQueryMsg::Vote {
             voter_addr,
             challenge_id,
-        } => to_binary(&query_vote(deps, app, voter_addr, challenge_id)?),
+            previous_vote_index,
+        } => to_binary(&query_vote(
+            deps,
+            app,
+            voter_addr,
+            challenge_id,
+            previous_vote_index,
+        )?),
+        ChallengeQueryMsg::PreviousVotes { challenge_id } => {
+            to_binary(&previous_vote_results(deps, app, challenge_id)?)
+        }
     }
     .map_err(Into::into)
 }
@@ -94,9 +104,34 @@ fn query_vote(
     _app: &ChallengeApp,
     voter_addr: String,
     challenge_id: u64,
+    previous_vote_index: Option<u64>,
 ) -> AppResult<VoteResponse> {
     let voter = deps.api.addr_validate(&voter_addr)?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote = SIMPLE_VOTING.load_vote(deps.storage, challenge.current_vote_id, &voter)?;
+    let vote_id = if let Some(index) = previous_vote_index {
+        *challenge
+            .previous_vote_ids
+            .get(index as usize)
+            .ok_or(StdError::not_found(format!(
+                "previous_vote with index {index}"
+            )))?
+    } else {
+        challenge.current_vote_id
+    };
+    let vote = SIMPLE_VOTING.load_vote(deps.storage, vote_id, &voter)?;
     Ok(VoteResponse { vote })
+}
+
+fn previous_vote_results(
+    deps: Deps,
+    _app: &ChallengeApp,
+    challenge_id: u64,
+) -> AppResult<PreviousVotesResponse> {
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let results = challenge
+        .previous_vote_ids
+        .iter()
+        .map(|&id| SIMPLE_VOTING.load_vote_info(deps.storage, id))
+        .collect::<VoteResult<Vec<VoteInfo>>>()?;
+    Ok(PreviousVotesResponse { results })
 }

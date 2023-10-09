@@ -339,6 +339,7 @@ fn test_cast_vote() -> anyhow::Result<()> {
             .query(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: FIRST_CHALLENGE_ID,
+                previous_vote_index: None,
             }))?;
 
     assert_eq!(response.vote, Some(vote));

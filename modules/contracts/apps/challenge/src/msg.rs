@@ -120,7 +120,23 @@ pub enum ChallengeQueryMsg {
         voter_addr: String,
         /// Id of requested challenge
         challenge_id: u64,
+        /// Index of the previous vote
+        /// Providing None requests current vote results
+        previous_vote_index: Option<u64>,
     },
+    /// Get results of previous votes for this challenge
+    #[returns(PreviousVotesResponse)]
+    PreviousVotes {
+        /// Challenge Id for previous votes
+        challenge_id: u64,
+    },
+}
+
+/// Response for previous_vote query
+#[cosmwasm_schema::cw_serde]
+pub struct PreviousVotesResponse {
+    /// results of previous votes
+    pub results: Vec<VoteInfo>,
 }
 
 /// Response for challenge query
