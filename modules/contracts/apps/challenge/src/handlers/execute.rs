@@ -12,7 +12,7 @@ use crate::contract::{AppResult, ChallengeApp};
 
 use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, VetoChallengeAction};
 use crate::state::{
-    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_LIST, CHALLENGE_FRIENDS,
+    ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_FRIENDS, CHALLENGE_LIST,
     NEXT_ID, SIMPLE_VOTING,
 };
 

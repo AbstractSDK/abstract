@@ -42,7 +42,9 @@ fn query_challenge(
     let challenge = if let Some(entry) = challenge {
         let vote_info = SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
         Some(ChallengeEntryResponse::from_entry_and_vote_info(
-            entry, vote_info,
+            entry,
+            challenge_id,
+            vote_info,
         ))
     } else {
         None
@@ -57,7 +59,6 @@ fn query_challenges(
 ) -> AppResult<ChallengesResponse> {
     let min = start.map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT);
-    let mut last_challenge_id = 0;
 
     let challenges = CHALLENGE_LIST
         .range(deps.storage, min, None, Order::Ascending)
@@ -68,19 +69,17 @@ fn query_challenges(
                 .map_err(Into::into)
                 // Cast result into response
                 .and_then(|(challenge_id, entry)| {
-                    last_challenge_id = challenge_id;
                     let vote_info =
                         SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
                     Ok(ChallengeEntryResponse::from_entry_and_vote_info(
-                        entry, vote_info,
+                        entry,
+                        challenge_id,
+                        vote_info,
                     ))
                 })
         })
         .collect::<AppResult<Vec<ChallengeEntryResponse>>>()?;
-    Ok(ChallengesResponse {
-        challenges,
-        last_index: last_challenge_id,
-    })
+    Ok(ChallengesResponse { challenges })
 }
 
 fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {

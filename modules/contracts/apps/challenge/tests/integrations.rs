@@ -165,6 +165,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         .unwrap();
 
     let expected_response = ChallengeEntryResponse {
+        challenge_id: FIRST_CHALLENGE_ID,
         name: challenge_req.name,
         strike_asset: challenge_req.strike_asset,
         strike_strategy: challenge_req.strike_strategy,
@@ -431,8 +432,6 @@ fn test_query_challenges_within_range() -> anyhow::Result<()> {
             }))?;
 
     assert_eq!(response.challenges.len(), 5);
-    assert_eq!(response.last_index, 5);
-
     Ok(())
 }
 
@@ -443,17 +442,16 @@ fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
         apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
     }
 
-    let response: ChallengesResponse = apps
-        .challenge_app
-        .query(&QueryMsg::from(ChallengeQueryMsg::Challenges {
-            start_after: Some(7),
-            limit: Some(8),
-        }))?;
+    let response: ChallengesResponse =
+        apps.challenge_app
+            .query(&QueryMsg::from(ChallengeQueryMsg::Challenges {
+                start_after: Some(7),
+                limit: Some(8),
+            }))?;
 
     // 10 challenges exist, but we start after 7 and limit to 8,
     // so we should get 3 challenges
     assert_eq!(response.challenges.len(), 3);
-    assert_eq!(response.last_index, 10);
     Ok(())
 }
 

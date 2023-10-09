@@ -1,5 +1,5 @@
 use abstract_app::AppError as AbstractAppError;
-use abstract_core::{AbstractError, objects::voting::VoteError};
+use abstract_core::{objects::voting::VoteError, AbstractError};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;

@@ -54,8 +54,7 @@ impl AdminStrikes {
     pub fn strike(&mut self) -> bool {
         self.num_strikes += 1;
         // check if it's last strike
-        let last_strike = self.num_strikes >= self.limit;
-        last_strike
+        self.num_strikes >= self.limit
     }
 }
 

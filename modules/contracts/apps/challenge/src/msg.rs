@@ -133,6 +133,8 @@ pub struct ChallengeResponse {
 /// Response struct for challenge entry
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntryResponse {
+    /// Id of the challenge,
+    pub challenge_id: u64,
     /// Name of challenge
     pub name: String,
     /// Asset for punishment for failing a challenge
@@ -150,8 +152,9 @@ pub struct ChallengeEntryResponse {
 }
 
 impl ChallengeEntryResponse {
-    pub(crate) fn from_entry_and_vote_info(entry: ChallengeEntry, vote_info: VoteInfo) -> Self {
+    pub(crate) fn from_entry_and_vote_info(entry: ChallengeEntry, challenge_id: u64, vote_info: VoteInfo) -> Self {
         Self {
+            challenge_id,
             name: entry.name,
             strike_asset: entry.strike_asset,
             strike_strategy: entry.strike_strategy,
@@ -195,8 +198,6 @@ pub struct VoteResponse {
 pub struct ChallengesResponse {
     /// List of indexed challenges
     pub challenges: Vec<ChallengeEntryResponse>,
-    /// Index of the last challenge, for the next query page
-    pub last_index: u64,
 }
 
 /// Response for friends query
