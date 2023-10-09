@@ -152,7 +152,11 @@ pub struct ChallengeEntryResponse {
 }
 
 impl ChallengeEntryResponse {
-    pub(crate) fn from_entry_and_vote_info(entry: ChallengeEntry, challenge_id: u64, vote_info: VoteInfo) -> Self {
+    pub(crate) fn from_entry_and_vote_info(
+        entry: ChallengeEntry,
+        challenge_id: u64,
+        vote_info: VoteInfo,
+    ) -> Self {
         Self {
             challenge_id,
             name: entry.name,
