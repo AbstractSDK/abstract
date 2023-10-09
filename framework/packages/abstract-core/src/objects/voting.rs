@@ -485,8 +485,11 @@ impl Threshold {
     }
 }
 
+/// Admin actions on veto
 #[cosmwasm_schema::cw_serde]
 pub enum VetoAdminAction {
+    /// Fast-forward vote
     Finish {},
+    /// Veto this vote
     Veto {},
 }

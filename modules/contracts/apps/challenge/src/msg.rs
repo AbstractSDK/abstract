@@ -19,6 +19,7 @@ abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMs
 /// Challenge instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeInstantiateMsg {
+    /// Config for [`SimpleVoting`](abstract_core::objects::voting::SimpleVoting) object
     pub vote_config: VoteConfig,
 }
 
@@ -55,7 +56,7 @@ pub enum ChallengeExecuteMsg {
     },
     /// Cast vote as a friend
     CastVote {
-        /// Id of challenge to cast vote on
+        /// Challenge Id to cast vote on
         challenge_id: u64,
         /// If the vote.approval is None, we assume the voter approves,
         /// and the contract will internally set the approval field to Some(true).
@@ -65,18 +66,24 @@ pub enum ChallengeExecuteMsg {
     },
     /// Count votes for challenge id
     CountVotes {
-        /// Challenge id for counting votes
+        /// Challenge Id for counting votes
         challenge_id: u64,
     },
+    /// Finish the Vote that is in veto state
     VetoAction {
+        /// Challenge id to do the veto action
         challenge_id: u64,
+        /// Veto action for the challenge
         action: VetoChallengeAction,
     },
 }
 
+/// Veto actions on challenge
 #[cosmwasm_schema::cw_serde]
 pub enum VetoChallengeAction {
+    /// Admin-only actions
     AdminAction(VetoAdminAction),
+    /// Voter-only action, to finish veto state, in case veto period expired
     FinishExpired,
 }
 
@@ -123,19 +130,27 @@ pub struct ChallengeResponse {
     pub challenge: Option<ChallengeEntryResponse>,
 }
 
+/// Response struct for challenge entry
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengeEntryResponse {
+    /// Name of challenge
     pub name: String,
+    /// Asset for punishment for failing a challenge
     pub strike_asset: AssetEntry,
+    /// How strike will get distributed between friends
     pub strike_strategy: StrikeStrategy,
+    /// Description of the challenge
     pub description: String,
+    /// When challenge ends
     pub end: Expiration,
+    /// Status of the current vote
     pub status: VoteStatus,
+    /// State of strikes of admin for this challenge
     pub admin_strikes: AdminStrikes,
 }
 
 impl ChallengeEntryResponse {
-    pub fn from_entry_and_vote_info(entry: ChallengeEntry, vote_info: VoteInfo) -> Self {
+    pub(crate) fn from_entry_and_vote_info(entry: ChallengeEntry, vote_info: VoteInfo) -> Self {
         Self {
             name: entry.name,
             strike_asset: entry.strike_asset,
@@ -157,7 +172,7 @@ pub struct ChallengeRequest {
     pub strike_asset: AssetEntry,
     /// How strike will get distributed between friends
     pub strike_strategy: StrikeStrategy,
-    /// Desciption of the challenge
+    /// Description of the challenge
     pub description: String,
     /// In what duration challenge should end
     pub duration: Duration,
@@ -178,7 +193,9 @@ pub struct VoteResponse {
 /// Returns a list of challenges
 #[cosmwasm_schema::cw_serde]
 pub struct ChallengesResponse {
+    /// List of indexed challenges
     pub challenges: Vec<ChallengeEntryResponse>,
+    /// Index of the last challenge, for the next query page
     pub last_index: u64,
 }
 
@@ -186,5 +203,6 @@ pub struct ChallengesResponse {
 /// Returns a list of friends
 #[cosmwasm_schema::cw_serde]
 pub struct FriendsResponse {
+    /// List of friends on challenge
     pub friends: Vec<Addr>,
 }
