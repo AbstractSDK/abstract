@@ -228,15 +228,7 @@ fn count_votes(
     let vote_id = challenge.current_vote_id;
     let vote_info = SIMPLE_VOTING.count_votes(deps.storage, &env.block, vote_id)?;
 
-    // If passed do the penalty
-    if let VoteStatus::Finished(VoteOutcome::Passed) = vote_info.status {
-        charge_penalty(deps, env, app, vote_info, challenge, challenge_id)
-    } else {
-        // veto period
-        Ok(app
-            .tag_response(Response::new(), "count_votes")
-            .add_attribute("vote_info", format!("{vote_info:?}")))
-    }
+    try_finish_vote(deps, env, app, vote_info, challenge, challenge_id)
 }
 
 fn veto_action(
@@ -264,8 +256,8 @@ fn veto_action(
     };
 
     // If passed do the penalty
-    if let VoteStatus::Finished(VoteOutcome::Passed) = vote_info.status {
-        charge_penalty(deps, env, app, vote_info, challenge, challenge_id)
+    if let VoteStatus::Finished(_) = &vote_info.status {
+        try_finish_vote(deps, env, app, vote_info, challenge, challenge_id)
     } else {
         // veto period
         Ok(app
@@ -274,7 +266,7 @@ fn veto_action(
     }
 }
 
-fn charge_penalty(
+fn try_finish_vote(
     deps: DepsMut,
     env: Env,
     app: &ChallengeApp,
@@ -282,12 +274,25 @@ fn charge_penalty(
     mut challenge: ChallengeEntry,
     challenge_id: u64,
 ) -> AppResult {
+    let outcome = match &vote_info.status {
+        VoteStatus::VetoPeriod(_, _) =>
+        // veto period
+        {
+            return Ok(app
+                .tag_response(Response::new(), "try_finish_vote")
+                .add_attribute("vote_info", format!("{vote_info:?}")))
+        }
+        VoteStatus::Finished(outcome) => outcome,
+        VoteStatus::Active => unreachable!(),
+    };
+
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
-    let num_friends = friends.len() as u128;
-    if num_friends == 0 {
-        return Err(AppError::ZeroFriends {});
-    }
-    let last_strike = challenge.admin_strikes.strike();
+    let last_strike = if matches!(outcome, VoteOutcome::Passed) {
+        challenge.admin_strikes.strike()
+    } else {
+        false
+    };
+
     // Create new voting if required
     if !last_strike && !vote_info.end.is_expired(&env.block) {
         let initial_voters: Vec<Addr> = friends
@@ -300,6 +305,25 @@ fn charge_penalty(
     };
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
+    // Return here if not required to charge penalty
+    let res = if !matches!(outcome, VoteOutcome::Passed) {
+        app.tag_response(Response::new(), "finish_vote")
+    } else {
+        charge_penalty(deps, app, challenge, friends)?
+    };
+    Ok(res.add_attribute("vote_info", format!("{vote_info:?}")))
+}
+
+fn charge_penalty(
+    deps: DepsMut,
+    app: &ChallengeApp,
+    challenge: ChallengeEntry,
+    friends: Vec<Friend<Addr>>,
+) -> Result<Response, AppError> {
+    let num_friends = friends.len() as u128;
+    if num_friends == 0 {
+        return Err(AppError::ZeroFriends {});
+    }
     let (amount_per_friend, remainder) = match challenge.strike_strategy {
         crate::state::StrikeStrategy::Split(amount) => (
             Uint128::new(amount.u128() / num_friends),
@@ -337,6 +361,5 @@ fn charge_penalty(
     Ok(app
         .tag_response(Response::new(), "charge_penalty")
         .add_message(transfer_msg)
-        .add_attribute("vote_info", format!("{vote_info:?}"))
         .add_attribute("remainder", remainder.to_string()))
 }

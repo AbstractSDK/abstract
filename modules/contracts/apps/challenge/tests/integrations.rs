@@ -4,7 +4,7 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        voting::{Threshold, Vote, VoteConfig, VoteOutcome, VoteStatus},
+        voting::{Threshold, Vote, VoteConfig, VoteInfo, VoteOutcome, VoteStatus},
         AssetEntry,
     },
 };
@@ -22,6 +22,7 @@ use challenge_app::{
 use cosmwasm_std::{coin, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
+use cw_utils::Expiration;
 use lazy_static::lazy_static;
 
 const ADMIN: &str = "admin";
@@ -405,6 +406,22 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
         ),
     ];
     run_challenge_vote_sequence(&mock, &apps, votes)?;
+
+    let prev_votes_results = apps
+        .challenge_app
+        .previous_votes(FIRST_CHALLENGE_ID)?
+        .results;
+    let expected_end = Expiration::AtTime(mock.block_info()?.time);
+    assert_eq!(
+        prev_votes_results,
+        vec![VoteInfo {
+            total_voters: 3,
+            votes_for: 0,
+            votes_against: 3,
+            status: VoteStatus::Finished(VoteOutcome::Failed),
+            end: expected_end,
+        }]
+    );
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     // if no one voted true, no penalty should be charged, so balance will be 50_000_000
