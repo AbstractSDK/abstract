@@ -174,8 +174,7 @@ fn update_friends_for_challenge(
     match op_kind {
         UpdateFriendsOpKind::Add {} => {
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
-                // TODO: replace unwrap with cute error
-                let mut current_friends = current_friends.unwrap();
+                let mut current_friends = current_friends.ok_or(AppError::ZeroFriends {})?;
                 current_friends.extend(friends.clone().into_iter());
                 AppResult::Ok(current_friends)
             })?;
@@ -183,8 +182,7 @@ fn update_friends_for_challenge(
         }
         UpdateFriendsOpKind::Remove {} => {
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
-                // TODO: replace unwrap with cute error
-                let mut current_friends = current_friends.unwrap();
+                let mut current_friends = current_friends.ok_or(AppError::ZeroFriends {})?;
                 for rem_friend in friends.iter() {
                     current_friends.retain(|friend| friend != rem_friend);
                 }

@@ -1,7 +1,7 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
     ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
-    FriendsResponse, PreviousProposalsResponse, VoteResponse,
+    FriendsResponse, PreviousProposalsResponse, VoteResponse, VotesResponse,
 };
 use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, SIMPLE_VOTING};
 use abstract_core::objects::voting::{ProposalInfo, VoteResult, DEFAULT_LIMIT};
@@ -36,8 +36,21 @@ pub fn query_handler(
             previous_proposal_index,
         )?),
         ChallengeQueryMsg::PreviousProposals { challenge_id } => {
-            to_binary(&previous_vote_results(deps, app, challenge_id)?)
+            to_binary(&query_previous_vote_results(deps, app, challenge_id)?)
         }
+        ChallengeQueryMsg::Votes {
+            challenge_id,
+            previous_proposal_index,
+            start_after,
+            limit,
+        } => to_binary(&query_votes(
+            deps,
+            app,
+            challenge_id,
+            previous_proposal_index,
+            start_after,
+            limit,
+        )?),
     }
     .map_err(Into::into)
 }
@@ -113,7 +126,7 @@ fn query_vote(
             .previous_proposal_ids
             .get(index as usize)
             .ok_or(StdError::not_found(format!(
-                "previous_vote with index {index}"
+                "previous_proposal with index {index}"
             )))?
     } else {
         challenge.current_proposal_id
@@ -122,7 +135,7 @@ fn query_vote(
     Ok(VoteResponse { vote })
 }
 
-fn previous_vote_results(
+fn query_previous_vote_results(
     deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
@@ -134,4 +147,28 @@ fn previous_vote_results(
         .map(|&id| SIMPLE_VOTING.load_proposal(deps.storage, id))
         .collect::<VoteResult<Vec<ProposalInfo>>>()?;
     Ok(PreviousProposalsResponse { results })
+}
+
+fn query_votes(
+    deps: Deps<'_>,
+    _app: &ChallengeApp,
+    challenge_id: u64,
+    previous_proposal_index: Option<u64>,
+    start_after: Option<cosmwasm_std::Addr>,
+    limit: Option<u64>,
+) -> AppResult<VotesResponse> {
+    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
+    let proposal_id = if let Some(index) = previous_proposal_index {
+        *challenge
+            .previous_proposal_ids
+            .get(index as usize)
+            .ok_or(StdError::not_found(format!(
+                "previous_proposal with index {index}"
+            )))?
+    } else {
+        challenge.current_proposal_id
+    };
+    let votes =
+        SIMPLE_VOTING.query_by_id(deps.storage, proposal_id, start_after.as_ref(), limit)?;
+    Ok(VotesResponse { votes })
 }

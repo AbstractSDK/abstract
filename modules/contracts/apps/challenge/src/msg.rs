@@ -112,7 +112,7 @@ pub enum ChallengeQueryMsg {
         /// Id of requested challenge
         challenge_id: u64,
     },
-    /// Get last vote of friend
+    /// Get vote of friend
     #[returns(VoteResponse)]
     Vote {
         /// Addr of the friend
@@ -123,12 +123,31 @@ pub enum ChallengeQueryMsg {
         /// Providing None requests current proposal results
         previous_proposal_index: Option<u64>,
     },
+    /// Get votes of challenge
+    #[returns(VotesResponse)]
+    Votes {
+        /// Id of requested challenge
+        challenge_id: u64,
+        /// Index of the previous proposal
+        /// Providing None requests current proposal results
+        previous_proposal_index: Option<u64>,
+        /// start after Addr
+        start_after: Option<Addr>,
+        /// Max amount of challenges in response
+        limit: Option<u64>,
+    },
     /// Get results of previous votes for this challenge
     #[returns(PreviousProposalsResponse)]
     PreviousProposals {
         /// Challenge Id for previous votes
         challenge_id: u64,
     },
+}
+/// Response for previous_vote query
+#[cosmwasm_schema::cw_serde]
+pub struct VotesResponse {
+    /// List of votes by addr
+    pub votes: Vec<(Addr, Option<Vote>)>,
 }
 
 /// Response for previous_vote query
