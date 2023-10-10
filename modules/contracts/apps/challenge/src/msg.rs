@@ -234,6 +234,17 @@ impl Friend<String> {
     }
 }
 
+impl Friend<Addr> {
+    pub(crate) fn addr(&self, deps: Deps, app: &ChallengeApp) -> AbstractSdkResult<Addr> {
+        Ok(match self {
+            Friend::Addr(human) => human.address.clone(),
+            Friend::AbstractAccount(account_id) => {
+                app.account_registry(deps).account_base(account_id)?.manager
+            }
+        })
+    }
+}
+
 /// Friend by address
 #[cosmwasm_schema::cw_serde]
 pub struct FriendByAddr<T: AddressLike> {
