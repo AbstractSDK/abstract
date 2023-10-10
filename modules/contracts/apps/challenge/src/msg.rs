@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use abstract_core::objects::{
-    voting::{VetoAdminAction, Vote, VoteConfig, VoteInfo, VoteStatus},
+    voting::{ProposalInfo, ProposalStatus, VetoAdminAction, Vote, VoteConfig},
     AccountId, AssetEntry,
 };
 use abstract_sdk::{AbstractSdkResult, AccountVerification};
@@ -119,13 +119,13 @@ pub enum ChallengeQueryMsg {
         voter_addr: String,
         /// Id of requested challenge
         challenge_id: u64,
-        /// Index of the previous vote
-        /// Providing None requests current vote results
-        previous_vote_index: Option<u64>,
+        /// Index of the previous proposal
+        /// Providing None requests current proposal results
+        previous_proposal_index: Option<u64>,
     },
     /// Get results of previous votes for this challenge
-    #[returns(PreviousVotesResponse)]
-    PreviousVotes {
+    #[returns(PreviousProposalsResponse)]
+    PreviousProposals {
         /// Challenge Id for previous votes
         challenge_id: u64,
     },
@@ -133,9 +133,9 @@ pub enum ChallengeQueryMsg {
 
 /// Response for previous_vote query
 #[cosmwasm_schema::cw_serde]
-pub struct PreviousVotesResponse {
-    /// results of previous votes
-    pub results: Vec<VoteInfo>,
+pub struct PreviousProposalsResponse {
+    /// results of previous proposals
+    pub results: Vec<ProposalInfo>,
 }
 
 /// Response for challenge query
@@ -161,16 +161,16 @@ pub struct ChallengeEntryResponse {
     /// When challenge ends
     pub end: Expiration,
     /// Status of the current vote
-    pub status: VoteStatus,
+    pub status: ProposalStatus,
     /// State of strikes of admin for this challenge
     pub admin_strikes: AdminStrikes,
 }
 
 impl ChallengeEntryResponse {
-    pub(crate) fn from_entry_and_vote_info(
+    pub(crate) fn from_entry_and_proposal_info(
         entry: ChallengeEntry,
         challenge_id: u64,
-        vote_info: VoteInfo,
+        vote_info: ProposalInfo,
     ) -> Self {
         Self {
             challenge_id,
@@ -178,7 +178,7 @@ impl ChallengeEntryResponse {
             strike_asset: entry.strike_asset,
             strike_strategy: entry.strike_strategy,
             description: entry.description,
-            end: vote_info.end,
+            end: entry.end,
             status: vote_info.status,
             admin_strikes: entry.admin_strikes,
         }

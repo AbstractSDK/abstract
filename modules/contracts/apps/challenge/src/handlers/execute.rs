@@ -1,5 +1,5 @@
 use crate::error::AppError;
-use abstract_core::objects::voting::{Vote, VoteInfo, VoteOutcome, VoteStatus};
+use abstract_core::objects::voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Vote};
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use abstract_sdk::{AbstractSdkResult, AccountVerification, Execution, TransferInterface};
@@ -75,12 +75,12 @@ fn create_challenge(
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends)?;
 
-    // Create new vote
+    // Create new proposal
     let end = challenge_req.duration.after(&env.block);
-    let vote_id = SIMPLE_VOTING.new_vote(deps.storage, end, &initial_friends)?;
+    let proposal_id = SIMPLE_VOTING.new_proposal(deps.storage, end, &initial_friends)?;
 
     // Create new challenge
-    let challenge = ChallengeEntry::new(challenge_req, vote_id);
+    let challenge = ChallengeEntry::new(challenge_req, end, proposal_id);
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app.tag_response(
@@ -103,10 +103,10 @@ fn update_challenge(
     let mut loaded_challenge: ChallengeEntry = CHALLENGE_LIST
         .may_load(deps.storage, challenge_id)?
         .ok_or(AppError::ChallengeNotFound {})?;
-    let vote_id = loaded_challenge.current_vote_id;
+    let proposal_id = loaded_challenge.current_proposal_id;
 
     SIMPLE_VOTING
-        .load_vote_info(deps.storage, vote_id)?
+        .load_proposal(deps.storage, proposal_id)?
         .assert_ready_for_action(&env.block)?;
 
     if let Some(name) = new_challenge.name {
@@ -135,8 +135,8 @@ fn cancel_challenge(
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote_id = challenge.current_vote_id;
-    SIMPLE_VOTING.cancel_vote(deps.storage, &env.block, vote_id)?;
+    let proposal_id = challenge.current_proposal_id;
+    SIMPLE_VOTING.cancel_proposal(deps.storage, &env.block, proposal_id)?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -165,10 +165,10 @@ fn update_friends_for_challenge(
     let (voters_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
         friends_validated.into_iter().unzip();
 
-    let vote_id = challenge.current_vote_id;
+    let proposal_id = challenge.current_proposal_id;
 
     SIMPLE_VOTING
-        .load_vote_info(deps.storage, vote_id)?
+        .load_proposal(deps.storage, proposal_id)?
         .assert_ready_for_action(&env.block)?;
 
     match op_kind {
@@ -179,7 +179,7 @@ fn update_friends_for_challenge(
                 current_friends.extend(friends.clone().into_iter());
                 AppResult::Ok(current_friends)
             })?;
-            SIMPLE_VOTING.add_voters(deps.storage, vote_id, &env.block, &voters_addrs)?;
+            SIMPLE_VOTING.add_voters(deps.storage, proposal_id, &env.block, &voters_addrs)?;
         }
         UpdateFriendsOpKind::Remove {} => {
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
@@ -190,7 +190,7 @@ fn update_friends_for_challenge(
                 }
                 AppResult::Ok(current_friends)
             })?;
-            SIMPLE_VOTING.remove_voters(deps.storage, vote_id, &env.block, &voters_addrs)?;
+            SIMPLE_VOTING.remove_voters(deps.storage, proposal_id, &env.block, &voters_addrs)?;
         }
     }
     Ok(app.tag_response(
@@ -208,13 +208,13 @@ fn cast_vote(
     challenge_id: u64,
 ) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote_id = challenge.current_vote_id;
-    let vote_info =
-        SIMPLE_VOTING.cast_vote(deps.storage, &env.block, vote_id, &info.sender, vote)?;
+    let proposal_id = challenge.current_proposal_id;
+    let proposal_info =
+        SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &info.sender, vote)?;
 
     Ok(app
         .tag_response(Response::new(), "cast_vote")
-        .add_attribute("vote_info", format!("{vote_info:?}")))
+        .add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
 fn count_votes(
@@ -225,10 +225,10 @@ fn count_votes(
     challenge_id: u64,
 ) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote_id = challenge.current_vote_id;
-    let vote_info = SIMPLE_VOTING.count_votes(deps.storage, &env.block, vote_id)?;
+    let proposal_id = challenge.current_proposal_id;
+    let proposal_info = SIMPLE_VOTING.count_votes(deps.storage, &env.block, proposal_id)?;
 
-    try_finish_vote(deps, env, app, vote_info, challenge, challenge_id)
+    try_finish_vote(deps, env, app, proposal_info, challenge, challenge_id)
 }
 
 fn veto_action(
@@ -240,78 +240,73 @@ fn veto_action(
     action: VetoChallengeAction,
 ) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote_id = challenge.current_vote_id;
+    let proposal_id = challenge.current_proposal_id;
 
-    let vote_info = match action {
+    let proposal_info = match action {
         VetoChallengeAction::AdminAction(action) => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-            SIMPLE_VOTING.veto_admin_action(deps.storage, &env.block, vote_id, action)?
+            SIMPLE_VOTING.veto_admin_action(deps.storage, &env.block, proposal_id, action)?
         }
         VetoChallengeAction::FinishExpired => {
             SIMPLE_VOTING
-                .load_vote(deps.storage, vote_id, &info.sender)?
+                .load_vote(deps.storage, proposal_id, &info.sender)?
                 .ok_or(AppError::VoterNotFound {})?;
-            SIMPLE_VOTING.finish_vote(deps.storage, &env.block, vote_id)?
+            SIMPLE_VOTING.finish_vote(deps.storage, &env.block, proposal_id)?
         }
     };
 
-    // If passed do the penalty
-    if let VoteStatus::Finished(_) = &vote_info.status {
-        try_finish_vote(deps, env, app, vote_info, challenge, challenge_id)
-    } else {
-        // veto period
-        Ok(app
-            .tag_response(Response::new(), "veto_action")
-            .add_attribute("vote_info", format!("{vote_info:?}")))
-    }
+    try_finish_vote(deps, env, app, proposal_info, challenge, challenge_id)
 }
 
 fn try_finish_vote(
     deps: DepsMut,
     env: Env,
     app: &ChallengeApp,
-    vote_info: VoteInfo,
+    proposal_info: ProposalInfo,
     mut challenge: ChallengeEntry,
     challenge_id: u64,
 ) -> AppResult {
-    let outcome = match &vote_info.status {
-        VoteStatus::VetoPeriod(_, _) =>
+    let outcome = match &proposal_info.status {
+        ProposalStatus::VetoPeriod(_, _) =>
         // veto period
         {
             return Ok(app
                 .tag_response(Response::new(), "try_finish_vote")
-                .add_attribute("vote_info", format!("{vote_info:?}")))
+                .add_attribute("proposal_info", format!("{proposal_info:?}")))
         }
-        VoteStatus::Finished(outcome) => outcome,
-        VoteStatus::Active => unreachable!(),
+        ProposalStatus::Finished(outcome) => outcome,
+        ProposalStatus::Active => unreachable!(),
     };
 
     let friends = CHALLENGE_FRIENDS.load(deps.storage, challenge_id)?;
-    let last_strike = if matches!(outcome, VoteOutcome::Passed) {
+    let last_strike = if matches!(outcome, ProposalOutcome::Passed) {
         challenge.admin_strikes.strike()
     } else {
         false
     };
 
     // Create new voting if required
-    if !last_strike && !vote_info.end.is_expired(&env.block) {
+    if !last_strike && !challenge.end.is_expired(&env.block) {
         let initial_voters: Vec<Addr> = friends
             .iter()
             .map(|f| f.addr(deps.as_ref(), app))
             .collect::<AbstractSdkResult<_>>()?;
-        let new_vote_id = SIMPLE_VOTING.new_vote(deps.storage, vote_info.end, &initial_voters)?;
-        challenge.previous_vote_ids.push(challenge.current_vote_id);
-        challenge.current_vote_id = new_vote_id;
+        let new_proposal_id =
+            SIMPLE_VOTING.new_proposal(deps.storage, challenge.end, &initial_voters)?;
+        challenge
+            .previous_proposal_ids
+            .push(challenge.current_proposal_id);
+        challenge.current_proposal_id = new_proposal_id;
     };
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     // Return here if not required to charge penalty
-    let res = if !matches!(outcome, VoteOutcome::Passed) {
+    let res = if !matches!(outcome, ProposalOutcome::Passed) {
         app.tag_response(Response::new(), "finish_vote")
     } else {
         charge_penalty(deps, app, challenge, friends)?
     };
-    Ok(res.add_attribute("vote_info", format!("{vote_info:?}")))
+    Ok(res.add_attribute("proposal_info", format!("{proposal_info:?}")))
 }
 
 fn charge_penalty(

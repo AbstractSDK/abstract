@@ -4,7 +4,7 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        voting::{Threshold, Vote, VoteConfig, VoteInfo, VoteOutcome, VoteStatus},
+        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
         AssetEntry,
     },
 };
@@ -198,7 +198,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         strike_strategy: challenge_req.strike_strategy,
         description: challenge_req.description,
         end: challenge_req.duration.after(&_mock.block_info()?),
-        status: VoteStatus::Active,
+        status: ProposalStatus::Active,
         admin_strikes: AdminStrikes {
             num_strikes: 0,
             limit: challenge_req.strikes_limit.unwrap_or(1),
@@ -252,7 +252,7 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
 
     assert_eq!(
         challenge.status,
-        VoteStatus::Finished(VoteOutcome::Canceled)
+        ProposalStatus::Finished(ProposalOutcome::Canceled)
     );
     Ok(())
 }
@@ -370,7 +370,7 @@ fn test_cast_vote() -> anyhow::Result<()> {
             .query(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: FIRST_CHALLENGE_ID,
-                previous_vote_index: None,
+                previous_proposal_index: None,
             }))?;
 
     assert_eq!(response.vote, Some(vote));
@@ -409,16 +409,16 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
 
     let prev_votes_results = apps
         .challenge_app
-        .previous_votes(FIRST_CHALLENGE_ID)?
+        .previous_proposals(FIRST_CHALLENGE_ID)?
         .results;
     let expected_end = Expiration::AtTime(mock.block_info()?.time);
     assert_eq!(
         prev_votes_results,
-        vec![VoteInfo {
+        vec![ProposalInfo {
             total_voters: 3,
             votes_for: 0,
             votes_against: 3,
-            status: VoteStatus::Finished(VoteOutcome::Failed),
+            status: ProposalStatus::Finished(ProposalOutcome::Failed),
             end: expected_end,
         }]
     );

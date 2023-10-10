@@ -1,9 +1,10 @@
 use abstract_core::objects::{
-    voting::{SimpleVoting, VoteId},
+    voting::{ProposalId, SimpleVoting},
     AssetEntry,
 };
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
+use cw_utils::Expiration;
 
 use crate::msg::{ChallengeRequest, Friend};
 
@@ -19,8 +20,9 @@ pub struct ChallengeEntry {
     pub strike_strategy: StrikeStrategy,
     pub description: String,
     pub admin_strikes: AdminStrikes,
-    pub current_vote_id: VoteId,
-    pub previous_vote_ids: Vec<VoteId>,
+    pub current_proposal_id: ProposalId,
+    pub previous_proposal_ids: Vec<ProposalId>,
+    pub end: Expiration,
 }
 
 /// Strategy for striking the admin
@@ -58,15 +60,16 @@ impl AdminStrikes {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(request: ChallengeRequest, vote_id: VoteId) -> Self {
+    pub fn new(request: ChallengeRequest, end: Expiration, vote_id: ProposalId) -> Self {
         ChallengeEntry {
             name: request.name,
             strike_asset: request.strike_asset,
             strike_strategy: request.strike_strategy,
             description: request.description,
             admin_strikes: AdminStrikes::new(request.strikes_limit),
-            current_vote_id: vote_id,
-            previous_vote_ids: Vec::default(),
+            current_proposal_id: vote_id,
+            previous_proposal_ids: Vec::default(),
+            end,
         }
     }
 }

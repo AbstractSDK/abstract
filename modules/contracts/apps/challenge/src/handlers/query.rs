@@ -1,10 +1,10 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
     ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
-    FriendsResponse, PreviousVotesResponse, VoteResponse,
+    FriendsResponse, PreviousProposalsResponse, VoteResponse,
 };
 use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, SIMPLE_VOTING};
-use abstract_core::objects::voting::{VoteInfo, VoteResult, DEFAULT_LIMIT};
+use abstract_core::objects::voting::{ProposalInfo, VoteResult, DEFAULT_LIMIT};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError};
 use cw_storage_plus::Bound;
 
@@ -27,15 +27,15 @@ pub fn query_handler(
         ChallengeQueryMsg::Vote {
             voter_addr,
             challenge_id,
-            previous_vote_index,
+            previous_proposal_index,
         } => to_binary(&query_vote(
             deps,
             app,
             voter_addr,
             challenge_id,
-            previous_vote_index,
+            previous_proposal_index,
         )?),
-        ChallengeQueryMsg::PreviousVotes { challenge_id } => {
+        ChallengeQueryMsg::PreviousProposals { challenge_id } => {
             to_binary(&previous_vote_results(deps, app, challenge_id)?)
         }
     }
@@ -50,11 +50,11 @@ fn query_challenge(
     let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
 
     let challenge = if let Some(entry) = challenge {
-        let vote_info = SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
-        Some(ChallengeEntryResponse::from_entry_and_vote_info(
+        let proposal_info = SIMPLE_VOTING.load_proposal(deps.storage, entry.current_proposal_id)?;
+        Some(ChallengeEntryResponse::from_entry_and_proposal_info(
             entry,
             challenge_id,
-            vote_info,
+            proposal_info,
         ))
     } else {
         None
@@ -79,12 +79,12 @@ fn query_challenges(
                 .map_err(Into::into)
                 // Cast result into response
                 .and_then(|(challenge_id, entry)| {
-                    let vote_info =
-                        SIMPLE_VOTING.load_vote_info(deps.storage, entry.current_vote_id)?;
-                    Ok(ChallengeEntryResponse::from_entry_and_vote_info(
+                    let proposal_info =
+                        SIMPLE_VOTING.load_proposal(deps.storage, entry.current_proposal_id)?;
+                    Ok(ChallengeEntryResponse::from_entry_and_proposal_info(
                         entry,
                         challenge_id,
-                        vote_info,
+                        proposal_info,
                     ))
                 })
         })
@@ -104,21 +104,21 @@ fn query_vote(
     _app: &ChallengeApp,
     voter_addr: String,
     challenge_id: u64,
-    previous_vote_index: Option<u64>,
+    previous_proposal_index: Option<u64>,
 ) -> AppResult<VoteResponse> {
     let voter = deps.api.addr_validate(&voter_addr)?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let vote_id = if let Some(index) = previous_vote_index {
+    let proposal_id = if let Some(index) = previous_proposal_index {
         *challenge
-            .previous_vote_ids
+            .previous_proposal_ids
             .get(index as usize)
             .ok_or(StdError::not_found(format!(
                 "previous_vote with index {index}"
             )))?
     } else {
-        challenge.current_vote_id
+        challenge.current_proposal_id
     };
-    let vote = SIMPLE_VOTING.load_vote(deps.storage, vote_id, &voter)?;
+    let vote = SIMPLE_VOTING.load_vote(deps.storage, proposal_id, &voter)?;
     Ok(VoteResponse { vote })
 }
 
@@ -126,12 +126,12 @@ fn previous_vote_results(
     deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
-) -> AppResult<PreviousVotesResponse> {
+) -> AppResult<PreviousProposalsResponse> {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     let results = challenge
-        .previous_vote_ids
+        .previous_proposal_ids
         .iter()
-        .map(|&id| SIMPLE_VOTING.load_vote_info(deps.storage, id))
-        .collect::<VoteResult<Vec<VoteInfo>>>()?;
-    Ok(PreviousVotesResponse { results })
+        .map(|&id| SIMPLE_VOTING.load_proposal(deps.storage, id))
+        .collect::<VoteResult<Vec<ProposalInfo>>>()?;
+    Ok(PreviousProposalsResponse { results })
 }

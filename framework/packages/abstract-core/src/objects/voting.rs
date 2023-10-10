@@ -5,32 +5,31 @@ use cw_storage_plus::{Bound, Item, Map};
 use cw_utils::{Duration, Expiration};
 use thiserror::Error;
 
-/// Wrapper error for the Abstract framework.
 #[derive(Error, Debug, PartialEq)]
 pub enum VoteError {
     #[error("Std error encountered while handling voting object: {0}")]
     Std(#[from] StdError),
 
-    #[error("No vote by vote id")]
-    NoVoteById {},
+    #[error("No proposal by proposal id")]
+    NoProposalById {},
 
-    #[error("Actions allowed only for active vote")]
-    VoteNotActive {},
+    #[error("Actions allowed only for active proposal")]
+    ProposalNotActive {},
 
     #[error("Threshold error: {0}")]
     ThresholdError(String),
 
-    #[error("Veto period expired, can't cancel vote, expiration: {expiration}")]
+    #[error("Veto period expired, can't cancel proposal, expiration: {expiration}")]
     VetoExpired { expiration: Expiration },
 
     #[error("Only admin can do actions during veto period: {expiration}")]
     VetoNotOver { expiration: Expiration },
 
     #[error("Veto actions could be done only during veto period, current status: {status}")]
-    NotVeto { status: VoteStatus },
+    NotVeto { status: ProposalStatus },
 
-    #[error("Vote period expired, can't do actions, expiration: {expiration}")]
-    VoteExpired { expiration: Expiration },
+    #[error("Proposal period expired, can't do actions, expiration: {expiration}")]
+    ProposalExpired { expiration: Expiration },
 
     #[error("Too early to count votes: voting is not over")]
     VotingNotOver {},
@@ -39,72 +38,76 @@ pub enum VoteError {
 pub type VoteResult<T> = Result<T, VoteError>;
 
 pub const DEFAULT_LIMIT: u64 = 25;
-pub type VoteId = u64;
+pub type ProposalId = u64;
 
 /// Simple voting helper
 pub struct SimpleVoting<'a> {
-    next_vote_id: Item<'a, VoteId>,
-    votes: Map<'a, (VoteId, &'a Addr), Option<Vote>>,
-    vote_info: Map<'a, VoteId, VoteInfo>,
+    next_proposal_id: Item<'a, ProposalId>,
+    proposals: Map<'a, (ProposalId, &'a Addr), Option<Vote>>,
+    proposals_info: Map<'a, ProposalId, ProposalInfo>,
     vote_config: Item<'a, VoteConfig>,
 }
 
 impl<'a> SimpleVoting<'a> {
     pub const fn new(
-        votes_key: &'a str,
+        proposals_key: &'a str,
         id_key: &'a str,
-        vote_info_key: &'a str,
+        proposals_info_key: &'a str,
         vote_config_key: &'a str,
     ) -> Self {
         Self {
-            next_vote_id: Item::new(id_key),
-            votes: Map::new(votes_key),
-            vote_info: Map::new(vote_info_key),
+            next_proposal_id: Item::new(id_key),
+            proposals: Map::new(proposals_key),
+            proposals_info: Map::new(proposals_info_key),
             vote_config: Item::new(vote_config_key),
         }
     }
 
+    /// SimpleVoting setup during instantiation
     pub fn instantiate(&self, store: &mut dyn Storage, vote_config: &VoteConfig) -> VoteResult<()> {
         vote_config.threshold.validate_percentage()?;
 
-        self.next_vote_id.save(store, &VoteId::default())?;
+        self.next_proposal_id.save(store, &ProposalId::default())?;
         self.vote_config.save(store, vote_config)?;
         Ok(())
     }
 
-    pub fn new_vote(
+    /// Create new proposal
+    /// initial_voters is a list of whitelisted to vote
+    pub fn new_proposal(
         &self,
         store: &mut dyn Storage,
         end: Expiration,
         initial_voters: &[Addr],
-    ) -> VoteResult<VoteId> {
-        let vote_id = self
-            .next_vote_id
+    ) -> VoteResult<ProposalId> {
+        let proposal_id = self
+            .next_proposal_id
             .update(store, |id| VoteResult::Ok(id + 1))?;
 
-        self.vote_info.save(
+        self.proposals_info.save(
             store,
-            vote_id,
-            &VoteInfo::new(initial_voters.len() as u32, end),
+            proposal_id,
+            &ProposalInfo::new(initial_voters.len() as u32, end),
         )?;
         for voter in initial_voters {
-            self.votes.save(store, (vote_id, voter), &None)?;
+            self.proposals.save(store, (proposal_id, voter), &None)?;
         }
-        Ok(vote_id)
+        Ok(proposal_id)
     }
 
+    /// Assign vote for the voter
     pub fn cast_vote(
         &self,
         store: &mut dyn Storage,
         block: &BlockInfo,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
         voter: &Addr,
         vote: Vote,
         // new_voter: bool,
-    ) -> VoteResult<VoteInfo> {
-        // Need to check it's existing vote
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(block)?;
+    ) -> VoteResult<ProposalInfo> {
+        // Need to check it's existing proposal
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
+        proposal_info.assert_ready_for_action(block)?;
         // match new_voter {
         //     true => {
         //         if !self.votes.has(store, (vote_id, voter)) {
@@ -118,13 +121,13 @@ impl<'a> SimpleVoting<'a> {
         //         self.vote_info.save(store, vote_id, &vote_info)?;
         //     }
         //     false => {
-        self.votes.update(
+        self.proposals.update(
             store,
-            (vote_id, voter),
+            (proposal_id, voter),
             |previous_vote| match previous_vote {
                 // We allow re-voting
                 Some(prev_v) => {
-                    vote_info.vote_update(prev_v.as_ref(), &vote);
+                    proposal_info.vote_update(prev_v.as_ref(), &vote);
                     Ok(Some(vote))
                 }
                 None => Err(StdError::generic_err("This user is not allowed to vote")),
@@ -132,189 +135,215 @@ impl<'a> SimpleVoting<'a> {
         )?;
         // }
         // }
-        self.vote_info.save(store, vote_id, &vote_info)?;
-        Ok(vote_info)
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
+        Ok(proposal_info)
     }
 
     // Note: this method doesn't check a sender
     // Therefore caller of this method should check if he is allowed to cancel vote
-    pub fn cancel_vote(
+    /// Cancel proposal
+    pub fn cancel_proposal(
         &self,
         store: &mut dyn Storage,
         block: &BlockInfo,
-        vote_id: VoteId,
-    ) -> VoteResult<VoteInfo> {
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(block)?;
+        proposal_id: ProposalId,
+    ) -> VoteResult<ProposalInfo> {
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
+        proposal_info.assert_ready_for_action(block)?;
 
-        vote_info.status = VoteStatus::Finished(VoteOutcome::Canceled {});
-        self.vote_info.save(store, vote_id, &vote_info)?;
-        Ok(vote_info)
+        proposal_info.status = ProposalStatus::Finished(ProposalOutcome::Canceled {});
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
+        Ok(proposal_info)
     }
 
+    /// Count votes and finish or move to the veto period(if configured) for this proposal
     pub fn count_votes(
         &self,
         store: &mut dyn Storage,
         block: &BlockInfo,
-        vote_id: VoteId,
-    ) -> VoteResult<VoteInfo> {
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.status.assert_is_active()?;
+        proposal_id: ProposalId,
+    ) -> VoteResult<ProposalInfo> {
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
+        proposal_info.status.assert_is_active()?;
         let vote_config = self.vote_config.load(store)?;
 
         // Calculate votes
         let threshold = match vote_config.threshold {
-            Threshold::Majority {} => Uint128::from(vote_info.total_voters / 2),
-            Threshold::Percentage(decimal) => decimal * Uint128::from(vote_info.total_voters),
+            Threshold::Majority {} => Uint128::from(proposal_info.total_voters / 2),
+            Threshold::Percentage(decimal) => decimal * Uint128::from(proposal_info.total_voters),
         };
+        // 90% threshold
+        // 10% against should be enough to fail the vote
+        let reverse_threshold = Uint128::from(proposal_info.total_voters) - threshold;
 
-        let vote_outcome = if Uint128::from(vote_info.votes_for) > threshold {
-            VoteOutcome::Passed
-        } else if Uint128::from(vote_info.votes_against) > threshold
-        // if it's expired or everyone voted it's still should be able to finish voting
-            || vote_info.end.is_expired(block)
-            || vote_info.votes_against + vote_info.votes_for == vote_info.total_voters
+        let proposal_outcome = if Uint128::from(proposal_info.votes_for) > threshold {
+            ProposalOutcome::Passed
+        } else if Uint128::from(proposal_info.votes_against) >= reverse_threshold
+            || proposal_info.end.is_expired(block)
         {
-            VoteOutcome::Failed
+            ProposalOutcome::Failed
         } else {
             return Err(VoteError::VotingNotOver {});
         };
 
         // Update vote status
-        vote_info.status = if let Some(duration) = vote_config.veto_duration {
+        if let Some(duration) = vote_config.veto_duration {
             let veto_exp = duration.after(block);
-            VoteStatus::VetoPeriod(veto_exp, vote_outcome)
+            proposal_info.status = ProposalStatus::VetoPeriod(veto_exp, proposal_outcome);
         } else {
-            VoteStatus::Finished(vote_outcome)
+            proposal_info.finish_vote(proposal_outcome, block);
         };
-        self.vote_info.save(store, vote_id, &vote_info)?;
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
 
-        Ok(vote_info)
+        Ok(proposal_info)
     }
 
     /// Called by veto admin
+    /// Finish or Veto this proposal
     pub fn veto_admin_action(
         &self,
         store: &mut dyn Storage,
         block: &BlockInfo,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
         admin_action: VetoAdminAction,
-    ) -> VoteResult<VoteInfo> {
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
+    ) -> VoteResult<ProposalInfo> {
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
 
-        let VoteStatus::VetoPeriod(exp, vote_outcome) = vote_info.status else {
+        let ProposalStatus::VetoPeriod(exp, proposal_outcome) = proposal_info.status else {
             return Err(VoteError::NotVeto {
-                status: vote_info.status,
+                status: proposal_info.status,
             });
         };
         if exp.is_expired(block) {
             return Err(VoteError::VetoExpired { expiration: exp });
         }
 
-        vote_info.status = match admin_action {
-            VetoAdminAction::Finish {} => VoteStatus::Finished(vote_outcome),
-            VetoAdminAction::Veto {} => VoteStatus::Finished(VoteOutcome::Vetoed),
+        proposal_info.status = match admin_action {
+            VetoAdminAction::Finish {} => ProposalStatus::Finished(proposal_outcome),
+            VetoAdminAction::Veto {} => ProposalStatus::Finished(ProposalOutcome::Vetoed),
         };
-        self.vote_info.save(store, vote_id, &vote_info)?;
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
 
-        Ok(vote_info)
+        Ok(proposal_info)
     }
 
+    /// Finish expired veto
     /// Called by non-admin
     pub fn finish_vote(
         &self,
         store: &mut dyn Storage,
         block: &BlockInfo,
-        vote_id: VoteId,
-    ) -> VoteResult<VoteInfo> {
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
+        proposal_id: ProposalId,
+    ) -> VoteResult<ProposalInfo> {
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
 
-        let VoteStatus::VetoPeriod(expiration, vote_outcome) = vote_info.status else {
+        let ProposalStatus::VetoPeriod(expiration, proposal_outcome) = proposal_info.status else {
             return Err(VoteError::NotVeto {
-                status: vote_info.status,
+                status: proposal_info.status,
             });
         };
         if !expiration.is_expired(block) {
             return Err(VoteError::VetoNotOver { expiration });
         }
 
-        vote_info.status = VoteStatus::Finished(vote_outcome);
-        self.vote_info.save(store, vote_id, &vote_info)?;
+        proposal_info.status = ProposalStatus::VetoPeriod(expiration, proposal_outcome.clone());
+        proposal_info.finish_vote(proposal_outcome, block);
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
 
-        Ok(vote_info)
+        Ok(proposal_info)
     }
 
+    /// Add new addresses that's allowed to vote
     pub fn add_voters(
         &self,
         store: &mut dyn Storage,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
         block: &BlockInfo,
         new_voters: &[Addr],
-    ) -> VoteResult<VoteInfo> {
-        // Need to check it's existing vote
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(block)?;
+    ) -> VoteResult<ProposalInfo> {
+        // Need to check it's existing proposal
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
+        proposal_info.assert_ready_for_action(block)?;
 
         for voter in new_voters {
             // Don't override already existing vote
-            self.votes.update(store, (vote_id, voter), |v| match v {
-                Some(v) => VoteResult::Ok(v),
-                None => {
-                    vote_info.total_voters += 1;
-                    VoteResult::Ok(None)
-                }
-            })?;
+            self.proposals
+                .update(store, (proposal_id, voter), |v| match v {
+                    Some(v) => VoteResult::Ok(v),
+                    None => {
+                        proposal_info.total_voters += 1;
+                        VoteResult::Ok(None)
+                    }
+                })?;
         }
-        self.vote_info.save(store, vote_id, &vote_info)?;
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
 
-        Ok(vote_info)
+        Ok(proposal_info)
     }
 
+    /// Remove addresses that's allowed to vote
+    /// Will re-count votes
     pub fn remove_voters(
         &self,
         store: &mut dyn Storage,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
         block: &BlockInfo,
         removed_voters: &[Addr],
-    ) -> VoteResult<VoteInfo> {
-        let mut vote_info = self.load_vote_info(store, vote_id)?;
-        vote_info.assert_ready_for_action(block)?;
+    ) -> VoteResult<ProposalInfo> {
+        let mut proposal_info = self.load_proposal(store, proposal_id)?;
+        proposal_info.assert_ready_for_action(block)?;
 
         for voter in removed_voters {
-            if let Some(vote) = self.votes.may_load(store, (vote_id, voter))? {
+            if let Some(vote) = self.proposals.may_load(store, (proposal_id, voter))? {
                 if let Some(previous_vote) = vote {
                     match previous_vote.vote {
-                        true => vote_info.votes_for -= 1,
-                        false => vote_info.votes_against -= 1,
+                        true => proposal_info.votes_for -= 1,
+                        false => proposal_info.votes_against -= 1,
                     }
                 }
-                vote_info.total_voters -= 1;
-                self.votes.remove(store, (vote_id, voter));
+                proposal_info.total_voters -= 1;
+                self.proposals.remove(store, (proposal_id, voter));
             }
         }
-        self.vote_info.save(store, vote_id, &vote_info)?;
-        Ok(vote_info)
+        self.proposals_info
+            .save(store, proposal_id, &proposal_info)?;
+        Ok(proposal_info)
     }
 
+    /// Load vote by address
     pub fn load_vote(
         &self,
         store: &dyn Storage,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
         voter: &Addr,
     ) -> VoteResult<Option<Vote>> {
-        self.votes.load(store, (vote_id, voter)).map_err(Into::into)
+        self.proposals
+            .load(store, (proposal_id, voter))
+            .map_err(Into::into)
     }
 
-    pub fn load_vote_info(&self, store: &dyn Storage, vote_id: VoteId) -> VoteResult<VoteInfo> {
-        self.vote_info
-            .may_load(store, vote_id)?
-            .ok_or(VoteError::NoVoteById {})
-    }
-
-    pub fn votes_for_id(
+    /// Load proposal by id
+    pub fn load_proposal(
         &self,
         store: &dyn Storage,
-        vote_id: VoteId,
+        proposal_id: ProposalId,
+    ) -> VoteResult<ProposalInfo> {
+        self.proposals_info
+            .may_load(store, proposal_id)?
+            .ok_or(VoteError::NoProposalById {})
+    }
+
+    /// List of votes by proposal id
+    pub fn query_by_id(
+        &self,
+        store: &dyn Storage,
+        proposal_id: ProposalId,
         start_after: Option<&Addr>,
         limit: Option<u64>,
     ) -> VoteResult<Vec<(Addr, Option<Vote>)>> {
@@ -322,8 +351,8 @@ impl<'a> SimpleVoting<'a> {
         let limit = limit.unwrap_or(DEFAULT_LIMIT);
 
         let votes = self
-            .votes
-            .prefix(vote_id)
+            .proposals
+            .prefix(proposal_id)
             .range(store, min, None, cosmwasm_std::Order::Ascending)
             .take(limit as usize)
             .collect::<StdResult<_>>()?;
@@ -333,14 +362,14 @@ impl<'a> SimpleVoting<'a> {
     pub fn query_list(
         &self,
         store: &dyn Storage,
-        start_after: Option<(VoteId, &Addr)>,
+        start_after: Option<(ProposalId, &Addr)>,
         limit: Option<u64>,
-    ) -> VoteResult<Vec<((VoteId, Addr), Option<Vote>)>> {
+    ) -> VoteResult<Vec<((ProposalId, Addr), Option<Vote>)>> {
         let min = start_after.map(Bound::exclusive);
         let limit = limit.unwrap_or(DEFAULT_LIMIT);
 
         let votes = self
-            .votes
+            .proposals
             .range(store, min, None, cosmwasm_std::Order::Ascending)
             .take(limit as usize)
             .collect::<StdResult<_>>()?;
@@ -359,21 +388,21 @@ pub struct Vote {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct VoteInfo {
+pub struct ProposalInfo {
     pub total_voters: u32,
     pub votes_for: u32,
     pub votes_against: u32,
-    pub status: VoteStatus,
+    pub status: ProposalStatus,
     pub end: Expiration,
 }
 
-impl VoteInfo {
+impl ProposalInfo {
     pub fn new(initial_voters: u32, end: Expiration) -> Self {
         Self {
             total_voters: initial_voters,
             votes_for: 0,
             votes_against: 0,
-            status: VoteStatus::Active {},
+            status: ProposalStatus::Active {},
             end,
         }
     }
@@ -381,7 +410,7 @@ impl VoteInfo {
     pub fn assert_ready_for_action(&self, block: &BlockInfo) -> VoteResult<()> {
         self.status.assert_is_active()?;
         if self.end.is_expired(block) {
-            Err(VoteError::VoteExpired {
+            Err(VoteError::ProposalExpired {
                 expiration: self.end,
             })
         } else {
@@ -408,50 +437,59 @@ impl VoteInfo {
             }
         }
     }
-}
 
-#[cosmwasm_schema::cw_serde]
-pub enum VoteStatus {
-    Active,
-    VetoPeriod(Expiration, VoteOutcome),
-    Finished(VoteOutcome),
-}
-
-impl Display for VoteStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            VoteStatus::Active => write!(f, "active"),
-            VoteStatus::VetoPeriod(exp, outcome) => write!(f, "veto_period({exp},{outcome})"),
-            VoteStatus::Finished(outcome) => write!(f, "finished({outcome})"),
+    pub fn finish_vote(&mut self, outcome: ProposalOutcome, block: &BlockInfo) {
+        self.status = ProposalStatus::Finished(outcome);
+        self.end = match self.end {
+            Expiration::AtHeight(_) => Expiration::AtHeight(block.height),
+            Expiration::AtTime(_) => Expiration::AtTime(block.time.clone()),
+            Expiration::Never {} => Expiration::Never {},
         }
     }
 }
 
-impl VoteStatus {
+#[cosmwasm_schema::cw_serde]
+pub enum ProposalStatus {
+    Active,
+    VetoPeriod(Expiration, ProposalOutcome),
+    Finished(ProposalOutcome),
+}
+
+impl Display for ProposalStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ProposalStatus::Active => write!(f, "active"),
+            ProposalStatus::VetoPeriod(exp, outcome) => write!(f, "veto_period({exp},{outcome})"),
+            ProposalStatus::Finished(outcome) => write!(f, "finished({outcome})"),
+        }
+    }
+}
+
+impl ProposalStatus {
     pub fn assert_is_active(&self) -> VoteResult<()> {
         match self {
-            VoteStatus::Active => Ok(()),
-            _ => Err(VoteError::VoteNotActive {}),
+            ProposalStatus::Active => Ok(()),
+            _ => Err(VoteError::ProposalNotActive {}),
         }
     }
 }
 
 // TODO: do we want more info like BlockInfo?
 #[cosmwasm_schema::cw_serde]
-pub enum VoteOutcome {
+pub enum ProposalOutcome {
     Passed,
     Failed,
     Canceled,
     Vetoed,
 }
 
-impl Display for VoteOutcome {
+impl Display for ProposalOutcome {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VoteOutcome::Passed => write!(f, "passed"),
-            VoteOutcome::Failed => write!(f, "failed"),
-            VoteOutcome::Canceled => write!(f, "canceled"),
-            VoteOutcome::Vetoed => write!(f, "vetoed"),
+            ProposalOutcome::Passed => write!(f, "passed"),
+            ProposalOutcome::Failed => write!(f, "failed"),
+            ProposalOutcome::Canceled => write!(f, "canceled"),
+            ProposalOutcome::Vetoed => write!(f, "vetoed"),
         }
     }
 }
