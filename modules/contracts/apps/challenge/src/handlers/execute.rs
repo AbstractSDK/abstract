@@ -207,8 +207,15 @@ fn cast_vote(
 ) -> AppResult {
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
     let proposal_id = challenge.current_proposal_id;
+    let voter = match app
+        .account_registry(deps.as_ref())
+        .assert_proxy(&info.sender)
+    {
+        Ok(base) => base.manager,
+        Err(_) => info.sender,
+    };
     let proposal_info =
-        SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &info.sender, vote)?;
+        SIMPLE_VOTING.cast_vote(deps.storage, &env.block, proposal_id, &voter, vote)?;
 
     Ok(app
         .tag_response(Response::new(), "cast_vote")
