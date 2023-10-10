@@ -8,10 +8,12 @@ use crate::{
 };
 use abstract_core::objects::{
     voting::{VetoAdminAction, Vote, VoteConfig, VoteInfo, VoteStatus},
-    AssetEntry,
+    AccountId, AssetEntry,
 };
+use abstract_sdk::{AbstractSdkResult, AccountVerification};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::Addr;
+use cosmwasm_std::{Addr, Deps, StdResult};
+use cw_address_like::AddressLike;
 use cw_utils::{Duration, Expiration};
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
@@ -50,7 +52,7 @@ pub enum ChallengeExecuteMsg {
         /// Id of the challenge to update
         challenge_id: u64,
         /// List of added or removed Friends
-        friends: Vec<String>,
+        friends: Vec<Friend<String>>,
         /// Kind of operation: add or remove friends
         op_kind: UpdateFriendsOpKind,
     },
@@ -58,10 +60,7 @@ pub enum ChallengeExecuteMsg {
     CastVote {
         /// Challenge Id to cast vote on
         challenge_id: u64,
-        /// If the vote.approval is None, we assume the voter approves,
-        /// and the contract will internally set the approval field to Some(true).
-        /// This is because we assume that if a friend didn't vote, the friend approves,
-        /// otherwise the voter would Vote with approval set to Some(false).
+        /// Wether voter thinks admin deserves punishment
         vote_to_punish: Vote,
     },
     /// Count votes for challenge id
@@ -202,7 +201,56 @@ pub struct ChallengeRequest {
     /// Strike limit, defaults to 1
     pub strikes_limit: Option<u8>,
     /// Initial list of friends
-    pub init_friends: Vec<String>,
+    pub init_friends: Vec<Friend<String>>,
+}
+
+/// Friend object
+#[cosmwasm_schema::cw_serde]
+pub enum Friend<T: AddressLike> {
+    /// Friend with address and a name
+    Addr(FriendByAddr<T>),
+    /// Abstract Account Id of the friend
+    AbstractAccount(AccountId),
+}
+
+impl Friend<String> {
+    pub(crate) fn check(
+        self,
+        deps: Deps,
+        app: &ChallengeApp,
+    ) -> AbstractSdkResult<(Addr, Friend<Addr>)> {
+        let account_registry = app.account_registry(deps);
+        let checked = match self {
+            Friend::Addr(human) => {
+                let checked = human.check(deps)?;
+                (checked.address.clone(), Friend::Addr(checked))
+            }
+            Friend::AbstractAccount(account_id) => {
+                let base = account_registry.account_base(&account_id)?;
+                (base.manager, Friend::AbstractAccount(account_id))
+            }
+        };
+        Ok(checked)
+    }
+}
+
+/// Friend by address
+#[cosmwasm_schema::cw_serde]
+pub struct FriendByAddr<T: AddressLike> {
+    /// Address of the friend
+    pub address: T,
+    /// Name of the friend
+    pub name: String,
+}
+
+impl FriendByAddr<String> {
+    pub(crate) fn check(self, deps: Deps) -> StdResult<FriendByAddr<Addr>> {
+        let checked = deps.api.addr_validate(&self.address)?;
+        Ok(FriendByAddr {
+            address: checked,
+            name: self.name,
+        })
+    }
 }
 
 /// Response for vote query
@@ -225,5 +273,5 @@ pub struct ChallengesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct FriendsResponse {
     /// List of friends on challenge
-    pub friends: Vec<Addr>,
+    pub friends: Vec<Friend<Addr>>,
 }

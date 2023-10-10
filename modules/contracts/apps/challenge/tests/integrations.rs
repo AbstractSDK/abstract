@@ -13,7 +13,8 @@ use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
     msg::{
         ChallengeEntryResponse, ChallengeInstantiateMsg, ChallengeQueryMsg, ChallengeRequest,
-        ChallengeResponse, ChallengesResponse, FriendsResponse, InstantiateMsg, VoteResponse,
+        ChallengeResponse, ChallengesResponse, Friend, FriendByAddr, FriendsResponse,
+        InstantiateMsg, VoteResponse,
     },
     state::{AdminStrikes, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind},
     *,
@@ -42,11 +43,36 @@ lazy_static! {
     static ref ALICE_ADDRESS: String = "alice".to_string();
     static ref BOB_ADDRESS: String = "bob".to_string();
     static ref CHARLIE_ADDRESS: String = "charlie".to_string();
-    static ref FRIENDS: Vec<String> = vec![
-        ALICE_ADDRESS.clone(),
-        BOB_ADDRESS.clone(),
-        CHARLIE_ADDRESS.clone()
+    static ref ALICE_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
+        address: "alice".to_string(),
+        name: "alice_name".to_string()
+    });
+    static ref BOB_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
+        address: "bob".to_string(),
+        name: "bob_name".to_string()
+    });
+    static ref CHARLIE_FRIEND: Friend<String> = Friend::Addr(FriendByAddr {
+        address: "charlie".to_string(),
+        name: "charlie_name".to_string()
+    });
+    static ref FRIENDS: Vec<Friend<String>> = vec![
+        ALICE_FRIEND.clone(),
+        BOB_FRIEND.clone(),
+        CHARLIE_FRIEND.clone()
     ];
+    static ref UNCHECKED_FRIENDS: Vec<Friend<Addr>> = {
+        FRIENDS
+            .clone()
+            .into_iter()
+            .map(|f| match f {
+                Friend::Addr(FriendByAddr { address, name }) => Friend::Addr(FriendByAddr {
+                    address: Addr::unchecked(address),
+                    name,
+                }),
+                Friend::AbstractAccount(account_id) => Friend::AbstractAccount(account_id),
+            })
+            .collect()
+    };
 }
 
 #[allow(unused)]
@@ -232,10 +258,16 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (_mock, _account, abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
 
-    let new_friend = "new_friend".to_string();
+    let new_account =
+        abstr
+            .account_factory
+            .create_default_account(GovernanceDetails::Monarchy {
+                monarch: ADMIN.to_string(),
+            })?;
+    let new_friend: Friend<String> = Friend::AbstractAccount(new_account.id()?);
 
     apps.challenge_app.update_friends_for_challenge(
         FIRST_CHALLENGE_ID,
@@ -248,12 +280,10 @@ fn test_add_single_friend_for_challenge() -> anyhow::Result<()> {
             .query(&QueryMsg::from(ChallengeQueryMsg::Friends {
                 challenge_id: FIRST_CHALLENGE_ID,
             }))?;
-    let mut friends = response.friends;
-    friends.sort();
+    let friends = response.friends;
 
-    let mut expected_friends: Vec<Addr> = FRIENDS.iter().map(Addr::unchecked).collect();
-    expected_friends.push(Addr::unchecked(new_friend));
-    expected_friends.sort();
+    let mut expected_friends: Vec<Friend<Addr>> = UNCHECKED_FRIENDS.clone();
+    expected_friends.push(Friend::AbstractAccount(new_account.id()?));
 
     assert_eq!(friends, expected_friends);
 
@@ -282,10 +312,9 @@ fn test_add_friends_for_challenge() -> anyhow::Result<()> {
             .query(&QueryMsg::from(ChallengeQueryMsg::Friends {
                 challenge_id: FIRST_CHALLENGE_ID,
             }))?;
-    let mut friends = response.friends;
-    friends.sort();
+    let friends = response.friends;
 
-    let expected_friends: Vec<Addr> = FRIENDS.iter().map(Addr::unchecked).collect();
+    let expected_friends: Vec<Friend<Addr>> = UNCHECKED_FRIENDS.clone();
 
     assert_eq!(friends, expected_friends);
 
@@ -299,8 +328,8 @@ fn test_remove_friend_from_challenge() -> anyhow::Result<()> {
 
     // remove friend
     apps.challenge_app.update_friends_for_challenge(
-        1,
-        vec![ALICE_ADDRESS.clone()],
+        FIRST_CHALLENGE_ID,
+        vec![ALICE_FRIEND.clone()],
         UpdateFriendsOpKind::Remove {},
     )?;
 
@@ -309,12 +338,13 @@ fn test_remove_friend_from_challenge() -> anyhow::Result<()> {
     });
 
     let response: FriendsResponse = apps.challenge_app.query(&friends_query)?;
-    let mut friends = response.friends;
-    friends.sort();
+    let friends = response.friends;
 
-    let mut expected_friends = FRIENDS.clone();
-    expected_friends.retain(|s| s != ALICE_ADDRESS.as_str());
-    expected_friends.sort();
+    let mut expected_friends = UNCHECKED_FRIENDS.clone();
+    expected_friends.retain(|s| match s {
+        Friend::Addr(addr) => addr.address != ALICE_ADDRESS.clone(),
+        Friend::AbstractAccount(_) => todo!(),
+    });
 
     assert_eq!(friends, expected_friends);
 

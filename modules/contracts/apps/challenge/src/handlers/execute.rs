@@ -1,16 +1,16 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use crate::error::AppError;
 use abstract_core::objects::voting::{Vote, VoteInfo, VoteOutcome, VoteStatus};
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
-use abstract_sdk::{Execution, TransferInterface};
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, StdResult, Uint128};
+use abstract_sdk::{AbstractSdkResult, AccountVerification, Execution, TransferInterface};
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, Uint128};
 
 use crate::contract::{AppResult, ChallengeApp};
 // use abstract_sdk::prelude::*;
 
-use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, VetoChallengeAction};
+use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, Friend, VetoChallengeAction};
 use crate::state::{
     ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_FRIENDS, CHALLENGE_LIST,
     NEXT_ID, SIMPLE_VOTING,
@@ -63,26 +63,26 @@ fn create_challenge(
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-
-    let friends_validated = challenge_req
+    // Validate friend addr and account ids
+    let friends_validated: HashMap<Addr, Friend<Addr>> = challenge_req
         .init_friends
         .iter()
-        .map(|human| deps.api.addr_validate(human))
-        .collect::<StdResult<Vec<Addr>>>()?;
+        .cloned()
+        .map(|human| human.check(deps.as_ref(), &app))
+        .collect::<AbstractSdkResult<_>>()?;
 
-    let end = challenge_req.duration.after(&env.block);
-    let vote_id = SIMPLE_VOTING.new_vote(deps.storage, end, &friends_validated)?;
-
-    let challenge = ChallengeEntry::new(challenge_req, vote_id);
-
-    // Generate the challenge id and update the status
+    // Generate the challenge id
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
+    CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends_validated)?;
+
+    // Create new vote
+    let end = challenge_req.duration.after(&env.block);
+    let initial_friends: Vec<Addr> = friends_validated.into_keys().collect();
+    let vote_id = SIMPLE_VOTING.new_vote(deps.storage, end, &initial_friends)?;
+
+    // Create new challenge
+    let challenge = ChallengeEntry::new(challenge_req, vote_id);
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
-    CHALLENGE_FRIENDS.save(
-        deps.storage,
-        challenge_id,
-        &HashSet::from_iter(friends_validated.into_iter()),
-    )?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -151,15 +151,17 @@ fn update_friends_for_challenge(
     info: MessageInfo,
     app: &ChallengeApp,
     challenge_id: u64,
-    friends: Vec<String>,
+    friends: Vec<Friend<String>>,
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
     let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let friends_validated = friends
+    // Validate friend addr and account ids
+    let friends_validated: HashMap<Addr, Friend<Addr>> = friends
         .iter()
-        .map(|human| deps.api.addr_validate(human))
-        .collect::<StdResult<Vec<Addr>>>()?;
+        .cloned()
+        .map(|human| human.check(deps.as_ref(), &app))
+        .collect::<AbstractSdkResult<_>>()?;
 
     let vote_id = challenge.current_vote_id;
 
@@ -167,26 +169,29 @@ fn update_friends_for_challenge(
         .load_vote_info(deps.storage, vote_id)?
         .assert_ready_for_action(&env.block)?;
 
+
     match op_kind {
         UpdateFriendsOpKind::Add {} => {
-            SIMPLE_VOTING.add_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |friends| {
                 // TODO: replace unwrap with cute error
                 let mut friends = friends.unwrap();
-                friends.extend(friends_validated.into_iter());
+                friends.extend(friends.clone().into_iter());
                 AppResult::Ok(friends)
             })?;
+            let new_friends: Vec<Addr> = friends_validated.into_keys().collect();
+            SIMPLE_VOTING.add_voters(deps.storage, vote_id, &env.block, &new_friends)?;
         }
         UpdateFriendsOpKind::Remove {} => {
-            SIMPLE_VOTING.remove_voters(deps.storage, vote_id, &env.block, &friends_validated)?;
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |friends| {
                 // TODO: replace unwrap with cute error
                 let mut friends = friends.unwrap();
-                for removed_friend in friends_validated {
-                    friends.remove(&removed_friend);
+                for addr in friends_validated.keys() {
+                    friends.remove(&addr);
                 }
                 AppResult::Ok(friends)
             })?;
+            let removed_friends: Vec<Addr> = friends_validated.into_keys().collect();
+            SIMPLE_VOTING.remove_voters(deps.storage, vote_id, &env.block, &removed_friends)?;
         }
     }
     Ok(app.tag_response(
@@ -286,7 +291,7 @@ fn charge_penalty(
     let last_strike = challenge.admin_strikes.strike();
     // Create new voting if required
     if !last_strike && !vote_info.end.is_expired(&env.block) {
-        let initial_voters: Vec<Addr> = Vec::from_iter(friends.clone());
+        let initial_voters: Vec<Addr> = Vec::from_iter(friends.keys().cloned());
         let new_vote_id = SIMPLE_VOTING.new_vote(deps.storage, vote_info.end, &initial_voters)?;
         challenge.previous_vote_ids.push(challenge.current_vote_id);
         challenge.current_vote_id = new_vote_id;
@@ -311,8 +316,18 @@ fn charge_penalty(
 
     // Create a transfer action for each friend
     let transfer_actions = friends
-        .iter()
-        .map(|friend_addr| bank.transfer(vec![asset_per_friend.clone()], friend_addr))
+        .into_iter()
+        .map(|(_addr, friend)| {
+            let recipent = match friend {
+                Friend::Addr(addr) => addr.address,
+                Friend::AbstractAccount(account_id) => {
+                    app.account_registry(deps.as_ref())
+                        .account_base(&account_id)?
+                        .proxy
+                }
+            };
+            bank.transfer(vec![asset_per_friend.clone()], &recipent)
+        })
         .collect::<Result<Vec<_>, _>>()?;
 
     let transfer_msg = executor.execute(transfer_actions)?;

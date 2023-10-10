@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use abstract_core::objects::{
     voting::{SimpleVoting, VoteId},
@@ -7,7 +7,7 @@ use abstract_core::objects::{
 use cosmwasm_std::{Addr, Uint128};
 use cw_storage_plus::{Item, Map};
 
-use crate::msg::ChallengeRequest;
+use crate::msg::{ChallengeRequest, Friend};
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -95,4 +95,4 @@ pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
 /// Friends list for the challenge
 // Reduces gas consumption to load all friends
 // Helpful during distributing penalty and re-creation voting
-pub const CHALLENGE_FRIENDS: Map<u64, HashSet<Addr>> = Map::new("friends_list");
+pub const CHALLENGE_FRIENDS: Map<u64, HashMap<Addr, Friend<Addr>>> = Map::new("friends_list");

@@ -95,7 +95,9 @@ fn query_challenges(
 fn query_friends(deps: Deps, _app: &ChallengeApp, challenge_id: u64) -> AppResult<FriendsResponse> {
     let friends = CHALLENGE_FRIENDS.may_load(deps.storage, challenge_id)?;
     Ok(FriendsResponse {
-        friends: friends.map(Vec::from_iter).unwrap_or_default(),
+        friends: friends
+            .map(|friends| friends.into_values().collect())
+            .unwrap_or_default(),
     })
 }
 

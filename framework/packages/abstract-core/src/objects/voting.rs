@@ -348,9 +348,13 @@ impl<'a> SimpleVoting<'a> {
     }
 }
 
+/// Vote struct
 #[cosmwasm_schema::cw_serde]
 pub struct Vote {
+    /// true: Vote for
+    /// false: Vote against
     pub vote: bool,
+    /// memo for the vote
     pub memo: Option<String>,
 }
 
