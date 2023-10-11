@@ -6,9 +6,9 @@ use cw_orch::daemon::DaemonBuilder;
 use cw_orch::daemon::networks::parse_network;
 use cw_orch::tokio::runtime::Runtime;
 
-use clap::Parser;
 use betting_app::contract::interface::BetApp;
 use betting_app::BET_APP_ID;
+use clap::Parser;
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");

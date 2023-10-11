@@ -1,13 +1,13 @@
+use crate::state::RoundId;
 use abstract_app::AppError;
-use abstract_core::AbstractError;
-use abstract_core::objects::AccountId;
 use abstract_core::objects::validation::ValidationError;
+use abstract_core::objects::AccountId;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::{Addr, CheckedFromRatioError, OverflowError, StdError};
 use cw_asset::{AssetError, AssetInfo, AssetInfoBase};
 use cw_controllers::AdminError;
 use thiserror::Error;
-use crate::state::RoundId;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum BetError {
@@ -84,7 +84,10 @@ pub enum BetError {
         account_id: AccountId,
     },
     #[error("Invalid asset. Expected: {expected}, Actual: {actual}")]
-    InvalidAsset { expected: AssetInfo, actual: AssetInfoBase<Addr> },
+    InvalidAsset {
+        expected: AssetInfo,
+        actual: AssetInfoBase<Addr>,
+    },
 
     #[error("Round {0} already closed")]
     RoundAlreadyClosed(RoundId),

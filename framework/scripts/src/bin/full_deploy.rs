@@ -6,11 +6,10 @@ use std::{
 };
 
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::{Abstract, VersionControl};
+use abstract_interface::Abstract;
 
 use abstract_interface_scripts::{assert_wallet_balance, DeploymentStatus, SUPPORTED_CHAINS};
 use clap::Parser;
-use cw_orch::daemon::{ChainKind, NetworkInfo};
 use cw_orch::{
     deploy::Deploy,
     prelude::{
@@ -29,16 +28,16 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
     if networks.is_empty() {
         networks = SUPPORTED_CHAINS.to_vec();
     }
-    //
-    // let deployment_status = read_deployment()?;
-    // if deployment_status.success {
-    //     log::info!("Do you want to re-deploy to {:?}?", networks);
-    //     let mut input = String::new();
-    //     std::io::stdin().read_line(&mut input)?;
-    //     if input.to_lowercase().contains('n') {
-    //         return Ok(());
-    //     }
-    // }
+    
+    let deployment_status = read_deployment()?;
+    if deployment_status.success {
+        log::info!("Do you want to re-deploy to {:?}?", networks);
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)?;
+        if input.to_lowercase().contains('n') {
+            return Ok(());
+        }
+    }
     // let deployment_status = deployment_status.clone();
 
     // If some chains need to be deployed, deploy them
@@ -141,10 +140,9 @@ fn main() {
 
     use dotenv::dotenv;
 
-    // let args = Arguments::parse();
+    let args = Arguments::parse();
 
-    // let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
-    let networks = vec![NEUTRON_1];
+    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
 
     if let Err(ref err) = full_deploy(networks) {
         log::error!("{}", err);

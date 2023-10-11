@@ -43,9 +43,8 @@ use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_asset::AssetUnchecked;
 
 use crate::contract::BetApp;
+use crate::state::{AccountOdds, Bet, OddsType, RoundId, RoundInfo, RoundStatus, RoundTeamKey};
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
-use crate::state::{RoundInfo, RoundId, RoundTeamKey, Bet, AccountOdds, OddsType, RoundStatus};
-
 
 abstract_app::app_msg_types!(BetApp, BetExecuteMsg, BetQueryMsg);
 
@@ -69,9 +68,7 @@ pub enum BetExecuteMsg {
     },
     /// Register as a team for the hackathon
     /// Uses the account caller to find the account id
-    Register {
-        round_id: RoundId,
-    },
+    Register { round_id: RoundId },
     /// Register teams manually for the round, with predefined odds set.
     /// Good for creating games with predefined odds, but payout can exceed account balance.
     UpdateAccounts {
@@ -81,23 +78,16 @@ pub enum BetExecuteMsg {
     },
     /// Place a new bet for a round
     #[cfg_attr(feature = "interface", payable)]
-    PlaceBet {
-        bet: Bet,
-        round_id: RoundId,
-    },
+    PlaceBet { bet: Bet, round_id: RoundId },
     /// Distribute winnings to the winners of the round
-    DistributeWinnings {
-        round_id: RoundId,
-    },
+    DistributeWinnings { round_id: RoundId },
     /// Admin only
     CloseRound {
         round_id: RoundId,
         winner: Option<AccountId>,
     },
     /// Update the config of the contract
-    UpdateConfig {
-        rake: Option<Decimal>,
-    },
+    UpdateConfig { rake: Option<Decimal> },
 }
 
 /// Query Msg
@@ -108,9 +98,7 @@ pub enum BetExecuteMsg {
 pub enum BetQueryMsg {
     /// Returns [`RoundResponse`]
     #[returns(RoundResponse)]
-    Round {
-        round_id: RoundId,
-    },
+    Round { round_id: RoundId },
     /// Returns [`RoundsResponse`]
     #[returns(RoundsResponse)]
     ListRounds {
@@ -125,17 +113,13 @@ pub enum BetQueryMsg {
     },
     /// Returns [`ListOddsResponse`]
     #[returns(ListOddsResponse)]
-    ListOdds {
-        round_id: RoundId,
-    },
+    ListOdds { round_id: RoundId },
     /// Returns [`ConfigResponse`]
     #[returns(ConfigResponse)]
     Config {},
     /// Returns [`BetsResponse`]
     #[returns(BetsResponse)]
-    Bets {
-        round_id: RoundId,
-    }
+    Bets { round_id: RoundId },
 }
 
 /// Hook when sending CW20 tokens
@@ -181,7 +165,7 @@ pub struct RoundResponse {
     pub teams: Vec<AccountId>,
     pub status: RoundStatus,
     pub bet_count: u128,
-    pub total_bet: AnsAsset
+    pub total_bet: AnsAsset,
 }
 
 #[cosmwasm_schema::cw_serde]

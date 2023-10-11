@@ -1,35 +1,33 @@
-// #[cfg(test)]
-// mod test_utils;
-
 use std::str::FromStr;
 
-use abstract_core::{objects::AssetEntry, app::BaseInstantiateMsg, ans_host::ExecuteMsgFns as AnsExecuteMsgFns, objects::gov_type::GovernanceDetails, version_control::ExecuteMsgFns as VersionControlExecuteMsgFns, app};
 use abstract_core::app::BaseExecuteMsg;
 use abstract_core::objects::{AccountId, AnsAsset};
 use abstract_core::version_control::AccountBase;
-use abstract_interface::{
-    Abstract, AbstractAccount, AppDeployer, DeployStrategy,
-    ManagerQueryFns,
+use abstract_core::{
+    ans_host::ExecuteMsgFns as AnsExecuteMsgFns, app, app::BaseInstantiateMsg,
+    objects::gov_type::GovernanceDetails, objects::AssetEntry,
+    version_control::ExecuteMsgFns as VersionControlExecuteMsgFns,
 };
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, ManagerQueryFns};
 use abstract_sdk::core as abstract_core;
 use abstract_testing::addresses::TEST_NAMESPACE;
 use abstract_testing::prelude::TEST_ADMIN;
-use cosmwasm_std::{Addr, coins, Decimal, Uint128};
+use cosmwasm_std::{coins, Addr, Decimal, Uint128};
 use cw_asset::AssetInfoUnchecked;
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
 
 use betting_app::{
-    contract::CONTRACT_VERSION,
-    BET_APP_ID,
     contract::interface::BetApp,
+    contract::CONTRACT_VERSION,
+    msg::BetQueryMsgFns,
     msg::{BetInstantiateMsg, InstantiateMsg},
-    msg::BetQueryMsgFns
+    BET_APP_ID,
 };
 
-use speculoos::prelude::*;
 use betting_app::msg::{BetExecuteMsg, BetExecuteMsgFns, RoundResponse};
-use betting_app::state::{AccountOdds, DEFAULT_RAKE_PERCENT, Bet, RoundId, RoundInfo, RoundStatus};
+use betting_app::state::{AccountOdds, Bet, RoundId, RoundInfo, RoundStatus, DEFAULT_RAKE_PERCENT};
+use speculoos::prelude::*;
 
 type AResult<T = ()> = anyhow::Result<T>;
 
@@ -112,9 +110,7 @@ impl BetEnv<Mock> {
                     ans_host_address: abstr.ans_host.addr_str()?,
                     version_control_address: abstr.version_control.addr_str()?,
                 },
-                module: BetInstantiateMsg {
-                    rake: None,
-                },
+                module: BetInstantiateMsg { rake: None },
             },
             None,
         )?;
@@ -131,10 +127,13 @@ impl BetEnv<Mock> {
     }
 
     fn account(&self, seq: u32) -> AResult<AbstractAccount<Mock>> {
-        Ok(AbstractAccount::new(&self.abstr, Some(AccountId::local(seq.into()))))
+        Ok(AbstractAccount::new(
+            &self.abstr,
+            Some(AccountId::local(seq.into())),
+        ))
     }
 
-    fn admin_account(&self) ->AResult<AbstractAccount<Mock>> {
+    fn admin_account(&self) -> AResult<AbstractAccount<Mock>> {
         self.account(ADMIN_ACCOUNT_SEQ)
     }
 
@@ -142,12 +141,13 @@ impl BetEnv<Mock> {
         Ok(self.admin_account()?.manager.address()?)
     }
 
-
-    fn add_team_to_round(&self, round_id: RoundId, account_id: AccountId, odds: Decimal) -> AResult<()> {
-        self.manual_add_teams_to_round(round_id, vec![AccountOdds {
-            account_id,
-            odds,
-        }])?;
+    fn add_team_to_round(
+        &self,
+        round_id: RoundId,
+        account_id: AccountId,
+        odds: Decimal,
+    ) -> AResult<()> {
+        self.manual_add_teams_to_round(round_id, vec![AccountOdds { account_id, odds }])?;
 
         Ok(())
     }
@@ -156,9 +156,13 @@ impl BetEnv<Mock> {
         let mut ids = vec![];
 
         for i in 0..x {
-            let account = self.abstr.account_factory.create_default_account(GovernanceDetails::Monarchy {
-                monarch: self.admin_account_addr().unwrap().into_string(),
-            }).unwrap();
+            let account = self
+                .abstr
+                .account_factory
+                .create_default_account(GovernanceDetails::Monarchy {
+                    monarch: self.admin_account_addr().unwrap().into_string(),
+                })
+                .unwrap();
             let account_id = account.id().unwrap();
             ids.push(account_id);
         }
@@ -167,16 +171,22 @@ impl BetEnv<Mock> {
     }
     // Add teams to the round with 0 odds to start
     fn add_x_teams_to_round(&self, round_id: RoundId, x: usize) -> AResult<()> {
-        let account_ids = (0..x).map(|_| {
-            let account= self.abstr.account_factory.create_default_account(GovernanceDetails::Monarchy {
-                monarch: self.admin_account_addr().unwrap().into_string(),
-            }).unwrap();
-            let account_id = account.id().unwrap();
-            AccountOdds {
-                account_id,
-                odds: Decimal::from_str("1").unwrap(),
-            }
-        }).collect::<Vec<AccountOdds>>();
+        let account_ids = (0..x)
+            .map(|_| {
+                let account = self
+                    .abstr
+                    .account_factory
+                    .create_default_account(GovernanceDetails::Monarchy {
+                        monarch: self.admin_account_addr().unwrap().into_string(),
+                    })
+                    .unwrap();
+                let account_id = account.id().unwrap();
+                AccountOdds {
+                    account_id,
+                    odds: Decimal::from_str("1").unwrap(),
+                }
+            })
+            .collect::<Vec<AccountOdds>>();
 
         self.manual_add_teams_to_round(round_id, account_ids)?;
 
@@ -184,13 +194,19 @@ impl BetEnv<Mock> {
     }
 
     fn manual_add_teams_to_round(&self, round_id: RoundId, teams: Vec<AccountOdds>) -> AResult<()> {
-        self.bet.call_as(&self.admin_account_addr()?).update_accounts(round_id, teams, vec![])?;
+        self.bet
+            .call_as(&self.admin_account_addr()?)
+            .update_accounts(round_id, teams, vec![])?;
 
         Ok(())
     }
 
     fn create_test_round(&self) -> AResult<RoundId> {
-        self.bet.call_as(&self.admin_account_addr()?).create_round(AssetEntry::new(BET_TOKEN_ANS_ID), "test".to_string(), "test".to_string())?;
+        self.bet.call_as(&self.admin_account_addr()?).create_round(
+            AssetEntry::new(BET_TOKEN_ANS_ID),
+            "test".to_string(),
+            "test".to_string(),
+        )?;
 
         let rounds = self.bet.list_rounds(None, None)?;
 
@@ -199,8 +215,14 @@ impl BetEnv<Mock> {
         Ok(last_round.id)
     }
     // admin execute on round
-    fn execute_as_account_on_round(&self, account: AbstractAccount<Mock>, msg: BetExecuteMsg) -> AResult<()> {
-        account.manager.execute_on_module(BET_APP_ID, app::ExecuteMsg::<_, Empty>::Module(msg))?;
+    fn execute_as_account_on_round(
+        &self,
+        account: AbstractAccount<Mock>,
+        msg: BetExecuteMsg,
+    ) -> AResult<()> {
+        account
+            .manager
+            .execute_on_module(BET_APP_ID, app::ExecuteMsg::<_, Empty>::Module(msg))?;
 
         Ok(())
     }
@@ -211,18 +233,24 @@ impl BetEnv<Mock> {
         Ok(())
     }
 
-    fn bet_on_round_as(&self, sender: Addr, round_id: RoundId, account_id: AccountId, amount: u128) -> AResult<()> {
+    fn bet_on_round_as(
+        &self,
+        sender: Addr,
+        round_id: RoundId,
+        account_id: AccountId,
+        amount: u128,
+    ) -> AResult<()> {
         let bet = Bet {
             account_id,
             asset: AnsAsset::new(BET_TOKEN_ANS_ID, amount),
         };
-        self.bet.call_as(&sender).place_bet(bet, round_id, &coins(amount, BET_TOKEN_DENOM))?;
+        self.bet
+            .call_as(&sender)
+            .place_bet(bet, round_id, &coins(amount, BET_TOKEN_DENOM))?;
 
         Ok(())
     }
 }
-
-
 
 #[test]
 fn test_init_config() -> AResult {
@@ -231,7 +259,6 @@ fn test_init_config() -> AResult {
     let config = BetQueryMsgFns::config(&test_env.bet)?;
 
     assert_that!(config.rake).is_equal_to(Decimal::percent(DEFAULT_RAKE_PERCENT));
-
 
     Ok(())
 }
@@ -247,12 +274,14 @@ fn test_create_round() -> AResult {
     assert_that!(rounds.rounds).has_length(1);
 
     let RoundResponse {
-        id, name,
+        id,
+        name,
         description,
         teams,
         status,
-        bet_count, total_bet,
-    }  = rounds.rounds[0].clone();
+        bet_count,
+        total_bet,
+    } = rounds.rounds[0].clone();
 
     assert_that!(id).is_equal_to(0);
     assert_that!(name).is_equal_to("test".to_string());
@@ -262,17 +291,14 @@ fn test_create_round() -> AResult {
     assert_that!(total_bet).is_equal_to(AnsAsset::new(BET_TOKEN_ANS_ID.to_string(), 0u128));
     assert_that!(bet_count).is_equal_to(0);
 
-
     Ok(())
 }
-
-
 
 #[test]
 fn test_create_round_with_teams() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     env.add_x_teams_to_round(round_id, 10)?;
 
@@ -286,7 +312,7 @@ fn test_create_round_with_teams() -> AResult {
 fn test_create_round_with_mini_bets() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     env.add_x_teams_to_round(round_id, 2)?;
 
@@ -296,8 +322,8 @@ fn test_create_round_with_mini_bets() -> AResult {
     let better = Addr::unchecked("account");
     let bet_amount = 100;
 
-
-    env.env.set_balance(&better, coins(bet_amount, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&better, coins(bet_amount, BET_TOKEN_DENOM))?;
 
     let betting_on = AccountId::local(2);
 
@@ -313,14 +339,13 @@ fn test_create_round_with_mini_bets() -> AResult {
 fn test_create_round_with_two_teams() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     // create 2 accounts
     let mut new_acc_ids = env.create_x_accounts(2)?;
 
     let team_1 = new_acc_ids.swap_remove(0);
     let team_2 = new_acc_ids.swap_remove(0);
-
 
     env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
     env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
@@ -331,8 +356,8 @@ fn test_create_round_with_two_teams() -> AResult {
     let better = Addr::unchecked("account");
     let bet_amount = 100000000;
 
-    env.env.set_balance(&better, coins(bet_amount * 5999, BET_TOKEN_DENOM))?;
-
+    env.env
+        .set_balance(&better, coins(bet_amount * 5999, BET_TOKEN_DENOM))?;
 
     env.bet_on_round_as(better.clone(), round_id, team_1, bet_amount)?;
     println!("odds_list 2: {:?}", odds_list.odds);
@@ -345,20 +370,18 @@ fn test_create_round_with_two_teams() -> AResult {
     Ok(())
 }
 
-
 #[test]
 fn test_create_round_with_three_teams() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     // create 3 accounts
     let mut new_acc_ids = env.create_x_accounts(3)?;
 
     let team_1 = new_acc_ids.get(0).unwrap().clone();
-    let team_2 =  new_acc_ids.get(1).unwrap().clone();
-    let team_3 =  new_acc_ids.get(2).unwrap().clone();
-
+    let team_2 = new_acc_ids.get(1).unwrap().clone();
+    let team_3 = new_acc_ids.get(2).unwrap().clone();
 
     env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
     env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
@@ -368,7 +391,8 @@ fn test_create_round_with_three_teams() -> AResult {
     println!("initial odds: {:?}", odds_list.odds);
 
     let better = Addr::unchecked("account");
-    env.env.set_balance(&better, coins(5005050 * 5999, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&better, coins(5005050 * 5999, BET_TOKEN_DENOM))?;
 
     let bet_amount = 125000000;
     env.bet_on_round_as(better.clone(), round_id, team_1, bet_amount)?;
@@ -396,15 +420,14 @@ fn test_create_round_with_three_teams() -> AResult {
 fn test_create_round_with_three_teams_and_claim() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     // create 3 accounts
     let mut new_acc_ids = env.create_x_accounts(3)?;
 
     let team_1 = new_acc_ids.get(0).unwrap().clone();
-    let team_2 =  new_acc_ids.get(1).unwrap().clone();
-    let team_3 =  new_acc_ids.get(2).unwrap().clone();
-
+    let team_2 = new_acc_ids.get(1).unwrap().clone();
+    let team_3 = new_acc_ids.get(2).unwrap().clone();
 
     env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
     env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
@@ -415,8 +438,10 @@ fn test_create_round_with_three_teams_and_claim() -> AResult {
 
     let loser = Addr::unchecked("loser");
     let winner = Addr::unchecked("winner");
-    env.env.set_balance(&loser, coins(200000000, BET_TOKEN_DENOM))?;
-    env.env.set_balance(&winner, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&loser, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&winner, coins(200000000, BET_TOKEN_DENOM))?;
 
     let bet_amount = 125000000;
     env.bet_on_round_as(loser.clone(), round_id, team_1, bet_amount)?;
@@ -437,7 +462,9 @@ fn test_create_round_with_three_teams_and_claim() -> AResult {
     assert_that!(odds_for_potential_winning_team).is_equal_to(Decimal::from_str("1.8").unwrap());
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, Some(team_2))?;
+    env.bet
+        .call_as(&env.admin_account_addr()?)
+        .close_round(round_id, Some(team_2))?;
 
     env.bet.distribute_winnings(round_id)?;
     let loser_balance = env.env.query_balance(&loser, BET_TOKEN_DENOM)?;
@@ -458,15 +485,14 @@ fn test_create_round_with_three_teams_and_claim() -> AResult {
 fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     // create 3 accounts
     let mut new_acc_ids = env.create_x_accounts(3)?;
 
     let team_1 = new_acc_ids.get(0).unwrap().clone();
-    let team_2 =  new_acc_ids.get(1).unwrap().clone();
-    let team_3 =  new_acc_ids.get(2).unwrap().clone();
-
+    let team_2 = new_acc_ids.get(1).unwrap().clone();
+    let team_3 = new_acc_ids.get(2).unwrap().clone();
 
     env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
     env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
@@ -478,9 +504,12 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     let loser = Addr::unchecked("loser");
     let winner_1 = Addr::unchecked("winner_1");
     let winner_2 = Addr::unchecked("winner_2");
-    env.env.set_balance(&loser, coins(200000000, BET_TOKEN_DENOM))?;
-    env.env.set_balance(&winner_1, coins(200000000, BET_TOKEN_DENOM))?;
-    env.env.set_balance(&winner_2, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&loser, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&winner_1, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&winner_2, coins(200000000, BET_TOKEN_DENOM))?;
 
     let bet_amount = 125000000;
     env.bet_on_round_as(loser.clone(), round_id, team_1, bet_amount)?;
@@ -506,12 +535,14 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     assert_that!(odds_for_potential_winning_team).is_equal_to(Decimal::from_str("1.35").unwrap());
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, Some(team_2.clone()))?;
-
+    env.bet
+        .call_as(&env.admin_account_addr()?)
+        .close_round(round_id, Some(team_2.clone()))?;
 
     let round = env.bet.round(round_id)?;
-    assert_that!(round.status).is_equal_to(RoundStatus::Closed { winning_team: Some(team_2) });
-
+    assert_that!(round.status).is_equal_to(RoundStatus::Closed {
+        winning_team: Some(team_2),
+    });
 
     // distribute the winnings
     env.bet.distribute_winnings(round_id)?;
@@ -527,7 +558,6 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
     let round = env.bet.round(round_id)?;
     assert_that!(round.status).is_equal_to(RoundStatus::RewardsDistributed {});
 
-
     Ok(())
 }
 
@@ -535,15 +565,14 @@ fn test_create_round_with_three_teams_and_claim_multiple_winners() -> AResult {
 fn test_draw() -> AResult {
     let env = BetEnv::setup(None)?;
 
-    let round_id= env.create_test_round()?;
+    let round_id = env.create_test_round()?;
 
     // create 3 accounts
     let mut new_acc_ids = env.create_x_accounts(3)?;
 
     let team_1 = new_acc_ids.get(0).unwrap().clone();
-    let team_2 =  new_acc_ids.get(1).unwrap().clone();
-    let team_3 =  new_acc_ids.get(2).unwrap().clone();
-
+    let team_2 = new_acc_ids.get(1).unwrap().clone();
+    let team_3 = new_acc_ids.get(2).unwrap().clone();
 
     env.add_team_to_round(round_id, team_1.clone(), Decimal::from_str("1").unwrap())?;
     env.add_team_to_round(round_id, team_2.clone(), Decimal::from_str("1").unwrap())?;
@@ -554,8 +583,10 @@ fn test_draw() -> AResult {
 
     let draw_1 = Addr::unchecked("dd");
     let draw_2 = Addr::unchecked("ddd");
-    env.env.set_balance(&draw_1, coins(125000000, BET_TOKEN_DENOM))?;
-    env.env.set_balance(&draw_2, coins(200000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&draw_1, coins(125000000, BET_TOKEN_DENOM))?;
+    env.env
+        .set_balance(&draw_2, coins(200000000, BET_TOKEN_DENOM))?;
 
     let bet_amount = 125000000;
     env.bet_on_round_as(draw_1.clone(), round_id, team_1, bet_amount)?;
@@ -564,7 +595,9 @@ fn test_draw() -> AResult {
     env.bet_on_round_as(draw_2.clone(), round_id, team_2.clone(), bet_amount)?;
 
     // set the winner
-    env.bet.call_as(&env.admin_account_addr()?).close_round(round_id, None)?;
+    env.bet
+        .call_as(&env.admin_account_addr()?)
+        .close_round(round_id, None)?;
 
     let draw_1_balance = env.env.query_balance(&draw_1, BET_TOKEN_DENOM)?;
     assert_that!(draw_1_balance.u128()).is_equal_to(0);
@@ -578,7 +611,5 @@ fn test_draw() -> AResult {
     let draw_2_balance = env.env.query_balance(&draw_2, BET_TOKEN_DENOM)?;
     assert_that!(draw_2_balance.u128()).is_equal_to(200000000);
 
-
     Ok(())
 }
-

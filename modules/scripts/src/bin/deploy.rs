@@ -10,11 +10,12 @@ use std::net::TcpStream;
 
 use clap::Parser;
 use cw_orch::{
+    daemon::{ChainKind, NetworkInfo},
     deploy::Deploy,
     prelude::{
         networks::{parse_network, ChainInfo, JUNO_1},
         *,
-    }, daemon::{NetworkInfo, ChainKind},
+    },
 };
 use tokio::runtime::Runtime;
 
@@ -33,7 +34,6 @@ fn full_deploy() -> anyhow::Result<()> {
         .unwrap()
         .get_all_deployed_chains();
     let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
-
 
     for network in networks {
         let chain = DaemonBuilder::default()

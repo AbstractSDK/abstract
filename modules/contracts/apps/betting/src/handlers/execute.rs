@@ -1,20 +1,19 @@
-use std::str::FromStr;
 use abstract_core::objects::{AccountId, AnsAsset, AssetEntry};
-use abstract_sdk::{
-    *,
-    core::objects::fee::Fee, features::AbstractResponse,
+use abstract_sdk::{core::objects::fee::Fee, features::AbstractResponse, *};
+use cosmwasm_std::{
+    coins, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdError,
+    StdResult, Storage, Uint128,
 };
-use cosmwasm_std::{Addr, coins, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order, Response, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::Item;
+use std::str::FromStr;
 
 use crate::contract::{BetApp, BetResult};
 use crate::error::BetError;
-use crate::msg::BetExecuteMsg;
-use crate::state::*;
-use crate::state::CONFIG;
-use abstract_sdk::features::AbstractNameService;
 use crate::handlers::query;
-
+use crate::msg::BetExecuteMsg;
+use crate::state::CONFIG;
+use crate::state::*;
+use abstract_sdk::features::AbstractNameService;
 
 pub fn execute_handler(
     deps: DepsMut,
@@ -39,7 +38,11 @@ pub fn execute_handler(
             // Check asset
             create_round(deps, info, app, round_info)
         }
-        BetExecuteMsg::UpdateAccounts { to_add, to_remove, round_id } => {
+        BetExecuteMsg::UpdateAccounts {
+            to_add,
+            to_remove,
+            round_id,
+        } => {
             // Only admin can register specific accounts
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
@@ -54,23 +57,14 @@ pub fn execute_handler(
 
             update_config(deps, app, rake)
         }
-        BetExecuteMsg::PlaceBet {
-            bet,
-            round_id
-        } => {
-            place_bet(deps, info, app, round_id, bet)
-        }
-        BetExecuteMsg::CloseRound {
-            round_id, winner
-        } => {
+        BetExecuteMsg::PlaceBet { bet, round_id } => place_bet(deps, info, app, round_id, bet),
+        BetExecuteMsg::CloseRound { round_id, winner } => {
             app.admin.assert_admin(deps.as_ref(), &info.sender)?;
             let round = Round::new(round_id);
 
             close_round(deps, &app, winner, round)?
         }
-        BetExecuteMsg::DistributeWinnings {
-            round_id
-        } => distribute_winnings(deps, app, round_id),
+        BetExecuteMsg::DistributeWinnings { round_id } => distribute_winnings(deps, app, round_id),
         BetExecuteMsg::Register { round_id } => {
             let round = Round::new(round_id);
             round.assert_not_closed(deps.storage)?;
@@ -80,7 +74,7 @@ pub fn execute_handler(
 }
 
 fn update_config(deps: DepsMut, app: BetApp, rake: Option<Decimal>) -> BetResult {
-// TODO: use config constant, not sure why this is not working.
+    // TODO: use config constant, not sure why this is not working.
     let mut config: Config = Item::new("config").load(deps.storage)?;
     let mut attrs = vec![];
 
@@ -89,26 +83,26 @@ fn update_config(deps: DepsMut, app: BetApp, rake: Option<Decimal>) -> BetResult
         attrs.push(("rake", rake.to_string()));
     };
 
-    Ok(app.custom_tag_response(
-        Response::default(),
-        "update_config",
-        attrs,
-    ))
+    Ok(app.custom_tag_response(Response::default(), "update_config", attrs))
 }
 
 fn register_for_round(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round) -> BetResult {
-    let account_id = app.account_registry(deps.as_ref()).account_id(&info.sender)?;
+    let account_id = app
+        .account_registry(deps.as_ref())
+        .account_id(&info.sender)?;
     // default odds
     let odds = Decimal::one();
-    let to_add = vec![AccountOdds {
-        account_id,
-        odds,
-    }];
+    let to_add = vec![AccountOdds { account_id, odds }];
     let to_remove = vec![];
     update_accounts(deps, info, app, round, to_add, to_remove)
 }
 
-fn close_round(deps: DepsMut, app: &BetApp, winner: Option<AccountId>, round: Round) -> Result<Result<Response, BetError>, BetError> {
+fn close_round(
+    deps: DepsMut,
+    app: &BetApp,
+    winner: Option<AccountId>,
+    round: Round,
+) -> Result<Result<Response, BetError>, BetError> {
     let current_status = round.status(deps.storage)?;
 
     Ok(match current_status {
@@ -119,12 +113,19 @@ fn close_round(deps: DepsMut, app: &BetApp, winner: Option<AccountId>, round: Ro
                     return Err(BetError::AccountNotFound(winner));
                 }
             }
-            round.set_status(deps.storage, RoundStatus::Closed { winning_team: winner })?;
+            round.set_status(
+                deps.storage,
+                RoundStatus::Closed {
+                    winning_team: winner,
+                },
+            )?;
 
             Ok(app.custom_tag_response(
                 Response::default(),
                 "update_round_status",
-                vec![("round_id", round.id().to_string()) /*, ("status", new_status.to_string()) */],
+                vec![
+                    ("round_id", round.id().to_string()), /*, ("status", new_status.to_string()) */
+                ],
             ))
         }
         _ => Err(BetError::RoundAlreadyClosed(round.id())),
@@ -147,7 +148,8 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
             let bank = app.bank(deps.as_ref());
             let round_info = round.info(deps.storage)?.bet_asset;
 
-            let distribution_actions: Result<Vec<AccountAction>, AbstractSdkError> = bets.into_iter()
+            let distribution_actions: Result<Vec<AccountAction>, AbstractSdkError> = bets
+                .into_iter()
                 .map(|(better_addr, bet_amount)| {
                     let transfer_asset = AnsAsset::new(round_info.clone(), bet_amount);
                     bank.transfer(vec![transfer_asset], &better_addr)
@@ -156,7 +158,9 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
 
             distribution_actions.map_err(Into::into)
         }
-        RoundStatus::Closed { winning_team: Some(winning_team) } => {
+        RoundStatus::Closed {
+            winning_team: Some(winning_team),
+        } => {
             // Distribute the winnings to the winning betters
             let winning_odds = ODDS.load(deps.storage, (round_id, winning_team.clone()))?;
             let winning_bets = BETS.load(deps.storage, (round_id, winning_team.clone()))?;
@@ -164,7 +168,8 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
             let bank = app.bank(deps.as_ref());
             let round_info = round.info(deps.storage)?.bet_asset;
 
-            let distribution_msgs1 = winning_bets.into_iter()
+            let distribution_msgs1 = winning_bets
+                .into_iter()
                 .map(|(better_addr, bet_amount)| {
                     let winnings = bet_amount * winning_odds;
                     let transfer_asset = AnsAsset::new(round_info.clone(), winnings);
@@ -174,36 +179,39 @@ fn distribute_winnings(deps: DepsMut, app: BetApp, round_id: RoundId) -> BetResu
 
             distribution_msgs1.map_err(Into::into)
         }
-        _ => Err(BetError::RoundNotClosed(round_id))
+        _ => Err(BetError::RoundNotClosed(round_id)),
     }?;
 
     let executor = app.executor(deps.as_ref());
 
-
     let distribution_msg = executor.execute(distribution_msgs)?;
 
-    Ok(app.tag_response(Response::default().add_message(distribution_msg), "distribute_draw"))
-
+    Ok(app.tag_response(
+        Response::default().add_message(distribution_msg),
+        "distribute_draw",
+    ))
 }
 
-
-fn update_accounts(deps: DepsMut, info: MessageInfo, app: BetApp, round: Round, to_add: Vec<AccountOdds>, to_remove: Vec<AccountId>) -> BetResult {
+fn update_accounts(
+    deps: DepsMut,
+    info: MessageInfo,
+    app: BetApp,
+    round: Round,
+    to_add: Vec<AccountOdds>,
+    to_remove: Vec<AccountId>,
+) -> BetResult {
     let account_registry = app.account_registry(deps.as_ref());
-    for AccountOdds {
-        account_id,
-        ..
-    } in to_add.iter() {
+    for AccountOdds { account_id, .. } in to_add.iter() {
         // ensure account exists
-        account_registry.account_base(&account_id).map_err(|_| BetError::AccountNotFound(account_id.clone()))?;
+        account_registry
+            .account_base(&account_id)
+            .map_err(|_| BetError::AccountNotFound(account_id.clone()))?;
     }
 
     // register account
     round.update_accounts(deps, to_add, to_remove)?;
 
-    Ok(app.tag_response(
-        Response::default(),
-        "update_accounts",
-    ))
+    Ok(app.tag_response(Response::default(), "update_accounts"))
 }
 
 pub fn create_round(
@@ -226,10 +234,20 @@ pub fn create_round(
         state.next_round_id += 1;
         Ok(state)
     })?;
-    Ok(app.custom_tag_response(Response::default(), "create_round", vec![("round_id", state.next_round_id.to_string())]))
+    Ok(app.custom_tag_response(
+        Response::default(),
+        "create_round",
+        vec![("round_id", state.next_round_id.to_string())],
+    ))
 }
 
-fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, round_id: RoundId, bet: Bet) -> BetResult {
+fn place_bet(
+    deps: DepsMut,
+    info: MessageInfo,
+    app: BetApp,
+    round_id: RoundId,
+    bet: Bet,
+) -> BetResult {
     let mut messages: Vec<CosmosMsg> = vec![];
 
     let bank = app.bank(deps.as_ref());
@@ -244,17 +262,19 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, round_id: RoundId, b
     let round = Round::new(round_id);
 
     // Ensure the account placing the bet exists
-     bet.validate(deps.as_ref(), &round)?;
+    bet.validate(deps.as_ref(), &round)?;
 
-     // deposit the sent assets
-     let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
-     messages.extend(deposit_msg.into_iter());
+    // deposit the sent assets
+    let deposit_msg = bank.deposit(vec![bet.asset.clone()])?;
+    messages.extend(deposit_msg.into_iter());
 
     // Record the bet
     let bet_account = bet.account_id;
 
     let key = (round.id(), bet_account.clone());
-    let mut bets = BETS.may_load(deps.storage, key.clone())?.unwrap_or_default();
+    let mut bets = BETS
+        .may_load(deps.storage, key.clone())?
+        .unwrap_or_default();
     // Find and update the existing bet if it exists
     if let Some(index) = bets.iter().position(|(addr, _)| addr == &info.sender) {
         let (_, amount) = &mut bets[index];
@@ -282,7 +302,13 @@ fn place_bet(deps: DepsMut, info: MessageInfo, app: BetApp, round_id: RoundId, b
 /// Calculates the new odds for the given round/account pair
 /// # Returns
 /// the new odds
-fn adjust_odds_for_team(storage: &mut dyn Storage, round_id: RoundId, team_id: AccountId, bet_totals: Uint128, rake: Decimal) -> StdResult<()> {
+fn adjust_odds_for_team(
+    storage: &mut dyn Storage,
+    round_id: RoundId,
+    team_id: AccountId,
+    bet_totals: Uint128,
+    rake: Decimal,
+) -> StdResult<()> {
     let team_bet_total = query::get_total_bets_for_team(storage, round_id, team_id.clone())?;
     // No action, odds have not changed
     if team_bet_total.is_zero() {
