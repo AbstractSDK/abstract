@@ -16,3 +16,11 @@ All module monetization details are stored in the version control but are verifi
 
 To assist users in budgeting, the module factory provides the `SimulateInstallModules` query, which returns the total
 sum of funds required to install a specified set of modules, including monetization and initialization funds.
+
+## Subscriptions
+
+In addition to one-time installation fees, the Abstract framework empowers developers to introduce subscription-based
+monetization strategies for their modules. This model facilitates a steady stream of revenue, enhancing the
+sustainability and continuous development of the modules.
+
+Subscriptions are being worked on and will be available soon, stay tuned!.

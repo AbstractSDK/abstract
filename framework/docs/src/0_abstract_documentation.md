@@ -51,6 +51,9 @@ Here are some useful links to get you started:
 - [Abstract SDK](./3_framework/1_abstract_sdk.md)
 - [Build with Abstract](./4_get_started/1_index.md)
 - [Abstract Platform](./5_platform/index.md)
+- [Abstract Products](./1_products/index.md)
+- [Use Cases](./7_use_cases/index.md)
+- [Monetization on Abstract](./5_platform/6_monetization.md)
 - [Glossary](./9_glossary.md)
 
 ## Use Cases

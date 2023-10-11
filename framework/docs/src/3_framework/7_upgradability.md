@@ -25,15 +25,17 @@ the <a href="https://docs.cosmwasm.com/docs/smart-contracts/migration" target="_
 ## Move Updates
 
 Some modules will not perform a regular contract migration, and this has to do with our module classification system.
-API modules for instance should not be migratable because it would remove the trustlessness of the system.
+Adapter modules for instance should not be migratable because it would remove the trustlessness of the system.
 
-Therefore, if we still want to allow for upgradeable API's we need instantiate each API version on a different address.
-When you as a developer decide to upgrade an API module, the abstract infrastructure **moves** your API configuration to
-the new addresses and removes the permissions of the old API contract.
+Therefore, if we still want to allow for upgradeable Adapters we need instantiate each Adapter version on a different
+address.
+When you as a developer decide to upgrade an Adapter module, the abstract infrastructure **moves** your Adapter
+configuration to
+the new addresses and removes the permissions of the old Adapter contract.
 
-However, all other modules that depend on the upgraded API module don't have to change any stored addresses as module
-address
-resolution is performed through the manager contract, similar to how DNS works!
+However, all other modules that depend on the upgraded Adapter module don't have to change any stored addresses as
+module
+address resolution is performed through the manager contract, similar to how DNS works!
 
 ## Upgrading Modules
 
@@ -44,7 +46,7 @@ Abstract manages module upgrades for you, ensuring your infrastructure remains i
 function smoothly through every upgrade. This process is carried out in a manner that consistently maintains the
 integrity and security of your system.
 
-Once again, the upgrade process is handled by the Manager contract.
+The process for upgrading modules is shown in the following diagram:
 
 ```mermaid
 sequenceDiagram
@@ -53,7 +55,6 @@ sequenceDiagram
     participant M as Manager
     participant VC as Version Control
     participant P as Proxy
-
     U ->> M: Upgrade
     loop for each module
         M -->> VC: Query reference
@@ -75,3 +76,8 @@ sequenceDiagram
     M -> M: Update dependencies
     M --> M: Check dependencies  
 ```
+
+An important aspect to point out of this process is how the integrity of the modules is ensured while performing the
+upgrades. Proposed module upgrades are performed sequentially and keeping track of the changes in each module upgrade.
+Additionally, version requirements and dependency checks are performed at the end of all the migrations to ensure module
+compatibility.

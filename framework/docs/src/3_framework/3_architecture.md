@@ -39,7 +39,6 @@ You can read up on the different ownership structures in our [Ownership](./5_own
 The account's architecture centers around **configurable programmability**. In other words, how can one configure the
 account (install applications, set permissions, etc.) to enable users and developers to easily customize it to do what
 they want?
-Let's see how the account architecture achieves this.
 
 Let's dive deeper into the two components of the Abstract Account.
 

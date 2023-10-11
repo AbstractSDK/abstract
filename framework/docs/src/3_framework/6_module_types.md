@@ -1,7 +1,8 @@
 # Module Types
 
 Within the Abstract SDK, a _module_ is a contract that **adds functionality** to your Abstract Account. You can explore
-all the available modules on the modules tab of your Account through the [web-app](https://app.abstract.money/).
+all the available modules on the modules tab of your Account through
+the <a href="https://app.abstract.money/" target="_blank">web-app</a>.
 
 ```admonish info
 In the previous sections we referred to these modules as "applications". We did this to simplify the mental framework of 
@@ -16,6 +17,25 @@ Modules are classified in the following categories:
 - **Adapter**: modules that act as a standard interface between your Account and external services.
 - **Standalone**: modules not built within Abstract, but registered to your Account so that the manager can execute
   commands on them.
+
+## Apps
+
+An App module adds additional functionality to your Abstract Account, exposing new entry-points for you or your users.
+This could range from adding advanced financial logic, data management features, or complex computation capabilities,
+depending on your application's needs.
+
+Each App module is exclusive to a single Abstract Account, **meaning the instance is owned by the Account owner**,
+ensuring
+the owner has full control over the module's functionality and lifecycle. This level of control extends to the
+management of upgrades, maintenance, and any customization that might be required for the specific use case of the
+application.
+
+Because each Account has its own instance, App modules can be tightly integrated with the Account's existing
+infrastructure. This includes the ability to interact directly with other modules within the same account, enabling
+powerful synergies and cross-module functionality.
+
+> The `abstract:etf` module is an app that exposes entry-points allowing external users to buy and sell "shares" in your
+> Account, representing a portion of the Accounts' value.
 
 ## Adapters
 
@@ -39,23 +59,7 @@ reliable, secure, and consistent across all Accounts.
 > The `abstract:dex` module allows Accounts to access standard functions on dexes with the same interface, regardless of
 > whether they're local to the chain or across IBC.
 
-## Apps
-
-An App module adds additional functionality to your Abstract Account, exposing new entry-points for you or your users.
-This could range from adding advanced financial logic, data management features, or complex computation capabilities,
-depending on your application's needs.
-
-Each App module is exclusive to a single Abstract Account, meaning the instance is owned by the Account owner, ensuring
-the owner has full control over the module's functionality and lifecycle. This level of control extends to the
-management of upgrades, maintenance, and any customization that might be required for the specific use case of the
-application.
-
-Because each Account has its own instance, App modules can be tightly integrated with the Account's existing
-infrastructure. This includes the ability to interact directly with other modules within the same account, enabling
-powerful synergies and cross-module functionality.
-
-> The `abstract:etf` module is an app that exposes entry-points allowing external users to buy and sell "shares" in your
-> Account, representing a portion of the Accounts' value.
+## Example
 
 ```mermaid
 flowchart LR
@@ -69,7 +73,6 @@ flowchart LR
         end
     end
 
-
     subgraph Adapters
         Acc1 --> Adapter1{{"abstract:dex"}}
         Acc2 --> Adapter1
@@ -78,7 +81,6 @@ flowchart LR
     Adapter1 --> dex1([Osmosis])
     Adapter1 --> dex2([Wyndex])
     Adapter1 --> dex3([Astroport])
-
     style App1 fill: #161b25
     style App2 fill: #161b25
     style Adapter1 fill: #161b25
@@ -87,7 +89,7 @@ flowchart LR
     style dex3 fill: #161b25
 ```
 
-<figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> and <code>abstract:dex</code> modules installed</b></figcaption>
+<figcaption align = "center"><b>Two Accounts with the <code>abstract:etf</code> app module installed, using the <code>abstract:dex</code> adapter to interact with multiple dexes</b></figcaption>
 
 ## Installing and Uninstalling Modules
 
@@ -103,7 +105,6 @@ sequenceDiagram
     participant MF as Module Factory
     participant VC as Version Control
     participant P as Proxy
-
     U ->> M: InstallModule
     M ->> MF: InstallModule
     MF -->>+ VC: Query reference
@@ -114,7 +115,6 @@ sequenceDiagram
         MF -> MF: Instantiate module
     end
     MF ->> M: Register module address
-
     M ->> P: Update module allowlist
 ```
 
@@ -126,7 +126,6 @@ sequenceDiagram
     actor U as User
     participant M as Manager
     participant P as Proxy
-
     U ->> M: UninstallModule
     M --> M: Check dependencies
     M -> M: Deregister module
@@ -154,26 +153,22 @@ Instead of building each feature from scratch, you can leverage Abstract's off-t
 functionalities with ease. This not only saves time and resources but also ensures that your project benefits from the
 best practices established by the Abstract community.
 
-### Step 1
+**Step 1**
 
-Choose the relevant modules from the Abstract library, such as:
+Choose the module of your choice on the Abstract SDK. You can see the available modules on
+our <a href="https://github.com/AbstractSDK/abstract/tree/main/modules" target="_blank">repository</a>.
 
-- Token Module for fungible tokens
-- Staking Module for staking and delegation
-- Governance Module for creating a governance system
-- Oracle Module for integrating with an oracle service
-
-### Step 2
+**Step 2**
 
 Import the chosen modules into your project and configure them according to your requirements. This can
 include setting custom parameters, such as token supply, staking rewards, or voting thresholds.
 
-### Step 3
+**Step 3**
 
 Integrate the modules with your existing codebase, ensuring they work seamlessly with your project's unique
 features. This can involve calling module functions, implementing hooks, or extending your data structures.
 
-### Step 4
+**Step 4**
 
 Test your dApp thoroughly to ensure the modules function as intended and do not introduce any unexpected
 behavior.
@@ -183,92 +178,91 @@ the robustness and flexibility of the Abstract ecosystem.
 
 ## Execute on Modules
 
-The following are sequence diagrams of the process of executing a module on an Abstract Account. There are three types of
+The following are sequence diagrams of the process of executing a module on an Abstract Account. There are three types
+of
 execution: Non-dependent Execution, Adapter Execution, and Module-dependent Execution.
 
 Let's explore each of them.
 
 ## Non-dependent Execution
+
+To execute a message on a specific module, a user can call the `ExecOnModule` function on the Manager, providing
+the module id. This diagram depicts how the Manager interacts with any module.
+
 ```mermaid
 sequenceDiagram
-  autonumber
-  actor U as User
-  participant M as Manager
-  participant Md as Module
-
-  U->>M: ExecOnModule
-  Note right of U: ModuleMsg
-  
-  M-->>M: Load module address
-  M->>Md: Execute
-  Note right of M: ModuleMsg
+    autonumber
+    actor U as User
+    participant M as Manager
+    participant Md as Module
+    U ->> M: ExecOnModule
+    Note right of U: ModuleMsg
+    M -->> M: Load module address
+    M ->> Md: Execute
+    Note right of M: ModuleMsg
 ```
 
 ## Adapter Execution
+
 In the following example, the `abstract:dex` module is installed on an Account, and the user requests a swap on a dex.
 
 ```mermaid
 sequenceDiagram
-  autonumber
-  actor U as User
-  participant M as Manager
-  participant D as abstract:dex
-  participant VC as Version Control
-  participant A as ANS
-  participant P as Proxy
-  participant T as Dex Pool
-
-  U->>M: ExecOnModule
-  Note right of U: Dex::Swap
-  M-->M: Load module address
-  M->>D: Call module
-  Note right of M: Adapter Msg
-  D-->+VC: Load proxy address for Account
-  VC-->-D: Address
-
-  D-->>+A: Resolve asset names
-  A-->>D: Asset infos
-  D-->A: Resolve dex pool
-  A-->>-D: Pool metadata
-  D-->D: Build swap msg for target dex
-  
-  D->>P: Forward execution
-  Note over VC,A: DexMsg
-  P->>T: Execute
-  Note right of P: DexMsg
+    autonumber
+    actor U as User
+    participant M as Manager
+    participant D as abstract:dex
+    participant VC as Version Control
+    participant A as ANS
+    participant P as Proxy
+    participant T as Dex Pool
+    U ->> M: ExecOnModule
+    Note right of U: Dex::Swap
+    M --> M: Load module address
+    M ->> D: Call module
+    Note right of M: Adapter Msg
+    D -->+ VC: Load proxy address for Account
+    VC -->- D: Address
+    D -->>+ A: Resolve asset names
+    A -->> D: Asset infos
+    D --> A: Resolve dex pool
+    A -->>- D: Pool metadata
+    D --> D: Build swap msg for target dex
+    D ->> P: Forward execution
+    Note over VC, A: DexMsg
+    P ->> T: Execute
+    Note right of P: DexMsg
 
 ```
 
 ## Module-dependent Execution
 
-In this example, we use [Equilibrium](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules with dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses dynamically resolved when called.
+In this example, we use [Equilibrium](../7_use_cases/1_equilibrium.md)'s `Rebalance` function as an example. Modules
+with dependencies (`equilibrium:balancer` is dependent on `abstract:etf` and `abstract:dex`) have their addresses
+dynamically resolved when called.
 
 ```mermaid
 sequenceDiagram
-  autonumber
-  actor U as User
-  participant B as equilibrium:balancer
-  participant P as Proxy
-  participant M as Manager
-  participant D as abstract:dex
-  participant T as Target Dex
-
-  U->>B: Rebalance
-  B-->>+P: Query Allocations
-  P-->>-B: Allocations
-  B-->B: Calculate rebalancing requirements
-
-  B-->>+M: Query abstract:dex address
-  M-->>-B: Address
-
-  B->>D: Call SwapRouter on dex
-  D-->D: Build swap msg for target dex
-  D-->D: Load proxy address
-  
-  D->>P: Forward execution
-  Note over M: DexMsg
-  P->>T: Execute
-  Note over D,M: DexMsg
+    autonumber
+    actor U as User
+    participant B as equilibrium:balancer
+    participant P as Proxy
+    participant M as Manager
+    participant D as abstract:dex
+    participant T as Target Dex
+    U ->> B: Rebalance
+    B -->>+ P: Query Allocations
+    P -->>- B: Allocations
+    B --> B: Calculate rebalancing requirements
+    B -->>+ M: Query abstract:dex address
+    M -->>- B: Address
+    B ->> D: Call SwapRouter on dex
+    D --> D: Build swap msg for target dex
+    D --> D: Load proxy address
+    D ->> P: Forward execution
+    Note over M: DexMsg
+    P ->> T: Execute
+    Note over D, M: DexMsg
 
 ```
 
