@@ -406,6 +406,7 @@ impl<'a> SimpleVoting<'a> {
         Ok(votes)
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn query_list(
         &self,
         store: &dyn Storage,
@@ -489,7 +490,7 @@ impl ProposalInfo {
         self.status = ProposalStatus::Finished(outcome);
         self.end = match self.end {
             Expiration::AtHeight(_) => Expiration::AtHeight(block.height),
-            Expiration::AtTime(_) => Expiration::AtTime(block.time.clone()),
+            Expiration::AtTime(_) => Expiration::AtTime(block.time),
             Expiration::Never {} => Expiration::Never {},
         }
     }
