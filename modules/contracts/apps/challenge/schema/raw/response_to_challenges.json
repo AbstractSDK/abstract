@@ -1,102 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ChallengesResponse",
-  "type": "array",
-  "items": {
-    "$ref": "#/definitions/ChallengeEntry"
-  },
-  "definitions": {
-    "AnsAsset": {
-      "type": "object",
-      "required": [
-        "amount",
-        "name"
-      ],
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/Uint128"
-        },
-        "name": {
-          "$ref": "#/definitions/AssetEntry"
-        }
+  "description": "Response for challenges query Returns a list of challenges",
+  "type": "object",
+  "required": [
+    "challenges"
+  ],
+  "properties": {
+    "challenges": {
+      "description": "List of indexed challenges",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ChallengeEntryResponse"
       }
-    },
-    "AssetEntry": {
-      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
-      "type": "string"
-    },
-    "ChallengeEntry": {
-      "type": "object",
-      "required": [
-        "admin_strikes",
-        "collateral",
-        "description",
-        "end",
-        "name",
-        "status",
-        "total_check_ins"
-      ],
-      "properties": {
-        "admin_strikes": {
-          "$ref": "#/definitions/StrikeConfig"
-        },
-        "collateral": {
-          "$ref": "#/definitions/AnsAsset"
-        },
-        "description": {
-          "type": "string"
-        },
-        "end": {
-          "$ref": "#/definitions/Timestamp"
-        },
-        "name": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/ChallengeStatus"
-        },
-        "total_check_ins": {
-          "type": "integer",
-          "format": "uint128",
-          "minimum": 0.0
-        }
-      },
-      "additionalProperties": false
-    },
-    "ChallengeStatus": {
-      "description": "The status of a challenge. This can be used to trigger an automated Croncat job based on the value of the status",
-      "oneOf": [
-        {
-          "description": "The challenge has not been initialized yet. This is the default state.",
-          "type": "string",
-          "enum": [
-            "uninitialized"
-          ]
-        },
-        {
-          "description": "The challenge is active and can be voted on.",
-          "type": "string",
-          "enum": [
-            "active"
-          ]
-        },
-        {
-          "description": "The challenge was cancelled and no collateral was paid out.",
-          "type": "string",
-          "enum": [
-            "cancelled"
-          ]
-        },
-        {
-          "description": "The challenge has pased the end time.",
-          "type": "string",
-          "enum": [
-            "over"
-          ]
-        }
-      ]
-    },
-    "StrikeConfig": {
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "AdminStrikes": {
       "type": "object",
       "required": [
         "limit",
@@ -110,13 +31,219 @@
           "minimum": 0.0
         },
         "num_strikes": {
-          "description": "The number of striked the admin has incurred.",
+          "description": "The number of strikes the admin has incurred.",
           "type": "integer",
           "format": "uint8",
           "minimum": 0.0
         }
       },
       "additionalProperties": false
+    },
+    "AssetEntry": {
+      "description": "An unchecked ANS asset entry. This is a string that is formatted as `src_chain>[intermediate_chain>]asset_name`",
+      "type": "string"
+    },
+    "ChallengeEntryResponse": {
+      "description": "Response struct for challenge entry",
+      "type": "object",
+      "required": [
+        "admin_strikes",
+        "challenge_id",
+        "description",
+        "end",
+        "name",
+        "status",
+        "strike_asset",
+        "strike_strategy"
+      ],
+      "properties": {
+        "admin_strikes": {
+          "description": "State of strikes of admin for this challenge",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AdminStrikes"
+            }
+          ]
+        },
+        "challenge_id": {
+          "description": "Id of the challenge,",
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "description": {
+          "description": "Description of the challenge",
+          "type": "string"
+        },
+        "end": {
+          "description": "When challenge ends",
+          "allOf": [
+            {
+              "$ref": "#/definitions/Expiration"
+            }
+          ]
+        },
+        "name": {
+          "description": "Name of challenge",
+          "type": "string"
+        },
+        "status": {
+          "description": "Status of the current vote",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ProposalStatus"
+            }
+          ]
+        },
+        "strike_asset": {
+          "description": "Asset for punishment for failing a challenge",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AssetEntry"
+            }
+          ]
+        },
+        "strike_strategy": {
+          "description": "How strike will get distributed between friends",
+          "allOf": [
+            {
+              "$ref": "#/definitions/StrikeStrategy"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "Expiration": {
+      "description": "Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)",
+      "oneOf": [
+        {
+          "description": "AtHeight will expire when `env.block.height` >= height",
+          "type": "object",
+          "required": [
+            "at_height"
+          ],
+          "properties": {
+            "at_height": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "AtTime will expire when `env.block.time` >= time",
+          "type": "object",
+          "required": [
+            "at_time"
+          ],
+          "properties": {
+            "at_time": {
+              "$ref": "#/definitions/Timestamp"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Never will never expire. Used to express the empty variant",
+          "type": "object",
+          "required": [
+            "never"
+          ],
+          "properties": {
+            "never": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "ProposalOutcome": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "canceled",
+        "vetoed"
+      ]
+    },
+    "ProposalStatus": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "active"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "veto_period"
+          ],
+          "properties": {
+            "veto_period": {
+              "type": "array",
+              "items": [
+                {
+                  "$ref": "#/definitions/Expiration"
+                },
+                {
+                  "$ref": "#/definitions/ProposalOutcome"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "finished"
+          ],
+          "properties": {
+            "finished": {
+              "$ref": "#/definitions/ProposalOutcome"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "StrikeStrategy": {
+      "description": "Strategy for striking the admin",
+      "oneOf": [
+        {
+          "description": "Split amount between friends",
+          "type": "object",
+          "required": [
+            "split"
+          ],
+          "properties": {
+            "split": {
+              "$ref": "#/definitions/Uint128"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Amount for every friend",
+          "type": "object",
+          "required": [
+            "per_friend"
+          ],
+          "properties": {
+            "per_friend": {
+              "$ref": "#/definitions/Uint128"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "Timestamp": {
       "description": "A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```",
