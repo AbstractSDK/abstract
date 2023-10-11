@@ -47,7 +47,7 @@
 # Use Cases
 - [Use Cases](./7_use_cases/index.md)
   - [Equilibrium](./7_use_cases/equilibrium.md)
-  - [4t2 Finance]()
+  - [4t2 Finance](./7_use_cases/4t2.md)
 
 - [Vision](./8_vision.md)
 
