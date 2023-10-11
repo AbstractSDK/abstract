@@ -36,7 +36,7 @@ pub fn query_handler(
             previous_proposal_index,
         )?),
         ChallengeQueryMsg::PreviousProposals { challenge_id } => {
-            to_binary(&query_previous_vote_results(deps, app, challenge_id)?)
+            to_binary(&query_previous_proposal_results(deps, app, challenge_id)?)
         }
         ChallengeQueryMsg::Votes {
             challenge_id,
@@ -135,7 +135,7 @@ fn query_vote(
     Ok(VoteResponse { vote })
 }
 
-fn query_previous_vote_results(
+fn query_previous_proposal_results(
     deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
@@ -150,7 +150,7 @@ fn query_previous_vote_results(
 }
 
 fn query_votes(
-    deps: Deps<'_>,
+    deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
     previous_proposal_index: Option<u64>,

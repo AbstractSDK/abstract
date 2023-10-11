@@ -30,6 +30,11 @@ pub struct ChallengeInstantiateMsg {
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 pub enum ChallengeExecuteMsg {
+    /// Update challenge config
+    UpdateConfig{
+        /// New config for vote
+        new_vote_config: VoteConfig,
+    },
     /// Create new challenge
     CreateChallenge {
         /// New challenge arguments

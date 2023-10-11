@@ -48,6 +48,10 @@ pub fn execute_handler(
             challenge_id,
             action,
         } => veto_action(deps, env, info, &app, challenge_id, action),
+        ChallengeExecuteMsg::UpdateConfig { new_vote_config } => {
+            SIMPLE_VOTING.update_vote_config(deps.storage, &new_vote_config)?;
+            Ok(Response::new())
+        }
     }
 }
 
@@ -253,8 +257,15 @@ fn veto_action(
             SIMPLE_VOTING.veto_admin_action(deps.storage, &env.block, proposal_id, action)?
         }
         VetoChallengeAction::FinishExpired => {
+            let voter = match app
+                .account_registry(deps.as_ref())
+                .assert_proxy(&info.sender)
+            {
+                Ok(base) => base.manager,
+                Err(_) => info.sender,
+            };
             SIMPLE_VOTING
-                .load_vote(deps.storage, proposal_id, &info.sender)?
+                .load_vote(deps.storage, proposal_id, &voter)?
                 .ok_or(AppError::VoterNotFound {})?;
             SIMPLE_VOTING.finish_vote(deps.storage, &env.block, proposal_id)?
         }

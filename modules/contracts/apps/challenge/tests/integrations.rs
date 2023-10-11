@@ -4,7 +4,10 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
+        voting::{
+            ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, VetoAdminAction, Vote,
+            VoteConfig,
+        },
         AssetEntry,
     },
 };
@@ -14,7 +17,7 @@ use challenge_app::{
     msg::{
         ChallengeEntryResponse, ChallengeInstantiateMsg, ChallengeQueryMsg, ChallengeRequest,
         ChallengeResponse, ChallengesResponse, Friend, FriendByAddr, FriendsResponse,
-        InstantiateMsg, VoteResponse,
+        InstantiateMsg, PreviousProposalsResponse, VetoChallengeAction, VoteResponse,
     },
     state::{AdminStrikes, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind},
     *,
@@ -22,7 +25,7 @@ use challenge_app::{
 use cosmwasm_std::{coin, Uint128};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
-use cw_utils::Expiration;
+use cw_utils::{Duration, Expiration};
 use lazy_static::lazy_static;
 
 const ADMIN: &str = "admin";
@@ -484,7 +487,7 @@ fn test_query_challenges_within_range() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
+fn test_query_challenges_within_different_range() -> anyhow::Result<()> {
     let (_mock, _account, _abstr, apps) = setup()?;
     for _ in 0..10 {
         apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
@@ -500,6 +503,104 @@ fn test_should_query_challenges_within_different_range() -> anyhow::Result<()> {
     // 10 challenges exist, but we start after 7 and limit to 8,
     // so we should get 3 challenges
     assert_eq!(response.challenges.len(), 3);
+    Ok(())
+}
+
+#[test]
+fn test_vetoed_by_admin() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    apps.challenge_app.update_config(VoteConfig {
+        threshold: Threshold::Majority {},
+        veto_duration: Some(Duration::Height(3)),
+    })?;
+    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+
+    let votes = vec![
+        (
+            Addr::unchecked(ALICE_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+        (
+            Addr::unchecked(BOB_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+        (
+            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+    ];
+    run_challenge_vote_sequence(&mock, &apps, votes)?;
+    apps.challenge_app.veto_action(
+        VetoChallengeAction::AdminAction(VetoAdminAction::Veto {}),
+        FIRST_CHALLENGE_ID,
+    )?;
+    let prev_proposals: PreviousProposalsResponse =
+        apps.challenge_app.previous_proposals(FIRST_CHALLENGE_ID)?;
+    let status = prev_proposals.results[0].status.clone();
+    assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Vetoed));
+
+    // balance unchanged
+    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    assert_eq!(balance, Uint128::new(INITIAL_BALANCE));
+    Ok(())
+}
+
+#[test]
+fn test_veto_expired() -> anyhow::Result<()> {
+    let (mock, account, _abstr, apps) = setup()?;
+    apps.challenge_app.update_config(VoteConfig {
+        threshold: Threshold::Majority {},
+        veto_duration: Some(Duration::Height(3)),
+    })?;
+    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+
+    let votes = vec![
+        (
+            Addr::unchecked(ALICE_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+        (
+            Addr::unchecked(BOB_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+        (
+            Addr::unchecked(CHARLIE_ADDRESS.clone()),
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        ),
+    ];
+    run_challenge_vote_sequence(&mock, &apps, votes)?;
+
+    // wait blocks to expire veto
+    mock.wait_blocks(4)?;
+    apps.challenge_app
+        .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
+        .veto_action(VetoChallengeAction::FinishExpired, FIRST_CHALLENGE_ID)?;
+
+    let challenge: ChallengeResponse = apps.challenge_app.challenge(FIRST_CHALLENGE_ID)?;
+    let status = challenge.challenge.unwrap().status;
+    assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Passed));
+
+    // balance unchanged
+    let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
+    assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
 }
 

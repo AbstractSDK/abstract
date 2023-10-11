@@ -72,6 +72,14 @@ impl<'a> SimpleVoting<'a> {
         Ok(())
     }
 
+    pub fn update_vote_config(
+        &self,
+        store: &mut dyn Storage,
+        new_vote_config: &VoteConfig,
+    ) -> StdResult<()> {
+        self.vote_config.save(store, new_vote_config)
+    }
+
     /// Create new proposal
     /// initial_voters is a list of whitelisted to vote
     pub fn new_proposal(
@@ -225,6 +233,7 @@ impl<'a> SimpleVoting<'a> {
             VetoAdminAction::Finish {} => ProposalStatus::Finished(proposal_outcome),
             VetoAdminAction::Veto {} => ProposalStatus::Finished(ProposalOutcome::Vetoed),
         };
+        println!("got here lol");
         self.proposals_info
             .save(store, proposal_id, &proposal_info)?;
 
