@@ -5,13 +5,13 @@ applications.
 
 The following are the products that make up the Abstract Platform:
 
-1. **[CW-Orchestrator](cw_orchestrator.md)**: offers streamlined interactions with CosmWasm contracts through type-safe
+1. **[CW-Orchestrator](1_cw_orchestrator.md)**: offers streamlined interactions with CosmWasm contracts through type-safe
    interfaces.
-2. **[Abstract App Template](abstract_app_template.md)**: provides a foundational structure for developing
+2. **[Abstract App Template](2_abstract_app_template.md)**: provides a foundational structure for developing
    transformative Abstract Account-based apps.
-3. **[Abstract Testing](abstract_testing.md)**: emphasizes advanced mocking and querying, essential for robust unit
+3. **[Abstract Testing](3_abstract_testing.md)**: emphasizes advanced mocking and querying, essential for robust unit
    testing within the Abstract framework.
-4. **[Abstract JS](abstract_js.md)**: bridges JavaScript applications and the on-chain Abstract framework, ensuring
+4. **[Abstract JS](4_abstract_js.md)**: bridges JavaScript applications and the on-chain Abstract framework, ensuring
    effortless blockchain interactions.
 
 ### 🚀 Evolving Suite

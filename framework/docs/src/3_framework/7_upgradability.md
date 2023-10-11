@@ -7,7 +7,7 @@ allows for *permissionless software upgrades while maintaining trustlessness.*
 ## Module version storage
 
 Permissionless software upgradeability is provided by a module version storage in
-the [version control contract](../5_platform/version_control.md). The mapping allows your Account to:
+the [version control contract](../5_platform/2_version_control.md). The mapping allows your Account to:
 
 - Instantiate a module of the latest versions.
 - Upgrade a module to a new version as soon as it's available.

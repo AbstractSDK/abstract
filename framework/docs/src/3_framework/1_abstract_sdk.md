@@ -112,7 +112,7 @@ Each solid-line arrow represents execution permissions of the autocompounder con
 allow the autocompounder contract to move funds, interact with other contracts through the account, and perform other
 actions. It does this by sending messages to the account, which then executes them on behalf of the autocompounder
 contract. This is the basic idea behind account abstraction and is further elaborated in on
-the [account abstraction](./3_account_abstraction.md) page.
+the [account abstraction](./2_account_abstraction.md) page.
 
 Each dotted arrow indicates a dependency between the contracts. These dependencies are explicitly defined in the
 autocompounder contract and are asserted at contract instantiation. In this example the autocompounder contract is able

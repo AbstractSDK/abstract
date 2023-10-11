@@ -4,7 +4,7 @@
 
 Abstract's account architecture is skillfully designed, merging modularity, scalability, and security. This
 architectural design is anchored by the ideas of account abstraction. For a detailed exploration of account abstraction,
-read [the preceding chapter](./3_account_abstraction.md). In the upcoming sections, we will delve deeper into the
+read [the preceding chapter](./2_account_abstraction.md). In the upcoming sections, we will delve deeper into the
 architecture of Abstract Accounts, providing insights into its design principles and components.
 
 ## Abstract Account
@@ -112,4 +112,4 @@ sequenceDiagram
 
 ```
 
-> For disabling IBC, see [Uninstall Module](7_module_types.md#installing-and-uninstalling-modules)
+> For disabling IBC, see [Uninstall Module](6_module_types.md#installing-and-uninstalling-modules)

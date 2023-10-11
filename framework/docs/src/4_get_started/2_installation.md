@@ -54,7 +54,7 @@ Time to start building! We'll get you set up with the Abstract App template whic
 
 - A scaffold app module with:
     - A basic contract
-    - [cw-orchestrator](../1_products/cw_orchestrator.md) interface and deployment script
+    - [cw-orchestrator](../1_products/1_cw_orchestrator.md) interface and deployment script
     - Integration tests
 - A scaffold front-end with:
     - A basic UI

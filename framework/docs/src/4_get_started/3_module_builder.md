@@ -1,6 +1,6 @@
 # Module Builder
 
-Abstract provides multiple module bases, as detailed in our section on [modules](../3_framework/7_module_types.md).
+Abstract provides multiple module bases, as detailed in our section on [modules](../3_framework/6_module_types.md).
 These base implementation provide you with the minimal state and configuration required to start building your modular
 application. After setting up your module base from our template you'll probably want to customize it. Our module
 builder pattern allows you to do just that. It also gives you a great overview on all the entry points to you module,
@@ -17,7 +17,7 @@ both the code's runtime and WASM binary size.
 The code-snippets in this example can be found in the <a href="https://github.com/AbstractSDK/contracts/blob/main/packages/abstract-app/examples/counter.rs" target="_blank">counter app example</a>.
 ```
 
-In this tutorial we will be working with an [`App` Module](../3_framework/7_module_types.md#apps).
+In this tutorial we will be working with an [`App` Module](../3_framework/6_module_types.md#apps).
 
 ### App Type
 
@@ -93,7 +93,7 @@ The available handlers are:
   the callback's callback ID to its associated function.
 
 In the case of adapters, the handlers are the same, except for `with_migrate` and `with_sudo` that are missing for
-reasons we explain in the [adapter section](../3_framework/7_module_types.md#adapters).
+reasons we explain in the [adapter section](../3_framework/6_module_types.md#adapters).
 
 For a full overview of the list of handlers available, please refer to the respective module type documentation:
 
@@ -103,7 +103,7 @@ For a full overview of the list of handlers available, please refer to the respe
 
 Below, we examine each handler in greater detail. The `base` fields and variants mentioned in the messages below are
 defined
-by [the base module type](../3_framework/7_module_types.md) that you chose to use, an `App` in this case.
+by [the base module type](../3_framework/6_module_types.md) that you chose to use, an `App` in this case.
 
 ### Instantiate
 

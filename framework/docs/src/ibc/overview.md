@@ -3,7 +3,7 @@
 Interchain Abstract Accounts is Abstract's solution to chain-agnostic accounts. It allows users to create an account on
 one chain and use it on any other chain that supports Abstract. This is achieved by using a combination of
 the <a href="https://ibcprotocol.org/" target="_blank">Inter-Blockchain Communication (IBC) protocol</a> and
-the [Abstract Accounts](../3_framework/4_architecture.md).
+the [Abstract Accounts](../3_framework/3_architecture.md).
 
 ## Overview
 
