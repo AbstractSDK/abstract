@@ -23,7 +23,7 @@ The ANS contract state layout is defined here. It consists of key-value mappings
 ```
 
 ```admonish info
-You can find the full source code for the ANS contract <a href="https://github.com/AbstractSDK/abstract/tree/main/framework/contracts/native/ans-host>" target="_blank">here</a>.
+You can find the full source code for the ANS contract <a href="https://github.com/AbstractSDK/abstract/tree/main/framework/contracts/native/ans-host" target="_blank">here</a>.
 ```
 
 ## Resolving Entries

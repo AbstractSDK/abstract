@@ -30,6 +30,7 @@ You will need an IDE to write code. Here are a few options we recommend:
 
 - <a href="https://code.visualstudio.com/" target="_blank">VS Code</a>
 - <a href="https://www.jetbrains.com/idea/download/" target="_blank">Intellij IDEA Community Edition</a>
+- <a href="https://www.jetbrains.com/rust/" target="_blank">Intellij Rust Rover</a>
 - <a href="https://zed.dev/" target="_blank">Zed</a>
 
 ## Recommended tools
@@ -38,7 +39,8 @@ You will need an IDE to write code. Here are a few options we recommend:
   Analyzer</a>: Rust
   Analyzer is a language server that provides IDE support for Rust. If you use VS-Code it's highly recommended.
 - <a href="https://plugins.jetbrains.com/plugin/8182-rust" target="_blank">Intellij Rust Plugin</a>: open-source Rust
-  plugin compatible with all IntelliJ-based IDEs. You are going to need it if you are using any Intellij IDEA IDE.
+  plugin compatible with all IntelliJ-based IDEs. You are going to need it if you are using the Intellij IDEA Community
+  Edition IDE, however it's not needed for the Rust Rover.
 - <a href="https://docs.docker.com/desktop/" target="_blank">Docker</a>: Our testing infrastructure uses Docker to run
   the tests. If you want to run the tests locally, you will
   need to install Docker.

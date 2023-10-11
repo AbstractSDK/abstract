@@ -22,7 +22,7 @@ $ just wasm
 ```
 
 > The WASM optimizer uses a docker container to compile your module. If you don't have docker installed you can install
-> it from [here](https://docs.docker.com/get-docker/).
+> it from <a href="https://docs.docker.com/get-docker/" target="_blank">here</a>.
 
 This should result in an `artifacts` directory being created in your project root. Inside you will find
 a `my_module.wasm` file that is your module's binary.

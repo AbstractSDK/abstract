@@ -4,11 +4,15 @@
 
 # About Abstract
 - [What is Abstract?](./8_vision.md)
+- [Abstract Products](./1_products/index.md)
+  - [CW-Orchestrator](./1_products/cw_orchestrator.md)
+  - [Abstract-JS](./1_products/abstract_js.md)
+  - [Abstract App Template](./1_products/abstract_app_template.md)
+  - [Abstract Testing](./1_products/abstract_testing.md)
 - [Prerequisites](./3_framework/0_prerequisites.md)
 - [Platform Overview](1_abstract_platform_overview.md)
-  - [Account Abstraction](./3_framework/3_account_abstraction.md)
   - [Abstract SDK](./3_framework/1_abstract_sdk.md)
-  - [CW-Orchestrator](./3_framework/1_abstract_sdk.md)
+  - [Account Abstraction](./3_framework/3_account_abstraction.md)
   - [Architecture](./3_framework/4_architecture.md)
   - [Account Ownership](./3_framework/5_ownership.md)
   - [Modularity](./3_framework/6_modularity.md)
@@ -32,10 +36,10 @@
   - [Installation](./4_get_started/2_installation.md)
   - [Module Builder](./4_get_started/3_module_builder.md)
   - [Account Abstraction SDK](./4_get_started/4_sdk.md)
-  - [Module Dependencies](./4_get_started/8_dependencies.md)
   - [Account Creation](./4_get_started/5_account_creation.md)
   - [Module Testing](./4_get_started/6_module_testing.md)
   - [Module Deployment](./4_get_started/7_module_deployment.md)
+  - [Module Dependencies](./4_get_started/8_dependencies.md)
   - [Best Practices]()
   - [Quality Assurance]()
 
@@ -46,7 +50,6 @@
   - [4t2 Finance]()
 
 - [Vision](./8_vision.md)
-
 
 # Resources and Support
 
