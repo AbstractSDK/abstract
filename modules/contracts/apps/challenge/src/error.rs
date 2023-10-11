@@ -6,6 +6,8 @@ use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
 
+use crate::state::MAX_AMOUNT_OF_FRIENDS;
+
 #[derive(Error, Debug, PartialEq)]
 pub enum AppError {
     #[error("{0}")]
@@ -52,4 +54,7 @@ pub enum AppError {
 
     #[error("No friends found for the challenge")]
     ZeroFriends {},
+
+    #[error("Friends limit reached, max: {MAX_AMOUNT_OF_FRIENDS}")]
+    TooManyFriends {},
 }

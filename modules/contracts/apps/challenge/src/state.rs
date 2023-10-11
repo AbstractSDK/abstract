@@ -8,6 +8,9 @@ use cw_utils::Expiration;
 
 use crate::msg::{ChallengeRequest, Friend};
 
+pub const MAX_AMOUNT_OF_FRIENDS: u64 = 20;
+pub const MAX_AMOUNT_OF_PROPOSALS: u64 = 50;
+
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
     pub native_denom: String,

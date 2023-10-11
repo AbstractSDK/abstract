@@ -3,7 +3,7 @@ use abstract_core::objects::voting::{ProposalInfo, ProposalOutcome, ProposalStat
 use abstract_dex_adapter::msg::OfferAsset;
 use abstract_sdk::features::AbstractResponse;
 use abstract_sdk::{AbstractSdkResult, AccountVerification, Execution, TransferInterface};
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response, Uint128};
+use cosmwasm_std::{ensure, Addr, DepsMut, Env, MessageInfo, Response, Uint128};
 
 use crate::contract::{AppResult, ChallengeApp};
 // use abstract_sdk::prelude::*;
@@ -11,7 +11,7 @@ use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, Friend, VetoChallengeAction};
 use crate::state::{
     ChallengeEntry, ChallengeEntryUpdate, UpdateFriendsOpKind, CHALLENGE_FRIENDS, CHALLENGE_LIST,
-    NEXT_ID, SIMPLE_VOTING,
+    MAX_AMOUNT_OF_FRIENDS, MAX_AMOUNT_OF_PROPOSALS, NEXT_ID, SIMPLE_VOTING,
 };
 
 pub fn execute_handler(
@@ -65,6 +65,10 @@ fn create_challenge(
 ) -> AppResult {
     // Only the admin should be able to create a challenge.
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    ensure!(
+        challenge_req.init_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
+        AppError::TooManyFriends {}
+    );
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = challenge_req
         .init_friends
@@ -179,6 +183,10 @@ fn update_friends_for_challenge(
         UpdateFriendsOpKind::Add {} => {
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
                 let mut current_friends = current_friends.ok_or(AppError::ZeroFriends {})?;
+                ensure!(
+                    friends.len() + current_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
+                    AppError::TooManyFriends {}
+                );
                 current_friends.extend(friends.clone().into_iter());
                 AppResult::Ok(current_friends)
             })?;
@@ -300,9 +308,10 @@ fn try_finish_vote(
     } else {
         false
     };
-
+    let reached_proposals_limit =
+        challenge.previous_proposal_ids.len() + 1 >= MAX_AMOUNT_OF_PROPOSALS as usize;
     // Create new voting if required
-    if !last_strike && !challenge.end.is_expired(&env.block) {
+    if !last_strike && !challenge.end.is_expired(&env.block) && !reached_proposals_limit {
         let initial_voters: Vec<Addr> = friends
             .iter()
             .map(|f| f.addr(deps.as_ref(), app))
@@ -322,7 +331,12 @@ fn try_finish_vote(
     } else {
         charge_penalty(deps, app, challenge, friends)?
     };
-    Ok(res.add_attribute("proposal_info", format!("{proposal_info:?}")))
+    Ok(res
+        .add_attribute("proposal_info", format!("{proposal_info:?}"))
+        .add_attribute(
+            "reached_proposals_limit",
+            format!("{reached_proposals_limit}"),
+        ))
 }
 
 fn charge_penalty(
