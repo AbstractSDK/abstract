@@ -1,3 +1,41 @@
+//! # Simple voting
+//! Simple voting is a state object to enable voting mechanism on a contract
+//!
+//! ## Setting up
+//! * Create SimpleVoting object in similar way to the cw-storage-plus objects using [`SimpleVoting::new`] method
+//! * Inside instantiate contract method use [`SimpleVoting::instantiate`] method
+//! * Add [`VoteError`] type to your application errors
+//!
+//! ## Creating a new proposal
+//! To create a new proposal use [`SimpleVoting::new_proposal`] method, it will return ProposalId
+//!
+//! ## Whitelisting voters
+//! Initial whitelist passed during [`SimpleVoting::new_proposal`] method, you can use
+//! - [`SimpleVoting::add_voters`] to whitelist new voters
+//! - [`SimpleVoting::remove_voters`] to remove voters(and their votes) from whitelist
+//!
+//! ## Voting
+//! To cast a vote use [`SimpleVoting::cast_vote`] method
+//!
+//! ## Count voting
+//! To count votes use [`SimpleVoting::count_votes`] method
+//!
+//! ## Veto action
+//! In case your [`VoteConfig`] has veto duration set-up, after successful vote-count veto period will start
+//! * During veto period [`SimpleVoting::veto_admin_action`] method could be used to finish(fast-forward) or Veto proposal
+//! * After veto period [`SimpleVoting::finish_vote`] method could be used to finish proposal
+//!
+//! ## Cancel proposal
+//! During active voting(before veto or finishing vote),
+//! [`SimpleVoting::cancel_proposal`] method could be used to cancel proposal
+//!
+//! ## Queries
+//! * Single-item queries methods allowed by `load_` prefix
+//! * List of items queries allowed by `query_` prefix
+//!
+//! ## Details
+//! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal
+
 use std::fmt::Display;
 
 use cosmwasm_std::{Addr, BlockInfo, Decimal, StdError, StdResult, Storage, Uint128};
