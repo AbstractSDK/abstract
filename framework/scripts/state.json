@@ -94,5 +94,31 @@
         "abstract:version-control": "terra1d87wpuvjgqe8a5qytneyd8puc7y2uan6tcr6mwq873trjm8v2pzs7t593t"
       }
     }
+  },
+  "kujira": {
+    "harpoon-4": {
+      "code_ids": {
+        "abstract:account-factory": 2470,
+        "abstract:ans-host": 2468,
+        "abstract:cw-staking": 2474,
+        "abstract:dca": 2477,
+        "abstract:dex": 2475,
+        "abstract:etf": 2476,
+        "abstract:manager": 2472,
+        "abstract:module-factory": 2471,
+        "abstract:proxy": 2473,
+        "abstract:version-control": 2469
+      },
+      "default": {
+        "abstract:account-factory": "kujira1yyk4vy08rl9gzcseugvj5cznue609a59z90mqy37kktu42dkdjcstvtamq",
+        "abstract:ans-host": "kujira1lh5rjqpxzped0m03755dhksgdt43gqxqa5ua583hvcuwz57gc80qlvdmcy",
+        "abstract:cw-staking": "kujira1w5hemku24gsj8x47hu5apg8q4533646yg3pyjkhgk9ddl22q3zyqjqdh82",
+        "abstract:dex": "kujira19pjk0nnjz3zmlqved9x2lt5hkgutmes0a6uj6fqtfge23dw42fusgmguse",
+        "abstract:manager": "kujira15pycld6cw6wuzl5ny349uvuv95ulehwgdqm43xt3s7vwj86nqr6sc7wlkq",
+        "abstract:module-factory": "kujira1e0ut55qwzq2pdq0a2gsr6vua38u436dqpxnpxqa5nhxna3smlu6qddmla8",
+        "abstract:proxy": "kujira1q060eew952esm98300k09nmp83g06rrwymzwkgq67ky6x302wnyqqu3hpa",
+        "abstract:version-control": "kujira1yapmxjmj9fpaqa6vmkq2mlang4jqa8fymzj34erzfkwu90gevl2q66lmnu"
+      }
+    }
   }
 }
