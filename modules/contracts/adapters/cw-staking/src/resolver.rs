@@ -34,7 +34,7 @@ pub(crate) fn resolve_local_provider(
     name: &str,
 ) -> Result<Box<dyn CwStakingCommand>, CwStakingError> {
     match name {
-        #[cfg(feature = "juno")]
+        #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => {
             Ok(Box::<abstract_wyndex_adapter::staking::WynDex>::default())
         }
@@ -42,11 +42,11 @@ pub(crate) fn resolve_local_provider(
         abstract_osmosis_adapter::OSMOSIS => {
             Ok(Box::<abstract_osmosis_adapter::staking::Osmosis>::default())
         }
-        #[cfg(any(feature = "terra2", feature = "neutron"))]
+        #[cfg(feature = "astroport")]
         abstract_astroport_adapter::ASTROPORT => {
             Ok(Box::<abstract_astroport_adapter::staking::Astroport>::default())
         }
-        #[cfg(feature = "kujira")]
+        #[cfg(feature = "bow")]
         abstract_kujira_adapter::KUJIRA => {
             Ok(Box::<abstract_kujira_adapter::staking::Kujira>::default())
         }
