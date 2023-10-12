@@ -1,5 +1,5 @@
 use abstract_app::AppError as AbstractAppError;
-use abstract_core::{objects::voting::VoteError, AbstractError};
+use abstract_core::{objects::{voting::VoteError, validation::ValidationError}, AbstractError};
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -30,6 +30,9 @@ pub enum AppError {
 
     #[error("{0}")]
     VoteError(#[from] VoteError),
+
+    #[error("{0}")]
+    ValidationError(#[from] ValidationError),
 
     #[error("Challenge not found")]
     ChallengeNotFound {},

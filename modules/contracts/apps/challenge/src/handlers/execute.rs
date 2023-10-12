@@ -88,7 +88,7 @@ fn create_challenge(
     let proposal_id = SIMPLE_VOTING.new_proposal(deps.storage, end, &initial_friends)?;
 
     // Create new challenge
-    let challenge = ChallengeEntry::new(challenge_req, end, proposal_id);
+    let challenge = ChallengeEntry::new(challenge_req, end, proposal_id)?;
     CHALLENGE_LIST.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app.tag_response(

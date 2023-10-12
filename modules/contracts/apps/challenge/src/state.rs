@@ -1,4 +1,5 @@
 use abstract_core::objects::{
+    validation::{self, ValidationError},
     voting::{ProposalId, SimpleVoting},
     AssetEntry,
 };
@@ -63,17 +64,25 @@ impl AdminStrikes {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(request: ChallengeRequest, end: Expiration, vote_id: ProposalId) -> Self {
-        ChallengeEntry {
+    pub fn new(
+        request: ChallengeRequest,
+        end: Expiration,
+        vote_id: ProposalId,
+    ) -> Result<Self, ValidationError> {
+        // validate namd and description
+        validation::validate_name(&request.name)?;
+        validation::validate_description(request.description.as_deref())?;
+
+        Ok(ChallengeEntry {
             name: request.name,
             strike_asset: request.strike_asset,
             strike_strategy: request.strike_strategy,
-            description: request.description,
+            description: request.description.unwrap_or_default(),
             admin_strikes: AdminStrikes::new(request.strikes_limit),
             current_proposal_id: vote_id,
             previous_proposal_ids: Vec::default(),
             end,
-        }
+        })
     }
 }
 

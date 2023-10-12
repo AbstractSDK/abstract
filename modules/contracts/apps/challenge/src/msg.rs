@@ -219,7 +219,7 @@ pub struct ChallengeRequest {
     /// How strike will get distributed between friends
     pub strike_strategy: StrikeStrategy,
     /// Description of the challenge
-    pub description: String,
+    pub description: Option<String>,
     /// In what duration challenge should end
     pub duration: Duration,
     /// Strike limit, defaults to 1

@@ -39,7 +39,7 @@ lazy_static! {
         name: "test".to_string(),
         strike_asset: AssetEntry::new("denom"),
         strike_strategy: StrikeStrategy::Split(Uint128::new(30_000_000)),
-        description: "Test Challenge".to_string(),
+        description: Some("Test Challenge".to_string()),
         duration: cw_utils::HOUR,
         strikes_limit: None,
         init_friends: FRIENDS.clone()
@@ -199,7 +199,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         name: challenge_req.name,
         strike_asset: challenge_req.strike_asset,
         strike_strategy: challenge_req.strike_strategy,
-        description: challenge_req.description,
+        description: challenge_req.description.unwrap(),
         end: challenge_req.duration.after(&_mock.block_info()?),
         status: ProposalStatus::Active,
         admin_strikes: AdminStrikes {
