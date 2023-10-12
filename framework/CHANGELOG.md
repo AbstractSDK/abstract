@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 
 ### Changed
+- `account_id()` method of `AccountRegistry` is now exposed.
 
 ### Removed
 
