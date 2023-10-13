@@ -29,7 +29,6 @@ abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-macros = { workspace = true }
 cw-semver = { workspace = true }
-cosmos-sdk-proto = { version = "0.19.0", default-features = false }
 polytone-note = { workspace = true, features = ["library"] }
 polytone = { workspace = true }
 cw-paginate = "0.2.1"

@@ -24,7 +24,7 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
     // First, we register the host with the client.
     // We register the polytone note with it because they are linked
     // This triggers an IBC message that is used to get back the proxy address
-    let proxy_tx_result = abstr.ibc.client.register_chain_host(
+    let proxy_tx_result = abstr.ibc.client.register_infrastructure(
         chain2_name.to_string(),
         dest.ibc.host.address()?.to_string(),
         polytone.source.note.address()?.to_string(),
