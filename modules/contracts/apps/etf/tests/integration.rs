@@ -2,8 +2,8 @@
 // mod test_utils;
 
 use abstract_interface::{
-    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, ManagerQueryFns, ProxyExecFns,
-    ProxyQueryFns,
+    Abstract, AbstractAccount, AbstractInterfaceError, AppDeployer, DeployStrategy,
+    ManagerQueryFns, ProxyExecFns, ProxyQueryFns,
 };
 
 use abstract_core::{objects::price_source::UncheckedPriceSource, objects::AssetEntry};
@@ -19,11 +19,11 @@ use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
 use cw_orch::deploy::Deploy;
 
-use abstract_etf::{
+use etf_app::{
     contract::interface::EtfApp,
     msg::Cw20HookMsg,
     msg::{EtfExecuteMsgFns, EtfQueryMsgFns},
-    ETF_ID,
+    ETF_APP_ID,
 };
 use semver::Version;
 use speculoos::prelude::*;
@@ -57,8 +57,8 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // Deploy mock dex
     let wyndex = WynDex::deploy_on(mock.clone(), Empty {})?;
 
-    let etf = EtfApp::new(ETF_ID, mock.clone());
-    etf.deploy(version)?;
+    let etf = EtfApp::new(ETF_APP_ID, mock.clone());
+    etf.deploy(version, DeployStrategy::Try)?;
 
     let etf_token = AbstractCw20Base::new(ETF_TOKEN, mock.clone());
     // upload the etf token code
@@ -73,9 +73,9 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
 
     // install etf
     account.manager.install_module(
-        ETF_ID,
+        ETF_APP_ID,
         &abstract_core::app::InstantiateMsg {
-            module: abstract_etf::msg::EtfInstantiateMsg {
+            module: etf_app::msg::EtfInstantiateMsg {
                 fee: Decimal::percent(5),
                 manager_addr: ETF_MANAGER.into(),
                 token_code_id: etf_token_code_id,
@@ -92,7 +92,7 @@ fn create_etf(mock: Mock) -> Result<EtfEnv<Mock>, AbstractInterfaceError> {
     // get its address
     let etf_addr = account
         .manager
-        .module_addresses(vec![ETF_ID.into()])?
+        .module_addresses(vec![ETF_APP_ID.into()])?
         .modules[0]
         .1
         .clone();
