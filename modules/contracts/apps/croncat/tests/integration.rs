@@ -9,7 +9,7 @@ use abstract_core::{
         account::AccountTrace, gov_type::GovernanceDetails, AccountId, UncheckedContractEntry,
     },
 };
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns};
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 
 use common::contracts;
 use croncat_app::{
@@ -40,7 +40,7 @@ use croncat_sdk_tasks::{
 
 use cw20::{Cw20Coin, Cw20CoinVerified, Cw20ExecuteMsg, Cw20QueryMsg};
 use cw_asset::{Asset, AssetList, AssetListUnchecked};
-use cw_multi_test::Executor;
+use cw_orch::mock::cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
@@ -54,7 +54,7 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(
-    mut app: RefMut<cw_multi_test::App>,
+    mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(Addr, Addr)> {
     let sender = Addr::unchecked(ADMIN);
@@ -267,7 +267,7 @@ fn setup() -> anyhow::Result<TestingSetup> {
         None,
     )?;
 
-    contract.deploy(CRONCAT_MODULE_VERSION.parse()?)?;
+    contract.deploy(CRONCAT_MODULE_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_module(
         CRONCAT_ID,
         &InstantiateMsg {

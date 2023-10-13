@@ -1,4 +1,4 @@
-use abstract_dex_adapter_traits::Identify;
+use abstract_dex_standard::Identify;
 
 pub const TERRASWAP: &str = "terraswap";
 
@@ -14,11 +14,11 @@ impl Identify for Terraswap {
     }
 }
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 use ::{
     abstract_core::objects::PoolAddress,
-    abstract_dex_adapter_traits::{coins_in_assets, cw_approve_msgs},
-    abstract_dex_adapter_traits::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
+    abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
+    abstract_dex_standard::{DexCommand, DexError, Fee, FeeOnInput, Return, Spread},
     abstract_sdk::cw_helpers::wasm_smart_query,
     cosmwasm_std::{to_binary, wasm_execute, CosmosMsg, Decimal, Deps},
     cw20::Cw20ExecuteMsg,
@@ -26,7 +26,7 @@ use ::{
     terraswap::pair::{PoolResponse, SimulationResponse},
 };
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 impl DexCommand for Terraswap {
     fn swap(
         &self,
@@ -213,7 +213,7 @@ impl DexCommand for Terraswap {
     }
 }
 
-#[cfg(feature = "terra")]
+#[cfg(feature = "terraswap")]
 fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(terraswap::asset::Asset {

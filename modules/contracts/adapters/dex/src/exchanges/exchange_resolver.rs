@@ -1,7 +1,7 @@
 use abstract_adapter_utils::identity::decompose_platform_name;
 use abstract_adapter_utils::identity::is_available_on;
 use abstract_adapter_utils::identity::is_current_chain;
-use abstract_dex_adapter_traits::{DexCommand, DexError, Identify};
+use abstract_dex_standard::{DexCommand, DexError, Identify};
 use cosmwasm_std::Env;
 
 /// Any exchange should be identified by the adapter
@@ -33,19 +33,19 @@ pub(crate) fn identify_exchange(value: &str) -> Result<Box<dyn Identify>, DexErr
 
 pub(crate) fn resolve_exchange(value: &str) -> Result<&'static dyn DexCommand, DexError> {
     match value {
-        #[cfg(feature = "juno")]
+        #[cfg(feature = "wynd")]
         crate::exchanges::junoswap::JUNOSWAP => Ok(&crate::exchanges::junoswap::JunoSwap {}),
-        #[cfg(feature = "juno")]
+        #[cfg(feature = "wynd")]
         abstract_wyndex_adapter::WYNDEX => Ok(&abstract_wyndex_adapter::dex::WynDex {}),
         #[cfg(feature = "osmosis")]
         abstract_osmosis_adapter::OSMOSIS => Ok(&abstract_osmosis_adapter::dex::Osmosis {
             local_proxy_addr: None,
         }),
-        #[cfg(feature = "terra")]
+        #[cfg(feature = "terraswap")]
         crate::exchanges::terraswap::TERRASWAP => Ok(&crate::exchanges::terraswap::Terraswap {}),
-        #[cfg(any(feature = "terra", feature = "neutron"))]
+        #[cfg(feature = "astroport")]
         abstract_astroport_adapter::ASTROPORT => Ok(&abstract_astroport_adapter::dex::Astroport {}),
-        #[cfg(feature = "kujira")]
+        #[cfg(feature = "bow")]
         abstract_kujira_adapter::KUJIRA => Ok(&abstract_kujira_adapter::dex::Kujira {}),
         _ => Err(DexError::ForeignDex(value.to_owned())),
     }

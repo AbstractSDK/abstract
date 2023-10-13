@@ -1,10 +1,12 @@
 [package]
-name = "abstract-staking-adapter-traits"
+name = "abstract-dex-standard"
+description = "The tendermint staking adapter is a Abstract adapter for interacting with usual DEX commands. It provides a common interface for all DEXes"
+
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
-description = "Abstract Cw-Staking Adapter Exports (used for implementing the adapter for specific staking platforms)"
+
 exclude = ["contract.wasm", "hash.txt"]
 resolver = "2"
 
@@ -15,7 +17,8 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["export"]
 export = []
-interface = ["dep:abstract-interface", "dep:cw-orch"]
+testing = ["dep:cw-orch"]
+cw-orch = ["dep:abstract-interface", "dep:cw-orch"]
 
 # Keep as is until TendermintStake updates.
 [dependencies]
@@ -28,14 +31,15 @@ thiserror = { workspace = true }
 cw-asset = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
-cw-utils = "1.0.1"
 
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-adapter = { workspace = true }
 abstract-adapter-utils = { workspace = true }
-cw-orch = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true, features = ["daemon"] }
 abstract-interface = { workspace = true, optional = true }
+
+ibc-chain-registry = { version = "0.25.0", optional = true }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }

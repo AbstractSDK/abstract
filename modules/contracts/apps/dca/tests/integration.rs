@@ -10,17 +10,17 @@ use abstract_core::{
     app::{BaseInstantiateMsg, BaseQueryMsgFns},
     objects::gov_type::GovernanceDetails,
 };
-use abstract_dca_app::msg::{DCAResponse, Frequency};
-use abstract_dca_app::state::DCAEntry;
-use abstract_dca_app::{
+use abstract_dex_adapter::interface::DexAdapter;
+use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
+use abstract_dex_adapter::DEX_ADAPTER_ID;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use dca_app::msg::{DCAResponse, Frequency};
+use dca_app::state::{DCAEntry, DCAId};
+use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
     *,
 };
-use abstract_dex_adapter::interface::DexAdapter;
-use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
-use abstract_dex_adapter::EXCHANGE;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 
 use common::contracts;
 
@@ -39,7 +39,7 @@ use croncat_sdk_tasks::msg::TasksInstantiateMsg;
 use cw20::Cw20Coin;
 
 use cw_asset::AssetInfo;
-use cw_multi_test::Executor;
+use cw_orch::mock::cw_multi_test::{App, Executor};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
@@ -69,7 +69,7 @@ const DENOM: &str = "abstr";
 const PAUSE_ADMIN: &str = "cosmos338dwgj5wm2tuahvfjdldz5s8hmt7l5aznw8jz9s2mmgj5c52jqgfq000";
 
 fn setup_croncat_contracts(
-    mut app: RefMut<cw_multi_test::App>,
+    mut app: RefMut<App>,
     proxy_addr: String,
 ) -> anyhow::Result<(CronCatAddrs, Addr)> {
     let sender = Addr::unchecked(ADMIN);
@@ -301,7 +301,8 @@ fn setup() -> anyhow::Result<(
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock
-    let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(EXCHANGE, mock.clone());
+    let dex_adapter =
+        abstract_dex_adapter::interface::DexAdapter::new(DEX_ADAPTER_ID, mock.clone());
 
     dex_adapter.deploy(
         abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
@@ -309,6 +310,7 @@ fn setup() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },
+        DeployStrategy::Try,
     )?;
 
     let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
@@ -321,7 +323,10 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .version_control
         .claim_namespace(AccountId::local(1), "croncat".to_string())?;
-    cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
+    cron_cat_app.deploy(
+        croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?,
+        DeployStrategy::Try,
+    )?;
 
     // Register factory entry
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
@@ -340,8 +345,14 @@ fn setup() -> anyhow::Result<(
                 monarch: ADMIN.to_string(),
             })?;
     // Install DEX
-    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
-    let module_addr = account.manager.module_info(EXCHANGE)?.unwrap().address;
+    account
+        .manager
+        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    let module_addr = account
+        .manager
+        .module_info(DEX_ADAPTER_ID)?
+        .unwrap()
+        .address;
     dex_adapter.set_address(&module_addr);
 
     // Install croncat
@@ -362,7 +373,7 @@ fn setup() -> anyhow::Result<(
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
-    dca_app.deploy(DCA_APP_VERSION.parse()?)?;
+    dca_app.deploy(DCA_APP_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_module(
         DCA_APP_ID,
         &InstantiateMsg {
@@ -383,7 +394,7 @@ fn setup() -> anyhow::Result<(
     let module_addr = account.manager.module_info(DCA_APP_ID)?.unwrap().address;
     dca_app.set_address(&module_addr);
     account.manager.update_adapter_authorized_addresses(
-        EXCHANGE,
+        DEX_ADAPTER_ID,
         vec![module_addr.to_string()],
         vec![],
     )?;
@@ -446,7 +457,7 @@ fn successful_install() -> anyhow::Result<()> {
                     version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
                 },
                 DependencyResponse {
-                    id: EXCHANGE.to_owned(),
+                    id: DEX_ADAPTER_ID.to_owned(),
                     version_req: vec![format!(
                         "^{}",
                         abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()
@@ -479,7 +490,7 @@ fn create_dca_convert() -> anyhow::Result<()> {
     )?;
 
     // First dca
-    let dca = apps.dca_app.dca("dca_1".to_owned())?;
+    let dca = apps.dca_app.dca(DCAId(1))?;
     assert_eq!(
         dca,
         DCAResponse {
@@ -497,7 +508,7 @@ fn create_dca_convert() -> anyhow::Result<()> {
     );
 
     // Second dca
-    let dca = apps.dca_app.dca("dca_2".to_owned())?;
+    let dca = apps.dca_app.dca(DCAId(2))?;
     assert_eq!(
         dca,
         DCAResponse {
@@ -517,14 +528,14 @@ fn create_dca_convert() -> anyhow::Result<()> {
     // Only manager should be able to execute this one
     apps.dca_app.set_sender(&croncat_addrs.manager);
 
-    apps.dca_app.convert("dca_1".to_owned())?;
+    apps.dca_app.convert(DCAId(1))?;
 
     let usd_balance = mock.query_balance(&account.proxy.address()?, USD)?;
     assert_eq!(usd_balance, Uint128::new(98));
     let eur_balance = mock.query_balance(&account.proxy.address()?, EUR)?;
     assert_eq!(eur_balance, Uint128::new(9900));
 
-    apps.dca_app.convert("dca_2".to_owned())?;
+    apps.dca_app.convert(DCAId(2))?;
 
     let usd_balance = mock.query_balance(&account.proxy.address()?, USD)?;
     assert_eq!(usd_balance, Uint128::new(335));
@@ -586,10 +597,10 @@ fn create_dca_convert_negative() -> anyhow::Result<()> {
     )?;
 
     // Only manager should be able to execute this one
-    let err = apps.dca_app.convert("dca_1".to_owned());
+    let err = apps.dca_app.convert(DCAId(1));
     assert_eq!(
         err.unwrap_err().root().to_string(),
-        error::AppError::NotManagerConvert {}.to_string()
+        error::DCAError::NotManagerConvert {}.to_string()
     );
     Ok(())
 }
@@ -608,20 +619,20 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_before_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, "dca_1".to_owned())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
         .task
         .unwrap()
         .task_hash;
 
     apps.dca_app.update_dca(
-        "dca_1".to_owned(),
+        DCAId(1),
         Some(WYNDEX_WITHOUT_CHAIN.into()),
         Some(Frequency::Cron("0 30 * * * *".to_string())),
         Some(OfferAsset::new(USD, 200_u128)),
         Some(EUR.into()),
     )?;
 
-    let dca = apps.dca_app.dca("dca_1".to_owned())?;
+    let dca = apps.dca_app.dca(DCAId(1))?;
     assert_eq!(
         dca,
         DCAResponse {
@@ -640,7 +651,7 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_after_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, "dca_1".to_owned())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
         .task
         .unwrap()
         .task_hash;
@@ -649,14 +660,14 @@ fn update_dca() -> anyhow::Result<()> {
 
     // Now without updating frequency
     apps.dca_app.update_dca(
-        "dca_1".to_owned(),
+        DCAId(1),
         None,
         None,
         Some(OfferAsset::new(USD, 250_u128)),
         None,
     )?;
 
-    let dca = apps.dca_app.dca("dca_1".to_owned())?;
+    let dca = apps.dca_app.dca(DCAId(1))?;
     assert_eq!(
         dca,
         DCAResponse {
@@ -675,7 +686,7 @@ fn update_dca() -> anyhow::Result<()> {
 
     let task_hash_after_second_update = apps
         .cron_cat_app
-        .task_info(apps.dca_app.addr_str()?, "dca_1".to_owned())?
+        .task_info(apps.dca_app.addr_str()?, DCAId(1).into())?
         .task
         .unwrap()
         .task_hash;
@@ -698,13 +709,9 @@ fn update_dca_negative() -> anyhow::Result<()> {
     )?;
 
     // Not existing dex
-    let err = apps.dca_app.update_dca(
-        "dca_1".to_owned(),
-        Some("not_wyndex".into()),
-        None,
-        None,
-        None,
-    );
+    let err = apps
+        .dca_app
+        .update_dca(DCAId(1), Some("not_wyndex".into()), None, None, None);
     assert_querrier_err_eq(
         err.unwrap_err(),
         StdError::generic_err("DEX not_wyndex is not local to this network."),
@@ -712,7 +719,7 @@ fn update_dca_negative() -> anyhow::Result<()> {
 
     // Not existing pair
     let err = apps.dca_app.update_dca(
-        "dca_1".to_owned(),
+        DCAId(1),
         None,
         None,
         Some(OfferAsset::new(USD, 200_u128)),
@@ -733,7 +740,7 @@ fn update_dca_negative() -> anyhow::Result<()> {
 
     // Bad crontab string
     let err = apps.dca_app.update_dca(
-        "dca_1".to_owned(),
+        DCAId(1),
         None,
         Some(Frequency::Cron("bad cron".to_owned())),
         None,
@@ -756,9 +763,9 @@ fn cancel_dca() -> anyhow::Result<()> {
         USD.into(),
     )?;
 
-    apps.dca_app.cancel_dca("dca_1".to_owned())?;
+    apps.dca_app.cancel_dca(DCAId(1))?;
 
-    let dca = apps.dca_app.dca("dca_1".to_owned())?;
+    let dca = apps.dca_app.dca(DCAId(1))?;
     assert_eq!(
         dca,
         DCAResponse {

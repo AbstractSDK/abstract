@@ -18,10 +18,7 @@ env:
 jobs:
   required:
     runs-on: ubuntu-latest
-    name: ubuntu / ${{ matrix.toolchain }}
-    strategy:
-      matrix:
-        toolchain: [stable, beta]
+    name: ubuntu / stable
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,10 +32,10 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.3
         with:
           version: "v0.4.2"
-      - name: Install ${{ matrix.toolchain }}
+      - name: Install stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./framework

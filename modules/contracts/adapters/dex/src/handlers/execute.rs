@@ -8,7 +8,8 @@ use crate::state::SWAP_FEE;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_dex_adapter_traits::DexError;
+use abstract_dex_standard::msg::{DexAction, DexExecuteMsg, DexName, IBC_DEX_ID};
+use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
@@ -160,10 +161,6 @@ pub(crate) fn resolve_assets_to_transfer(
             amount: amount.to_owned(),
         })?]),
         DexAction::Swap { offer_asset, .. } => Ok(vec![offer_to_coin(offer_asset)?]),
-        DexAction::CustomSwap { offer_assets, .. } => {
-            let coins: Result<Vec<Coin>, _> = offer_assets.iter().map(offer_to_coin).collect();
-            coins
-        }
     }
     .map_err(Into::into)
 }

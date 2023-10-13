@@ -3,14 +3,16 @@ pub mod abstract_ibc;
 use cw_orch::{
     daemon::ChainInfo,
     prelude::{
-        networks::{JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
+        networks::{HARPOON_4, JUNO_1, OSMO_5, PHOENIX_1, PION_1, PISCO_1, UNI_6},
         *,
     },
 };
+use serde::{Deserialize, Serialize};
 
 const GAS_TO_DEPLOY: u64 = 60_000_000;
-pub const SUPPORTED_CHAINS: &[ChainInfo] =
-    &[UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1];
+pub const SUPPORTED_CHAINS: &[ChainInfo] = &[
+    UNI_6, OSMO_5, PISCO_1, PHOENIX_1, JUNO_1, PION_1, NEUTRON_1, HARPOON_4,
+];
 
 pub const NEUTRON_1: ChainInfo = ChainInfo {
     kind: cw_orch::daemon::ChainKind::Mainnet,
@@ -22,6 +24,12 @@ pub const NEUTRON_1: ChainInfo = ChainInfo {
     lcd_url: Some("https://rest-kralum.neutron-1.neutron.org"),
     fcd_url: None,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DeploymentStatus {
+    pub chain_ids: Vec<String>,
+    pub success: bool,
+}
 
 pub async fn assert_wallet_balance<'a>(mut chains: &'a [ChainInfo<'a>]) -> &'a [ChainInfo<'a>] {
     if chains.is_empty() {

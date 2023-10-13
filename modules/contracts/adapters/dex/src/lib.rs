@@ -4,13 +4,14 @@ pub mod contract;
 mod exchanges;
 pub(crate) mod handlers;
 pub mod state;
+pub mod msg {
+    pub use abstract_dex_standard::msg::*;
+}
 
 // Export interface for use in SDK modules
 pub use crate::api::DexInterface;
 //:{Dex, DexInterface};
-pub const EXCHANGE: &str = "abstract:dex";
-
-pub use abstract_dex_adapter_traits::msg;
+pub const DEX_ADAPTER_ID: &str = "abstract:dex";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_exchange {
@@ -19,7 +20,7 @@ pub mod host_exchange {
 
 #[cfg(feature = "interface")]
 pub mod interface {
-    use crate::{msg::*, EXCHANGE};
+    use crate::{msg::*, DEX_ADAPTER_ID};
     use abstract_core::{
         adapter::{self},
         objects::{AnsAsset, AssetEntry},
@@ -29,6 +30,7 @@ pub mod interface {
     use abstract_interface::AdapterDeployer;
     use abstract_interface::Manager;
     use cosmwasm_std::{Decimal, Empty};
+    use cw_orch::build::BuildPostfix;
     use cw_orch::interface;
     use cw_orch::prelude::*;
 
@@ -48,7 +50,10 @@ pub mod interface {
         }
         fn wasm(&self) -> WasmPath {
             artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_dex_adapter")
+                .find_wasm_path_with_build_postfix(
+                    "abstract_dex_adapter",
+                    BuildPostfix::<Chain>::ChainName(self.get_chain()),
+                )
                 .unwrap()
         }
     }
@@ -77,7 +82,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(EXCHANGE, swap_msg)?;
+            manager.execute_on_module(DEX_ADAPTER_ID, swap_msg)?;
             Ok(())
         }
     }

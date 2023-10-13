@@ -1,6 +1,6 @@
 [package]
-name = "abstract-dca-app"
-version = "0.0.2"
+name = "dca-app"
+version = "0.1.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
@@ -52,7 +52,7 @@ croncat-app = { workspace = true, default-features = false }
 abstract-dex-adapter = { workspace = true, default-features = false }
 
 [dev-dependencies]
-abstract-dca-app = { path = ".", features = ["interface"] }
+dca-app = { path = ".", features = ["interface"] }
 abstract-interface = { workspace = true, features = ["daemon"] }
 abstract-testing = { workspace = true }
 abstract-sdk = { workspace = true, features = ["test-utils"] }
@@ -61,24 +61,24 @@ semver = "1.0"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
-cw-multi-test = { workspace = true }
+
 # Croncat intefraces
-croncat-sdk-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-sdk-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-sdk-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-sdk-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-sdk-factory = { version = "1.0.4" }
+croncat-sdk-tasks = { version = "1.0.4" }
+croncat-sdk-manager = { version = "1.0.4" }
+croncat-sdk-agents = { version = "1.0.4" }
 # Croncat contracts
-croncat-factory = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-tasks = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-manager = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-agents = { version = "1.0.4", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
-croncat-integration-testing = { version = "1.1.1", git = "https://github.com/CronCats/cw-croncat", branch = "unlocked-schedule" }
+croncat-factory = { version = "1.0.4" }
+croncat-tasks = { version = "1.0.4" }
+croncat-manager = { version = "1.0.4" }
+croncat-agents = { version = "1.0.4" }
+croncat-integration-testing = { version = "1.1.1" }
 
 
 wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
-  "juno",
+  "wynd",
   "testing",
 ] }
 croncat-app = { workspace = true, features = ["interface"] }
