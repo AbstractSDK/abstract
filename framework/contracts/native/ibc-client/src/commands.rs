@@ -76,9 +76,7 @@ pub fn execute_register_infrastructure(
 
     let note = deps.api.addr_validate(&note)?;
     // Can't allow if it already exists
-    if IBC_INFRA.has(deps.storage, &host_chain)
-        || REVERSE_POLYTONE_NOTE.has(deps.storage, &note)
-    {
+    if IBC_INFRA.has(deps.storage, &host_chain) || REVERSE_POLYTONE_NOTE.has(deps.storage, &note) {
         return Err(IbcClientError::HostAddressExists {});
     }
 
@@ -152,7 +150,7 @@ fn send_remote_host_action(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
-                    /// And the ibc host will call the 
+                    /// And the ibc host will call the
                     proxy_address: account.proxy.to_string(),
                     account_id,
                     action,
@@ -177,9 +175,7 @@ fn send_remote_host_query(
     callback_request: CallbackRequest,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let note_contract = IBC_INFRA
-        .load(deps.storage, &host_chain)?
-        .polytone_note;
+    let note_contract = IBC_INFRA.load(deps.storage, &host_chain)?.polytone_note;
 
     let note_message = wasm_execute(
         note_contract.to_string(),
