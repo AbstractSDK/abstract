@@ -104,7 +104,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
             to_binary(&queries::list_accounts(deps, start, limit)?)
         }
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
-        QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
+        QueryMsg::ListRemoteProxies {} => to_binary(&queries::list_remote_proxies(deps)?),
         QueryMsg::ListIbcInfrastructures {} => to_binary(&queries::list_ibc_counterparts(deps)?),
     }
     .map_err(Into::into)

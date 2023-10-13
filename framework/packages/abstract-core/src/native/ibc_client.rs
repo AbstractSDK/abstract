@@ -157,9 +157,9 @@ pub enum QueryMsg {
     // get the hosts
     #[returns(ListRemoteHostsResponse)]
     ListRemoteHosts {},
-    // get the IBC execution proxys
-    #[returns(ListRemoteProxysResponse)]
-    ListRemoteProxys {},
+    // get the IBC execution proxies
+    #[returns(ListRemoteProxiesResponse)]
+    ListRemoteProxies {},
     // get the IBC counterparts connected to this abstract client
     #[returns(ListIbcInfrastructureResponse)]
     ListIbcInfrastructures {},
@@ -181,8 +181,8 @@ pub struct ListRemoteHostsResponse {
     pub hosts: Vec<(ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
-pub struct ListRemoteProxysResponse {
-    pub proxys: Vec<(ChainName, Option<String>)>,
+pub struct ListRemoteProxiesResponse {
+    pub proxies: Vec<(ChainName, Option<String>)>,
 }
 
 #[cosmwasm_schema::cw_serde]

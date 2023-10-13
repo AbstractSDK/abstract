@@ -4,7 +4,7 @@ use abstract_core::{
     ibc_client::{
         state::{Config, ACCOUNTS, ADMIN, CONFIG, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
-        ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxysResponse,
+        ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxiesResponse,
     },
     objects::{chain_name::ChainName, AccountId},
     AbstractError,
@@ -51,12 +51,12 @@ pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse>
 }
 
 // No need for pagination here, not a lot of chains
-pub fn list_remote_proxys(deps: Deps) -> IbcClientResult<ListRemoteProxysResponse> {
-    let proxys = IBC_INFRA
+pub fn list_remote_proxies(deps: Deps) -> IbcClientResult<ListRemoteProxiesResponse> {
+    let proxies = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
         .map(|c| c.map(|(chain, counterpart)| (chain, counterpart.remote_proxy)))
         .collect::<StdResult<_>>()?;
-    Ok(ListRemoteProxysResponse { proxys })
+    Ok(ListRemoteProxiesResponse { proxies })
 }
 
 // No need for pagination here, not a lot of chains
