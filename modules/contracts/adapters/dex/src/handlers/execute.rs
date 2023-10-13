@@ -1,5 +1,5 @@
 use crate::handlers::execute::exchange_resolver::is_over_ibc;
-use crate::EXCHANGE;
+use crate::IBC_DEX_PROVIDER_ID;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
@@ -8,12 +8,11 @@ use crate::state::SWAP_FEE;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_dex_standard::msg::IBC_DEX_ID;
+use abstract_dex_standard::msg::{IBC_DEX_ID, ExecuteMsg};
 use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
 use abstract_core::objects::{AccountId, AnsAsset};
-use abstract_dex_adapter_traits::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_sdk::{features::AbstractNameService, Execution};
 use abstract_sdk::{AccountVerification, IbcInterface, Resolve};
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response, StdError};

@@ -8,7 +8,7 @@ use abstract_sdk::feature_objects::AnsHost;
 use abstract_sdk::features::{AbstractNameService, AbstractResponse};
 use abstract_sdk::{IbcInterface, Resolve};
 use abstract_staking_standard::msg::{
-    ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID,
+    ProviderName, StakingAction, StakingExecuteMsg, IBC_STAKING_PROVIDER_ID, ExecuteMsg,
 };
 use cosmwasm_std::{to_binary, Coin, Deps, DepsMut, Env, MessageInfo, Response};
 
