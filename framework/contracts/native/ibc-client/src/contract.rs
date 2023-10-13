@@ -74,14 +74,14 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             queries,
             callback_info,
         } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
-        ExecuteMsg::RegisterHostChain { chain, note, host } => {
-            commands::execute_register_host_chain(deps, env, info, chain, host, note)
+        ExecuteMsg::RegisterInfrastructure { chain, note, host } => {
+            commands::execute_register_infrastructure(deps, env, info, chain, host, note)
         }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
         }
         ExecuteMsg::Register { host_chain } => {
-            commands::execute_register_account(deps, env, info, host_chain)
+            commands::execute_register_account(deps, info, host_chain)
         }
         ExecuteMsg::RemoveHost { host_chain } => {
             commands::execute_remove_host(deps, info, host_chain).map_err(Into::into)

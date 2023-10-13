@@ -62,7 +62,7 @@ pub fn execute_update_config(
 
 /// Registers a chain to the client.
 /// This registration includes the counterparty information (note and proxy address)
-pub fn execute_register_host_chain(
+pub fn execute_register_infrastructure(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -93,7 +93,7 @@ pub fn execute_register_host_chain(
     )?;
     REVERSE_POLYTONE_NOTE.save(deps.storage, &note, &host_chain)?;
 
-    // When allowing a new chain host, we need to also get the proxy address of that host.
+    // When registering a new chain host, we need to get the remote proxy address of the local note.
     // We do so by calling an empty message on the polytone note. This will come back in form of a execute by callback
 
     let note_proxy_msg = wasm_execute(
@@ -122,17 +122,17 @@ pub fn execute_remove_host(
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    if let Some(ibc_counterpart) = IBC_INFRA.may_load(deps.storage, &host_chain)? {
-        REVERSE_POLYTONE_NOTE.remove(deps.storage, &ibc_counterpart.polytone_note);
+    if let Some(ibc_infra) = IBC_INFRA.may_load(deps.storage, &host_chain)? {
+        REVERSE_POLYTONE_NOTE.remove(deps.storage, &ibc_infra.polytone_note);
     }
     IBC_INFRA.remove(deps.storage, &host_chain);
 
     Ok(IbcClientResponse::action("remove_host"))
 }
 
+/// Send a message to a remote abstract-ibc-host. This message will be proxied through polytone.
 fn send_remote_host_action(
     deps: Deps,
-    _env: Env,
     account_id: AccountId,
     account: AccountBase,
     host_chain: ChainName,
@@ -140,16 +140,19 @@ fn send_remote_host_action(
     callback_request: Option<CallbackRequest>,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
-    let note_contract = ibc_counterpart.polytone_note;
-    let remote_ibc_host = ibc_counterpart.remote_abstract_host;
+    let ibc_infra = IBC_INFRA.load(deps.storage, &host_chain)?;
+    let note_contract = ibc_infra.polytone_note;
+    let remote_ibc_host = ibc_infra.remote_abstract_host;
 
+    // message that will be called on the local note contract
     let note_message = wasm_execute(
         note_contract.to_string(),
         &polytone_note::msg::ExecuteMsg::Execute {
             msgs: vec![wasm_execute(
+                // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
+                    /// And the ibc host will call the 
                     proxy_address: account.proxy.to_string(),
                     account_id,
                     action,
@@ -224,7 +227,6 @@ pub fn execute_send_packet(
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
-        env,
         account_id,
         account_base,
         host_chain,
@@ -257,7 +259,6 @@ pub fn execute_send_query(
 
 pub fn execute_register_account(
     deps: DepsMut,
-    env: Env,
     info: MessageInfo,
     host_chain: String,
 ) -> IbcClientResult {
@@ -281,7 +282,6 @@ pub fn execute_register_account(
 
     let note_message = send_remote_host_action(
         deps.as_ref(),
-        env,
         account_id,
         account_base,
         host_chain,

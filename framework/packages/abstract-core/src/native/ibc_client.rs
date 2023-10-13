@@ -70,9 +70,12 @@ pub enum ExecuteMsg {
     },
     // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
     // This allows for monitoring which chain are connected to the contract remotely
-    RegisterHostChain {
+    RegisterInfrastructure {
+        /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
         chain: String,
+        /// Polytone note (locally deployed)
         note: String,
+        /// Address of the abstract host deployed on the remote chain
         host: String,
     },
     /// Changes the config
