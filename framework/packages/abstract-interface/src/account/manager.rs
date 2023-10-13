@@ -160,12 +160,4 @@ impl<Chain: CwEnv> Manager<Chain> {
             .find(|module_info| module_info.id == module_id);
         Ok(found)
     }
-
-    pub fn is_module_installed(
-        &self,
-        module_id: &str,
-    ) -> Result<bool, crate::AbstractInterfaceError> {
-        let module = self.module_info(module_id)?;
-        Ok(module.is_some())
-    }
 }
