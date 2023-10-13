@@ -6,7 +6,7 @@ use abstract_core::{
         module::{ModuleInfo, ModuleVersion},
         voting::{
             ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, VetoAdminAction, Vote,
-            VoteConfig,
+            VoteConfig, VoteError,
         },
         AssetEntry,
     },
@@ -601,6 +601,43 @@ fn test_veto_expired() -> anyhow::Result<()> {
     // balance unchanged
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
+    Ok(())
+}
+
+#[test]
+fn test_duplicate_friends() -> anyhow::Result<()> {
+    let (_mock, _account, _abstr, apps) = setup()?;
+    // Duplicate initial friends
+    let err: error::AppError = apps
+        .challenge_app
+        .create_challenge(ChallengeRequest {
+            init_friends: vec![ALICE_FRIEND.clone(), ALICE_FRIEND.clone()],
+            ..CHALLENGE_REQ.clone()
+        })
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        error::AppError::VoteError(VoteError::DuplicateAddrs {})
+    );
+
+    // Add duplicate (Alice already exists)
+    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    let err: error::AppError = apps
+        .challenge_app
+        .update_friends_for_challenge(
+            FIRST_CHALLENGE_ID,
+            vec![ALICE_FRIEND.clone()],
+            UpdateFriendsOpKind::Add {},
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        error::AppError::VoteError(VoteError::DuplicateAddrs {})
+    );
     Ok(())
 }
 

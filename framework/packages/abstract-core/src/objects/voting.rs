@@ -36,7 +36,7 @@
 //! ## Details
 //! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal
 
-use std::fmt::Display;
+use std::{collections::HashSet, fmt::Display};
 
 use cosmwasm_std::{Addr, BlockInfo, Decimal, StdError, StdResult, Storage, Uint128};
 use cw_storage_plus::{Bound, Item, Map};
@@ -47,6 +47,9 @@ use thiserror::Error;
 pub enum VoteError {
     #[error("Std error encountered while handling voting object: {0}")]
     Std(#[from] StdError),
+
+    #[error("Tried to add duplicate voter addresses")]
+    DuplicateAddrs {},
 
     #[error("No proposal by proposal id")]
     NoProposalById {},
@@ -126,6 +129,12 @@ impl<'a> SimpleVoting<'a> {
         end: Expiration,
         initial_voters: &[Addr],
     ) -> VoteResult<ProposalId> {
+        // Check if addrs unique
+        let mut unique_addrs = HashSet::with_capacity(initial_voters.len());
+        if !initial_voters.iter().all(|x| unique_addrs.insert(x)) {
+            return Err(VoteError::DuplicateAddrs {});
+        }
+
         let proposal_id = self
             .next_proposal_id
             .update(store, |id| VoteResult::Ok(id + 1))?;
@@ -321,10 +330,10 @@ impl<'a> SimpleVoting<'a> {
             // Don't override already existing vote
             self.proposals
                 .update(store, (proposal_id, voter), |v| match v {
-                    Some(v) => VoteResult::Ok(v),
+                    Some(_) => Err(VoteError::DuplicateAddrs {}),
                     None => {
                         proposal_info.total_voters += 1;
-                        VoteResult::Ok(None)
+                        Ok(None)
                     }
                 })?;
         }
