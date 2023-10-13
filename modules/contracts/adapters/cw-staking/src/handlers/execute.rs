@@ -1,7 +1,7 @@
 use crate::adapter::CwStakingAdapter;
 use crate::contract::{CwStakingAdapter as CwStakingContract, StakingResult};
 use crate::resolver::{self, is_over_ibc};
-use crate::CW_STAKING;
+use crate::CW_STAKING_ADAPTER_ID;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::chain_name::ChainName;
 use abstract_sdk::feature_objects::AnsHost;
@@ -73,7 +73,7 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
-            module_id: CW_STAKING.to_string(),
+            module_id: CW_STAKING_ADAPTER_ID.to_string(),
             exec_msg: to_binary::<ExecuteMsg>(
                 &StakingExecuteMsg {
                     provider: provider_name.clone(),

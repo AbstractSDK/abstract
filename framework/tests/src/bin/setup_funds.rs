@@ -53,8 +53,7 @@ pub fn test_send_funds() -> AnyResult<()> {
     mint(&juno, sender.as_str(), token_subdenom.as_str(), test_amount)?;
 
     // Create a channel between the 2 chains for the transfer ports
-    let interchain_channel =
-        rt.block_on(create_transfer_channel(JUNO, STARGAZE, None, &interchain))?;
+    let interchain_channel = create_transfer_channel(JUNO, STARGAZE, &interchain)?;
 
     // Register this channel with the abstract ibc implementation for sending tokens
     osmo_abstr.ans_host.update_channels(
@@ -74,7 +73,7 @@ pub fn test_send_funds() -> AnyResult<()> {
 
     // Create a test account + Remote account
 
-    let account_id = create_test_remote_account(&rt, &osmo_abstr, STARGAZE, JUNO, &interchain)?;
+    let account_id = create_test_remote_account(&osmo_abstr, STARGAZE, JUNO, &interchain)?;
     // let account_config = osmo_abstr.account.manager.config()?;
     // let account_id = AccountId::new(
     //     account_config.account_id.seq(),
@@ -97,7 +96,7 @@ pub fn test_send_funds() -> AnyResult<()> {
         },
     )?;
 
-    rt.block_on(interchain.wait_ibc(&STARGAZE.to_string(), send_funds_tx))?;
+    interchain.wait_ibc(&STARGAZE.to_string(), send_funds_tx)?;
 
     // Verify the funds have been received
     let remote_account_config = juno_abstr.version_control.get_account(account_id.clone())?;

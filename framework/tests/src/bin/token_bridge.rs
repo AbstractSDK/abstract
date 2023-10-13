@@ -48,12 +48,10 @@ pub fn token_bridge() -> AnyResult<()> {
     mint(&juno, sender.as_str(), token_subdenom.as_str(), test_amount)?;
 
     // Create a channel between the 2 chains for the transfer ports
-    let interchain_channel =
-        rt.block_on(create_transfer_channel(JUNO, STARGAZE, None, &interchain))?;
+    let interchain_channel = create_transfer_channel(JUNO, STARGAZE, &interchain)?;
 
     // Transfer to the address on the remote chain
     transfer_tokens(
-        &rt,
         &juno,
         receiver.as_str(),
         &coin(test_amount, get_denom(&juno, token_subdenom.as_str())),
@@ -93,7 +91,6 @@ pub fn token_bridge() -> AnyResult<()> {
 
     // Send all back
     transfer_tokens(
-        &rt,
         &stargaze,
         sender.as_str(),
         &coin(test_amount, denom.clone()),

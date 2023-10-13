@@ -17,7 +17,6 @@ pub type OfferAsset = AnsAsset;
 /// Name of the asset you want to receive
 pub type AskAsset = AnsAsset;
 
-pub const IBC_DEX_PROVIDER_ID: &str = "IBC_ACTION_CALLBACK";
 /// Reply ID for IBC DEX interactions.
 pub const IBC_DEX_ID: u32 = 11335;
 

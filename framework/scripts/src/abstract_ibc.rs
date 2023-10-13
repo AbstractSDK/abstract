@@ -6,12 +6,10 @@ use cw_orch::interchain::InterchainError;
 use cw_orch::prelude::*;
 
 use cw_orch_polytone::PolytoneConnection;
-use tokio::runtime::Runtime;
 
 /// This is only used for testing and shouldn't be used in production
 pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
     abstr: &Abstract<Chain>,
-    rt: &Runtime,
     interchain: &IBC,
     dest: &Abstract<Chain>,
     polytone: &PolytoneConnection<Chain>,
@@ -32,8 +30,7 @@ pub fn abstract_ibc_connection_with<Chain: IbcQueryHandler, IBC: InterchainEnv<C
         polytone.source.note.address()?.to_string(),
     )?;
     // We make sure the IBC execution is done so that the proxy address is saved inside the Abstract contract
-    rt.block_on(interchain.wait_ibc(&chain1_id, proxy_tx_result))
-        .unwrap();
+    interchain.wait_ibc(&chain1_id, proxy_tx_result).unwrap();
 
     // Finally, we get the proxy address and register the proxy with the ibc host for the dest chain
     let proxy_address = abstr.ibc.client.host(chain2_name.to_string())?;

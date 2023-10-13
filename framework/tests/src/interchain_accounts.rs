@@ -10,7 +10,6 @@ use abstract_interface::{Abstract, AccountDetails, ManagerQueryFns};
 use anyhow::Result as AnyResult;
 use cosmwasm_std::Empty;
 use cw_orch::prelude::*;
-use tokio::runtime::Runtime;
 
 pub const TEST_ACCOUNT_NAME: &str = "account-test";
 pub const TEST_ACCOUNT_DESCRIPTION: &str = "Description of the account";
@@ -22,7 +21,6 @@ pub fn set_env() {
 }
 
 pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Chain>>(
-    rt: &Runtime,
     origin: &Abstract<Chain>,
     origin_id: &str,
     destination_id: &str,
@@ -59,7 +57,7 @@ pub fn create_test_remote_account<Chain: IbcQueryHandler, IBC: InterchainEnv<Cha
     // Now we send a message to the client saying that we want to create an account on osmosis
     let register_tx = origin.account.register_remote_account(&destination_name)?;
 
-    rt.block_on(interchain.wait_ibc(&origin_id.to_owned(), register_tx))?;
+    interchain.wait_ibc(&origin_id.to_owned(), register_tx)?;
 
     // After this is all ended, we return the account id of the account we just created on the remote chain
     let account_config = origin.account.manager.config()?;
@@ -104,17 +102,15 @@ mod test {
     #[test]
     fn ibc_account_action() -> AnyResult<()> {
         logger_test_init();
-
-        let rt = Runtime::new()?;
         let sender = Addr::unchecked("sender");
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr1, abstr2) = ibc_abstract_setup(&rt, &mock_interchain, JUNO, STARGAZE)?;
+        let (abstr1, abstr2) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_name = ChainName::from_chain_id(STARGAZE).to_string();
 
-        create_test_remote_account(&rt, &abstr1, JUNO, STARGAZE, &mock_interchain)?;
+        create_test_remote_account(&abstr1, JUNO, STARGAZE, &mock_interchain)?;
 
         let new_name = "Funky Crazy Name";
         let new_description = "Funky new account with wonderful capabilities";
@@ -141,7 +137,7 @@ mod test {
             &[],
         )?;
 
-        rt.block_on(mock_interchain.wait_ibc(&JUNO.to_string(), ibc_action_result))?;
+        mock_interchain.wait_ibc(&JUNO.to_string(), ibc_action_result)?;
 
         let account_id = abstr1.account.id()?;
 
@@ -169,16 +165,14 @@ mod test {
     fn test_create_ibc_account() -> AnyResult<()> {
         logger_test_init();
 
-        let rt = Runtime::new()?;
         let sender = Addr::unchecked("sender");
         let mock_interchain = MockInterchainEnv::new(vec![(JUNO, &sender), (STARGAZE, &sender)]);
 
         // We just verified all steps pass
-        let (abstr_juno, abstr_stargaze) =
-            ibc_abstract_setup(&rt, &mock_interchain, JUNO, STARGAZE)?;
+        let (abstr_juno, abstr_stargaze) = ibc_abstract_setup(&mock_interchain, JUNO, STARGAZE)?;
 
         let remote_account =
-            create_test_remote_account(&rt, &abstr_juno, JUNO, STARGAZE, &mock_interchain)?;
+            create_test_remote_account(&abstr_juno, JUNO, STARGAZE, &mock_interchain)?;
 
         let remote_account_config = abstr_stargaze
             .version_control
@@ -255,7 +249,7 @@ mod test {
         )?;
 
         // The create remote account tx is passed ?
-        rt.block_on(mock_interchain.wait_ibc(&JUNO.to_owned(), create_account_remote_tx))?;
+        mock_interchain.wait_ibc(&JUNO.to_owned(), create_account_remote_tx)?;
 
         Ok(())
     }
