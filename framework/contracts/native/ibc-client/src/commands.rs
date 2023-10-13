@@ -150,7 +150,7 @@ fn send_remote_host_action(
                 // The note's remote proxy will call the ibc host
                 remote_ibc_host,
                 &ibc_host::ExecuteMsg::Execute {
-                    /// And the ibc host will call the
+                    // TODO: consider removing this field
                     proxy_address: account.proxy.to_string(),
                     account_id,
                     action,
@@ -167,14 +167,14 @@ fn send_remote_host_action(
     Ok(note_message.into())
 }
 
+/// Perform a ICQ on a remote chain
 fn send_remote_host_query(
     deps: Deps,
-    _env: Env,
     host_chain: ChainName,
     queries: Vec<QueryRequest<Empty>>,
     callback_request: CallbackRequest,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
-    // Send this message via the Polytone implementation
+    // Send this message via the Polytone infra
     let note_contract = IBC_INFRA.load(deps.storage, &host_chain)?.polytone_note;
 
     let note_message = wasm_execute(
@@ -190,6 +190,8 @@ fn send_remote_host_query(
     Ok(note_message.into())
 }
 
+/// Sends a packet with an optional callback.
+/// This is the top-level function to do IBC related actions.
 pub fn execute_send_packet(
     deps: DepsMut,
     env: Env,
@@ -233,6 +235,7 @@ pub fn execute_send_packet(
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
 
+// Top-level function for performing queries.
 pub fn execute_send_query(
     deps: DepsMut,
     env: Env,
@@ -248,11 +251,12 @@ pub fn execute_send_query(
     };
 
     let note_message =
-        send_remote_host_query(deps.as_ref(), env, host_chain, queries, callback_request)?;
+        send_remote_host_query(deps.as_ref(), host_chain, queries, callback_request)?;
 
     Ok(IbcClientResponse::action("handle_send_msgs").add_message(note_message))
 }
 
+/// Registers an Abstract Account on a remote chain.
 pub fn execute_register_account(
     deps: DepsMut,
     info: MessageInfo,
@@ -301,7 +305,7 @@ pub fn execute_send_funds(
 ) -> IbcClientResult {
     let host_chain = ChainName::from_str(&host_chain)?;
     let cfg = CONFIG.load(deps.storage)?;
-    let mem = cfg.ans_host;
+    let ans = cfg.ans_host;
     // Verify that the sender is a proxy contract
 
     let account_base = cfg
@@ -318,7 +322,7 @@ pub fn execute_send_funds(
         connected_chain: host_chain,
         protocol: ICS20.to_string(),
     };
-    let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &mem)?;
+    let ics20_channel_id = ics20_channel_entry.resolve(&deps.querier, &ans)?;
 
     let mut transfers: Vec<CosmosMsg> = vec![];
     for amount in funds {
@@ -333,48 +337,7 @@ pub fn execute_send_funds(
             }
             .into(),
         );
-
-        // TODO, do a better job and add a callback
-
-        // use cosmos_sdk_proto::{
-        //     cosmos::feegrant,
-        //     ibc::{applications::transfer::v1::MsgTransfer, core::client::v1::Height},
-        //     traits::{Message, TypeUrl},
-        //     Any,
-        // };
-
-        // In case we need to work with the memo, we need to serialize the messages ourselves
-
-        // let msg = //ProtoMsgTransfer{
-        //     MsgTransfer{
-        //     source_port: "transfer".to_string(),
-        //     source_channel: ics20_channel_id.clone(),
-        //     token: Some(cosmos_sdk_proto::cosmos::base::v1beta1::Coin{
-        //         amount: amount.to_string(),
-        //         denom: amount.denom.clone(),
-        //     }),
-        //     sender: env.contract.address.to_string(),
-        //     receiver: remote_addr.clone(),
-        //     timeout_height: Some(Height{
-        //         revision_height: 0,
-        //         revision_number: 0,
-        //     }),
-        //     timeout_timestamp: env.block.time.plus_seconds(PACKET_LIFETIME).nanos(),
-        //     //memo: None,
-        // };
-
-        // let msg = CosmosMsg::Stargate {
-        //     type_url: MsgTransfer::TYPE_URL.to_string(),
-        //     value: msg.encode_to_vec().into(),
-        // };
-
-        // transfers.push(msg);
     }
-
-    // // let these messages be executed by proxy
-    // let proxy_msg = account_base
-    //     .executor(deps.as_ref())
-    //     .execute(vec![AccountAction::from_vec(transfers)])?;
 
     Ok(IbcClientResponse::action("handle_send_funds")
         //.add_message(proxy_msg)
