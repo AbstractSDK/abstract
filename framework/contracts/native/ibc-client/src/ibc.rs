@@ -5,7 +5,7 @@ use crate::{
 use abstract_core::{
     ibc::IbcResponseMsg,
     ibc_client::{
-        state::{IBC_COUNTERPART, REVERSE_POLYTONE_NOTE},
+        state::{IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
 };
@@ -39,7 +39,7 @@ pub fn receive_action_callback(
         IbcClientCallback::WhoAmI {} => {
             // This response is used to store the Counterparty proxy address (this is used to whitelist the address on the host side)
             if let Callback::Execute(Ok(response)) = &callback.result {
-                IBC_COUNTERPART.update(deps.storage, &host_chain, |c| match c {
+                IBC_INFRA.update(deps.storage, &host_chain, |c| match c {
                     None => Err(IbcClientError::UnregisteredChain(host_chain.to_string())),
                     Some(mut counterpart) => {
                         counterpart.remote_proxy = Some(response.executed_by.clone());

@@ -2,9 +2,9 @@ use std::str::FromStr;
 
 use abstract_core::{
     ibc_client::{
-        state::{Config, ACCOUNTS, ADMIN, CONFIG, IBC_COUNTERPART},
+        state::{Config, ACCOUNTS, ADMIN, CONFIG, IBC_INFRA},
         AccountResponse, ConfigResponse, HostResponse, ListAccountsResponse,
-        ListIbcCounterpartResponse, ListRemoteHostsResponse, ListRemoteProxysResponse,
+        ListIbcInfrastructureResponse, ListRemoteHostsResponse, ListRemoteProxysResponse,
     },
     objects::{chain_name::ChainName, AccountId},
     AbstractError,
@@ -43,7 +43,7 @@ pub fn list_accounts(
 
 // No need for pagination here, not a lot of chains
 pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse> {
-    let hosts = IBC_COUNTERPART
+    let hosts = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
         .map(|c| c.map(|(chain, counterpart)| (chain, counterpart.remote_abstract_host)))
         .collect::<StdResult<_>>()?;
@@ -52,7 +52,7 @@ pub fn list_remote_hosts(deps: Deps) -> IbcClientResult<ListRemoteHostsResponse>
 
 // No need for pagination here, not a lot of chains
 pub fn list_remote_proxys(deps: Deps) -> IbcClientResult<ListRemoteProxysResponse> {
-    let proxys = IBC_COUNTERPART
+    let proxys = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
         .map(|c| c.map(|(chain, counterpart)| (chain, counterpart.remote_proxy)))
         .collect::<StdResult<_>>()?;
@@ -60,11 +60,11 @@ pub fn list_remote_proxys(deps: Deps) -> IbcClientResult<ListRemoteProxysRespons
 }
 
 // No need for pagination here, not a lot of chains
-pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcCounterpartResponse> {
-    let counterparts = IBC_COUNTERPART
+pub fn list_ibc_counterparts(deps: Deps) -> IbcClientResult<ListIbcInfrastructureResponse> {
+    let counterparts = IBC_INFRA
         .range(deps.storage, None, None, Order::Ascending)
         .collect::<StdResult<_>>()?;
-    Ok(ListIbcCounterpartResponse { counterparts })
+    Ok(ListIbcInfrastructureResponse { counterparts })
 }
 
 pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
@@ -83,7 +83,7 @@ pub fn config(deps: Deps) -> IbcClientResult<ConfigResponse> {
 /// Returns the remote-host and polytone proxy addresses (useful for registering the proxy on the host)
 pub fn host(deps: Deps, host_chain: String) -> IbcClientResult<HostResponse> {
     let host_chain = ChainName::from_str(&host_chain)?;
-    let ibc_counterpart = IBC_COUNTERPART.load(deps.storage, &host_chain)?;
+    let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
     let remote_host = ibc_counterpart.remote_abstract_host;
     let remote_polytone_proxy = ibc_counterpart.remote_proxy;
     Ok(HostResponse {

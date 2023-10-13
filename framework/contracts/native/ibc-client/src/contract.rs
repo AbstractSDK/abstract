@@ -74,8 +74,8 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> I
             queries,
             callback_info,
         } => commands::execute_send_query(deps, env, host_chain, queries, callback_info),
-        ExecuteMsg::RegisterChainHost { chain, note, host } => {
-            commands::execute_allow_chain_host(deps, env, info, chain, host, note)
+        ExecuteMsg::RegisterHostChain { chain, note, host } => {
+            commands::execute_register_host_chain(deps, env, info, chain, host, note)
         }
         ExecuteMsg::SendFunds { host_chain, funds } => {
             commands::execute_send_funds(deps, env, info, host_chain, funds).map_err(Into::into)
@@ -105,7 +105,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> IbcClientResult<QueryRespo
         }
         QueryMsg::ListRemoteHosts {} => to_binary(&queries::list_remote_hosts(deps)?),
         QueryMsg::ListRemoteProxys {} => to_binary(&queries::list_remote_proxys(deps)?),
-        QueryMsg::ListIbcCounterparts {} => to_binary(&queries::list_ibc_counterparts(deps)?),
+        QueryMsg::ListIbcInfrastructures {} => to_binary(&queries::list_ibc_counterparts(deps)?),
     }
     .map_err(Into::into)
 }

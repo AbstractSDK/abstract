@@ -7,7 +7,7 @@ use crate::{
 use abstract_core::{
     ibc::CallbackInfo,
     ibc_client::{
-        state::{IbcCounterpart, IBC_COUNTERPART, REVERSE_POLYTONE_NOTE},
+        state::{IbcInfrastructure, IBC_INFRA, REVERSE_POLYTONE_NOTE},
         IbcClientCallback,
     },
     ibc_host, manager,
@@ -60,7 +60,9 @@ pub fn execute_update_config(
     Ok(IbcClientResponse::action("update_config"))
 }
 
-pub fn execute_allow_chain_host(
+/// Registers a chain to the client.
+/// This registration includes the counterparty information (note and proxy address)
+pub fn execute_register_host_chain(
     deps: DepsMut,
     env: Env,
     info: MessageInfo,
@@ -74,16 +76,16 @@ pub fn execute_allow_chain_host(
 
     let note = deps.api.addr_validate(&note)?;
     // Can't allow if it already exists
-    if IBC_COUNTERPART.has(deps.storage, &host_chain)
+    if IBC_INFRA.has(deps.storage, &host_chain)
         || REVERSE_POLYTONE_NOTE.has(deps.storage, &note)
     {
         return Err(IbcClientError::HostAddressExists {});
     }
 
-    IBC_COUNTERPART.save(
+    IBC_INFRA.save(
         deps.storage,
         &host_chain,
-        &IbcCounterpart {
+        &IbcInfrastructure {
             polytone_note: note.clone(),
             remote_abstract_host: host,
             remote_proxy: None,
@@ -120,10 +122,10 @@ pub fn execute_remove_host(
     // auth check
     ADMIN.assert_admin(deps.as_ref(), &info.sender)?;
 
-    if let Some(ibc_counterpart) = IBC_COUNTERPART.may_load(deps.storage, &host_chain)? {
+    if let Some(ibc_counterpart) = IBC_INFRA.may_load(deps.storage, &host_chain)? {
         REVERSE_POLYTONE_NOTE.remove(deps.storage, &ibc_counterpart.polytone_note);
     }
-    IBC_COUNTERPART.remove(deps.storage, &host_chain);
+    IBC_INFRA.remove(deps.storage, &host_chain);
 
     Ok(IbcClientResponse::action("remove_host"))
 }
@@ -138,7 +140,7 @@ fn send_remote_host_action(
     callback_request: Option<CallbackRequest>,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let ibc_counterpart = IBC_COUNTERPART.load(deps.storage, &host_chain)?;
+    let ibc_counterpart = IBC_INFRA.load(deps.storage, &host_chain)?;
     let note_contract = ibc_counterpart.polytone_note;
     let remote_ibc_host = ibc_counterpart.remote_abstract_host;
 
@@ -172,7 +174,7 @@ fn send_remote_host_query(
     callback_request: CallbackRequest,
 ) -> IbcClientResult<CosmosMsg<Empty>> {
     // Send this message via the Polytone implementation
-    let note_contract = IBC_COUNTERPART
+    let note_contract = IBC_INFRA
         .load(deps.storage, &host_chain)?
         .polytone_note;
 
@@ -534,10 +536,10 @@ mod test {
             let mut deps = mock_dependencies();
             mock_init(deps.as_mut())?;
 
-            IBC_COUNTERPART.save(
+            IBC_INFRA.save(
                 deps.as_mut().storage,
                 &ChainName::from_str(TEST_CHAIN)?,
-                &IbcCounterpart {
+                &IbcInfrastructure {
                     polytone_note: Addr::unchecked("note"),
                     remote_abstract_host: "test_remote_host".into(),
                     remote_proxy: None,
@@ -551,7 +553,7 @@ mod test {
             let res = execute_as_admin(deps.as_mut(), msg)?;
             assert_that!(res.messages).is_empty();
 
-            assert_that!(IBC_COUNTERPART.is_empty(&deps.storage)).is_true();
+            assert_that!(IBC_INFRA.is_empty(&deps.storage)).is_true();
 
             Ok(())
         }
