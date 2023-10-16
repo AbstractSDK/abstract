@@ -1,0 +1,59 @@
+[package]
+name = "calendar-app"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+
+exclude = ["contract.wasm", "hash.txt"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[example]]
+name = "schema"
+required-features = ["schema"]
+
+[[example]]
+name = "deploy"
+required-features = ["interface"]
+
+[features]
+default = ["export"]
+export = []
+# enable node-backed tests (ensure Docker is running)
+# run with `cargo test --jobs 1 --features node-tests`
+node-tests = ["interface"]
+interface = ["export", "dep:abstract-interface", "dep:cw-orch"]
+schema = ["abstract-app/schema"]
+
+[dependencies]
+cosmwasm-std = { workspace = true }
+cosmwasm-schema = { workspace = true }
+cw-controllers = { workspace = true }
+cw-storage-plus = { workspace = true }
+thiserror = { workspace = true }
+schemars = { workspace = true }
+cw-asset = { workspace = true }
+
+abstract-core = { workspace = true }
+abstract-app = { workspace = true }
+abstract-sdk = { workspace = true }
+
+chrono = { version = "0.4.31", default_features = false }
+cw-utils = "1.0.1"
+
+# Dependencies for interface
+abstract-interface = { workspace = true, optional = true }
+cw-orch = { workspace = true, optional = true }
+
+[dev-dependencies]
+calendar-app = { path = ".", features = ["interface"] }
+abstract-interface = { workspace = true, features = ["daemon"] }
+abstract-testing = { workspace = true }
+abstract-sdk = { workspace = true }
+speculoos = { workspace = true }
+semver = { workspace = true }
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+cw-orch = { workspace = true }
+clap = { workspace = true }
