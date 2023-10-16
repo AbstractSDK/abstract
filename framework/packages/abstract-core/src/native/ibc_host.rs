@@ -140,13 +140,17 @@ pub enum QueryMsg {
     /// Returns [`ConfigResponse`].
     #[returns(ConfigResponse)]
     Config {},
-    #[returns(RegisteredChainsResponse)]
-    RegisteredChains {
-        start: Option<String>,
+    /// Returns [`ClientProxiesResponse`].
+    /// Lists all the polytone proxy contracts and their respective client chain registered with the host.
+    #[returns(ClientProxiesResponse)]
+    ClientProxies {
+        start_after: Option<String>,
         limit: Option<u32>,
     },
-    #[returns(RegisteredChainResponse)]
-    AssociatedClient { chain: String },
+    /// Returns [`ClientProxyResponse`].
+    /// Returns the polytone proxy contract address for a specific client chain.
+    #[returns(ClientProxyResponse)]
+    ClientProxy { chain: String },
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -157,11 +161,11 @@ pub struct ConfigResponse {
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct RegisteredChainsResponse {
-    pub chains: Vec<(ChainName, String)>,
+pub struct ClientProxiesResponse {
+    pub chains: Vec<(ChainName, Addr)>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct RegisteredChainResponse {
-    pub proxy: String,
+pub struct ClientProxyResponse {
+    pub proxy: Addr,
 }

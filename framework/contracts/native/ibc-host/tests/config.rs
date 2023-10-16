@@ -1,6 +1,6 @@
 use abstract_core::ibc_host::InstantiateMsg;
 use abstract_core::ibc_host::QueryMsg;
-use abstract_core::ibc_host::RegisteredChainResponse;
+use abstract_core::ibc_host::ClientProxyResponse;
 
 use abstract_ibc_host::contract::execute;
 use abstract_ibc_host::contract::instantiate;
@@ -48,6 +48,6 @@ fn test_registered_client() {
         },
     )
     .unwrap();
-    let queried_client_name: RegisteredChainResponse = from_binary(&client_name).unwrap();
+    let queried_client_name: ClientProxyResponse = from_binary(&client_name).unwrap();
     assert_eq!(queried_client_name.proxy, "juno-proxy");
 }

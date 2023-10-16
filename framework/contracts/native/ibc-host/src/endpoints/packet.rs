@@ -45,12 +45,11 @@ pub(crate) fn _handle_host_action(
     env: Env,
     client_chain: ChainName,
     proxy_address: String,
-    mut account_id: AccountId,
+    received_account_id: AccountId,
     host_action: HostAction,
 ) -> HostResult {
-    // Save the received account id
-    let remote_account_id = account_id.clone();
-    // push the client chain to the account trace
+    // Push the client chain to the account trace
+    let mut account_id = received_account_id.clone();
     account_id.trace_mut().push_chain(client_chain.clone());
 
     // get the local account information
@@ -75,7 +74,7 @@ pub(crate) fn _handle_host_action(
                         _ => unimplemented!(""),
                     },
                     HostAction::Internal(InternalAction::Register { .. }) => {
-                        Err(HostError::Std(StdError::generic_err("Unreachable")))
+                        unreachable!("This action is handled above")
                     }
                     _ => unimplemented!(""),
                 }
@@ -98,7 +97,7 @@ pub(crate) fn _handle_host_action(
                     &ActionAfterCreationCache {
                         action,
                         client_proxy_address: proxy_address,
-                        account_id: remote_account_id,
+                        account_id: received_account_id,
                         chain_name: client_chain,
                     },
                 )?;
