@@ -1,7 +1,12 @@
 [package]
 name = "calendar-app"
-version = { workspace = true }
-authors = { workspace = true }
+version = "0.1.0"
+authors = [
+  "CyberHoward <cyberhoward@protonmail.com>",
+  "Adair <adair@abstract.money>",
+  "Andrew <work@andrewpochapsky.com>"
+  "Abstract Money <contact@abstract.money>",
+]
 edition = { workspace = true }
 
 exclude = ["contract.wasm", "hash.txt"]
