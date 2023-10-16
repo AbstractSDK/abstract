@@ -104,6 +104,8 @@ fn update_config(
     Ok(HostResponse::action("update_config"))
 }
 
+/// Register the polytone proxy address for a given chain
+/// The polytone proxy will send messages to this address when it needs to execute actions on a local account.
 fn register_chain_proxy(
     deps: DepsMut,
     info: MessageInfo,
