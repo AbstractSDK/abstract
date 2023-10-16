@@ -23,7 +23,7 @@ pub mod state {
 
     /// Maps a chain name to the proxy it uses to interact on this local chain
     pub const CHAIN_PROXYS: Map<&ChainName, Addr> = Map::new("ccl");
-    pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("reverse-ccl");
+    pub const REVERSE_CHAIN_PROXYS: Map<&Addr, ChainName> = Map::new("rev-ccl");
     /// Configuration of the IBC host
     pub const CONFIG: Item<Config> = Item::new("cfg");
 
