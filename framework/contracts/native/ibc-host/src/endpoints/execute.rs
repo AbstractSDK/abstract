@@ -6,7 +6,7 @@ use crate::{
     HostError,
 };
 use abstract_core::{
-    ibc_host::state::{CHAIN_PROXYS, CONFIG, REVERSE_CHAIN_PROXYS},
+    ibc_host::state::{CHAIN_PROXIES, CONFIG, REVERSE_CHAIN_PROXIES},
     objects::chain_name::ChainName,
     proxy::state::ADMIN,
 };
@@ -118,12 +118,12 @@ fn register_chain_proxy(
     // We validate the proxy address, because this is the Polytone counterpart on the local chain
     let proxy = deps.api.addr_validate(&proxy)?;
     // Can't register if it already exists
-    if CHAIN_PROXYS.has(deps.storage, &chain) || REVERSE_CHAIN_PROXYS.has(deps.storage, &proxy) {
+    if CHAIN_PROXIES.has(deps.storage, &chain) || REVERSE_CHAIN_PROXIES.has(deps.storage, &proxy) {
         return Err(HostError::ProxyAddressExists {});
     }
 
-    CHAIN_PROXYS.save(deps.storage, &chain, &proxy)?;
-    REVERSE_CHAIN_PROXYS.save(deps.storage, &proxy, &chain)?;
+    CHAIN_PROXIES.save(deps.storage, &chain, &proxy)?;
+    REVERSE_CHAIN_PROXIES.save(deps.storage, &proxy, &chain)?;
     Ok(HostResponse::action("register_chain_client"))
 }
 
@@ -131,10 +131,10 @@ fn remove_chain_proxy(deps: DepsMut, info: MessageInfo, chain: String) -> HostRe
     cw_ownable::is_owner(deps.storage, &info.sender)?;
     let chain = ChainName::from_str(&chain)?;
 
-    if let Some(proxy) = CHAIN_PROXYS.may_load(deps.storage, &chain)? {
-        REVERSE_CHAIN_PROXYS.remove(deps.storage, &proxy);
+    if let Some(proxy) = CHAIN_PROXIES.may_load(deps.storage, &chain)? {
+        REVERSE_CHAIN_PROXIES.remove(deps.storage, &proxy);
     }
 
-    CHAIN_PROXYS.remove(deps.storage, &chain);
+    CHAIN_PROXIES.remove(deps.storage, &chain);
     Ok(HostResponse::action("register_chain_client"))
 }

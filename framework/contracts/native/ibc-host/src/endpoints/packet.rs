@@ -5,7 +5,7 @@ use crate::{
 };
 use abstract_core::{
     ibc_host::{
-        state::{ActionAfterCreationCache, REVERSE_CHAIN_PROXYS, TEMP_ACTION_AFTER_CREATION},
+        state::{ActionAfterCreationCache, REVERSE_CHAIN_PROXIES, TEMP_ACTION_AFTER_CREATION},
         ExecuteMsg, HelperAction,
     },
     objects::{chain_name::ChainName, AccountId},
@@ -25,7 +25,7 @@ pub fn handle_host_action(
     host_action: HostAction,
 ) -> HostResult {
     // We verify the caller is indeed registered for the calling chain
-    let client_chain = REVERSE_CHAIN_PROXYS.load(deps.storage, &info.sender)?;
+    let client_chain = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
     // We execute the action
     _handle_host_action(

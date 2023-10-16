@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use abstract_core::{
     ibc_host::{
-        state::{CHAIN_PROXYS, CONFIG},
+        state::{CHAIN_PROXIES, CONFIG},
         ConfigResponse, RegisteredChainResponse, RegisteredChainsResponse,
     },
     objects::chain_name::ChainName,
@@ -41,7 +41,7 @@ fn registered_chains(
     let start = start.map(ChainName::from_string).transpose()?;
 
     let chains = cw_paginate::paginate_map(
-        &CHAIN_PROXYS,
+        &CHAIN_PROXIES,
         deps.storage,
         start.as_ref().map(Bound::exclusive),
         limit,
@@ -52,7 +52,7 @@ fn registered_chains(
 }
 
 fn associated_client(deps: Deps, chain: String) -> HostResult<RegisteredChainResponse> {
-    let proxy = CHAIN_PROXYS.load(deps.storage, &ChainName::from_str(&chain)?)?;
+    let proxy = CHAIN_PROXIES.load(deps.storage, &ChainName::from_str(&chain)?)?;
 
     Ok(RegisteredChainResponse {
         proxy: proxy.to_string(),
