@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Adair <adair@abstract.money>",
-  "Andrew <work@andrewpochapsky.com>"
+  "Andrew <work@andrewpochapsky.com>",
   "Abstract Money <contact@abstract.money>",
 ]
 edition = { workspace = true }
