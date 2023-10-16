@@ -3,20 +3,22 @@ use crate::msg::{
     ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
     FriendsResponse, PreviousProposalsResponse, VoteResponse, VotesResponse,
 };
-use crate::state::{CHALLENGE_FRIENDS, CHALLENGE_LIST, SIMPLE_VOTING};
-use abstract_core::objects::voting::{ProposalInfo, VoteResult, DEFAULT_LIMIT};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdError};
+use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
+use abstract_core::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
+use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
+
+use super::execute::last_proposal;
 
 pub fn query_handler(
     deps: Deps,
-    _env: Env,
+    env: Env,
     app: &ChallengeApp,
     msg: ChallengeQueryMsg,
 ) -> AppResult<Binary> {
     match msg {
         ChallengeQueryMsg::Challenge { challenge_id } => {
-            to_binary(&query_challenge(deps, app, challenge_id)?)
+            to_binary(&query_challenge(deps, env, app, challenge_id)?)
         }
         ChallengeQueryMsg::Challenges { start_after, limit } => {
             to_binary(&query_challenges(deps, start_after, limit)?)
@@ -27,27 +29,36 @@ pub fn query_handler(
         ChallengeQueryMsg::Vote {
             voter_addr,
             challenge_id,
-            previous_proposal_index,
+            proposal_id,
         } => to_binary(&query_vote(
             deps,
             app,
             voter_addr,
             challenge_id,
-            previous_proposal_index,
+            proposal_id,
         )?),
-        ChallengeQueryMsg::PreviousProposals { challenge_id } => {
-            to_binary(&query_previous_proposal_results(deps, app, challenge_id)?)
-        }
+        ChallengeQueryMsg::PreviousProposals {
+            challenge_id,
+            start_after,
+            limit,
+        } => to_binary(&query_previous_proposal_results(
+            deps,
+            env,
+            app,
+            challenge_id,
+            start_after,
+            limit,
+        )?),
         ChallengeQueryMsg::Votes {
             challenge_id,
-            previous_proposal_index,
+            proposal_id,
             start_after,
             limit,
         } => to_binary(&query_votes(
             deps,
             app,
             challenge_id,
-            previous_proposal_index,
+            proposal_id,
             start_after,
             limit,
         )?),
@@ -57,18 +68,14 @@ pub fn query_handler(
 
 fn query_challenge(
     deps: Deps,
+    env: Env,
     _app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
-    let challenge = CHALLENGE_LIST.may_load(deps.storage, challenge_id)?;
+    let challenge = CHALLENGES.may_load(deps.storage, challenge_id)?;
 
     let challenge = if let Some(entry) = challenge {
-        let proposal_info = SIMPLE_VOTING.load_proposal(deps.storage, entry.current_proposal_id)?;
-        Some(ChallengeEntryResponse::from_entry_and_proposal_info(
-            entry,
-            challenge_id,
-            proposal_info,
-        ))
+        Some(ChallengeEntryResponse::from_entry(entry, challenge_id))
     } else {
         None
     };
@@ -83,7 +90,7 @@ fn query_challenges(
     let min = start.map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT);
 
-    let challenges = CHALLENGE_LIST
+    let challenges = CHALLENGES
         .range(deps.storage, min, None, Order::Ascending)
         .take(limit as usize)
         .map(|result| {
@@ -92,13 +99,7 @@ fn query_challenges(
                 .map_err(Into::into)
                 // Cast result into response
                 .and_then(|(challenge_id, entry)| {
-                    let proposal_info =
-                        SIMPLE_VOTING.load_proposal(deps.storage, entry.current_proposal_id)?;
-                    Ok(ChallengeEntryResponse::from_entry_and_proposal_info(
-                        entry,
-                        challenge_id,
-                        proposal_info,
-                    ))
+                    Ok(ChallengeEntryResponse::from_entry(entry, challenge_id))
                 })
         })
         .collect::<AppResult<Vec<ChallengeEntryResponse>>>()?;
@@ -117,35 +118,50 @@ fn query_vote(
     _app: &ChallengeApp,
     voter_addr: String,
     challenge_id: u64,
-    previous_proposal_index: Option<u64>,
+    proposal_id: Option<u64>,
 ) -> AppResult<VoteResponse> {
     let voter = deps.api.addr_validate(&voter_addr)?;
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let proposal_id = if let Some(index) = previous_proposal_index {
-        *challenge
-            .previous_proposal_ids
-            .get(index as usize)
-            .ok_or(StdError::not_found(format!(
-                "previous_proposal with index {index}"
-            )))?
+    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
+    let maybe_proposal_id = if let Some(proposal_id) = proposal_id {
+        // Only allow loading proposal_id for this challenge
+        CHALLENGE_PROPOSALS
+            .may_load(deps.storage, (challenge_id, proposal_id))?
+            .map(|_| proposal_id)
     } else {
-        challenge.current_proposal_id
+        last_proposal(challenge_id, deps)?
     };
-    let vote = SIMPLE_VOTING.load_vote(deps.storage, proposal_id, &voter)?;
+    let vote = if let Some(proposal_id) = maybe_proposal_id {
+        SIMPLE_VOTING.load_vote(deps.storage, proposal_id, &voter)?
+    } else {
+        None
+    };
     Ok(VoteResponse { vote })
 }
 
 fn query_previous_proposal_results(
     deps: Deps,
+    env: Env,
     _app: &ChallengeApp,
     challenge_id: u64,
+    start_after: Option<ProposalId>,
+    limit: Option<u64>,
 ) -> AppResult<PreviousProposalsResponse> {
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let results = challenge
-        .previous_proposal_ids
-        .iter()
-        .map(|&id| SIMPLE_VOTING.load_proposal(deps.storage, id))
-        .collect::<VoteResult<Vec<ProposalInfo>>>()?;
+    let min = start_after.map(Bound::exclusive);
+    let limit = limit.unwrap_or(DEFAULT_LIMIT);
+    let ids: Vec<ProposalId> = CHALLENGE_PROPOSALS
+        .prefix(challenge_id)
+        .keys(deps.storage, min, None, Order::Ascending)
+        .take(limit as usize)
+        .collect::<StdResult<_>>()?;
+    let results = ids
+        .into_iter()
+        .map(|id| {
+            SIMPLE_VOTING
+                .load_proposal(deps.storage, &env.block, id)
+                .map(|v| (id, v))
+        })
+        .collect::<VoteResult<Vec<(ProposalId, ProposalInfo)>>>()?;
+
     Ok(PreviousProposalsResponse { results })
 }
 
@@ -153,22 +169,23 @@ fn query_votes(
     deps: Deps,
     _app: &ChallengeApp,
     challenge_id: u64,
-    previous_proposal_index: Option<u64>,
+    proposal_id: Option<u64>,
     start_after: Option<cosmwasm_std::Addr>,
     limit: Option<u64>,
 ) -> AppResult<VotesResponse> {
-    let challenge = CHALLENGE_LIST.load(deps.storage, challenge_id)?;
-    let proposal_id = if let Some(index) = previous_proposal_index {
-        *challenge
-            .previous_proposal_ids
-            .get(index as usize)
-            .ok_or(StdError::not_found(format!(
-                "previous_proposal with index {index}"
-            )))?
+    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
+    let maybe_proposal_id = if let Some(proposal_id) = proposal_id {
+        // Only allow loading proposal_id for this challenge
+        CHALLENGE_PROPOSALS
+            .may_load(deps.storage, (challenge_id, proposal_id))?
+            .map(|_| proposal_id)
     } else {
-        challenge.current_proposal_id
+        last_proposal(challenge_id, deps)?
     };
-    let votes =
-        SIMPLE_VOTING.query_by_id(deps.storage, proposal_id, start_after.as_ref(), limit)?;
+    let votes = if let Some(proposal_id) = maybe_proposal_id {
+        SIMPLE_VOTING.query_by_id(deps.storage, proposal_id, start_after.as_ref(), limit)?
+    } else {
+        vec![]
+    };
     Ok(VotesResponse { votes })
 }

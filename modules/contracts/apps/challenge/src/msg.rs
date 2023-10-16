@@ -7,14 +7,13 @@ use crate::{
     },
 };
 use abstract_core::objects::{
-    voting::{ProposalInfo, ProposalStatus, VetoAdminAction, Vote, VoteConfig},
+    voting::{ProposalId, ProposalInfo, ProposalStatus, Vote, VoteConfig},
     AccountId, AssetEntry,
 };
 use abstract_sdk::{AbstractSdkResult, AccountVerification};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, Deps, StdResult};
+use cosmwasm_std::{Addr, Deps, StdResult, Timestamp, Uint64};
 use cw_address_like::AddressLike;
-use cw_utils::{Duration, Expiration};
 
 abstract_app::app_msg_types!(ChallengeApp, ChallengeExecuteMsg, ChallengeQueryMsg);
 
@@ -73,22 +72,11 @@ pub enum ChallengeExecuteMsg {
         /// Challenge Id for counting votes
         challenge_id: u64,
     },
-    /// Finish the Vote that is in veto state
-    VetoAction {
-        /// Challenge id to do the veto action
+    /// Veto the last vote
+    Veto {
+        /// Challenge id to do the veto
         challenge_id: u64,
-        /// Veto action for the challenge
-        action: VetoChallengeAction,
     },
-}
-
-/// Veto actions on challenge
-#[cosmwasm_schema::cw_serde]
-pub enum VetoChallengeAction {
-    /// Admin-only actions
-    AdminAction(VetoAdminAction),
-    /// Voter-only action, to finish veto state, in case veto period expired
-    FinishExpired,
 }
 
 /// Challenge query messages
@@ -124,18 +112,18 @@ pub enum ChallengeQueryMsg {
         voter_addr: String,
         /// Id of requested challenge
         challenge_id: u64,
-        /// Index of the previous proposal
-        /// Providing None requests current proposal results
-        previous_proposal_index: Option<u64>,
+        /// Proposal id of previous proposal
+        /// Providing None requests last proposal results
+        proposal_id: Option<u64>,
     },
     /// Get votes of challenge
     #[returns(VotesResponse)]
     Votes {
         /// Id of requested challenge
         challenge_id: u64,
-        /// Index of the previous proposal
-        /// Providing None requests current proposal results
-        previous_proposal_index: Option<u64>,
+        /// Proposal id of previous proposal
+        /// Providing None requests last proposal results
+        proposal_id: Option<u64>,
         /// start after Addr
         start_after: Option<Addr>,
         /// Max amount of challenges in response
@@ -146,6 +134,10 @@ pub enum ChallengeQueryMsg {
     PreviousProposals {
         /// Challenge Id for previous votes
         challenge_id: u64,
+        /// start after ProposalId
+        start_after: Option<ProposalId>,
+        /// Max amount of proposals in response
+        limit: Option<u64>,
     },
 }
 /// Response for previous_vote query
@@ -159,7 +151,7 @@ pub struct VotesResponse {
 #[cosmwasm_schema::cw_serde]
 pub struct PreviousProposalsResponse {
     /// results of previous proposals
-    pub results: Vec<ProposalInfo>,
+    pub results: Vec<(ProposalId, ProposalInfo)>,
 }
 
 /// Response for challenge query
@@ -183,27 +175,23 @@ pub struct ChallengeEntryResponse {
     /// Description of the challenge
     pub description: String,
     /// When challenge ends
-    pub end: Expiration,
-    /// Status of the current vote
-    pub status: ProposalStatus,
+    pub end_timestamp: Timestamp,
+    /// Proposal duration in seconds
+    pub proposal_duration_seconds: Uint64,
     /// State of strikes of admin for this challenge
     pub admin_strikes: AdminStrikes,
 }
 
 impl ChallengeEntryResponse {
-    pub(crate) fn from_entry_and_proposal_info(
-        entry: ChallengeEntry,
-        challenge_id: u64,
-        vote_info: ProposalInfo,
-    ) -> Self {
+    pub(crate) fn from_entry(entry: ChallengeEntry, challenge_id: u64) -> Self {
         Self {
             challenge_id,
             name: entry.name,
             strike_asset: entry.strike_asset,
             strike_strategy: entry.strike_strategy,
             description: entry.description,
-            end: entry.end,
-            status: vote_info.status,
+            end_timestamp: entry.end_timestamp,
+            proposal_duration_seconds: entry.proposal_duration_seconds,
             admin_strikes: entry.admin_strikes,
         }
     }
@@ -221,7 +209,10 @@ pub struct ChallengeRequest {
     /// Description of the challenge
     pub description: Option<String>,
     /// In what duration challenge should end
-    pub duration: Duration,
+    pub challenge_duration_seconds: Uint64,
+    /// Duration set for each proposal
+    /// Proposals starts after one vote initiated by any of the friends
+    pub proposal_duration_seconds: Uint64,
     /// Strike limit, defaults to 1
     pub strikes_limit: Option<u8>,
     /// Initial list of friends

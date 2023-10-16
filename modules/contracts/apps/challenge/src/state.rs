@@ -3,14 +3,12 @@ use abstract_core::objects::{
     voting::{ProposalId, SimpleVoting},
     AssetEntry,
 };
-use cosmwasm_std::{Addr, Uint128};
+use cosmwasm_std::{Addr, Uint128, Uint64, Timestamp};
 use cw_storage_plus::{Item, Map};
-use cw_utils::Expiration;
 
 use crate::msg::{ChallengeRequest, Friend};
 
 pub const MAX_AMOUNT_OF_FRIENDS: u64 = 20;
-pub const MAX_AMOUNT_OF_PROPOSALS: u64 = 50;
 
 #[cosmwasm_schema::cw_serde]
 pub struct Config {
@@ -24,9 +22,8 @@ pub struct ChallengeEntry {
     pub strike_strategy: StrikeStrategy,
     pub description: String,
     pub admin_strikes: AdminStrikes,
-    pub current_proposal_id: ProposalId,
-    pub previous_proposal_ids: Vec<ProposalId>,
-    pub end: Expiration,
+    pub proposal_duration_seconds: Uint64,
+    pub end_timestamp: Timestamp,
 }
 
 /// Strategy for striking the admin
@@ -64,11 +61,7 @@ impl AdminStrikes {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(
-        request: ChallengeRequest,
-        end: Expiration,
-        vote_id: ProposalId,
-    ) -> Result<Self, ValidationError> {
+    pub fn new(request: ChallengeRequest, end_timestamp:Timestamp) -> Result<Self, ValidationError> {
         // validate namd and description
         validation::validate_name(&request.name)?;
         validation::validate_description(request.description.as_deref())?;
@@ -79,9 +72,8 @@ impl ChallengeEntry {
             strike_strategy: request.strike_strategy,
             description: request.description.unwrap_or_default(),
             admin_strikes: AdminStrikes::new(request.strikes_limit),
-            current_proposal_id: vote_id,
-            previous_proposal_ids: Vec::default(),
-            end,
+            proposal_duration_seconds: request.proposal_duration_seconds,
+            end_timestamp,
         })
     }
 }
@@ -104,8 +96,9 @@ pub const NEXT_ID: Item<u64> = Item::new("next_id");
 pub const SIMPLE_VOTING: SimpleVoting =
     SimpleVoting::new("votes", "votes_id", "votes_info", "votes_config");
 
-pub const CHALLENGE_LIST: Map<u64, ChallengeEntry> = Map::new("challenge_list");
+pub const CHALLENGES: Map<u64, ChallengeEntry> = Map::new("challenges");
 /// Friends list for the challenge
 // Reduces gas consumption to load all friends
 // Helpful during distributing penalty and re-creation voting
-pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("friends_list");
+pub const CHALLENGE_FRIENDS: Map<u64, Vec<Friend<Addr>>> = Map::new("friends");
+pub const CHALLENGE_PROPOSALS: Map<(u64, ProposalId), cosmwasm_std::Empty> = Map::new("proposals");

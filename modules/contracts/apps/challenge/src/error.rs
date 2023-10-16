@@ -4,7 +4,7 @@ use abstract_core::{
     AbstractError,
 };
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::StdError;
+use cosmwasm_std::{StdError, Timestamp};
 use cw_asset::AssetError;
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -40,15 +40,6 @@ pub enum AppError {
     #[error("Challenge not found")]
     ChallengeNotFound {},
 
-    #[error("Already checked in")]
-    AlreadyCheckedIn {},
-
-    #[error("Voter already voted")]
-    AlreadyVoted {},
-
-    #[error("Friend already vetoed")]
-    AlreadyAdded {},
-
     #[error("Voter not found")]
     VoterNotFound {},
 
@@ -63,4 +54,13 @@ pub enum AppError {
 
     #[error("Friends limit reached, max: {MAX_AMOUNT_OF_FRIENDS}")]
     TooManyFriends {},
+
+    #[error("Can't edit friends during active proposal: {0}")]
+    FriendsEditDuringProposal(Timestamp),
+
+    #[error("Challenge expired")]
+    ChallengeExpired {},
+
+    #[error("Challenge has no proposals yet")]
+    ExpectedProposal {},
 }
