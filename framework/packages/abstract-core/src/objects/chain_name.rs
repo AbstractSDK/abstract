@@ -37,20 +37,6 @@ impl ChainName {
         Ok(chain_name)
     }
 
-    /// Gets the chain name from a raw ans-entry.
-    pub fn from_ibc_entry(entry: String) -> AbstractResult<Self> {
-        // First we separate the string (chain should be the first element, e.g. `juno>wyndex`)
-        let chain: Vec<&str> = entry.splitn(2, CHAIN_DELIMITER).collect();
-        // We verify there is exactly two elements (no more chain delimiters than 1 and exactly one)
-        ensure_eq!(chain.len(), 2, AbstractError::Assert(
-            format!("An IBC ANS entry should contain a chain identifier followed by the chain delimiter {} ", CHAIN_DELIMITER)
-        ));
-        // Then we check the chain name
-        let chain_name = Self(chain[0].to_string());
-        chain_name.verify()?;
-        Ok(chain_name)
-    }
-
     /// verify the formatting of the chain name
     pub fn verify(&self) -> AbstractResult<()> {
         // check length
