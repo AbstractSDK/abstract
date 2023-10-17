@@ -11,14 +11,11 @@ use cw_orch::{
         *,
     },
 };
-use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
-
     if networks.is_empty() {
         networks = SUPPORTED_CHAINS.to_vec();
     }
@@ -48,7 +45,10 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
                     monarch: abstr.account_factory.get_chain().sender().to_string(),
                 })?;
 
-            // anyhow::bail!("Artificial error for testing");
+            if abstr.account_factory.get_chain().block_info()?.chain_id == "phoenix-1"{
+                anyhow::bail!("Test error to show what happens when a deployment fails does");
+            }
+
             Ok(())
         }),
     )?;
