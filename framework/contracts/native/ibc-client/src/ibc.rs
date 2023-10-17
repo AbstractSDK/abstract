@@ -94,7 +94,7 @@ pub fn receive_action_callback(
                 result: callback.result,
             };
             Ok(IbcClientResponse::action("user_specific_callback")
-                .add_message(callback.into_cosmos_account_msg(callback_info.receiver)?)
+                .add_message(callback.into_cosmos_msg(callback_info.receiver)?)
                 .add_attribute("chain", host_chain.to_string())
                 .add_attribute("callback_id", callback_info.id))
         }

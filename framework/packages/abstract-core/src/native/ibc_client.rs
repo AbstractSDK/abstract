@@ -45,10 +45,10 @@ pub mod state {
 
     pub const CONFIG: Item<Config> = Item::new("config");
     /// (account_id, chain_name) -> remote proxy account address
-    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accounts");
+    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accs");
 
     // For callbacks tests
-    pub const ACKS: Item<Vec<String>> = Item::new("temp-callback-storage");
+    pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -232,7 +232,7 @@ mod tests {
         };
 
         let actual: CosmosMsg<Empty> = response_msg
-            .into_cosmos_account_msg(receiver.clone())
+            .into_cosmos_msg(receiver.clone())
             .unwrap();
 
         assert_that!(actual).matches(|e| {
