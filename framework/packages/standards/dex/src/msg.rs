@@ -20,7 +20,6 @@ pub type AskAsset = AnsAsset;
 /// The callback id for interacting with a dex over ibc
 pub const IBC_DEX_PROVIDER_ID: &str = "IBC_DEX_ACTION";
 
-
 /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = adapter::ExecuteMsg<DexExecuteMsg>;
 /// Top-level Abstract Adapter instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.

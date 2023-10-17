@@ -1,5 +1,5 @@
-use crate::DEX_ADAPTER_ID;
 use crate::handlers::execute::exchange_resolver::is_over_ibc;
+use crate::DEX_ADAPTER_ID;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;

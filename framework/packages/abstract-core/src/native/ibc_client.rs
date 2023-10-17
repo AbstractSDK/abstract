@@ -231,9 +231,7 @@ mod tests {
             result,
         };
 
-        let actual: CosmosMsg<Empty> = response_msg
-            .into_cosmos_msg(receiver.clone())
-            .unwrap();
+        let actual: CosmosMsg<Empty> = response_msg.into_cosmos_msg(receiver.clone()).unwrap();
 
         assert_that!(actual).matches(|e| {
             matches!(
