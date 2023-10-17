@@ -4,28 +4,25 @@ use abstract_core::{
     objects::{
         gov_type::GovernanceDetails,
         module::{ModuleInfo, ModuleVersion},
-        voting::{
-            ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, VetoAdminAction, Vote,
-            VoteConfig, VoteError,
-        },
+        voting::{ProposalInfo, ProposalOutcome, ProposalStatus, Threshold, Vote, VoteConfig},
         AssetEntry,
     },
 };
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, *};
 use challenge_app::{
     contract::{CHALLENGE_APP_ID, CHALLENGE_APP_VERSION},
+    error::AppError,
     msg::{
         ChallengeEntryResponse, ChallengeInstantiateMsg, ChallengeQueryMsg, ChallengeRequest,
         ChallengeResponse, ChallengesResponse, Friend, FriendByAddr, FriendsResponse,
-        InstantiateMsg, PreviousProposalsResponse, VetoChallengeAction, VoteResponse,
+        InstantiateMsg, ProposalsResponse, VoteResponse,
     },
     state::{AdminStrikes, ChallengeEntryUpdate, StrikeStrategy, UpdateFriendsOpKind},
     *,
 };
-use cosmwasm_std::{coin, Uint128};
+use cosmwasm_std::{coin, Uint128, Uint64};
 use cw_asset::AssetInfo;
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
-use cw_utils::{Duration, Expiration};
 use lazy_static::lazy_static;
 
 const ADMIN: &str = "admin";
@@ -40,8 +37,8 @@ lazy_static! {
         strike_asset: AssetEntry::new("denom"),
         strike_strategy: StrikeStrategy::Split(Uint128::new(30_000_000)),
         description: Some("Test Challenge".to_string()),
-        challenge_duration: cw_utils::DAY,
-        proposal_duration: cw_utils::HOUR,
+        challenge_duration_seconds: Uint64::new(10_000),
+        proposal_duration_seconds: Uint64::new(1_000),
         strikes_limit: None,
         init_friends: FRIENDS.clone()
     };
@@ -139,7 +136,7 @@ fn setup() -> anyhow::Result<(Mock, AbstractAccount<Mock>, Abstract<Mock>, Deplo
             module: ChallengeInstantiateMsg {
                 vote_config: VoteConfig {
                     threshold: Threshold::Majority {},
-                    veto_duration: None,
+                    veto_duration_seconds: None,
                 },
             },
         },
@@ -181,7 +178,7 @@ fn test_should_successful_install() -> anyhow::Result<()> {
 
 #[test]
 fn test_should_create_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
     let challenge_req = CHALLENGE_REQ.clone();
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
 
@@ -201,8 +198,8 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
         strike_asset: challenge_req.strike_asset,
         strike_strategy: challenge_req.strike_strategy,
         description: challenge_req.description.unwrap(),
-        end: challenge_req.challenge_duration.after(&_mock.block_info()?),
-        status: ProposalStatus::Active,
+        end_timestamp: mock.block_info()?.time.plus_seconds(10_000),
+        proposal_duration_seconds: Uint64::new(1_000),
         admin_strikes: AdminStrikes {
             num_strikes: 0,
             limit: challenge_req.strikes_limit.unwrap_or(1),
@@ -241,10 +238,10 @@ fn test_update_challenge() -> anyhow::Result<()> {
 
 #[test]
 fn test_cancel_challenge() -> anyhow::Result<()> {
-    let (_mock, _account, _abstr, apps) = setup()?;
+    let (mock, _account, _abstr, apps) = setup()?;
 
+    // Challenge without active proposals
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
-
     apps.challenge_app.cancel_challenge(FIRST_CHALLENGE_ID)?;
 
     let res: ChallengeResponse =
@@ -254,8 +251,36 @@ fn test_cancel_challenge() -> anyhow::Result<()> {
             }))?;
     let challenge = res.challenge.unwrap();
 
+    assert_eq!(challenge.end_timestamp, mock.block_info()?.time);
+
+    // Challenge with active proposal
+    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+    apps.challenge_app
+        .call_as(&Addr::unchecked(ALICE_ADDRESS.as_str()))
+        .cast_vote(
+            FIRST_CHALLENGE_ID + 1,
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        )?;
+
+    apps.challenge_app
+        .cancel_challenge(FIRST_CHALLENGE_ID + 1)?;
+
+    let res: ChallengeResponse =
+        apps.challenge_app
+            .query(&QueryMsg::from(ChallengeQueryMsg::Challenge {
+                challenge_id: FIRST_CHALLENGE_ID + 1,
+            }))?;
+    let challenge = res.challenge.unwrap();
+    assert_eq!(challenge.end_timestamp, mock.block_info()?.time);
+    let proposals: ProposalsResponse =
+        apps.challenge_app
+            .proposals(FIRST_CHALLENGE_ID + 1, None, None)?;
+
     assert_eq!(
-        challenge.status,
+        proposals.proposals[0].1.status,
         ProposalStatus::Finished(ProposalOutcome::Canceled)
     );
     Ok(())
@@ -374,10 +399,44 @@ fn test_cast_vote() -> anyhow::Result<()> {
             .query(&QueryMsg::from(ChallengeQueryMsg::Vote {
                 voter_addr: ALICE_ADDRESS.clone(),
                 challenge_id: FIRST_CHALLENGE_ID,
-                previous_proposal_index: None,
+                proposal_id: None,
             }))?;
 
     assert_eq!(response.vote, Some(vote));
+    Ok(())
+}
+
+#[test]
+fn test_update_friends_during_proposal() -> anyhow::Result<()> {
+    let (mock, _account, _abstr, apps) = setup()?;
+    apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
+
+    // start proposal
+    apps.challenge_app
+        .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
+        .cast_vote(
+            FIRST_CHALLENGE_ID,
+            Vote {
+                vote: true,
+                memo: None,
+            },
+        )?;
+
+    let err: AppError = apps
+        .challenge_app
+        .update_friends_for_challenge(
+            FIRST_CHALLENGE_ID,
+            vec![ALICE_FRIEND.clone()],
+            UpdateFriendsOpKind::Remove {},
+        )
+        .unwrap_err()
+        .downcast()
+        .unwrap();
+    assert_eq!(
+        err,
+        AppError::FriendsEditDuringProposal(mock.block_info()?.time.plus_seconds(1_000))
+    );
+
     Ok(())
 }
 
@@ -386,6 +445,7 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
 
+    // cast votes
     let votes = vec![
         (
             Addr::unchecked(ALICE_ADDRESS.clone()),
@@ -413,18 +473,25 @@ fn test_not_charge_penalty_for_voting_false() -> anyhow::Result<()> {
 
     let prev_votes_results = apps
         .challenge_app
-        .previous_proposals(FIRST_CHALLENGE_ID)?
-        .results;
-    let expected_end = Expiration::AtTime(mock.block_info()?.time);
+        .proposals(FIRST_CHALLENGE_ID, None, None)?
+        .proposals;
+    let expected_end = mock.block_info()?.time;
     assert_eq!(
         prev_votes_results,
-        vec![ProposalInfo {
-            total_voters: 3,
-            votes_for: 0,
-            votes_against: 3,
-            status: ProposalStatus::Finished(ProposalOutcome::Failed),
-            end: expected_end,
-        }]
+        vec![(
+            1,
+            ProposalInfo {
+                total_voters: 3,
+                votes_for: 0,
+                votes_against: 3,
+                status: ProposalStatus::Finished(ProposalOutcome::Failed),
+                config: VoteConfig {
+                    threshold: Threshold::Majority {},
+                    veto_duration_seconds: None,
+                },
+                end_timestamp: expected_end,
+            }
+        )]
     );
 
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
@@ -508,11 +575,11 @@ fn test_query_challenges_within_different_range() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_vetoed_by_admin() -> anyhow::Result<()> {
+fn test_vetoed() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.update_config(VoteConfig {
         threshold: Threshold::Majority {},
-        veto_duration: Some(Duration::Height(3)),
+        veto_duration_seconds: Some(Uint64::new(1_000)),
     })?;
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
 
@@ -539,14 +606,17 @@ fn test_vetoed_by_admin() -> anyhow::Result<()> {
             },
         ),
     ];
-    run_challenge_vote_sequence(&mock, &apps, votes)?;
-    apps.challenge_app.veto_action(
-        VetoChallengeAction::AdminAction(VetoAdminAction::Veto {}),
-        FIRST_CHALLENGE_ID,
-    )?;
-    let prev_proposals: PreviousProposalsResponse =
-        apps.challenge_app.previous_proposals(FIRST_CHALLENGE_ID)?;
-    let status = prev_proposals.results[0].status.clone();
+    for (signer, vote) in votes {
+        apps.challenge_app
+            .call_as(&signer)
+            .cast_vote(FIRST_CHALLENGE_ID, vote)?;
+    }
+    mock.wait_seconds(1_000)?;
+    apps.challenge_app.veto(FIRST_CHALLENGE_ID)?;
+    let prev_proposals: ProposalsResponse =
+        apps.challenge_app
+            .proposals(FIRST_CHALLENGE_ID, None, None)?;
+    let status = prev_proposals.proposals[0].1.status.clone();
     assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Vetoed));
 
     // balance unchanged
@@ -560,7 +630,7 @@ fn test_veto_expired() -> anyhow::Result<()> {
     let (mock, account, _abstr, apps) = setup()?;
     apps.challenge_app.update_config(VoteConfig {
         threshold: Threshold::Majority {},
-        veto_duration: Some(Duration::Height(3)),
+        veto_duration_seconds: Some(Uint64::new(1_000)),
     })?;
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
 
@@ -587,19 +657,28 @@ fn test_veto_expired() -> anyhow::Result<()> {
             },
         ),
     ];
-    run_challenge_vote_sequence(&mock, &apps, votes)?;
+    for (signer, vote) in votes {
+        apps.challenge_app
+            .call_as(&signer)
+            .cast_vote(FIRST_CHALLENGE_ID, vote)?;
+    }
 
-    // wait blocks to expire veto
-    mock.wait_blocks(4)?;
+    // wait time to expire veto
+    mock.wait_seconds(2_000)?;
     apps.challenge_app
         .call_as(&Addr::unchecked(ALICE_ADDRESS.clone()))
-        .veto_action(VetoChallengeAction::FinishExpired, FIRST_CHALLENGE_ID)?;
+        .count_votes(FIRST_CHALLENGE_ID)?;
 
-    let challenge: ChallengeResponse = apps.challenge_app.challenge(FIRST_CHALLENGE_ID)?;
-    let status = challenge.challenge.unwrap().status;
-    assert_eq!(status, ProposalStatus::Finished(ProposalOutcome::Passed));
+    let proposals: ProposalsResponse =
+        apps.challenge_app
+            .proposals(FIRST_CHALLENGE_ID, None, None)?;
 
-    // balance unchanged
+    assert_eq!(
+        proposals.proposals[0].1.status,
+        ProposalStatus::Finished(ProposalOutcome::Passed)
+    );
+
+    // balance updated
     let balance = mock.query_balance(&account.proxy.address()?, DENOM)?;
     assert_eq!(balance, Uint128::new(INITIAL_BALANCE - 30_000_000));
     Ok(())
@@ -618,10 +697,7 @@ fn test_duplicate_friends() -> anyhow::Result<()> {
         .unwrap_err()
         .downcast()
         .unwrap();
-    assert_eq!(
-        err,
-        error::AppError::VoteError(VoteError::DuplicateAddrs {})
-    );
+    assert_eq!(err, error::AppError::DuplicateFriends {});
 
     // Add duplicate (Alice already exists)
     apps.challenge_app.create_challenge(CHALLENGE_REQ.clone())?;
@@ -635,15 +711,12 @@ fn test_duplicate_friends() -> anyhow::Result<()> {
         .unwrap_err()
         .downcast()
         .unwrap();
-    assert_eq!(
-        err,
-        error::AppError::VoteError(VoteError::DuplicateAddrs {})
-    );
+    assert_eq!(err, error::AppError::DuplicateFriends {});
     Ok(())
 }
 
 fn run_challenge_vote_sequence(
-    _mock: &Mock,
+    mock: &Mock,
     apps: &DeployedApps,
     votes: Vec<(Addr, Vote)>,
 ) -> anyhow::Result<()> {
@@ -652,6 +725,7 @@ fn run_challenge_vote_sequence(
             .call_as(&signer)
             .cast_vote(FIRST_CHALLENGE_ID, vote)?;
     }
+    mock.wait_seconds(1_000)?;
     apps.challenge_app.count_votes(FIRST_CHALLENGE_ID)?;
     Ok(())
 }

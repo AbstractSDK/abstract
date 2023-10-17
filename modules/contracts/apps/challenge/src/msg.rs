@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use abstract_core::objects::{
-    voting::{ProposalId, ProposalInfo, ProposalStatus, Vote, VoteConfig},
+    voting::{ProposalId, ProposalInfo, Vote, VoteConfig},
     AccountId, AssetEntry,
 };
 use abstract_sdk::{AbstractSdkResult, AccountVerification};
@@ -130,8 +130,8 @@ pub enum ChallengeQueryMsg {
         limit: Option<u64>,
     },
     /// Get results of previous votes for this challenge
-    #[returns(PreviousProposalsResponse)]
-    PreviousProposals {
+    #[returns(ProposalsResponse)]
+    Proposals {
         /// Challenge Id for previous votes
         challenge_id: u64,
         /// start after ProposalId
@@ -147,11 +147,11 @@ pub struct VotesResponse {
     pub votes: Vec<(Addr, Option<Vote>)>,
 }
 
-/// Response for previous_vote query
+/// Response for proposals query
 #[cosmwasm_schema::cw_serde]
-pub struct PreviousProposalsResponse {
-    /// results of previous proposals
-    pub results: Vec<(ProposalId, ProposalInfo)>,
+pub struct ProposalsResponse {
+    /// results of proposals
+    pub proposals: Vec<(ProposalId, ProposalInfo)>,
 }
 
 /// Response for challenge query

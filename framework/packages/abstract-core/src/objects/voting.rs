@@ -344,9 +344,11 @@ impl<'a> SimpleVoting<'a> {
             .may_load(store, proposal_id)?
             .ok_or(VoteError::NoProposalById {})?;
         // Check if veto period and update if so
-        if let Some(veto_duration) = proposal.config.veto_duration_seconds {
+        if let (ProposalStatus::Active, Some(veto_duration)) =
+            (&proposal.status, proposal.config.veto_duration_seconds)
+        {
             let veto_expiration = proposal.end_timestamp.plus_seconds(veto_duration.u64());
-            if block.time > proposal.end_timestamp && block.time <= veto_expiration {
+            if block.time >= proposal.end_timestamp && block.time < veto_expiration {
                 proposal.status = ProposalStatus::VetoPeriod(veto_expiration)
             }
         }
@@ -433,7 +435,7 @@ impl ProposalInfo {
 
     pub fn assert_active_proposal(&self, block: &BlockInfo) -> VoteResult<()> {
         self.status.assert_is_active()?;
-        if block.time > self.end_timestamp {
+        if block.time >= self.end_timestamp {
             Err(VoteError::ProposalExpired {
                 expiration: self.end_timestamp,
             })

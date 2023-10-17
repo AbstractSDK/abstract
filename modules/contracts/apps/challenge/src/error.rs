@@ -55,6 +55,9 @@ pub enum AppError {
     #[error("Friends limit reached, max: {MAX_AMOUNT_OF_FRIENDS}")]
     TooManyFriends {},
 
+    #[error("Can't have duplicate friends addresses")]
+    DuplicateFriends {},
+
     #[error("Can't edit friends during active proposal: {0}")]
     FriendsEditDuringProposal(Timestamp),
 

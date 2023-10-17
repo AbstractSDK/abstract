@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::error::AppError;
 use abstract_core::objects::voting::{ProposalId, ProposalInfo, ProposalOutcome, Vote};
 use abstract_dex_adapter::msg::OfferAsset;
@@ -76,8 +78,14 @@ fn create_challenge(
         .map(|human| human.check(deps.as_ref(), &app))
         .collect::<AbstractSdkResult<_>>()?;
 
-    let (initial_friends, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
+    let (friend_addrs, friends): (Vec<Addr>, Vec<Friend<Addr>>) =
         friends_validated.into_iter().unzip();
+    // Check if addrs unique
+    let mut unique_addrs = HashSet::with_capacity(friend_addrs.len());
+    if !friend_addrs.iter().all(|x| unique_addrs.insert(x)) {
+        return Err(AppError::DuplicateFriends {});
+    }
+
     // Generate the challenge id
     let challenge_id = NEXT_ID.update(deps.storage, |id| AppResult::Ok(id + 1))?;
     CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &friends)?;
@@ -98,7 +106,7 @@ fn create_challenge(
 
 fn update_challenge(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     app: ChallengeApp,
     challenge_id: u64,
@@ -137,11 +145,21 @@ fn cancel_challenge(
     challenge_id: u64,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
+    let mut challenge = CHALLENGES.load(deps.storage, challenge_id)?;
+    // Check if this challenge still active
+    if env.block.time >= challenge.end_timestamp {
+        return Err(AppError::ChallengeExpired {});
+    }
+
+    // If there is active proposal - cancel it
     let last_proposal_id = last_proposal(challenge_id, deps.as_ref())?;
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     if let Some(proposal_id) = last_proposal_id {
         SIMPLE_VOTING.cancel_proposal(deps.storage, &env.block, proposal_id)?;
     }
+
+    // End it now
+    challenge.end_timestamp = env.block.time;
+    CHALLENGES.save(deps.storage, challenge_id, &challenge)?;
 
     Ok(app.tag_response(
         Response::new().add_attribute("challenge_id", challenge_id.to_string()),
@@ -159,7 +177,6 @@ fn update_friends_for_challenge(
     op_kind: UpdateFriendsOpKind,
 ) -> AppResult {
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     // Validate friend addr and account ids
     let friends_validated: Vec<(Addr, Friend<Addr>)> = friends
         .iter()
@@ -182,15 +199,28 @@ fn update_friends_for_challenge(
 
     match op_kind {
         UpdateFriendsOpKind::Add {} => {
-            CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
-                let mut current_friends = current_friends.ok_or(AppError::ZeroFriends {})?;
-                ensure!(
-                    friends.len() + current_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
-                    AppError::TooManyFriends {}
-                );
-                current_friends.extend(friends.clone().into_iter());
-                AppResult::Ok(current_friends)
-            })?;
+            let mut current_friends = CHALLENGE_FRIENDS
+                .may_load(deps.storage, challenge_id)?
+                .ok_or(AppError::ChallengeNotFound {})?;
+
+            ensure!(
+                friends.len() + current_friends.len() < MAX_AMOUNT_OF_FRIENDS as usize,
+                AppError::TooManyFriends {}
+            );
+
+            let mut current_friends_addrs: Vec<Addr> = current_friends
+                .iter()
+                .map(|f| f.addr(deps.as_ref(), &app))
+                .collect::<AbstractSdkResult<_>>()?;
+            current_friends_addrs.extend(voters_addrs);
+            // Check if addrs unique
+            let mut unique_addrs = HashSet::with_capacity(current_friends_addrs.len());
+            if !current_friends_addrs.iter().all(|x| unique_addrs.insert(x)) {
+                return Err(AppError::DuplicateFriends {});
+            }
+
+            current_friends.extend(friends);
+            CHALLENGE_FRIENDS.save(deps.storage, challenge_id, &current_friends)?;
         }
         UpdateFriendsOpKind::Remove {} => {
             CHALLENGE_FRIENDS.update(deps.storage, challenge_id, |current_friends| {
@@ -227,7 +257,7 @@ fn cast_vote(
             }
         }
         // Or create a new one otherwise
-        if env.block.time > challenge.end_timestamp {
+        if env.block.time >= challenge.end_timestamp {
             return Err(AppError::ChallengeExpired {});
         }
         let friends: Vec<Addr> = CHALLENGE_FRIENDS
@@ -242,7 +272,7 @@ fn cast_vote(
                 .plus_seconds(challenge.proposal_duration_seconds.u64()),
             &friends,
         )?;
-        CHALLENGE_PROPOSALS.save(deps.storage, (challenge_id, proposal_id), &Empty {});
+        CHALLENGE_PROPOSALS.save(deps.storage, (challenge_id, proposal_id), &Empty {})?;
         proposal_id
     };
 
@@ -274,7 +304,7 @@ fn count_votes(
     let (proposal_info, outcome) =
         SIMPLE_VOTING.count_votes(deps.storage, &env.block, proposal_id)?;
 
-    try_finish_vote(
+    try_finish_challenge(
         deps,
         env,
         app,
@@ -292,7 +322,6 @@ fn veto(
     app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult {
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     let proposal_id =
         last_proposal(challenge_id, deps.as_ref())?.ok_or(AppError::ExpectedProposal {})?;
 
@@ -305,9 +334,9 @@ fn veto(
     ))
 }
 
-fn try_finish_vote(
+fn try_finish_challenge(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     app: &ChallengeApp,
     proposal_info: ProposalInfo,
     proposal_outcome: ProposalOutcome,

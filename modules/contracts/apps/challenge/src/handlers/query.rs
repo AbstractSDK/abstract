@@ -1,7 +1,7 @@
 use crate::contract::{AppResult, ChallengeApp};
 use crate::msg::{
     ChallengeEntryResponse, ChallengeQueryMsg, ChallengeResponse, ChallengesResponse,
-    FriendsResponse, PreviousProposalsResponse, VoteResponse, VotesResponse,
+    FriendsResponse, ProposalsResponse, VoteResponse, VotesResponse,
 };
 use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
 use abstract_core::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
@@ -37,11 +37,11 @@ pub fn query_handler(
             challenge_id,
             proposal_id,
         )?),
-        ChallengeQueryMsg::PreviousProposals {
+        ChallengeQueryMsg::Proposals {
             challenge_id,
             start_after,
             limit,
-        } => to_binary(&query_previous_proposal_results(
+        } => to_binary(&query_proposals(
             deps,
             env,
             app,
@@ -68,7 +68,7 @@ pub fn query_handler(
 
 fn query_challenge(
     deps: Deps,
-    env: Env,
+    _env: Env,
     _app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
@@ -121,7 +121,6 @@ fn query_vote(
     proposal_id: Option<u64>,
 ) -> AppResult<VoteResponse> {
     let voter = deps.api.addr_validate(&voter_addr)?;
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     let maybe_proposal_id = if let Some(proposal_id) = proposal_id {
         // Only allow loading proposal_id for this challenge
         CHALLENGE_PROPOSALS
@@ -138,14 +137,14 @@ fn query_vote(
     Ok(VoteResponse { vote })
 }
 
-fn query_previous_proposal_results(
+fn query_proposals(
     deps: Deps,
     env: Env,
     _app: &ChallengeApp,
     challenge_id: u64,
     start_after: Option<ProposalId>,
     limit: Option<u64>,
-) -> AppResult<PreviousProposalsResponse> {
+) -> AppResult<ProposalsResponse> {
     let min = start_after.map(Bound::exclusive);
     let limit = limit.unwrap_or(DEFAULT_LIMIT);
     let ids: Vec<ProposalId> = CHALLENGE_PROPOSALS
@@ -162,7 +161,7 @@ fn query_previous_proposal_results(
         })
         .collect::<VoteResult<Vec<(ProposalId, ProposalInfo)>>>()?;
 
-    Ok(PreviousProposalsResponse { results })
+    Ok(ProposalsResponse { proposals: results })
 }
 
 fn query_votes(
@@ -173,7 +172,6 @@ fn query_votes(
     start_after: Option<cosmwasm_std::Addr>,
     limit: Option<u64>,
 ) -> AppResult<VotesResponse> {
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
     let maybe_proposal_id = if let Some(proposal_id) = proposal_id {
         // Only allow loading proposal_id for this challenge
         CHALLENGE_PROPOSALS
