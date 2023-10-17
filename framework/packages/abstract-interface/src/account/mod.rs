@@ -197,10 +197,10 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
     pub fn register_remote_account(
         &self,
-        destination: &str,
+        host_chain: &str,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
-        self.manager.register_remote_account(destination)
+        self.manager.register_remote_account(host_chain)
     }
 }
 

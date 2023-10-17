@@ -175,13 +175,13 @@ impl<Chain: CwEnv> Manager<Chain> {
     /// Helper to create remote accounts
     pub fn register_remote_account(
         &self,
-        destination: &str,
+        host_chain: &str,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let result = self.exec_on_module(
             to_binary(&abstract_core::proxy::ExecuteMsg::IbcAction {
                 msgs: vec![abstract_core::ibc_client::ExecuteMsg::Register {
-                    host_chain: destination.into(),
+                    host_chain: host_chain.into(),
                 }],
             })?,
             PROXY.to_string(),
@@ -193,14 +193,14 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote(
         &self,
-        destination: &str,
+        host_chain: &str,
         msg: ExecuteMsg,
         callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: destination.into(),
+                host_chain: host_chain.into(),
                 action: HostAction::Dispatch { manager_msg: msg },
                 callback_info,
             }],
@@ -211,7 +211,7 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn execute_on_remote_module(
         &self,
-        destination: &str,
+        host_chain: &str,
         module_id: &str,
         msg: Binary,
         callback_info: Option<CallbackInfo>,
@@ -219,7 +219,7 @@ impl<Chain: CwEnv> Manager<Chain> {
     {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: destination.into(),
+                host_chain: host_chain.into(),
                 action: HostAction::Dispatch {
                     manager_msg: ExecuteMsg::ExecOnModule {
                         module_id: module_id.to_string(),
@@ -235,13 +235,13 @@ impl<Chain: CwEnv> Manager<Chain> {
 
     pub fn send_all_funds_back(
         &self,
-        destination: &str,
+        host_chain: &str,
         callback_info: Option<CallbackInfo>,
     ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
     {
         let msg = abstract_core::proxy::ExecuteMsg::IbcAction {
             msgs: vec![abstract_core::ibc_client::ExecuteMsg::RemoteAction {
-                host_chain: destination.into(),
+                host_chain: host_chain.into(),
                 action: HostAction::Helpers(HelperAction::SendAllBack),
                 callback_info,
             }],
