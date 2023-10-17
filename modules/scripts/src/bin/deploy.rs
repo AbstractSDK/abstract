@@ -12,7 +12,7 @@ use clap::Parser;
 use cw_orch::{
     deploy::Deploy,
     prelude::{
-        networks::{parse_network, ChainInfo, JUNO_1},
+        networks::{parse_network, ChainInfo},
         *,
     },
 };
@@ -24,14 +24,7 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 fn full_deploy() -> anyhow::Result<()> {
     let rt = Runtime::new()?;
 
-    let chain = DaemonBuilder::default()
-        .handle(rt.handle())
-        .chain(JUNO_1.clone())
-        .build()?;
-
-    let deployment = Abstract::load_from(chain)
-        .unwrap()
-        .get_all_deployed_chains();
+    let deployment = Abstract::<Daemon>::get_all_deployed_chains();
     let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
 
     for network in networks {

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
 
 ### Changed
+- `is_module_installed` moved from `Manager` to `Account`
 
 ### Removed
 
