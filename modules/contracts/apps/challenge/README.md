@@ -24,5 +24,5 @@ The Challenge App Module is used to create challenges with friends and motivate 
 
 To use the Challenge App Module in your Rust project, add the following dependency to your `Cargo.toml`:
 ```toml
-challenge-app = { git = "https://github.com/AbstractSDK/abstract.git", tag="v0.18.0", default-features = false }
+challenge-app = { git = "https://github.com/AbstractSDK/abstract.git", tag = "v0.19.0", default-features = false }
 ```
