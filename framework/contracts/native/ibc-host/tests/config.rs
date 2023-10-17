@@ -1,6 +1,6 @@
+use abstract_core::ibc_host::ClientProxyResponse;
 use abstract_core::ibc_host::InstantiateMsg;
 use abstract_core::ibc_host::QueryMsg;
-use abstract_core::ibc_host::ClientProxyResponse;
 
 use abstract_ibc_host::contract::execute;
 use abstract_ibc_host::contract::instantiate;
@@ -43,7 +43,7 @@ fn test_registered_client() {
     let client_name = query(
         deps.as_ref(),
         mock_env(),
-        QueryMsg::AssociatedClient {
+        QueryMsg::ClientProxy {
             chain: "juno".to_string(),
         },
     )

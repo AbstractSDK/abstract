@@ -227,7 +227,7 @@ mod tests {
 
         let response_msg = IbcResponseMsg {
             id: callback_id,
-            msg: callback_msg,
+            msg: Some(callback_msg),
             result,
         };
 

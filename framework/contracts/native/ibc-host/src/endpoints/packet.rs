@@ -1,46 +1,21 @@
 use crate::{
     account_commands::{self, receive_dispatch, receive_register, receive_send_all_back},
     contract::HostResult,
-    error::HostError,
 };
 use abstract_core::{
     ibc_host::{
-        state::{ActionAfterCreationCache, REVERSE_CHAIN_PROXIES, TEMP_ACTION_AFTER_CREATION},
-        ExecuteMsg, HelperAction,
+        state::{ActionAfterCreationCache, TEMP_ACTION_AFTER_CREATION},
+        HelperAction,
     },
     objects::{chain_name::ChainName, AccountId},
 };
 use abstract_sdk::core::ibc_host::{HostAction, InternalAction};
-use cosmwasm_std::{wasm_execute, DepsMut, Env, MessageInfo, Response, StdError, SubMsg};
+use cosmwasm_std::{DepsMut, Env};
 
-use super::reply::INIT_BEFORE_ACTION_REPLY_ID;
-
-/// Takes ibc request, matches and executes
+/// Handle actions that are passed to the IBC host contract
+/// This function is not permissioned and access control needs to be handled outside of it
+/// Usually the `client_chain` argument needs to be derived from the message sender
 pub fn handle_host_action(
-    deps: DepsMut,
-    env: Env,
-    info: MessageInfo,
-    proxy_address: String,
-    account_id: AccountId,
-    host_action: HostAction,
-) -> HostResult {
-    // We verify the caller is indeed registered for the calling chain
-    let client_chain = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
-
-    // We execute the action
-    _handle_host_action(
-        deps,
-        env,
-        client_chain,
-        proxy_address,
-        account_id,
-        host_action,
-    )
-}
-
-// Internal function non permissioned
-// We added this step to be able to execute actions from inside the ibc host
-pub(crate) fn _handle_host_action(
     deps: DepsMut,
     env: Env,
     client_chain: ChainName,
@@ -58,7 +33,7 @@ pub(crate) fn _handle_host_action(
             description,
             link,
             name,
-        }) => receive_register(deps, env, account_id, name, description, link),
+        }) => receive_register(deps, env, account_id, name, description, link, false),
 
         action => {
             // If this account already exists, we can propagate the action
@@ -82,16 +57,13 @@ pub(crate) fn _handle_host_action(
                 // If no account is created already, we create one and execute the action on reply
                 // The account metadata are not set with this call
                 // One will have to change them at a later point if they decide to
-                let create_account_message = wasm_execute(
-                    env.contract.address,
-                    &ExecuteMsg::InternalRegisterAccount {
-                        client_chain: client_chain.to_string(),
-                        account_id,
-                    },
-                    vec![],
-                )?;
+                let name = format!(
+                    "Remote Abstract Account for {}/{}",
+                    client_chain.as_str(),
+                    account_id
+                );
 
-                // We save the action they wanted to dispatch
+                // We save the action they wanted to dispatch for the reply triggered by the receive_register function
                 TEMP_ACTION_AFTER_CREATION.save(
                     deps.storage,
                     &ActionAfterCreationCache {
@@ -101,12 +73,7 @@ pub(crate) fn _handle_host_action(
                         chain_name: client_chain,
                     },
                 )?;
-
-                // We add a submessage after account creation to dispatch the action
-                let sub_msg =
-                    SubMsg::reply_on_success(create_account_message, INIT_BEFORE_ACTION_REPLY_ID);
-
-                Ok(Response::new().add_submessage(sub_msg))
+                receive_register(deps, env, account_id, name, None, None, true)
             }
         }
     }

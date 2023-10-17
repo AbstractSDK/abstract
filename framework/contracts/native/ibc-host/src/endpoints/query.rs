@@ -3,7 +3,7 @@ use std::str::FromStr;
 use abstract_core::{
     ibc_host::{
         state::{CHAIN_PROXIES, CONFIG},
-        ConfigResponse, ClientProxyResponse, ClientProxiesResponse,
+        ClientProxiesResponse, ClientProxyResponse, ConfigResponse,
     },
     objects::chain_name::ChainName,
 };
@@ -52,7 +52,5 @@ fn registered_chains(
 
 fn associated_client(deps: Deps, chain: String) -> HostResult<ClientProxyResponse> {
     let proxy = CHAIN_PROXIES.load(deps.storage, &ChainName::from_str(&chain)?)?;
-    Ok(ClientProxyResponse {
-        proxy,
-    })
+    Ok(ClientProxyResponse { proxy })
 }

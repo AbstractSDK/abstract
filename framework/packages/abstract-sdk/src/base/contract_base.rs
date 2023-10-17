@@ -38,7 +38,7 @@ pub type QueryHandlerFn<Module, CustomQueryMsg, Error> =
 // ANCHOR_END: query
 
 type CallbackId = String;
-type CallbackMessage = Binary;
+type CallbackMessage = Option<Binary>;
 // ANCHOR: ibc
 /// Function signature for an IBC callback handler.
 pub type IbcCallbackHandlerFn<Module, Error> = fn(

@@ -63,7 +63,7 @@ pub mod mock_test {
         assert_eq!(remote_hosts.hosts[0].0, ChainName::from_chain_id(STARGAZE));
 
         // We verify the client is active on the host chain JUNO
-        let remote_hosts = abstr2.ibc.host.registered_chains(None, None)?;
+        let remote_hosts = abstr2.ibc.host.client_proxies(None, None)?;
         assert_eq!(remote_hosts.chains.len(), 1);
         assert_eq!(remote_hosts.chains[0].0, ChainName::from_chain_id(JUNO));
 

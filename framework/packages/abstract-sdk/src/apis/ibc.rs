@@ -219,7 +219,6 @@ impl<'a, T: IbcInterface> IbcClient<'a, T> {
 mod test {
     use super::*;
     use crate::mock_module::*;
-    use abstract_core::ibc::EMPTY_BINARY;
     use abstract_testing::prelude::*;
     use cosmwasm_std::{testing::*, *};
     use speculoos::prelude::*;
@@ -271,7 +270,7 @@ mod test {
         let expected_callback = CallbackInfo {
             receiver: "callback_receiver".to_string(),
             id: "callback_id".to_string(),
-            msg: EMPTY_BINARY,
+            msg: None,
         };
 
         let actual = client.host_action(

@@ -1,6 +1,6 @@
 use crate::{
     contract::{HostResponse, HostResult},
-    endpoints::reply::RESPONSE_REPLY_ID,
+    endpoints::reply::{INIT_BEFORE_ACTION_REPLY_ID, RESPONSE_REPLY_ID},
     HostError,
 };
 use abstract_core::{
@@ -32,6 +32,7 @@ pub fn receive_register(
     name: String,
     description: Option<String>,
     link: Option<String>,
+    with_reply: bool,
 ) -> HostResult {
     let cfg = CONFIG.load(deps.storage)?;
 
@@ -59,8 +60,15 @@ pub fn receive_register(
         vec![],
     )?;
 
+    // If we were ordered to have a reply after account creation
+    let sub_msg = if with_reply {
+        SubMsg::reply_on_success(factory_msg, INIT_BEFORE_ACTION_REPLY_ID)
+    } else {
+        SubMsg::new(factory_msg)
+    };
+
     Ok(Response::new()
-        .add_message(factory_msg)
+        .add_submessage(sub_msg)
         .add_attribute("action", "register"))
 }
 

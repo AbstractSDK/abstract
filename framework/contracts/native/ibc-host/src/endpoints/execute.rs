@@ -1,7 +1,6 @@
 use std::str::FromStr;
 
 use crate::{
-    account_commands::receive_register,
     contract::{HostResponse, HostResult},
     HostError,
 };
@@ -11,7 +10,7 @@ use abstract_core::{
     proxy::state::ADMIN,
 };
 use abstract_sdk::{core::ibc_host::ExecuteMsg, feature_objects::VersionControlContract};
-use cosmwasm_std::{ensure_eq, DepsMut, Env, MessageInfo};
+use cosmwasm_std::{DepsMut, Env, MessageInfo};
 
 use super::packet::handle_host_action;
 
@@ -38,37 +37,17 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
             register_chain_proxy(deps, info, chain, proxy)
         }
         ExecuteMsg::RemoveChainProxy { chain } => remove_chain_proxy(deps, info, chain),
-        ExecuteMsg::RecoverAccount {
-            closed_channel: _,
-            account_id: _,
-            msgs: _,
-        } => {
-            cw_ownable::assert_owner(deps.storage, &info.sender).unwrap();
-            // TODO:
-            todo!()
-        }
         ExecuteMsg::Execute {
             proxy_address,
             account_id,
             action,
-        } => handle_host_action(deps, env, info, proxy_address, account_id, action),
-        ExecuteMsg::InternalRegisterAccount {
-            account_id,
-            client_chain,
         } => {
-            ensure_eq!(
-                env.contract.address,
-                info.sender,
-                HostError::Unauthorized {}
-            );
+            // This endpoint retrieves the chain name from the executor of the message
+            let client_chain: ChainName = REVERSE_CHAIN_PROXIES.load(deps.storage, &info.sender)?;
 
-            let name = format!(
-                "Remote Abstract Account for {}/{}",
-                client_chain.as_str(),
-                account_id
-            );
-            receive_register(deps, env, account_id, name, None, None)
+            handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
         }
+        ExecuteMsg::Callback(_) => unimplemented!(),
     }
 }
 

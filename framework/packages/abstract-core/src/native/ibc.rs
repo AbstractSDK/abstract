@@ -9,13 +9,10 @@ pub struct CallbackInfo {
     pub id: String,
     /// Used to add information to the callback.
     /// This is usually used to provide information to the ibc callback function for context
-    /// Use `EMPTY_BINARY` if you don't need this field
-    pub msg: Binary,
+    pub msg: Option<Binary>,
     /// Contract that will be called with the callback message
     pub receiver: String,
 }
-
-pub const EMPTY_BINARY: Binary = Binary(vec![]);
 
 /// IbcResponseMsg should be de/serialized under `IbcCallback()` variant in a ExecuteMsg
 #[cosmwasm_schema::cw_serde]
@@ -24,7 +21,7 @@ pub struct IbcResponseMsg {
     pub id: String,
     /// The msg sent with the callback request.
     /// This is usually used to provide information to the ibc callback function for context
-    pub msg: Binary,
+    pub msg: Option<Binary>,
     pub result: Callback,
 }
 

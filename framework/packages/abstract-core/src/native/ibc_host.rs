@@ -12,7 +12,7 @@ use crate::{
     objects::{account::AccountId, chain_name::ChainName},
 };
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Addr, CosmosMsg};
+use cosmwasm_std::Addr;
 
 pub mod state {
     use cw_storage_plus::{Item, Map};
@@ -94,6 +94,9 @@ pub enum HostAction {
     Helpers(HelperAction),
 }
 
+#[cosmwasm_schema::cw_serde]
+pub enum CallbackMsg {}
+
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
@@ -110,17 +113,6 @@ pub enum ExecuteMsg {
     RegisterChainProxy { chain: String, proxy: String },
     /// Remove the Polytone proxy for a specific chain.
     RemoveChainProxy { chain: String },
-    /// Create an account internally (used for account creation before account action)
-    InternalRegisterAccount {
-        client_chain: String,
-        account_id: AccountId,
-    },
-    /// Allow for fund recovery through the Admin
-    RecoverAccount {
-        closed_channel: String,
-        account_id: AccountId,
-        msgs: Vec<CosmosMsg>,
-    },
     /// Allows for remote execution from the Polytone implementation
     #[cfg_attr(feature = "interface", fn_name("ibc_execute"))]
     Execute {
@@ -130,6 +122,9 @@ pub enum ExecuteMsg {
         proxy_address: String,
         action: HostAction,
     },
+
+    /// Callback endpoint
+    Callback(CallbackMsg),
 }
 
 /// Query Host message

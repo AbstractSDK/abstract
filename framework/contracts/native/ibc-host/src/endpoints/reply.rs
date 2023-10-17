@@ -6,7 +6,7 @@ use abstract_core::ibc_host::state::TEMP_ACTION_AFTER_CREATION;
 use cosmwasm_std::{DepsMut, Env, Reply, Response};
 use cw_utils::MsgExecuteContractResponse;
 
-use super::packet::_handle_host_action;
+use super::packet::handle_host_action;
 
 pub const INIT_BEFORE_ACTION_REPLY_ID: u64 = 28379;
 pub const RESPONSE_REPLY_ID: u64 = 362738;
@@ -18,7 +18,7 @@ pub fn reply_execute_action(deps: DepsMut, env: Env, _reply: Reply) -> Result<Re
     TEMP_ACTION_AFTER_CREATION.remove(deps.storage);
 
     // TODO make sure we are passing the data as well
-    _handle_host_action(
+    handle_host_action(
         deps,
         env,
         action_cache.chain_name,
