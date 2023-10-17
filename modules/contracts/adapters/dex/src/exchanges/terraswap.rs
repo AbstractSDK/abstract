@@ -14,7 +14,7 @@ impl Identify for Terraswap {
     }
 }
 
-#[cfg(feature = "terra2")]
+#[cfg(feature = "terraswap")]
 use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_standard::{coins_in_assets, cw_approve_msgs},
@@ -26,7 +26,7 @@ use ::{
     terraswap::pair::{PoolResponse, SimulationResponse},
 };
 
-#[cfg(feature = "terra2")]
+#[cfg(feature = "terraswap")]
 impl DexCommand for Terraswap {
     fn swap(
         &self,
@@ -213,7 +213,7 @@ impl DexCommand for Terraswap {
     }
 }
 
-#[cfg(feature = "terra2")]
+#[cfg(feature = "terraswap")]
 fn cw_asset_to_terraswap(asset: &Asset) -> Result<terraswap::asset::Asset, DexError> {
     match &asset.info {
         AssetInfoBase::Native(denom) => Ok(terraswap::asset::Asset {

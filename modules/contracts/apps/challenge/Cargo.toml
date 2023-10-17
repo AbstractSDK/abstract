@@ -69,7 +69,7 @@ croncat-integration-testing = { version = "1.1.1" }
 wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
-  "juno",
+  "wynd",
   "testing",
 ] }
 croncat-app = { workspace = true, features = ["interface"] }
