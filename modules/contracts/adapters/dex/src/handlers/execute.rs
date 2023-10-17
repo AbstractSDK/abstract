@@ -1,5 +1,5 @@
+use crate::DEX_ADAPTER_ID;
 use crate::handlers::execute::exchange_resolver::is_over_ibc;
-use crate::IBC_DEX_PROVIDER_ID;
 
 use crate::contract::{DexAdapter, DexResult};
 use crate::exchanges::exchange_resolver;
@@ -8,7 +8,7 @@ use crate::state::SWAP_FEE;
 use abstract_core::ibc::CallbackInfo;
 use abstract_core::objects::account::AccountTrace;
 use abstract_core::objects::chain_name::ChainName;
-use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_ID};
+use abstract_dex_standard::msg::{ExecuteMsg, IBC_DEX_PROVIDER_ID};
 use abstract_dex_standard::DexError;
 
 use abstract_core::objects::ans_host::AnsHost;
@@ -103,7 +103,7 @@ fn handle_ibc_request(
     // construct the action to be called on the host
     let host_action = abstract_sdk::core::ibc_host::HostAction::Dispatch {
         manager_msg: abstract_core::manager::ExecuteMsg::ExecOnModule {
-            module_id: EXCHANGE.to_string(),
+            module_id: DEX_ADAPTER_ID.to_string(),
             exec_msg: to_binary::<ExecuteMsg>(
                 &DexExecuteMsg::Action {
                     dex: dex_name.clone(),
@@ -121,10 +121,10 @@ fn handle_ibc_request(
     } else {
         Some(CallbackInfo {
             id: IBC_DEX_PROVIDER_ID.into(),
-            msg: to_binary(&DexExecuteMsg::Action {
+            msg: Some(to_binary(&DexExecuteMsg::Action {
                 dex: dex_name.clone(),
                 action: action.clone(),
-            })?,
+            })?),
             receiver: info.sender.into_string(),
         })
     };
