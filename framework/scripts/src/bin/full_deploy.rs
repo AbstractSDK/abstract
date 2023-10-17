@@ -45,7 +45,7 @@ fn full_deploy(mut networks: Vec<ChainInfo>) -> anyhow::Result<()> {
                     monarch: abstr.account_factory.get_chain().sender().to_string(),
                 })?;
 
-            if abstr.account_factory.get_chain().block_info()?.chain_id == "phoenix-1"{
+            if abstr.account_factory.get_chain().block_info()?.chain_id == "phoenix-1" {
                 anyhow::bail!("Test error to show what happens when a deployment fails does");
             }
 
