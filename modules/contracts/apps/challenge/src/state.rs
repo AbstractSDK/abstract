@@ -3,7 +3,7 @@ use abstract_core::objects::{
     voting::{ProposalId, SimpleVoting},
     AssetEntry,
 };
-use cosmwasm_std::{Addr, Uint128, Uint64, Timestamp};
+use cosmwasm_std::{Addr, Timestamp, Uint128, Uint64};
 use cw_storage_plus::{Item, Map};
 
 use crate::msg::{ChallengeRequest, Friend};
@@ -61,7 +61,10 @@ impl AdminStrikes {
 
 impl ChallengeEntry {
     /// Creates a new challenge entry with the default status of Uninitialized and no admin strikes.
-    pub fn new(request: ChallengeRequest, end_timestamp:Timestamp) -> Result<Self, ValidationError> {
+    pub fn new(
+        request: ChallengeRequest,
+        end_timestamp: Timestamp,
+    ) -> Result<Self, ValidationError> {
         // validate namd and description
         validation::validate_name(&request.name)?;
         validation::validate_description(request.description.as_deref())?;

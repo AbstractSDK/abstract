@@ -210,7 +210,7 @@ fn update_friends_for_challenge(
 
             let mut current_friends_addrs: Vec<Addr> = current_friends
                 .iter()
-                .map(|f| f.addr(deps.as_ref(), &app))
+                .map(|f| f.addr(deps.as_ref(), app))
                 .collect::<AbstractSdkResult<_>>()?;
             current_friends_addrs.extend(voters_addrs);
             // Check if addrs unique
@@ -263,7 +263,7 @@ fn cast_vote(
         let friends: Vec<Addr> = CHALLENGE_FRIENDS
             .load(deps.storage, challenge_id)?
             .into_iter()
-            .map(|friend| friend.addr(deps.as_ref(), &app))
+            .map(|friend| friend.addr(deps.as_ref(), app))
             .collect::<AbstractSdkResult<_>>()?;
         let proposal_id = SIMPLE_VOTING.new_proposal(
             deps.storage,

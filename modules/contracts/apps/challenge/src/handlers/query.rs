@@ -74,11 +74,7 @@ fn query_challenge(
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGES.may_load(deps.storage, challenge_id)?;
 
-    let challenge = if let Some(entry) = challenge {
-        Some(ChallengeEntryResponse::from_entry(entry, challenge_id))
-    } else {
-        None
-    };
+    let challenge = challenge.map(|entry| ChallengeEntryResponse::from_entry(entry, challenge_id));
     Ok(ChallengeResponse { challenge })
 }
 
@@ -98,8 +94,8 @@ fn query_challenges(
                 // Map err into AppError
                 .map_err(Into::into)
                 // Cast result into response
-                .and_then(|(challenge_id, entry)| {
-                    Ok(ChallengeEntryResponse::from_entry(entry, challenge_id))
+                .map(|(challenge_id, entry)| {
+                    ChallengeEntryResponse::from_entry(entry, challenge_id)
                 })
         })
         .collect::<AppResult<Vec<ChallengeEntryResponse>>>()?;
