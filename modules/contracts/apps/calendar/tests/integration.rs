@@ -192,7 +192,8 @@ fn request_meeting_at_start_of_day() -> anyhow::Result<()> {
         meeting_start_datetime
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -234,7 +235,8 @@ fn request_meeting_at_end_of_day() -> anyhow::Result<()> {
         meeting_start_datetime
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -292,7 +294,8 @@ fn request_multiple_meetings_on_same_day() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -368,7 +371,8 @@ fn request_back_to_back_meetings_on_left() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -444,7 +448,8 @@ fn request_back_to_back_meetings_on_right() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -508,7 +513,8 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         meeting_start_datetime1
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -525,7 +531,8 @@ fn request_meetings_on_different_days() -> anyhow::Result<()> {
         meeting_start_datetime2
             .date()
             .and_time(NaiveTime::default())
-            .timestamp(),
+            .timestamp()
+            .into(),
     )?;
 
     assert_eq!(
@@ -1048,7 +1055,7 @@ fn slash_full_stake() -> anyhow::Result<()> {
     app.set_sender(&account.manager.address()?);
     app.slash_full_stake(day_datetime.into(), 0)?;
 
-    let meetings_response = app.meetings(day_datetime)?;
+    let meetings_response = app.meetings(day_datetime.into())?;
 
     assert_eq!(
         vec![Meeting {
@@ -1105,7 +1112,7 @@ fn return_stake() -> anyhow::Result<()> {
     app.set_sender(&account.manager.address()?);
     app.return_stake(day_datetime.into(), 0)?;
 
-    let meetings_response = app.meetings(day_datetime)?;
+    let meetings_response = app.meetings(day_datetime.into())?;
 
     assert_eq!(
         vec![Meeting {
@@ -1163,7 +1170,7 @@ fn slash_partial_stake() -> anyhow::Result<()> {
     // 20 minutes late for a 60 minute meeting
     app.slash_partial_stake(day_datetime.into(), 0, 20)?;
 
-    let meetings_response = app.meetings(day_datetime)?;
+    let meetings_response = app.meetings(day_datetime.into())?;
 
     assert_eq!(
         vec![Meeting {
