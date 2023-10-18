@@ -27,7 +27,7 @@ fn request_meeting_with_start_time(
 ) -> anyhow::Result<(NaiveDateTime, NaiveDateTime)> {
     request_meeting(
         day_datetime,
-        start_time.clone(),
+        start_time,
         Time {
             hour: start_time.hour + 1,
             minute: start_time.minute,
@@ -80,6 +80,7 @@ fn request_meeting(
     Ok((meeting_start_datetime, meeting_end_datetime))
 }
 
+#[allow(clippy::type_complexity)]
 fn setup_with_time(
     start_time: Time,
     end_time: Time,
