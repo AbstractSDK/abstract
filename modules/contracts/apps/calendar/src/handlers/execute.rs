@@ -1,6 +1,6 @@
 use abstract_core::objects::AssetEntry;
 use abstract_sdk::features::AbstractResponse;
-use chrono::{DateTime, FixedOffset, LocalResult, NaiveTime, TimeZone, Timelike};
+use chrono::{DateTime, FixedOffset, LocalResult, NaiveTime, TimeZone};
 use cosmwasm_std::{
     BankMsg, Coin, Deps, DepsMut, Env, Int64, MessageInfo, Response, StdError, Uint128,
 };
@@ -88,49 +88,27 @@ fn request_meeting(
     let config = CONFIG.load(deps.storage)?;
     let amount_sent = must_pay(&info, &config.denom)?;
 
-    let timezone: FixedOffset = FixedOffset::east_opt(config.utc_offset).unwrap();
-    let meeting_start_datetime = get_date_time(timezone, meeting_start_time)?;
+    let timezone: FixedOffset =
+        FixedOffset::east_opt(config.utc_offset).ok_or(AppError::InvalidUtcOffset {})?;
+
+    let meeting_start_datetime: DateTime<FixedOffset> =
+        get_date_time(timezone, meeting_start_time)?;
     let meeting_start_time: NaiveTime = meeting_start_datetime.time();
 
     let meeting_end_datetime = get_date_time(timezone, meeting_end_time)?;
     let meeting_end_time: NaiveTime = meeting_end_datetime.time();
 
-    // Check that date falls between the given range.
-    let calendar_start_time: NaiveTime = config.start_time.into();
-    let calendar_end_time: NaiveTime = config.end_time.into();
+    let meeting: Meeting = Meeting::new(
+        &config,
+        &env.block,
+        meeting_start_datetime,
+        meeting_end_datetime,
+        info.sender,
+        amount_sent,
+    )?;
 
-    let meeting_start_timestamp = meeting_start_datetime.timestamp();
-    let meeting_end_timestamp = meeting_end_datetime.timestamp();
-
-    if meeting_start_datetime.date_naive() != meeting_end_datetime.date_naive() {
-        return Err(AppError::StartAndEndTimeNotOnSameDay {});
-    }
-
-    if meeting_start_time.second() != 0 || meeting_start_time.nanosecond() != 0 {
-        return Err(AppError::StartTimeNotRoundedToNearestMinute {});
-    }
-
-    if meeting_end_time.second() != 0 || meeting_end_time.nanosecond() != 0 {
-        return Err(AppError::EndTimeNotRoundedToNearestMinute {});
-    }
-
-    // Not 100% sure about this typecasting but the same is done in the cosmwasm doc example using
-    // chrono so it should be fine.
-    if (env.block.time.seconds() as i64) > meeting_start_timestamp {
-        return Err(AppError::StartTimeMustBeInFuture {});
-    }
-
-    if meeting_start_time >= meeting_end_time {
-        return Err(AppError::EndTimeMustBeAfterStartTime {});
-    }
-
-    if meeting_start_time < calendar_start_time || meeting_start_time > calendar_end_time {
-        return Err(AppError::StartTimeDoesNotFallWithinCalendarBounds {});
-    }
-
-    if meeting_end_time < calendar_start_time || meeting_end_time > calendar_end_time {
-        return Err(AppError::EndTimeDoesNotFallWithinCalendarBounds {});
-    }
+    let meeting_start_timestamp = meeting.start_time;
+    let meeting_end_timestamp = meeting.end_time;
 
     // This number will be positive enforced by previous checks.
     let duration_in_minutes: Uint128 =
@@ -165,12 +143,7 @@ fn request_meeting(
             }
         }
     }
-    existing_meetings.push(Meeting {
-        start_time: meeting_start_timestamp,
-        end_time: meeting_end_timestamp,
-        requester: info.sender,
-        amount_staked: amount_sent,
-    });
+    existing_meetings.push(meeting);
 
     CALENDAR.save(deps.storage, start_of_day_timestamp, &existing_meetings)?;
 

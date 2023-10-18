@@ -34,10 +34,10 @@ pub enum AppError {
     StartTimeMustBeInFuture {},
 
     #[error("Start time does not fall within calendar bounds")]
-    StartTimeDoesNotFallWithinCalendarBounds {},
+    OutOfBoundsStartTime {},
 
     #[error("End time does not fall within calendar bounds")]
-    EndTimeDoesNotFallWithinCalendarBounds {},
+    OutOfBoundsEndTime {},
 
     #[error("End time must be after start time")]
     EndTimeMustBeAfterStartTime {},
@@ -74,4 +74,13 @@ pub enum AppError {
 
     #[error("Minutes late cannot exceed duration of meeting")]
     MinutesLateCannotExceedDurationOfMeeting {},
+
+    #[error("Invalid utc offset")]
+    InvalidUtcOffset {},
+
+    #[error("Hour out of bounds")]
+    HourOutOfBounds {},
+
+    #[error("Minutes out of bounds")]
+    MinutesOutOfBounds {},
 }

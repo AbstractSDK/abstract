@@ -3,16 +3,28 @@ use chrono::NaiveTime;
 use cosmwasm_schema::QueryResponses;
 use cosmwasm_std::{Int64, Uint128};
 
-use crate::{contract::App, state::Meeting};
+use crate::{contract::App, error::AppError, state::Meeting};
 
 // This is used for type safety and re-exporting the contract endpoint structs.
 abstract_app::app_msg_types!(App, AppExecuteMsg, AppQueryMsg);
 
 /// App instantiate message
 #[cosmwasm_schema::cw_serde]
+#[derive(Copy, Eq, PartialOrd)]
 pub struct Time {
     pub hour: u32,
     pub minute: u32,
+}
+
+impl Time {
+    pub fn validate(&self) -> Result<(), AppError> {
+        if self.hour > 23 {
+            return Err(AppError::HourOutOfBounds {});
+        } else if self.minute > 59 {
+            return Err(AppError::MinutesOutOfBounds {});
+        }
+        Ok(())
+    }
 }
 
 impl From<Time> for NaiveTime {
@@ -22,7 +34,6 @@ impl From<Time> for NaiveTime {
     }
 }
 
-/// App instantiate message
 #[cosmwasm_schema::cw_serde]
 pub struct AppInstantiateMsg {
     /// The price per minute charged to determine the amount of stake necessary to request a

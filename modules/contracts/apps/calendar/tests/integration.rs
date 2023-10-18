@@ -80,9 +80,10 @@ fn request_meeting(
     Ok((meeting_start_datetime, meeting_end_datetime))
 }
 
-/// Set up the test environment with the contract installed
-#[allow(clippy::type_complexity)]
-fn setup() -> anyhow::Result<(
+fn setup_with_time(
+    start_time: Time,
+    end_time: Time,
+) -> anyhow::Result<(
     AbstractAccount<Mock>,
     Abstract<Mock>,
     AppInterface<Mock>,
@@ -133,16 +134,145 @@ fn setup() -> anyhow::Result<(
             price_per_minute: Uint128::from(1u128),
             denom: AssetEntry::from(DENOM),
             utc_offset: 0,
-            start_time: Time { hour: 9, minute: 0 },
-            end_time: Time {
-                hour: 17,
-                minute: 0,
-            },
+            start_time,
+            end_time,
         },
         None,
     )?;
 
     Ok((account, abstr_deployment, app, mock))
+}
+
+/// Set up the test environment with the contract installed
+#[allow(clippy::type_complexity)]
+fn setup() -> anyhow::Result<(
+    AbstractAccount<Mock>,
+    Abstract<Mock>,
+    AppInterface<Mock>,
+    Mock,
+)> {
+    setup_with_time(
+        Time { hour: 9, minute: 0 },
+        Time {
+            hour: 17,
+            minute: 0,
+        },
+    )
+}
+
+#[test]
+fn start_hour_out_of_bounds() -> anyhow::Result<()> {
+    // Cannot call `.unwrap_err` since AbstractAccount does not implement `Debug`.
+    // https://stackoverflow.com/questions/75088004/unwrap-err-function-seems-to-be-returning-t-rather-than-e
+    if let Err(error) = setup_with_time(
+        Time {
+            hour: 24,
+            minute: 0,
+        },
+        Time {
+            hour: 10,
+            minute: 0,
+        },
+    ) {
+        assert_eq!(
+            AppError::HourOutOfBounds {}.to_string(),
+            error.root_cause().to_string()
+        );
+        return Ok(());
+    }
+    panic!("Expected error");
+}
+
+#[test]
+fn end_hour_out_of_bounds() -> anyhow::Result<()> {
+    // Cannot call `.unwrap_err` since AbstractAccount does not implement `Debug`.
+    // https://stackoverflow.com/questions/75088004/unwrap-err-function-seems-to-be-returning-t-rather-than-e
+    if let Err(error) = setup_with_time(
+        Time {
+            hour: 10,
+            minute: 0,
+        },
+        Time {
+            hour: 24,
+            minute: 0,
+        },
+    ) {
+        assert_eq!(
+            AppError::HourOutOfBounds {}.to_string(),
+            error.root_cause().to_string()
+        );
+        return Ok(());
+    }
+    panic!("Expected error");
+}
+
+#[test]
+fn start_minutes_out_of_bounds() -> anyhow::Result<()> {
+    // Cannot call `.unwrap_err` since AbstractAccount does not implement `Debug`.
+    // https://stackoverflow.com/questions/75088004/unwrap-err-function-seems-to-be-returning-t-rather-than-e
+    if let Err(error) = setup_with_time(
+        Time {
+            hour: 10,
+            minute: 60,
+        },
+        Time {
+            hour: 13,
+            minute: 0,
+        },
+    ) {
+        assert_eq!(
+            AppError::MinutesOutOfBounds {}.to_string(),
+            error.root_cause().to_string()
+        );
+        return Ok(());
+    }
+    panic!("Expected error");
+}
+
+#[test]
+fn end_minutes_out_of_bounds() -> anyhow::Result<()> {
+    // Cannot call `.unwrap_err` since AbstractAccount does not implement `Debug`.
+    // https://stackoverflow.com/questions/75088004/unwrap-err-function-seems-to-be-returning-t-rather-than-e
+    if let Err(error) = setup_with_time(
+        Time {
+            hour: 10,
+            minute: 0,
+        },
+        Time {
+            hour: 13,
+            minute: 60,
+        },
+    ) {
+        assert_eq!(
+            AppError::MinutesOutOfBounds {}.to_string(),
+            error.root_cause().to_string()
+        );
+        return Ok(());
+    }
+    panic!("Expected error");
+}
+
+#[test]
+fn start_time_after_end_time() -> anyhow::Result<()> {
+    // Cannot call `.unwrap_err` since AbstractAccount does not implement `Debug`.
+    // https://stackoverflow.com/questions/75088004/unwrap-err-function-seems-to-be-returning-t-rather-than-e
+    if let Err(error) = setup_with_time(
+        Time {
+            hour: 13,
+            minute: 0,
+        },
+        Time {
+            hour: 10,
+            minute: 0,
+        },
+    ) {
+        assert_eq!(
+            AppError::EndTimeMustBeAfterStartTime {}.to_string(),
+            error.root_cause().to_string()
+        );
+        return Ok(());
+    }
+    panic!("Expected error");
 }
 
 #[test]
@@ -886,7 +1016,7 @@ fn cannot_request_meeting_with_start_time_out_of_calendar_bounds() -> anyhow::Re
     .unwrap_err();
 
     assert_eq!(
-        AppError::StartTimeDoesNotFallWithinCalendarBounds {}.to_string(),
+        AppError::OutOfBoundsStartTime {}.to_string(),
         error.root_cause().to_string()
     );
 
@@ -927,7 +1057,7 @@ fn cannot_request_meeting_with_end_time_out_of_calendar_bounds() -> anyhow::Resu
     .unwrap_err();
 
     assert_eq!(
-        AppError::EndTimeDoesNotFallWithinCalendarBounds {}.to_string(),
+        AppError::OutOfBoundsEndTime {}.to_string(),
         error.root_cause().to_string()
     );
 
