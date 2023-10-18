@@ -180,10 +180,16 @@ pub struct ChallengeEntryResponse {
     pub proposal_duration_seconds: Uint64,
     /// State of strikes of admin for this challenge
     pub admin_strikes: AdminStrikes,
+    /// Current active proposal
+    pub active_proposal: Option<ProposalInfo>,
 }
 
 impl ChallengeEntryResponse {
-    pub(crate) fn from_entry(entry: ChallengeEntry, challenge_id: u64) -> Self {
+    pub(crate) fn from_entry(
+        entry: ChallengeEntry,
+        challenge_id: u64,
+        active_proposal: Option<ProposalInfo>,
+    ) -> Self {
         Self {
             challenge_id,
             name: entry.name,
@@ -193,6 +199,7 @@ impl ChallengeEntryResponse {
             end_timestamp: entry.end_timestamp,
             proposal_duration_seconds: entry.proposal_duration_seconds,
             admin_strikes: entry.admin_strikes,
+            active_proposal,
         }
     }
 }

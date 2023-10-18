@@ -5,7 +5,7 @@ use crate::msg::{
 };
 use crate::state::{CHALLENGES, CHALLENGE_FRIENDS, CHALLENGE_PROPOSALS, SIMPLE_VOTING};
 use abstract_core::objects::voting::{ProposalId, ProposalInfo, VoteResult, DEFAULT_LIMIT};
-use cosmwasm_std::{to_binary, Binary, Deps, Env, Order, StdResult};
+use cosmwasm_std::{to_binary, Binary, BlockInfo, Deps, Env, Order, StdResult};
 use cw_storage_plus::Bound;
 
 use super::execute::last_proposal;
@@ -21,7 +21,7 @@ pub fn query_handler(
             to_binary(&query_challenge(deps, env, app, challenge_id)?)
         }
         ChallengeQueryMsg::Challenges { start_after, limit } => {
-            to_binary(&query_challenges(deps, start_after, limit)?)
+            to_binary(&query_challenges(deps, env, start_after, limit)?)
         }
         ChallengeQueryMsg::Friends { challenge_id } => {
             to_binary(&query_friends(deps, app, challenge_id)?)
@@ -68,18 +68,41 @@ pub fn query_handler(
 
 fn query_challenge(
     deps: Deps,
-    _env: Env,
+    env: Env,
     _app: &ChallengeApp,
     challenge_id: u64,
 ) -> AppResult<ChallengeResponse> {
     let challenge = CHALLENGES.may_load(deps.storage, challenge_id)?;
 
-    let challenge = challenge.map(|entry| ChallengeEntryResponse::from_entry(entry, challenge_id));
+    let proposal = get_proposal_if_active(challenge_id, deps, &env.block)?;
+    let challenge =
+        challenge.map(|entry| ChallengeEntryResponse::from_entry(entry, challenge_id, proposal));
     Ok(ChallengeResponse { challenge })
+}
+
+fn get_proposal_if_active(
+    challenge_id: u64,
+    deps: Deps,
+    block: &BlockInfo,
+) -> Result<Option<ProposalInfo>, crate::error::AppError> {
+    let maybe_id = last_proposal(challenge_id, deps)?;
+    let proposal = maybe_id
+        .map(|id| {
+            let proposal = SIMPLE_VOTING.load_proposal(deps.storage, block, id)?;
+            if proposal.assert_active_proposal().is_ok() {
+                AppResult::Ok(Some(proposal))
+            } else {
+                AppResult::Ok(None)
+            }
+        })
+        .transpose()?
+        .flatten();
+    Ok(proposal)
 }
 
 fn query_challenges(
     deps: Deps,
+    env: Env,
     start: Option<u64>,
     limit: Option<u64>,
 ) -> AppResult<ChallengesResponse> {
@@ -91,11 +114,12 @@ fn query_challenges(
         .take(limit as usize)
         .map(|result| {
             result
-                // Map err into AppError
                 .map_err(Into::into)
                 // Cast result into response
                 .map(|(challenge_id, entry)| {
-                    ChallengeEntryResponse::from_entry(entry, challenge_id)
+                    let proposal =
+                        get_proposal_if_active(challenge_id, deps, &env.block).unwrap_or_default();
+                    ChallengeEntryResponse::from_entry(entry, challenge_id, proposal)
                 })
         })
         .collect::<AppResult<Vec<ChallengeEntryResponse>>>()?;

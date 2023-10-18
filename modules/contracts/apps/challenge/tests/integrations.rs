@@ -204,6 +204,7 @@ fn test_should_create_challenge() -> anyhow::Result<()> {
             num_strikes: 0,
             limit: challenge_req.strikes_limit.unwrap_or(1),
         },
+        active_proposal: None,
     };
     assert_eq!(created_challenge, expected_response);
     Ok(())

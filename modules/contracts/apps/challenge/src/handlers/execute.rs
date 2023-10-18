@@ -10,7 +10,6 @@ use cosmwasm_std::{
 };
 
 use crate::contract::{AppResult, ChallengeApp};
-// use abstract_sdk::prelude::*;
 
 use crate::msg::{ChallengeExecuteMsg, ChallengeRequest, Friend};
 use crate::state::{
@@ -238,43 +237,52 @@ fn update_friends_for_challenge(
     ))
 }
 
+fn get_or_create_active_proposal(
+    deps: &mut DepsMut,
+    env: &Env,
+    challenge_id: u64,
+    app: &ChallengeApp,
+) -> AppResult<ProposalId> {
+    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
+
+    // Load last proposal and use it if it's active
+    if let Some(proposal_id) = last_proposal(challenge_id, deps.as_ref())? {
+        let proposal = SIMPLE_VOTING.load_proposal(deps.storage, &env.block, proposal_id)?;
+        if proposal.assert_active_proposal().is_ok() {
+            return Ok(proposal_id);
+        }
+    }
+
+    // Or create a new one otherwise
+    if env.block.time >= challenge.end_timestamp {
+        return Err(AppError::ChallengeExpired {});
+    }
+    let friends: Vec<Addr> = CHALLENGE_FRIENDS
+        .load(deps.storage, challenge_id)?
+        .into_iter()
+        .map(|friend| friend.addr(deps.as_ref(), app))
+        .collect::<AbstractSdkResult<_>>()?;
+    let proposal_id = SIMPLE_VOTING.new_proposal(
+        deps.storage,
+        env.block
+            .time
+            .plus_seconds(challenge.proposal_duration_seconds.u64()),
+        &friends,
+    )?;
+    CHALLENGE_PROPOSALS.save(deps.storage, (challenge_id, proposal_id), &Empty {})?;
+
+    Ok(proposal_id)
+}
+
 fn cast_vote(
-    deps: DepsMut,
+    mut deps: DepsMut,
     env: Env,
     info: MessageInfo,
     app: &ChallengeApp,
     vote: Vote,
     challenge_id: u64,
 ) -> AppResult {
-    let challenge = CHALLENGES.load(deps.storage, challenge_id)?;
-
-    let proposal_id = 'proposal_id: {
-        // Load last proposal and use it if it's active
-        if let Some(proposal_id) = last_proposal(challenge_id, deps.as_ref())? {
-            let proposal = SIMPLE_VOTING.load_proposal(deps.storage, &env.block, proposal_id)?;
-            if proposal.assert_active_proposal().is_ok() {
-                break 'proposal_id proposal_id;
-            }
-        }
-        // Or create a new one otherwise
-        if env.block.time >= challenge.end_timestamp {
-            return Err(AppError::ChallengeExpired {});
-        }
-        let friends: Vec<Addr> = CHALLENGE_FRIENDS
-            .load(deps.storage, challenge_id)?
-            .into_iter()
-            .map(|friend| friend.addr(deps.as_ref(), app))
-            .collect::<AbstractSdkResult<_>>()?;
-        let proposal_id = SIMPLE_VOTING.new_proposal(
-            deps.storage,
-            env.block
-                .time
-                .plus_seconds(challenge.proposal_duration_seconds.u64()),
-            &friends,
-        )?;
-        CHALLENGE_PROPOSALS.save(deps.storage, (challenge_id, proposal_id), &Empty {})?;
-        proposal_id
-    };
+    let proposal_id = get_or_create_active_proposal(&mut deps, &env, challenge_id, app)?;
 
     let voter = match app
         .account_registry(deps.as_ref())
