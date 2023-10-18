@@ -107,8 +107,8 @@
               "format": "uint64",
               "minimum": 0.0
             },
-            "previous_proposal_index": {
-              "description": "Index of the previous proposal Providing None requests current proposal results",
+            "proposal_id": {
+              "description": "Proposal id of previous proposal Providing None requests last proposal results",
               "type": [
                 "integer",
                 "null"
@@ -154,8 +154,8 @@
               "format": "uint64",
               "minimum": 0.0
             },
-            "previous_proposal_index": {
-              "description": "Index of the previous proposal Providing None requests current proposal results",
+            "proposal_id": {
+              "description": "Proposal id of previous proposal Providing None requests last proposal results",
               "type": [
                 "integer",
                 "null"
@@ -184,10 +184,10 @@
       "description": "Get results of previous votes for this challenge",
       "type": "object",
       "required": [
-        "previous_proposals"
+        "proposals"
       ],
       "properties": {
-        "previous_proposals": {
+        "proposals": {
           "type": "object",
           "required": [
             "challenge_id"
@@ -196,6 +196,24 @@
             "challenge_id": {
               "description": "Challenge Id for previous votes",
               "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "limit": {
+              "description": "Max amount of proposals in response",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "start_after": {
+              "description": "start after ProposalId",
+              "type": [
+                "integer",
+                "null"
+              ],
               "format": "uint64",
               "minimum": 0.0
             }
