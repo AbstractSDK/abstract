@@ -222,7 +222,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
-    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
+    adapter1
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     install_adapter(&account.manager, &adapter1.id())?;
 
@@ -247,7 +249,9 @@ fn reinstalling_new_version_should_install_latest() -> AResult {
 
     let adapter2 = BootMockAdapter1V2::new_test(chain);
 
-    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
+    adapter2
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     // check that the latest staking version is the new one
     let latest_staking = deployment
@@ -342,13 +346,17 @@ fn installing_specific_version_should_install_expected() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_string())?;
 
     let adapter1 = BootMockAdapter1V1::new_test(chain.clone());
-    adapter1.deploy(V1.parse().unwrap(), MockInitMsg).unwrap();
+    adapter1
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     let v1_adapter_addr = adapter1.address()?;
 
     let adapter2 = BootMockAdapter1V2::new_test(chain);
 
-    adapter2.deploy(V2.parse().unwrap(), MockInitMsg).unwrap();
+    adapter2
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Try)
+        .unwrap();
 
     let expected_version = "1.0.0".to_string();
 
@@ -379,7 +387,7 @@ fn account_install_adapter() -> AResult {
         .claim_namespace(TEST_ACCOUNT_ID, "tester".to_owned())?;
 
     let adapter = BootMockAdapter1V1::new_test(chain);
-    adapter.deploy(V1.parse().unwrap(), MockInitMsg)?;
+    adapter.deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Try)?;
     let adapter_addr = account.install_adapter(adapter, &MockInitMsg, None)?;
     let module_addr = account
         .manager

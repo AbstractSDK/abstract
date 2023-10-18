@@ -18,7 +18,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.18.0"
+version = "0.19.0"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -58,8 +58,8 @@ tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-adapter = { version = "0.18.0", path = "packages/abstract-adapter" }
-abstract-app = { version = "0.18.0", path = "packages/abstract-app" }
+abstract-adapter = { path = "packages/abstract-adapter" }
+abstract-app = { path = "packages/abstract-app" }
 
 # Keep these as path, creates cirular dependency otherwise
 # Only need to re-publish all contracts if a re-publish of abstract-interface is required
@@ -71,15 +71,15 @@ version-control = { package = "abstract-version-control", path = "contracts/nati
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
-abstract-sdk = { version = "0.18.0", path = "packages/abstract-sdk" }
-abstract-testing = { version = "0.18.0", path = "packages/abstract-testing" }
-abstract-core = { version = "0.18.0", path = "packages/abstract-core" }
+abstract-sdk = { version = "0.19.0", path = "packages/abstract-sdk" }
+abstract-testing = { version = "0.19.0", path = "packages/abstract-testing" }
+abstract-core = { version = "0.19.0", path = "packages/abstract-core" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
-abstract-macros = { version = "0.18.0", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.18.0", path = "packages/abstract-ica" }
+abstract-macros = { version = "0.19.0", path = "packages/abstract-macros" }
+abstract-ica = { version = "0.19.0", path = "packages/abstract-ica" }
 
-abstract-adapter-utils = { version = "0.18.0", path = "packages/standards/utils" }
+abstract-adapter-utils = { version = "0.19.0", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
 abstract-staking-standard = { path = "packages/standards/staking" }
 
@@ -88,6 +88,9 @@ cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
+
+[patch.crates-io]
+cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/network_specific_uploads" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

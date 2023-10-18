@@ -96,7 +96,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         ]
     }
 
-    fn deployed_state_file_path(&self) -> Option<String> {
+    fn deployed_state_file_path() -> Option<String> {
         let crate_path = env!("CARGO_MANIFEST_DIR");
 
         Some(
@@ -110,7 +110,7 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
     fn load_from(chain: Chain) -> Result<Self, Self::Error> {
         let mut abstr = Self::new(chain);
         // We register all the contracts default state
-        abstr.set_contracts_state();
+        abstr.set_contracts_state(None);
         Ok(abstr)
     }
 }

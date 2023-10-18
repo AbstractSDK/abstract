@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
+
+### Changed
+- `is_module_installed` moved from `Manager` to `Account`
+
+### Removed
+
+## [0.19.0] - 2023-09-26
+
+### Added
+
 - Install modules on account or Sub-account creation.
 - Manager stores his sub-accounts and sub-accounts can register or unregister in case of ownership change.
 - Query on module factory to see how much funds needs to be attached for installing modules.

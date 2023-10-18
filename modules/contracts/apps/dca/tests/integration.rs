@@ -10,17 +10,17 @@ use abstract_core::{
     app::{BaseInstantiateMsg, BaseQueryMsgFns},
     objects::gov_type::GovernanceDetails,
 };
-use abstract_dca_app::msg::{DCAResponse, Frequency};
-use abstract_dca_app::state::{DCAEntry, DCAId};
-use abstract_dca_app::{
+use abstract_dex_adapter::interface::DexAdapter;
+use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
+use abstract_dex_adapter::DEX_ADAPTER_ID;
+use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
+use dca_app::msg::{DCAResponse, Frequency};
+use dca_app::state::{DCAEntry, DCAId};
+use dca_app::{
     contract::{DCA_APP_ID, DCA_APP_VERSION},
     msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
     *,
 };
-use abstract_dex_adapter::interface::DexAdapter;
-use abstract_dex_adapter::msg::{DexInstantiateMsg, OfferAsset};
-use abstract_dex_adapter::EXCHANGE;
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
 
 use common::contracts;
 
@@ -301,7 +301,8 @@ fn setup() -> anyhow::Result<(
     // Deploy wyndex to the mock
     let wyndex = wyndex_bundle::WynDex::deploy_on(mock.clone(), Empty {})?;
     // Deploy dex adapter to the mock
-    let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(EXCHANGE, mock.clone());
+    let dex_adapter =
+        abstract_dex_adapter::interface::DexAdapter::new(DEX_ADAPTER_ID, mock.clone());
 
     dex_adapter.deploy(
         abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
@@ -309,6 +310,7 @@ fn setup() -> anyhow::Result<(
             swap_fee: Decimal::percent(1),
             recipient_account: 0,
         },
+        DeployStrategy::Try,
     )?;
 
     let mut cron_cat_app = CroncatApp::new(CRONCAT_ID, mock.clone());
@@ -321,7 +323,10 @@ fn setup() -> anyhow::Result<(
     abstr_deployment
         .version_control
         .claim_namespace(AccountId::local(1), "croncat".to_string())?;
-    cron_cat_app.deploy(croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?)?;
+    cron_cat_app.deploy(
+        croncat_app::contract::CRONCAT_MODULE_VERSION.parse()?,
+        DeployStrategy::Try,
+    )?;
 
     // Register factory entry
     let factory_entry = UncheckedContractEntry::try_from(CRON_CAT_FACTORY)?;
@@ -340,8 +345,14 @@ fn setup() -> anyhow::Result<(
                 monarch: ADMIN.to_string(),
             })?;
     // Install DEX
-    account.manager.install_module(EXCHANGE, &Empty {}, None)?;
-    let module_addr = account.manager.module_info(EXCHANGE)?.unwrap().address;
+    account
+        .manager
+        .install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
+    let module_addr = account
+        .manager
+        .module_info(DEX_ADAPTER_ID)?
+        .unwrap()
+        .address;
     dex_adapter.set_address(&module_addr);
 
     // Install croncat
@@ -362,7 +373,7 @@ fn setup() -> anyhow::Result<(
     cron_cat_app.set_sender(&manager_addr);
 
     // Install DCA
-    dca_app.deploy(DCA_APP_VERSION.parse()?)?;
+    dca_app.deploy(DCA_APP_VERSION.parse()?, DeployStrategy::Try)?;
     account.install_module(
         DCA_APP_ID,
         &InstantiateMsg {
@@ -383,7 +394,7 @@ fn setup() -> anyhow::Result<(
     let module_addr = account.manager.module_info(DCA_APP_ID)?.unwrap().address;
     dca_app.set_address(&module_addr);
     account.manager.update_adapter_authorized_addresses(
-        EXCHANGE,
+        DEX_ADAPTER_ID,
         vec![module_addr.to_string()],
         vec![],
     )?;
@@ -446,7 +457,7 @@ fn successful_install() -> anyhow::Result<()> {
                     version_req: vec![format!("^{}", CRONCAT_MODULE_VERSION)]
                 },
                 DependencyResponse {
-                    id: EXCHANGE.to_owned(),
+                    id: DEX_ADAPTER_ID.to_owned(),
                     version_req: vec![format!(
                         "^{}",
                         abstract_dex_adapter::contract::CONTRACT_VERSION.to_owned()
