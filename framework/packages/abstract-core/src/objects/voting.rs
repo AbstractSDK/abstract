@@ -10,24 +10,21 @@
 //! To create a new proposal use [`SimpleVoting::new_proposal`] method, it will return ProposalId
 //!
 //! ## Whitelisting voters
-//! Initial whitelist passed during [`SimpleVoting::new_proposal`] method, you can use
-//! - [`SimpleVoting::add_voters`] to whitelist new voters
-//! - [`SimpleVoting::remove_voters`] to remove voters(and their votes) from whitelist
+//! Initial whitelist passed during [`SimpleVoting::new_proposal`] method and currently has no way to edit this
 //!
 //! ## Voting
 //! To cast a vote use [`SimpleVoting::cast_vote`] method
 //!
 //! ## Count voting
-//! To count votes use [`SimpleVoting::count_votes`] method
+//! To count votes use [`SimpleVoting::count_votes`] method during [`ProposalStatus::WaitingForCount`]
 //!
-//! ## Veto action
-//! In case your [`VoteConfig`] has veto duration set-up, after successful vote-count veto period will start
-//! * During veto period [`SimpleVoting::veto_admin_action`] method could be used to finish(fast-forward) or Veto proposal
-//! * After veto period [`SimpleVoting::finish_vote`] method could be used to finish proposal
+//! ## Veto
+//! In case your [`VoteConfig`] has veto duration set-up, after proposal.end_timestamp veto period will start
+//! * During veto period [`SimpleVoting::veto_proposal`] method could be used to Veto proposal
 //!
 //! ## Cancel proposal
-//! During active voting(before veto or finishing vote),
-//! [`SimpleVoting::cancel_proposal`] method could be used to cancel proposal
+//! During active voting:
+//! * [`SimpleVoting::cancel_proposal`] method could be used to cancel proposal
 //!
 //! ## Queries
 //! * Single-item queries methods allowed by `load_` prefix
@@ -254,63 +251,66 @@ impl<'a> SimpleVoting<'a> {
         Ok(proposal_info)
     }
 
-    /// Add new addresses that's allowed to vote
-    pub fn add_voters(
-        &self,
-        store: &mut dyn Storage,
-        proposal_id: ProposalId,
-        block: &BlockInfo,
-        new_voters: &[Addr],
-    ) -> VoteResult<ProposalInfo> {
-        // Need to check it's existing proposal
-        let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
-        proposal_info.assert_active_proposal()?;
+    // TODO: It's currently not used, and most likely not desirable to edit voters during active voting
+    // In case it will get some use: keep in mind that it's untested
 
-        for voter in new_voters {
-            // Don't override already existing vote
-            self.proposals
-                .update(store, (proposal_id, voter), |v| match v {
-                    Some(_) => Err(VoteError::DuplicateAddrs {}),
-                    None => {
-                        proposal_info.total_voters += 1;
-                        Ok(None)
-                    }
-                })?;
-        }
-        self.proposals_info
-            .save(store, proposal_id, &proposal_info)?;
+    // /// Add new addresses that's allowed to vote
+    // pub fn add_voters(
+    //     &self,
+    //     store: &mut dyn Storage,
+    //     proposal_id: ProposalId,
+    //     block: &BlockInfo,
+    //     new_voters: &[Addr],
+    // ) -> VoteResult<ProposalInfo> {
+    //     // Need to check it's existing proposal
+    //     let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
+    //     proposal_info.assert_active_proposal()?;
 
-        Ok(proposal_info)
-    }
+    //     for voter in new_voters {
+    //         // Don't override already existing vote
+    //         self.proposals
+    //             .update(store, (proposal_id, voter), |v| match v {
+    //                 Some(_) => Err(VoteError::DuplicateAddrs {}),
+    //                 None => {
+    //                     proposal_info.total_voters += 1;
+    //                     Ok(None)
+    //                 }
+    //             })?;
+    //     }
+    //     self.proposals_info
+    //         .save(store, proposal_id, &proposal_info)?;
 
-    /// Remove addresses that's allowed to vote
-    /// Will re-count votes
-    pub fn remove_voters(
-        &self,
-        store: &mut dyn Storage,
-        proposal_id: ProposalId,
-        block: &BlockInfo,
-        removed_voters: &[Addr],
-    ) -> VoteResult<ProposalInfo> {
-        let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
-        proposal_info.assert_active_proposal()?;
+    //     Ok(proposal_info)
+    // }
 
-        for voter in removed_voters {
-            if let Some(vote) = self.proposals.may_load(store, (proposal_id, voter))? {
-                if let Some(previous_vote) = vote {
-                    match previous_vote.vote {
-                        true => proposal_info.votes_for -= 1,
-                        false => proposal_info.votes_against -= 1,
-                    }
-                }
-                proposal_info.total_voters -= 1;
-                self.proposals.remove(store, (proposal_id, voter));
-            }
-        }
-        self.proposals_info
-            .save(store, proposal_id, &proposal_info)?;
-        Ok(proposal_info)
-    }
+    // /// Remove addresses that's allowed to vote
+    // /// Will re-count votes
+    // pub fn remove_voters(
+    //     &self,
+    //     store: &mut dyn Storage,
+    //     proposal_id: ProposalId,
+    //     block: &BlockInfo,
+    //     removed_voters: &[Addr],
+    // ) -> VoteResult<ProposalInfo> {
+    //     let mut proposal_info = self.load_proposal(store, block, proposal_id)?;
+    //     proposal_info.assert_active_proposal()?;
+
+    //     for voter in removed_voters {
+    //         if let Some(vote) = self.proposals.may_load(store, (proposal_id, voter))? {
+    //             if let Some(previous_vote) = vote {
+    //                 match previous_vote.vote {
+    //                     true => proposal_info.votes_for -= 1,
+    //                     false => proposal_info.votes_against -= 1,
+    //                 }
+    //             }
+    //             proposal_info.total_voters -= 1;
+    //             self.proposals.remove(store, (proposal_id, voter));
+    //         }
+    //     }
+    //     self.proposals_info
+    //         .save(store, proposal_id, &proposal_info)?;
+    //     Ok(proposal_info)
+    // }
 
     /// Load vote by address
     pub fn load_vote(
