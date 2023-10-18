@@ -1,18 +1,17 @@
 use crate::contract::{SubscriptionApp, SubscriptionResult};
 use crate::msg::SubscriptionExecuteMsg;
 use crate::state::{
-    Subscriber, SubscriptionConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
+    EmissionType, Subscriber, SubscriptionConfig, DORMANT_SUBSCRIBERS, INCOME_TWA, SUBSCRIBERS,
     SUBSCRIPTION_CONFIG, SUBSCRIPTION_STATE,
 };
+use crate::{SubscriptionError, DURATION_IN_WEEKS, WEEK_IN_SECONDS};
 use abstract_core::objects::AccountId;
-use abstract_sdk::{AccountVerification, Execution, ModuleInterface, TransferInterface};
-use abstract_subscription_interface::contributors::state as contr_state;
-use abstract_subscription_interface::subscription::state::EmissionType;
-use abstract_subscription_interface::utils::suspend_os;
-use abstract_subscription_interface::{
-    SubscriptionError, CONTRIBUTORS_ID, DURATION_IN_WEEKS, WEEK_IN_SECONDS,
+use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
+use abstract_sdk::{AccountVerification, Execution, TransferInterface};
+use cosmwasm_std::{
+    to_binary, Addr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg,
+    Uint128, WasmMsg,
 };
-use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, StdResult, SubMsg, Uint128};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
 pub fn execute_handler(
@@ -39,7 +38,6 @@ pub fn execute_handler(
             payment_asset,
             factory_address,
             subscription_cost_per_week: subscription_cost,
-            contributors_enabled,
             subscription_per_week_emissions,
         } => update_subscription_config(
             deps,
@@ -49,7 +47,6 @@ pub fn execute_handler(
             payment_asset,
             factory_address,
             subscription_cost,
-            contributors_enabled,
             subscription_per_week_emissions,
         ),
         SubscriptionExecuteMsg::RefreshTWA {} => {
@@ -234,21 +231,20 @@ pub fn claim_subscriber_emissions(
         crate::state::EmissionType::WeekPerUser(per_user_emissions, token) => {
             let amount = per_user_emissions * Uint128::from(weeks_passed);
             Asset::new(token, amount)
-        }
-        crate::state::EmissionType::IncomeBased(token) => {
-            if !subscription_config.contributors_enabled {
-                return Err(SubscriptionError::ContributionNotEnabled {});
-            }
-            let contributors_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
-            let contributor_config =
-                contr_state::CONTRIBUTION_CONFIG.query(&deps.querier, contributors_addr.clone())?;
-            let contributor_state =
-                contr_state::CONTRIBUTION_STATE.query(&deps.querier, contributors_addr)?;
+        } // crate::state::EmissionType::IncomeBased(token) => {
+          //     if !subscription_config.contributors_enabled {
+          //         return Err(SubscriptionError::ContributionNotEnabled {});
+          //     }
+          //     let contributors_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
+          //     let contributor_config =
+          //         contr_state::CONTRIBUTION_CONFIG.query(&deps.querier, contributors_addr.clone())?;
+          //     let contributor_state =
+          //         contr_state::CONTRIBUTION_STATE.query(&deps.querier, contributors_addr)?;
 
-            let amount = (contributor_state.emissions * contributor_config.emission_user_share)
-                / Uint128::from(subscription_state.active_subs);
-            Asset::new(token, amount * Uint128::from(1u64))
-        }
+          //     let amount = (contributor_state.emissions * contributor_config.emission_user_share)
+          //         / Uint128::from(subscription_state.active_subs);
+          //     Asset::new(token, amount * Uint128::from(1u64))
+          // }
     };
 
     if !asset.amount.is_zero() {
@@ -275,7 +271,6 @@ pub fn update_subscription_config(
     payment_asset: Option<AssetInfoUnchecked>,
     factory_address: Option<String>,
     subscription_cost_per_week: Option<Decimal>,
-    contributors_enabled: Option<bool>,
     subscription_per_week_emissions: Option<EmissionType<String>>,
 ) -> SubscriptionResult {
     // TODO: it's not installed during contributors instantiate method
@@ -311,16 +306,6 @@ pub fn update_subscription_config(
         config.payment_asset = payment_asset.check(deps.api, None)?;
     }
 
-    if let Some(contributors_enabled) = contributors_enabled {
-        // make sure it's installed
-        let _contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
-
-        // TODO: Do we want to edit deps?
-        // app.modules(deps.as_ref())
-        //     .assert_module_dependency(CONTRIBUTORS_ID)?;
-        config.contributors_enabled = contributors_enabled;
-    }
-
     if let Some(subscription_per_week_emissions) = subscription_per_week_emissions {
         config.subscription_per_week_emissions = subscription_per_week_emissions.check(deps.api)?;
     }
@@ -345,4 +330,14 @@ fn expired_sub_msgs(
         return Ok(Some(resp.messages));
     }
     Ok(None)
+}
+
+pub fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
+    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: manager_address.to_string(),
+        msg: to_binary(&ManagerMsg::UpdateStatus {
+            is_suspended: Some(new_suspend_status),
+        })?,
+        funds: vec![],
+    }))
 }

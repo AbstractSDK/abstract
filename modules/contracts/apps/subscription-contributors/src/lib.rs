@@ -1,6 +1,9 @@
 pub mod contract;
 mod handlers;
-pub use abstract_subscription_interface::contributors::{msg, state};
+pub mod msg;
+pub mod state;
+mod error;
+pub use error::ContributorsError;
 mod replies;
 
 #[cfg(feature = "interface")]

@@ -98,8 +98,6 @@ pub enum SubscriptionExecuteMsg {
         factory_address: Option<String>,
         /// new subscription_cost_per_week
         subscription_cost_per_week: Option<Decimal>,
-        /// Enable contributors
-        contributors_enabled: Option<bool>,
         /// Subscription emissions per week
         subscription_per_week_emissions: Option<EmissionType<String>>,
     },

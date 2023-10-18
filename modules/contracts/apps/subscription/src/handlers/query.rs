@@ -1,4 +1,4 @@
-use abstract_subscription_interface::DURATION_IN_WEEKS;
+use crate::DURATION_IN_WEEKS;
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError, Uint128};
 use cw_asset::Asset;
 

@@ -19,10 +19,11 @@ pub enum EmissionType<T: AddressLike> {
     /// Each user receives a fixed number of tokens on a per-week basis.
     /// emission = week_per_user
     WeekPerUser(Decimal, AssetInfoBase<T>),
-    /// Requires contribution functionality to be active
-    /// Emissions will be based on protocol income and user/contributor split.
-    /// See [`ContributionConfig`]
-    IncomeBased(AssetInfoBase<T>),
+    // TODO: subscription-contribution
+    // /// Requires contribution functionality to be active
+    // /// Emissions will be based on protocol income and user/contributor split.
+    // /// See [`ContributionConfig`]
+    // IncomeBased(AssetInfoBase<T>),
 }
 
 impl EmissionType<String> {
@@ -33,7 +34,7 @@ impl EmissionType<String> {
             EmissionType::WeekPerUser(d, a) => {
                 Ok(EmissionType::WeekPerUser(d, a.check(api, None)?))
             }
-            EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
+            // EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
         }
     }
 }
@@ -49,8 +50,6 @@ pub struct SubscriptionConfig {
     pub subscription_cost_per_week: Decimal,
     /// Subscription emissions per week
     pub subscription_per_week_emissions: EmissionType<Addr>,
-    /// If contributors contract enabled
-    pub contributors_enabled: bool,
 }
 
 /// Keeps track of the active subscribers.

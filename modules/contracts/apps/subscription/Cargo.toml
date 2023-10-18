@@ -43,7 +43,7 @@ cw-orch = { workspace = true, optional = true }
 
 abstract-interface = { workspace = true, optional = true }
 
-abstract-subscription-interface = { workspace = true }
+cw-address-like = { workspace = true }
 
 [dev-dependencies]
 cw20 = { workspace = true, features = ["interface"] }
@@ -54,7 +54,4 @@ clap = { workspace = true }
 cw-utils = { workspace = true }
 
 abstract-subscription = { path = ".", features = ["interface"] }
-abstract-subscription-contributors = { path = "../subscription-contributors", features = [
-    "interface",
-] }
-cw20-base = { workspace = true, features = ["interface"]}
+cw20-base = { workspace = true, features = ["interface"] }

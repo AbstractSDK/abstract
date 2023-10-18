@@ -2,8 +2,7 @@ use crate::handlers;
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use crate::msg::{SubscriptionInstantiateMsg, SubscriptionMigrateMsg};
 use abstract_app::AppContract;
-use abstract_subscription_interface::SubscriptionError;
-use abstract_subscription_interface::SUBSCRIPTION_ID;
+use crate::SubscriptionError;
 use cosmwasm_std::Response;
 use cw20::Cw20ReceiveMsg;
 
@@ -18,6 +17,7 @@ pub type SubscriptionApp = AppContract<
     Cw20ReceiveMsg,
 >;
 
+pub const SUBSCRIPTION_ID: &str = "abstract:subscription";
 pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const SUBSCRIPTION_MODULE: SubscriptionApp =

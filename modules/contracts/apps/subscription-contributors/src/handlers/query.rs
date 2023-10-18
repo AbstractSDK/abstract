@@ -1,9 +1,7 @@
 use crate::contract::{AppResult, ContributorsApp};
-use crate::msg::ContributorsQueryMsg;
-use crate::state::CONTRIBUTION_CONFIG;
+use crate::msg::{ContributorStateResponse, ContributorsQueryMsg, StateResponse};
+use crate::state::{CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS};
 use abstract_sdk::AccountVerification;
-use abstract_subscription_interface::contributors::msg::{ContributorStateResponse, StateResponse};
-use abstract_subscription_interface::contributors::state::{CONTRIBUTION_STATE, CONTRIBUTORS};
 use cosmwasm_std::{to_binary, Binary, Deps, Env, StdError};
 
 pub fn query_handler(

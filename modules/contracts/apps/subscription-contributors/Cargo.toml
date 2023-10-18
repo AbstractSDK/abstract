@@ -20,7 +20,7 @@ interface = [
     "export",
     "dep:abstract-interface",
     "dep:cw-orch",
-    "abstract-subscription-interface/interface",
+    "abstract-subscription/interface",
 ]
 schema = ["abstract-app/schema"]
 
@@ -38,7 +38,7 @@ abstract-app = { workspace = true }
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
 abstract-interface = { workspace = true, optional = true }
-abstract-subscription-interface = { workspace = true }
+abstract-subscription = { path = "../subscription", default-features = false }
 
 cw-orch = { workspace = true, optional = true }
 
@@ -48,4 +48,4 @@ semver = { workspace = true }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 speculoos = { workspace = true }
-abstract-subscription-contributors = { path = ".", features = ["interface"]}
+abstract-subscription-contributors = { path = ".", features = ["interface"] }

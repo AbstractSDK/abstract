@@ -8,9 +8,9 @@
 //! `cargo run --example test-local`
 
 use abstract_core::objects::gov_type::GovernanceDetails;
-use abstract_interface::{Abstract, AppDeployer, VCExecFns};
+use abstract_interface::{Abstract, AppDeployer, DeployStrategy, VCExecFns};
+use abstract_subscription_contributors::contract::CONTRIBUTORS_ID;
 use abstract_subscription_contributors::{contract::APP_VERSION, ContributorsInterface};
-use abstract_subscription_interface::CONTRIBUTORS_ID;
 use cw_orch::{
     anyhow,
     deploy::Deploy,
@@ -52,7 +52,7 @@ fn main() -> anyhow::Result<()> {
         .claim_namespace(account.id()?, "my-namespace".to_owned())?;
 
     // Deploy
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
 
     // Install app
     // account.install_app(app, &AppInstantiateMsg {}, None)?;

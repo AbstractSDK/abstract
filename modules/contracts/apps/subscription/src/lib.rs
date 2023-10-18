@@ -1,7 +1,15 @@
 pub mod contract;
 mod handlers;
-pub use abstract_subscription_interface::subscription::{msg, state};
+mod error;
+pub mod msg;
+pub mod state;
 pub mod queries;
+
+pub use error::SubscriptionError;
+
+/// Duration of subscription in weeks
+pub const DURATION_IN_WEEKS: u64 = 4;
+pub const WEEK_IN_SECONDS: u64 = 7 * 24 * 60 * 60;
 
 #[cfg(feature = "interface")]
 pub mod interface {
@@ -50,9 +58,13 @@ pub mod interface {
                     factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
                     subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
-                    subscription_per_week_emissions: crate::state::EmissionType::IncomeBased(
+                    subscription_per_week_emissions: crate::state::EmissionType::WeekShared(
+                        Decimal::from_str("0.000001").unwrap(),
                         AssetInfoUnchecked::cw20(token_addr.clone()),
                     ),
+                    // crate::state::EmissionType::IncomeBased(
+                    //     AssetInfoUnchecked::cw20(token_addr.clone()),
+                    // ),
                     // 3 days
                     income_averaging_period: 259200u64.into(),
                     // contributors: Some(ContributorsInstantiateMsg {

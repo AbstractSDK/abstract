@@ -1,19 +1,15 @@
-use crate::state::{ContributionState, CONTRIBUTION_STATE};
-use abstract_sdk::ModuleInterface;
-use abstract_subscription_interface::SUBSCRIPTION_ID;
-use cosmwasm_std::{wasm_execute, Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
-
-use crate::contract::{ContributorsApp, AppResult};
+use crate::contract::{AppResult, ContributorsApp};
 use crate::msg::ContributorsInstantiateMsg;
+use crate::state::{ContributionState, CONTRIBUTION_STATE};
 use crate::state::{ContributorsConfig, CONTRIBUTION_CONFIG};
 
-use abstract_subscription_interface::subscription::msg as subscr_msg;
+use cosmwasm_std::{Decimal, DepsMut, Env, MessageInfo, Response, Uint128};
 
 pub fn instantiate_handler(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    app: ContributorsApp,
+    _app: ContributorsApp,
     msg: ContributorsInstantiateMsg,
 ) -> AppResult {
     let contributor_config: ContributorsConfig = ContributorsConfig {
@@ -35,22 +31,5 @@ pub fn instantiate_handler(
     CONTRIBUTION_CONFIG.save(deps.storage, &contributor_config)?;
     CONTRIBUTION_STATE.save(deps.storage, &contributor_state)?;
 
-    // TODO: this contract is not installed yet and reading module-factory context sounds wrong
-    // come up with a better solution something like post-install hooks to abstract
-    //
-    // self-enable contributors
-    // let subscription_addr = app.modules(deps.as_ref()).module_address(SUBSCRIPTION_ID)?;
-    // let update_config_msg = wasm_execute(
-    //     subscription_addr,
-    //     &subscr_msg::ExecuteMsg::from(
-    //         subscr_msg::SubscriptionExecuteMsg::UpdateSubscriptionConfig {
-    //             payment_asset: None,
-    //             factory_address: None,
-    //             subscription_cost_per_week: None,
-    //             contributors_enabled: Some(true),
-    //         },
-    //     ),
-    //     vec![],
-    // )?;
     Ok(Response::new())
 }

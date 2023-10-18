@@ -1,14 +1,18 @@
+use crate::ContributorsError;
 use crate::{
     handlers,
-    msg::{ContributorsExecuteMsg, AppMigrateMsg, ContributorsQueryMsg, ContributorsInstantiateMsg},
+    msg::{
+        AppMigrateMsg, ContributorsExecuteMsg, ContributorsInstantiateMsg, ContributorsQueryMsg,
+    },
     replies::{self, REFRESH_REPLY_ID},
 };
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_subscription_interface::CONTRIBUTORS_ID;
-use abstract_subscription_interface::{ContributorsError, SUBSCRIPTION_ID};
 use cosmwasm_std::Response;
 
+use abstract_subscription::contract::SUBSCRIPTION_ID;
+
+pub const CONTRIBUTORS_ID: &str = "abstract:subscription-contributors";
 pub const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The type of the result returned by your app's entry points.

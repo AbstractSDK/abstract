@@ -1,22 +1,25 @@
 use crate::replies::REFRESH_REPLY_ID;
 use crate::state::{
-    Compensation, CACHED_CONTRIBUTION_STATE, CONTRIBUTION_CONFIG, CONTRIBUTION_STATE, CONTRIBUTORS,
+    Compensation, CACHED_CONTRIBUTION_STATE, COMPENSATION_CLAIMER, CONTRIBUTION_CONFIG,
+    CONTRIBUTION_STATE, CONTRIBUTORS,
 };
+use crate::ContributorsError;
+
 use abstract_core::objects::time_weighted_average::TimeWeightedAverageData;
 use abstract_core::objects::AccountId;
 use abstract_core::version_control::AccountBase;
+use abstract_sdk::core::manager::ExecuteMsg as ManagerMsg;
 use abstract_sdk::{
     AbstractSdkResult, AccountVerification, Execution, ModuleInterface, TransferInterface,
 };
-use abstract_subscription_interface::contributors::state::COMPENSATION_CLAIMER;
-use abstract_subscription_interface::subscription::msg as subscr_msg;
-use abstract_subscription_interface::subscription::state as subscr_state;
+use abstract_subscription::contract::SUBSCRIPTION_ID;
+use abstract_subscription::msg as subscr_msg;
+use abstract_subscription::state as subscr_state;
+use abstract_subscription::WEEK_IN_SECONDS;
 
-use abstract_subscription_interface::utils::suspend_os;
-use abstract_subscription_interface::{ContributorsError, SUBSCRIPTION_ID, WEEK_IN_SECONDS};
 use cosmwasm_std::{
-    wasm_execute, Addr, Decimal, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
-    Storage, SubMsg, Timestamp, Uint128,
+    to_binary, wasm_execute, Addr, CosmosMsg, Decimal, Deps, DepsMut, Env, MessageInfo, Response,
+    StdError, StdResult, Storage, SubMsg, Timestamp, Uint128, WasmMsg,
 };
 use cw_asset::{Asset, AssetInfoUnchecked};
 
@@ -257,9 +260,10 @@ pub(crate) fn claim_compensation(
         .query(&deps.querier, subscription_addr.clone())?
         .subscription_per_week_emissions
     {
-        subscr_state::EmissionType::IncomeBased(_) => {
-            cached_state.emissions * (Decimal::one() - config.emission_user_share)
-        }
+        // TODO:
+        // subscr_state::EmissionType::IncomeBased(_) => {
+        //     cached_state.emissions * (Decimal::one() - config.emission_user_share)
+        // }
         _ => cached_state.emissions,
     };
 
@@ -410,4 +414,14 @@ pub(crate) fn subscription_module_addr(
     deps: Deps,
 ) -> AbstractSdkResult<cosmwasm_std::Addr> {
     app.modules(deps).module_address(SUBSCRIPTION_ID)
+}
+
+pub fn suspend_os(manager_address: Addr, new_suspend_status: bool) -> StdResult<CosmosMsg> {
+    Ok(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: manager_address.to_string(),
+        msg: to_binary(&ManagerMsg::UpdateStatus {
+            is_suspended: Some(new_suspend_status),
+        })?,
+        funds: vec![],
+    }))
 }

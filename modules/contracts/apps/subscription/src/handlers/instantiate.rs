@@ -1,4 +1,4 @@
-use abstract_subscription_interface::subscription::msg::SubscriptionInstantiateMsg;
+use crate::msg::SubscriptionInstantiateMsg;
 use cosmwasm_std::{DepsMut, Env, MessageInfo, Response};
 
 use crate::{
@@ -20,7 +20,6 @@ pub fn instantiate_handler(
         subscription_cost_per_week: msg.subscription_cost_per_week,
         factory_address: deps.api.addr_validate(&msg.factory_addr)?,
         subscription_per_week_emissions: msg.subscription_per_week_emissions.check(deps.api)?,
-        contributors_enabled: false,
     };
 
     let subscription_state: SubscriptionState = SubscriptionState { active_subs: 0 };

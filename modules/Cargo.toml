@@ -3,7 +3,6 @@ members = [
   "contracts/apps/*",
   "contracts/adapters/*",
   "packages/bundles/wyndex",
-  "packages/apps/subscription",
   "scripts",
 ]
 

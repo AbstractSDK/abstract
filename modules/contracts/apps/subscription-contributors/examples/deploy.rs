@@ -14,9 +14,9 @@
 //! $ just deploy uni-6 osmo-test-5
 //! ```
 
-use abstract_interface::AppDeployer;
+use abstract_interface::{AppDeployer, DeployStrategy};
+use abstract_subscription_contributors::contract::CONTRIBUTORS_ID;
 use abstract_subscription_contributors::{contract::APP_VERSION, ContributorsInterface};
-use abstract_subscription_interface::CONTRIBUTORS_ID;
 use clap::Parser;
 use cw_orch::{
     anyhow,
@@ -37,7 +37,7 @@ fn deploy(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .build()?;
 
         let app = ContributorsInterface::new(CONTRIBUTORS_ID, chain);
-        app.deploy(version)?;
+        app.deploy(version, DeployStrategy::Try)?;
 
         // Create an account on our front-end to install the module!
         // https://app.abstract.money

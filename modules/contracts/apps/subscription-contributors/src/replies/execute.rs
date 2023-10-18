@@ -1,13 +1,13 @@
 use crate::{
-    contract::{ContributorsApp, AppResult},
+    contract::{AppResult, ContributorsApp},
     handlers::execute::{claim_compensation, subscription_module_addr},
 };
 
-use abstract_subscription_interface::contributors::state::{
+use crate::state::{
     ContributionState, ContributorsConfig, CACHED_CONTRIBUTION_STATE, COMPENSATION_CLAIMER,
     CONTRIBUTION_CONFIG, CONTRIBUTION_STATE,
 };
-use abstract_subscription_interface::subscription::state as subscr_state;
+use abstract_subscription::state as subscr_state;
 use cosmwasm_std::{Decimal, DepsMut, Env, Reply, StdError, StdResult, Storage};
 
 pub fn refresh_reply(deps: DepsMut, env: Env, app: ContributorsApp, _reply: Reply) -> AppResult {

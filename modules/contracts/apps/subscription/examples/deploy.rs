@@ -1,6 +1,6 @@
 use abstract_interface::*;
 use abstract_subscription::contract::interface::SubscriptionInterface;
-use abstract_subscription_interface::SUBSCRIPTION_ID;
+use abstract_subscription::contract::SUBSCRIPTION_ID;
 use clap::Parser;
 use cw_orch::{
     anyhow,
@@ -22,7 +22,7 @@ fn deploy_subscription(networks: Vec<ChainInfo>) -> anyhow::Result<()> {
             .handle(rt.handle())
             .build()?;
         let subscription_app = SubscriptionInterface::new(SUBSCRIPTION_ID, chain);
-        subscription_app.deploy(version.clone())?;
+        subscription_app.deploy(version.clone(), DeployStrategy::Try)?;
     }
     Ok(())
 }

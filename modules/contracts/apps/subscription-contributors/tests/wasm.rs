@@ -1,6 +1,6 @@
 use abstract_subscription_contributors::ContributorsInterface;
 
-use abstract_subscription_interface::CONTRIBUTORS_ID;
+use abstract_subscription_contributors::contract::CONTRIBUTORS_ID;
 use cw_orch::prelude::*;
 
 // consts for testing
