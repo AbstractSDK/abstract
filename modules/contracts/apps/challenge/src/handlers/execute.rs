@@ -252,7 +252,7 @@ fn cast_vote(
         // Load last proposal and use it if it's active
         if let Some(proposal_id) = last_proposal(challenge_id, deps.as_ref())? {
             let proposal = SIMPLE_VOTING.load_proposal(deps.storage, &env.block, proposal_id)?;
-            if proposal.assert_active_proposal(&env.block).is_ok() {
+            if proposal.assert_active_proposal().is_ok() {
                 break 'proposal_id proposal_id;
             }
         }
