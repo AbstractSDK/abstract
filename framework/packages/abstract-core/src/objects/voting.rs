@@ -31,7 +31,13 @@
 //! * List of items queries allowed by `query_` prefix
 //!
 //! ## Details
-//! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal
+//! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal.
+//! 
+//! Each proposal goes through the following stages:
+//! 1. Active: proposal is active and can be voted on
+//! 2. WaitingForCount: voting period is finished and awaiting counting
+//! 3. VetoPeriod (optional): voting is counted and veto period is active
+//! 4. Finished: proposal is finished and count is done
 
 use std::{collections::HashSet, fmt::Display};
 
