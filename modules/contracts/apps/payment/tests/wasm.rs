@@ -1,5 +1,5 @@
-use abstract_payment_app::contract::APP_ID;
-use abstract_payment_app::PaymentApp;
+use payment_app::contract::APP_ID;
+use payment_app::PaymentAppInterface;
 
 use cw_orch::prelude::*;
 
@@ -14,7 +14,7 @@ fn successful_wasm() {
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = PaymentApp::new(APP_ID, mock);
+    let contract = PaymentAppInterface::new(APP_ID, mock);
 
     contract.wasm();
 }
