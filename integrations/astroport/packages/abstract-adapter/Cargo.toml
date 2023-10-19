@@ -34,7 +34,5 @@ astroport = { path = "../astroport/", optional = true }
 lazy_static = "1.4.0"
 
 [dev-dependencies]
-abstract-dex-standard = { version = "0.19.2", features = [
-  "testing",
-] }
+abstract-dex-standard = { version = "0.19.2", features = ["testing"] }
 cw-orch = { version = "0.16.4", features = ["daemon"] }
