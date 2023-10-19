@@ -34,10 +34,14 @@
 //! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal.
 //!
 //! Each proposal goes through the following stages:
-//! 1. Active: proposal is active and can be voted on
-//! 3. VetoPeriod (optional): voting is counted and veto period is active
-//! 2. WaitingForCount: voting period is finished and awaiting counting
-//! 4. Finished: proposal is finished and count is done
+//! 1. Active: proposal is active and can be voted on. It can also be canceled during this period.
+//! 3. VetoPeriod (optional): voting is counted and veto period is active.
+//! 2. WaitingForCount: voting period is finished and awaiting counting.
+//! 4. Finished: proposal is finished and count is done. The proposal then has one of the following end states:
+//!     * Passed: proposal passed
+//!     * Failed: proposal failed
+//!     * Canceled: proposal was canceled
+//!     * Vetoed: proposal was vetoed
 
 use std::{collections::HashSet, fmt::Display};
 
