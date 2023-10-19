@@ -42,7 +42,7 @@ schemars = "0.8"
 cw-asset = { version = "3.0" }
 
 abstract-core = { version = "0.19.0" }
-abstract-app = { version = "0.19.0" }
+abstract-app = { version = "0.19.1" }
 abstract-sdk = { version = "0.19.0" }
 
 # Dependencies for interface
