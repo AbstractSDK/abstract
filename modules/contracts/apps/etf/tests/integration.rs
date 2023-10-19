@@ -12,8 +12,8 @@ use abstract_sdk::core as abstract_core;
 use abstract_testing::prelude::TEST_ADMIN;
 use cosmwasm_std::{coin, Addr, Decimal, Empty};
 use cw20::msg::Cw20ExecuteMsgFns;
-use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 use cw_orch::prelude::*;
+use cw_plus_interface::cw20_base::Cw20Base as AbstractCw20Base;
 
 use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetUnchecked};
