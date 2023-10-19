@@ -118,8 +118,8 @@ mod tests {
     }
 
     mod app_request {
+        use crate::core::app;
         use crate::mock_module::MockModuleExecuteMsg;
-        use core::app;
 
         use super::*;
 
@@ -158,7 +158,7 @@ mod tests {
     }
 
     mod app_configure {
-        use core::app;
+        use crate::core::app;
 
         use super::*;
 

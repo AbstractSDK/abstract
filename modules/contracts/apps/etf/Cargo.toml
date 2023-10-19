@@ -56,3 +56,4 @@ dotenv = "0.15.0"
 clap = { workspace = true }
 cw-orch = { workspace = true, features = ["daemon"] }
 abstract-etf = { path = ".", features = ["interface"] }
+cw-plus-interface = { workspace = true }

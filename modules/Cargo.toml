@@ -30,8 +30,10 @@ cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
-], tag = "v0.17.0" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v0.17.0" }
+], rev="258fb95" }
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", rev="258fb95" }
+
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", rev = "258fb95" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -39,7 +41,7 @@ cw-address-like = { version = "1.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
-thiserror = { version = "<=1.0.48" }
+thiserror = { version = "1.0.49" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 chrono = { version = "0.4.31", default-features = false }
@@ -47,6 +49,7 @@ clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
 cw-orch = { version = "0.16.1" }
+cw-multi-test = { package = "abstract-cw-multi-test", version="0.16.5" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
@@ -84,8 +87,6 @@ speculoos = "0.11.0"
 anyhow = "1"
 # this ensures local compatability when compiling locally
 [patch.crates-io]
-# TODO: Remove
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator/", branch = "main" }
 abstract-adapter = { path = "../framework/packages/abstract-adapter" }
 abstract-app = { path = "../framework/packages/abstract-app" }
 abstract-interface = { path = "../framework/packages/abstract-interface" }

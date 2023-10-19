@@ -25,3 +25,5 @@ cosmwasm-schema = { workspace = true }
 cw-asset = { workspace = true }
 anyhow = { workspace = true }
 cw-controllers = "1.0.1"
+cw-multi-test = { workspace = true }
+cw-plus-interface = { workspace = true }
