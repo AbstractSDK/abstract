@@ -139,14 +139,14 @@ pub fn try_pay(
             SUBSCRIBERS.save(deps.storage, &os_id, &new_sub)?;
         }
         let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
-        subscription_state.active_subs += 1;
-        SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
         INCOME_TWA.accumulate(
             &env,
             deps.storage,
             Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
-                * config.subscription_cost_per_week,
+            * config.subscription_cost_per_week,
         )?;
+        SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
+        subscription_state.active_subs += 1;
     }
 
     Ok(Response::new().add_attributes(attrs).add_message(
@@ -164,6 +164,15 @@ pub fn unsubscribe(
     let mut subscription_state = SUBSCRIPTION_STATE.load(deps.storage)?;
     let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
     let mut suspend_msgs: Vec<SubMsg> = vec![];
+
+    // update income
+    INCOME_TWA.accumulate(
+        &env,
+        deps.storage,
+        Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
+            * subscription_config.subscription_cost_per_week,
+    )?;
+    
     for os_id in os_ids {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, &os_id)?;
         // TODO:
@@ -180,13 +189,6 @@ pub fn unsubscribe(
     }
 
     SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
-    // update income
-    INCOME_TWA.accumulate(
-        &env,
-        deps.storage,
-        Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
-            * subscription_config.subscription_cost_per_week,
-    )?;
     Ok(Response::new().add_submessages(suspend_msgs))
 }
 

@@ -1,3 +1,11 @@
+//! # Time Weighted Average (TWA) helper
+//! 
+//! A time weighted average is an accumulating value that is updated irregularly. 
+//! Whenever an update is applied, the time between the current update and the last update is used, along with the current value,
+//! to accumulate the cumulative value.
+//! 
+//! 
+
 use crate::AbstractResult;
 use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Uint128};
 use cw_storage_plus::Item;
@@ -35,6 +43,9 @@ impl<'a> TimeWeightedAverage<'a> {
         };
         self.0.save(store, &twa).map_err(Into::into)
     }
+
+    /// Accumulate applies the current value to the TWA for the duration since the last update
+    /// and returns the cumulative value and block time.
     pub fn accumulate(
         &self,
         env: &Env,
