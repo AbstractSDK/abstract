@@ -9,10 +9,11 @@ use payment_app::{
     msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
+use wyndex_bundle::WynDex;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{Addr, Decimal};
+use cosmwasm_std::{coins, Addr, Decimal, Uint128};
 
 // consts for testing
 const ADMIN: &str = "admin";
@@ -80,6 +81,10 @@ fn setup() -> anyhow::Result<(
     Ok((account, abstr_deployment, app))
 }
 
+fn wyndex_deployment(chain: &Mock) -> WynDex {
+    WynDex::store_on(chain.clone()).unwrap()
+}
+
 #[test]
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
@@ -93,5 +98,30 @@ fn successful_install() -> anyhow::Result<()> {
             exchanges: vec![]
         }
     );
+    Ok(())
+}
+
+#[test]
+fn test_simple_tip() -> anyhow::Result<()> {
+    let (account, abstr_deployment, mut app) = setup()?;
+    let mock = abstr_deployment.ans_host.get_chain().clone();
+    let WynDex {
+        eur_token,
+        usd_token: _,
+        eur_usd_lp: _,
+        ..
+    } = wyndex_deployment(&mock);
+    let tipper = Addr::unchecked("tipper");
+    let tip_amount = 100;
+    let tip_currency = eur_token.to_string();
+    let tip_coins = coins(tip_amount, tip_currency.clone());
+    mock.set_balance(&tipper, tip_coins.clone())?;
+
+    app.set_sender(&tipper);
+    app.tip(&tip_coins)?;
+
+    let balance = mock.query_balance(&account.proxy.address()?, &tip_currency)?;
+    assert_eq!(balance, Uint128::from(tip_amount));
+
     Ok(())
 }
