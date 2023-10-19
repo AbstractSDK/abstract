@@ -52,8 +52,8 @@ pub fn tip(
     // swap the asset(s) to the desired asset is set
     let config = CONFIG.load(deps.storage)?;
     let Some(desired_asset) = config.desired_asset else {
-      // just forward the payment
-      return Ok(app_resp);
+        // just forward the payment
+        return Ok(app_resp);
     };
 
     // Reverse query the deposited assets
