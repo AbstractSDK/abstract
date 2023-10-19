@@ -138,3 +138,19 @@ fn successful_install() -> anyhow::Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn subscribe() -> anyhow::Result<()> {
+    // Set up the environment and contract
+    let Subscription {
+        chain: _,
+        account: _account,
+        abstr: _abstr,
+        subscription_app,
+        payment_cw20,
+    } = setup()?;
+
+
+    subscription_app.pay(AccountId::local(5))?;
+    Ok(())
+}

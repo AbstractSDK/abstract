@@ -29,23 +29,17 @@
 //! * (optional) Token emissions to contributor (and users) are dynamically set based on the protocol's income. Meaning that the token emissions will rise if demand/income falls and vice-versa.
 
 use super::state::{EmissionType, Subscriber, SubscriptionConfig, SubscriptionState};
-use abstract_core::app;
+use crate::contract::SubscriptionApp;
 use abstract_core::objects::AccountId;
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{Decimal, Uint64};
+use cosmwasm_std::{to_binary, Addr, Binary, CosmosMsg, Decimal, StdResult, Uint64, WasmMsg};
 use cw_asset::{Asset, AssetInfoUnchecked};
 
-/// Top-level Abstract App execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
-pub type ExecuteMsg = app::ExecuteMsg<SubscriptionExecuteMsg>;
-/// Top-level Abstract App instantiate message. This is the message that is passed to the `instantiate` entrypoint of the smart-contract.
-pub type InstantiateMsg = app::InstantiateMsg<SubscriptionInstantiateMsg>;
-/// Top-level Abstract App query message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-pub type QueryMsg = app::QueryMsg<SubscriptionQueryMsg>;
-/// Top-level Abstract App migrate message. This is the message that is passed to the `query` entrypoint of the smart-contract.
-pub type MigrateMsg = app::MigrateMsg<SubscriptionMigrateMsg>;
-
-impl app::AppExecuteMsg for SubscriptionExecuteMsg {}
-impl app::AppQueryMsg for SubscriptionQueryMsg {}
+abstract_app::app_msg_types!(
+    SubscriptionApp,
+    SubscriptionExecuteMsg,
+    SubscriptionQueryMsg
+);
 
 /// Subscription migration message
 #[cosmwasm_schema::cw_serde]
@@ -159,4 +153,36 @@ pub struct SubscriberStateResponse {
     pub currently_subscribed: bool,
     /// State of the subscription
     pub subscriber_details: Subscriber,
+}
+
+/// Hook message that contains list of just unsubscribed users
+#[cosmwasm_schema::cw_serde]
+pub struct UnsubscribedHookMsg {
+    /// Unsubscribed users
+    pub unsubscribed: Vec<Addr>,
+}
+
+// This is just a helper to properly serialize the Hook message
+#[cosmwasm_schema::cw_serde]
+enum HookReceiverExecuteMsg {
+    Unsubscribed(UnsubscribedHookMsg),
+}
+
+impl UnsubscribedHookMsg {
+    /// serializes the message
+    pub fn into_binary(self) -> StdResult<Binary> {
+        let msg = HookReceiverExecuteMsg::Unsubscribed(self);
+        to_binary(&msg)
+    }
+
+    /// creates a cosmos_msg sending this struct to the named contract
+    pub fn into_cosmos_msg<T: Into<String>>(self, contract_addr: T) -> StdResult<CosmosMsg> {
+        let msg = self.into_binary()?;
+        let execute = WasmMsg::Execute {
+            contract_addr: contract_addr.into(),
+            msg,
+            funds: vec![],
+        };
+        Ok(execute.into())
+    }
 }
