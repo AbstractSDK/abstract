@@ -275,21 +275,6 @@ pub fn update_subscription_config(
     subscription_cost_per_week: Option<Decimal>,
     subscription_per_week_emissions: Option<EmissionType<String>>,
 ) -> SubscriptionResult {
-    // TODO: it's not installed during contributors instantiate method
-    // Should come up with a better idea to "auto-update" that
-    //
-    // Let contributors contract self-enable
-    // if let Some(true) = &contributors_enabled {
-    //     let contributos_addr = app.modules(deps.as_ref()).module_address(CONTRIBUTORS_ID)?;
-    //     if info.sender == contributos_addr {
-    //         SUBSCRIPTION_CONFIG.update(deps.storage, |mut config| {
-    //             config.contributors_enabled = true;
-    //             StdResult::Ok(config)
-    //         })?;
-    //         return Ok(Response::new().add_attribute("action", "update_subscriber_config"));
-    //     }
-    // }
-
     app.admin.assert_admin(deps.as_ref(), &info.sender)?;
 
     let mut config: SubscriptionConfig = SUBSCRIPTION_CONFIG.load(deps.storage)?;
