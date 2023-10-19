@@ -42,9 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     name: ubuntu / stable / coverage
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           submodules: true
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.3
+        with:
+          version: "v0.4.2"
       - name: Install stable
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -53,8 +57,10 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
+        working-directory: ./modules
         run: cargo generate-lockfile
       - name: cargo llvm-cov
+        working-directory: ./modules
         run: cargo llvm-cov --locked --all-features --lcov --output-path lcov.info
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
