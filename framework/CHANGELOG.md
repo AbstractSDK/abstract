@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `is_module_installed` moved from `Manager` to `Account`
 - `account_id()` method of `AccountRegistry` is now exposed.
 
-
 ### Removed
 
 ## [0.19.0] - 2023-09-26
