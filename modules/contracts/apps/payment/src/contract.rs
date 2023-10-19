@@ -27,7 +27,7 @@ pub type PaymentApp = AppContract<
 >;
 
 const DEX_DEPENDENCY: StaticDependency = StaticDependency::new(
-    abstract_dex_adapter::EXCHANGE,
+    abstract_dex_adapter::DEX_ADAPTER_ID,
     &[abstract_dex_adapter::contract::CONTRACT_VERSION],
 );
 
@@ -44,4 +44,4 @@ const APP: PaymentApp = PaymentApp::new(APP_ID, APP_VERSION, None)
 abstract_app::export_endpoints!(APP, PaymentApp);
 
 #[cfg(feature = "interface")]
-abstract_app::create_interface!(APP, PaymentApp);
+abstract_app::cw_orch_interface!(APP, PaymentApp, PaymentAppInterface);

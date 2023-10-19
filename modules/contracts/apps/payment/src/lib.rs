@@ -6,6 +6,6 @@ mod replies;
 pub mod state;
 
 #[cfg(feature = "interface")]
-pub use contract::interface::PaymentApp;
+pub use contract::interface::PaymentAppInterface;
 #[cfg(feature = "interface")]
 pub use msg::{AppExecuteMsgFns, AppQueryMsgFns};

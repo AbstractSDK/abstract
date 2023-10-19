@@ -4,8 +4,8 @@ use cw_orch::{
     tokio::runtime::Runtime,
 };
 
-use abstract_interface::AppDeployer;
-use abstract_payment_app::{contract::APP_ID, PaymentApp};
+use abstract_interface::{AppDeployer, DeployStrategy};
+use payment_app::{contract::APP_ID, PaymentAppInterface};
 use semver::Version;
 
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,8 +21,8 @@ fn main() -> anyhow::Result<()> {
         .chain(chain)
         .handle(rt.handle())
         .build()?;
-    let app = PaymentApp::new(APP_ID, chain);
+    let app = PaymentAppInterface::new(APP_ID, chain);
 
-    app.deploy(version)?;
+    app.deploy(version, DeployStrategy::Try)?;
     Ok(())
 }

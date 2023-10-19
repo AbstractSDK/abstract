@@ -1,5 +1,5 @@
-use abstract_payment_app::contract::PaymentApp;
 use cosmwasm_schema::remove_schemas;
+use payment_app::contract::PaymentApp;
 use std::env::current_dir;
 use std::fs::create_dir_all;
 

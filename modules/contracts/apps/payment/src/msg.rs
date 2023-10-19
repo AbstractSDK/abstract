@@ -14,7 +14,7 @@ use crate::contract::PaymentApp;
 
 // impl app::AppExecuteMsg for AppExecuteMsg {}
 // impl app::AppQueryMsg for AppQueryMsg {}
-abstract_app::app_messages!(PaymentApp, AppExecuteMsg, AppQueryMsg);
+abstract_app::app_msg_types!(PaymentApp, AppExecuteMsg, AppQueryMsg);
 
 /// PaymentApp instantiate message
 #[cosmwasm_schema::cw_serde]

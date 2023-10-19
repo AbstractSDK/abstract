@@ -1,9 +1,12 @@
-use abstract_core::{app::BaseInstantiateMsg, objects::gov_type::GovernanceDetails};
-use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, EXCHANGE};
-use abstract_interface::{Abstract, AbstractAccount, AppDeployer, VCExecFns, *};
-use abstract_payment_app::{
+use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
+use abstract_dex_adapter::{contract::CONTRACT_VERSION, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
+use abstract_interface::{
+    Abstract, AbstractAccount, AdapterDeployer, AppDeployer, DeployStrategy, ManagerQueryFns,
+    VCExecFns,
+};
+use payment_app::{
     contract::{APP_ID, APP_VERSION},
-    msg::{AppInstantiateMsg, ConfigResponse, InstantiateMsg},
+    msg::{AppInstantiateMsg, ConfigResponse},
     *,
 };
 // Use prelude to get all the necessary imports
@@ -15,20 +18,24 @@ use cosmwasm_std::{Addr, Decimal};
 const ADMIN: &str = "admin";
 
 /// Set up the test environment with the contract installed
-fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, PaymentApp<Mock>)> {
+fn setup() -> anyhow::Result<(
+    AbstractAccount<Mock>,
+    Abstract<Mock>,
+    PaymentAppInterface<Mock>,
+)> {
     // Create a sender
     let sender = Addr::unchecked(ADMIN);
     // Create the mock
     let mock = Mock::new(&sender);
 
     // Construct the counter interface
-    let contract = PaymentApp::new(APP_ID, mock.clone());
+    let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
     // Deploy Abstract to the mock
-    let abstr_deployment = Abstract::deploy_on(mock.clone(), Empty {})?;
+    let abstr_deployment = Abstract::deploy_on(mock.clone(), sender.to_string())?;
 
     let dex_adapter = abstract_dex_adapter::interface::DexAdapter::new(
-        abstract_dex_adapter::EXCHANGE,
+        abstract_dex_adapter::DEX_ADAPTER_ID,
         mock.clone(),
     );
     dex_adapter.deploy(
@@ -37,6 +44,7 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, PaymentApp<
             recipient_account: 0,
             swap_fee: Decimal::percent(1),
         },
+        DeployStrategy::Try,
     )?;
 
     // Create a new account to install the app onto
@@ -50,31 +58,26 @@ fn setup() -> anyhow::Result<(AbstractAccount<Mock>, Abstract<Mock>, PaymentApp<
     // claim the namespace so app can be deployed
     abstr_deployment
         .version_control
-        .claim_namespaces(1, vec!["my-namespace".to_string()])?;
+        .claim_namespace(AccountId::local(1), "my-namespace".to_string())?;
 
-    contract.deploy(APP_VERSION.parse()?)?;
+    app.deploy(APP_VERSION.parse()?, DeployStrategy::Try)?;
 
     // install exchange module as it's a dependency
-    account.install_module(EXCHANGE, &Empty {}, None)?;
+    account.install_module(DEX_ADAPTER_ID, &Empty {}, None)?;
 
-    account.install_module(
-        APP_ID,
-        &InstantiateMsg {
-            base: BaseInstantiateMsg {
-                ans_host_address: abstr_deployment.ans_host.addr_str()?,
-            },
-            module: AppInstantiateMsg {
-                desired_asset: None,
-                exchanges: vec![],
-            },
+    account.install_app(
+        app.clone(),
+        &AppInstantiateMsg {
+            desired_asset: None,
+            exchanges: vec![],
         },
         None,
     )?;
 
     let modules = account.manager.module_infos(None, None)?;
-    contract.set_address(&modules.module_infos[1].address);
+    app.set_address(&modules.module_infos[1].address);
 
-    Ok((account, abstr_deployment, contract))
+    Ok((account, abstr_deployment, app))
 }
 
 #[test]
