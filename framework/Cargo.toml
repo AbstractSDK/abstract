@@ -47,7 +47,7 @@ cw-address-like = { version = "1.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
-thiserror = { version = "1.0.49" }
+thiserror = { version = "<=1.0.48" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 clap = { version = "4.0.32", features = ["derive"] }
