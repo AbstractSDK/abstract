@@ -1,10 +1,10 @@
 //! # Time Weighted Average (TWA) helper
-//! 
-//! A time weighted average is an accumulating value that is updated irregularly. 
+//!
+//! A time weighted average is an accumulating value that is updated irregularly.
 //! Whenever an update is applied, the time between the current update and the last update is used, along with the current value,
 //! to accumulate the cumulative value.
-//! 
-//! 
+//!
+//!
 
 use crate::AbstractResult;
 use cosmwasm_std::{Addr, Decimal, Env, QuerierWrapper, Storage, Uint128};

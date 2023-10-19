@@ -143,7 +143,7 @@ pub fn try_pay(
             &env,
             deps.storage,
             Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
-            * config.subscription_cost_per_week,
+                * config.subscription_cost_per_week,
         )?;
         SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
         subscription_state.active_subs += 1;
@@ -172,7 +172,7 @@ pub fn unsubscribe(
         Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
             * subscription_config.subscription_cost_per_week,
     )?;
-    
+
     for os_id in os_ids {
         let mut subscriber = SUBSCRIBERS.load(deps.storage, &os_id)?;
         // TODO:
