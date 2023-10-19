@@ -239,7 +239,7 @@ pub fn create_sub_account(
     assert_admin_right(deps.as_ref(), &msg_info.sender)?;
 
     let create_account_msg = &abstract_core::account_factory::ExecuteMsg::CreateAccount {
-        /// proxy of this manager will be the account owner
+        // proxy of this manager will be the account owner
         governance: GovernanceDetails::SubAccount {
             manager: env.contract.address.into_string(),
             proxy: ACCOUNT_MODULES.load(deps.storage, PROXY)?.into_string(),
