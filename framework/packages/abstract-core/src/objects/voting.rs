@@ -32,7 +32,7 @@
 //!
 //! ## Details
 //! All methods that modify proposal will return [`ProposalInfo`] to allow logging or checking current status of proposal.
-//! 
+//!
 //! Each proposal goes through the following stages:
 //! 1. Active: proposal is active and can be voted on
 //! 2. WaitingForCount: voting period is finished and awaiting counting
