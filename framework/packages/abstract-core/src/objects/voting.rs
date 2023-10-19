@@ -35,8 +35,8 @@
 //!
 //! Each proposal goes through the following stages:
 //! 1. Active: proposal is active and can be voted on
-//! 2. WaitingForCount: voting period is finished and awaiting counting
 //! 3. VetoPeriod (optional): voting is counted and veto period is active
+//! 2. WaitingForCount: voting period is finished and awaiting counting
 //! 4. Finished: proposal is finished and count is done
 
 use std::{collections::HashSet, fmt::Display};
