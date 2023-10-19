@@ -33,8 +33,7 @@ impl EmissionType<String> {
             EmissionType::WeekShared(d, a) => Ok(EmissionType::WeekShared(d, a.check(api, None)?)),
             EmissionType::WeekPerUser(d, a) => {
                 Ok(EmissionType::WeekPerUser(d, a.check(api, None)?))
-            }
-            // EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
+            } // EmissionType::IncomeBased(a) => Ok(EmissionType::IncomeBased(a.check(api, None)?)),
         }
     }
 }

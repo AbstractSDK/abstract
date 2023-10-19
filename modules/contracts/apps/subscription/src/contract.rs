@@ -1,8 +1,8 @@
 use crate::handlers;
 use crate::msg::{SubscriptionExecuteMsg, SubscriptionQueryMsg};
 use crate::msg::{SubscriptionInstantiateMsg, SubscriptionMigrateMsg};
-use abstract_app::AppContract;
 use crate::SubscriptionError;
+use abstract_app::AppContract;
 use cosmwasm_std::Response;
 use cw20::Cw20ReceiveMsg;
 
