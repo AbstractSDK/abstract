@@ -21,3 +21,14 @@ ignore:
 comment:
   layout: "files"
   require_changes: true
+
+component_management:
+  individual_components:
+    - component_id: framework  # this is an identifier that should not be changed
+      name: framework  # this is a display name, and can be changed freely
+      paths:
+        - framework/
+    - component_id: modules  # this is an identifier that should not be changed
+      name: modules  # this is a display name, and can be changed freely
+      paths:
+        - modules/
