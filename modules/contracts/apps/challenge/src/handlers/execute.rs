@@ -423,7 +423,6 @@ pub(crate) fn last_proposal(challenge_id: u64, deps: Deps) -> StdResult<Option<P
     CHALLENGE_PROPOSALS
         .prefix(challenge_id)
         .keys(deps.storage, None, None, Order::Descending)
-        .take(1)
         .next()
         .transpose()
 }
