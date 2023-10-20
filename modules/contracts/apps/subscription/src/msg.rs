@@ -60,6 +60,7 @@ pub struct SubscriptionInstantiateMsg {
 
 /// App execution messages
 #[cosmwasm_schema::cw_serde]
+// TODO: uncomment those (needed it, for testing, while rust-analyzer is acting weird)
 // #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
 // #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
 #[derive(cw_orch::ExecuteFns)]
@@ -98,6 +99,7 @@ pub enum SubscriptionExecuteMsg {
 
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
+// TODO: uncomment those
 // #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
 // #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
 #[derive(cw_orch::QueryFns)]
