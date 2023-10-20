@@ -16,13 +16,27 @@ pub fn receive_cw20(
     cw20_msg: Cw20ReceiveMsg,
 ) -> SubscriptionResult {
     match from_binary(&cw20_msg.msg)? {
-        DepositHookMsg::Pay { os_id } => {
+        DepositHookMsg::Pay {
+            subscriber_addr,
+            unsubscribe_hook_addr,
+        } => {
             // Construct deposit asset
             let asset = Asset {
                 info: AssetInfo::Cw20(msg_info.sender.clone()),
                 amount: cw20_msg.amount,
             };
-            execute::try_pay(app, deps, env, msg_info, asset, os_id)
+            let subscriber_addr = deps
+                .api
+                .addr_validate(&subscriber_addr.unwrap_or(cw20_msg.sender))?;
+            execute::try_pay(
+                app,
+                deps,
+                env,
+                msg_info,
+                asset,
+                subscriber_addr,
+                unsubscribe_hook_addr,
+            )
         }
     }
 }

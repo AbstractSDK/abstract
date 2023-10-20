@@ -1,7 +1,4 @@
-use abstract_core::{
-    objects::{time_weighted_average::TimeWeightedAverage, AccountId},
-    AbstractResult,
-};
+use abstract_core::{objects::time_weighted_average::TimeWeightedAverage, AbstractResult};
 use cosmwasm_std::{Addr, Api, Decimal, Timestamp};
 use cw_address_like::AddressLike;
 use cw_asset::{AssetInfo, AssetInfoBase};
@@ -41,8 +38,6 @@ impl EmissionType<String> {
 /// Config for subscriber functionality
 #[cosmwasm_schema::cw_serde]
 pub struct SubscriptionConfig {
-    /// Only addr that can register on OS
-    pub factory_address: Addr,
     /// Asset that's accepted as payment
     pub payment_asset: AssetInfo,
     /// Cost of the subscription on a per-week basis.
@@ -67,14 +62,14 @@ pub struct Subscriber {
     pub expiration_timestamp: Timestamp,
     /// last time emissions were claimed
     pub last_emission_claim_timestamp: Timestamp,
-    /// Address of the OS manager
-    pub manager_addr: Addr,
+    /// Addr to send [unsubscribe message](`crate::msg::UnsubscribedHookMsg`)
+    pub unsubscribe_hook_addr: Option<Addr>,
 }
 
 /// Average number of subscribers
 pub const SUBSCRIPTION_CONFIG: Item<SubscriptionConfig> = Item::new("\u{0}{10}sub_config");
 pub const SUBSCRIPTION_STATE: Item<SubscriptionState> = Item::new("\u{0}{9}sub_state");
-pub const SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("subscribed");
-pub const DORMANT_SUBSCRIBERS: Map<&AccountId, Subscriber> = Map::new("un-subscribed");
+pub const SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("subscribed");
+pub const DORMANT_SUBSCRIBERS: Map<&Addr, Subscriber> = Map::new("un-subscribed");
 
 pub const INCOME_TWA: TimeWeightedAverage = TimeWeightedAverage::new("\u{0}{7}sub_twa");

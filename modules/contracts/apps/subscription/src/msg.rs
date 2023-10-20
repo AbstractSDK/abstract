@@ -50,8 +50,6 @@ pub struct SubscriptionMigrateMsg {}
 pub struct SubscriptionInstantiateMsg {
     /// Asset for payment
     pub payment_asset: AssetInfoUnchecked,
-    /// Only addr that can register Abstract Account
-    pub factory_addr: String,
     /// Cost of the subscription on a per-week basis.
     pub subscription_cost_per_week: Decimal,
     /// Subscription emissions per week
@@ -62,34 +60,33 @@ pub struct SubscriptionInstantiateMsg {
 
 /// App execution messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
-#[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+// #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
+// #[cfg_attr(feature = "interface", impl_into(ExecuteMsg))]
+#[derive(cw_orch::ExecuteFns)]
+#[impl_into(ExecuteMsg)]
 pub enum SubscriptionExecuteMsg {
     /// Subscriber payment
-    /// TODO?: could be automated with cron
     Pay {
-        /// Abstract account id of new subscriber
-        /// You can subscribe for other abstract account
-        /// TODO: make it optional to default to the proxy
-        os_id: AccountId,
+        /// Address of new subscriber
+        /// defaults to the sender
+        subscriber_addr: Option<String>,
+        /// Addr to send unsubscribe hook message
+        unsubscribe_hook_addr: Option<String>,
     },
     /// Unsubscribe inactive accounts
-    /// TODO?: could be automated with cron
     Unsubscribe {
         /// List of inactive accounts to move to the `DORMANT_SUBSCRIBERS` list
-        os_ids: Vec<AccountId>,
+        unsubscribe_addrs: Vec<String>,
     },
     /// Claim the emissions for subscriber
     ClaimEmissions {
-        /// Abstract account id of subscriber
-        os_id: AccountId,
+        /// Address of subscriber
+        addr: String,
     },
     /// Update config of subscription
     UpdateSubscriptionConfig {
         /// New asset for payment
         payment_asset: Option<AssetInfoUnchecked>,
-        /// New asset for payment
-        factory_address: Option<String>,
         /// new subscription_cost_per_week
         subscription_cost_per_week: Option<Decimal>,
         /// Subscription emissions per week
@@ -101,8 +98,10 @@ pub enum SubscriptionExecuteMsg {
 
 /// Subscriptions query messages
 #[cosmwasm_schema::cw_serde]
-#[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
-#[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+// #[cfg_attr(feature = "interface", derive(cw_orch::QueryFns))]
+// #[cfg_attr(feature = "interface", impl_into(QueryMsg))]
+#[derive(cw_orch::QueryFns)]
+#[impl_into(QueryMsg)]
 #[derive(QueryResponses)]
 pub enum SubscriptionQueryMsg {
     /// Get state of subscriptions and contributors
@@ -117,8 +116,8 @@ pub enum SubscriptionQueryMsg {
     /// Get state of the subscriber
     #[returns(SubscriberStateResponse)]
     SubscriberState {
-        /// Abstract Account Id of subscriber  
-        os_id: AccountId,
+        /// Address of subscriber  
+        addr: Addr,
     },
 }
 
@@ -127,8 +126,11 @@ pub enum SubscriptionQueryMsg {
 pub enum DepositHookMsg {
     /// Subscriber payment
     Pay {
-        /// Subscriber account id
-        os_id: AccountId,
+        /// Subscriber Addr
+        /// defaults to the sender
+        subscriber_addr: Option<String>,
+        /// Addr to send unsubscribe hook message
+        unsubscribe_hook_addr: Option<String>,
     },
 }
 

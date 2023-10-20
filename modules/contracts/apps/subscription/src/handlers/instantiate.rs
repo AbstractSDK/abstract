@@ -18,7 +18,6 @@ pub fn instantiate_handler(
     let subscription_config: SubscriptionConfig = SubscriptionConfig {
         payment_asset: msg.payment_asset.check(deps.api, None)?,
         subscription_cost_per_week: msg.subscription_cost_per_week,
-        factory_address: deps.api.addr_validate(&msg.factory_addr)?,
         subscription_per_week_emissions: msg.subscription_per_week_emissions.check(deps.api)?,
     };
 

@@ -59,9 +59,6 @@ pub enum SubscriptionError {
     #[error("emissions for this OS are already claimed")]
     EmissionsAlreadyClaimed {},
 
-    #[error("only the factory can register new subscribers")]
-    CallerNotFactory,
-
     #[error("you need to deposit at least {0} {1} to (re)activate this OS")]
     InsufficientPayment(u64, String),
 

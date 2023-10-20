@@ -36,9 +36,9 @@ pub fn query_handler(
             let subscription_config = SUBSCRIPTION_CONFIG.load(deps.storage)?;
             to_binary(&subscription_config)
         }
-        SubscriptionQueryMsg::SubscriberState { os_id } => {
-            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &os_id)?;
-            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, &os_id)?;
+        SubscriptionQueryMsg::SubscriberState { addr } => {
+            let maybe_sub = SUBSCRIBERS.may_load(deps.storage, &addr)?;
+            let maybe_dormant_sub = DORMANT_SUBSCRIBERS.may_load(deps.storage, &addr)?;
             let subscription_state = if let Some(sub) = maybe_sub {
                 to_binary(&SubscriberStateResponse {
                     currently_subscribed: true,

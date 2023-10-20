@@ -46,7 +46,6 @@ pub mod interface {
             payment_denom: String,
             token_addr: String,
             ans_host_address: String,
-            factory_addr: String,
             version_control_addr: String,
         ) -> AppInitMsg<SubscriptionInstantiateMsg> {
             AppInitMsg::<SubscriptionInstantiateMsg> {
@@ -55,7 +54,6 @@ pub mod interface {
                     version_control_address: version_control_addr,
                 },
                 module: SubscriptionInstantiateMsg {
-                    factory_addr,
                     payment_asset: AssetInfoUnchecked::native(payment_denom),
                     subscription_cost_per_week: Decimal::from_str("0.000001").unwrap(),
                     subscription_per_week_emissions: crate::state::EmissionType::WeekShared(
