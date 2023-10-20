@@ -1,68 +1,55 @@
-use abstract_cw_staking::{interface::CwStakingAdapter, CW_STAKING_ADAPTER_ID};
-use abstract_dex_adapter::{interface::DexAdapter, msg::DexInstantiateMsg, DEX_ADAPTER_ID};
-use abstract_interface::{Abstract, AdapterDeployer, AppDeployer, DeployStrategy};
-use challenge_app::{contract::CHALLENGE_APP_ID, ChallengeApp};
-use cosmwasm_std::Decimal;
-use dca_app::{contract::DCA_APP_ID, DCAApp};
-use etf_app::{contract::interface::EtfApp, ETF_APP_ID};
 use reqwest::Url;
 use std::net::TcpStream;
 
 use clap::Parser;
-use cw_orch::{
-    deploy::Deploy,
-    prelude::{
-        networks::{parse_network, ChainInfo},
-        *,
-    },
-};
+
 use tokio::runtime::Runtime;
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
 fn full_deploy() -> anyhow::Result<()> {
-    let rt = Runtime::new()?;
+    let _rt = Runtime::new()?;
+    // TODO:uncomment when we update to cw-orch 0.17
+    // let deployment = Abstract::<Daemon>::get_all_deployed_chains();
+    // let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
 
-    let deployment = Abstract::<Daemon>::get_all_deployed_chains();
-    let networks: Vec<ChainInfo> = deployment.iter().map(|n| parse_network(n)).collect();
+    // for network in networks {
+    //     let chain = DaemonBuilder::default()
+    //         .handle(rt.handle())
+    //         .chain(network.clone())
+    //         .build()?;
 
-    for network in networks {
-        let chain = DaemonBuilder::default()
-            .handle(rt.handle())
-            .chain(network.clone())
-            .build()?;
+    //     // Deploy Adapters
+    //     CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
+    //         abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,
+    //         Empty {},
+    //         DeployStrategy::Try,
+    //     )?;
+    //     DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
+    //         abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
+    //         DexInstantiateMsg {
+    //             recipient_account: 0,
+    //             swap_fee: Decimal::permille(3),
+    //         },
+    //         DeployStrategy::Try,
+    //     )?;
 
-        // Deploy Adapters
-        CwStakingAdapter::new(CW_STAKING_ADAPTER_ID, chain.clone()).deploy(
-            abstract_cw_staking::contract::CONTRACT_VERSION.parse()?,
-            Empty {},
-            DeployStrategy::Try,
-        )?;
-        DexAdapter::new(DEX_ADAPTER_ID, chain.clone()).deploy(
-            abstract_dex_adapter::contract::CONTRACT_VERSION.parse()?,
-            DexInstantiateMsg {
-                recipient_account: 0,
-                swap_fee: Decimal::permille(3),
-            },
-            DeployStrategy::Try,
-        )?;
+    //     // Deploy apps
+    //     EtfApp::new(ETF_APP_ID, chain.clone()).deploy(
+    //         etf_app::contract::CONTRACT_VERSION.parse()?,
+    //         DeployStrategy::Try,
+    //     )?;
 
-        // Deploy apps
-        EtfApp::new(ETF_APP_ID, chain.clone()).deploy(
-            etf_app::contract::CONTRACT_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
-
-        DCAApp::new(DCA_APP_ID, chain.clone()).deploy(
-            dca_app::contract::DCA_APP_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
-        ChallengeApp::new(CHALLENGE_APP_ID, chain.clone()).deploy(
-            challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
-            DeployStrategy::Try,
-        )?;
-    }
+    //     DCAApp::new(DCA_APP_ID, chain.clone()).deploy(
+    //         dca_app::contract::DCA_APP_VERSION.parse()?,
+    //         DeployStrategy::Try,
+    //     )?;
+    //     ChallengeApp::new(CHALLENGE_APP_ID, chain.clone()).deploy(
+    //         challenge_app::contract::CHALLENGE_APP_VERSION.parse()?,
+    //         DeployStrategy::Try,
+    //     )?;
+    // }
     Ok(())
 }
 
