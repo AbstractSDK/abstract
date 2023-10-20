@@ -27,6 +27,7 @@ pub fn instantiate(
         version_control_contract: deps.api.addr_validate(&msg.version_control_address)?,
         module_factory_address: deps.api.addr_validate(&msg.module_factory_address)?,
         ans_host_contract: deps.api.addr_validate(&msg.ans_host_address)?,
+        ibc_host: None,
     };
 
     cw2::set_contract_version(deps.storage, ACCOUNT_FACTORY, CONTRACT_VERSION)?;
@@ -49,18 +50,21 @@ pub fn execute(
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         } => commands::execute_update_config(
             deps,
             info,
             ans_host_contract,
             version_control_contract,
             module_factory_address,
+            ibc_host,
         ),
         ExecuteMsg::CreateAccount {
             governance,
             link,
             name,
             description,
+            account_id,
             namespace,
             base_asset,
             install_modules,
@@ -75,6 +79,7 @@ pub fn execute(
             namespace,
             base_asset,
             install_modules,
+            account_id,
         ),
         ExecuteMsg::UpdateOwnership(action) => {
             execute_update_ownership!(AccountFactoryResponse, deps, env, info, action)
@@ -164,6 +169,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             test_only_owner(deps.as_mut(), msg)?;
@@ -181,6 +187,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: None,
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -189,6 +196,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -206,6 +214,7 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: None,
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -214,6 +223,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(TEST_MODULE_FACTORY),
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -231,6 +241,7 @@ mod tests {
                 ans_host_contract: None,
                 version_control_contract: None,
                 module_factory_address: Some(new_module_factory.to_string()),
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -239,6 +250,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(TEST_VERSION_CONTROL),
                 ans_host_contract: Addr::unchecked(TEST_ANS_HOST),
                 module_factory_address: Addr::unchecked(new_module_factory),
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);
@@ -258,6 +270,7 @@ mod tests {
                 ans_host_contract: Some(new_ans_host.to_string()),
                 version_control_contract: Some(new_version_control.to_string()),
                 module_factory_address: Some(new_module_factory.to_string()),
+                ibc_host: None,
             };
 
             execute_as_owner(deps.as_mut(), msg)?;
@@ -266,6 +279,7 @@ mod tests {
                 version_control_contract: Addr::unchecked(new_version_control),
                 ans_host_contract: Addr::unchecked(new_ans_host),
                 module_factory_address: Addr::unchecked(new_module_factory),
+                ibc_host: None,
             };
             let actual_config: Config = CONFIG.load(deps.as_ref().storage)?;
             assert_that!(actual_config).is_equal_to(expected_config);

@@ -1,4 +1,5 @@
 use abstract_adapter::AdapterError;
+use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
 use cosmwasm_std::StdError;
 use cw_asset::AssetError;
@@ -13,7 +14,10 @@ pub enum CwStakingError {
     AdapterError(#[from] AdapterError),
 
     #[error("{0}")]
-    AbstractError(#[from] AbstractSdkError),
+    AbstractSdkError(#[from] AbstractSdkError),
+
+    #[error("{0}")]
+    AbstractError(#[from] AbstractError),
 
     #[error("{0}")]
     AssetError(#[from] AssetError),

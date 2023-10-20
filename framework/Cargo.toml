@@ -5,6 +5,7 @@ members = [
   "contracts/native/*",
   "contracts/account/*",
   "scripts",
+  "tests",
 ]
 
 # Enable the version 2 feature resolver, which avoids unifying features for targets that are not being built
@@ -53,8 +54,12 @@ protobuf = { version = "2", features = ["with-bytes"] }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.16.1" }
+# cw-orch = { version = "0.16.1" }
+cw-orch = { version = "0.16.3" }
 tokio = { version = "1.4", features = ["full"] }
+polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+polytone-note = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
+
 
 ## crates in order of publishing ## see docs/Publishing.md
 
@@ -68,6 +73,11 @@ module-factory = { package = "abstract-module-factory", path = "contracts/native
 account-factory = { package = "abstract-account-factory", path = "contracts/native/account-factory" }
 ans-host = { package = "abstract-ans-host", path = "contracts/native/ans-host" }
 version-control = { package = "abstract-version-control", path = "contracts/native/version-control" }
+
+# Ibc
+ibc-client = { package = "abstract-ibc-client", path = "contracts/native/ibc-client" }
+ibc-host = { package = "abstract-ibc-host", path = "contracts/native/ibc-host" }
+
 proxy = { package = "abstract-proxy", path = "contracts/account/proxy" }
 manager = { package = "abstract-manager", path = "contracts/account/manager" }
 
@@ -77,7 +87,6 @@ abstract-core = { version = "0.19.0", path = "packages/abstract-core" }
 
 # These should remain fixed and don't need to be re-published (unless changes are made)
 abstract-macros = { version = "0.19.0", path = "packages/abstract-macros" }
-abstract-ica = { version = "0.19.0", path = "packages/abstract-ica" }
 
 abstract-adapter-utils = { version = "0.19.0", path = "packages/standards/utils" }
 abstract-dex-standard = { path = "packages/standards/dex" }
@@ -88,9 +97,6 @@ cw-multi-test = { version = "0.16.2" }
 rstest = "0.17.0"
 speculoos = "0.11.0"
 anyhow = "1"
-
-[patch.crates-io]
-cw-orch = { git = "https://github.com/AbstractSDK/cw-orchestrator", branch = "add/network_specific_uploads" }
 
 # Backup release profile, will result in warnings during optimization
 [profile.release]

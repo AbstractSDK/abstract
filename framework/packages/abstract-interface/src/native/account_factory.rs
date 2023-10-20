@@ -47,6 +47,7 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
 }
 
 impl<Chain: CwEnv> AccountFactory<Chain> {
+    /// Creates a local account
     pub fn create_new_account(
         &self,
         account_details: AccountDetails,
@@ -68,6 +69,7 @@ impl<Chain: CwEnv> AccountFactory<Chain> {
                 name,
                 link,
                 description,
+                account_id: None,
                 namespace,
                 base_asset,
                 install_modules,

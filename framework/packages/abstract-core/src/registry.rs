@@ -12,7 +12,7 @@ pub const MODULE_FACTORY: &str = "abstract:module-factory";
 pub const PROXY: &str = "abstract:proxy";
 pub const ANS_HOST: &str = "abstract:ans-host";
 pub const IBC_CLIENT: &str = "abstract:ibc-client";
-pub const OSMOSIS_HOST: &str = "abstract:osmosis-host";
+pub const IBC_HOST: &str = "abstract:ibc-host";
 
 /// IBC protocols
 pub const ICS20: &str = "ics-20";

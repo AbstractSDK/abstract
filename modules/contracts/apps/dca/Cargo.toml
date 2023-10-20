@@ -86,3 +86,9 @@ croncat-app = { workspace = true, features = ["interface"] }
 # Testing cw20
 cw20-base = "0.16.0"
 cw20 = "0.16.0"
+
+# TODO: remove when we update cw-orch to 0.17
+[dependencies.cw-multi-test]
+version = "0.16.5"
+features = ["stargate", "cosmwasm_1_3"]
+package = "abstract-cw-multi-test"

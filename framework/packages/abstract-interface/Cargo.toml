@@ -15,7 +15,7 @@ cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
-semver = { workspace = true, default-features = false }
+semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
@@ -28,6 +28,8 @@ tokio = { workspace = true }
 log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
+cosmrs = "0.14.0"
+polytone = { workspace = true }
 
 # Keep these here
 module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.19.0" }
@@ -36,6 +38,8 @@ ans-host = { package = "abstract-ans-host", path = "../../contracts/native/ans-h
 version-control = { package = "abstract-version-control", path = "../../contracts/native/version-control", default-features = false, version = "0.19.0" }
 proxy = { package = "abstract-proxy", path = "../../contracts/account/proxy", default-features = false, version = "0.19.0" }
 manager = { package = "abstract-manager", path = "../../contracts/account/manager", default-features = false, version = "0.19.0" }
+ibc-client = { package = "abstract-ibc-client", path = "../../contracts/native/ibc-client", default-features = false, version = "0.19.0" }
+ibc-host = { package = "abstract-ibc-host", path = "../../contracts/native/ibc-host", default-features = false, version = "0.19.0" }
 
 [build-dependencies]
 serde_json = "1.0.79"

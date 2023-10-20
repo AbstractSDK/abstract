@@ -28,6 +28,7 @@ pub mod state {
         pub version_control_contract: Addr,
         pub ans_host_contract: Addr,
         pub module_factory_address: Addr,
+        pub ibc_host: Option<Addr>,
     }
 
     /// Account Factory context for post-[`crate::abstract_manager`] [`crate::abstract_proxy`] creation
@@ -65,7 +66,7 @@ use cosmwasm_std::Addr;
 use crate::{
     native::module_factory::ModuleInstallConfig,
     objects::{
-        account::{AccountSequence, AccountTrace},
+        account::{AccountId, AccountSequence, AccountTrace},
         gov_type::GovernanceDetails,
         AssetEntry,
     },
@@ -97,6 +98,8 @@ pub enum ExecuteMsg {
         version_control_contract: Option<String>,
         // New module factory contract
         module_factory_address: Option<String>,
+        // New ibc host contract
+        ibc_host: Option<String>,
     },
     /// Creates the core contracts and sets the permissions.
     /// [`crate::manager`] and [`crate::proxy`]
@@ -111,6 +114,8 @@ pub enum ExecuteMsg {
         description: Option<String>,
         // Account link
         link: Option<String>,
+        /// Account id on the remote chain. Will create a new id (by incrementing), if not specified
+        account_id: Option<AccountId>,
         // optionally specify a namespace for the account
         namespace: Option<String>,
         // Provide list of module to install after account creation
@@ -134,6 +139,7 @@ pub struct ConfigResponse {
     pub ans_host_contract: Addr,
     pub version_control_contract: Addr,
     pub module_factory_address: Addr,
+    pub ibc_host: Option<Addr>,
     pub local_account_sequence: AccountSequence,
 }
 

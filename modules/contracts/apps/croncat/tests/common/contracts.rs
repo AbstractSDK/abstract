@@ -1,6 +1,6 @@
 use cosmwasm_std::{Addr, Empty};
 use croncat_app::msg::{ActiveTasksByCreatorResponse, ActiveTasksResponse};
-use cw_orch::mock::cw_multi_test::{Contract, ContractWrapper};
+use cw_multi_test::{Contract, ContractWrapper};
 
 pub(crate) fn cw20_contract() -> Box<dyn Contract<Empty>> {
     let contract = ContractWrapper::new(

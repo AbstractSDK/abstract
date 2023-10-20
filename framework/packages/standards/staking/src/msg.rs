@@ -14,7 +14,7 @@ use cw_utils::Duration;
 pub type ProviderName = String;
 
 /// The callback id for staking over ibc
-pub const IBC_STAKING_PROVIDER_ID: u32 = 22335;
+pub const IBC_STAKING_PROVIDER_ID: &str = "IBC_STAKING_ACTION";
 
 /// Top-level Abstract Adapter execute message. This is the message that is passed to the `execute` entrypoint of the smart-contract.
 pub type ExecuteMsg = adapter::ExecuteMsg<StakingExecuteMsg>;

@@ -1,49 +1,54 @@
-use self::state::AccountData;
-use crate::{abstract_ica::StdAck, ibc_host::HostAction, objects::account::AccountId};
-use abstract_ica::IbcResponseMsg;
+use crate::{
+    ibc::CallbackInfo,
+    ibc_host::HostAction,
+    objects::{account::AccountId, chain_name::ChainName},
+};
 use cosmwasm_schema::QueryResponses;
-use cosmwasm_std::{from_slice, Binary, Coin, CosmosMsg, StdResult, Timestamp};
+use cosmwasm_std::{Coin, Empty, QueryRequest};
+use polytone::callbacks::CallbackMessage;
+
+use self::state::IbcInfrastructure;
 
 pub mod state {
 
-    use super::LatestQueryResponse;
-    use crate::{
-        objects::{account::AccountId, ans_host::AnsHost, common_namespace::ADMIN_NAMESPACE},
-        ANS_HOST as ANS_HOST_KEY,
+    use crate::objects::{
+        account::AccountId, ans_host::AnsHost, chain_name::ChainName,
+        common_namespace::ADMIN_NAMESPACE, version_control::VersionControlContract,
     };
-    use cosmwasm_std::{Addr, Coin, Timestamp};
+    use cosmwasm_std::Addr;
     use cw_controllers::Admin;
     use cw_storage_plus::{Item, Map};
 
     #[cosmwasm_schema::cw_serde]
     pub struct Config {
-        pub version_control_address: Addr,
-        pub chain: String,
-    }
-
-    #[cosmwasm_schema::cw_serde]
-    #[derive(Default)]
-    pub struct AccountData {
-        /// last block balance was updated (0 is never)
-        pub last_update_time: Timestamp,
-        /// In normal cases, it should be set, but there is a delay between binding
-        /// the channel and making a query and in that time it is empty.
-        ///
-        /// Since we do not have a way to validate the remote address format, this
-        /// must not be of type `Addr`.
-        pub remote_addr: Option<String>,
-        pub remote_balance: Vec<Coin>,
+        pub version_control: VersionControlContract,
+        pub ans_host: AnsHost,
     }
 
     pub const ADMIN: Admin = Admin::new(ADMIN_NAMESPACE);
-    /// host_chain -> channel-id
-    pub const CHANNELS: Map<&str, String> = Map::new("channels");
+
+    /// Information about the deployed infrastructure we're connected to.
+    #[cosmwasm_schema::cw_serde]
+    pub struct IbcInfrastructure {
+        /// Address of the polytone note deployed on the local chain. This contract will forward the messages for us.
+        pub polytone_note: Addr,
+        /// The address of the abstract host deployed on the remote chain. This address will be called with our packet.
+        pub remote_abstract_host: String,
+        // The remote polytone proxy address which will be called by the polytone host.
+        pub remote_proxy: Option<String>,
+    }
+
+    // Saves the local note deployed contract and the remote abstract host connected
+    // This allows sending cross-chain messages
+    pub const IBC_INFRA: Map<&ChainName, IbcInfrastructure> = Map::new("ibci");
+    pub const REVERSE_POLYTONE_NOTE: Map<&Addr, ChainName> = Map::new("revpn");
+
     pub const CONFIG: Item<Config> = Item::new("config");
-    /// (channel-id,account_id) -> remote_addr
-    pub const ACCOUNTS: Map<(&str, AccountId), AccountData> = Map::new("accounts");
-    /// Todo: see if we can remove this
-    pub const LATEST_QUERIES: Map<(&str, AccountId), LatestQueryResponse> = Map::new("queries");
-    pub const ANS_HOST: Item<AnsHost> = Item::new(ANS_HOST_KEY);
+    /// (account_id, chain_name) -> remote proxy account address
+    pub const ACCOUNTS: Map<(&AccountId, &ChainName), String> = Map::new("accs");
+
+    // For callbacks tests
+    pub const ACKS: Item<Vec<String>> = Item::new("tmpc");
 }
 
 /// This needs no info. Owner of the contract is whoever signed the InstantiateMsg.
@@ -51,24 +56,10 @@ pub mod state {
 pub struct InstantiateMsg {
     pub ans_host_address: String,
     pub version_control_address: String,
-    pub chain: String,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct MigrateMsg {}
-
-#[cosmwasm_schema::cw_serde]
-pub struct CallbackInfo {
-    pub id: String,
-    pub receiver: String,
-}
-
-impl CallbackInfo {
-    pub fn to_callback_msg(self, ack_data: &Binary) -> StdResult<CosmosMsg> {
-        let msg: StdAck = from_slice(ack_data)?;
-        IbcResponseMsg { id: self.id, msg }.into_cosmos_account_msg(self.receiver)
-    }
-}
 
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
@@ -76,6 +67,16 @@ pub enum ExecuteMsg {
     /// Update the Admin
     UpdateAdmin {
         admin: String,
+    },
+    // Registers the polytone note on the local chain as well as the host on the remote chain to send messages through
+    // This allows for monitoring which chain are connected to the contract remotely
+    RegisterInfrastructure {
+        /// Chain to register the infrastructure for ("juno", "osmosis", etc.)
+        chain: String,
+        /// Polytone note (locally deployed)
+        note: String,
+        /// Address of the abstract host deployed on the remote chain
+        host: String,
     },
     /// Changes the config
     UpdateConfig {
@@ -94,7 +95,7 @@ pub enum ExecuteMsg {
     Register {
         host_chain: String,
     },
-    SendPacket {
+    RemoteAction {
         // host chain to be executed on
         // Example: "osmosis"
         host_chain: String,
@@ -102,12 +103,33 @@ pub enum ExecuteMsg {
         action: HostAction,
         // optional callback info
         callback_info: Option<CallbackInfo>,
-        // Number of retries if packet errors
-        retries: u8,
+    },
+    /// Allows to query something on a remote contract and act on that query result
+    /// This has to be an Execute variant for IBC queries
+    RemoteQueries {
+        // host chain to be executed on
+        // Example: "osmosis"
+        host_chain: String,
+        // execute following queries
+        queries: Vec<QueryRequest<Empty>>,
+        // mandatory callback info
+        callback_info: CallbackInfo,
     },
     RemoveHost {
         host_chain: String,
     },
+
+    /// Callback from the Polytone implementation
+    /// This is only triggered when a contract execution is succesful
+    Callback(CallbackMessage),
+}
+
+/// This enum is used for sending callbacks to the note contract of the IBC client
+#[cosmwasm_schema::cw_serde]
+pub enum IbcClientCallback {
+    UserRemoteAction(CallbackInfo),
+    CreateAccount { account_id: AccountId },
+    WhoAmI {},
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -115,49 +137,67 @@ pub enum ExecuteMsg {
 #[derive(QueryResponses)]
 pub enum QueryMsg {
     // Returns config
-    #[returns(ConfigResponse)]
+    #[returns(HostResponse)]
     Config {},
+    // Returns config
+    #[returns(HostResponse)]
+    Host { chain_name: String },
     // Shows all open channels (incl. remote info)
     #[returns(ListAccountsResponse)]
-    ListAccounts {},
+    ListAccounts {
+        start: Option<(AccountId, String)>,
+        limit: Option<u32>,
+    },
     // Get channel info for one chain
     #[returns(AccountResponse)]
     Account {
         chain: String,
         account_id: AccountId,
     },
-    // Get remote account info for a chain + Account
-    #[returns(LatestQueryResponse)]
-    LatestQueryResult {
-        chain: String,
-        account_id: AccountId,
-    },
-    // get the channels
-    #[returns(ListChannelsResponse)]
-    ListChannels {},
+    // get the hosts
+    #[returns(ListRemoteHostsResponse)]
+    ListRemoteHosts {},
+    // get the IBC execution proxies
+    #[returns(ListRemoteProxiesResponse)]
+    ListRemoteProxies {},
+    // get the IBC counterparts connected to this abstract client
+    #[returns(ListIbcInfrastructureResponse)]
+    ListIbcInfrastructures {},
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ConfigResponse {
     pub admin: String,
+    pub ans_host: String,
     pub version_control_address: String,
-    pub chain: String,
 }
 
 #[cosmwasm_schema::cw_serde]
 pub struct ListAccountsResponse {
-    pub accounts: Vec<AccountInfo>,
+    pub accounts: Vec<(AccountId, ChainName, String)>,
 }
 #[cosmwasm_schema::cw_serde]
-pub struct ListChannelsResponse {
-    pub channels: Vec<(String, String)>,
+pub struct ListRemoteHostsResponse {
+    pub hosts: Vec<(ChainName, String)>,
+}
+#[cosmwasm_schema::cw_serde]
+pub struct ListRemoteProxiesResponse {
+    pub proxies: Vec<(ChainName, Option<String>)>,
 }
 
 #[cosmwasm_schema::cw_serde]
-pub struct LatestQueryResponse {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    pub response: StdAck,
+pub struct ListIbcInfrastructureResponse {
+    pub counterparts: Vec<(ChainName, IbcInfrastructure)>,
+}
+
+#[cosmwasm_schema::cw_serde]
+pub struct HostResponse {
+    pub remote_host: String,
+    pub remote_polytone_proxy: Option<String>,
+}
+#[cosmwasm_schema::cw_serde]
+pub struct AccountResponse {
+    pub remote_proxy_addr: String,
 }
 
 #[cosmwasm_schema::cw_serde]
@@ -168,110 +208,30 @@ pub struct RemoteProxyResponse {
     pub proxy_address: String,
 }
 
-#[cosmwasm_schema::cw_serde]
-pub struct AccountInfo {
-    pub channel_id: String,
-    pub account_id: AccountId,
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl AccountInfo {
-    /// Use the provided *channel_id* and *account_id* to create a new [`AccountInfo`] based off of the provided *input* [`AccountData`].
-    pub fn convert(channel_id: String, account_id: AccountId, input: AccountData) -> Self {
-        AccountInfo {
-            channel_id,
-            account_id,
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
-}
-
-#[cosmwasm_schema::cw_serde]
-pub struct AccountResponse {
-    /// last block balance was updated (0 is never)
-    pub last_update_time: Timestamp,
-    /// in normal cases, it should be set, but there is a delay between binding
-    /// the channel and making a query and in that time it is empty
-    pub remote_addr: Option<String>,
-    pub remote_balance: Vec<Coin>,
-}
-
-impl From<AccountData> for AccountResponse {
-    fn from(input: AccountData) -> Self {
-        AccountResponse {
-            last_update_time: input.last_update_time,
-            remote_addr: input.remote_addr,
-            remote_balance: input.remote_balance,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::objects::account::TEST_ACCOUNT_ID;
-    use cosmwasm_std::to_binary;
+    use crate::ibc::IbcResponseMsg;
+    use cosmwasm_std::{to_binary, CosmosMsg, Empty};
+    use polytone::callbacks::Callback;
     use speculoos::prelude::*;
 
     // ... (other test functions)
 
     #[test]
-    fn test_account_info_convert() {
-        let channel_id = "channel-123".to_string();
-        let input = AccountData {
-            last_update_time: Default::default(),
-            remote_addr: None,
-            remote_balance: vec![],
-        };
-
-        let expected = AccountInfo {
-            channel_id: channel_id.clone(),
-            account_id: TEST_ACCOUNT_ID,
-            last_update_time: input.last_update_time,
-            remote_addr: input.clone().remote_addr,
-            remote_balance: input.clone().remote_balance,
-        };
-
-        let actual = AccountInfo::convert(channel_id, TEST_ACCOUNT_ID, input);
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn test_account_response_from() {
-        let input = AccountData::default();
-
-        let expected = AccountResponse {
-            last_update_time: input.last_update_time,
-            remote_addr: input.clone().remote_addr,
-            remote_balance: input.clone().remote_balance,
-        };
-
-        let actual = AccountResponse::from(input);
-
-        assert_that!(actual).is_equal_to(expected);
-    }
-
-    #[test]
-    fn test_callback_info_to_callback_msg() {
+    fn test_response_msg_to_callback_msg() {
         let receiver = "receiver".to_string();
         let callback_id = "15".to_string();
-        let callback_info = CallbackInfo {
+        let callback_msg = to_binary("15").unwrap();
+
+        let result = Callback::FatalError("ibc execution error".to_string());
+
+        let response_msg = IbcResponseMsg {
             id: callback_id,
-            receiver,
+            msg: Some(callback_msg),
+            result,
         };
-        let ack_data = &to_binary(&StdAck::Result(to_binary(&true).unwrap())).unwrap();
 
-        let actual = callback_info.to_callback_msg(&ack_data.clone()).unwrap();
-
-        let _funds: Vec<Coin> = vec![];
+        let actual: CosmosMsg<Empty> = response_msg.into_cosmos_msg(receiver.clone()).unwrap();
 
         assert_that!(actual).matches(|e| {
             matches!(
