@@ -47,7 +47,6 @@ pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> H
 
             handle_host_action(deps, env, client_chain, proxy_address, account_id, action)
         }
-        ExecuteMsg::Callback(_) => unimplemented!(),
     }
 }
 

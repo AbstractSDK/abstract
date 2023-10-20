@@ -94,9 +94,6 @@ pub enum HostAction {
     Helpers(HelperAction),
 }
 
-#[cosmwasm_schema::cw_serde]
-pub enum CallbackMsg {}
-
 /// Interface to the Host.
 #[cosmwasm_schema::cw_serde]
 #[cfg_attr(feature = "interface", derive(cw_orch::ExecuteFns))]
@@ -122,9 +119,6 @@ pub enum ExecuteMsg {
         proxy_address: String,
         action: HostAction,
     },
-
-    /// Callback endpoint
-    Callback(CallbackMsg),
 }
 
 /// Query Host message
