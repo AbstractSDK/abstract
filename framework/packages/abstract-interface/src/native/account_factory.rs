@@ -41,7 +41,7 @@ impl<Chain: CwEnv> Uploadable for AccountFactory<Chain> {
 
     fn wasm(&self) -> WasmPath {
         artifacts_dir_from_workspace!()
-            .find_wasm_path("account_factor")
+            .find_wasm_path("account_factory")
             .unwrap()
     }
 }
