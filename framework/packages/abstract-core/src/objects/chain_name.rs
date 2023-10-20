@@ -1,9 +1,9 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{ensure_eq, Env, StdResult};
+use cosmwasm_std::{Env, StdResult};
 use cw_storage_plus::{Key, KeyDeserialize, Prefixer, PrimaryKey};
 use std::str::FromStr;
 
-use crate::{constants::CHAIN_DELIMITER, AbstractError, AbstractResult};
+use crate::{AbstractError, AbstractResult};
 
 pub const MAX_CHAIN_NAME_LENGTH: usize = 20;
 pub const MIN_CHAIN_NAME_LENGTH: usize = 3;
