@@ -36,10 +36,8 @@ fn setup(
     Abstract<Mock>,
     PaymentAppInterface<Mock>,
 )> {
-    // Construct the counter interface
     let app = PaymentAppInterface::new(APP_ID, mock.clone());
 
-    // Deploy Abstract to the mock
     let abstr_deployment = if should_load_abstract {
         Abstract::load_from(mock.clone())?
     } else {
