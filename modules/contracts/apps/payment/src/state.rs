@@ -5,7 +5,7 @@ use cw_storage_plus::{Item, Map};
 
 pub const CONFIG: Item<Config> = Item::new("cfg");
 // The sender address is used here for querying by tipper
-pub const TIPPERS: Map<Addr, Tipper> = Map::new("tps");
+pub const TIPPERS: Map<&Addr, Tipper> = Map::new("tps");
 pub const TIP_COUNT: Item<u32> = Item::new("tip-count");
 
 #[cosmwasm_schema::cw_serde]
@@ -15,9 +15,16 @@ pub struct Config {
 }
 
 #[cosmwasm_schema::cw_serde]
+#[derive(Default)]
 pub struct Tipper {
     pub amount: Uint128,
     pub count: u32,
 }
 
-// pub const PAYEES: Map<&Addr> = Map::new("pys");
+impl Tipper {
+    /// Adds `amount` to `self.amount` and increments `self.count`.
+    pub fn add_tip(&mut self, amount: Uint128) {
+        self.amount += amount;
+        self.count += 1;
+    }
+}

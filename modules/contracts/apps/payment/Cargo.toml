@@ -58,6 +58,9 @@ dotenv = "0.15.0"
 env_logger = "0.10.0"
 cw-orch = { workspace = true, features = ["daemon"] }
 
+cw20-base = { workspace = true, features = ["interface"] }
+cw20 = { workspace = true, features = ["interface"] }
+
 wyndex-bundle = { workspace = true }
 abstract-dex-adapter = { workspace = true, features = [
   "interface",
