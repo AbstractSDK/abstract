@@ -1,3 +1,5 @@
+pub mod abstract_ibc;
+
 use cw_orch::{
     daemon::ChainInfo,
     prelude::{

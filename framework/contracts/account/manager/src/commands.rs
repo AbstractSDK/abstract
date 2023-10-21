@@ -250,6 +250,7 @@ pub fn create_sub_account(
         base_asset,
         namespace,
         install_modules,
+        account_id: None,
     };
 
     let account_factory_addr = query_module(
