@@ -17,8 +17,8 @@ impl<Chain: CwEnv> Uploadable for IbcClient<Chain> {
     fn wrapper(&self) -> <Mock as TxHandler>::ContractSource {
         Box::new(
             ContractWrapper::new_with_empty(
-                ibc_client::contract::execute,
-                ibc_client::contract::instantiate,
+                ::ibc_client::contract::execute,
+                ::ibc_client::contract::instantiate,
                 ::ibc_client::contract::query,
             )
             .with_migrate(::ibc_client::contract::migrate),

@@ -18,6 +18,7 @@ cw20-base = { workspace = true }
 cw-orch = { package = "cw-orch-interchain", git = "ssh://git@github.com/AbstractSDK/cw-orch-interchain.git", features = [
   "daemon",
 ], tag = "v0.16.4" }
+cw-orch-polytone = { git = "https://github.com/AbstractSDK/polytone", tag = "v1.0.0" }
 abstract-core = { workspace = true, features = ["interface"] }
 
 abstract-interface = { workspace = true, features = ["daemon"] }

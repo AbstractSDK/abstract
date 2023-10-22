@@ -25,6 +25,7 @@ cosmwasm-schema = { workspace = true }
 cw-asset = { workspace = true }
 anyhow = { workspace = true }
 cw-controllers = "1.0.1"
+cw-plus-interface.workspace = true
 # TODO: remove when we update cw-orch to 0.17
 [dependencies.cw-multi-test]
 version = "0.16.5"

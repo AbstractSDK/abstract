@@ -48,7 +48,6 @@ futures = "0.3.28"
 ibc-chain-registry = "0.24.1"
 ibc-relayer-types = "0.24.1"
 
-abstract-etf = { git = "https://github.com/AbstractSDK/apps/" }
 osmosis-std = "0.16.1"
 cosmrs = "0.14.0"
 prost = "0.11.9"
