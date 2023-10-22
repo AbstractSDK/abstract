@@ -1,0 +1,9 @@
+{
+  "name": "Calendar",
+  "description": "Stake-to-schedule to avoid people not showing up to meetings!",
+  "website": "https://abstract.money/",
+  "docs": "",
+  "type": "app",
+  "icon": "GiTrade",
+  "enabled": false
+}

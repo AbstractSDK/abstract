@@ -1,6 +1,6 @@
 // TODO: this should be moved to the public dex package
 // It cannot be in abstract-os because it does not have a dependency on sdk (as it shouldn't)
-use crate::EXCHANGE;
+use crate::DEX_ADAPTER_ID;
 use abstract_core::objects::{module::ModuleId, AssetEntry};
 use abstract_dex_standard::msg::{
     DexAction, DexExecuteMsg, DexName, DexQueryMsg, OfferAsset, SimulateSwapResponse,
@@ -22,7 +22,7 @@ pub trait DexInterface: AccountIdentification + Dependencies {
             base: self,
             deps,
             name,
-            module_id: EXCHANGE,
+            module_id: DEX_ADAPTER_ID,
         }
     }
 }
@@ -117,7 +117,7 @@ impl<'a, T: DexInterface> Dex<'a, T> {
     /// Do a query in the DEX
     fn query<R: DeserializeOwned>(&self, query_msg: DexQueryMsg) -> AbstractSdkResult<R> {
         let adapters = self.base.adapters(self.deps);
-        adapters.query(EXCHANGE, query_msg)
+        adapters.query(DEX_ADAPTER_ID, query_msg)
     }
 
     /// simulate DEx swap

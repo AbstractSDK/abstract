@@ -1,6 +1,5 @@
 use crate::Abstract;
 use abstract_core::{account_factory, ans_host, module_factory, version_control};
-use cw_orch::daemon::ConditionalMigrate;
 use cw_orch::prelude::*;
 
 impl Abstract<Daemon> {

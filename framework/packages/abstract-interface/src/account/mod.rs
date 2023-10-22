@@ -113,6 +113,15 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         Ok(manager_modules)
     }
+
+    pub fn is_module_installed(
+        &self,
+        module_id: &str,
+    ) -> Result<bool, crate::AbstractInterfaceError> {
+        let module = self.manager.module_info(module_id)?;
+        Ok(module.is_some())
+    }
+
     /// Checks that the proxy's whitelist includes the expected module addresses.
     /// Automatically includes the manager in the expected whitelist.
     pub fn expect_whitelist(
@@ -193,6 +202,14 @@ impl<Chain: CwEnv> AbstractAccount<Chain> {
 
         module.set_address(&module_address);
         Ok(module_address)
+    }
+
+    pub fn register_remote_account(
+        &self,
+        host_chain: &str,
+    ) -> Result<<Chain as cw_orch::prelude::TxHandler>::Response, crate::AbstractInterfaceError>
+    {
+        self.manager.register_remote_account(host_chain)
     }
 }
 

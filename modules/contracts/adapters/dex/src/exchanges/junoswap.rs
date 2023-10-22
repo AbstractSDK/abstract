@@ -15,7 +15,7 @@ impl Identify for JunoSwap {
     }
 }
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 use ::{
     abstract_core::objects::PoolAddress,
     abstract_dex_standard::DexError,
@@ -30,7 +30,7 @@ use ::{
     wasmswap::msg::*,
 };
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 impl DexCommand for JunoSwap {
     fn swap(
         &self,
@@ -301,7 +301,7 @@ impl DexCommand for JunoSwap {
     }
 }
 
-#[cfg(feature = "juno")]
+#[cfg(feature = "wynd")]
 fn denom_and_asset_match(denom: &Denom, asset: &AssetInfo) -> Result<bool, DexError> {
     match denom {
         Denom::Native(denom_name) => match asset {

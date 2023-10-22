@@ -36,11 +36,12 @@ abstract-macros = { workspace = true }
 # test-utils feature
 abstract-testing = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
+polytone = { workspace = true }
+
 
 [dev-dependencies]
 speculoos = { workspace = true }
 cosmwasm-schema = { workspace = true }
-abstract-ica = { workspace = true }
 doc-comment = "0.3.3"
 # Set our own feature when running tests!
 abstract-sdk = { path = ".", features = ["test-utils"] }

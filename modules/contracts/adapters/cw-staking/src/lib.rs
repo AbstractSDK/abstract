@@ -11,7 +11,7 @@ pub mod msg {
 pub use abstract_staking_standard::CwStakingCommand;
 pub use adapter::CwStakingAdapter;
 
-pub const CW_STAKING: &str = "abstract:cw-staking";
+pub const CW_STAKING_ADAPTER_ID: &str = "abstract:cw-staking";
 
 #[cfg(any(feature = "juno", feature = "osmosis"))]
 pub mod host_staking {
@@ -23,7 +23,7 @@ pub use abstract_staking_standard::error;
 #[cfg(feature = "interface")]
 pub mod interface {
     use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, StakingAction, StakingExecuteMsg};
-    use crate::CW_STAKING;
+    use crate::CW_STAKING_ADAPTER_ID;
     use abstract_core::objects::{AnsAsset, AssetEntry};
     use abstract_core::{adapter, MANAGER};
     use abstract_interface::AbstractInterfaceError;
@@ -49,9 +49,13 @@ pub mod interface {
             ))
         }
         fn wasm(&self) -> WasmPath {
-            artifacts_dir_from_workspace!()
-                .find_wasm_path("abstract_cw_staking")
-                .unwrap()
+            todo!()
+            // artifacts_dir_from_workspace!()
+            //     .find_wasm_path_with_build_postfix(
+            //         "abstract_cw_staking",
+            //         BuildPostfix::<Chain>::ChainName(self.get_chain()),
+            //     )
+            //     .unwrap()
         }
     }
 
@@ -61,7 +65,7 @@ pub mod interface {
         TxResponse<Chain>: IndexResponse,
     {
         pub fn load(chain: Chain, addr: &Addr) -> Self {
-            Self(Contract::new(CW_STAKING, chain).with_address(Some(addr)))
+            Self(Contract::new(CW_STAKING_ADAPTER_ID, chain).with_address(Some(addr)))
         }
 
         /// Swap using Abstract's OS (registered in daemon_state).
@@ -82,7 +86,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -103,7 +107,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, stake_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, stake_msg)?;
             Ok(())
         }
 
@@ -122,7 +126,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, claim_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_msg)?;
             Ok(())
         }
 
@@ -141,7 +145,7 @@ pub mod interface {
                     },
                 },
             });
-            manager.execute_on_module(CW_STAKING, claim_rewards_msg)?;
+            manager.execute_on_module(CW_STAKING_ADAPTER_ID, claim_rewards_msg)?;
             Ok(())
         }
     }

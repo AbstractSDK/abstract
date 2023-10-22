@@ -42,7 +42,11 @@ fn main() {
     use dotenv::dotenv;
     let args = Arguments::parse();
 
-    let networks = args.network_ids.iter().map(|n| parse_network(n)).collect();
+    let networks = args
+        .network_ids
+        .iter()
+        .map(|n| parse_network(n))
+        .collect::<Vec<_>>();
 
     if let Err(ref err) = migrate(networks) {
         log::error!("{}", err);

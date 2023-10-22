@@ -17,22 +17,24 @@ env:
 jobs:
   required:
     runs-on: ubuntu-latest
-    name: ubuntu / ${{ matrix.toolchain }}
-    strategy:
-      matrix:
-        toolchain: [stable, beta]
+    name: ubuntu / stable
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY_MULTI_TEST }}
+            ${{ secrets.SSH_PRIVATE_KEY_CW_ORCH_INTERCHAIN }}
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.3
         with:
           version: "v0.4.2"
-      - name: Install ${{ matrix.toolchain }}
+      - name: Install stable
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
       - name: cargo generate-lockfile
         if: hashFiles('Cargo.lock') == ''
         working-directory: ./modules
@@ -41,6 +43,7 @@ jobs:
       - name: cargo test --locked
         working-directory: ./modules
         run: cargo test --locked --all-features --all-targets
+  # Triggers the circleci codecov job
   coverage:
     runs-on: ubuntu-latest
     steps:

@@ -28,9 +28,9 @@ cw-asset = { workspace = true }
 cw-address-like = { workspace = true }
 cw2 = { workspace = true }
 cw20 = { workspace = true }
-abstract-ica = { workspace = true }
 cw-orch = { workspace = true, optional = true }
 cw-ownable = { workspace = true }
+polytone = { workspace = true }
 
 [dev-dependencies]
 speculoos = { workspace = true }

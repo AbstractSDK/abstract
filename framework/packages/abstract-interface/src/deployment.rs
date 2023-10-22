@@ -1,12 +1,22 @@
 use std::path::PathBuf;
 
 use crate::{
-    get_account_contracts, get_native_contracts, AbstractAccount, AbstractInterfaceError,
-    AccountFactory, AnsHost, Manager, ModuleFactory, Proxy, VersionControl,
+    get_account_contracts, get_ibc_contracts, get_native_contracts, AbstractAccount,
+    AbstractInterfaceError, AccountFactory, AnsHost, IbcClient, IbcHost, Manager, ModuleFactory,
+    Proxy, VersionControl,
 };
-use abstract_core::{ACCOUNT_FACTORY, ANS_HOST, MANAGER, MODULE_FACTORY, PROXY, VERSION_CONTROL};
+use abstract_core::account_factory::ExecuteMsgFns as _;
+use abstract_core::{
+    ACCOUNT_FACTORY, ANS_HOST, IBC_CLIENT, IBC_HOST, MANAGER, MODULE_FACTORY, PROXY,
+    VERSION_CONTROL,
+};
 use cw_orch::deploy::Deploy;
 use cw_orch::prelude::*;
+
+pub struct IbcAbstract<Chain: CwEnv> {
+    pub client: IbcClient<Chain>,
+    pub host: IbcHost<Chain>,
+}
 
 pub struct Abstract<Chain: CwEnv> {
     pub ans_host: AnsHost<Chain>,
@@ -14,6 +24,7 @@ pub struct Abstract<Chain: CwEnv> {
     pub account_factory: AccountFactory<Chain>,
     pub module_factory: ModuleFactory<Chain>,
     pub account: AbstractAccount<Chain>,
+    pub ibc: IbcAbstract<Chain>,
 }
 
 impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
@@ -27,7 +38,10 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         let version_control = VersionControl::new(VERSION_CONTROL, chain.clone());
         let module_factory = ModuleFactory::new(MODULE_FACTORY, chain.clone());
         let manager = Manager::new(MANAGER, chain.clone());
-        let proxy = Proxy::new(PROXY, chain);
+        let proxy = Proxy::new(PROXY, chain.clone());
+
+        let ibc_client = IbcClient::new(IBC_CLIENT, chain.clone());
+        let ibc_host = IbcHost::new(IBC_HOST, chain.clone());
 
         let mut account = AbstractAccount { manager, proxy };
 
@@ -36,6 +50,8 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         account_factory.upload()?;
         module_factory.upload()?;
         account.upload()?;
+        ibc_client.upload()?;
+        ibc_host.upload()?;
 
         let deployment = Abstract {
             ans_host,
@@ -43,6 +59,10 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
             version_control,
             module_factory,
             account,
+            ibc: IbcAbstract {
+                client: ibc_client,
+                host: ibc_host,
+            },
         };
 
         Ok(deployment)
@@ -72,6 +92,23 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
         deployment
             .version_control
             .register_natives(deployment.contracts())?;
+
+        // This Ibc Client is actually a module that people need to register on their accounts
+        deployment.version_control.register_adapters(vec![(
+            deployment.ibc.client.as_instance(),
+            ibc_client::contract::CONTRACT_VERSION.to_string(),
+        )])?;
+
+        // Only the ibc host is allowed to create remote accounts on the account factory
+        deployment
+            .account_factory
+            .update_config(
+                None,
+                Some(deployment.ibc.host.address().unwrap().to_string()),
+                None,
+                None,
+            )
+            .unwrap();
 
         // Create the first abstract account in integration environments
         #[cfg(feature = "integration")]
@@ -117,8 +154,9 @@ impl<Chain: CwEnv> Deploy<Chain> for Abstract<Chain> {
 
 impl<Chain: CwEnv> Abstract<Chain> {
     pub fn new(chain: Chain) -> Self {
-        let (ans_host, account_factory, version_control, module_factory, _ibc_client) =
-            get_native_contracts(chain);
+        let (ans_host, account_factory, version_control, module_factory) =
+            get_native_contracts(chain.clone());
+        let (ibc_client, ibc_host) = get_ibc_contracts(chain);
         let (manager, proxy) = get_account_contracts(&version_control, None);
         Self {
             account: AbstractAccount { manager, proxy },
@@ -126,6 +164,10 @@ impl<Chain: CwEnv> Abstract<Chain> {
             version_control,
             account_factory,
             module_factory,
+            ibc: IbcAbstract {
+                client: ibc_client,
+                host: ibc_host,
+            },
         }
     }
 
@@ -168,6 +210,26 @@ impl<Chain: CwEnv> Abstract<Chain> {
                 module_factory_address: self.module_factory.address()?.into_string(),
             },
             Some(sender),
+            None,
+        )?;
+
+        // We also instantiate ibc contracts
+        self.ibc.client.instantiate(
+            &abstract_core::ibc_client::InstantiateMsg {
+                ans_host_address: self.ans_host.addr_str()?,
+                version_control_address: self.version_control.addr_str()?,
+            },
+            None,
+            None,
+        )?;
+
+        self.ibc.host.instantiate(
+            &abstract_core::ibc_host::InstantiateMsg {
+                ans_host_address: self.ans_host.addr_str()?,
+                account_factory_address: self.account_factory.addr_str()?,
+                version_control_address: self.version_control.addr_str()?,
+            },
+            None,
             None,
         )?;
 

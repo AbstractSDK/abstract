@@ -1,5 +1,5 @@
-use abstract_challenge_app::contract::CHALLENGE_APP_ID;
-use abstract_challenge_app::ChallengeApp;
+use challenge_app::contract::CHALLENGE_APP_ID;
+use challenge_app::ChallengeApp;
 
 use cw_orch::prelude::*;
 

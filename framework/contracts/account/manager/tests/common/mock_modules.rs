@@ -7,7 +7,7 @@ use abstract_app::gen_app_mock;
 use abstract_app::mock::MockError as AppMockError;
 use abstract_app::AppContract;
 use abstract_core::objects::dependency::StaticDependency;
-use abstract_interface::{AdapterDeployer, AppDeployer};
+use abstract_interface::{AdapterDeployer, AppDeployer, DeployStrategy};
 use cw_orch::prelude::*;
 
 pub type MockAdapterContract = AdapterContract<AdapterMockError, Empty, Empty, Empty, Empty, Empty>;
@@ -23,32 +23,32 @@ pub const V2: &str = "2.0.0";
 /// deploys different version adapters and app for migration testing
 pub fn deploy_modules(mock: &Mock) {
     self::BootMockAdapter1V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg)
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter1V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg)
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for adapter 2
     self::BootMockAdapter2V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap(), MockInitMsg)
+        .deploy(V1.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockAdapter2V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap(), MockInitMsg)
+        .deploy(V2.parse().unwrap(), MockInitMsg, DeployStrategy::Error)
         .unwrap();
 
     // and now for app 1
     self::BootMockApp1V1::new_test(mock.clone())
-        .deploy(V1.parse().unwrap())
+        .deploy(V1.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 
     // do same for version 2
     self::BootMockApp1V2::new_test(mock.clone())
-        .deploy(V2.parse().unwrap())
+        .deploy(V2.parse().unwrap(), DeployStrategy::Error)
         .unwrap();
 }
 

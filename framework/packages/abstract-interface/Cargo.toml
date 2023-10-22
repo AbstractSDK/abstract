@@ -15,7 +15,7 @@ cosmwasm-std = { workspace = true }
 cosmwasm-schema = { workspace = true }
 cw-storage-plus = { workspace = true }
 serde = { workspace = true }
-semver = { workspace = true, default-features = false }
+semver = { workspace = true }
 schemars = { workspace = true }
 cw-controllers = { workspace = true }
 thiserror = { workspace = true }
@@ -28,6 +28,8 @@ tokio = { workspace = true }
 log = "0.4.14"
 serde_json = "1.0.79"
 speculoos = { workspace = true }
+cosmrs = "0.14.0"
+polytone = { workspace = true }
 
 # Keep these here
 module-factory = { package = "abstract-module-factory", path = "../../contracts/native/module-factory", default-features = false, version = "0.19.2" }
