@@ -66,6 +66,8 @@ pub struct SubscriptionInstantiateMsg {
 #[derive(cw_orch::ExecuteFns)]
 #[impl_into(ExecuteMsg)]
 pub enum SubscriptionExecuteMsg {
+    // #[cfg_attr(feature = "interface", payable)]
+    #[payable]
     /// Subscriber payment
     Pay {
         /// Address of new subscriber

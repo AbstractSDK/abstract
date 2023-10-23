@@ -1,7 +1,7 @@
 use abstract_app::AppError;
 use abstract_core::AbstractError;
 use abstract_sdk::AbstractSdkError;
-use cosmwasm_std::{DecimalRangeExceeded, OverflowError, StdError};
+use cosmwasm_std::{CheckedMultiplyFractionError, DecimalRangeExceeded, OverflowError, StdError};
 use cw_asset::{AssetError, AssetInfo};
 use cw_controllers::AdminError;
 use thiserror::Error;
@@ -31,6 +31,9 @@ pub enum SubscriptionError {
 
     #[error("{0}")]
     Overflow(#[from] OverflowError),
+
+    #[error("{0}")]
+    CheckedMultiplyFractionError(#[from] CheckedMultiplyFractionError),
 
     #[error("This contract does not implement the cw20 swap function")]
     NoSwapAvailable {},

@@ -80,7 +80,7 @@ pub fn try_pay(
     app: SubscriptionApp,
     deps: DepsMut,
     env: Env,
-    msg_info: MessageInfo,
+    _msg_info: MessageInfo,
     asset: Asset,
     subscriber_addr: Addr,
     unsubscribe_hook_addr: Option<String>,
@@ -109,7 +109,12 @@ pub fn try_pay(
     // prevents un- and re-subscribing all the time.
     let required_payment = Uint128::from(DURATION_IN_WEEKS) * config.subscription_cost_per_week;
     let paid_for_days = {
-        let paid_for_weeks = (asset.amount * config.subscription_cost_per_week).u128() as u64;
+        // TODO: Decimals feels pretty annoying
+
+        let paid_for_weeks = asset
+            .amount
+            .checked_div_floor(config.subscription_cost_per_week)?
+            .u128() as u64;
         paid_for_weeks * 7
     };
     if let Some(mut active_sub) = maybe_subscriber {
@@ -160,8 +165,8 @@ pub fn try_pay(
             Decimal::from_atomics(Uint128::from(subscription_state.active_subs), 0)?
                 * config.subscription_cost_per_week,
         )?;
-        SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
         subscription_state.active_subs += 1;
+        SUBSCRIPTION_STATE.save(deps.storage, &subscription_state)?;
     }
 
     Ok(Response::new().add_attributes(attrs).add_message(
@@ -233,8 +238,7 @@ pub fn claim_subscriber_emissions(
         .time
         .minus_seconds(subscriber.last_emission_claim_timestamp.seconds());
     let weeks_passed = duration.seconds() / WEEK_IN_SECONDS;
-    subscriber.last_emission_claim_timestamp = env.block.time;
-    SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
+    println!("weeks_passed: {weeks_passed}");
 
     let asset = match subscription_config.subscription_per_week_emissions {
         crate::state::EmissionType::None => {
@@ -265,7 +269,12 @@ pub fn claim_subscriber_emissions(
           // }
     };
 
+    println!("asset: {asset}");
     if !asset.amount.is_zero() {
+        // Update only if there was claim
+        subscriber.last_emission_claim_timestamp = env.block.time;
+        SUBSCRIBERS.save(deps.storage, &subscriber_addr, &subscriber)?;
+
         let send_msg = app
             .bank(deps.as_ref())
             .transfer(vec![asset], &subscriber_addr)?;

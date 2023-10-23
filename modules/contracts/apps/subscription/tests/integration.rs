@@ -1,24 +1,31 @@
-use abstract_core::objects::{gov_type::GovernanceDetails, AccountId};
+use std::str::FromStr;
+
+use abstract_core::objects::{
+    gov_type::GovernanceDetails, time_weighted_average::TimeWeightedAverageData, AccountId,
+};
 use abstract_interface::{Abstract, AbstractAccount, AppDeployer, DeployStrategy, VCExecFns};
 use abstract_subscription::{
     contract::{interface::SubscriptionInterface, CONTRACT_VERSION},
     msg::{SubscriptionExecuteMsgFns, SubscriptionInstantiateMsg, SubscriptionQueryMsgFns},
     state::{EmissionType, SubscriptionConfig},
+    WEEK_IN_SECONDS,
 };
 
 use abstract_subscription::contract::SUBSCRIPTION_ID;
 use abstract_subscription::msg as subscr_msg;
-use cw20::Cw20Coin;
-use cw20_base::contract::Cw20Base;
+use cw20::{Cw20Coin, Cw20ExecuteMsgFns};
+use cw20_base::{contract::Cw20Base, msg::QueryMsgFns};
 use cw_asset::{Asset, AssetInfo, AssetInfoBase, AssetInfoUnchecked};
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
-use cosmwasm_std::{Addr, Decimal, Uint128};
+use cosmwasm_std::{coins, Addr, Decimal, Querier, Uint128, Uint64};
 
 // consts for testing
 const ADMIN: &str = "admin";
 const DENOM: &str = "abstr";
+// 3 days
+const INCOME_AVERAGING_PERIOD: Uint64 = Uint64::new(259200);
 
 struct Subscription {
     chain: Mock,
@@ -28,9 +35,9 @@ struct Subscription {
     payment_asset: AssetInfo,
 }
 
-fn deploy_emission(subscibers: &Subscription) -> anyhow::Result<Cw20Base<Mock>> {
-    let emission_cw20 = Cw20Base::new("abstract:emission_cw20", subscibers.chain.clone());
-    let sender = subscibers.chain.sender();
+fn deploy_emission(chain: &Mock) -> anyhow::Result<Cw20Base<Mock>> {
+    let emission_cw20 = Cw20Base::new("abstract:emission_cw20", chain.clone());
+    let sender = chain.sender();
 
     emission_cw20.upload()?;
     emission_cw20.instantiate(
@@ -99,10 +106,10 @@ fn setup_cw20() -> anyhow::Result<Subscription> {
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::cw20(cw20_addr.clone()),
-            subscription_cost_per_week: Decimal::percent(1),
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::None,
             // 3 days
-            income_averaging_period: 259200u64.into(),
+            income_averaging_period: INCOME_AVERAGING_PERIOD,
         },
         None,
     )?;
@@ -137,19 +144,24 @@ fn setup_native() -> anyhow::Result<Subscription> {
                 monarch: ADMIN.to_string(),
             })?;
 
+    let emissions = deploy_emission(&mock)?;
     subscription_app.deploy(CONTRACT_VERSION.parse()?, DeployStrategy::Try)?;
 
     account.install_app(
         subscription_app.clone(),
         &SubscriptionInstantiateMsg {
             payment_asset: AssetInfoUnchecked::native(DENOM),
-            subscription_cost_per_week: Decimal::percent(1),
-            subscription_per_week_emissions: EmissionType::None,
-            // 3 days
-            income_averaging_period: 259200u64.into(),
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
+            subscription_per_week_emissions: EmissionType::WeekShared(
+                Decimal::from_str("2.0")?,
+                AssetInfoBase::Cw20(emissions.addr_str()?),
+            ),
+            income_averaging_period: INCOME_AVERAGING_PERIOD,
         },
         None,
     )?;
+
+    emissions.transfer(Uint128::new(1_000_000), account.proxy.addr_str()?)?;
 
     Ok(Subscription {
         chain: mock,
@@ -164,6 +176,30 @@ fn setup_native() -> anyhow::Result<Subscription> {
 fn successful_install() -> anyhow::Result<()> {
     // Set up the environment and contract
     let Subscription {
+        chain,
+        account: _account,
+        abstr: _abstr,
+        subscription_app,
+        payment_asset,
+    } = setup_native()?;
+
+    let cw20_emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
+    let addr = cw20_emis.address()?;
+    let config = subscription_app.config()?;
+    assert_eq!(
+        config,
+        SubscriptionConfig {
+            payment_asset,
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
+            subscription_per_week_emissions: EmissionType::WeekShared(
+                Decimal::from_str("2.0")?,
+                AssetInfoBase::Cw20(addr)
+            ),
+        }
+    );
+
+    // Set up the environment and contract
+    let Subscription {
         chain: _,
         account: _account,
         abstr: _abstr,
@@ -176,7 +212,7 @@ fn successful_install() -> anyhow::Result<()> {
         config,
         SubscriptionConfig {
             payment_asset,
-            subscription_cost_per_week: Decimal::percent(1),
+            subscription_cost_per_week: Decimal::from_str("0.1")?,
             subscription_per_week_emissions: EmissionType::None,
         }
     );
@@ -187,20 +223,140 @@ fn successful_install() -> anyhow::Result<()> {
 fn subscribe() -> anyhow::Result<()> {
     // Set up the environment and contract
     let Subscription {
-        chain: _,
+        chain,
         account: _account,
         abstr,
         subscription_app,
         payment_asset,
-    } = setup_cw20()?;
+    } = setup_native()?;
 
-    let new_subscriber =
-        abstr
-            .account_factory
-            .create_default_account(GovernanceDetails::Monarchy {
-                monarch: ADMIN.to_owned(),
-            })?;
-    let subscriber_proxy_addr = new_subscriber.proxy.address()?;
-    // subscription_app.call_as(&subscriber_proxy_addr).pay(None)?;
+    let subscription_addr = subscription_app.address()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber2 = Addr::unchecked("subscriber2");
+    let subscriber3 = Addr::unchecked("subscriber3");
+    let subscriber4 = Addr::unchecked("subscriber4");
+
+    let sub_amount = coins(500, DENOM);
+    chain.set_balances(&[
+        (&subscriber1, &sub_amount),
+        (&subscriber2, &sub_amount),
+        (&subscriber3, &sub_amount),
+        (&subscriber4, &sub_amount),
+    ])?;
+
+    // 2 people subscribe
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, None, &sub_amount)?;
+    subscription_app
+        .call_as(&subscriber2)
+        .pay(None, None, &sub_amount)?;
+    let twa = query_twa(&chain, subscription_addr.clone());
+    // No income yet
+    assert_eq!(twa.cumulative_value, 0);
+    assert_eq!(twa.average_value, Decimal::zero());
+    // wait the period
+    chain.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
+
+    // Third user subscribes
+    subscription_app
+        .call_as(&subscriber3)
+        .pay(None, None, &sub_amount)?;
+    // refresh twa
+    subscription_app.refresh_twa()?;
+    // It should contain income of previous 2 subscribers
+    let twa = query_twa(&chain, subscription_addr.clone());
+
+    // expected value for 2 subscribers (cost * period)
+    let expected_value = Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD);
+    // assert it's equal to the 2 subscribers
+    assert_eq!(twa.cumulative_value, expected_value.u128());
+    assert_eq!(twa.average_value, Decimal::from_str("0.2")?);
+
+    // wait the period
+    chain.wait_seconds(INCOME_AVERAGING_PERIOD.u64())?;
+    subscription_app.refresh_twa()?;
+
+    let twa = query_twa(&chain, subscription_addr.clone());
+
+    // 0 new subscribers in this period
+    assert_eq!(twa.average_value, Decimal::percent(0));
+
+    // Fourth user subscribes
+    subscription_app
+        .call_as(&subscriber4)
+        .pay(None, None, &sub_amount)?;
+    // two subscribers were subbed for two periods
+    let first_two_subs =
+        Decimal::from_str("0.2")? * Uint128::from(INCOME_AVERAGING_PERIOD * Uint64::new(2));
+    // and last one only for one
+    let third_sub = Decimal::from_str("0.1")? * Uint128::from(INCOME_AVERAGING_PERIOD);
+
+    let expected_value = first_two_subs + third_sub;
+
+    let twa = query_twa(&chain, subscription_addr);
+    // assert it's equal to the 3 subscribers
+    assert_eq!(twa.cumulative_value, expected_value.u128());
     Ok(())
+}
+
+#[test]
+fn claim_emissions() -> anyhow::Result<()> {
+    // Set up the environment and contract
+    let Subscription {
+        chain,
+        account: _account,
+        abstr: _,
+        subscription_app,
+        payment_asset: _,
+    } = setup_native()?;
+
+    let subscriber1 = Addr::unchecked("subscriber1");
+    let subscriber2 = Addr::unchecked("subscriber2");
+
+    let sub_amount = coins(500, DENOM);
+    chain.set_balances(&[(&subscriber1, &sub_amount), (&subscriber2, &sub_amount)])?;
+
+    // 2 people subscribe
+    subscription_app
+        .call_as(&subscriber1)
+        .pay(None, None, &sub_amount)?;
+    subscription_app
+        .call_as(&subscriber2)
+        .pay(None, None, &sub_amount)?;
+
+    chain.wait_seconds(WEEK_IN_SECONDS)?;
+
+    let emis = Cw20Base::new("abstract:emission_cw20", chain.clone());
+
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    // check balance
+    let balance = emis.balance(subscriber1.to_string())?;
+    assert_eq!(balance.balance, Uint128::one());
+
+    // wait 20 seconds
+    chain.wait_seconds(20)?;
+    // no double-claims
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    let balance = emis.balance(subscriber1.to_string())?;
+    assert_eq!(balance.balance, Uint128::one());
+
+    // -20 seconds because he claimed nothing last time
+    chain.wait_seconds(WEEK_IN_SECONDS - 20)?;
+
+    subscription_app.claim_emissions(subscriber1.to_string())?;
+    // check balance
+    let balance = emis.balance(subscriber1.to_string())?;
+    assert_eq!(balance.balance, Uint128::one() + Uint128::one());
+    Ok(())
+}
+
+// Helper to raw_query twa
+fn query_twa(chain: &Mock, subscription_addr: Addr) -> TimeWeightedAverageData {
+    let app = chain.app.borrow();
+    let querier = app.wrap();
+    abstract_subscription::state::INCOME_TWA
+        .query(&querier, subscription_addr)
+        .unwrap()
 }
