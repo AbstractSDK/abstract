@@ -17,6 +17,10 @@ starting_dir=$(pwd)
 echo "Wasming framework"
 cd ./framework
 
+# Remove for docker to successfuly copy
+rm packages/abstract-interface/state.json
+rm packages/abstract-interface/build.rs
+
 # Delete the current artifacts folder.
 # rm -rf ./artifacts
 
