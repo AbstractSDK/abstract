@@ -14,3 +14,6 @@ pub mod version_registry;
 pub mod distribution;
 #[cfg(feature = "stargate")]
 pub mod grant;
+
+#[cfg(feature = "ica")]
+pub mod ica_controller;
