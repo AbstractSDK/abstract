@@ -33,7 +33,6 @@ docker cp Cargo.lock with_code:/code
 # copy code into this volume
 docker cp ./contracts with_code:/code
 docker cp ./packages with_code:/code
-docker cp ./scripts with_code:/code
 # Run the build
 docker run --volumes-from with_code ${abstract_image}:0.15.0
 # Copy the artifacts back out
