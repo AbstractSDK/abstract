@@ -24,7 +24,7 @@ abstract-dex-standard = { version = "0.19.2" }
 
 #Abstract dependencies 
 cw20 = { version = "0.15", optional = true }
-abstract-sdk = { version = "0.19.2", optional = true, path = "../../framework/packages/abstract-sdk" }
+abstract-sdk = { version = "0.19.2", optional = true }
 cw-asset = { version = "3.0.0", optional = true }
 cw-utils = { version = "1.0.1", optional = true }
 osmosis-std = { version = "=0.19.1", optional = true }
