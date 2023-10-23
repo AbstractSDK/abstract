@@ -11,7 +11,7 @@ on:
       - framework/**
 
 env: 
-  CODECOV_TOKEN: 7f09ca79-34d7-4a5a-b6fd-b3b477a7b2e9
+  CODECOV_TOKEN: 34d23f19-66bf-40e6-a2c9-f222c9e9f614
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
 
