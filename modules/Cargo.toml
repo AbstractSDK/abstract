@@ -9,7 +9,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.19.0"
+version = "0.19.2"
 authors = [
   "CyberHoward <cyberhoward@protonmail.com>",
   "Riada <riada@abstract.money>",
@@ -31,8 +31,10 @@ cw-storage-plus = "~1.1"
 cw2 = { version = "1.0" }
 cw20-base = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", features = [
   "library",
-], tag = "v0.17.0" }
-cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v0.17.0" }
+], tag = "v1.1.1" }
+cw-plus-interface = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "0.1.0", tag = "v1.1.1" }
+
+cw20 = { git = "https://github.com/AbstractSDK/cw-plus.git", version = "1.0.1", tag = "v1.1.1" }
 
 cw-asset = { version = "3.0" }
 cw-ownable = { version = "0.5" }
@@ -40,29 +42,30 @@ cw-address-like = { version = "1.0" }
 
 schemars = "0.8"
 serde = { version = "1.0", default-features = false, features = ["derive"] }
-thiserror = { version = "<=1.0.48" }
+thiserror = { version = "1.0.50" }
 protobuf = { version = "2", features = ["with-bytes"] }
 
 chrono = { version = "0.4.31", default-features = false }
 clap = { version = "4.0.32", features = ["derive"] }
 semver = "1.0"
 cw-semver = { version = "1.0" }
-cw-orch = { version = "0.16.3" }
+cw-orch = { version = "0.16.4" }
 tokio = { version = "1.4", features = ["full"] }
 
 ## crates in order of publishing ## see docs/Publishing.md
 
-abstract-interface = { version = "0.19.0" }
-abstract-adapter = { version = "0.19.0" }
-abstract-app = { version = "0.19.0" }
-abstract-sdk = { version = "0.19.0" }
-abstract-testing = { version = "0.19.0" }
-abstract-core = { version = "0.19.0" }
-abstract-macros = { version = "0.19.0" }
+abstract-interface = { version = "0.19.2" }
+abstract-adapter = { version = "0.19.2" }
+abstract-app = { version = "0.19.2" }
+abstract-sdk = { version = "0.19.2" }
+abstract-testing = { version = "0.19.2" }
+abstract-core = { version = "0.19.2" }
+abstract-macros = { version = "0.19.2" }
+abstract-ica = { version = "0.19.2" }
 
-abstract-adapter-utils = { version = "0.19.0" }
-abstract-dex-standard = { version = "0.19.0" }
-abstract-staking-standard = { version = "0.19.0" }
+abstract-adapter-utils = { version = "0.19.2" }
+abstract-dex-standard = { version = "0.19.2" }
+abstract-staking-standard = { version = "0.19.2" }
 
 # Juno dexes #
 abstract-wyndex-adapter = { path = "../integrations/wyndex/packages/wyndex-adapter", default-features = false }

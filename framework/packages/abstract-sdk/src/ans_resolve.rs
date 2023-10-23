@@ -1,12 +1,12 @@
 //! # AnsHost Entry
 //! An entry (value) in the ans_host key-value store.
 
-use crate::AbstractSdkResult;
-use abstract_core::objects::AnsEntryConvertor;
-use core::objects::{
+use crate::core::objects::{
     ans_host::AnsHost, pool_metadata::ResolvedPoolMetadata, AnsAsset, AssetEntry, ChannelEntry,
     ContractEntry, DexAssetPairing, LpToken, PoolMetadata, PoolReference, UniquePoolId,
 };
+use crate::AbstractSdkResult;
+use abstract_core::objects::AnsEntryConvertor;
 use cosmwasm_std::{Addr, QuerierWrapper};
 use cw_asset::{Asset, AssetInfo};
 
@@ -369,7 +369,7 @@ mod tests {
     mod pool_metadata {
         use super::*;
 
-        use core::objects::PoolType;
+        use crate::core::objects::PoolType;
 
         #[test]
         fn exists() {
@@ -425,8 +425,8 @@ mod tests {
 
     mod pools {
         use super::*;
+        use crate::core::objects::{PoolAddress, PoolType};
         use abstract_core::ans_host::state::{ASSET_PAIRINGS, POOL_METADATA};
-        use core::objects::{PoolAddress, PoolType};
 
         #[test]
         fn exists() {
@@ -474,7 +474,7 @@ mod tests {
 
     mod contract_entry {
         use super::*;
-        use core::ans_host::state::CONTRACT_ADDRESSES;
+        use crate::core::ans_host::state::CONTRACT_ADDRESSES;
 
         #[test]
         fn exists() {
@@ -549,7 +549,7 @@ mod tests {
         use abstract_core::objects::chain_name::ChainName;
 
         use super::*;
-        use core::ans_host::state::CHANNELS;
+        use crate::core::ans_host::state::CHANNELS;
         use std::str::FromStr;
 
         #[test]
@@ -586,7 +586,7 @@ mod tests {
 
     mod asset_info_and_asset {
         use super::*;
-        use core::ans_host::state::REV_ASSET_ADDRESSES;
+        use crate::core::ans_host::state::REV_ASSET_ADDRESSES;
 
         #[test]
         fn exists() {

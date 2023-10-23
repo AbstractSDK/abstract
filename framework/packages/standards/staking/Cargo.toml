@@ -32,10 +32,10 @@ cw-utils = "1.0.1"
 
 abstract-core = { workspace = true }
 abstract-sdk = { workspace = true }
-abstract-adapter = { workspace = true }
 abstract-adapter-utils = { workspace = true }
 cw-orch = { workspace = true, optional = true }
-abstract-interface = { workspace = true, optional = true }
+abstract-interface = { path = "../../abstract-interface", version = "0.19", optional = true }
+abstract-adapter = { path = "../../abstract-adapter", version = "0.19" }
 
 [dev-dependencies]
 abstract-interface = { workspace = true, features = ["daemon"] }
