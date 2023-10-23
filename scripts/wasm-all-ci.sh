@@ -18,7 +18,7 @@ echo "Wasming framework"
 cd ./framework
 
 # Delete the current artifacts folder.
-rm -rf ./artifacts
+# rm -rf ./artifacts
 
 # Create lock file if it does not exist
 if [ ! -f Cargo.lock ]; then
@@ -61,7 +61,7 @@ if [ ! -f Cargo.lock ]; then
 fi
 
 # Delete the current artifacts folder.
-rm -rf ./artifacts
+# rm -rf ./artifacts
 # copy a config file into this volume
 docker cp Cargo.toml modules_with_code:/code
 docker cp Cargo.lock modules_with_code:/code
