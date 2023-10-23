@@ -32,7 +32,14 @@ workflows:
     when: 
       equal: [ "modules_coverage", << pipeline.parameters.GHA_Meta >>]
     jobs: 
-      - coverage
+      - modules-coverage
+
+  framework-coverage:
+    when: 
+      equal: [ "framework_coverage", << pipeline.parameters.GHA_Meta >>]
+    jobs: 
+      - framework-coverage
+
   # add this to give green ci when nothing is ran
   pass:
     jobs:
@@ -104,7 +111,7 @@ jobs:
             git commit -m 'Update deploy deploy file [skip ci]'
             git push origin $CIRCLE_BRANCH
 
-  coverage:
+  modules-coverage:
     docker:
       - image: cimg/rust:1.72.0
     resource_class: xlarge
@@ -118,6 +125,21 @@ jobs:
             ./scripts/modules-coverage.sh
       - codecov/upload:
           file: ./modules/lcov.info
+  
+  framework-coverage:
+    docker:
+      - image: cimg/rust:1.72.0
+    resource_class: xlarge
+    steps:
+      - setup_remote_docker:
+          version: 20.10.14
+      - checkout
+      - run:
+          name: Run tests with coverage for framework
+          command: |
+            ./scripts/framework-coverage.sh
+      - codecov/upload:
+          file: ./framework/lcov.info
 
   pass: 
     docker:
