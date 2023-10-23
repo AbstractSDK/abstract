@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased] - yyyy-mm-dd
 
-## [0.19.0] - 2023-09-26
-
 ### Added
 
 - `AppDeployer` and `AdapterDeployer` now take a `DeployStrategy` field.
