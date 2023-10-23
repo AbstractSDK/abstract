@@ -6,8 +6,8 @@ license = { workspace = true }
 description = "base app contract implementation"
 resolver = "2"
 
-# [lib]
-# crate-type = ["cdylib", "rlib"]
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 
 [features]
