@@ -39,7 +39,7 @@ fn main() {
     // .unwrap();
 
     // We also verify that the local artifacts fir exists
-    // assert!(std::fs::metadata(artifacts_path).is_ok(), "You should create an artifacts dir in your crate to export the wasm files along with the cw-orch library");
+    assert!(std::fs::metadata(artifacts_path).is_ok(), "You should create an artifacts dir in your crate to export the wasm files along with the cw-orch library");
 
     println!("cargo:rerun-if-changed=build.rs");
     // println!("cargo:rerun-if-changed={}", absolute_state_path.display());
