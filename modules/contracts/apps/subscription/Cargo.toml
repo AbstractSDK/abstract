@@ -51,6 +51,6 @@ cw20 = { workspace = true, features = ["interface"] }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 clap = { workspace = true }
-
+cw-plus-interface = { workspace = true }
 abstract-subscription = { path = ".", features = ["interface"] }
 cw20-base = { workspace = true, features = ["interface"] }

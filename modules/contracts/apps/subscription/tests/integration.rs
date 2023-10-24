@@ -15,9 +15,10 @@ use abstract_subscription::{
 };
 
 use abstract_subscription::contract::SUBSCRIPTION_ID;
-use cw20::{Cw20Coin, Cw20ExecuteMsgFns};
-use cw20_base::{contract::Cw20Base, msg::QueryMsgFns};
+use cw20::{msg::Cw20ExecuteMsgFns, Cw20Coin};
+use cw20_base::msg::QueryMsgFns;
 use cw_asset::{AssetInfo, AssetInfoBase, AssetInfoUnchecked};
+use cw_plus_interface::cw20_base::Cw20Base;
 // Use prelude to get all the necessary imports
 use cw_orch::{anyhow, deploy::Deploy, prelude::*};
 
