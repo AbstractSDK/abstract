@@ -2,7 +2,9 @@
 members = [
   "astroport-adapter",
   "bundles/*",
-  "osmosis-adapter","wyndex-adapter","kujira-adapter"
+  "osmosis-adapter",
+  "wyndex-adapter",
+  "kujira-adapter",
 ]
 
 resolver = "2"

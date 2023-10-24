@@ -30,7 +30,7 @@ cosmwasm-std = { workspace = true }
 abstract-staking-standard = { workspace = true }
 abstract-dex-standard = { workspace = true }
 abstract-sdk = { workspace = true }
-cw20 = { workspace=true, optional = true }
+cw20 = { workspace = true, optional = true }
 cosmwasm-schema = { workspace = true, optional = true }
 cw-asset = { workspace = true, optional = true }
 cw-utils = { workspace = true, optional = true }
