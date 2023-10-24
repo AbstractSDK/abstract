@@ -49,6 +49,7 @@ use {
         msg::{BondingInfoResponse, ExecuteMsg as StakeCw20ExecuteMsg},
         state::{BondingInfo, STAKE},
     },
+    wyndex_stake::msg::ReceiveDelegationMsg,
 };
 
 #[cfg(feature = "full_integration")]
