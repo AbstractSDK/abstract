@@ -232,7 +232,6 @@ pub fn claim_emissions_msg(
         .time
         .minus_seconds(subscriber.last_emission_claim_timestamp.seconds());
     let weeks_passed = duration.seconds() / WEEK_IN_SECONDS;
-    println!("weeks_passed: {weeks_passed}");
 
     let asset = match subscription_per_week_emissions {
         crate::state::EmissionType::None => {

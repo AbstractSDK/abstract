@@ -62,9 +62,6 @@ impl<'a> TimeWeightedAverage<'a> {
         twa.last_block_time = block_time;
 
         if !current_value.is_zero() {
-            println!("cum_val: {}", twa.cumulative_value);
-            println!("current_value: {current_value}");
-            println!("time_elapsed: {}", time_elapsed);
             twa.cumulative_value = twa
                 .cumulative_value
                 .wrapping_add(time_elapsed.mul(current_value).u128());
